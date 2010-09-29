@@ -73,13 +73,9 @@ struct internal_stuff
 
 static std::string my_av_strerror(int err)
 {
-#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(52, 72, 2)
     blob b(1024);
     av_strerror(err, b.ptr<char>(), b.size());
     return std::string(b.ptr<const char>());
-#else
-    return std::string("unknown error");
-#endif
 }
 
 static void my_av_log(void *ptr, int level, const char *fmt, va_list vl)
@@ -112,7 +108,6 @@ static void my_av_log(void *ptr, int level, const char *fmt, va_list vl)
         msg::level_t l;
         switch (level)
         {
-#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(52, 72, 2)
         case AV_LOG_PANIC:
         case AV_LOG_FATAL:
         case AV_LOG_ERROR:
@@ -127,14 +122,6 @@ static void my_av_log(void *ptr, int level, const char *fmt, va_list vl)
         default:
             l = msg::DBG;
             break;
-#else
-        case AV_LOG_ERROR:
-            l = msg::WRN;
-            break;
-        default:
-            l = msg::DBG;
-            break;
-#endif
         }
         size_t n;
         while ((n = line.find('\n')) != std::string::npos)
@@ -153,7 +140,6 @@ decoder_ffmpeg::decoder_ffmpeg() throw ()
     av_register_all();
     switch (msg::level())
     {
-#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(52, 72, 2)
     case msg::DBG:
         av_log_set_level(AV_LOG_DEBUG);
         break;
@@ -170,22 +156,6 @@ decoder_ffmpeg::decoder_ffmpeg() throw ()
     default:
         av_log_set_level(AV_LOG_FATAL);
         break;
-#else
-    case msg::DBG:
-        av_log_set_level(AV_LOG_DEBUG);
-        break;
-    case msg::INF:
-        av_log_set_level(AV_LOG_WARNING);
-        break;
-    case msg::WRN:
-    case msg::ERR:
-        av_log_set_level(AV_LOG_ERROR);
-        break;
-    case msg::REQ:
-    default:
-        av_log_set_level(AV_LOG_FATAL);
-        break;
-#endif
     }
     av_log_set_callback(my_av_log);
 }
@@ -506,16 +476,9 @@ int64_t decoder_ffmpeg::read_video_frame(int video_stream)
         }
         _stuff->packets[video_stream] = _stuff->video_packet_queues[video_stream].front();
         _stuff->video_packet_queues[video_stream].pop_front();
-#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(52, 72, 2)
         avcodec_decode_video2(_stuff->video_codec_ctxs[video_stream],
                 _stuff->frames[video_stream], &frame_finished,
                 &(_stuff->packets[video_stream]));
-#else
-        avcodec_decode_video(_stuff->video_codec_ctxs[video_stream],
-                _stuff->frames[video_stream], &frame_finished,
-                _stuff->packets[video_stream].data,
-                _stuff->packets[video_stream].size);
-#endif
     }
     while (!frame_finished);
 
@@ -610,14 +573,8 @@ int64_t decoder_ffmpeg::read_audio_data(int audio_stream, void *buffer, size_t s
             {
                 int tmpbuf_size = (AVCODEC_MAX_AUDIO_FRAME_SIZE * 3) / 2;
                 unsigned char tmpbuf[tmpbuf_size];
-#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(52, 72, 2)
                 int len = avcodec_decode_audio3(_stuff->audio_codec_ctxs[audio_stream],
                         reinterpret_cast<int16_t *>(tmpbuf), &tmpbuf_size, &tmppacket);
-#else
-                int len = avcodec_decode_audio2(_stuff->audio_codec_ctxs[audio_stream],
-                        reinterpret_cast<int16_t *>(tmpbuf), &tmpbuf_size,
-                        tmppacket.data, tmppacket.size);
-#endif
                 if (len < 0)
                 {
                     tmppacket.size = 0;
