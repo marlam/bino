@@ -47,21 +47,24 @@ AC_SEARCH_LIBS([clock_gettime], [rt])
 AC_CHECK_FUNCS([backtrace])
 
 dnl ffmpeg
-PKG_CHECK_MODULES([libavformat], [libavformat >= 0.0], [HAVE_LIBAVFORMAT=1], [HAVE_LIBAVFORMAT=0])
+PKG_CHECK_MODULES([libavformat], [libavformat >= 52.78.5], [HAVE_LIBAVFORMAT=1], [HAVE_LIBAVFORMAT=0])
 if test "$HAVE_LIBAVFORMAT" != "1"; then
-    AC_MSG_WARN([libavformat not found])
+    AC_MSG_WARN([libavformat >= 52.78.5 not found:])
+    AC_MSG_WARN([$libavformat_PKG_ERRORS])
     AC_MSG_WARN([libavformat is provided by ffmpeg; Debian package: libavformat-dev])
 fi
-PKG_CHECK_MODULES([libswscale], [libswscale >= 0.0], [HAVE_LIBSWSCALE=1], [HAVE_LIBSWSCALE=0])
+PKG_CHECK_MODULES([libswscale], [libswscale >= 0.11.0], [HAVE_LIBSWSCALE=1], [HAVE_LIBSWSCALE=0])
 if test "$HAVE_LIBSWSCALE" != "1"; then
-    AC_MSG_WARN([libswscale not found])
+    AC_MSG_WARN([libswscale >= 0.11.0 not found:])
+    AC_MSG_WARN([$libswscale_PKG_ERRORS])
     AC_MSG_WARN([libswscale is provided by ffmpeg; Debian package: libswscale-dev])
 fi
 
 dnl glew
 PKG_CHECK_MODULES([libglew], [glew >= 1.5.0], [HAVE_LIBGLEW=1], [HAVE_LIBGLEW=0])
 if test "$HAVE_LIBGLEW" != "1"; then
-    AC_MSG_WARN([libglew not found])
+    AC_MSG_WARN([libglew >= 1.5.0 not found:])
+    AC_MSG_WARN([$libglew_PKG_ERRORS])
     AC_MSG_WARN([libglew is provided by glew; Debian package: libglew-dev])
 fi
 
@@ -78,7 +81,8 @@ fi
 dnl freealut
 PKG_CHECK_MODULES([libalut], [freealut >= 0.0], [HAVE_LIBALUT=1], [HAVE_LIBALUT=0])
 if test "$HAVE_LIBALUT" != "1"; then
-    AC_MSG_WARN([libalut not found])
+    AC_MSG_WARN([libalut not found:])
+    AC_MSG_WARN([$libalut_PKG_ERRORS])
     AC_MSG_WARN([libalut is provided by freealut; Debian package: libalut-dev])
 fi
 
