@@ -1,0 +1,91 @@
+.\" -*-nroff-*-
+.\"
+.\" Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+.\"
+.\" Copying and distribution of this file, with or without modification, are
+.\" permitted in any medium without royalty provided the copyright notice and this
+.\" notice are preserved. This file is offered as-is, without any warranty.
+.TH Bino 1 2010-09
+.SH NAME
+Bino - a player for stereoscopic videos.
+.SH SYNOPSIS
+.B bino
+[option...] file-0 [file-1] [file-2]
+.SH DESCRIPTION
+Bino plays stereoscopic videos, also known as 3D videos. Such videos have
+separate views for the left and right eye and thus allow depth perception
+through stereopsis.
+.br
+The input streams (one or two video streams, zero or one audio streams)
+can be in one, two, or three input files. The files are decoded with the
+\fBffmpeg\fP libraries.
+.IP "\-\-help"
+Print help
+.IP "\-\-version"
+Print version
+.IP "\-l|\-\-log\-level=\fILEVEL\fP"
+Select log level:
+\fIdebug\fP, \fIinfo\fP, \fIwarning\fP, \fIerror\fP, or \fIquiet\fP.
+.IP "\-i|\-\-input=\fITYPE\fP"
+Select input type:
+\fImono\fP (single view),
+\fIseparate\fP (left/right view separate),
+\fItop\-bottom\fP (left view top, right view bottom),
+\fItop\-bottom\-half\fP (left view top, right view bottom, half height),
+\fIleft\-right\fP (left view left, right view right),
+\fIleft\-right\-half\fP (left view left, right view right, half width),
+\fIeven\-odd\-rows\fP (left view even rows, right view odd rows).
+.br
+The default is to autodetect the type.
+.IP "\-o|\-\-output=\fITYPE\fP"
+Select output type: 
+\fImono\-left\fP (only left view),
+\fImono\-right\fP (only right view),
+\fItop\-bottom\-half\fP (left view top, right view bottom, half height),
+\fIleft\-right\-half\fP (left view left, right view right, half width),
+\fIeven\-odd\-rows\fP (left view even rows, right view odd rows),
+\fIeven\-odd\-columns\fP (left view even columns, right view odd columns),
+\fIanaglyph\fP (red/cyan anaglyph, default method, same as \fIanaglyph\-dubois\fP),
+\fIanaglyph\-monochrome\fP (red/cyan anaglyph, monochrome method),
+\fIanaglyph\-full\-color\fP (red/cyan anaglyph, full color method),
+\fIanaglyph\-half\-color\fP (red/cyan anaglyph, half color method),
+\fIanaglyph\-dubois\fP (red/cyan anaglyph, high\-quality Dubois method),
+\fIstereo\fP (OpenGL quad\-buffer stereo).
+For stereo input, the default is \fIstereo\fP if the display supports it,
+otherwise \fIanaglyph\fP. The default for mono input is \fImono\-left\fP.
+.IP "\-f|\-\-fullscreen"
+Fullscreen
+.IP "\-c|\-\-center"
+Center window on screen
+.IP "\-s|\-\-swap\-eyes"
+Swap left/right view
+.SH INTERACTIVE CONTROL
+.IP "q or ESC"
+quit
+.IP "p or SPACE"
+Pause / unpause
+.IP "f"
+Toggle fullscreen
+.IP "s"
+Swap left/right view
+.IP "1, 2"
+Adjust contrast
+.IP "3, 4"
+Adjust brightness
+.IP "5, 6"
+Adjust hue
+.IP "7, 8"
+Adjust saturation
+.IP "9, 0"
+Adjust gamma
+.IP "left, right"
+Seek 10 seconds backward / forward
+.IP "up, down"
+Seek 1 minute backward / forward
+.IP "page up, page down"
+Seek 10 minutes backward / forward
+.SH AUTHORS
+Bino was written by Martin Lambers <marlam@marlam.de>.
+.SH SEE ALSO
+.BR mplayer (1),
+.BR ffmpeg (1)

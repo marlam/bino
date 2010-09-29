@@ -1,0 +1,311 @@
+/*
+ * This file is part of bino, a program to play stereoscopic videos.
+ *
+ * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "config.h"
+
+#include <string>
+
+#include "exc.h"
+#include "str.h"
+#include "msg.h"
+#include "timer.h"
+#include "debug.h"
+
+#include "audio_output_openal.h"
+
+/* This code is adapted from the alffmpeg.c example available here:
+ * http://kcat.strangesoft.net/alffmpeg.c (as of 2010-09-12). */
+
+
+const size_t audio_output_openal::_num_buffers = 3;
+const size_t audio_output_openal::_buffer_size = 20160;
+
+audio_output_openal::audio_output_openal() throw ()
+{
+}
+
+audio_output_openal::~audio_output_openal()
+{
+}
+
+void audio_output_openal::open(int rate, int channels, int bits)
+{
+    _buffers.resize(_num_buffers);
+    _data.resize(_buffer_size);
+
+    if (!alutInit(NULL, NULL))
+    {
+        throw exc(std::string("cannot initialize OpenAL: ")
+                + alutGetErrorString(alutGetError()));
+    }
+    alGenBuffers(_num_buffers, &(_buffers[0]));
+    if (alGetError() != AL_NO_ERROR)
+    {
+        alutExit();
+        throw exc("cannot create OpenAL buffers");
+    }
+    alGenSources(1, &_source);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        alDeleteBuffers(_num_buffers, &(_buffers[0]));
+        alutExit();
+        throw exc("cannot create OpenAL source");
+    }
+    /* Comment from alffmpeg.c:
+     * "Set parameters so mono sources won't distance attenuate" */
+    alSourcei(_source, AL_SOURCE_RELATIVE, AL_TRUE);
+    alSourcei(_source, AL_ROLLOFF_FACTOR, 0);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        alDeleteSources(1, &_source);
+        alDeleteBuffers(_num_buffers, &(_buffers[0]));
+        alutExit();
+        throw exc("cannot set OpenAL source parameters");
+    }
+
+    if (bits == 8)
+    {
+        if (channels == 1)
+        {
+            _format = AL_FORMAT_MONO8;
+        }
+        else if (channels == 2)
+        {
+            _format = AL_FORMAT_STEREO8;
+        }
+        else if (alIsExtensionPresent("AL_EXT_MCFORMATS"))
+        {
+            if (channels == 4)
+            {
+                _format = alGetEnumValue("AL_FORMAT_QUAD8");
+            }
+            else if (channels == 6)
+            {
+                _format = alGetEnumValue("AL_FORMAT_51CHN8");
+            }
+            else if (channels == 7)
+            {
+                _format = alGetEnumValue("AL_FORMAT_71CHN8");
+            }
+            else if (channels == 8)
+            {
+                _format = alGetEnumValue("AL_FORMAT_81CHN8");
+            }
+        }
+    }
+    else if (bits == 16)
+    {
+        if (channels == 1)
+        {
+            _format = AL_FORMAT_MONO16;
+        }
+        else if (channels == 2)
+        {
+            _format = AL_FORMAT_STEREO16;
+        }
+        else if (alIsExtensionPresent("AL_EXT_MCFORMATS"))
+        {
+            if (channels == 4)
+            {
+                _format = alGetEnumValue("AL_FORMAT_QUAD16");
+            }
+            else if (channels == 6)
+            {
+                _format = alGetEnumValue("AL_FORMAT_51CHN16");
+            }
+            else if (channels == 7)
+            {
+                _format = alGetEnumValue("AL_FORMAT_61CHN16");
+            }
+            else if (channels == 8)
+            {
+                _format = alGetEnumValue("AL_FORMAT_71CHN16");
+            }
+        }
+    }
+    if (_format == 0)
+    {
+        alDeleteSources(1, &_source);
+        alDeleteBuffers(_num_buffers, &(_buffers[0]));
+        alutExit();
+        throw exc(std::string("cannot set OpenAL format for source with ")
+                + str::from(channels) + " channels and "
+                + str::from(bits) + " bits");
+    }
+    _state = 0;
+    _rate = rate;
+    _channels = channels;
+    _bits = bits;
+}
+
+int64_t audio_output_openal::status(size_t *required_data)
+{
+    if (_state == 0)
+    {
+        if (required_data)
+        {
+            *required_data = _num_buffers * _buffer_size;
+        }
+        return -1;
+    }
+    else
+    {
+        ALint processed = 0;
+        alGetSourcei(_source, AL_BUFFERS_PROCESSED, &processed);
+        if (processed == 0)
+        {
+            alGetSourcei(_source, AL_SOURCE_STATE, &_state);
+            if (alGetError() != AL_NO_ERROR)
+            {
+                throw exc("cannot check OpenAL source state");
+            }
+            if (_state != AL_PLAYING)
+            {
+                alSourcePlay(_source);
+                if (alGetError() != AL_NO_ERROR)
+                {
+                    throw exc("cannot restart OpenAL source playback");
+                }
+            }
+            if (required_data)
+            {
+                *required_data = 0;
+            }
+        }
+        else
+        {
+            if (required_data)
+            {
+                *required_data = _buffer_size;
+            }
+        }
+        ALint o;
+        alGetSourcei(_source, AL_SAMPLE_OFFSET, &o);
+        /* Add the base time to the offset. Each count of _basetime
+         * represents one buffer, which is _buffer_size in bytes */
+        int64_t offset = o + _basetime * (_buffer_size / _channels * 8 / _bits);
+        int64_t timestamp = offset * 1000000 / _rate;
+        /* This timestamp unfortunately only grows in relatively large steps. This is
+         * too imprecise for syncing a video stream with. Therefore, we use an external
+         * time source between two timestamp steps. In case this external time runs
+         * faster than the audio time, we also need to make sure that we do not report
+         * timestamps that run backwards. */
+        if (timestamp != _last_timestamp)
+        {
+            _last_timestamp = timestamp;
+            _ext_timer_at_last_timestamp = timer::get_microseconds(timer::monotonic);
+            _last_reported_timestamp = std::max(_last_reported_timestamp, timestamp);
+            return _last_reported_timestamp;
+        }
+        else
+        {
+            _last_reported_timestamp = _last_timestamp + (timer::get_microseconds(timer::monotonic) - _ext_timer_at_last_timestamp);
+            return _last_reported_timestamp;
+        }
+    }
+}
+
+void audio_output_openal::data(const void *buffer, size_t size)
+{
+    msg::dbg(std::string("buffering ") + str::from(size) + " bytes of audio data");
+    if (_state == 0)
+    {
+        for (size_t j = 0; j < _num_buffers; j++)
+        {
+            alBufferData(_buffers[j], _format, buffer, _buffer_size, _rate);
+            alSourceQueueBuffers(_source, 1, &(_buffers[j]));
+            buffer = static_cast<const unsigned char *>(buffer) + _buffer_size;
+        }
+        if (alGetError() != AL_NO_ERROR)
+        {
+            throw exc("cannot buffer initial OpenAL data");
+        }
+    }
+    else if (size > 0)
+    {
+        ALuint buf = 0;
+        alSourceUnqueueBuffers(_source, 1, &buf);
+        if (buf != 0)
+        {
+            alBufferData(buf, _format, buffer, size, _rate);
+            alSourceQueueBuffers(_source, 1, &buf);
+            _basetime++;
+        }
+        if (alGetError() != AL_NO_ERROR)
+        {
+            throw exc("cannot buffer OpenAL data");
+        }
+    }
+}
+
+int64_t audio_output_openal::start()
+{
+    msg::dbg("starting audio output");
+    assert(_state == 0);
+    alSourcePlay(_source);
+    alGetSourcei(_source, AL_SOURCE_STATE, &_state);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        throw exc("cannot start OpenAL source playback");
+    }
+    _basetime = 0;
+    _last_timestamp = 0;
+    _ext_timer_at_last_timestamp = timer::get_microseconds(timer::monotonic);
+    _last_reported_timestamp = _last_timestamp;
+    return _last_timestamp;
+}
+
+void audio_output_openal::pause()
+{
+    alSourcePause(_source);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        throw exc("cannot pause OpenAL source playback");
+    }
+}
+
+void audio_output_openal::unpause()
+{
+    alSourcePlay(_source);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        throw exc("cannot unpause OpenAL source playback");
+    }
+}
+
+void audio_output_openal::stop()
+{
+    alSourceStop(_source);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        throw exc("cannot stop OpenAL source playback");
+    }
+}
+
+void audio_output_openal::close()
+{
+    do
+    {
+        alGetSourcei(_source, AL_SOURCE_STATE, &_state);
+    }
+    while (alGetError() == AL_NO_ERROR && _state == AL_PLAYING);
+    alDeleteSources(1, &_source);
+    alDeleteBuffers(_num_buffers, &(_buffers[0]));
+    alutExit();
+}
