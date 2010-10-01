@@ -44,31 +44,30 @@ uniform sampler2D v_r;
 
 uniform float contrast;
 uniform float brightness;
-uniform float hue;
 uniform float saturation;
+uniform float cos_hue;
+uniform float sin_hue;
 
 const float pi = 3.14159265358979323846;
 
 #if defined input_rgb24
 vec3 rgb_to_yuv(vec3 rgb)
 {
-    mat3 m = mat3(
-            0.299, -0.14713,  0.615,
-            0.587, -0.28886, -0.51499,
-            0.114,  0.436,   -0.10001);
-    return m * rgb;
+    // Values taken from http://www.fourcc.org/fccyvrgb.php
+    float y = dot(rgb, vec3(0.299, 0.587, 0.114));
+    float u = 0.564 * (rgb.b - y) + 0.5;
+    float v = 0.713 * (rgb.r - y) + 0.5;
+    return vec3(y, u, v);
 }
 #endif
 
 vec3 yuv_to_rgb(vec3 yuv)
 {
-    float a = 1.1643 * (yuv.x - 0.0625);
-    float b = yuv.y - 0.5;
-    float c = yuv.z - 0.5;
-    return vec3(
-            a + 1.5958 * c,
-            a - 0.39173 * b - 0.81290 * c,
-            a + 2.016 * b);
+    // Values taken from http://www.fourcc.org/fccyvrgb.php
+    float r = yuv.x                         + 1.403 * (yuv.z - 0.5);
+    float g = yuv.x - 0.344 * (yuv.y - 0.5) - 0.714 * (yuv.z - 0.5);
+    float b = yuv.x + 1.770 * (yuv.y - 0.5);
+    return vec3(r, g, b);
 }
 
 vec3 adjust_yuv(vec3 yuv)
@@ -76,31 +75,13 @@ vec3 adjust_yuv(vec3 yuv)
     // Adapted from http://www.silicontrip.net/~mark/lavtools/yuvadjust.c
     // (Copyright 2002 Alfonso Garcia-Patiño Barbolani, released under GPLv2 or later)
     
-    // Note: we don't clamp here, since the rgb values computed from these yuv values
-    // will be clamped automatically. Should we clamp anyway?
+    // brightness and contrast
+    float ay = (yuv.x - 0.5) * (contrast + 1.0) + brightness + 0.5;
+    // hue and saturation
+    float au = (cos_hue * (yuv.y - 0.5) - sin_hue * (yuv.z - 0.5)) * (saturation + 1.0) + 0.5;
+    float av = (sin_hue * (yuv.y - 0.5) + cos_hue * (yuv.z - 0.5)) * (saturation + 1.0) + 0.5;
 
-    const float adj_con_cen = 0.5;
-    const float adj_u = 0.0;
-    const float adj_v = 0.0;
-    float y, u, v;
-
-    // brightness and contrast operation
-    y = yuv.x - adj_con_cen;
-    y = y * (contrast + 1.0) + brightness + adj_con_cen;
-    
-    u = yuv.y - 0.5;
-    v = yuv.z - 0.5;
-
-    // hue rotation, saturation and shift
-    float h = hue * pi;
-    float cos_hue = cos(h);
-    float sin_hue = sin(h);
-    float nu = cos_hue * u - sin_hue * v * (saturation + 1.0) + adj_v;
-    float nv = sin_hue * u + cos_hue * v * (saturation + 1.0) + adj_u;
-    u = nu + 0.5;
-    v = nv + 0.5;
-
-    return vec3(y, u, v);
+    return vec3(ay, au, av);
 }
 
 void main()
@@ -113,8 +94,8 @@ void main()
             texture2D(y_l, gl_TexCoord[0].xy).x,
             texture2D(u_l, gl_TexCoord[0].xy).x,
             texture2D(v_l, gl_TexCoord[0].xy).x);
-    yuv_l = adjust_yuv(yuv_l);
 #endif
+    yuv_l = adjust_yuv(yuv_l);
 
 #if !defined mode_onechannel
     vec3 yuv_r;

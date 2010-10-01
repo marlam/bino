@@ -436,8 +436,9 @@ void video_output_opengl::display()
     {
         glUniform1f(glGetUniformLocation(_prg, "contrast"), _state.contrast);
         glUniform1f(glGetUniformLocation(_prg, "brightness"), _state.brightness);
-        glUniform1f(glGetUniformLocation(_prg, "hue"), _state.hue);
         glUniform1f(glGetUniformLocation(_prg, "saturation"), _state.saturation);
+        glUniform1f(glGetUniformLocation(_prg, "cos_hue"), std::cos(_state.hue * M_PI));
+        glUniform1f(glGetUniformLocation(_prg, "sin_hue"), std::sin(_state.hue * M_PI));
     }
 
     if (_mode == stereo)
