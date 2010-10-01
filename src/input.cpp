@@ -239,13 +239,14 @@ void input::open(std::vector<decoder *> decoders,
             _video_decoders[1], _video_streams[1],
             _audio_decoder, _audio_stream);
     msg::inf("input:");
-    msg::inf("    video: %dx%d, format %s, aspect ratio %g:1, %g fps, %g seconds,",
+    msg::inf("    video: %dx%d, format %s,",
             video_width(), video_height(),
-            (video_preferred_frame_format() == yuv420p ? "yuv420p" : "rgb24"),
+            (video_preferred_frame_format() == yuv420p ? "yuv420p" : "rgb24"));
+    msg::inf("        aspect ratio %g:1, %g fps, %g seconds,",
             video_aspect_ratio(),
             static_cast<float>(video_frame_rate_numerator()) / static_cast<float>(video_frame_rate_denominator()),
             duration() / 1e6f);
-    msg::inf("           stereo mode %s, input eye swap %s",
+    msg::inf("        stereo mode %s, input eye swap %s",
             (_mode == separate ? "separate-streams" : _mode == top_bottom ? "top-bottom"
              : _mode == left_right ? "left-right" : _mode == even_odd_rows ? "even-odd-rows" : "off"),
             (_swap_eyes ? "on" : "off"));

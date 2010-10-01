@@ -281,8 +281,11 @@ void decoder_ffmpeg::open(const std::string &filename)
     msg::inf(filename + ":");
     for (int i = 0; i < video_streams(); i++)
     {
-        msg::inf("    video stream %d: %dx%d, format %s, aspect ratio %g:1, %g fps, %g seconds", i,
-                video_width(i), video_height(i), video_preferred_frame_format(i) == yuv420p ? "yuv420p" : "rgb24",
+        msg::inf("    video stream %d: %dx%d, format %s,",
+                i, video_width(i), video_height(i),
+                _stuff->video_codec_ctxs.at(i)->pix_fmt == PIX_FMT_YUV420P ? "yuv420p"
+                : str::asprintf("%d (converted to rgb24)", _stuff->video_codec_ctxs.at(i)->pix_fmt).c_str());
+        msg::inf("        aspect ratio %g:1, %g fps, %g seconds",
                 static_cast<float>(video_aspect_ratio_numerator(i))
                 / static_cast<float>(video_aspect_ratio_denominator(i)),
                 static_cast<float>(video_frame_rate_numerator(i))
