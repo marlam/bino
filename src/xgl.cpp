@@ -306,14 +306,14 @@ GLuint xgl::CompileShader(const std::string &name, GLenum type, const std::strin
 
     if (e == GL_TRUE && log.length() > 0)
     {
-        msg::wrn("%s shader '%s': compiler warning:",
+        msg::wrn("OpenGL %s shader '%s': compiler warning:",
                 type == GL_VERTEX_SHADER ? "vertex" : type == GL_GEOMETRY_SHADER_ARB ? "geometry" : "fragment",
                 name.c_str());
         msg::wrn_txt("%s", log.c_str());
     }
     else if (e != GL_TRUE)
     {
-        std::string when = str::asprintf("%s shader '%s': compilation failed",
+        std::string when = str::asprintf("OpenGL %s shader '%s': compilation failed",
                 type == GL_VERTEX_SHADER ? "vertex" : type == GL_GEOMETRY_SHADER_ARB ? "geometry" : "fragment",
                 name.c_str());
         std::string what = str::asprintf("\n%s", log.length() > 0 ? log.c_str() : "unknown error");
