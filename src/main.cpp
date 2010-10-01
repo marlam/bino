@@ -361,7 +361,6 @@ int main(int argc, char *argv[])
             video_mode = video_output::stereo;
         }
         struct video_output::state video_state;
-        video_state.gamma = 1.0f;
         video_state.contrast = 0.0f;
         video_state.brightness = 0.0f;
         video_state.hue = 0.0f;

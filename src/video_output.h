@@ -45,7 +45,6 @@ public:
     };
     struct state
     {
-        float gamma;        // 0.1 - 4.0
         float contrast;     // -1 - +1
         float brightness;   // -1 - +1
         float hue;          // -1 - +1

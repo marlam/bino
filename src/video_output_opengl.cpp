@@ -633,12 +633,6 @@ void video_output_opengl::keyboard(unsigned char key, int, int)
     case 'p':
         send_cmd(command::toggle_pause);
         break;
-    case '9':
-        send_cmd(command::adjust_gamma, -0.05f);
-        break;
-    case '0':
-        send_cmd(command::adjust_gamma, +0.05f);
-        break;
     case '1':
         send_cmd(command::adjust_contrast, -0.05f);
         break;
@@ -832,10 +826,6 @@ void video_output_opengl::receive_notification(const notification &note)
         }
         break;
     case notification::pause:
-        break;
-    case notification::gamma:
-        _state.gamma = note.current.value;
-        glutPostRedisplay();
         break;
     case notification::contrast:
         _state.contrast = note.current.value;

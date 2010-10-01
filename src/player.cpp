@@ -295,10 +295,6 @@ void player::receive_cmd(const command &cmd)
         _pause_request = !_pause_request;
         /* notify when request is fulfilled */
         break;
-    case command::adjust_gamma:
-        value = std::max(std::min(video_state.gamma + cmd.param, 4.0f), 0.1f);
-        notify(notification::gamma, video_state.gamma, value);
-        break;
     case command::adjust_contrast:
         value = std::max(std::min(video_state.contrast + cmd.param, 1.0f), -1.0f);
         notify(notification::contrast, video_state.contrast, value);
