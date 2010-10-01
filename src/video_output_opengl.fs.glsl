@@ -48,8 +48,6 @@ uniform float saturation;
 uniform float cos_hue;
 uniform float sin_hue;
 
-const float pi = 3.14159265358979323846;
-
 #if defined input_rgb24
 vec3 rgb_to_yuv(vec3 rgb)
 {
