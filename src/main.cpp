@@ -148,7 +148,6 @@ int main(int argc, char *argv[])
                 "  3, 4                 Adjust brightness\n"
                 "  5, 6                 Adjust hue\n"
                 "  7, 8                 Adjust saturation\n"
-                "  9, 0                 Adjust gamma\n"
                 "  left, right          Seek 10 seconds backward / forward\n"
                 "  up, down             Seek 1 minute backward / forward\n"
                 "  page up, page down   Seek 10 minutes backward / forward",
