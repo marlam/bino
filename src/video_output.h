@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 
+#include "video_frame_format.h"
 #include "controller.h"
 
 
@@ -66,17 +67,21 @@ public:
 
     /* Initialize */
     virtual void open(
+            video_frame_format preferred_format,
             int src_width, int src_height, float src_aspect_ratio,
             int mode, const state &state, unsigned int flags,
             int win_width, int win_height) = 0;
+
+    /* Get the required video frame format. This can differ from the preferred format! */
+    virtual video_frame_format frame_format() const = 0;
 
     /* Get current state */
     virtual const struct state &state() const = 0;
 
     /* Prepare a left/right view pair for display */
     virtual void prepare(
-            const uint8_t *left, int left_row_width, int left_row_alignment,
-            const uint8_t *right, int right_row_width, int right_row_alignment) = 0;
+            uint8_t *l_data[3], size_t l_line_size[3],
+            uint8_t *r_data[3], size_t r_line_size[3]) = 0;
     /* Display the prepared left/right view pair */
     virtual void activate() = 0;
     /* Process window system events */

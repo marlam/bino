@@ -281,8 +281,8 @@ void decoder_ffmpeg::open(const std::string &filename)
     msg::inf(filename + ":");
     for (int i = 0; i < video_streams(); i++)
     {
-        msg::inf("    video stream %d: %dx%d, aspect ratio %g:1, %g fps, %g seconds", i,
-                video_width(i), video_height(i),
+        msg::inf("    video stream %d: %dx%d, format %s, aspect ratio %g:1, %g fps, %g seconds", i,
+                video_width(i), video_height(i), video_preferred_frame_format(i) == yuv420p ? "yuv420p" : "rgb24",
                 static_cast<float>(video_aspect_ratio_numerator(i))
                 / static_cast<float>(video_aspect_ratio_denominator(i)),
                 static_cast<float>(video_frame_rate_numerator(i))
@@ -379,6 +379,11 @@ int64_t decoder_ffmpeg::video_duration(int index) const throw ()
     int64_t duration = _stuff->format_ctx->streams[_stuff->video_streams.at(index)]->duration;
     AVRational time_base = _stuff->format_ctx->streams[_stuff->video_streams.at(index)]->time_base;
     return duration * 1000000 * time_base.num / time_base.den;
+}
+
+video_frame_format decoder_ffmpeg::video_preferred_frame_format(int index) const throw ()
+{
+    return (_stuff->video_codec_ctxs.at(index)->pix_fmt == PIX_FMT_YUV420P ? yuv420p : rgb24);
 }
 
 int decoder_ffmpeg::audio_rate(int index) const throw ()
@@ -497,23 +502,44 @@ int64_t decoder_ffmpeg::read_video_frame(int video_stream)
     return timestamp;
 }
 
-void decoder_ffmpeg::drop_video_frame(int video_stream)
+void decoder_ffmpeg::release_video_frame(int video_stream)
 {
     av_free_packet(&(_stuff->packets[video_stream]));
 }
 
-void decoder_ffmpeg::get_video_frame(int video_stream, uint8_t **data, size_t *line_size)
+void decoder_ffmpeg::get_video_frame(int video_stream, video_frame_format fmt,
+            uint8_t *data[3], size_t line_size[3])
 {
-    sws_scale(_stuff->img_conv_ctxs[video_stream],
-            _stuff->frames[video_stream]->data,
-            _stuff->frames[video_stream]->linesize,
-            0, video_height(video_stream),
-            _stuff->out_frames[video_stream]->data,
-            _stuff->out_frames[video_stream]->linesize);
-    // TODO: Handle sws_scale errors. How?
-    av_free_packet(&(_stuff->packets[video_stream]));
-    *data = _stuff->out_frames[video_stream]->data[0];
-    *line_size = _stuff->out_frames[video_stream]->linesize[0];
+    data[0] = NULL;
+    data[1] = NULL;
+    data[2] = NULL;
+    line_size[0] = 0;
+    line_size[1] = 0;
+    line_size[2] = 0;
+    if (fmt == yuv420p)
+    {
+        if (video_preferred_frame_format(video_stream) == yuv420p)
+        {
+            data[0] = _stuff->frames[video_stream]->data[0];
+            data[1] = _stuff->frames[video_stream]->data[1];
+            data[2] = _stuff->frames[video_stream]->data[2];
+            line_size[0] = _stuff->frames[video_stream]->linesize[0];
+            line_size[1] = _stuff->frames[video_stream]->linesize[1];
+            line_size[2] = _stuff->frames[video_stream]->linesize[2];
+        }
+    }
+    else
+    {
+        sws_scale(_stuff->img_conv_ctxs[video_stream],
+                _stuff->frames[video_stream]->data,
+                _stuff->frames[video_stream]->linesize,
+                0, video_height(video_stream),
+                _stuff->out_frames[video_stream]->data,
+                _stuff->out_frames[video_stream]->linesize);
+        // TODO: Handle sws_scale errors. How?
+        data[0] = _stuff->out_frames[video_stream]->data[0];
+        line_size[0] = _stuff->out_frames[video_stream]->linesize[0];
+    }
 }
 
 int64_t decoder_ffmpeg::read_audio_data(int audio_stream, void *buffer, size_t size)

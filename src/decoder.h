@@ -24,6 +24,8 @@
 #include <vector>
 #include <stdint.h>
 
+#include "video_frame_format.h"
+
 
 class decoder
 {
@@ -58,6 +60,7 @@ public:
     virtual int video_frame_rate_numerator(int video_stream) const throw () = 0;        // frames per second
     virtual int video_frame_rate_denominator(int video_stream) const throw () = 0;      // frames per second
     virtual int64_t video_duration(int video_stream) const throw () = 0;                // microseconds
+    virtual video_frame_format video_preferred_frame_format(int video_stream) const throw () = 0;
 
     /* Get information about audio streams. */
     virtual int audio_rate(int audio_stream) const throw () = 0;                // samples per second
@@ -78,17 +81,19 @@ public:
     /* Read a video frame into an internal buffer, and return its presentation time stamp
      * in microseconds (between 0 and video_duration(video_stream)).
      * A negative time stamp means that the end of the stream was reached.
-     * After reading a frame, you must either call get_video_frame() or drop_video_frame(). */
+     * After reading a frame, you may call get_video_frame(), and you must call release_video_frame(). */
     virtual int64_t read_video_frame(int video_stream) = 0;
     /* Decode the video frame from the internal buffer and transform it into a fixed format.
-     * A pointer to the resulting image data will be returned in 'data'. The image will be
-     * in RGB format with 1 byte per color component (3 bytes per pixel). The total size in
-     * bytes of one frame line will be returned in 'line_size'. This may be larger than
-     * 3*video_width(video_stream) for alignment reasons. */
-    virtual void get_video_frame(int video_stream, uint8_t **data, size_t *line_size) = 0;
-    /* Discard the video frame in the internal buffer; do not decode or transform it.
-     * Useful if video playback is too slow and you need to skip frames. */
-    virtual void drop_video_frame(int video_stream) = 0;
+     * The image will be in the requested format. A pointer to each resulting plane data will
+     * be returned in 'data'. The total size in bytes of one frame line will be returned in
+     * 'line_size' for each plane. This may be larger than the size of one line for alignment
+     * reasons. */
+    virtual void get_video_frame(int video_stream, video_frame_format fmt,
+            uint8_t *data[3], size_t line_size[3]) = 0;
+    /* Release the video frame from the internal buffer. Can be called after get_video_frame(),
+     * but also directly after read_video_frame(), e.g. in case video playback is too slow and
+     * you need to skip frames. */
+    virtual void release_video_frame(int video_stream) = 0;
 
     /* Read the given amount of audio data and stored it in the given buffer.
      * Return the presentation time stamp in microseconds. Beware: this is only useful

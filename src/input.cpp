@@ -90,6 +90,11 @@ void input::open(std::vector<decoder *> decoders,
         {
             throw exc("video streams have different frame rates");
         }
+        if (decoders.at(video1_decoder)->video_preferred_frame_format(video1_stream)
+                != decoders.at(video0_decoder)->video_preferred_frame_format(video0_stream))
+        {
+            throw exc("video streams have different preferred frame formats");
+        }
     }
     _mode = mode;
     _swap_eyes = false;
@@ -194,6 +199,7 @@ void input::open(std::vector<decoder *> decoders,
     }
     _video_frame_rate_num = _decoders.at(_video_decoders[0])->video_frame_rate_numerator(_video_streams[0]);
     _video_frame_rate_den = _decoders.at(_video_decoders[0])->video_frame_rate_denominator(_video_streams[0]);
+    _video_preferred_frame_format = _decoders.at(_video_decoders[0])->video_preferred_frame_format(_video_streams[0]);
 
     if (audio_stream != -1)
     {
@@ -233,8 +239,10 @@ void input::open(std::vector<decoder *> decoders,
             _video_decoders[1], _video_streams[1],
             _audio_decoder, _audio_stream);
     msg::inf("input:");
-    msg::inf("    video: %dx%d, aspect ratio %g:1, %g fps, %g seconds,",
-            video_width(), video_height(), video_aspect_ratio(),
+    msg::inf("    video: %dx%d, format %s, aspect ratio %g:1, %g fps, %g seconds,",
+            video_width(), video_height(),
+            (video_preferred_frame_format() == yuv420p ? "yuv420p" : "rgb24"),
+            video_aspect_ratio(),
             static_cast<float>(video_frame_rate_numerator()) / static_cast<float>(video_frame_rate_denominator()),
             duration() / 1e6f);
     msg::inf("           stereo mode %s, input eye swap %s",
@@ -271,95 +279,110 @@ int64_t input::read_video_frame()
     return t;
 }
 
-static int get_row_alignment(uint8_t *ptr, size_t line_size)
+void input::get_video_frame(video_frame_format fmt,
+        uint8_t *l_data[3], size_t l_line_size[3],
+        uint8_t *r_data[3], size_t r_line_size[3])
 {
-    uintptr_t p = reinterpret_cast<uintptr_t>(ptr);
-    int row_alignment = 1;
-    if (p % 8 == 0 && line_size % 8 == 0)
-    {
-        row_alignment = 8;
-    }
-    else if (p % 4 == 0 && line_size % 4 == 0)
-    {
-        row_alignment = 4;
-    }
-    else if (p % 2 == 0 && line_size % 2 == 0)
-    {
-        row_alignment = 2;
-    }
-    return row_alignment;
-}
+    uint8_t *data[3], *data1[3];
+    size_t line_size[3], line_size1[3];
 
-void input::get_video_frame(
-        uint8_t **l_data, int *l_row_width, int *l_row_alignment,
-        uint8_t **r_data, int *r_row_width, int *r_row_alignment)
-{
-    uint8_t *frame;
-    size_t line_size;
-    
-    _decoders.at(_video_decoders[0])->get_video_frame(_video_streams[0], &frame, &line_size);
-    if (_mode == separate)
+    _decoders.at(_video_decoders[0])->get_video_frame(_video_streams[0], fmt, data, line_size);
+    switch (_mode)
     {
-        uint8_t *frame1;
-        size_t line_size1;
-        _decoders.at(_video_decoders[1])->get_video_frame(_video_streams[1], &frame1, &line_size1);
-        *l_data = frame;
-        *l_row_width = video_width();
-        *l_row_alignment = get_row_alignment(frame, line_size);
-        *r_data = frame1;
-        *r_row_width = video_width();
-        *r_row_alignment = get_row_alignment(frame1, line_size1);
-    }
-    else if (_mode == top_bottom || _mode == top_bottom_half)
-    {
-        *l_data = frame;
-        *l_row_width = video_width();
-        *l_row_alignment = get_row_alignment(frame, line_size);
-        *r_data = *l_data + video_height() * line_size;
-        *r_row_width = *l_row_width;
-        *r_row_alignment = *l_row_alignment;
-    }
-    else if (_mode == left_right || _mode == left_right_half)
-    {
-        *l_data = frame;
-        *l_row_width = 2 * video_width();
-        *l_row_alignment = get_row_alignment(frame, line_size);
-        *r_data = *l_data + 3 * video_width();
-        *r_row_width = *l_row_width;
-        *r_row_alignment = get_row_alignment(*r_data, line_size);
-    }
-    else if (_mode == even_odd_rows)
-    {
-        *l_data = frame;
-        *l_row_width = (2 * line_size) / 3;
-        *l_row_alignment = get_row_alignment(frame, line_size);
-        *r_data = *l_data + line_size;
-        *r_row_width = *l_row_width;
-        *r_row_alignment = *l_row_alignment;
-    }
-    else // (_mode == mono)
-    {
-        *l_data = frame;
-        *l_row_width = video_width();
-        *l_row_alignment = get_row_alignment(frame, line_size);
-        *r_data = *l_data;
-        *r_row_width = *l_row_width;
-        *r_row_alignment = *l_row_alignment;
+    case separate:
+        _decoders.at(_video_decoders[1])->get_video_frame(_video_streams[1], fmt, data1, line_size1);
+        l_data[0] = data[0];
+        l_data[1] = data[1];
+        l_data[2] = data[2];
+        l_line_size[0] = line_size[0];
+        l_line_size[1] = line_size[1];
+        l_line_size[2] = line_size[2];
+        r_data[0] = data1[0];
+        r_data[1] = data1[1];
+        r_data[2] = data1[2];
+        r_line_size[0] = line_size1[0];
+        r_line_size[1] = line_size1[1];
+        r_line_size[2] = line_size1[2];
+        break;
+    case top_bottom:
+    case top_bottom_half:
+        l_data[0] = data[0];
+        l_data[1] = data[1];
+        l_data[2] = data[2];
+        l_line_size[0] = line_size[0];
+        l_line_size[1] = line_size[1];
+        l_line_size[2] = line_size[2];
+        r_data[0] = l_data[0] + video_height() * line_size[0];
+        r_data[1] = l_data[1] + video_height() / 2 * line_size[1];
+        r_data[2] = l_data[2] + video_height() / 2 * line_size[2];
+        r_line_size[0] = l_line_size[0];
+        r_line_size[1] = l_line_size[1];
+        r_line_size[2] = l_line_size[2];
+        break;
+    case left_right:
+    case left_right_half:
+        l_data[0] = data[0];
+        l_data[1] = data[1];
+        l_data[2] = data[2];
+        l_line_size[0] = line_size[0];
+        l_line_size[1] = line_size[1];
+        l_line_size[2] = line_size[2];
+        r_data[0] = data[0] + line_size[0] / 2;
+        r_data[1] = data[1] + line_size[1] / 2;
+        r_data[2] = data[2] + line_size[2] / 2;
+        r_line_size[0] = line_size[0];
+        r_line_size[1] = line_size[1];
+        r_line_size[2] = line_size[2];
+        break;
+    case even_odd_rows:
+        l_data[0] = data[0];
+        l_data[1] = data[1];
+        l_data[2] = data[2];
+        l_line_size[0] = 2 * line_size[0];
+        l_line_size[1] = 2 * line_size[1];
+        l_line_size[2] = 2 * line_size[2];
+        r_data[0] = data[0] + line_size[0];
+        r_data[1] = data[1] + line_size[1];
+        r_data[2] = data[2] + line_size[2];
+        r_line_size[0] = 2 * line_size[0];
+        r_line_size[1] = 2 * line_size[1];
+        r_line_size[2] = 2 * line_size[2];
+        break;
+    case mono:
+        l_data[0] = data[0];
+        l_data[1] = data[1];
+        l_data[2] = data[2];
+        l_line_size[0] = line_size[0];
+        l_line_size[1] = line_size[1];
+        l_line_size[2] = line_size[2];
+        r_data[0] = data[0];
+        r_data[1] = data[1];
+        r_data[2] = data[2];
+        r_line_size[0] = line_size[0];
+        r_line_size[1] = line_size[1];
+        r_line_size[2] = line_size[2];
+        break;
+    case automatic:
+        /* cannot happen */
+        break;
     }
     if (_swap_eyes)
     {
-        std::swap(*l_data, *r_data);
-        std::swap(*l_row_width, *r_row_width);
-        std::swap(*l_row_alignment, *r_row_alignment);
+        std::swap(l_data[0], r_data[0]);
+        std::swap(l_data[1], r_data[1]);
+        std::swap(l_data[2], r_data[2]);
+        std::swap(l_line_size[0], r_line_size[0]);
+        std::swap(l_line_size[1], r_line_size[1]);
+        std::swap(l_line_size[2], r_line_size[2]);
     }
 }
 
-void input::drop_video_frame()
+void input::release_video_frame()
 {
-    _decoders.at(_video_decoders[0])->drop_video_frame(_video_streams[0]);
+    _decoders.at(_video_decoders[0])->release_video_frame(_video_streams[0]);
     if (_video_decoders[1] != -1)
     {
-        _decoders.at(_video_decoders[1])->drop_video_frame(_video_streams[1]);
+        _decoders.at(_video_decoders[1])->release_video_frame(_video_streams[1]);
     }
 }
 

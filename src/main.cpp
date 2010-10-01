@@ -375,6 +375,7 @@ int main(int argc, char *argv[])
             video_flags |= video_output::center;
         }
         video_output->open(
+                input->video_preferred_frame_format(),
                 input->video_width(), input->video_height(), input->video_aspect_ratio(),
                 video_mode, video_state, video_flags, -1, -1);
         video_output->process_events();

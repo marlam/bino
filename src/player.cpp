@@ -59,9 +59,8 @@ void player::open(input *input,
 
 void player::run()
 {
-    uint8_t *l_frame, *r_frame;
-    int l_row_width, r_row_width;
-    int l_row_alignment, r_row_alignment;
+    uint8_t *l_data[3], *r_data[3];
+    size_t l_line_size[3], r_line_size[3];
     void *audio_data;
     size_t required_audio_data_size;
     int64_t pause_start = -1;
@@ -81,12 +80,9 @@ void player::run()
         msg::dbg("empty video input");
         return;
     }
-    _input->get_video_frame(
-            &l_frame, &l_row_width, &l_row_alignment,
-            &r_frame, &r_row_width, &r_row_alignment);
-    _video_output->prepare(
-            l_frame, l_row_width, l_row_alignment,
-            r_frame, r_row_width, r_row_alignment);
+    _input->get_video_frame(_video_output->frame_format(), l_data, l_line_size, r_data, r_line_size);
+    _video_output->prepare(l_data, l_line_size, r_data, r_line_size);
+    _input->release_video_frame();
     if (_audio_output)
     {
         _audio_output->status(&required_audio_data_size);
@@ -121,12 +117,9 @@ void player::run()
         msg::dbg("single-frame video input: going into pause mode");
         _pause_request = true;
     }
-    _input->get_video_frame(
-            &l_frame, &l_row_width, &l_row_alignment,
-            &r_frame, &r_row_width, &r_row_alignment);
-    _video_output->prepare(
-            l_frame, l_row_width, l_row_alignment,
-            r_frame, r_row_width, r_row_alignment);
+    _input->get_video_frame(_video_output->frame_format(), l_data, l_line_size, r_data, r_line_size);
+    _video_output->prepare(l_data, l_line_size, r_data, r_line_size);
+    _input->release_video_frame();
 
     // The player loop
     bool eof = false;
@@ -177,12 +170,9 @@ void player::run()
                 }
                 notify(notification::pos, current_pos / 1e6f, sync_point_pos / 1e6f);
                 current_pos = sync_point_pos;
-                _input->get_video_frame(
-                        &l_frame, &l_row_width, &l_row_alignment,
-                        &r_frame, &r_row_width, &r_row_alignment);
-                _video_output->prepare(
-                        l_frame, l_row_width, l_row_alignment,
-                        r_frame, r_row_width, r_row_alignment);
+                _input->get_video_frame(_video_output->frame_format(), l_data, l_line_size, r_data, r_line_size);
+                _video_output->prepare(l_data, l_line_size, r_data, r_line_size);
+                _input->release_video_frame();
                 previous_frame_dropped = false;
             }
             _seek_request = 0;
@@ -261,16 +251,13 @@ void player::run()
                 // Prepare next video output
                 if (drop_next_frame)
                 {
-                    _input->drop_video_frame();
+                    _input->release_video_frame();
                 }
                 else
                 {
-                    _input->get_video_frame(
-                            &l_frame, &l_row_width, &l_row_alignment,
-                            &r_frame, &r_row_width, &r_row_alignment);
-                    _video_output->prepare(
-                            l_frame, l_row_width, l_row_alignment,
-                            r_frame, r_row_width, r_row_alignment);
+                    _input->get_video_frame(_video_output->frame_format(), l_data, l_line_size, r_data, r_line_size);
+                    _video_output->prepare(l_data, l_line_size, r_data, r_line_size);
+                    _input->release_video_frame();
                 }
                 previous_frame_dropped = drop_next_frame;
             }
