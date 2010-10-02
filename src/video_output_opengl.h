@@ -46,9 +46,13 @@ private:
     int _window_id;
     bool _input_is_mono;
     struct state _state;
+    bool _use_non_power_of_two;
+    float _tex_max_x;
+    float _tex_max_y;
     bool _yuv420p_supported;
 
     void bind_textures(int unitset, int index);
+    void draw_full_quad();
 
     void init_glut();
     void display();
