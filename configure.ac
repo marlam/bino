@@ -78,6 +78,14 @@ else
     AC_SUBST([libglut_LIBS], [-lglut])
 fi
 
+dnl glu
+PKG_CHECK_MODULES([libglu], [glu >= 0.0], [HAVE_LIBGLU=1], [HAVE_LIBGLU=0])
+if test "$HAVE_LIBGLU" != "1"; then
+    AC_MSG_WARN([libglu not found:])
+    AC_MSG_WARN([$libglu_PKG_ERRORS])
+    AC_MSG_WARN([libglu is provided by Mesa; Debian package: libglu-dev])
+fi
+
 dnl freealut
 PKG_CHECK_MODULES([libalut], [freealut >= 0.0], [HAVE_LIBALUT=1], [HAVE_LIBALUT=0])
 if test "$HAVE_LIBALUT" != "1"; then
@@ -91,6 +99,7 @@ if test "$HAVE_LIBAVFORMAT" != "1" \
     -o "$HAVE_LIBSWSCALE" != "1" \
     -o "$HAVE_LIBGLEW" != "1" \
     -o "$HAVE_LIBGLUT" != "1" \
+    -o "$HAVE_LIBGLU" != "1" \
     -o "$HAVE_LIBALUT" != "1"; then
     AC_MSG_ERROR([Required libraries were not found. See messages above.])
 fi
