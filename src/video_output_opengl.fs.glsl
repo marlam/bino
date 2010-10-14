@@ -26,16 +26,16 @@
 // mode_anaglyph_half_color, or mode_anaglyph_dubois
 #define $mode
 
-#if defined input_rgb24
+#if defined(input_rgb24)
 uniform sampler2D rgb_l;
-# if !defined mode_onechannel
+# if !defined(mode_onechannel)
 uniform sampler2D rgb_r;
 # endif
-#elif defined input_yuv420p
+#elif defined(input_yuv420p)
 uniform sampler2D y_l;
 uniform sampler2D u_l;
 uniform sampler2D v_l;
-# if !defined mode_onechannel
+# if !defined(mode_onechannel)
 uniform sampler2D y_r;
 uniform sampler2D u_r;
 uniform sampler2D v_r;
@@ -48,7 +48,7 @@ uniform float saturation;
 uniform float cos_hue;
 uniform float sin_hue;
 
-#if defined input_rgb24
+#if defined(input_rgb24)
 vec3 rgb_to_yuv(vec3 rgb)
 {
     // Values taken from http://www.fourcc.org/fccyvrgb.php
@@ -85,9 +85,9 @@ vec3 adjust_yuv(vec3 yuv)
 void main()
 {
     vec3 yuv_l;
-#if defined input_rgb24
+#if defined(input_rgb24)
     yuv_l = rgb_to_yuv(texture2D(rgb_l, gl_TexCoord[0].xy).xyz);
-#elif defined input_yuv420p
+#elif defined(input_yuv420p)
     yuv_l = vec3(
             texture2D(y_l, gl_TexCoord[0].xy).x,
             texture2D(u_l, gl_TexCoord[0].xy).x,
@@ -95,11 +95,11 @@ void main()
 #endif
     yuv_l = adjust_yuv(yuv_l);
 
-#if !defined mode_onechannel
+#if !defined(mode_onechannel)
     vec3 yuv_r;
-# if defined input_rgb24
+# if defined(input_rgb24)
     yuv_r = rgb_to_yuv(texture2D(rgb_r, gl_TexCoord[0].xy).xyz);
-# elif defined input_yuv420p
+# elif defined(input_yuv420p)
     yuv_r = vec3(
             texture2D(y_r, gl_TexCoord[0].xy).x,
             texture2D(u_r, gl_TexCoord[0].xy).x,
@@ -109,15 +109,15 @@ void main()
 #endif
 
     vec3 rgb;
-#if defined mode_onechannel
+#if defined(mode_onechannel)
     rgb = yuv_to_rgb(yuv_l);
-#elif defined mode_anaglyph_monochrome
+#elif defined(mode_anaglyph_monochrome)
     rgb = vec3(yuv_l.x, yuv_r.x, yuv_r.x);
-#elif defined mode_anaglyph_full_color
+#elif defined(mode_anaglyph_full_color)
     rgb = vec3(yuv_to_rgb(yuv_l).r, yuv_to_rgb(yuv_r).gb);
-#elif defined mode_anaglyph_half_color
+#elif defined(mode_anaglyph_half_color)
     rgb = vec3(yuv_l.x, yuv_to_rgb(yuv_r).gb);
-#elif defined mode_anaglyph_dubois
+#elif defined(mode_anaglyph_dubois)
     // Dubois anaglyph method.
     // Authors page: http://www.site.uottawa.ca/~edubois/anaglyph/
     // This method depends on the characteristics of the display device
