@@ -20,6 +20,9 @@
 #include "config.h"
 
 #include <cerrno>
+#ifndef HAVE_CLOCK_GETTIME
+# include <sys/time.h>
+#endif
 
 #include "exc.h"
 #include "timer.h"
@@ -27,15 +30,17 @@
 
 int64_t timer::get_microseconds(timer::type t)
 {
+#ifdef HAVE_CLOCK_GETTIME
+
     struct timespec time;
     int r = clock_gettime(
               t == realtime ? CLOCK_REALTIME
             : t == monotonic ? 
-#ifdef CLOCK_MONOTONIC_RAW
+# ifdef CLOCK_MONOTONIC_RAW
                                CLOCK_MONOTONIC_RAW
-#else
+# else
                                CLOCK_MONOTONIC
-#endif
+# endif
             : t == process_cpu ? CLOCK_PROCESS_CPUTIME_ID
             : CLOCK_THREAD_CPUTIME_ID, &time);
     if (r != 0)
@@ -49,4 +54,13 @@ int64_t timer::get_microseconds(timer::type t)
                 + std::string(" time"), errno);
     }
     return to_microseconds(&time);
+
+#else
+
+    // XXX: This ignores the timer type
+    struct timeval tv;
+    int r = gettimeofday(&tv, NULL);
+    return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
+
+#endif
 }
