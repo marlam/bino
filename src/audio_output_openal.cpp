@@ -79,6 +79,7 @@ void audio_output_openal::open(int rate, int channels, int bits)
         throw exc("cannot set OpenAL source parameters");
     }
 
+    _format = 0;
     if (bits == 8)
     {
         if (channels == 1)
