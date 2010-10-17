@@ -71,10 +71,13 @@ int main(int argc, char *argv[])
     std::vector<std::string> video_output_modes;
     video_output_modes.push_back("mono-left");
     video_output_modes.push_back("mono-right");
+    video_output_modes.push_back("top-bottom");
     video_output_modes.push_back("top-bottom-half");
+    video_output_modes.push_back("left-right");
     video_output_modes.push_back("left-right-half");
     video_output_modes.push_back("even-odd-rows");
     video_output_modes.push_back("even-odd-columns");
+    video_output_modes.push_back("checkerboard");
     video_output_modes.push_back("anaglyph");
     video_output_modes.push_back("anaglyph-monochrome");
     video_output_modes.push_back("anaglyph-full-color");
@@ -125,10 +128,13 @@ int main(int argc, char *argv[])
                 "                         or mono-left, depending on input and display):\n"
                 "    mono-left            Only left view\n"
                 "    mono-right           Only right view\n"
+                "    top-bottom           Left view top, right view bottom\n"
                 "    top-bottom-half      Left view top, right view bottom, half height\n"
+                "    left-right           Left view left, right view right\n"
                 "    left-right-half      Left view left, right view right, half width\n"
                 "    even-odd-rows        Left view even rows, right view odd rows\n"
                 "    even-odd-columns     Left view even columns, right view odd columns\n"
+                "    checkerboard         Left and right view in checkerboard pattern\n"
                 "    anaglyph             Red/cyan anaglyph, default method (Dubois)\n"
                 "    anaglyph-monochrome  Red/cyan anaglyph, monochrome method\n"
                 "    anaglyph-full-color  Red/cyan anaglyph, full color method\n"
@@ -320,9 +326,17 @@ int main(int argc, char *argv[])
         {
             video_mode = video_output::mono_right;
         }
+        else if (video_output_mode.value() == "top-bottom")
+        {
+            video_mode = video_output::top_bottom;
+        }
         else if (video_output_mode.value() == "top-bottom-half")
         {
             video_mode = video_output::top_bottom_half;
+        }
+        else if (video_output_mode.value() == "left-right")
+        {
+            video_mode = video_output::left_right;
         }
         else if (video_output_mode.value() == "left-right-half")
         {
@@ -335,6 +349,10 @@ int main(int argc, char *argv[])
         else if (video_output_mode.value() == "even-odd-columns")
         {
             video_mode = video_output::even_odd_columns;
+        }
+        else if (video_output_mode.value() == "checkerboard")
+        {
+            video_mode = video_output::checkerboard;
         }
         else if (video_output_mode.value() == "anaglyph")
         {

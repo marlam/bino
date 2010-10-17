@@ -121,7 +121,7 @@ void video_output_opengl::open(
     {
         display_mode |= GLUT_STEREO;
     }
-    if (mode == even_odd_rows || mode == even_odd_columns)
+    if (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard)
     {
         display_mode |= GLUT_STENCIL;
     }
@@ -163,12 +163,28 @@ void video_output_opengl::open(
         if (win_width < 0)
         {
             win_width = src_width;
+            if (_mode == left_right)
+            {
+                win_width *= 2;
+            }
         }
         if (win_height < 0)
         {
             win_height = src_height;
+            if (_mode == top_bottom)
+            {
+                win_height *= 2;
+            }
         }
         float win_ar = win_width * _screen_pixel_aspect_ratio / win_height;
+        if (_mode == left_right)
+        {
+            win_ar /= 2.0f;
+        }
+        else if (_mode == top_bottom)
+        {
+            win_ar *= 2.0f;
+        }
         if (src_aspect_ratio >= win_ar)
         {
             win_height *= win_ar / src_aspect_ratio;
@@ -446,7 +462,7 @@ void video_output_opengl::display()
         bind_textures(0, right);
         draw_full_quad();
     }
-    else if (_mode == even_odd_rows || _mode == even_odd_columns)
+    else if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
     {
         glEnable(GL_STENCIL_TEST);
         glStencilFunc(GL_EQUAL, 1, 1);
@@ -487,7 +503,7 @@ void video_output_opengl::display()
         bind_textures(0, right);
         draw_full_quad();
     }
-    else if (_mode == left_right_half)
+    else if (_mode == left_right || _mode == left_right_half)
     {
         bind_textures(0, left);
         glBegin(GL_QUADS);
@@ -512,7 +528,7 @@ void video_output_opengl::display()
         glVertex2f(0.0f, -1.0f);
         glEnd();
     }
-    else if (_mode == top_bottom_half)
+    else if (_mode == top_bottom || _mode == top_bottom_half)
     {
         bind_textures(0, left);
         glBegin(GL_QUADS);
@@ -551,6 +567,14 @@ void video_output_opengl::reshape(int w, int h)
     float dst_h = h;
     float dst_ar = dst_w * _screen_pixel_aspect_ratio / dst_h;
     float src_ar = _src_aspect_ratio;
+    if (_mode == left_right)
+    {
+        src_ar *= 2.0f;
+    }
+    else if (_mode == top_bottom)
+    {
+        src_ar /= 2.0f;
+    }
     int vp_w = w;
     int vp_h = h;
     if (src_ar >= dst_ar)
@@ -574,7 +598,7 @@ void video_output_opengl::reshape(int w, int h)
     }
 
     // Set up stencil buffers if needed
-    if (_mode == even_odd_rows || _mode == even_odd_columns)
+    if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
     {
         glClearStencil(0);
         glClear(GL_STENCIL_BUFFER_BIT);
@@ -595,7 +619,7 @@ void video_output_opengl::reshape(int w, int h)
                 glDrawPixels(w, 1, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, data);
             }
         }
-        else
+        else if (_mode == even_odd_columns)
         {
             GLubyte data[h];
             std::memset(data, 0xff, h);
@@ -605,6 +629,22 @@ void video_output_opengl::reshape(int w, int h)
             {
                 glWindowPos2i(x, 0);
                 glDrawPixels(1, h, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, data);
+            }
+        }
+        else
+        {
+            GLubyte data[w + 1];
+            for (int i = 0; i <= w; i++)
+            {
+                data[i] = (i % 2 == 0 ? 0x00 : 0xff);
+            }
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, w);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            for (int y = 0; y < h; y++)
+            {
+                glWindowPos2i(0, y);
+                glDrawPixels(w, 1, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE,
+                        data + (y % 2 == (h % 2 == 0 ? 0 : 1) ? 0 : 1));
             }
         }
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);

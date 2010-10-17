@@ -34,10 +34,13 @@ public:
         stereo,                         // OpenGL quad buffered stereo
         mono_left,                      // Left view only
         mono_right,                     // Right view only
+        top_bottom,                     // Left view top, right view bottom
         top_bottom_half,                // Left view top, right view bottom, half height
+        left_right,                     // Left view left, right view right
         left_right_half,                // Left view left, right view right, half width
         even_odd_rows,                  // Left view even rows, right view odd rows
         even_odd_columns,               // Left view even columns, right view odd columns
+        checkerboard,                   // Checkerboard pattern
         anaglyph_red_cyan_monochrome,   // Red/cyan anaglyph, monochrome method
         anaglyph_red_cyan_full_color,   // Red/cyan anaglyph, full color method
         anaglyph_red_cyan_half_color,   // Red/cyan anaglyph, half color method
