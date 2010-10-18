@@ -608,32 +608,30 @@ void video_output_opengl::reshape(int w, int h)
         // When writing into the stencil buffer, GL_UNSIGNED_BYTE seems to be much faster than GL_BITMAP
         if (_mode == even_odd_rows)
         {
-            GLubyte data[w];
-            std::memset(data, 0xff, w);
+            std::vector<GLubyte> data(w, 0xff);
             glPixelStorei(GL_UNPACK_ROW_LENGTH, w);
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             // we count lines from the top, OpenGL counts from the bottom
             for (int y = (h % 2 == 0 ? 1 : 0); y < h; y += 2)
             {
                 glWindowPos2i(0, y);
-                glDrawPixels(w, 1, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, data);
+                glDrawPixels(w, 1, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, &(data[0]));
             }
         }
         else if (_mode == even_odd_columns)
         {
-            GLubyte data[h];
-            std::memset(data, 0xff, h);
+            std::vector<GLubyte> data(h, 0xff);
             glPixelStorei(GL_UNPACK_ROW_LENGTH, 1);
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             for (int x = 0; x < w; x += 2)
             {
                 glWindowPos2i(x, 0);
-                glDrawPixels(1, h, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, data);
+                glDrawPixels(1, h, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, &(data[0]));
             }
         }
         else
         {
-            GLubyte data[w + 1];
+            std::vector<GLubyte> data(w + 1);
             for (int i = 0; i <= w; i++)
             {
                 data[i] = (i % 2 == 0 ? 0x00 : 0xff);
@@ -644,7 +642,7 @@ void video_output_opengl::reshape(int w, int h)
             {
                 glWindowPos2i(0, y);
                 glDrawPixels(w, 1, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE,
-                        data + (y % 2 == (h % 2 == 0 ? 0 : 1) ? 0 : 1));
+                        &(data[(y % 2 == (h % 2 == 0 ? 0 : 1) ? 0 : 1)]));
             }
         }
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
