@@ -187,11 +187,11 @@ void video_output_opengl::open(
         }
         if (src_aspect_ratio >= win_ar)
         {
-            win_height *= win_ar / src_aspect_ratio;
+            win_width *= src_aspect_ratio / win_ar;
         }
         else
         {
-            win_width *= src_aspect_ratio / win_ar;
+            win_height *= win_ar / src_aspect_ratio;
         }
         int max_win_width = glutGet(GLUT_SCREEN_WIDTH);
         max_win_width -= max_win_width / 20;
