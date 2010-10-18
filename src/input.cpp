@@ -267,8 +267,10 @@ void input::open(std::vector<decoder *> decoders,
             static_cast<float>(video_frame_rate_numerator()) / static_cast<float>(video_frame_rate_denominator()),
             duration() / 1e6f);
     msg::inf("        stereo mode %s, input eye swap %s",
-            (_mode == separate ? "separate-streams" : _mode == top_bottom ? "top-bottom"
-             : _mode == left_right ? "left-right" : _mode == even_odd_rows ? "even-odd-rows" : "off"),
+            (_mode == separate ? "separate-streams"
+             : _mode == top_bottom ? "top-bottom" : _mode == top_bottom_half ?  "top-bottom-half"
+             : _mode == left_right ? "left-right" : _mode == left_right_half ?  "left-right-half"
+             : _mode == even_odd_rows ? "even-odd-rows" : "off"),
             (_swap_eyes ? "on" : "off"));
 
     if (audio_stream != -1)
