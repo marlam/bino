@@ -14,3 +14,7 @@ libbase_a_SOURCES = \
 	opt.h opt.cpp \
 	timer.h timer.cpp \
 	blob.h
+
+if HAVE_LIBEQUALIZER
+libbase_a_SOURCES += s11n.h s11n.cpp
+endif

@@ -110,6 +110,11 @@ public:
         return _video_preferred_frame_format;
     }
 
+    bool has_audio() const throw ()
+    {
+        return (_audio_rate > 0);
+    }
+
     int audio_rate() const throw ()
     {
         return _audio_rate;

@@ -22,6 +22,17 @@
 #include "video_output.h"
 
 
+video_output_state::video_output_state() throw ()
+    : contrast(0.0f), brightness(0.0f), hue(0.0f), saturation(0.0f),
+    fullscreen(false), swap_eyes(false)
+{
+}
+
+video_output_state::~video_output_state()
+{
+}
+
+
 video_output::video_output() throw ()
 {
 }

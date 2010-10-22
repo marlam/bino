@@ -25,7 +25,6 @@
 #include <cstring>
 
 #include <GL/glew.h>
-#include <GL/freeglut.h>
 
 #include "exc.h"
 #include "msg.h"
@@ -36,35 +35,7 @@
 #include "xgl.h"
 
 
-/* Global variables and callbacks for GLUT */
-
-static video_output_opengl *global_video_output_gl = NULL;
-
-void global_video_output_opengl_display(void)
-{
-    global_video_output_gl->display();
-}
-
-void global_video_output_opengl_reshape(int w, int h)
-{
-    global_video_output_gl->reshape(w, h);
-}
-
-void global_video_output_opengl_keyboard(unsigned char key, int x, int y)
-{
-    global_video_output_gl->keyboard(key, x, y);
-}
-
-void global_video_output_opengl_special(int key, int x, int y)
-{
-    global_video_output_gl->special(key, x, y);
-}
-
-
-/* Class implementation */
-
-video_output_opengl::video_output_opengl() throw ()
-    : video_output(), _glut_initialized(false)
+video_output_opengl::video_output_opengl() throw () : video_output()
 {
 }
 
@@ -72,174 +43,44 @@ video_output_opengl::~video_output_opengl()
 {
 }
 
-void video_output_opengl::init_glut()
+void video_output_opengl::set_source_info(int width, int height, float aspect_ratio, video_frame_format preferred_frame_format)
 {
-    if (!_glut_initialized)
-    {
-        std::vector<const char *> arguments;
-        arguments.push_back(PACKAGE_NAME);
-        arguments.push_back(NULL);
-        int argc = arguments.size() - 1;
-        char **argv = const_cast<char **>(&(arguments[0]));
-        glutInit(&argc, argv);
-        _glut_initialized = true;
-    }
+    _src_width = width;
+    _src_height = height;
+    _src_aspect_ratio = aspect_ratio;
+    _src_preferred_frame_format = preferred_frame_format;
 }
 
-bool video_output_opengl::supports_stereo()
+void video_output_opengl::set_screen_info(float pixel_aspect_ratio)
 {
-    init_glut();
-    unsigned int display_mode = GLUT_RGBA | GLUT_DOUBLE | GLUT_STEREO;
-    glutInitDisplayMode(display_mode);
-    return (glutGet(GLUT_DISPLAY_MODE_POSSIBLE) == 1);
+    _screen_pixel_aspect_ratio = pixel_aspect_ratio;
 }
 
-void video_output_opengl::open(
-        video_frame_format preferred_frame_format,
-        int src_width, int src_height, float src_aspect_ratio,
-        int mode, const struct state &state, unsigned int flags,
-        int win_width, int win_height)
+void video_output_opengl::set_mode(video_output::mode mode)
 {
-    if (global_video_output_gl)
-    {
-        throw exc("cannot open a second gl output");
-    }
-    global_video_output_gl = this;
+    _mode = mode;
+}
 
-    _preferred_frame_format = preferred_frame_format;
-    _mode = static_cast<video_output::mode>(mode);
-    _src_width = src_width;
-    _src_height = src_height;
-    _src_aspect_ratio = src_aspect_ratio;
+void video_output_opengl::set_win_size(int width, int height)
+{
+    _win_width = width;
+    _win_height = height;
+}
 
-    /* Initialize freeglut */
-
-    init_glut();
-    glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
-    unsigned int display_mode = GLUT_RGBA | GLUT_DOUBLE;
-    if (mode == stereo)
-    {
-        display_mode |= GLUT_STEREO;
-    }
-    if (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard)
-    {
-        display_mode |= GLUT_STENCIL;
-    }
-    glutInitDisplayMode(display_mode);
-    if (glutGet(GLUT_DISPLAY_MODE_POSSIBLE) != 1)
-    {
-        throw exc("cannot set display mode");
-    }
-    _screen_pixel_aspect_ratio = 1.0f;
-    float screen_width_px = glutGet(GLUT_SCREEN_WIDTH);
-    float screen_width_mm = glutGet(GLUT_SCREEN_WIDTH_MM);
-    float screen_height_px = glutGet(GLUT_SCREEN_HEIGHT);
-    float screen_height_mm = glutGet(GLUT_SCREEN_HEIGHT_MM);
-    if (screen_width_px > 0.0f && screen_height_px > 0.0f
-            && screen_width_mm > 0.0f && screen_height_mm > 0.0f)
-    {
-        float pixel_width = screen_width_mm / screen_width_px;
-        float pixel_height = screen_height_mm / screen_height_px;
-        _screen_pixel_aspect_ratio = pixel_width / pixel_height;
-        if (std::fabs(_screen_pixel_aspect_ratio - 1.0f) < 0.03f)
-        {
-            // This screen most probably has square pixels, and the difference to 1.0
-            // is only due to slightly inaccurate measurements and rounding. Force
-            // 1.0 so that the user gets expected results.
-            _screen_pixel_aspect_ratio = 1.0f;
-        }
-        msg::inf("display:");
-        msg::inf("    %gx%g pixels, %gx%g millimeters, pixel aspect ratio %g:1",
-                screen_width_px, screen_height_px, screen_width_mm, screen_height_mm,
-                _screen_pixel_aspect_ratio);
-    }
-    if (state.fullscreen)
-    {
-        win_width = glutGet(GLUT_SCREEN_WIDTH);
-        win_height = glutGet(GLUT_SCREEN_HEIGHT);
-    }
-    else
-    {
-        if (win_width < 0)
-        {
-            win_width = src_width;
-            if (_mode == left_right)
-            {
-                win_width *= 2;
-            }
-        }
-        if (win_height < 0)
-        {
-            win_height = src_height;
-            if (_mode == top_bottom)
-            {
-                win_height *= 2;
-            }
-        }
-        float win_ar = win_width * _screen_pixel_aspect_ratio / win_height;
-        if (_mode == left_right)
-        {
-            win_ar /= 2.0f;
-        }
-        else if (_mode == top_bottom)
-        {
-            win_ar *= 2.0f;
-        }
-        if (src_aspect_ratio >= win_ar)
-        {
-            win_width *= src_aspect_ratio / win_ar;
-        }
-        else
-        {
-            win_height *= win_ar / src_aspect_ratio;
-        }
-        int max_win_width = glutGet(GLUT_SCREEN_WIDTH);
-        max_win_width -= max_win_width / 20;
-        if (win_width > max_win_width)
-        {
-            win_width = max_win_width;
-        }
-        int max_win_height = glutGet(GLUT_SCREEN_HEIGHT);
-        max_win_height -= max_win_height / 20;
-        if (win_height > max_win_height)
-        {
-            win_height = max_win_height;
-        }
-    }
-    glutInitWindowSize(win_width, win_height);
-    if ((flags & center) && !state.fullscreen)
-    {
-        glutInitWindowPosition(
-                (glutGet(GLUT_SCREEN_WIDTH) - win_width) / 2,
-                (glutGet(GLUT_SCREEN_HEIGHT) - win_height) / 2);
-    }
-    _win_width = win_width;
-    _win_height = win_height;
-    _window_id = glutCreateWindow(PACKAGE_NAME);
-    if (state.fullscreen)
-    {
-        glutFullScreen();
-        glutSetCursor(GLUT_CURSOR_NONE);
-    }
+void video_output_opengl::set_state(const video_output_state &state)
+{
     _state = state;
-    _input_is_mono = false;
+}
 
-    glutDisplayFunc(global_video_output_opengl_display);
-    glutReshapeFunc(global_video_output_opengl_reshape);
-    glutKeyboardFunc(global_video_output_opengl_keyboard);
-    glutSpecialFunc(global_video_output_opengl_special);
+void video_output_opengl::swap_tex_set()
+{
+    _active_tex_set = (_active_tex_set == 0 ? 1 : 0);
+}
 
-    /* Initialize OpenGL */
-
-    GLenum err = glewInit();
-    if (err != GLEW_OK)
-    {
-        throw exc(std::string("cannot initialize GLEW: ")
-                + reinterpret_cast<const char *>(glewGetErrorString(err)));
-    }
-
+void video_output_opengl::initialize(bool have_texture_non_power_of_two, bool have_fragment_shader)
+{
     _use_non_power_of_two = true;
-    if (!glewIsSupported("GL_ARB_texture_non_power_of_two"))
+    if (!have_texture_non_power_of_two)
     {
         _use_non_power_of_two = false;
         msg::wrn("OpenGL extension GL_ARB_texture_non_power_of_two is not available:");
@@ -247,7 +88,7 @@ void video_output_opengl::open(
     }
 
     _yuv420p_supported = true;
-    if (glewIsSupported("GL_ARB_fragment_shader"))
+    if (have_fragment_shader)
     {
         GLint tex_units;
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &tex_units);
@@ -259,7 +100,7 @@ void video_output_opengl::open(
             if (tex_units < 6)
             {
                 _yuv420p_supported = false;
-                if (_preferred_frame_format == yuv420p)
+                if (_src_preferred_frame_format == yuv420p)
                 {
                     msg::wrn("Not enough texture image units for anaglyph output:");
                     msg::wrn("    Disabling hardware accelerated color space conversion");
@@ -271,7 +112,7 @@ void video_output_opengl::open(
             if (tex_units < 3)
             {
                 _yuv420p_supported = false;
-                if (_preferred_frame_format == yuv420p)
+                if (_src_preferred_frame_format == yuv420p)
                 {
                     msg::wrn("Not enough texture image units:");
                     msg::wrn("    Disabling hardware accelerated color space conversion");
@@ -322,7 +163,7 @@ void video_output_opengl::open(
         _prg = 0;
         _yuv420p_supported = false;
         msg::wrn("OpenGL extension GL_ARB_fragment_shader is not available:");
-        if (_preferred_frame_format == yuv420p)
+        if (_src_preferred_frame_format == yuv420p)
         {
             msg::wrn("    - Color space conversion will not be hardware accelerated");
         }
@@ -385,9 +226,28 @@ void video_output_opengl::open(
     _active_tex_set = 0;
 }
 
+void video_output_opengl::deinitialize()
+{
+    if (_prg != 0)
+    {
+        xgl::DeleteProgram(_prg);
+    }
+    if (frame_format() == yuv420p)
+    {
+        glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_y_tex));
+        glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_u_tex));
+        glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_v_tex));
+    }
+    else
+    {
+        glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_rgb_tex));
+    }
+
+}
+
 video_frame_format video_output_opengl::frame_format() const
 {
-    if (_preferred_frame_format == yuv420p && _yuv420p_supported)
+    if (_src_preferred_frame_format == yuv420p && _yuv420p_supported)
     {
         return yuv420p;
     }
@@ -429,13 +289,8 @@ void video_output_opengl::draw_full_quad()
     glEnd();
 }
 
-void video_output_opengl::display()
+void video_output_opengl::display(video_output::mode mode)
 {
-    if (glutGetWindow() == 0)
-    {
-        return;
-    }
-
     int left = 0;
     int right = (_input_is_mono ? 0 : 1);
     if (_state.swap_eyes)
@@ -453,7 +308,7 @@ void video_output_opengl::display()
         glUniform1f(glGetUniformLocation(_prg, "sin_hue"), std::sin(_state.hue * M_PI));
     }
 
-    if (_mode == stereo)
+    if (mode == stereo)
     {
         glDrawBuffer(GL_BACK_LEFT);
         bind_textures(0, left);
@@ -462,7 +317,7 @@ void video_output_opengl::display()
         bind_textures(0, right);
         draw_full_quad();
     }
-    else if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
+    else if (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard)
     {
         glEnable(GL_STENCIL_TEST);
         glStencilFunc(GL_EQUAL, 1, 1);
@@ -474,16 +329,16 @@ void video_output_opengl::display()
         glDisable(GL_STENCIL_TEST);
     }
     else if (_prg != 0
-            && (_mode == anaglyph_red_cyan_monochrome
-                || _mode == anaglyph_red_cyan_full_color
-                || _mode == anaglyph_red_cyan_half_color
-                || _mode == anaglyph_red_cyan_dubois))
+            && (mode == anaglyph_red_cyan_monochrome
+                || mode == anaglyph_red_cyan_full_color
+                || mode == anaglyph_red_cyan_half_color
+                || mode == anaglyph_red_cyan_dubois))
     {
         bind_textures(0, left);
         bind_textures(1, right);
         draw_full_quad();
     }
-    else if (_prg == 0 && _mode == anaglyph_red_cyan_full_color)
+    else if (_prg == 0 && mode == anaglyph_red_cyan_full_color)
     {
         glColorMask(GL_TRUE, GL_FALSE, GL_FALSE, GL_FALSE);
         bind_textures(0, left);
@@ -493,17 +348,17 @@ void video_output_opengl::display()
         draw_full_quad();
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     }
-    else if (_mode == mono_left)
+    else if (mode == mono_left)
     {
         bind_textures(0, left);
         draw_full_quad();
     }
-    else if (_mode == mono_right)
+    else if (mode == mono_right)
     {
         bind_textures(0, right);
         draw_full_quad();
     }
-    else if (_mode == left_right || _mode == left_right_half)
+    else if (mode == left_right || mode == left_right_half)
     {
         bind_textures(0, left);
         glBegin(GL_QUADS);
@@ -528,7 +383,7 @@ void video_output_opengl::display()
         glVertex2f(0.0f, -1.0f);
         glEnd();
     }
-    else if (_mode == top_bottom || _mode == top_bottom_half)
+    else if (mode == top_bottom || mode == top_bottom_half)
     {
         bind_textures(0, left);
         glBegin(GL_QUADS);
@@ -553,16 +408,10 @@ void video_output_opengl::display()
         glVertex2f(-1.0f, -1.0f);
         glEnd();
     }
-    glutSwapBuffers();
 }
 
 void video_output_opengl::reshape(int w, int h)
 {
-    if (glutGetWindow() == 0)
-    {
-        return;
-    }
-
     float dst_w = w;
     float dst_h = h;
     float dst_ar = dst_w * _screen_pixel_aspect_ratio / dst_h;
@@ -649,80 +498,6 @@ void video_output_opengl::reshape(int w, int h)
     }
 }
 
-void video_output_opengl::keyboard(unsigned char key, int, int)
-{
-    switch (key)
-    {
-    case 27:
-    case 'q':
-        send_cmd(command::quit);
-        break;
-    case 's':
-        send_cmd(command::toggle_swap_eyes);
-        break;
-    case 'f':
-        send_cmd(command::toggle_fullscreen);
-        break;
-    case ' ':
-    case 'p':
-        send_cmd(command::toggle_pause);
-        break;
-    case '1':
-        send_cmd(command::adjust_contrast, -0.05f);
-        break;
-    case '2':
-        send_cmd(command::adjust_contrast, +0.05f);
-        break;
-    case '3':
-        send_cmd(command::adjust_brightness, -0.05f);
-        break;
-    case '4':
-        send_cmd(command::adjust_brightness, +0.05f);
-        break;
-    case '5':
-        send_cmd(command::adjust_hue, -0.05f);
-        break;
-    case '6':
-        send_cmd(command::adjust_hue, +0.05f);
-        break;
-    case '7':
-        send_cmd(command::adjust_saturation, -0.05f);
-        break;
-    case '8':
-        send_cmd(command::adjust_saturation, +0.05f);
-        break;
-    default:
-        break;
-    }
-}
-
-void video_output_opengl::special(int key, int, int)
-{
-    switch (key)
-    {
-    case GLUT_KEY_LEFT:
-        send_cmd(command::seek, -10.0f);
-        break;
-    case GLUT_KEY_RIGHT:
-        send_cmd(command::seek, +10.0f);
-        break;
-    case GLUT_KEY_UP:
-        send_cmd(command::seek, -60.0f);
-        break;
-    case GLUT_KEY_DOWN:
-        send_cmd(command::seek, +60.0f);
-        break;
-    case GLUT_KEY_PAGE_UP:
-        send_cmd(command::seek, -600.0f);
-        break;
-    case GLUT_KEY_PAGE_DOWN:
-        send_cmd(command::seek, +600.0f);
-        break;
-    default:
-        break;
-    }
-}
-
 static int get_row_alignment(const uint8_t *ptr, size_t line_size)
 {
     uintptr_t p = reinterpret_cast<uintptr_t>(ptr);
@@ -756,11 +531,6 @@ void video_output_opengl::prepare(
         uint8_t *l_data[3], size_t l_line_size[3],
         uint8_t *r_data[3], size_t r_line_size[3])
 {
-    if (glutGetWindow() == 0)
-    {
-        return;
-    }
-
     int tex_set = (_active_tex_set == 0 ? 1 : 0);
     _input_is_mono = (l_data[0] == r_data[0] && l_data[1] == r_data[1] && l_data[2] == r_data[2]);
 
@@ -884,86 +654,5 @@ void video_output_opengl::prepare(
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _src_width, _src_height, GL_RGB, GL_UNSIGNED_BYTE, r_data[0]);
             }
         }
-    }
-}
-
-void video_output_opengl::activate()
-{
-    if (glutGetWindow() == 0)
-    {
-        return;
-    }
-
-    _active_tex_set = (_active_tex_set == 0 ? 1 : 0);
-    glutPostRedisplay();
-}
-
-void video_output_opengl::process_events()
-{
-    if (glutGetWindow() == 0)
-    {
-        send_cmd(command::quit);
-        return;
-    }
-
-    glutMainLoopEvent();
-}
-
-void video_output_opengl::close()
-{
-    if (glutGetWindow() != 0)
-    {
-        glutSetCursor(GLUT_CURSOR_INHERIT);
-        glutDestroyWindow(_window_id);
-    }
-    glutLeaveMainLoop();
-    global_video_output_gl = NULL;
-}
-
-void video_output_opengl::receive_notification(const notification &note)
-{
-    switch (note.type)
-    {
-    case notification::swap_eyes:
-        _state.swap_eyes = note.current.flag;
-        glutPostRedisplay();
-        break;
-    case notification::fullscreen:
-        if (note.previous.flag != note.current.flag)
-        {
-            if (note.previous.flag)
-            {
-                _state.fullscreen = false;
-                glutReshapeWindow(_win_width, _win_height);
-                glutSetCursor(GLUT_CURSOR_INHERIT);
-            }
-            else
-            {
-                _state.fullscreen = true;
-                glutFullScreen();
-                glutSetCursor(GLUT_CURSOR_NONE);
-            }
-        }
-        break;
-    case notification::pause:
-        break;
-    case notification::contrast:
-        _state.contrast = note.current.value;
-        glutPostRedisplay();
-        break;
-    case notification::brightness:
-        _state.brightness = note.current.value;
-        glutPostRedisplay();
-        break;
-    case notification::hue:
-        _state.hue = note.current.value;
-        glutPostRedisplay();
-        break;
-    case notification::saturation:
-        _state.saturation = note.current.value;
-        glutPostRedisplay();
-        break;
-    case notification::pos:
-        break;
     }
 }

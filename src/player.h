@@ -21,6 +21,7 @@
 #define PLAYER_H
 
 #include <vector>
+#include <string>
 
 #include "input.h"
 #include "controller.h"
@@ -28,46 +29,98 @@
 #include "video_output.h"
 
 
+class player_init_data
+{
+public:
+    msg::level_t log_level;
+    std::vector<std::string> filenames;
+    enum input::mode input_mode;
+    enum video_output::mode video_mode;
+    video_output_state video_state;
+    unsigned int video_flags;
+
+public:
+    player_init_data();
+    ~player_init_data();
+};
+
 class player
 {
+public:
+    enum type
+    {
+        master, slave
+    };
+
 private:
+    std::vector<decoder *> _decoders;
     input *_input;
-    std::vector<controller *> *_controllers;
+    std::vector<controller *> _controllers;
     audio_output *_audio_output;
     video_output *_video_output;
+
+    bool _running;
+    bool _first_frame;
+    bool _need_frame;
+    bool _drop_next_frame;
+    bool _previous_frame_dropped;
+    bool _in_pause;
 
     bool _quit_request;
     bool _pause_request;
     int64_t _seek_request;
 
+    uint8_t *_l_data[3], *_r_data[3];
+    size_t _l_line_size[3], _r_line_size[3];
+    void *_audio_data;
+    size_t _required_audio_data_size;
+    int64_t _pause_start;
+    // Audio / video timing, relative to a synchronization point.
+    // The master time is the audio time, or external time if there is no audio.
+    // All times are in microseconds.
+    int64_t _sync_point_pos;             // input position at last sync point
+    int64_t _sync_point_time;            // master time at last sync point
+    int64_t _sync_point_av_offset;       // audio/video offset at last sync point
+    int64_t _current_pos;                // current input position
+    int64_t _current_time;               // current master time
+    int64_t _next_frame_pos;             // presentation time of next video frame
+
     void notify(const notification &note);
     void notify(enum notification::type t, bool p, bool c) { notify(notification(t, p, c)); }
     void notify(enum notification::type t, float p, float c) { notify(notification(t, p, c)); }
 
-public:
+protected:
+    void create_decoders(const std::vector<std::string> &filenames);
+    void create_input(enum input::mode input_mode);
+    void get_input_info(int *w, int *h, float *ar, video_frame_format *fmt);
+    void create_audio_output();
+    void create_video_output(enum video_output::mode video_mode,
+            const video_output_state &video_state, unsigned int video_flags);
+    void make_master();
+    void run_step(bool *more_steps, bool *prep_frame, bool *drop_frame, bool *display_frame);
+    void get_video_frame(video_frame_format fmt);
+    void prepare_video_frame(video_output *vo);
+    void release_video_frame();
 
+public:
     /* Constructor/destructor.
      * Only a single player instance can exist. The constructor throws an
      * exception if and only if it detects that this instance already exists. */
-    player();
+    player(type t = master);
     ~player();
 
-    /* Open a player. It combines the input, a bunch of controllers, optionally an
-     * audio output, and a video output. */
-    void open(input *input,
-            std::vector<controller *> *controllers,
-            audio_output *audio_output, // may be NULL
-            video_output *video_output);
+    /* Open a player. */
+    virtual void open(const player_init_data &init_data);
 
     /* Run the player. It will take care of all interaction. This function
      * returns when the user quits the player. */
-    void run();
+    virtual void run();
 
     /* Close the player and clean up. */
-    void close();
+    virtual void close();
 
     /* Receive a command from a controller. */
-    void receive_cmd(const command &cmd);
+    virtual void receive_cmd(const command &cmd);
 };
 
 #endif

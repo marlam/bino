@@ -25,13 +25,10 @@
 #include "msg.h"
 #include "opt.h"
 
-#include "decoder.h"
-#include "decoder_ffmpeg.h"
-#include "input.h"
-#include "controller.h"
 #include "player.h"
-#include "audio_output_openal.h"
-#include "video_output_opengl.h"
+#if HAVE_LIBEQUALIZER
+# include "player_equalizer.h"
+#endif
 
 
 int main(int argc, char *argv[])
@@ -84,6 +81,7 @@ int main(int argc, char *argv[])
     video_output_modes.push_back("anaglyph-half-color");
     video_output_modes.push_back("anaglyph-dubois");
     video_output_modes.push_back("stereo");
+    video_output_modes.push_back("equalizer");
     opt::val<std::string> video_output_mode("output", 'o', opt::optional, video_output_modes, "");
     options.push_back(&video_output_mode);
     opt::flag fullscreen("fullscreen", 'f', opt::optional);
@@ -92,6 +90,18 @@ int main(int argc, char *argv[])
     options.push_back(&center);
     opt::flag swap_eyes("swap-eyes", 's', opt::optional);
     options.push_back(&swap_eyes);
+    // Accept some Equalizer options. These are passed to Equalizer for interpretation.
+    opt::val<std::string> eq_server("eq-server", '\0', opt::optional);
+    options.push_back(&eq_server);
+    opt::val<std::string> eq_config("eq-config", '\0', opt::optional);
+    options.push_back(&eq_config);
+    opt::val<std::string> eq_listen("eq-listen", '\0', opt::optional);
+    options.push_back(&eq_listen);
+    opt::val<std::string> eq_logfile("eq-logfile", '\0', opt::optional);
+    options.push_back(&eq_logfile);
+    opt::val<std::string> eq_render_client("eq-render-client", '\0', opt::optional);
+    options.push_back(&eq_render_client);
+
     std::vector<std::string> arguments;
     if (!opt::parse(argc, argv, options, 1, 3, arguments))
     {
@@ -141,6 +151,7 @@ int main(int argc, char *argv[])
                 "    anaglyph-half-color  Red/cyan anaglyph, half color method\n"
                 "    anaglyph-dubois      Red/cyan anaglyph, Dubois method\n"
                 "    stereo               OpenGL quad-buffered stereo\n"
+                "    equalizer            Distributed OpenGL using Equalizer\n"
                 "  -f|--fullscreen      Fullscreen\n"
                 "  -c|--center          Center window on screen\n"
                 "  -s|--swap-eyes       Swap left/right view\n"        
@@ -164,241 +175,172 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+#if HAVE_LIBEQUALIZER
+    if (arguments.size() > 0 && arguments[0] == "--eq-client")
+    {
+        try
+        {
+            player_equalizer *player = new player_equalizer(&argc, argv);
+            delete player;
+        }
+        catch (std::exception &e)
+        {
+            msg::err("%s", e.what());
+            return 1;
+        }
+        return 0;
+    }
+#endif
+
+    bool equalizer = false;
+    player_init_data init_data;
+    init_data.log_level = msg::level();
     if (log_level.value() == "debug")
     {
-        msg::set_level(msg::DBG);
+        init_data.log_level = msg::DBG;
     }
     else if (log_level.value() == "info")
     {
-        msg::set_level(msg::INF);
+        init_data.log_level = msg::INF;
     }
     else if (log_level.value() == "warning")
     {
-        msg::set_level(msg::WRN);
+        init_data.log_level = msg::WRN;
     }
     else if (log_level.value() == "error")
     {
-        msg::set_level(msg::ERR);
+        init_data.log_level = msg::ERR;
     }
     else if (log_level.value() == "quiet")
     {
-        msg::set_level(msg::REQ);
+        init_data.log_level = msg::REQ;
+    }
+    init_data.filenames = arguments;
+    if (input_mode.value() == "")
+    {
+        init_data.input_mode = input::automatic;
+    }
+    else if (input_mode.value() == "separate")
+    {
+        init_data.input_mode = input::separate;
+    }
+    else if (input_mode.value() == "top-bottom")
+    {
+        init_data.input_mode = input::top_bottom;
+    }
+    else if (input_mode.value() == "top-bottom-half")
+    {
+        init_data.input_mode = input::top_bottom_half;
+    }
+    else if (input_mode.value() == "left-right")
+    {
+        init_data.input_mode = input::left_right;
+    }
+    else if (input_mode.value() == "left-right-half")
+    {
+        init_data.input_mode = input::left_right_half;
+    }
+    else if (input_mode.value() == "even-odd-rows")
+    {
+        init_data.input_mode = input::even_odd_rows;
+    }
+    else
+    {
+        init_data.input_mode = input::mono;
+    }
+    if (video_output_mode.value() == "")
+    {
+        init_data.video_mode = video_output::automatic;
+    }
+    else if (video_output_mode.value() == "mono-left")
+    {
+        init_data.video_mode = video_output::mono_left;
+    }
+    else if (video_output_mode.value() == "mono-right")
+    {
+        init_data.video_mode = video_output::mono_right;
+    }
+    else if (video_output_mode.value() == "top-bottom")
+    {
+        init_data.video_mode = video_output::top_bottom;
+    }
+    else if (video_output_mode.value() == "top-bottom-half")
+    {
+        init_data.video_mode = video_output::top_bottom_half;
+    }
+    else if (video_output_mode.value() == "left-right")
+    {
+        init_data.video_mode = video_output::left_right;
+    }
+    else if (video_output_mode.value() == "left-right-half")
+    {
+        init_data.video_mode = video_output::left_right_half;
+    }
+    else if (video_output_mode.value() == "even-odd-rows")
+    {
+        init_data.video_mode = video_output::even_odd_rows;
+    }
+    else if (video_output_mode.value() == "even-odd-columns")
+    {
+        init_data.video_mode = video_output::even_odd_columns;
+    }
+    else if (video_output_mode.value() == "checkerboard")
+    {
+        init_data.video_mode = video_output::checkerboard;
+    }
+    else if (video_output_mode.value() == "anaglyph")
+    {
+        init_data.video_mode = video_output::anaglyph_red_cyan_dubois;
+    }
+    else if (video_output_mode.value() == "anaglyph-monochrome")
+    {
+        init_data.video_mode = video_output::anaglyph_red_cyan_monochrome;
+    }
+    else if (video_output_mode.value() == "anaglyph-full-color")
+    {
+        init_data.video_mode = video_output::anaglyph_red_cyan_full_color;
+    }
+    else if (video_output_mode.value() == "anaglyph-half-color")
+    {
+        init_data.video_mode = video_output::anaglyph_red_cyan_half_color;
+    }
+    else if (video_output_mode.value() == "anaglyph-dubois")
+    {
+        init_data.video_mode = video_output::anaglyph_red_cyan_dubois;
+    }
+    else if (video_output_mode.value() == "stereo")
+    {
+        init_data.video_mode = video_output::stereo;
+    }
+    else
+    {
+        equalizer = true;
+        init_data.video_mode = video_output::mono_left;
+    }
+    init_data.video_state.fullscreen = fullscreen.value();
+    init_data.video_state.swap_eyes = swap_eyes.value();
+    if (center.value())
+    {
+        init_data.video_flags |= video_output::center;
     }
 
-    std::vector<decoder *> decoders;
-    input *input = NULL;
-    audio_output *audio_output = NULL;
-    video_output *video_output = NULL;
-    player *player = NULL;
     int retval = 0;
+    player *player = NULL;
     try
     {
-        /* Create decoders for input files */
-        int video_streams = 0;
-        int audio_streams = 0;
-        for (size_t i = 0; i < arguments.size(); i++)
+        if (equalizer)
         {
-            decoders.push_back(new decoder_ffmpeg);
-            decoders[i]->open(arguments[i].c_str());
-            video_streams += decoders[i]->video_streams();
-            audio_streams += decoders[i]->audio_streams();
-        }
-        if (video_streams == 0)
-        {
-            throw exc("no video streams found");
-        }
-        if (video_streams > 2)
-        {
-            throw exc("cannot handle more than 2 video streams");
-        }
-        if (audio_streams > 1)
-        {
-            throw exc("cannot handle more than 1 audio stream");
-        }
-
-        /* Create input */
-        int video_decoder[2] = { -1, -1 };
-        int video_stream[2] = { -1, -1 };
-        int audio_decoder = -1;
-        int audio_stream = -1;
-        for (size_t i = 0; i < decoders.size(); i++)
-        {
-            for (int j = 0; j < decoders[i]->video_streams(); j++)
-            {
-                if (video_decoder[0] != -1 && video_decoder[1] != -1)
-                {
-                    continue;
-                }
-                else if (video_decoder[0] != -1)
-                {
-                    video_decoder[1] = i;
-                    video_stream[1] = j;
-                }
-                else
-                {
-                    video_decoder[0] = i;
-                    video_stream[0] = j;
-                }
-            }
-            for (int j = 0; j < decoders[i]->audio_streams(); j++)
-            {
-                if (audio_decoder != -1)
-                {
-                    continue;
-                }
-                else
-                {
-                    audio_decoder = i;
-                    audio_stream = j;
-                }
-            }
-        }
-        enum input::mode in_mode;
-        if (input_mode.value() == "")
-        {
-            in_mode = input::automatic;
-        }
-        else if (input_mode.value() == "separate")
-        {
-            in_mode = input::separate;
-        }
-        else if (input_mode.value() == "top-bottom")
-        {
-            in_mode = input::top_bottom;
-        }
-        else if (input_mode.value() == "top-bottom-half")
-        {
-            in_mode = input::top_bottom_half;
-        }
-        else if (input_mode.value() == "left-right")
-        {
-            in_mode = input::left_right;
-        }
-        else if (input_mode.value() == "left-right-half")
-        {
-            in_mode = input::left_right_half;
-        }
-        else if (input_mode.value() == "even-odd-rows")
-        {
-            in_mode = input::even_odd_rows;
+#if HAVE_LIBEQUALIZER
+            player = new class player_equalizer(&argc, argv);
+#else
+            throw exc("this version of Bino was compiled without support for Equalizer");
+#endif
         }
         else
         {
-            in_mode = input::mono;
+            player = new class player();
         }
-        input = new class input();
-        input->open(decoders,
-                video_decoder[0], video_stream[0],
-                video_decoder[1], video_stream[1],
-                audio_decoder, audio_stream,
-                in_mode);
-
-        /* Create audio output */
-        if (audio_stream != -1)
-        {
-            audio_output = new audio_output_openal();
-            audio_output->open(input->audio_rate(), input->audio_channels(), input->audio_bits());
-        }
-
-        /* Create video output */
-        video_output = new video_output_opengl();
-        video_output::mode video_mode;
-        if (video_output_mode.value() == "")
-        {
-            if (input->mode() == input::mono)
-            {
-                video_mode = video_output::mono_left;
-            }
-            else if (video_output->supports_stereo())
-            {
-                video_mode = video_output::stereo;
-            }
-            else
-            {
-                video_mode = video_output::anaglyph_red_cyan_dubois;
-            }
-        }
-        else if (video_output_mode.value() == "mono-left")
-        {
-            video_mode = video_output::mono_left;
-        }
-        else if (video_output_mode.value() == "mono-right")
-        {
-            video_mode = video_output::mono_right;
-        }
-        else if (video_output_mode.value() == "top-bottom")
-        {
-            video_mode = video_output::top_bottom;
-        }
-        else if (video_output_mode.value() == "top-bottom-half")
-        {
-            video_mode = video_output::top_bottom_half;
-        }
-        else if (video_output_mode.value() == "left-right")
-        {
-            video_mode = video_output::left_right;
-        }
-        else if (video_output_mode.value() == "left-right-half")
-        {
-            video_mode = video_output::left_right_half;
-        }
-        else if (video_output_mode.value() == "even-odd-rows")
-        {
-            video_mode = video_output::even_odd_rows;
-        }
-        else if (video_output_mode.value() == "even-odd-columns")
-        {
-            video_mode = video_output::even_odd_columns;
-        }
-        else if (video_output_mode.value() == "checkerboard")
-        {
-            video_mode = video_output::checkerboard;
-        }
-        else if (video_output_mode.value() == "anaglyph")
-        {
-            video_mode = video_output::anaglyph_red_cyan_dubois;
-        }
-        else if (video_output_mode.value() == "anaglyph-monochrome")
-        {
-            video_mode = video_output::anaglyph_red_cyan_monochrome;
-        }
-        else if (video_output_mode.value() == "anaglyph-full-color")
-        {
-            video_mode = video_output::anaglyph_red_cyan_full_color;
-        }
-        else if (video_output_mode.value() == "anaglyph-half-color")
-        {
-            video_mode = video_output::anaglyph_red_cyan_half_color;
-        }
-        else if (video_output_mode.value() == "anaglyph-dubois")
-        {
-            video_mode = video_output::anaglyph_red_cyan_dubois;
-        }
-        else
-        {
-            video_mode = video_output::stereo;
-        }
-        struct video_output::state video_state;
-        video_state.contrast = 0.0f;
-        video_state.brightness = 0.0f;
-        video_state.hue = 0.0f;
-        video_state.saturation = 0.0f;
-        video_state.fullscreen = fullscreen.value();
-        video_state.swap_eyes = swap_eyes.value();
-        unsigned int video_flags = 0;
-        if (center.value())
-        {
-            video_flags |= video_output::center;
-        }
-        video_output->open(
-                input->video_preferred_frame_format(),
-                input->video_width(), input->video_height(), input->video_aspect_ratio(),
-                video_mode, video_state, video_flags, -1, -1);
-        video_output->process_events();
-
-        /* Play */
-        player = new class player();
-        player->open(input, NULL, audio_output, video_output);
+        player->open(init_data);
         player->run();
     }
     catch (std::exception &e)
@@ -407,31 +349,10 @@ int main(int argc, char *argv[])
         retval = 1;
     }
 
-    /* Cleanup */
     if (player)
     {
         try { player->close(); } catch (...) {}
         delete player;
-    }
-    if (audio_output)
-    {
-        try { audio_output->close(); } catch (...) {}
-        delete audio_output;
-    }
-    if (video_output)
-    {
-        try { video_output->close(); } catch (...) {}
-        delete video_output;
-    }
-    if (input)
-    {
-        try { input->close(); } catch (...) {}
-        delete input;
-    }
-    for (size_t i = 0; i < decoders.size(); i++)
-    {
-        try { decoders[i]->close(); } catch (...) {}
-        delete decoders[i];
     }
 
     return retval;

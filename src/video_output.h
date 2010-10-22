@@ -26,11 +26,26 @@
 #include "controller.h"
 
 
+class video_output_state
+{
+public:
+    float contrast;     // -1 - +1
+    float brightness;   // -1 - +1
+    float hue;          // -1 - +1
+    float saturation;   // -1 - +1
+    bool fullscreen;
+    bool swap_eyes;
+
+    video_output_state() throw ();
+    ~video_output_state();
+};
+
 class video_output : public controller
 {
 public:
     enum mode
     {
+        automatic,                      // To be determined by app. This must not be passed to open()!
         stereo,                         // OpenGL quad buffered stereo
         mono_left,                      // Left view only
         mono_right,                     // Right view only
@@ -45,15 +60,6 @@ public:
         anaglyph_red_cyan_full_color,   // Red/cyan anaglyph, full color method
         anaglyph_red_cyan_half_color,   // Red/cyan anaglyph, half color method
         anaglyph_red_cyan_dubois,       // Red/cyan anaglyph, high quality Dubois method
-    };
-    struct state
-    {
-        float contrast;     // -1 - +1
-        float brightness;   // -1 - +1
-        float hue;          // -1 - +1
-        float saturation;   // -1 - +1
-        bool fullscreen;
-        bool swap_eyes;
     };
     enum flags
     {
@@ -71,14 +77,14 @@ public:
     virtual void open(
             video_frame_format preferred_format,
             int src_width, int src_height, float src_aspect_ratio,
-            int mode, const state &state, unsigned int flags,
+            int mode, const video_output_state &state, unsigned int flags,
             int win_width, int win_height) = 0;
 
     /* Get the required video frame format. This can differ from the preferred format! */
     virtual video_frame_format frame_format() const = 0;
 
     /* Get current state */
-    virtual const struct state &state() const = 0;
+    virtual const video_output_state &state() const = 0;
 
     /* Prepare a left/right view pair for display */
     virtual void prepare(

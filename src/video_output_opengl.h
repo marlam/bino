@@ -20,7 +20,7 @@
 #ifndef VIDEO_OUTPUT_OPENGL_H
 #define VIDEO_OUTPUT_OPENGL_H
 
-#include <GL/glew.h>
+#include <GL/gl.h>
 
 #include "video_output.h"
 
@@ -28,24 +28,22 @@
 class video_output_opengl : public video_output
 {
 private:
-    bool _glut_initialized;
-    video_frame_format _preferred_frame_format;
     video_output::mode _mode;
-    float _screen_pixel_aspect_ratio;
     int _src_width;
     int _src_height;
     float _src_aspect_ratio;
+    video_frame_format _src_preferred_frame_format;
     int _win_width;
     int _win_height;
+    float _screen_pixel_aspect_ratio;
     GLuint _prg;
     GLuint _rgb_tex[2][2];
     GLuint _y_tex[2][2];
     GLuint _u_tex[2][2];
     GLuint _v_tex[2][2];
     int _active_tex_set;
-    int _window_id;
     bool _input_is_mono;
-    struct state _state;
+    video_output_state _state;
     bool _use_non_power_of_two;
     float _tex_max_x;
     float _tex_max_y;
@@ -54,27 +52,46 @@ private:
     void bind_textures(int unitset, int index);
     void draw_full_quad();
 
-    void init_glut();
-    void display();
+protected:
+    void set_mode(video_output::mode mode);
+    void set_source_info(int width, int height, float aspect_ratio, video_frame_format preferred_frame_format);
+    void set_screen_info(float pixel_aspect_ratio);
+    void set_win_size(int width, int height);
+    void set_state(const video_output_state &_state);
+    void initialize(bool have_texture_non_power_of_two, bool have_fragment_shader);
+    void deinitialize();
+    void display(video_output::mode mode);
+    void display() { display(_mode); }
     void reshape(int w, int h);
-    void keyboard(unsigned char key, int x, int y);
-    void special(int key, int x, int y);
+    void swap_tex_set();
+    video_output_state &state()
+    {
+        return _state;
+    }
+    int win_width()
+    {
+        return _win_width;
+    }
+    int win_height()
+    {
+        return _win_height;
+    }
 
 public:
     video_output_opengl() throw ();
     ~video_output_opengl();
 
-    virtual bool supports_stereo();
+    virtual bool supports_stereo() = 0;
 
     virtual void open(
             video_frame_format preferred_format,
             int src_width, int src_height, float src_aspect_ratio,
-            int mode, const struct state &state, unsigned int flags,
-            int win_width, int win_height);
+            int mode, const video_output_state &state, unsigned int flags,
+            int win_width, int win_height) = 0;
 
     virtual video_frame_format frame_format() const;
 
-    virtual const struct state &state() const
+    virtual const video_output_state &state() const
     {
         return _state;
     }
@@ -82,17 +99,12 @@ public:
     virtual void prepare(
             uint8_t *l_data[3], size_t l_line_size[3],
             uint8_t *r_data[3], size_t r_line_size[3]);
-    virtual void activate();
-    virtual void process_events();
+    virtual void activate() = 0;
+    virtual void process_events() = 0;
 
-    virtual void close();
+    virtual void close() = 0;
 
-    virtual void receive_notification(const notification &note);
-
-friend void global_video_output_opengl_display(void);
-friend void global_video_output_opengl_reshape(int w, int h);
-friend void global_video_output_opengl_keyboard(unsigned char key, int x, int y);
-friend void global_video_output_opengl_special(int key, int x, int y);
+    virtual void receive_notification(const notification &note) = 0;
 };
 
 #endif

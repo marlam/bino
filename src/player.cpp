@@ -24,257 +24,468 @@
 #include "msg.h"
 #include "timer.h"
 
+#include "decoder_ffmpeg.h"
+#include "input.h"
+#include "controller.h"
+#include "audio_output_openal.h"
+#include "video_output_opengl_freeglut.h"
 #include "player.h"
+
+
+player_init_data::player_init_data()
+    : filenames(),
+    input_mode(input::automatic),
+    video_mode(video_output::stereo),
+    video_state(),
+    video_flags(0)
+{
+}
+
+player_init_data::~player_init_data()
+{
+}
 
 
 // The single player instance
 player *global_player = NULL;
 
-player::player()
+player::player(type t)
     : _input(NULL), _controllers(NULL), _audio_output(NULL), _video_output(NULL), 
+    _running(false), _first_frame(false), _need_frame(false), _drop_next_frame(false), _previous_frame_dropped(false), _in_pause(false),
     _quit_request(false), _pause_request(false), _seek_request(0)
 {
-    if (global_player)
+    if (t == master)
     {
-        throw exc("cannot create a second player object");
+        make_master();
     }
-    global_player = this;
 }
 
 player::~player()
 {
-    global_player = NULL;
+    if (global_player == this)
+    {
+        global_player = NULL;
+    }
 }
 
-void player::open(input *input,
-        std::vector<controller *> *controllers,
-        audio_output *audio_output,
-        video_output *video_output)
+void player::create_decoders(const std::vector<std::string> &filenames)
 {
-    _input = input;
-    _controllers = controllers;
-    _audio_output = audio_output;
-    _video_output = video_output;
+    int video_streams = 0;
+    int audio_streams = 0;
+    for (size_t i = 0; i < filenames.size(); i++)
+    {
+        _decoders.push_back(new decoder_ffmpeg);
+        _decoders[i]->open(filenames[i].c_str());
+        video_streams += _decoders[i]->video_streams();
+        audio_streams += _decoders[i]->audio_streams();
+    }
+    if (video_streams == 0)
+    {
+        throw exc("no video streams found");
+    }
+    if (video_streams > 2)
+    {
+        throw exc("cannot handle more than 2 video streams");
+    }
+    if (audio_streams > 1)
+    {
+        throw exc("cannot handle more than 1 audio stream");
+    }
 }
 
-void player::run()
+void player::create_input(enum input::mode input_mode)
 {
-    uint8_t *l_data[3], *r_data[3];
-    size_t l_line_size[3], r_line_size[3];
-    void *audio_data;
-    size_t required_audio_data_size;
-    int64_t pause_start = -1;
-    // Audio / video timing, relative to a synchronization point.
-    // The master time is the audio time, or external time if there is no audio.
-    // All times are in microseconds.
-    int64_t sync_point_pos;             // input position at last sync point
-    int64_t sync_point_time;            // master time at last sync point
-    int64_t sync_point_av_offset;       // audio/video offset at last sync point
-    int64_t current_pos;                // current input position
-    int64_t current_time;               // current master time
-    int64_t next_frame_pos;             // presentation time of next video frame
-
-    // Initial buffering
-    if (_input->read_video_frame() < 0)
+    int video_decoder[2] = { -1, -1 };
+    int video_stream[2] = { -1, -1 };
+    int audio_decoder = -1;
+    int audio_stream = -1;
+    for (size_t i = 0; i < _decoders.size(); i++)
     {
-        msg::dbg("empty video input");
-        return;
-    }
-    _input->get_video_frame(_video_output->frame_format(), l_data, l_line_size, r_data, r_line_size);
-    _video_output->prepare(l_data, l_line_size, r_data, r_line_size);
-    _input->release_video_frame();
-    if (_audio_output)
-    {
-        _audio_output->status(&required_audio_data_size);
-        if (_input->read_audio_data(&audio_data, required_audio_data_size) < 0)
+        for (int j = 0; j < _decoders[i]->video_streams(); j++)
         {
-            msg::dbg("empty audio input");
-            return;
-        }
-        _audio_output->data(audio_data, required_audio_data_size);
-    }
-
-    // Start video and audio output.
-    current_pos = 0;
-    sync_point_pos = 0;
-    sync_point_av_offset = 0;
-    _video_output->activate();
-    _video_output->process_events();
-    if (_audio_output)
-    {
-        sync_point_time = _audio_output->start();
-    }
-    else
-    {
-        sync_point_time = timer::get_microseconds(timer::monotonic);
-    }
-
-    // Start buffering next video frame
-    next_frame_pos = _input->read_video_frame();
-    if (next_frame_pos < 0)
-    {
-        // This is a single-image input. Put us in pause mode.
-        msg::dbg("single-frame video input: going into pause mode");
-        _pause_request = true;
-    }
-    _input->get_video_frame(_video_output->frame_format(), l_data, l_line_size, r_data, r_line_size);
-    _video_output->prepare(l_data, l_line_size, r_data, r_line_size);
-    _input->release_video_frame();
-
-    // The player loop
-    bool eof = false;
-    bool previous_frame_dropped = false;
-    bool in_pause = false;
-    while (!eof && !_quit_request)
-    {
-        if (_seek_request != 0)
-        {
-            if (_seek_request < 0 && -_seek_request > current_pos)
+            if (video_decoder[0] != -1 && video_decoder[1] != -1)
             {
-                _seek_request = -current_pos;
+                continue;
             }
-            if (_input->duration() > 0)
+            else if (video_decoder[0] != -1)
             {
-                if (_seek_request > 0 && current_pos + _seek_request >= std::max(_input->duration() - 5000000, static_cast<int64_t>(0)))
-                {
-                    _seek_request = std::max(_input->duration() - 5000000 - current_pos, static_cast<int64_t>(0));
-                }
-            }
-            _input->seek(current_pos + _seek_request);
-            next_frame_pos = _input->read_video_frame();
-            eof = (next_frame_pos < 0);
-            if (eof)
-            {
-                msg::wrn("seeked to EOF?!");
+                video_decoder[1] = i;
+                video_stream[1] = j;
             }
             else
             {
-                if (_audio_output)
-                {
-                    _audio_output->stop();
-                    _audio_output->status(&required_audio_data_size);
-                    int64_t audio_pos = _input->read_audio_data(&audio_data, required_audio_data_size);
-                    if (audio_pos >= 0)
-                    {
-                        _audio_output->data(audio_data, required_audio_data_size);
-                        sync_point_time = _audio_output->start();
-                        sync_point_pos = audio_pos;
-                        sync_point_av_offset = next_frame_pos - audio_pos;
-                    }
-                }
-                else
-                {
-                    sync_point_pos = next_frame_pos;
-                    sync_point_time = timer::get_microseconds(timer::monotonic);
-                    sync_point_av_offset = 0;
-                }
-                notify(notification::pos, current_pos / 1e6f, sync_point_pos / 1e6f);
-                current_pos = sync_point_pos;
-                _input->get_video_frame(_video_output->frame_format(), l_data, l_line_size, r_data, r_line_size);
-                _video_output->prepare(l_data, l_line_size, r_data, r_line_size);
-                _input->release_video_frame();
-                previous_frame_dropped = false;
+                video_decoder[0] = i;
+                video_stream[0] = j;
             }
-            _seek_request = 0;
         }
-
-        if (_pause_request)
+        for (int j = 0; j < _decoders[i]->audio_streams(); j++)
         {
-            if (!in_pause)
+            if (audio_decoder != -1)
             {
-                if (_audio_output)
+                continue;
+            }
+            else
+            {
+                audio_decoder = i;
+                audio_stream = j;
+            }
+        }
+    }
+    _input = new input();
+    _input->open(_decoders,
+            video_decoder[0], video_stream[0],
+            video_decoder[1], video_stream[1],
+            audio_decoder, audio_stream,
+            input_mode);
+}
+
+void player::get_input_info(int *w, int *h, float *ar, video_frame_format *fmt)
+{
+    *w = _input->video_width();
+    *h = _input->video_height();
+    *ar = _input->video_aspect_ratio();
+    *fmt = _input->video_preferred_frame_format();
+}
+
+void player::create_audio_output()
+{
+    if (_input->has_audio())
+    {
+        _audio_output = new audio_output_openal();
+        _audio_output->open(_input->audio_rate(), _input->audio_channels(), _input->audio_bits());
+    }
+}
+
+void player::create_video_output(enum video_output::mode video_mode,
+        const video_output_state &video_state, unsigned int video_flags)
+{
+    _video_output = new video_output_opengl_freeglut();
+    if (video_mode == video_output::automatic)
+    {
+        if (_input->mode() == input::mono)
+        {
+            video_mode = video_output::mono_left;
+        }
+        else if (_video_output->supports_stereo())
+        {
+            video_mode = video_output::stereo;
+        }
+        else
+        {
+            video_mode = video_output::anaglyph_red_cyan_dubois;
+        }
+    }
+    _video_output->open(
+            _input->video_preferred_frame_format(),
+            _input->video_width(), _input->video_height(), _input->video_aspect_ratio(),
+            video_mode, video_state, video_flags, -1, -1);
+    _video_output->process_events();
+}
+
+void player::make_master()
+{
+    if (global_player)
+    {
+        throw exc("cannot create a second master player");
+    }
+    global_player = this;
+}
+
+void player::run_step(bool *more_steps, bool *prep_frame, bool *drop_frame, bool *display_frame)
+{
+    *more_steps = false;
+    *prep_frame = false;
+    *drop_frame = false;
+    *display_frame = false;
+
+    if (_quit_request)
+    {
+        return;
+    }
+    else if (!_running)
+    {
+        // Read initial data and start output
+        if (_input->read_video_frame() < 0)
+        {
+            msg::dbg("empty video input");
+            return;
+        }
+        _current_pos = 0;
+        _next_frame_pos = 0;
+        _sync_point_pos = 0;
+        _sync_point_av_offset = 0;
+        if (_audio_output)
+        {
+            _audio_output->status(&_required_audio_data_size);
+            if (_input->read_audio_data(&_audio_data, _required_audio_data_size) < 0)
+            {
+                msg::dbg("empty audio input");
+                return;
+            }
+            _audio_output->data(_audio_data, _required_audio_data_size);
+            _sync_point_time = _audio_output->start();
+        }
+        else
+        {
+            _sync_point_time = timer::get_microseconds(timer::monotonic);
+        }
+        _running = true;
+        _need_frame = false;
+        _first_frame = true;
+        *more_steps = true;
+        *prep_frame = true;
+        return;
+    }
+    else if (_seek_request != 0)
+    {
+        if (_seek_request < 0 && -_seek_request > _current_pos)
+        {
+            _seek_request = -_current_pos;
+        }
+        if (_input->duration() > 0)
+        {
+            if (_seek_request > 0 && _current_pos + _seek_request >= std::max(_input->duration() - 5000000, static_cast<int64_t>(0)))
+            {
+                _seek_request = std::max(_input->duration() - 5000000 - _current_pos, static_cast<int64_t>(0));
+            }
+        }
+        _input->seek(_current_pos + _seek_request);
+        _next_frame_pos = _input->read_video_frame();
+        _seek_request = 0;
+        if (_next_frame_pos < 0)
+        {
+            msg::wrn("seeked to end of video?!");
+            return;
+        }
+        else
+        {
+            if (_audio_output)
+            {
+                _audio_output->stop();
+                _audio_output->status(&_required_audio_data_size);
+                int64_t audio_pos = _input->read_audio_data(&_audio_data, _required_audio_data_size);
+                if (audio_pos < 0)
                 {
-                    _audio_output->pause();
+                    msg::wrn("seeked to end of audio?!");
+                    return;
                 }
-                else
-                {
-                    pause_start = timer::get_microseconds(timer::monotonic);
-                }
-                in_pause = true;
-                notify(notification::pause, false, true);
+                _audio_output->data(_audio_data, _required_audio_data_size);
+                _sync_point_time = _audio_output->start();
+                _sync_point_pos = audio_pos;
+                _sync_point_av_offset = _next_frame_pos - audio_pos;
+            }
+            else
+            {
+                _sync_point_pos = _next_frame_pos;
+                _sync_point_time = timer::get_microseconds(timer::monotonic);
+                _sync_point_av_offset = 0;
+            }
+            notify(notification::pos, _current_pos / 1e6f, _sync_point_pos / 1e6f);
+            _need_frame = false;
+            _current_pos = _sync_point_pos;
+            _previous_frame_dropped = false;
+            *more_steps = true;
+            *prep_frame = true;
+            return;
+        }
+    }
+    else if (_pause_request)
+    {
+        if (!_in_pause)
+        {
+            if (_audio_output)
+            {
+                _audio_output->pause();
+            }
+            else
+            {
+                _pause_start = timer::get_microseconds(timer::monotonic);
+            }
+            _in_pause = true;
+            notify(notification::pause, false, true);
+        }
+        *more_steps = true;
+        return;
+    }
+    else if (_need_frame)
+    {
+        _next_frame_pos = _input->read_video_frame();
+        if (_next_frame_pos < 0)
+        {
+            if (_first_frame)
+            {
+                msg::dbg("single-frame video input: going into pause mode");
+                _pause_request = true;
+            }
+            else
+            {
+                msg::dbg("end of video stream");
+                return;
             }
         }
         else
         {
-            if (in_pause)
-            {
-                if (_audio_output)
-                {
-                    _audio_output->unpause();
-                }
-                else
-                {
-                    sync_point_time += timer::get_microseconds(timer::monotonic) - pause_start;
-                }
-                in_pause = false;
-                notify(notification::pause, true, false);
-            }
-
+            _first_frame = false;
+        }
+        _need_frame = false;
+        if (_drop_next_frame)
+        {
+            *drop_frame = true;
+        }
+        else
+        {
+            *prep_frame = true;
+        }
+        *more_steps = true;
+        return;
+    }
+    else
+    {
+        if (_in_pause)
+        {
             if (_audio_output)
             {
-                // Check if audio needs more data, and get audio time
-                current_time = _audio_output->status(&required_audio_data_size);
-                // Output requested audio data
-                if (required_audio_data_size > 0)
-                {
-                    eof = eof || (_input->read_audio_data(&audio_data, required_audio_data_size) < 0);
-                    _audio_output->data(audio_data, required_audio_data_size);
-                }
+                _audio_output->unpause();
             }
             else
             {
-                // Use our own timer
-                current_time = timer::get_microseconds(timer::monotonic);
+                _sync_point_time += timer::get_microseconds(timer::monotonic) - _pause_start;
             }
-
-            int64_t time_to_next_frame = (next_frame_pos - sync_point_pos) - (current_time - sync_point_time) - sync_point_av_offset;
-            if (time_to_next_frame <= 0)
-            {
-                // Output current video frame
-                bool drop_next_frame = false;
-                if (-time_to_next_frame > _input->video_frame_duration() * 75 / 100)
-                {
-                    msg::wrn("video: delay %g seconds; dropping next frame", (-time_to_next_frame) / 1e6f);
-                    drop_next_frame = true;
-                }
-                if (!previous_frame_dropped)
-                {
-                    _video_output->activate();
-                    _video_output->process_events();
-                }
-                current_pos = next_frame_pos;
-
-                // Read next frame
-                next_frame_pos = _input->read_video_frame();
-                eof = eof || (next_frame_pos < 0);
-
-                // Prepare next video output
-                if (drop_next_frame)
-                {
-                    _input->release_video_frame();
-                }
-                else
-                {
-                    _input->get_video_frame(_video_output->frame_format(), l_data, l_line_size, r_data, r_line_size);
-                    _video_output->prepare(l_data, l_line_size, r_data, r_line_size);
-                    _input->release_video_frame();
-                }
-                previous_frame_dropped = drop_next_frame;
-            }
+            _in_pause = false;
+            notify(notification::pause, true, false);
         }
 
-        // While waiting, allow the video output to react on window system events
-        _video_output->process_events();
+        if (_audio_output)
+        {
+            // Check if audio needs more data, and get audio time
+            _current_time = _audio_output->status(&_required_audio_data_size);
+            // Output requested audio data
+            if (_required_audio_data_size > 0)
+            {
+                if (_input->read_audio_data(&_audio_data, _required_audio_data_size) < 0)
+                {
+                    msg::dbg("end of audio stream");
+                    return;
+                }
+                _audio_output->data(_audio_data, _required_audio_data_size);
+            }
+        }
+        else
+        {
+            // Use our own timer
+            _current_time = timer::get_microseconds(timer::monotonic);
+        }
+
+        int64_t time_to_next_frame = (_next_frame_pos - _sync_point_pos) - (_current_time - _sync_point_time) - _sync_point_av_offset;
+        if (time_to_next_frame <= 0)
+        {
+            // Output current video frame
+            _drop_next_frame = false;
+            if (-time_to_next_frame > _input->video_frame_duration() * 75 / 100)
+            {
+                msg::wrn("video: delay %g seconds; dropping next frame", (-time_to_next_frame) / 1e6f);
+                _drop_next_frame = true;
+            }
+            if (!_previous_frame_dropped)
+            {
+                *display_frame = true;
+            }
+            _need_frame = true;
+            _current_pos = _next_frame_pos;
+            _previous_frame_dropped = _drop_next_frame;
+        }
+        *more_steps = true;
+        return;
     }
+}
+
+void player::get_video_frame(video_frame_format fmt)
+{
+    _input->get_video_frame(fmt, _l_data, _l_line_size, _r_data, _r_line_size);
+}
+
+void player::prepare_video_frame(video_output *vo)
+{
+    vo->prepare(_l_data, _l_line_size, _r_data, _r_line_size);
+}
+
+void player::release_video_frame()
+{
+    _input->release_video_frame();
+}
+
+void player::open(const player_init_data &init_data)
+{
+    msg::set_level(init_data.log_level);
+    create_decoders(init_data.filenames);
+    create_input(init_data.input_mode);
+    create_audio_output();
+    create_video_output(init_data.video_mode, init_data.video_state, init_data.video_flags);
 }
 
 void player::close()
 {
+    if (_audio_output)
+    {
+        try { _audio_output->close(); } catch (...) {}
+        delete _audio_output;
+        _audio_output = NULL;
+    }
+    if (_video_output)
+    {
+        try { _video_output->close(); } catch (...) {}
+        delete _video_output;
+        _video_output = NULL;
+    }
+    if (_input)
+    {
+        try { _input->close(); } catch (...) {}
+        delete _input;
+        _input = NULL;
+    }
+    for (size_t i = 0; i < _decoders.size(); i++)
+    {
+        try { _decoders[i]->close(); } catch (...) {}
+        delete _decoders[i];
+        _decoders.resize(0);
+    }
+}
+
+void player::run()
+{
+    bool more_steps;
+    bool prep_frame;
+    bool drop_frame;
+    bool display_frame;
+
+    for (;;)
+    {
+        run_step(&more_steps, &prep_frame, &drop_frame, &display_frame);
+        if (!more_steps)
+        {
+            break;
+        }
+        if (prep_frame)
+        {
+            get_video_frame(_video_output->frame_format());
+            prepare_video_frame(_video_output);
+            release_video_frame();
+        }
+        else if (drop_frame)
+        {
+            _input->release_video_frame();
+        }
+        else if (display_frame)
+        {
+            _video_output->activate();
+        }
+        _video_output->process_events();
+    }
 }
 
 void player::receive_cmd(const command &cmd)
 {
-    const struct video_output::state &video_state = _video_output->state();
+    const video_output_state &video_state = _video_output->state();
     bool flag;
     float value;
 
@@ -321,12 +532,9 @@ void player::receive_cmd(const command &cmd)
 void player::notify(const notification &note)
 {
     // Notify all controllers (e.g. to update the GUI)
-    if (_controllers)
+    for (size_t i = 0; i < _controllers.size(); i++)
     {
-        for (size_t i = 0; i < _controllers->size(); i++)
-        {
-            _controllers->at(i)->receive_notification(note);
-        }
+        _controllers[i]->receive_notification(note);
     }
     // Notify the audio output (e.g. to play a sound)
     if (_audio_output)
@@ -334,5 +542,8 @@ void player::notify(const notification &note)
         _audio_output->receive_notification(note);
     }
     // Notify the video output (e.g. to update the on screen display)
-    _video_output->receive_notification(note);
+    if (_video_output)
+    {
+        _video_output->receive_notification(note);
+    }
 }
