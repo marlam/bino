@@ -59,6 +59,7 @@ void video_output_opengl_qt_widget::initializeGL()
                 + reinterpret_cast<const char *>(glewGetErrorString(err)));
     }
     _vo->initialize(
+            glewIsSupported("GL_ARB_pixel_buffer_object"),
             glewIsSupported("GL_ARB_texture_non_power_of_two"),
             glewIsSupported("GL_ARB_fragment_shader"));
 }

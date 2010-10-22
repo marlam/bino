@@ -99,11 +99,11 @@ public:
     }
 
     void eq_initialize(int src_width, int src_height, float src_aspect_ratio, video_frame_format src_preferred_frame_format,
-            bool have_texture_non_power_of_two, bool have_fragment_shader)
+            bool have_pixel_buffer_object, bool have_texture_non_power_of_two, bool have_fragment_shader)
     {
         set_mode(stereo);       // just to ensure that prepare() does the right thing
         set_source_info(src_width, src_height, src_aspect_ratio, src_preferred_frame_format);
-        initialize(have_texture_non_power_of_two, have_fragment_shader);
+        initialize(have_pixel_buffer_object, have_texture_non_power_of_two, have_fragment_shader);
     }
 
     void eq_deinitialize()
@@ -543,13 +543,15 @@ protected:
         glDisable(GL_SCISSOR_TEST);
         glDisable(GL_LIGHTING);
 
+        bool have_pixel_buffer_object = glewContextIsSupported(
+                const_cast<GLEWContext *>(glewGetContext()), "GL_ARB_pixel_buffer_object");
         bool have_texture_non_power_of_two = glewContextIsSupported(
                 const_cast<GLEWContext *>(glewGetContext()), "GL_ARB_texture_non_power_of_two");
         bool have_fragment_shader = glewContextIsSupported(
                 const_cast<GLEWContext *>(glewGetContext()), "GL_ARB_fragment_shader");
 
         _video_output.eq_initialize(node->src_width, node->src_height, node->src_aspect_ratio, node->src_preferred_frame_format,
-                have_texture_non_power_of_two, have_fragment_shader);
+                have_pixel_buffer_object, have_texture_non_power_of_two, have_fragment_shader);
 
         msg::dbg(HERE);
         return true;

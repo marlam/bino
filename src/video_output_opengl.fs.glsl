@@ -19,14 +19,14 @@
 
 #version 110
 
-// input_rgb24 or input_yuv420p
+// input_bgra32 or input_yuv420p
 #define $input
 
 // mode_onechannel, mode_anaglyph_monochrome, mode_anaglyph_full_color,
 // mode_anaglyph_half_color, or mode_anaglyph_dubois
 #define $mode
 
-#if defined(input_rgb24)
+#if defined(input_bgra32)
 uniform sampler2D rgb_l;
 # if !defined(mode_onechannel)
 uniform sampler2D rgb_r;
@@ -48,7 +48,7 @@ uniform float saturation;
 uniform float cos_hue;
 uniform float sin_hue;
 
-#if defined(input_rgb24)
+#if defined(input_bgra32)
 vec3 rgb_to_yuv(vec3 rgb)
 {
     // Values taken from http://www.fourcc.org/fccyvrgb.php
@@ -85,7 +85,7 @@ vec3 adjust_yuv(vec3 yuv)
 void main()
 {
     vec3 yuv_l;
-#if defined(input_rgb24)
+#if defined(input_bgra32)
     yuv_l = rgb_to_yuv(texture2D(rgb_l, gl_TexCoord[0].xy).xyz);
 #elif defined(input_yuv420p)
     yuv_l = vec3(
@@ -97,7 +97,7 @@ void main()
 
 #if !defined(mode_onechannel)
     vec3 yuv_r;
-# if defined(input_rgb24)
+# if defined(input_bgra32)
     yuv_r = rgb_to_yuv(texture2D(rgb_r, gl_TexCoord[0].xy).xyz);
 # elif defined(input_yuv420p)
     yuv_r = vec3(

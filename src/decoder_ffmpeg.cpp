@@ -210,7 +210,7 @@ void decoder_ffmpeg::open(const std::string &filename)
                 _stuff->video_codecs[j] = NULL;
                 throw exc(filename + " stream " + str::from(i) + ": cannot open video codec: " + my_av_strerror(e));
             }
-            int bufsize = avpicture_get_size(PIX_FMT_RGB24,
+            int bufsize = avpicture_get_size(PIX_FMT_BGRA,
                     _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height);
             _stuff->packets.push_back(AVPacket());
             _stuff->video_flush_flags.push_back(false);
@@ -222,10 +222,10 @@ void decoder_ffmpeg::open(const std::string &filename)
                 throw exc(HERE + ": " + strerror(ENOMEM));
             }
             avpicture_fill(reinterpret_cast<AVPicture *>(_stuff->out_frames[j]), _stuff->buffers[j],
-                    PIX_FMT_RGB24, _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height);
+                    PIX_FMT_BGRA, _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height);
             _stuff->img_conv_ctxs.push_back(sws_getContext(
                         _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height, _stuff->video_codec_ctxs[j]->pix_fmt,
-                        _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height, PIX_FMT_RGB24,
+                        _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height, PIX_FMT_BGRA,
                         SWS_FAST_BILINEAR, NULL, NULL, NULL));
             if (!_stuff->img_conv_ctxs[j])
             {
@@ -284,7 +284,7 @@ void decoder_ffmpeg::open(const std::string &filename)
         msg::inf("    video stream %d: %dx%d, format %s,",
                 i, video_width(i), video_height(i),
                 _stuff->video_codec_ctxs.at(i)->pix_fmt == PIX_FMT_YUV420P ? "yuv420p"
-                : str::asprintf("%d (converted to rgb24)", _stuff->video_codec_ctxs.at(i)->pix_fmt).c_str());
+                : str::asprintf("%d (converted to bgra32)", _stuff->video_codec_ctxs.at(i)->pix_fmt).c_str());
         msg::inf("        aspect ratio %g:1, %g fps, %g seconds",
                 static_cast<float>(video_aspect_ratio_numerator(i))
                 / static_cast<float>(video_aspect_ratio_denominator(i)),
@@ -386,7 +386,7 @@ int64_t decoder_ffmpeg::video_duration(int index) const throw ()
 
 video_frame_format decoder_ffmpeg::video_preferred_frame_format(int index) const throw ()
 {
-    return (_stuff->video_codec_ctxs.at(index)->pix_fmt == PIX_FMT_YUV420P ? yuv420p : rgb24);
+    return (_stuff->video_codec_ctxs.at(index)->pix_fmt == PIX_FMT_YUV420P ? yuv420p : bgra32);
 }
 
 int decoder_ffmpeg::audio_rate(int index) const throw ()

@@ -261,7 +261,7 @@ void input::open(std::vector<decoder *> decoders,
     msg::inf("input:");
     msg::inf("    video: %dx%d, format %s,",
             video_width(), video_height(),
-            (video_preferred_frame_format() == yuv420p ? "yuv420p" : "rgb24"));
+            (video_preferred_frame_format() == yuv420p ? "yuv420p" : "bgra32"));
     msg::inf("        aspect ratio %g:1, %g fps, %g seconds,",
             video_aspect_ratio(),
             static_cast<float>(video_frame_rate_numerator()) / static_cast<float>(video_frame_rate_denominator()),

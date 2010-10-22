@@ -23,7 +23,7 @@
 typedef enum
 {
     yuv420p,    // 3 planes for Y, U, V, with one U and V value per 4 Y values
-    rgb24       // 1 plane: RGBRGBRGB...
+    bgra32      // 1 plane: BGRABGRABGRA...
 } video_frame_format;
 
 #endif

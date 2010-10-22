@@ -50,6 +50,7 @@ private:
     float _tex_max_x;
     float _tex_max_y;
     bool _yuv420p_supported;
+    GLuint _pbo;
 
     void bind_textures(int unitset, int index);
     void draw_full_quad();
@@ -60,7 +61,7 @@ protected:
     void set_screen_info(int width, int height, float pixel_aspect_ratio);
     void compute_win_size(int width = -1, int height = -1);
     void set_state(const video_output_state &_state);
-    void initialize(bool have_texture_non_power_of_two, bool have_fragment_shader);
+    void initialize(bool have_pixel_buffer_object, bool have_texture_non_power_of_two, bool have_fragment_shader);
     void deinitialize();
     void display(video_output::mode mode);
     void display() { display(_mode); }

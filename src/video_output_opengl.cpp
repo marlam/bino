@@ -29,6 +29,7 @@
 #include "exc.h"
 #include "msg.h"
 #include "str.h"
+#include "timer.h"
 
 #include "video_output_opengl.h"
 #include "video_output_opengl.fs.glsl.h"
@@ -122,7 +123,7 @@ void video_output_opengl::swap_tex_set()
     _active_tex_set = (_active_tex_set == 0 ? 1 : 0);
 }
 
-void video_output_opengl::initialize(bool have_texture_non_power_of_two, bool have_fragment_shader)
+void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_texture_non_power_of_two, bool have_fragment_shader)
 {
     _use_non_power_of_two = true;
     if (!have_texture_non_power_of_two)
@@ -170,7 +171,7 @@ void video_output_opengl::initialize(bool have_texture_non_power_of_two, bool ha
                 : _mode == anaglyph_red_cyan_half_color ? "mode_anaglyph_half_color"
                 : _mode == anaglyph_red_cyan_dubois ? "mode_anaglyph_dubois"
                 : "mode_onechannel");
-        std::string input_str = (frame_format() == yuv420p ? "input_yuv420p" : "input_rgb24");
+        std::string input_str = (frame_format() == yuv420p ? "input_yuv420p" : "input_bgra32");
         std::string fs_src = xgl::ShaderSourcePrep(VIDEO_OUTPUT_OPENGL_FS_GLSL_STR,
                 std::string("$mode=") + mode_str + ", $input=" + input_str);
         _prg = xgl::CreateProgram("video_output", "", "", fs_src);
@@ -222,10 +223,25 @@ void video_output_opengl::initialize(bool have_texture_non_power_of_two, bool ha
         }
     }
 
-    glEnable(GL_TEXTURE_2D);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    int tex_width = _src_width;
+    int tex_height = _src_height;
+    _tex_max_x = 1.0f;
+    _tex_max_y = 1.0f;
+    if (!_use_non_power_of_two)
+    {
+        tex_width = 1;
+        while (tex_width < _src_width)
+        {
+            tex_width *= 2;
+        }
+        tex_height = 1;
+        while (tex_height < _src_height)
+        {
+            tex_height *= 2;
+        }
+        _tex_max_x = static_cast<float>(_src_width) / static_cast<float>(tex_width);
+        _tex_max_y = static_cast<float>(_src_height) / static_cast<float>(tex_height);
+    }
     if (frame_format() == yuv420p)
     {
         for (int i = 0; i < 2; i++)
@@ -238,18 +254,21 @@ void video_output_opengl::initialize(bool have_texture_non_power_of_two, bool ha
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, tex_width, tex_height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
                 glGenTextures(1, &(_u_tex[i][j]));
                 glBindTexture(GL_TEXTURE_2D, _u_tex[i][j]);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, tex_width / 2, tex_height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
                 glGenTextures(1, &(_v_tex[i][j]));
                 glBindTexture(GL_TEXTURE_2D, _v_tex[i][j]);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, tex_width / 2, tex_height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
             }
         }
     }
@@ -265,10 +284,25 @@ void video_output_opengl::initialize(bool have_texture_non_power_of_two, bool ha
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, tex_width, tex_height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
             }
         }
     }
     _active_tex_set = 0;
+
+    if (have_pixel_buffer_object)
+    {
+        glGenBuffers(1, &_pbo);
+    }
+    else
+    {
+        _pbo = 0;
+    }
+
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
 }
 
 void video_output_opengl::deinitialize()
@@ -287,7 +321,10 @@ void video_output_opengl::deinitialize()
     {
         glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_rgb_tex));
     }
-
+    if (_pbo != 0)
+    {
+        glDeleteBuffers(1, &_pbo);
+    }
 }
 
 video_frame_format video_output_opengl::frame_format() const
@@ -298,7 +335,7 @@ video_frame_format video_output_opengl::frame_format() const
     }
     else
     {
-        return rgb24;
+        return bgra32;
     }
 }
 
@@ -336,6 +373,8 @@ void video_output_opengl::draw_full_quad()
 
 void video_output_opengl::display(video_output::mode mode)
 {
+    int64_t display_start = timer::get_microseconds(timer::monotonic);
+
     int left = 0;
     int right = (_input_is_mono ? 0 : 1);
     if (_state.swap_eyes)
@@ -453,6 +492,9 @@ void video_output_opengl::display(video_output::mode mode)
         glVertex2f(-1.0f, -1.0f);
         glEnd();
     }
+
+    int64_t display_stop = timer::get_microseconds(timer::monotonic);
+    msg::dbg("texture display: %g seconds", (display_stop - display_start) / 1e6f);
 }
 
 void video_output_opengl::reshape(int w, int h)
@@ -484,6 +526,7 @@ void video_output_opengl::reshape(int w, int h)
     int vp_x = (w - vp_w) / 2;
     int vp_y = (h - vp_h) / 2;
 
+    glViewport(0, 0, w, h);
     glClear(GL_COLOR_BUFFER_BIT);
     glViewport(vp_x, vp_y, vp_w, vp_h);
     if (!_state.fullscreen)
@@ -544,9 +587,12 @@ void video_output_opengl::reshape(int w, int h)
     }
 }
 
-static int get_row_alignment(const uint8_t *ptr, size_t line_size)
+static void upload_texture(
+        GLuint tex, GLuint pbo,
+        GLsizei w, GLsizei h, int bytes_per_pixel, int line_size,
+        GLenum fmt, GLenum type, const GLvoid *data)
 {
-    uintptr_t p = reinterpret_cast<uintptr_t>(ptr);
+    uintptr_t p = reinterpret_cast<uintptr_t>(data);
     int row_alignment = 1;
     if (p % 8 == 0 && line_size % 8 == 0)
     {
@@ -560,145 +606,74 @@ static int get_row_alignment(const uint8_t *ptr, size_t line_size)
     {
         row_alignment = 2;
     }
-    return row_alignment;
-}
 
-static int make_power_of_two(int x)
-{
-    int y = 1;
-    while (y < x)
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, line_size / bytes_per_pixel);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, row_alignment);
+    glBindTexture(GL_TEXTURE_2D, tex);
+
+    if (pbo != 0)
     {
-        y *= 2;
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, h * line_size, NULL, GL_STREAM_DRAW);
+        void *pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, GL_WRITE_ONLY);
+        std::memcpy(pboptr, data, h * line_size);
+        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER_ARB);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, fmt, type, NULL);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
     }
-    return y;
+    else
+    {
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, fmt, type, data);
+    }
 }
 
 void video_output_opengl::prepare(
         uint8_t *l_data[3], size_t l_line_size[3],
         uint8_t *r_data[3], size_t r_line_size[3])
 {
+    int64_t prepare_start = timer::get_microseconds(timer::monotonic);
+
     int tex_set = (_active_tex_set == 0 ? 1 : 0);
     _input_is_mono = (l_data[0] == r_data[0] && l_data[1] == r_data[1] && l_data[2] == r_data[2]);
-
-    int tex_width = _src_width;
-    int tex_height = _src_height;
-    _tex_max_x = 1.0f;
-    _tex_max_y = 1.0f;
-    if (!_use_non_power_of_two)
-    {
-        tex_width = make_power_of_two(_src_width);
-        tex_height = make_power_of_two(_src_height);
-        _tex_max_x = static_cast<float>(_src_width) / static_cast<float>(tex_width);
-        _tex_max_y = static_cast<float>(_src_height) / static_cast<float>(tex_height);
-    }
 
     glActiveTexture(GL_TEXTURE0);
     if (frame_format() == yuv420p)
     {
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, l_line_size[0]);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, get_row_alignment(l_data[0], l_line_size[0]));
-        glBindTexture(GL_TEXTURE_2D, _y_tex[tex_set][0]);
-        if (_use_non_power_of_two)
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, _src_width, _src_height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, l_data[0]);
-        }
-        else
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, tex_width, tex_height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _src_width, _src_height, GL_LUMINANCE, GL_UNSIGNED_BYTE, l_data[0]);
-        }
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, l_line_size[1]);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, get_row_alignment(l_data[1], l_line_size[1]));
-        glBindTexture(GL_TEXTURE_2D, _u_tex[tex_set][0]);
-        if (_use_non_power_of_two)
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, _src_width / 2, _src_height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, l_data[1]);
-        }
-        else
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, tex_width / 2, tex_height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _src_width / 2, _src_height / 2, GL_LUMINANCE, GL_UNSIGNED_BYTE, l_data[1]);
-        }
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, l_line_size[2]);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, get_row_alignment(l_data[2], l_line_size[2]));
-        glBindTexture(GL_TEXTURE_2D, _v_tex[tex_set][0]);
-        if (_use_non_power_of_two)
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, _src_width / 2, _src_height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, l_data[2]);
-        }
-        else
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, tex_width / 2, tex_height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _src_width / 2, _src_height / 2, GL_LUMINANCE, GL_UNSIGNED_BYTE, l_data[2]);
-        }
+        upload_texture(_y_tex[tex_set][0], _pbo,
+                _src_width, _src_height, 1, l_line_size[0],
+                GL_LUMINANCE, GL_UNSIGNED_BYTE, l_data[0]);
+        upload_texture(_u_tex[tex_set][0], _pbo,
+                _src_width / 2, _src_height / 2, 1, l_line_size[1],
+                GL_LUMINANCE, GL_UNSIGNED_BYTE, l_data[1]);
+        upload_texture(_v_tex[tex_set][0], _pbo,
+                _src_width / 2, _src_height / 2, 1, l_line_size[2],
+                GL_LUMINANCE, GL_UNSIGNED_BYTE, l_data[2]);
         if (!_input_is_mono)
         {
-            glPixelStorei(GL_UNPACK_ROW_LENGTH, r_line_size[0]);
-            glPixelStorei(GL_UNPACK_ALIGNMENT, get_row_alignment(r_data[0], r_line_size[0]));
-            glBindTexture(GL_TEXTURE_2D, _y_tex[tex_set][1]);
-            if (_use_non_power_of_two)
-            {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, _src_width, _src_height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[0]);
-            }
-            else
-            {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, tex_width, tex_height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _src_width, _src_height, GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[0]);
-            }
-            glPixelStorei(GL_UNPACK_ROW_LENGTH, r_line_size[1]);
-            glPixelStorei(GL_UNPACK_ALIGNMENT, get_row_alignment(r_data[1], r_line_size[1]));
-            glBindTexture(GL_TEXTURE_2D, _u_tex[tex_set][1]);
-            if (_use_non_power_of_two)
-            {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, _src_width / 2, _src_height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[1]);
-            }
-            else
-            {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, tex_width / 2, tex_height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _src_width / 2, _src_height / 2, GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[1]);
-            }
-            glPixelStorei(GL_UNPACK_ROW_LENGTH, r_line_size[2]);
-            glPixelStorei(GL_UNPACK_ALIGNMENT, get_row_alignment(r_data[2], r_line_size[2]));
-            glBindTexture(GL_TEXTURE_2D, _v_tex[tex_set][1]);
-            if (_use_non_power_of_two)
-            {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, _src_width / 2, _src_height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[2]);
-            }
-            else
-            {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, tex_width / 2, tex_height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _src_width / 2, _src_height / 2, GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[2]);
-            }
+            upload_texture(_y_tex[tex_set][1], _pbo,
+                    _src_width, _src_height, 1, r_line_size[0],
+                    GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[0]);
+            upload_texture(_u_tex[tex_set][1], _pbo,
+                    _src_width / 2, _src_height / 2, 1, r_line_size[1],
+                    GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[1]);
+            upload_texture(_v_tex[tex_set][1], _pbo,
+                    _src_width / 2, _src_height / 2, 1, r_line_size[2],
+                    GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[2]);
         }
     }
-    else if (frame_format() == rgb24)
+    else if (frame_format() == bgra32)
     {
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, l_line_size[0] / 3);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, get_row_alignment(l_data[0], l_line_size[0]));
-        glBindTexture(GL_TEXTURE_2D, _rgb_tex[tex_set][0]);
-        if (_use_non_power_of_two)
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, _src_width, _src_height, 0, GL_RGB, GL_UNSIGNED_BYTE, l_data[0]);
-        }
-        else
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, tex_width, tex_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _src_width, _src_height, GL_RGB, GL_UNSIGNED_BYTE, l_data[0]);
-        }
+        upload_texture(_rgb_tex[tex_set][0], _pbo,
+                _src_width, _src_height, 4, l_line_size[0],
+                GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, l_data[0]);
         if (!_input_is_mono)
         {
-            glPixelStorei(GL_UNPACK_ROW_LENGTH, r_line_size[0] / 3);
-            glPixelStorei(GL_UNPACK_ALIGNMENT, get_row_alignment(r_data[0], r_line_size[0]));
-            glBindTexture(GL_TEXTURE_2D, _rgb_tex[tex_set][1]);
-            if (_use_non_power_of_two)
-            {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, _src_width, _src_height, 0, GL_RGB, GL_UNSIGNED_BYTE, r_data[0]);
-            }
-            else
-            {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, tex_width, tex_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _src_width, _src_height, GL_RGB, GL_UNSIGNED_BYTE, r_data[0]);
-            }
+            upload_texture(_rgb_tex[tex_set][1], _pbo,
+                    _src_width, _src_height, 4, r_line_size[0],
+                    GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, r_data[0]);
         }
     }
+
+    int64_t prepare_stop = timer::get_microseconds(timer::monotonic);
+    msg::dbg("texture upload: %g seconds", (prepare_stop - prepare_start) / 1e6f);
 }
