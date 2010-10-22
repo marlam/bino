@@ -60,6 +60,14 @@ if test "$HAVE_LIBSWSCALE" != "1"; then
     AC_MSG_WARN([libswscale is provided by ffmpeg; Debian package: libswscale-dev])
 fi
 
+dnl freealut
+PKG_CHECK_MODULES([libalut], [freealut >= 0.0], [HAVE_LIBALUT=1], [HAVE_LIBALUT=0])
+if test "$HAVE_LIBALUT" != "1"; then
+    AC_MSG_WARN([library libalut not found:])
+    AC_MSG_WARN([$libalut_PKG_ERRORS])
+    AC_MSG_WARN([libalut is provided by freealut; Debian package: libalut-dev])
+fi
+
 dnl glew
 PKG_CHECK_MODULES([libglew], [glew >= 1.5.0], [HAVE_LIBGLEW=1], [HAVE_LIBGLEW=0])
 if test "$HAVE_LIBGLEW" != "1"; then
@@ -68,23 +76,19 @@ if test "$HAVE_LIBGLEW" != "1"; then
     AC_MSG_WARN([libglew is provided by glew; Debian package: libglew-dev])
 fi
 
-dnl glut
-AC_CHECK_LIB([glut], [glutMainLoopEvent], [HAVE_LIBGLUT=1], [HAVE_LIBGLUT=0])
-if test "$HAVE_LIBGLUT" != "1"; then
-    AC_MSG_WARN([library libglut (freeglut version) not found])
-    AC_MSG_WARN([libglut (freeglut version) is provided by freeglut; Debian package: freeglut3-dev])
-else
-    AC_SUBST([libglut_CFLAGS], [])
-    AC_SUBST([libglut_LIBS], [-lglut])
+dnl Qt
+PKG_CHECK_MODULES([libqtopengl], [QtOpenGL >= 0.0], [HAVE_LIBQTOPENGL=1], [HAVE_LIBQTOPENGL=0])
+if test "$HAVE_LIBQTOPENGL" != "1"; then
+    AC_MSG_WARN([library QtOpenGL not found:])
+    AC_MSG_WARN([$libqtopengl_PKG_ERRORS])
+    AC_MSG_WARN([QtOpenGL is provided by Qt; Debian package: libqt4-opengl-dev])
 fi
-
-dnl freealut
-PKG_CHECK_MODULES([libalut], [freealut >= 0.0], [HAVE_LIBALUT=1], [HAVE_LIBALUT=0])
-if test "$HAVE_LIBALUT" != "1"; then
-    AC_MSG_WARN([library libalut not found:])
-    AC_MSG_WARN([$libalut_PKG_ERRORS])
-    AC_MSG_WARN([libalut is provided by freealut; Debian package: libalut-dev])
-fi
+RCC=""
+AC_ARG_VAR([RCC], [rcc command])
+AC_CHECK_TOOLS([RCC], [rcc-qt4 rcc])
+MOC=""
+AC_ARG_VAR([MOC], [moc command])
+AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
 
 dnl Equalizer
 AC_ARG_WITH([equalizer],
@@ -106,10 +110,9 @@ AM_CONDITIONAL([HAVE_LIBEQUALIZER], [test "$HAVE_LIBEQUALIZER" = "1"])
 dnl Check if all libraries were found
 if test "$HAVE_LIBAVFORMAT" != "1" \
     -o "$HAVE_LIBSWSCALE" != "1" \
-    -o "$HAVE_LIBGLEW" != "1" \
-    -o "$HAVE_LIBGLUT" != "1" \
-    -o "$HAVE_LIBGLU" != "1" \
     -o "$HAVE_LIBALUT" != "1" \
+    -o "$HAVE_LIBGLEW" != "1" \
+    -o "$HAVE_LIBQTOPENGL" != "1" \
     -o \( "$equalizer" = "yes" -a "$HAVE_LIBEQUALIZER" != "1" \) ; then
     AC_MSG_ERROR([One or more libraries were not found. See messages above.])
 fi

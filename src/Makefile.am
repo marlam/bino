@@ -17,7 +17,7 @@ bino_SOURCES = \
         video_output.h video_output.cpp \
 	xgl.h xgl.cpp \
         video_output_opengl.h video_output_opengl.cpp \
-        video_output_opengl_freeglut.h video_output_opengl_freeglut.cpp \
+        video_output_opengl_qt.h video_output_opengl_qt.cpp \
 	audio_output.h audio_output.cpp \
 	audio_output_openal.h audio_output_openal.cpp \
 	player.h player.cpp \
@@ -27,6 +27,7 @@ EXTRA_DIST = \
 	video_output_opengl.fs.glsl
 
 nodist_bino_SOURCES = \
+	video_output_opengl_qt-moc.cpp \
 	video_output_opengl.fs.glsl.h
 
 BUILT_SOURCES = $(nodist_bino_SOURCES)
@@ -35,19 +36,31 @@ CLEANFILES = $(BUILT_SOURCES)
 
 AM_CPPFLAGS = -I$(top_srcdir)/src/base \
 	$(libavformat_CFLAGS) $(libswscale_CFLAGS) \
-	$(libglut_CFLAGS) $(libglew_CFLAGS) \
-	$(libalut_CFLAGS)
+	$(libalut_CFLAGS) $(libglew_CFLAGS) $(libqtopengl_CFLAGS)
 
 bino_LDADD = $(top_builddir)/src/base/libbase.a \
 	$(libavformat_LIBS) $(libswscale_LIBS) \
-	$(libglut_LIBS) $(libglew_LIBS) \
-	$(libalut_LIBS)
+	$(libalut_LIBS) $(libglew_LIBS) $(libqtopengl_LIBS)
 
 if HAVE_LIBEQUALIZER
 bino_SOURCES += player_equalizer.h player_equalizer.cpp
 AM_CPPFLAGS += $(libEqualizer_CFLAGS)
 bino_LDADD += $(libEqualizer_LIBS)
 endif
+
+moc_verbose = $(moc_verbose_$(V))
+moc_verbose_ = $(moc_verbose_$(AM_DEFAULT_VERBOSITY))
+moc_verbose_0 = @echo "  MOC   " $@;
+
+%-moc.cpp: %.h
+	$(moc_verbose)$(MOC) -o $@ $<
+
+rcc_verbose = $(rcc_verbose_$(V))
+rcc_verbose_ = $(rcc_verbose_$(AM_DEFAULT_VERBOSITY))
+rcc_verbose_0 = @echo "  RCC   " $@;
+
+%-rcc.cpp: %.qrc
+	$(rcc_verbose)$(RCC) -o $@ $<
 
 %.glsl.h: %.glsl
 	$(AM_V_GEN)MACRONAME="`echo $< | sed -e s/^.*\\\/// -e s/\\\.glsl$$// -e s/[\\\.-]/_/g | tr [a-z] [A-Z]`_GLSL_STR"; \

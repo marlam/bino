@@ -33,9 +33,11 @@ private:
     int _src_height;
     float _src_aspect_ratio;
     video_frame_format _src_preferred_frame_format;
+    int _screen_width;
+    int _screen_height;
+    float _screen_pixel_aspect_ratio;
     int _win_width;
     int _win_height;
-    float _screen_pixel_aspect_ratio;
     GLuint _prg;
     GLuint _rgb_tex[2][2];
     GLuint _y_tex[2][2];
@@ -55,8 +57,8 @@ private:
 protected:
     void set_mode(video_output::mode mode);
     void set_source_info(int width, int height, float aspect_ratio, video_frame_format preferred_frame_format);
-    void set_screen_info(float pixel_aspect_ratio);
-    void set_win_size(int width, int height);
+    void set_screen_info(int width, int height, float pixel_aspect_ratio);
+    void compute_win_size(int width = -1, int height = -1);
     void set_state(const video_output_state &_state);
     void initialize(bool have_texture_non_power_of_two, bool have_fragment_shader);
     void deinitialize();

@@ -51,8 +51,10 @@ void video_output_opengl::set_source_info(int width, int height, float aspect_ra
     _src_preferred_frame_format = preferred_frame_format;
 }
 
-void video_output_opengl::set_screen_info(float pixel_aspect_ratio)
+void video_output_opengl::set_screen_info(int width, int height, float pixel_aspect_ratio)
 {
+    _screen_width = width;
+    _screen_height = height;
     _screen_pixel_aspect_ratio = pixel_aspect_ratio;
 }
 
@@ -61,10 +63,53 @@ void video_output_opengl::set_mode(video_output::mode mode)
     _mode = mode;
 }
 
-void video_output_opengl::set_win_size(int width, int height)
+void video_output_opengl::compute_win_size(int win_width, int win_height)
 {
-    _win_width = width;
-    _win_height = height;
+    _win_width = win_width;
+    _win_height = win_height;
+    if (_win_width < 1)
+    {
+        _win_width = _src_width;
+        if (_mode == left_right)
+        {
+                _win_width *= 2;
+        }
+    }
+    if (_win_height < 1)
+    {
+        _win_height = _src_height;
+        if (_mode == top_bottom)
+        {
+            _win_height *= 2;
+        }
+    }
+    float _win_ar = _win_width * _screen_pixel_aspect_ratio / _win_height;
+    if (_mode == left_right)
+    {
+        _win_ar /= 2.0f;
+    }
+    else if (_mode == top_bottom)
+    {
+        _win_ar *= 2.0f;
+    }
+    if (_src_aspect_ratio >= _win_ar)
+    {
+        _win_width *= _src_aspect_ratio / _win_ar;
+    }
+    else
+    {
+        _win_height *= _win_ar / _src_aspect_ratio;
+    }
+    int max_win_width = _screen_width - _screen_width / 20;
+    if (_win_width > max_win_width)
+    {
+        _win_width = max_win_width;
+    }
+    int max_win_height = _screen_height - _screen_height / 20;
+    if (_win_height > max_win_height)
+    {
+        _win_height = max_win_height;
+    }
 }
 
 void video_output_opengl::set_state(const video_output_state &state)
@@ -439,6 +484,7 @@ void video_output_opengl::reshape(int w, int h)
     int vp_x = (w - vp_w) / 2;
     int vp_y = (h - vp_h) / 2;
 
+    glClear(GL_COLOR_BUFFER_BIT);
     glViewport(vp_x, vp_y, vp_w, vp_h);
     if (!_state.fullscreen)
     {

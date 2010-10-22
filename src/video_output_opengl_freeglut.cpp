@@ -148,68 +148,15 @@ void video_output_opengl_freeglut::open(
                 screen_width_px, screen_height_px, screen_width_mm, screen_height_mm,
                 screen_pixel_aspect_ratio);
     }
-    set_screen_info(screen_pixel_aspect_ratio);
-    if (state.fullscreen)
-    {
-        win_width = glutGet(GLUT_SCREEN_WIDTH);
-        win_height = glutGet(GLUT_SCREEN_HEIGHT);
-    }
-    else
-    {
-        if (win_width < 0)
-        {
-            win_width = src_width;
-            if (mode == left_right)
-            {
-                win_width *= 2;
-            }
-        }
-        if (win_height < 0)
-        {
-            win_height = src_height;
-            if (mode == top_bottom)
-            {
-                win_height *= 2;
-            }
-        }
-        float win_ar = win_width * screen_pixel_aspect_ratio / win_height;
-        if (mode == left_right)
-        {
-            win_ar /= 2.0f;
-        }
-        else if (mode == top_bottom)
-        {
-            win_ar *= 2.0f;
-        }
-        if (src_aspect_ratio >= win_ar)
-        {
-            win_height *= win_ar / src_aspect_ratio;
-        }
-        else
-        {
-            win_width *= src_aspect_ratio / win_ar;
-        }
-        int max_win_width = glutGet(GLUT_SCREEN_WIDTH);
-        max_win_width -= max_win_width / 20;
-        if (win_width > max_win_width)
-        {
-            win_width = max_win_width;
-        }
-        int max_win_height = glutGet(GLUT_SCREEN_HEIGHT);
-        max_win_height -= max_win_height / 20;
-        if (win_height > max_win_height)
-        {
-            win_height = max_win_height;
-        }
-    }
-    glutInitWindowSize(win_width, win_height);
+    set_screen_info(screen_width_px, screen_height_px, screen_pixel_aspect_ratio);
+    compute_win_size(win_width, win_height);
+    glutInitWindowSize(video_output_opengl::win_width(), video_output_opengl::win_height());
     if ((flags & center) && !state.fullscreen)
     {
         glutInitWindowPosition(
-                (glutGet(GLUT_SCREEN_WIDTH) - win_width) / 2,
-                (glutGet(GLUT_SCREEN_HEIGHT) - win_height) / 2);
+                (screen_width_px - video_output_opengl::win_width()) / 2,
+                (screen_height_px - video_output_opengl::win_height()) / 2);
     }
-    set_win_size(win_width, win_height);
     _window_id = glutCreateWindow(PACKAGE_NAME);
     if (state.fullscreen)
     {

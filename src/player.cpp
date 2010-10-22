@@ -28,7 +28,7 @@
 #include "input.h"
 #include "controller.h"
 #include "audio_output_openal.h"
-#include "video_output_opengl_freeglut.h"
+#include "video_output_opengl_qt.h"
 #include "player.h"
 
 
@@ -159,7 +159,7 @@ void player::create_audio_output()
 void player::create_video_output(enum video_output::mode video_mode,
         const video_output_state &video_state, unsigned int video_flags)
 {
-    _video_output = new video_output_opengl_freeglut();
+    _video_output = new video_output_opengl_qt();
     if (video_mode == video_output::automatic)
     {
         if (_input->mode() == input::mono)
