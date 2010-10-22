@@ -212,7 +212,16 @@ void video_output_opengl_qt::open(
             || ((mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard) &&
                 !_widget->format().stencil()))
     {
-        throw exc("cannot set GL context format");
+        if (mode == stereo)
+        {
+            // Common failure: display does not support quad buffered stereo
+            throw exc("display does not support stereo mode");
+        }
+        else
+        {
+            // Should never happen
+            throw exc("cannot set GL context format");
+        }
     }
 
     int screen_width = QApplication::desktop()->screenGeometry().width();
