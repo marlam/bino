@@ -78,14 +78,6 @@ else
     AC_SUBST([libglut_LIBS], [-lglut])
 fi
 
-dnl glu
-PKG_CHECK_MODULES([libglu], [glu >= 0.0], [HAVE_LIBGLU=1], [HAVE_LIBGLU=0])
-if test "$HAVE_LIBGLU" != "1"; then
-    AC_MSG_WARN([library libglu not found:])
-    AC_MSG_WARN([$libglu_PKG_ERRORS])
-    AC_MSG_WARN([libglu is provided by Mesa; Debian package: libglu-dev])
-fi
-
 dnl freealut
 PKG_CHECK_MODULES([libalut], [freealut >= 0.0], [HAVE_LIBALUT=1], [HAVE_LIBALUT=0])
 if test "$HAVE_LIBALUT" != "1"; then

@@ -35,12 +35,12 @@ CLEANFILES = $(BUILT_SOURCES)
 
 AM_CPPFLAGS = -I$(top_srcdir)/src/base \
 	$(libavformat_CFLAGS) $(libswscale_CFLAGS) \
-	$(libglut_CFLAGS) $(libglu_CFLAGS) $(libglew_CFLAGS) \
+	$(libglut_CFLAGS) $(libglew_CFLAGS) \
 	$(libalut_CFLAGS)
 
 bino_LDADD = $(top_builddir)/src/base/libbase.a \
 	$(libavformat_LIBS) $(libswscale_LIBS) \
-	$(libglut_LIBS) $(libglu_LIBS) $(libglew_LIBS) \
+	$(libglut_LIBS) $(libglew_LIBS) \
 	$(libalut_LIBS)
 
 if HAVE_LIBEQUALIZER

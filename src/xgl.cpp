@@ -210,8 +210,8 @@ bool xgl::CheckError(const std::string &where)
     if (e != GL_NO_ERROR)
     {
         std::string pfx = (where.length() > 0 ? where + ": " : "");
-        throw exc(pfx + "OpenGL error " + str::asprintf("0x%04X: ", static_cast<unsigned int>(e))
-                + reinterpret_cast<const char *>(gluErrorString(e)));
+        throw exc(pfx + "OpenGL error " + str::asprintf("0x%04X", static_cast<unsigned int>(e)));
+        // Don't use gluErrorString(e) here to avoid depending on libGLU just for this
         return false;
     }
     return true;
