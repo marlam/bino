@@ -31,6 +31,7 @@
 #include "msg.h"
 #include "str.h"
 
+#include "qt_app.h"
 #include "video_output_opengl_qt.h"
 
 
@@ -154,24 +155,18 @@ void video_output_opengl_qt_widget::keyPressEvent(QKeyEvent *event)
 
 
 video_output_opengl_qt::video_output_opengl_qt(QWidget *parent) throw ()
-    : video_output_opengl(), _parent(parent), _app(NULL), _widget(NULL)
+    : video_output_opengl(), _qt_app_owner(false), _widget(NULL)
 {
-    _argc = 1;
-    _argv[0] = PACKAGE_NAME;
-    _argv[1] = NULL;
-
-    // Initialize Qt if necessary, i.e. if there is no parent widget.
-    // This cannot wait until open() because we need it for supports_stereo().
-    if (!_parent)
-    {
-        _app = new QApplication(_argc, const_cast<char **>(_argv));
-    }
+    _qt_app_owner = init_qt();
 }
 
 video_output_opengl_qt::~video_output_opengl_qt()
 {
     delete _widget;
-    delete _app;
+    if (_qt_app_owner)
+    {
+        exit_qt();
+    }
 }
 
 bool video_output_opengl_qt::supports_stereo()

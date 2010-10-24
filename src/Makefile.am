@@ -21,6 +21,7 @@ bino_SOURCES = \
 	audio_output.h audio_output.cpp \
 	audio_output_openal.h audio_output_openal.cpp \
 	player.h player.cpp \
+	qt_app.h qt_app.cpp \
 	main.cpp
 
 EXTRA_DIST = \

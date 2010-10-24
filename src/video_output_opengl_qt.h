@@ -52,10 +52,7 @@ protected:
 class video_output_opengl_qt : public video_output_opengl
 {
 private:
-    QWidget *_parent;
-    int _argc;
-    const char *_argv[2];
-    QApplication *_app;
+    bool _qt_app_owner;
     video_output_opengl_qt_widget *_widget;
 
 public:
