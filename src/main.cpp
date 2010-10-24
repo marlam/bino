@@ -25,6 +25,7 @@
 #include "msg.h"
 #include "opt.h"
 
+#include "gui.h"
 #include "player.h"
 #if HAVE_LIBEQUALIZER
 # include "player_equalizer.h"
@@ -103,7 +104,7 @@ int main(int argc, char *argv[])
     options.push_back(&eq_render_client);
 
     std::vector<std::string> arguments;
-    if (!opt::parse(argc, argv, options, 1, 3, arguments))
+    if (!opt::parse(argc, argv, options, 0, 3, arguments))
     {
         return 1;
     }
@@ -120,7 +121,7 @@ int main(int argc, char *argv[])
     {
         msg::req_txt(
                 "Usage:\n"
-                "  %s [option...] file0 [file1] [file2]\n"
+                "  %s [option...] [file0] [file1] [file2]\n"
                 "\n"
                 "Options:\n"
                 "  --help               Print help\n"
@@ -173,6 +174,12 @@ int main(int argc, char *argv[])
     if (version.value() || help.value())
     {
         return 0;
+    }
+
+    if (arguments.size() == 0)
+    {
+        gui gui;
+        return gui.run();
     }
 
 #if HAVE_LIBEQUALIZER

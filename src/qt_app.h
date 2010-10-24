@@ -25,5 +25,6 @@
  * initialized elsewhere and the caller must not call exit_qt(). */
 bool init_qt();
 void exit_qt();
+int exec_qt();
 
 #endif

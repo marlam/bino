@@ -22,12 +22,17 @@ bino_SOURCES = \
 	audio_output_openal.h audio_output_openal.cpp \
 	player.h player.cpp \
 	qt_app.h qt_app.cpp \
+	gui.h gui.cpp \
 	main.cpp
 
 EXTRA_DIST = \
+	qt_resources.qrc \
+	appicon.png \
 	video_output_opengl.fs.glsl
 
 nodist_bino_SOURCES = \
+	qt_resources-rcc.cpp \
+	gui-moc.cpp \
 	video_output_opengl_qt-moc.cpp \
 	video_output_opengl.fs.glsl.h
 

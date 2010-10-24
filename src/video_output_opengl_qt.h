@@ -53,6 +53,7 @@ class video_output_opengl_qt : public video_output_opengl
 {
 private:
     bool _qt_app_owner;
+    QWidget *_parent;
     video_output_opengl_qt_widget *_widget;
 
 public:

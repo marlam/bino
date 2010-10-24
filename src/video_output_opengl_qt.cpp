@@ -26,6 +26,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QKeyEvent>
+#include <QIcon>
 
 #include "exc.h"
 #include "msg.h"
@@ -40,6 +41,7 @@ video_output_opengl_qt_widget::video_output_opengl_qt_widget(
     : QGLWidget(format, parent), _vo(vo), _have_valid_data(false)
 {
     setFocusPolicy(Qt::StrongFocus);
+    setWindowIcon(QIcon(":appicon.png"));
 }
 
 video_output_opengl_qt_widget::~video_output_opengl_qt_widget()
@@ -155,7 +157,7 @@ void video_output_opengl_qt_widget::keyPressEvent(QKeyEvent *event)
 
 
 video_output_opengl_qt::video_output_opengl_qt(QWidget *parent) throw ()
-    : video_output_opengl(), _qt_app_owner(false), _widget(NULL)
+    : video_output_opengl(), _qt_app_owner(false), _parent(parent), _widget(NULL)
 {
     _qt_app_owner = init_qt();
 }
@@ -202,7 +204,7 @@ void video_output_opengl_qt::open(
     {
         fmt.setStencil(true);
     }
-    _widget = new video_output_opengl_qt_widget(this, fmt);
+    _widget = new video_output_opengl_qt_widget(this, fmt, _parent);
     if (!_widget->format().alpha() || !_widget->format().doubleBuffer()
             || (mode == stereo && !_widget->format().stereo())
             || ((mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard) &&

@@ -19,6 +19,7 @@
 
 #include "config.h"
 
+#include <QCoreApplication>
 #include <QApplication>
 
 
@@ -31,6 +32,9 @@ bool init_qt()
     if (!qt_app)
     {
         qt_app = new QApplication(qt_argc, const_cast<char **>(qt_argv));
+        QCoreApplication::setOrganizationName("Bino");
+        QCoreApplication::setOrganizationDomain("bino.nongnu.org");
+        QCoreApplication::setApplicationName(PACKAGE_NAME);
         return true;
     }
     else
@@ -43,4 +47,9 @@ void exit_qt()
 {
     delete qt_app;
     qt_app = NULL;
+}
+
+int exec_qt()
+{
+    return qt_app->exec();
 }
