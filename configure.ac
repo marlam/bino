@@ -60,12 +60,12 @@ if test "$HAVE_LIBSWSCALE" != "1"; then
     AC_MSG_WARN([libswscale is provided by ffmpeg; Debian package: libswscale-dev])
 fi
 
-dnl freealut
-PKG_CHECK_MODULES([libalut], [freealut >= 0.0], [HAVE_LIBALUT=1], [HAVE_LIBALUT=0])
-if test "$HAVE_LIBALUT" != "1"; then
-    AC_MSG_WARN([library libalut not found:])
-    AC_MSG_WARN([$libalut_PKG_ERRORS])
-    AC_MSG_WARN([libalut is provided by freealut; Debian package: libalut-dev])
+dnl OpenAL
+PKG_CHECK_MODULES([libopenal], [openal >= 0.0], [HAVE_LIBOPENAL=1], [HAVE_LIBOPENAL=0])
+if test "$HAVE_LIBOPENAL" != "1"; then
+    AC_MSG_WARN([library libopenal not found:])
+    AC_MSG_WARN([$libopenal_PKG_ERRORS])
+    AC_MSG_WARN([libopenal is provided by OpenAL; Debian package: libopenal-dev])
 fi
 
 dnl glew
@@ -110,7 +110,7 @@ AM_CONDITIONAL([HAVE_LIBEQUALIZER], [test "$HAVE_LIBEQUALIZER" = "1"])
 dnl Check if all libraries were found
 if test "$HAVE_LIBAVFORMAT" != "1" \
     -o "$HAVE_LIBSWSCALE" != "1" \
-    -o "$HAVE_LIBALUT" != "1" \
+    -o "$HAVE_LIBOPENAL" != "1" \
     -o "$HAVE_LIBGLEW" != "1" \
     -o "$HAVE_LIBQTOPENGL" != "1" \
     -o \( "$equalizer" = "yes" -a "$HAVE_LIBEQUALIZER" != "1" \) ; then

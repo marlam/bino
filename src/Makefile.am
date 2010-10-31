@@ -52,11 +52,11 @@ CLEANFILES = $(BUILT_SOURCES)
 
 AM_CPPFLAGS = -I$(top_srcdir)/src/base \
 	$(libavformat_CFLAGS) $(libswscale_CFLAGS) \
-	$(libalut_CFLAGS) $(libglew_CFLAGS) $(libqtopengl_CFLAGS)
+	$(libopenal_CFLAGS) $(libglew_CFLAGS) $(libqtopengl_CFLAGS)
 
 bino_LDADD = $(top_builddir)/src/base/libbase.a \
 	$(libavformat_LIBS) $(libswscale_LIBS) \
-	$(libalut_LIBS) $(libglew_LIBS) $(libqtopengl_LIBS)
+	$(libopenal_LIBS) $(libglew_LIBS) $(libqtopengl_LIBS)
 
 if HAVE_LIBEQUALIZER
 bino_SOURCES += player_equalizer.h player_equalizer.cpp

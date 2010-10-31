@@ -1,7 +1,9 @@
 /*
  * This file is part of bino, a program to play stereoscopic videos.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010
+ * Martin Lambers <marlam@marlam.de>
+ * Gabriele Greco <gabrielegreco@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +25,8 @@
 #include <vector>
 #include <stdint.h>
 
-#include <AL/alut.h>
+#include <AL/al.h>
+#include <AL/alc.h>
 
 #include "audio_output.h"
 
@@ -47,6 +50,8 @@ private:
     int64_t _last_timestamp;
     int64_t _ext_timer_at_last_timestamp;
     int64_t _last_reported_timestamp;
+    ALCdevice *_device;
+    ALCcontext *_context;
 
 public:
     audio_output_openal() throw ();

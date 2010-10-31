@@ -1,7 +1,9 @@
 /*
  * This file is part of bino, a program to play stereoscopic videos.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010
+ * Martin Lambers <marlam@marlam.de>
+ * Gabriele Greco <gabrielegreco@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,22 +51,31 @@ void audio_output_openal::open(int rate, int channels, int bits)
     _buffers.resize(_num_buffers);
     _data.resize(_buffer_size);
 
-    if (!alutInit(NULL, NULL))
+    if (!(_device = alcOpenDevice(NULL)))
     {
-        throw exc(std::string("cannot initialize OpenAL: ")
-                + alutGetErrorString(alutGetError()));
+        throw exc("no OpenAL device available");
     }
+    if (!(_context = alcCreateContext(_device, NULL)))
+    {
+        alcCloseDevice(_device);
+        throw exc("no OpenAL context available");
+    }
+    alcMakeContextCurrent( _context);
     alGenBuffers(_num_buffers, &(_buffers[0]));
     if (alGetError() != AL_NO_ERROR)
     {
-        alutExit();
+        alcMakeContextCurrent(NULL);
+        alcDestroyContext(_context);
+        alcCloseDevice(_device);
         throw exc("cannot create OpenAL buffers");
     }
     alGenSources(1, &_source);
     if (alGetError() != AL_NO_ERROR)
     {
         alDeleteBuffers(_num_buffers, &(_buffers[0]));
-        alutExit();
+        alcMakeContextCurrent(NULL);
+        alcDestroyContext(_context);
+        alcCloseDevice(_device);
         throw exc("cannot create OpenAL source");
     }
     /* Comment from alffmpeg.c:
@@ -75,7 +86,9 @@ void audio_output_openal::open(int rate, int channels, int bits)
     {
         alDeleteSources(1, &_source);
         alDeleteBuffers(_num_buffers, &(_buffers[0]));
-        alutExit();
+        alcMakeContextCurrent(NULL);
+        alcDestroyContext(_context);
+        alcCloseDevice(_device);
         throw exc("cannot set OpenAL source parameters");
     }
 
@@ -144,7 +157,9 @@ void audio_output_openal::open(int rate, int channels, int bits)
     {
         alDeleteSources(1, &_source);
         alDeleteBuffers(_num_buffers, &(_buffers[0]));
-        alutExit();
+        alcMakeContextCurrent(NULL);
+        alcDestroyContext(_context);
+        alcCloseDevice(_device);
         throw exc(std::string("cannot set OpenAL format for source with ")
                 + str::from(channels) + " channels and "
                 + str::from(bits) + " bits");
@@ -308,5 +323,7 @@ void audio_output_openal::close()
     while (alGetError() == AL_NO_ERROR && _state == AL_PLAYING);
     alDeleteSources(1, &_source);
     alDeleteBuffers(_num_buffers, &(_buffers[0]));
-    alutExit();
+    alcMakeContextCurrent(NULL);
+    alcDestroyContext(_context);
+    alcCloseDevice(_device);
 }
