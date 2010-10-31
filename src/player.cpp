@@ -104,10 +104,6 @@ void player::create_decoders(const std::vector<std::string> &filenames)
     {
         throw exc("cannot handle more than 2 video streams");
     }
-    if (audio_streams > 1)
-    {
-        throw exc("cannot handle more than 1 audio stream");
-    }
 }
 
 void player::create_input(enum input::mode input_mode)
