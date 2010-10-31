@@ -113,6 +113,11 @@ bool player_qt_internal::playloop_step()
     return true;
 }
 
+void player_qt_internal::playing_failed()
+{
+    notify(notification::play, false, false);
+}
+
 QWidget *player_qt_internal::video_output_widget()
 {
     video_output_opengl_qt *vo = static_cast<video_output_opengl_qt *>(player::get_video_output());
@@ -595,9 +600,7 @@ void main_window::receive_notification(const notification &note)
             }
             else
             {
-                _in_out_widget->update(_init_data, false);
-                _controls_widget->update(_init_data, false);
-                send_cmd(command::toggle_play);
+                _player->playing_failed();
             }
         }
         else
