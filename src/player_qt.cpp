@@ -464,7 +464,6 @@ void controls_widget::receive_notification(const notification &note)
     {
     case notification::play:
         _playing = note.current.flag;
-        msg::wrn("CONTROLS: PLAYING %d", _playing ? 1 : 0);
         _play_button->setEnabled(!note.current.flag);
         _pause_button->setEnabled(note.current.flag);
         _stop_button->setEnabled(note.current.flag);
