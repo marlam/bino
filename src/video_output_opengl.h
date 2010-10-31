@@ -28,7 +28,7 @@
 class video_output_opengl : public video_output
 {
 private:
-    video_output::mode _mode;
+    enum video_output::mode _mode;
     int _src_width;
     int _src_height;
     float _src_aspect_ratio;
@@ -56,14 +56,14 @@ private:
     void draw_full_quad();
 
 protected:
-    void set_mode(video_output::mode mode);
+    void set_mode(enum video_output::mode mode);
     void set_source_info(int width, int height, float aspect_ratio, video_frame_format preferred_frame_format);
     void set_screen_info(int width, int height, float pixel_aspect_ratio);
     void compute_win_size(int width = -1, int height = -1);
     void set_state(const video_output_state &_state);
     void initialize(bool have_pixel_buffer_object, bool have_texture_non_power_of_two, bool have_fragment_shader);
     void deinitialize();
-    void display(video_output::mode mode);
+    void display(enum video_output::mode mode);
     void display() { display(_mode); }
     void reshape(int w, int h);
     void swap_tex_set();
@@ -71,11 +71,19 @@ protected:
     {
         return _state;
     }
-    int win_width()
+    int screen_width() const
+    {
+        return _screen_width;
+    }
+    int screen_height() const
+    {
+        return _screen_height;
+    }
+    int win_width() const
     {
         return _win_width;
     }
-    int win_height()
+    int win_height() const
     {
         return _win_height;
     }
@@ -91,6 +99,11 @@ public:
             int src_width, int src_height, float src_aspect_ratio,
             int mode, const video_output_state &state, unsigned int flags,
             int win_width, int win_height) = 0;
+
+    virtual enum mode mode() const
+    {
+        return _mode;
+    }
 
     virtual video_frame_format frame_format() const;
 

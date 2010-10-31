@@ -40,13 +40,15 @@ public:
     ~video_output_opengl_qt_widget();
 
     void activate();
+    void deactivate();
+    virtual QSize sizeHint() const;
 
 protected:
-    void initializeGL();
-    void paintGL();
-    void resizeGL(int width, int height);
-    void closeEvent(QCloseEvent *event);	
-    void keyPressEvent(QKeyEvent *event);
+    virtual void initializeGL();
+    virtual void paintGL();
+    virtual void resizeGL(int width, int height);
+    virtual void closeEvent(QCloseEvent *event);
+    virtual void keyPressEvent(QKeyEvent *event);
 };
 
 class video_output_opengl_qt : public video_output_opengl
@@ -55,6 +57,9 @@ private:
     bool _qt_app_owner;
     QWidget *_parent;
     video_output_opengl_qt_widget *_widget;
+
+    void enter_fullscreen();
+    void exit_fullscreen();
 
 public:
     video_output_opengl_qt(QWidget *parent = NULL) throw ();
@@ -74,6 +79,11 @@ public:
     virtual void close();
 
     virtual void receive_notification(const notification &note);
+
+    video_output_opengl_qt_widget *widget()
+    {
+        return _widget;
+    }
 
 friend class video_output_opengl_qt_widget;
 };

@@ -25,8 +25,8 @@
 #include "msg.h"
 #include "opt.h"
 
-#include "gui.h"
 #include "player.h"
+#include "player_qt.h"
 #if HAVE_LIBEQUALIZER
 # include "player_equalizer.h"
 #endif
@@ -48,6 +48,8 @@ int main(int argc, char *argv[])
     options.push_back(&help);
     opt::info version("version", '\0', opt::optional);
     options.push_back(&version);
+    opt::flag show_gui("gui", 'g', opt::optional);
+    options.push_back(&show_gui);
     std::vector<std::string> log_levels;
     log_levels.push_back("debug");
     log_levels.push_back("info");
@@ -126,6 +128,7 @@ int main(int argc, char *argv[])
                 "Options:\n"
                 "  --help               Print help\n"
                 "  --version            Print version\n"
+                "  -g|--gui             Show the GUI (default if no files are given)\n"
                 "  -l|--log-level=LEVEL Set log level (debug, info, warning, error, quiet)\n"
                 "  -i|--input=TYPE      Select input type (default autodetect):\n"
                 "    mono                 Single view\n"
@@ -161,6 +164,7 @@ int main(int argc, char *argv[])
                 "  q or ESC             Quit\n"
                 "  p or SPACE           Pause / unpause\n"
                 "  f                    Toggle fullscreen\n"
+                "  c                    Center window\n"
                 "  s                    Swap left/right view\n"
                 "  1, 2                 Adjust contrast\n"
                 "  3, 4                 Adjust brightness\n"
@@ -174,12 +178,6 @@ int main(int argc, char *argv[])
     if (version.value() || help.value())
     {
         return 0;
-    }
-
-    if (arguments.size() == 0)
-    {
-        gui gui;
-        return gui.run();
     }
 
 #if HAVE_LIBEQUALIZER
@@ -343,6 +341,10 @@ int main(int argc, char *argv[])
             throw exc("this version of Bino was compiled without support for Equalizer");
 #endif
         }
+        else if (arguments.size() == 0 || show_gui.value())
+        {
+            player = new class player_qt();
+        }
         else
         {
             player = new class player();
@@ -355,7 +357,6 @@ int main(int argc, char *argv[])
         msg::err("%s", e.what());
         retval = 1;
     }
-
     if (player)
     {
         try { player->close(); } catch (...) {}

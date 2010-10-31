@@ -33,6 +33,7 @@
 #include "str.h"
 
 #include "qt_app.h"
+#include "player_qt.h"
 #include "video_output_opengl_qt.h"
 
 
@@ -41,7 +42,7 @@ video_output_opengl_qt_widget::video_output_opengl_qt_widget(
     : QGLWidget(format, parent), _vo(vo), _have_valid_data(false)
 {
     setFocusPolicy(Qt::StrongFocus);
-    setWindowIcon(QIcon(":appicon.png"));
+    setWindowIcon(QIcon(":icons/appicon.png"));
 }
 
 video_output_opengl_qt_widget::~video_output_opengl_qt_widget()
@@ -51,6 +52,12 @@ video_output_opengl_qt_widget::~video_output_opengl_qt_widget()
 void video_output_opengl_qt_widget::activate()
 {
     _have_valid_data = true;
+}
+
+void video_output_opengl_qt_widget::deactivate()
+{
+    _have_valid_data = false;
+    update();
 }
 
 void video_output_opengl_qt_widget::initializeGL()
@@ -86,7 +93,7 @@ void video_output_opengl_qt_widget::resizeGL(int w, int h)
 
 void video_output_opengl_qt_widget::closeEvent(QCloseEvent *)
 {
-    _vo->send_cmd(command::quit);
+    _vo->send_cmd(command::toggle_play);
 }
 
 void video_output_opengl_qt_widget::keyPressEvent(QKeyEvent *event)
@@ -95,13 +102,16 @@ void video_output_opengl_qt_widget::keyPressEvent(QKeyEvent *event)
     {
     case Qt::Key_Escape:
     case Qt::Key_Q:
-        _vo->send_cmd(command::quit);
+        _vo->send_cmd(command::toggle_play);
         break;
     case Qt::Key_S:
         _vo->send_cmd(command::toggle_swap_eyes);
         break;
     case Qt::Key_F:
         _vo->send_cmd(command::toggle_fullscreen);
+        break;
+    case Qt::Key_C:
+        _vo->send_cmd(command::center);
         break;
     case Qt::Key_Space:
     case Qt::Key_P:
@@ -155,6 +165,11 @@ void video_output_opengl_qt_widget::keyPressEvent(QKeyEvent *event)
     }
 }
 
+QSize video_output_opengl_qt_widget::sizeHint() const
+{
+    return QSize(std::max(_vo->win_width(), 128), std::max(_vo->win_height(), 128));
+}
+
 
 video_output_opengl_qt::video_output_opengl_qt(QWidget *parent) throw ()
     : video_output_opengl(), _qt_app_owner(false), _parent(parent), _widget(NULL)
@@ -174,8 +189,8 @@ video_output_opengl_qt::~video_output_opengl_qt()
 bool video_output_opengl_qt::supports_stereo()
 {
     QGLFormat fmt;
-    fmt.setDoubleBuffer(true);
     fmt.setAlpha(true);
+    fmt.setDoubleBuffer(true);
     fmt.setStereo(true);
     QGLWidget *tmpwidget = new QGLWidget(fmt);
     bool ret = tmpwidget->format().stereo();
@@ -189,7 +204,7 @@ void video_output_opengl_qt::open(
         int mode, const video_output_state &state, unsigned int flags,
         int win_width, int win_height)
 {
-    set_mode(static_cast<video_output::mode>(mode));
+    set_mode(static_cast<enum video_output::mode>(mode));
     set_source_info(src_width, src_height, src_aspect_ratio, preferred_frame_format);
 
     // Initialize widget
@@ -251,14 +266,13 @@ void video_output_opengl_qt::open(
     }
     if ((flags & center) && !state.fullscreen)
     {
-        _widget->move((screen_width - video_output_opengl::win_width()) / 2,
-                (screen_height - video_output_opengl::win_height()) / 2);
+        _widget->move((video_output_opengl::screen_width() - video_output_opengl::win_width()) / 2,
+                (video_output_opengl::screen_height() - video_output_opengl::win_height()) / 2);
     }
     set_state(state);
 
-    // Initialize OpenGL by forcing a call to initializeGL()
-    _widget->update();
     _widget->show();
+    _widget->update();
 }
 
 void video_output_opengl_qt::activate()
@@ -280,10 +294,55 @@ void video_output_opengl_qt::close()
     _widget = NULL;
 }
 
+void video_output_opengl_qt::enter_fullscreen()
+{
+    if (!state().fullscreen)
+    {
+        if (_parent)
+        {
+            _widget->setWindowFlags(Qt::Window);
+        }
+        _widget->setWindowState(_widget->windowState() ^ Qt::WindowFullScreen);
+        _widget->setCursor(Qt::BlankCursor);
+        _widget->show();
+        _widget->setFocus(Qt::OtherFocusReason);
+        state().fullscreen = true;
+    }
+}
+
+void video_output_opengl_qt::exit_fullscreen()
+{
+    if (state().fullscreen)
+    {
+        if (_parent)
+        {
+            _widget->setWindowFlags(Qt::Widget);
+        }
+        _widget->setWindowState(_widget->windowState() ^ Qt::WindowFullScreen);
+        _widget->setCursor(Qt::ArrowCursor);
+        _widget->show();
+        _widget->setFocus(Qt::OtherFocusReason);
+        state().fullscreen = false;
+    }
+}
+
 void video_output_opengl_qt::receive_notification(const notification &note)
 {
     switch (note.type)
     {
+    case notification::play:
+        if (!note.current.flag)
+        {
+            _widget->deactivate();
+            if (state().fullscreen)
+            {
+                exit_fullscreen();
+            }
+        }
+        break;
+    case notification::pause:
+        /* handled by player */
+        break;
     case notification::swap_eyes:
         state().swap_eyes = note.current.flag;
         _widget->update();
@@ -293,19 +352,25 @@ void video_output_opengl_qt::receive_notification(const notification &note)
         {
             if (note.previous.flag)
             {
-                state().fullscreen = false;
-                _widget->setWindowState(_widget->windowState() ^ Qt::WindowFullScreen);
-                _widget->setCursor(Qt::ArrowCursor);
+                exit_fullscreen();
             }
             else
             {
-                state().fullscreen = true;
-                _widget->setWindowState(_widget->windowState() ^ Qt::WindowFullScreen);
-                _widget->setCursor(Qt::BlankCursor);
+                enter_fullscreen();
             }
         }
         break;
-    case notification::pause:
+    case notification::center:
+        if (!state().fullscreen)
+        {
+            // Move the window, not the widget, so that this also works inside the GUI.
+            int xo = _parent ? _widget->geometry().x() : 0;
+            int yo = _parent ? _widget->geometry().y() : 0;
+            _widget->window()->setGeometry((video_output_opengl::screen_width() - video_output_opengl::win_width()) / 2 - xo,
+                    (video_output_opengl::screen_height() - video_output_opengl::win_height()) / 2 - yo,
+                    _widget->window()->width(), _widget->window()->height());
+            _widget->setFocus(Qt::OtherFocusReason);
+        }
         break;
     case notification::contrast:
         state().contrast = note.current.value;

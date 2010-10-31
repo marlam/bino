@@ -80,6 +80,9 @@ public:
             int mode, const video_output_state &state, unsigned int flags,
             int win_width, int win_height) = 0;
 
+    /* Get the video mode */
+    virtual enum mode mode() const = 0;
+
     /* Get the required video frame format. This can differ from the preferred format! */
     virtual video_frame_format frame_format() const = 0;
 

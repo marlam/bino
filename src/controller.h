@@ -28,10 +28,11 @@ class command
 public:
     enum type
     {
-        quit,
+        toggle_play,
+        toggle_pause,
         toggle_swap_eyes,
         toggle_fullscreen,
-        toggle_pause,
+        center,
         adjust_contrast,
         adjust_brightness,
         adjust_hue,
@@ -59,9 +60,11 @@ class notification
 public:
     enum type
     {
+        play,
+        pause,
         swap_eyes,
         fullscreen,
-        pause,
+        center,
         contrast,
         brightness,
         hue,
@@ -80,6 +83,11 @@ public:
         bool flag;
         float value;
     } current;
+
+    notification(enum type t)
+    {
+        type = t;
+    }
 
     notification(enum type t, bool p, bool c)
     {

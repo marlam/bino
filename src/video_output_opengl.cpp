@@ -59,7 +59,7 @@ void video_output_opengl::set_screen_info(int width, int height, float pixel_asp
     _screen_pixel_aspect_ratio = pixel_aspect_ratio;
 }
 
-void video_output_opengl::set_mode(video_output::mode mode)
+void video_output_opengl::set_mode(enum video_output::mode mode)
 {
     _mode = mode;
 }
@@ -68,7 +68,7 @@ void video_output_opengl::compute_win_size(int win_width, int win_height)
 {
     _win_width = win_width;
     _win_height = win_height;
-    if (_win_width < 1)
+    if (_win_width < 0)
     {
         _win_width = _src_width;
         if (_mode == left_right)
@@ -76,7 +76,7 @@ void video_output_opengl::compute_win_size(int win_width, int win_height)
                 _win_width *= 2;
         }
     }
-    if (_win_height < 1)
+    if (_win_height < 0)
     {
         _win_height = _src_height;
         if (_mode == top_bottom)
@@ -101,12 +101,12 @@ void video_output_opengl::compute_win_size(int win_width, int win_height)
     {
         _win_height *= _win_ar / _src_aspect_ratio;
     }
-    int max_win_width = _screen_width - _screen_width / 20;
+    int max_win_width = _screen_width - _screen_width / 10;
     if (_win_width > max_win_width)
     {
         _win_width = max_win_width;
     }
-    int max_win_height = _screen_height - _screen_height / 20;
+    int max_win_height = _screen_height - _screen_height / 10;
     if (_win_height > max_win_height)
     {
         _win_height = max_win_height;
@@ -371,7 +371,7 @@ void video_output_opengl::draw_full_quad()
     glEnd();
 }
 
-void video_output_opengl::display(video_output::mode mode)
+void video_output_opengl::display(enum video_output::mode mode)
 {
     int64_t display_start = timer::get_microseconds(timer::monotonic);
 
@@ -499,41 +499,9 @@ void video_output_opengl::display(video_output::mode mode)
 
 void video_output_opengl::reshape(int w, int h)
 {
-    float dst_w = w;
-    float dst_h = h;
-    float dst_ar = dst_w * _screen_pixel_aspect_ratio / dst_h;
-    float src_ar = _src_aspect_ratio;
-    if (_mode == left_right)
-    {
-        src_ar *= 2.0f;
-    }
-    else if (_mode == top_bottom)
-    {
-        src_ar /= 2.0f;
-    }
-    int vp_w = w;
-    int vp_h = h;
-    if (src_ar >= dst_ar)
-    {
-        // need black borders top and bottom
-        vp_h = dst_ar / src_ar * dst_h;
-    }
-    else
-    {
-        // need black borders left and right
-        vp_w = src_ar / dst_ar * dst_w;
-    }
-    int vp_x = (w - vp_w) / 2;
-    int vp_y = (h - vp_h) / 2;
-
+    // Clear
     glViewport(0, 0, w, h);
     glClear(GL_COLOR_BUFFER_BIT);
-    glViewport(vp_x, vp_y, vp_w, vp_h);
-    if (!_state.fullscreen)
-    {
-        _win_width = w;
-        _win_height = h;
-    }
 
     // Set up stencil buffers if needed
     if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
@@ -584,6 +552,42 @@ void video_output_opengl::reshape(int w, int h)
             }
         }
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+    }
+
+    // Compute viewport with the right aspect ratio
+    float dst_w = w;
+    float dst_h = h;
+    float dst_ar = dst_w * _screen_pixel_aspect_ratio / dst_h;
+    float src_ar = _src_aspect_ratio;
+    if (_mode == left_right)
+    {
+        src_ar *= 2.0f;
+    }
+    else if (_mode == top_bottom)
+    {
+        src_ar /= 2.0f;
+    }
+    int vp_w = w;
+    int vp_h = h;
+    if (src_ar >= dst_ar)
+    {
+        // need black borders top and bottom
+        vp_h = dst_ar / src_ar * dst_h;
+    }
+    else
+    {
+        // need black borders left and right
+        vp_w = src_ar / dst_ar * dst_w;
+    }
+    int vp_x = (w - vp_w) / 2;
+    int vp_y = (h - vp_h) / 2;
+
+    // Setup viewport and save new size
+    glViewport(vp_x, vp_y, vp_w, vp_h);
+    if (!_state.fullscreen)
+    {
+        _win_width = w;
+        _win_height = h;
     }
 }
 

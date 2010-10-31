@@ -19,6 +19,8 @@
 
 #include "config.h"
 
+#include <vector>
+
 #include "exc.h"
 #include "msg.h"
 #include "timer.h"
@@ -29,13 +31,25 @@
 
 // The single player instance
 extern player *global_player;
+extern std::vector<controller *> global_controllers;
 
 controller::controller() throw ()
 {
+    // This insertion order ensures that lower level GUI elements
+    // are notified before higher levels.
+    global_controllers.insert(global_controllers.begin(), this);
 }
 
 controller::~controller()
 {
+    for (size_t i = 0; i < global_controllers.size(); i++)
+    {
+        if (global_controllers[i] == this)
+        {
+            global_controllers.erase(global_controllers.begin() + i);
+            break;
+        }
+    }
 }
 
 void controller::send_cmd(const command &cmd)

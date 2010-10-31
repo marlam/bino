@@ -23,6 +23,8 @@
 #include <vector>
 #include <string>
 
+#include "msg.h"
+
 #include "input.h"
 #include "controller.h"
 #include "audio_output.h"
@@ -85,22 +87,30 @@ private:
     int64_t _current_time;               // current master time
     int64_t _next_frame_pos;             // presentation time of next video frame
 
-    void notify(const notification &note);
-    void notify(enum notification::type t, bool p, bool c) { notify(notification(t, p, c)); }
-    void notify(enum notification::type t, float p, float c) { notify(notification(t, p, c)); }
-
 protected:
+    void reset_playstate();
     void create_decoders(const std::vector<std::string> &filenames);
     void create_input(enum input::mode input_mode);
     void get_input_info(int *w, int *h, float *ar, video_frame_format *fmt);
     void create_audio_output();
-    void create_video_output(enum video_output::mode video_mode,
+    void create_video_output();
+    void set_video_output(video_output *vo)
+    {
+        _video_output = vo;
+    }
+    void open_video_output(enum video_output::mode video_mode,
             const video_output_state &video_state, unsigned int video_flags);
     void make_master();
     void run_step(bool *more_steps, bool *prep_frame, bool *drop_frame, bool *display_frame);
     void get_video_frame(video_frame_format fmt);
     void prepare_video_frame(video_output *vo);
     void release_video_frame();
+    input *get_input() { return _input; }
+    video_output *get_video_output() { return _video_output; }
+
+    void notify(const notification &note);
+    void notify(enum notification::type t, bool p, bool c) { notify(notification(t, p, c)); }
+    void notify(enum notification::type t, float p, float c) { notify(notification(t, p, c)); }
 
 public:
     /* Constructor/destructor.
@@ -111,6 +121,10 @@ public:
 
     /* Open a player. */
     virtual void open(const player_init_data &init_data);
+
+    /* Get modes. */
+    enum input::mode input_mode() const;
+    enum video_output::mode video_mode() const;
 
     /* Run the player. It will take care of all interaction. This function
      * returns when the user quits the player. */

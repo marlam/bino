@@ -19,6 +19,8 @@
 
 #include "config.h"
 
+#include <vector>
+
 #include "exc.h"
 #include "str.h"
 #include "msg.h"
@@ -49,15 +51,17 @@ player_init_data::~player_init_data()
 // The single player instance
 player *global_player = NULL;
 
+// The registered controllers
+std::vector<controller *> global_controllers;
+
 player::player(type t)
-    : _input(NULL), _controllers(NULL), _audio_output(NULL), _video_output(NULL), 
-    _running(false), _first_frame(false), _need_frame(false), _drop_next_frame(false), _previous_frame_dropped(false), _in_pause(false),
-    _quit_request(false), _pause_request(false), _seek_request(0)
+    : _input(NULL), _audio_output(NULL), _video_output(NULL)
 {
     if (t == master)
     {
         make_master();
     }
+    reset_playstate();
 }
 
 player::~player()
@@ -66,6 +70,19 @@ player::~player()
     {
         global_player = NULL;
     }
+}
+
+void player::reset_playstate()
+{
+    _running = false;
+    _first_frame = false;
+    _need_frame = false;
+    _drop_next_frame = false;
+    _previous_frame_dropped = false;
+    _in_pause = false;
+    _quit_request = false;
+    _pause_request = false;
+    _seek_request = 0;
 }
 
 void player::create_decoders(const std::vector<std::string> &filenames)
@@ -156,10 +173,14 @@ void player::create_audio_output()
     }
 }
 
-void player::create_video_output(enum video_output::mode video_mode,
-        const video_output_state &video_state, unsigned int video_flags)
+void player::create_video_output()
 {
     _video_output = new video_output_opengl_qt();
+}
+
+void player::open_video_output(enum video_output::mode video_mode,
+        const video_output_state &video_state, unsigned int video_flags)
+{
     if (video_mode == video_output::automatic)
     {
         if (_input->mode() == input::mono)
@@ -200,6 +221,7 @@ void player::run_step(bool *more_steps, bool *prep_frame, bool *drop_frame, bool
 
     if (_quit_request)
     {
+        notify(notification::play, true, false);
         return;
     }
     else if (!_running)
@@ -208,6 +230,7 @@ void player::run_step(bool *more_steps, bool *prep_frame, bool *drop_frame, bool
         if (_input->read_video_frame() < 0)
         {
             msg::dbg("empty video input");
+            notify(notification::play, true, false);
             return;
         }
         _current_pos = 0;
@@ -220,6 +243,7 @@ void player::run_step(bool *more_steps, bool *prep_frame, bool *drop_frame, bool
             if (_input->read_audio_data(&_audio_data, _required_audio_data_size) < 0)
             {
                 msg::dbg("empty audio input");
+                notify(notification::play, true, false);
                 return;
             }
             _audio_output->data(_audio_data, _required_audio_data_size);
@@ -255,6 +279,7 @@ void player::run_step(bool *more_steps, bool *prep_frame, bool *drop_frame, bool
         if (_next_frame_pos < 0)
         {
             msg::wrn("seeked to end of video?!");
+            notify(notification::play, true, false);
             return;
         }
         else
@@ -267,6 +292,7 @@ void player::run_step(bool *more_steps, bool *prep_frame, bool *drop_frame, bool
                 if (audio_pos < 0)
                 {
                     msg::wrn("seeked to end of audio?!");
+                    notify(notification::play, true, false);
                     return;
                 }
                 _audio_output->data(_audio_data, _required_audio_data_size);
@@ -320,6 +346,7 @@ void player::run_step(bool *more_steps, bool *prep_frame, bool *drop_frame, bool
             else
             {
                 msg::dbg("end of video stream");
+                notify(notification::play, true, false);
                 return;
             }
         }
@@ -365,6 +392,7 @@ void player::run_step(bool *more_steps, bool *prep_frame, bool *drop_frame, bool
                 if (_input->read_audio_data(&_audio_data, _required_audio_data_size) < 0)
                 {
                     msg::dbg("end of audio stream");
+                    notify(notification::play, true, false);
                     return;
                 }
                 _audio_output->data(_audio_data, _required_audio_data_size);
@@ -417,14 +445,27 @@ void player::release_video_frame()
 void player::open(const player_init_data &init_data)
 {
     msg::set_level(init_data.log_level);
+    reset_playstate();
     create_decoders(init_data.filenames);
     create_input(init_data.input_mode);
     create_audio_output();
-    create_video_output(init_data.video_mode, init_data.video_state, init_data.video_flags);
+    create_video_output();
+    open_video_output(init_data.video_mode, init_data.video_state, init_data.video_flags);
+}
+
+enum input::mode player::input_mode() const
+{
+    return _input->mode();
+}
+
+enum video_output::mode player::video_mode() const
+{
+    return _video_output->mode();
 }
 
 void player::close()
 {
+    reset_playstate();
     if (_audio_output)
     {
         try { _audio_output->close(); } catch (...) {}
@@ -447,8 +488,8 @@ void player::close()
     {
         try { _decoders[i]->close(); } catch (...) {}
         delete _decoders[i];
-        _decoders.resize(0);
     }
+    _decoders.resize(0);
 }
 
 void player::run()
@@ -491,8 +532,9 @@ void player::receive_cmd(const command &cmd)
 
     switch (cmd.type)
     {
-    case command::quit:
+    case command::toggle_play:
         _quit_request = true;
+        /* notify when request is fulfilled */
         break;
     case command::toggle_swap_eyes:
         flag = !video_state.swap_eyes;
@@ -501,6 +543,9 @@ void player::receive_cmd(const command &cmd)
     case command::toggle_fullscreen:
         flag = !video_state.fullscreen;
         notify(notification::fullscreen, video_state.fullscreen, flag);
+        break;
+    case command::center:
+        notify(notification::center);
         break;
     case command::toggle_pause:
         _pause_request = !_pause_request;
@@ -531,19 +576,9 @@ void player::receive_cmd(const command &cmd)
 
 void player::notify(const notification &note)
 {
-    // Notify all controllers (e.g. to update the GUI)
-    for (size_t i = 0; i < _controllers.size(); i++)
+    // Notify all controllers
+    for (size_t i = 0; i < global_controllers.size(); i++)
     {
-        _controllers[i]->receive_notification(note);
-    }
-    // Notify the audio output (e.g. to play a sound)
-    if (_audio_output)
-    {
-        _audio_output->receive_notification(note);
-    }
-    // Notify the video output (e.g. to update the on screen display)
-    if (_video_output)
-    {
-        _video_output->receive_notification(note);
+        global_controllers[i]->receive_notification(note);
     }
 }

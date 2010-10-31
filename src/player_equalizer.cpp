@@ -92,7 +92,7 @@ public:
     {
     }
 
-    void eq_display(video_output::mode mode, float x, float y, float w, float h)
+    void eq_display(enum video_output::mode mode, float x, float y, float w, float h)
     {
         // TODO: x, y, w, h describe the quad, set by the channel
         video_output_opengl::display(mode);
@@ -524,7 +524,7 @@ public:
     {
     }
 
-    void display(video_output::mode mode)
+    void display(enum video_output::mode mode)
     {
         _video_output.eq_display(mode, -1.0f, -1.0f, 1.0f, 1.0f);
     }

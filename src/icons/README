@@ -1,0 +1,14 @@
+For all files in this directory, the following applies:
+
+# Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+#
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and this
+# notice are preserved. This file is offered as-is, without any warranty.
+
+The icons were created with ipe and converted to png using
+iperender -png -resolution 100 <icon.ipe> <icon.png>
+
+Unfortunately, iperender seems to mishandle transparency, so as a
+postprocessing step, transparency was repaired using Gimp's color to alpha
+function on white.

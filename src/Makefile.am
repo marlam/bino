@@ -21,18 +21,28 @@ bino_SOURCES = \
 	audio_output.h audio_output.cpp \
 	audio_output_openal.h audio_output_openal.cpp \
 	player.h player.cpp \
+	player_qt.h player_qt.cpp \
 	qt_app.h qt_app.cpp \
-	gui.h gui.cpp \
 	main.cpp
 
 EXTRA_DIST = \
 	qt_resources.qrc \
-	appicon.png \
+	icons/appicon.png \
+	icons/README \
+	icons/play.ipe icons/play.png \
+	icons/pause.ipe icons/pause.png \
+	icons/stop.ipe icons/stop.png \
+	icons/f.ipe icons/f.png \
+	icons/ff.ipe icons/ff.png \
+	icons/fff.ipe icons/fff.png \
+	icons/b.ipe icons/b.png \
+	icons/bb.ipe icons/bb.png \
+	icons/bbb.ipe icons/bbb.png \
 	video_output_opengl.fs.glsl
 
 nodist_bino_SOURCES = \
 	qt_resources-rcc.cpp \
-	gui-moc.cpp \
+	player_qt-moc.cpp \
 	video_output_opengl_qt-moc.cpp \
 	video_output_opengl.fs.glsl.h
 
