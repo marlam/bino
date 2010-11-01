@@ -125,7 +125,7 @@ QWidget *player_qt_internal::video_output_widget()
 }
 
 
-in_out_widget::in_out_widget(QWidget *parent) : QWidget(parent)
+in_out_widget::in_out_widget(QWidget *parent) : QWidget(parent), _lock(false)
 {
     QGridLayout *layout0 = new QGridLayout;
     QLabel *input_label = new QLabel("Input:");
@@ -188,7 +188,10 @@ in_out_widget::~in_out_widget()
 
 void in_out_widget::swap_eyes_changed()
 {
-    send_cmd(command::toggle_swap_eyes);
+    if (!_lock)
+    {
+        send_cmd(command::toggle_swap_eyes);
+    }
 }
 
 void in_out_widget::fullscreen_pressed()
@@ -274,7 +277,9 @@ void in_out_widget::update(const player_init_data &init_data, bool playing)
         _output_combobox->setCurrentIndex(13);
         break;
     }
+    _lock = true;
     _swap_eyes_button->setChecked(init_data.video_state.swap_eyes);
+    _lock = false;
     receive_notification(notification(notification::play, !playing, playing));
 }
 
@@ -348,7 +353,9 @@ void in_out_widget::receive_notification(const notification &note)
         _center_button->setEnabled(note.current.flag);
         break;
     case notification::swap_eyes:
+        _lock = true;
         _swap_eyes_button->setChecked(note.current.flag);
+        _lock = false;
         break;
     default:
         break;

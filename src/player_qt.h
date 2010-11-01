@@ -66,6 +66,7 @@ private:
     QPushButton *_swap_eyes_button;
     QPushButton *_fullscreen_button;
     QPushButton *_center_button;
+    bool _lock;
 
 private slots:
     void swap_eyes_changed();
