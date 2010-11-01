@@ -77,7 +77,7 @@ public:
     in_out_widget(QWidget *parent);
     ~in_out_widget();
 
-    void update(const player_init_data &init_data, bool playing);
+    void update(const player_init_data &init_data, bool have_valid_input, bool playing);
 
     enum input::mode input_mode();
     enum video_output::mode video_mode();
@@ -116,7 +116,7 @@ public:
     controls_widget(QWidget *parent);
     ~controls_widget();
 
-    void update(const player_init_data &init_data, bool playing);
+    void update(const player_init_data &init_data, bool have_valid_input, bool playing);
     virtual void receive_notification(const notification &note);
 };
 

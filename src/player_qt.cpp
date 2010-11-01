@@ -204,7 +204,7 @@ void in_out_widget::center_pressed()
     send_cmd(command::center);
 }
 
-void in_out_widget::update(const player_init_data &init_data, bool playing)
+void in_out_widget::update(const player_init_data &init_data, bool have_valid_input, bool playing)
 {
     switch (init_data.input_mode)
     {
@@ -280,7 +280,18 @@ void in_out_widget::update(const player_init_data &init_data, bool playing)
     _lock = true;
     _swap_eyes_button->setChecked(init_data.video_state.swap_eyes);
     _lock = false;
-    receive_notification(notification(notification::play, !playing, playing));
+    if (have_valid_input)
+    {
+        receive_notification(notification(notification::play, !playing, playing));
+    }
+    else
+    {
+        _input_combobox->setEnabled(false);
+        _output_combobox->setEnabled(false);
+        _swap_eyes_button->setEnabled(false);
+        _fullscreen_button->setEnabled(false);
+        _center_button->setEnabled(false);
+    }
 }
 
 enum input::mode in_out_widget::input_mode()
@@ -465,9 +476,25 @@ void controls_widget::fff_pressed()
     send_cmd(command::seek, +600.0f);
 }
 
-void controls_widget::update(const player_init_data &, bool playing)
+void controls_widget::update(const player_init_data &, bool have_valid_input, bool playing)
 {
-    receive_notification(notification(notification::play, !playing, playing));
+    if (have_valid_input)
+    {
+        receive_notification(notification(notification::play, !playing, playing));
+    }
+    else
+    {
+        _playing = false;
+        _play_button->setEnabled(false);
+        _pause_button->setEnabled(false);
+        _stop_button->setEnabled(false);
+        _bbb_button->setEnabled(false);
+        _bb_button->setEnabled(false);
+        _b_button->setEnabled(false);
+        _f_button->setEnabled(false);
+        _ff_button->setEnabled(false);
+        _fff_button->setEnabled(false);
+    }
 }
 
 void controls_widget::receive_notification(const notification &note)
@@ -600,8 +627,8 @@ void main_window::receive_notification(const notification &note)
             _init_data.video_mode = _in_out_widget->video_mode();
             if (open_player())
             {
-                _in_out_widget->update(_init_data, true);
-                _controls_widget->update(_init_data, true);
+                _in_out_widget->update(_init_data, true, true);
+                _controls_widget->update(_init_data, true, true);
                 _video_widget->setFocus(Qt::OtherFocusReason);
                 _timer->start(0);
             }
@@ -646,9 +673,14 @@ void main_window::open(QStringList filenames)
     {
         _init_data.input_mode = _player->input_mode();
         _init_data.video_mode = _player->video_mode();
+        _in_out_widget->update(_init_data, true, false);
+        _controls_widget->update(_init_data, true, false);
     }
-    _in_out_widget->update(_init_data, false);
-    _controls_widget->update(_init_data, false);
+    else
+    {
+        _in_out_widget->update(_init_data, false, false);
+        _controls_widget->update(_init_data, false, false);
+    }
 }
 
 void main_window::file_open()
