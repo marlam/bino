@@ -7,6 +7,7 @@
 class player_equalizer : public player
 {
 private:
+    void *_node_factory;
     void *_config;
 
 public:

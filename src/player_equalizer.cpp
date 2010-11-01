@@ -145,6 +145,11 @@ public:
     }
 
 protected:
+    virtual ChangeType getChangeType() const
+    {
+        return eq::net::Object::STATIC;
+    }
+
     virtual void getInstanceData(eq::net::DataOStream &os)
     {
         std::ostringstream oss;
@@ -457,7 +462,6 @@ protected:
                 _player.eq_release_frame();
             }
         }
-
         startFrame(frameNumber);
         msg::dbg(HERE);
     }
@@ -669,17 +673,16 @@ player_equalizer::player_equalizer(int *argc, char *argv[])
     : player(player::slave)
 {
     /* Initialize Equalizer */
-    eq_node_factory node_factory;
-    if (!eq::init(*argc, argv, &node_factory))
+    _node_factory = static_cast<void *>(new eq_node_factory);
+    if (!eq::init(*argc, argv, static_cast<eq::NodeFactory *>(_node_factory)))
     {
         throw exc("Equalizer initialization failed");
     }
 
     /* Get a configuration */
-    eq_config *config = static_cast<eq_config *>(eq::getConfig(*argc, argv));
+    _config = static_cast<void *>(eq::getConfig(*argc, argv));
     // The following code is only executed on the application node because
     // eq::getConfig() does not return on other nodes.
-    _config = static_cast<void *>(config);
     if (!_config)
     {
         throw exc("Cannot get Equalizer configuration");
@@ -688,6 +691,7 @@ player_equalizer::player_equalizer(int *argc, char *argv[])
 
 player_equalizer::~player_equalizer()
 {
+    delete static_cast<eq_node_factory *>(_node_factory);
 }
 
 void player_equalizer::open(const player_init_data &init_data)
