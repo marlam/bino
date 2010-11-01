@@ -489,14 +489,15 @@ public:
             msg::err("cannot provide video in requested frame format");
             abort();
         }
+        msg::dbg(HERE);
         if (_is_app_node)
-        {
-            _player.eq_prep_frame(vo);
-        }
-        else
         {
             eq_config *config = static_cast<eq_config *>(getConfig());
             config->prep_frame(vo);
+        }
+        else
+        {
+            _player.eq_prep_frame(vo);
         }
         msg::dbg(HERE);
     }
@@ -575,10 +576,12 @@ protected:
         eq_node *node = static_cast<eq_node *>(getNode());
         if (node->frame_data.prep_frame)
         {
+            makeCurrent();
             node->prep_frame(&_video_output, _video_output.frame_format());
         }
         else if (node->frame_data.display_frame)
         {
+            makeCurrent();
             _video_output.eq_swap_tex_set();
         }
         startFrame(frameNumber);
