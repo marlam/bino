@@ -292,7 +292,7 @@ void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_te
 
     if (have_pixel_buffer_object)
     {
-        glGenBuffers(1, &_pbo);
+        glGenBuffersARB(1, &_pbo);
     }
     else
     {
@@ -323,7 +323,7 @@ void video_output_opengl::deinitialize()
     }
     if (_pbo != 0)
     {
-        glDeleteBuffers(1, &_pbo);
+        glDeleteBuffersARB(1, &_pbo);
     }
 }
 
@@ -617,13 +617,13 @@ static void upload_texture(
 
     if (pbo != 0)
     {
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
-        glBufferData(GL_PIXEL_UNPACK_BUFFER, h * line_size, NULL, GL_STREAM_DRAW);
-        void *pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, GL_WRITE_ONLY);
+        glBindBufferARB(GL_PIXEL_UNPACK_BUFFER, pbo);
+        glBufferDataARB(GL_PIXEL_UNPACK_BUFFER, h * line_size, NULL, GL_STREAM_DRAW);
+        void *pboptr = glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, GL_WRITE_ONLY);
         std::memcpy(pboptr, data, h * line_size);
-        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER_ARB);
+        glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, fmt, type, NULL);
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+        glBindBufferARB(GL_PIXEL_UNPACK_BUFFER, 0);
     }
     else
     {
