@@ -524,7 +524,7 @@ void controls_widget::receive_notification(const notification &note)
 
 
 main_window::main_window(const player_init_data &init_data)
-    : _last_open_dir(QDir::current()), _player(NULL), _init_data(init_data)
+    : _last_open_dir(QDir::current()), _player(NULL), _init_data(init_data), _stop_request(false)
 {
     // Application properties
     setWindowTitle(PACKAGE_NAME);
@@ -625,17 +625,14 @@ void main_window::receive_notification(const notification &note)
             _player->close();
             _init_data.input_mode = _in_out_widget->input_mode();
             _init_data.video_mode = _in_out_widget->video_mode();
-            if (open_player())
+            if (!open_player())
             {
-                _in_out_widget->update(_init_data, true, true);
-                _controls_widget->update(_init_data, true, true);
-                _video_widget->setFocus(Qt::OtherFocusReason);
-                _timer->start(0);
+                _stop_request = true;
             }
-            else
-            {
-                _player->force_stop();
-            }
+            _in_out_widget->update(_init_data, true, true);
+            _controls_widget->update(_init_data, true, true);
+            _video_widget->setFocus(Qt::OtherFocusReason);
+            _timer->start(0);
         }
         else
         {
@@ -647,7 +644,13 @@ void main_window::receive_notification(const notification &note)
 
 void main_window::playloop_step()
 {
-    if (!_player->playloop_step())
+    if (_stop_request)
+    {
+        _timer->stop();
+        _player->force_stop();
+        _stop_request = false;
+    }
+    else if (!_player->playloop_step())
     {
         _timer->stop();
     }

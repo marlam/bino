@@ -134,6 +134,7 @@ private:
     QGridLayout *_layout;
     QTimer *_timer;
     player_init_data _init_data;
+    bool _stop_request;
 
     bool open_player();
     void open(QStringList filenames);
