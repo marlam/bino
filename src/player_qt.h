@@ -51,7 +51,7 @@ public:
     virtual void receive_notification(const notification &note);
 
     bool playloop_step();
-    void playing_failed();
+    void force_stop();
 
     QWidget *video_output_widget();
 };

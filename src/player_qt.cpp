@@ -113,7 +113,7 @@ bool player_qt_internal::playloop_step()
     return true;
 }
 
-void player_qt_internal::playing_failed()
+void player_qt_internal::force_stop()
 {
     notify(notification::play, false, false);
 }
@@ -607,7 +607,7 @@ void main_window::receive_notification(const notification &note)
             }
             else
             {
-                _player->playing_failed();
+                _player->force_stop();
             }
         }
         else
@@ -633,12 +633,15 @@ void main_window::closeEvent(QCloseEvent *event)
 
 void main_window::open(QStringList filenames)
 {
+    _player->force_stop();
     _player->close();
     _init_data.filenames.clear();
     for (int i = 0; i < filenames.size(); i++)
     {
         _init_data.filenames.push_back(filenames[i].toStdString());
     }
+    _init_data.input_mode = input::automatic;
+    _init_data.video_mode = video_output::automatic;
     if (open_player())
     {
         _init_data.input_mode = _player->input_mode();
