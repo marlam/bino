@@ -35,9 +35,7 @@ extern std::vector<controller *> global_controllers;
 
 controller::controller() throw ()
 {
-    // This insertion order ensures that lower level GUI elements
-    // are notified before higher levels.
-    global_controllers.insert(global_controllers.begin(), this);
+    global_controllers.push_back(this);
 }
 
 controller::~controller()
