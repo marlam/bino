@@ -584,7 +584,7 @@ main_window::main_window(const player_init_data &init_data)
         {
             filenames.push_back(init_data.filenames[i].c_str());
         }
-        open(filenames);
+        open(filenames, false);
     }
 }
 
@@ -661,7 +661,7 @@ void main_window::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
-void main_window::open(QStringList filenames)
+void main_window::open(QStringList filenames, bool automatic)
 {
     _player->force_stop();
     _player->close();
@@ -670,8 +670,11 @@ void main_window::open(QStringList filenames)
     {
         _init_data.filenames.push_back(filenames[i].toStdString());
     }
-    _init_data.input_mode = input::automatic;
-    _init_data.video_mode = video_output::automatic;
+    if (automatic)
+    {
+        _init_data.input_mode = input::automatic;
+        _init_data.video_mode = video_output::automatic;
+    }
     if (open_player())
     {
         _init_data.input_mode = _player->input_mode();
@@ -708,7 +711,7 @@ void main_window::file_open()
         QMessageBox::critical(this, "Error", "Cannot open more than 3 files");
         return;
     }
-    open(file_names);
+    open(file_names, true);
 }
 
 void main_window::file_open_url()
@@ -734,7 +737,7 @@ void main_window::file_open_url()
             && !url_edit->text().isEmpty())
     {
         QString url = url_edit->text();
-        open(QStringList(url));
+        open(QStringList(url), true);
     }
 }
 

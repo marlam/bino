@@ -137,7 +137,7 @@ private:
     bool _stop_request;
 
     bool open_player();
-    void open(QStringList filenames);
+    void open(QStringList filenames, bool automatic);
 
 private slots:
     void playloop_step();
