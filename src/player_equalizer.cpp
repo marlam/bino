@@ -58,6 +58,15 @@ public:
         return true;
     }
 
+    void eq_read_frame()        // Only called on slave nodes to force reading the next frame
+    {
+        if (get_input()->read_video_frame() < 0)
+        {
+            msg::wrn("reading input frame failed (EOF?)");
+            abort();
+        }
+    }
+
     void eq_prep_frame(video_output *vo)
     {
         prepare_video_frame(vo);
@@ -455,6 +464,7 @@ protected:
         {
             if (frame_data.prep_frame)
             {
+                _player.eq_read_frame();
                 _player.eq_get_frame();
             }
             else if (frame_data.drop_frame)
