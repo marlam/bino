@@ -52,6 +52,7 @@ video_output_opengl_qt_widget::~video_output_opengl_qt_widget()
 
 void video_output_opengl_qt_widget::initialize()
 {
+    makeCurrent();
     initializeGL();
     resizeGL(width(), height());
 }
