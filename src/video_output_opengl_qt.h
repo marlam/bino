@@ -39,6 +39,7 @@ public:
     video_output_opengl_qt_widget(video_output_opengl_qt *vo, const QGLFormat &format, QWidget *parent = NULL);
     ~video_output_opengl_qt_widget();
 
+    void initialize();
     void activate();
     void deactivate();
     virtual QSize sizeHint() const;
