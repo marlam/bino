@@ -591,7 +591,7 @@ int64_t decoder_ffmpeg::read_audio_data(int audio_stream, void *buffer, size_t s
             _stuff->audio_packet_queues[audio_stream].pop_front();
             if (timestamp == std::numeric_limits<int64_t>::min())
             {
-                timestamp = _stuff->packets[audio_stream].dts * 1000000
+                timestamp = packet.dts * 1000000
                     * _stuff->format_ctx->streams[_stuff->audio_streams[audio_stream]]->time_base.num 
                     / _stuff->format_ctx->streams[_stuff->audio_streams[audio_stream]]->time_base.den;
             }
