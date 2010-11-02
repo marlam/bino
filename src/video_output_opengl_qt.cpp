@@ -59,6 +59,7 @@ void video_output_opengl_qt_widget::initialize()
 
 void video_output_opengl_qt_widget::deinitialize()
 {
+    makeCurrent();
     _vo->deinitialize();
     _initialized = false;
     _last_resize_width = -1;
