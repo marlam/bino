@@ -70,7 +70,7 @@ void player_qt_internal::receive_cmd(const command &cmd)
     {
         notify(notification::play, false, true);
     }
-    else
+    else if (_playing)
     {
         player::receive_cmd(cmd);
     }
