@@ -39,7 +39,8 @@
 
 video_output_opengl_qt_widget::video_output_opengl_qt_widget(
         video_output_opengl_qt *vo, const QGLFormat &format, QWidget *parent)
-    : QGLWidget(format, parent), _vo(vo), _have_valid_data(false)
+    : QGLWidget(format, parent), _vo(vo), _have_valid_data(false),
+    _initialized(false), _last_resize_width(-1), _last_resize_height(-1)
 {
     setFocusPolicy(Qt::StrongFocus);
     setWindowIcon(QIcon(":icons/appicon.png"));
@@ -52,6 +53,15 @@ video_output_opengl_qt_widget::~video_output_opengl_qt_widget()
 void video_output_opengl_qt_widget::initialize()
 {
     initializeGL();
+    resizeGL(width(), height());
+}
+
+void video_output_opengl_qt_widget::deinitialize()
+{
+    _vo->deinitialize();
+    _initialized = false;
+    _last_resize_width = -1;
+    _last_resize_height = -1;
 }
 
 void video_output_opengl_qt_widget::activate()
@@ -67,16 +77,22 @@ void video_output_opengl_qt_widget::deactivate()
 
 void video_output_opengl_qt_widget::initializeGL()
 {
-    GLenum err = glewInit();
-    if (err != GLEW_OK)
+    if (!_initialized)
     {
-        throw exc(std::string("cannot initialize GLEW: ")
-                + reinterpret_cast<const char *>(glewGetErrorString(err)));
+        GLenum err = glewInit();
+        if (err != GLEW_OK)
+        {
+            throw exc(std::string("cannot initialize GLEW: ")
+                    + reinterpret_cast<const char *>(glewGetErrorString(err)));
+        }
+        _vo->initialize(
+                glewIsSupported("GL_ARB_pixel_buffer_object"),
+                glewIsSupported("GL_ARB_texture_non_power_of_two"),
+                glewIsSupported("GL_ARB_fragment_shader"));
+        _initialized = true;
+        _last_resize_width = -1;
+        _last_resize_height = -1;
     }
-    _vo->initialize(
-            glewIsSupported("GL_ARB_pixel_buffer_object"),
-            glewIsSupported("GL_ARB_texture_non_power_of_two"),
-            glewIsSupported("GL_ARB_fragment_shader"));
 }
 
 void video_output_opengl_qt_widget::paintGL()
@@ -93,7 +109,12 @@ void video_output_opengl_qt_widget::paintGL()
 
 void video_output_opengl_qt_widget::resizeGL(int w, int h)
 {
-    _vo->reshape(w, h);
+    if (w != _last_resize_width || h != _last_resize_height)
+    {
+        _vo->reshape(w, h);
+        _last_resize_width = w;
+        _last_resize_height = h;
+    }
 }
 
 void video_output_opengl_qt_widget::closeEvent(QCloseEvent *)
@@ -303,7 +324,7 @@ void video_output_opengl_qt::enter_fullscreen()
 {
     if (!state().fullscreen)
     {
-        deinitialize();
+        _widget->deinitialize();
         if (_parent)
         {
             _widget->setWindowFlags(Qt::Window);
@@ -321,7 +342,7 @@ void video_output_opengl_qt::exit_fullscreen()
 {
     if (state().fullscreen)
     {
-        deinitialize();
+        _widget->deinitialize();
         if (_parent)
         {
             _widget->setWindowFlags(Qt::Widget);
