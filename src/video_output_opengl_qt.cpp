@@ -309,10 +309,10 @@ void video_output_opengl_qt::enter_fullscreen()
             _widget->setWindowFlags(Qt::Window);
         }
         _widget->setWindowState(_widget->windowState() ^ Qt::WindowFullScreen);
-        _widget->initialize();
         _widget->setCursor(Qt::BlankCursor);
         _widget->show();
         _widget->setFocus(Qt::OtherFocusReason);
+        _widget->initialize();
         state().fullscreen = true;
     }
 }
@@ -327,10 +327,10 @@ void video_output_opengl_qt::exit_fullscreen()
             _widget->setWindowFlags(Qt::Widget);
         }
         _widget->setWindowState(_widget->windowState() ^ Qt::WindowFullScreen);
-        _widget->initialize();
         _widget->setCursor(Qt::ArrowCursor);
         _widget->show();
         _widget->setFocus(Qt::OtherFocusReason);
+        _widget->initialize();
         state().fullscreen = false;
     }
 }
