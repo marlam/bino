@@ -27,6 +27,7 @@
 #include <QDesktopWidget>
 #include <QKeyEvent>
 #include <QIcon>
+#include <QMessageBox>
 
 #include "exc.h"
 #include "msg.h"
@@ -81,19 +82,36 @@ void video_output_opengl_qt_widget::initializeGL()
 {
     if (!_initialized)
     {
-        GLenum err = glewInit();
-        if (err != GLEW_OK)
+        try
         {
-            throw exc(std::string("cannot initialize GLEW: ")
-                    + reinterpret_cast<const char *>(glewGetErrorString(err)));
+            // Double check that our OpenGL context still has the required capabilities
+            if (!format().alpha() || !format().doubleBuffer()
+                    || (_vo->mode() == video_output::stereo && !format().stereo())
+                    || ((_vo->mode() == video_output::even_odd_rows
+                            || _vo->mode() == video_output::even_odd_columns
+                            || _vo->mode() == video_output::checkerboard) && !format().stencil()))
+            {
+                throw exc("The GL context lost required capabilities. Something is very wrong!");
+            }
+            GLenum err = glewInit();
+            if (err != GLEW_OK)
+            {
+                throw exc(std::string("cannot initialize GLEW: ")
+                        + reinterpret_cast<const char *>(glewGetErrorString(err)));
+            }
+            _vo->initialize(
+                    glewIsSupported("GL_ARB_pixel_buffer_object"),
+                    glewIsSupported("GL_ARB_texture_non_power_of_two"),
+                    glewIsSupported("GL_ARB_fragment_shader"));
+            _initialized = true;
+            _last_resize_width = -1;
+            _last_resize_height = -1;
         }
-        _vo->initialize(
-                glewIsSupported("GL_ARB_pixel_buffer_object"),
-                glewIsSupported("GL_ARB_texture_non_power_of_two"),
-                glewIsSupported("GL_ARB_fragment_shader"));
-        _initialized = true;
-        _last_resize_width = -1;
-        _last_resize_height = -1;
+        catch (std::exception &e)
+        {
+            QMessageBox::critical(this, "Error", tr("%1").arg(e.what()));
+            abort();
+        }
     }
 }
 
