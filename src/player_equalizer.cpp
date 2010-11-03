@@ -469,6 +469,7 @@ protected:
             }
             else if (frame_data.drop_frame)
             {
+                _player.eq_read_frame();
                 _player.eq_release_frame();
             }
         }
