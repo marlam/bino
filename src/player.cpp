@@ -510,7 +510,7 @@ void player::run()
         }
         else if (drop_frame)
         {
-            _input->release_video_frame();
+            release_video_frame();
         }
         else if (display_frame)
         {
