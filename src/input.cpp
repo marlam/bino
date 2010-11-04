@@ -350,9 +350,9 @@ void input::get_video_frame(video_frame_format fmt,
         l_line_size[0] = line_size[0];
         l_line_size[1] = line_size[1];
         l_line_size[2] = line_size[2];
-        r_data[0] = data[0] + line_size[0] / 2;
-        r_data[1] = data[1] + line_size[1] / 2;
-        r_data[2] = data[2] + line_size[2] / 2;
+        r_data[0] = data[0] + video_width() * (fmt == yuv420p ? 1 : 4);
+        r_data[1] = data[1] + video_width() / 2;        // irrelevant for bgra32
+        r_data[2] = data[2] + video_width() / 2;        // irrelevant for bgra32
         r_line_size[0] = line_size[0];
         r_line_size[1] = line_size[1];
         r_line_size[2] = line_size[2];
