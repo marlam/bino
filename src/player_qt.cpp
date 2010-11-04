@@ -668,7 +668,7 @@ void main_window::open(QStringList filenames, bool automatic)
     _init_data.filenames.clear();
     for (int i = 0; i < filenames.size(); i++)
     {
-        _init_data.filenames.push_back(filenames[i].toStdString());
+        _init_data.filenames.push_back(filenames[i].toLocal8Bit().constData());
     }
     if (automatic)
     {
