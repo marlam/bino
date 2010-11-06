@@ -40,8 +40,7 @@
 
 video_output_opengl_qt_widget::video_output_opengl_qt_widget(
         video_output_opengl_qt *vo, const QGLFormat &format, QWidget *parent)
-    : QGLWidget(format, parent), _vo(vo), _have_valid_data(false),
-    _initialized(false), _last_resize_width(-1), _last_resize_height(-1)
+    : QGLWidget(format, parent), _vo(vo), _have_valid_data(false)
 {
     setFocusPolicy(Qt::StrongFocus);
     setWindowIcon(QIcon(":icons/appicon.png"));
@@ -49,22 +48,6 @@ video_output_opengl_qt_widget::video_output_opengl_qt_widget(
 
 video_output_opengl_qt_widget::~video_output_opengl_qt_widget()
 {
-}
-
-void video_output_opengl_qt_widget::initialize()
-{
-    makeCurrent();
-    initializeGL();
-    resizeGL(width(), height());
-}
-
-void video_output_opengl_qt_widget::deinitialize()
-{
-    makeCurrent();
-    _vo->deinitialize();
-    _initialized = false;
-    _last_resize_width = -1;
-    _last_resize_height = -1;
 }
 
 void video_output_opengl_qt_widget::activate()
@@ -80,35 +63,23 @@ void video_output_opengl_qt_widget::deactivate()
 
 void video_output_opengl_qt_widget::initializeGL()
 {
-    if (!_initialized)
+    try
     {
-        try
+        GLenum err = glewInit();
+        if (err != GLEW_OK)
         {
-            // Double check that our OpenGL context still has the required capabilities
-            if (!format().alpha() || !format().doubleBuffer()
-                    || (_vo->mode() == video_output::stereo && !format().stereo()))
-            {
-                throw exc("The GL context lost required capabilities. Something is very wrong!");
-            }
-            GLenum err = glewInit();
-            if (err != GLEW_OK)
-            {
-                throw exc(std::string("cannot initialize GLEW: ")
-                        + reinterpret_cast<const char *>(glewGetErrorString(err)));
-            }
-            _vo->initialize(
-                    glewIsSupported("GL_ARB_pixel_buffer_object"),
-                    glewIsSupported("GL_ARB_texture_non_power_of_two"),
-                    glewIsSupported("GL_ARB_fragment_shader"));
-            _initialized = true;
-            _last_resize_width = -1;
-            _last_resize_height = -1;
+            throw exc(std::string("cannot initialize GLEW: ")
+                    + reinterpret_cast<const char *>(glewGetErrorString(err)));
         }
-        catch (std::exception &e)
-        {
-            QMessageBox::critical(this, "Error", tr("%1").arg(e.what()));
-            abort();
-        }
+        _vo->initialize(
+                glewIsSupported("GL_ARB_pixel_buffer_object"),
+                glewIsSupported("GL_ARB_texture_non_power_of_two"),
+                glewIsSupported("GL_ARB_fragment_shader"));
+    }
+    catch (std::exception &e)
+    {
+        QMessageBox::critical(this, "Error", tr("%1").arg(e.what()));
+        abort();
     }
 }
 
@@ -126,12 +97,7 @@ void video_output_opengl_qt_widget::paintGL()
 
 void video_output_opengl_qt_widget::resizeGL(int w, int h)
 {
-    if (w != _last_resize_width || h != _last_resize_height)
-    {
-        _vo->reshape(w, h);
-        _last_resize_width = w;
-        _last_resize_height = h;
-    }
+    _vo->reshape(w, h);
 }
 
 void video_output_opengl_qt_widget::moveEvent(QMoveEvent *)
@@ -357,7 +323,6 @@ void video_output_opengl_qt::enter_fullscreen()
 {
     if (!state().fullscreen)
     {
-        _widget->deinitialize();
         if (_parent)
         {
             _widget->setWindowFlags(Qt::Window);
@@ -366,7 +331,6 @@ void video_output_opengl_qt::enter_fullscreen()
         _widget->setCursor(Qt::BlankCursor);
         _widget->show();
         _widget->setFocus(Qt::OtherFocusReason);
-        _widget->initialize();
         state().fullscreen = true;
     }
 }
@@ -375,7 +339,6 @@ void video_output_opengl_qt::exit_fullscreen()
 {
     if (state().fullscreen)
     {
-        _widget->deinitialize();
         if (_parent)
         {
             _widget->setWindowFlags(Qt::Widget);
@@ -384,7 +347,6 @@ void video_output_opengl_qt::exit_fullscreen()
         _widget->setCursor(Qt::ArrowCursor);
         _widget->show();
         _widget->setFocus(Qt::OtherFocusReason);
-        _widget->initialize();
         state().fullscreen = false;
     }
 }
