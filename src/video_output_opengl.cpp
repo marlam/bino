@@ -44,7 +44,8 @@ video_output_opengl::~video_output_opengl()
 {
 }
 
-void video_output_opengl::set_source_info(int width, int height, float aspect_ratio, video_frame_format preferred_frame_format)
+void video_output_opengl::set_source_info(int width, int height, float aspect_ratio,
+        enum decoder::video_frame_format preferred_frame_format)
 {
     _src_width = width;
     _src_height = height;
@@ -146,7 +147,7 @@ void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_te
             if (tex_units < 6)
             {
                 _yuv420p_supported = false;
-                if (_src_preferred_frame_format == yuv420p)
+                if (_src_preferred_frame_format == decoder::frame_format_yuv420p)
                 {
                     msg::wrn("Not enough texture image units for anaglyph output:");
                     msg::wrn("    Disabling hardware accelerated color space conversion");
@@ -158,7 +159,7 @@ void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_te
             if (tex_units < 3)
             {
                 _yuv420p_supported = false;
-                if (_src_preferred_frame_format == yuv420p)
+                if (_src_preferred_frame_format == decoder::frame_format_yuv420p)
                 {
                     msg::wrn("Not enough texture image units:");
                     msg::wrn("    Disabling hardware accelerated color space conversion");
@@ -171,13 +172,13 @@ void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_te
                 : _mode == anaglyph_red_cyan_half_color ? "mode_anaglyph_half_color"
                 : _mode == anaglyph_red_cyan_dubois ? "mode_anaglyph_dubois"
                 : "mode_onechannel");
-        std::string input_str = (frame_format() == yuv420p ? "input_yuv420p" : "input_bgra32");
+        std::string input_str = (frame_format() == decoder::frame_format_yuv420p ? "input_yuv420p" : "input_bgra32");
         std::string fs_src = xgl::ShaderSourcePrep(VIDEO_OUTPUT_OPENGL_FS_GLSL_STR,
                 std::string("$mode=") + mode_str + ", $input=" + input_str);
         _prg = xgl::CreateProgram("video_output", "", "", fs_src);
         xgl::LinkProgram("video_output", _prg);
         glUseProgram(_prg);
-        if (frame_format() == yuv420p)
+        if (frame_format() == decoder::frame_format_yuv420p)
         {
             glUniform1i(glGetUniformLocation(_prg, "y_l"), 0);
             glUniform1i(glGetUniformLocation(_prg, "u_l"), 1);
@@ -209,7 +210,7 @@ void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_te
         _prg = 0;
         _yuv420p_supported = false;
         msg::wrn("OpenGL extension GL_ARB_fragment_shader is not available:");
-        if (_src_preferred_frame_format == yuv420p)
+        if (_src_preferred_frame_format == decoder::frame_format_yuv420p)
         {
             msg::wrn("    - Color space conversion will not be hardware accelerated");
         }
@@ -242,7 +243,7 @@ void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_te
         _tex_max_x = static_cast<float>(_src_width) / static_cast<float>(tex_width);
         _tex_max_y = static_cast<float>(_src_height) / static_cast<float>(tex_height);
     }
-    if (frame_format() == yuv420p)
+    if (frame_format() == decoder::frame_format_yuv420p)
     {
         for (int i = 0; i < 2; i++)
         {
@@ -311,7 +312,7 @@ void video_output_opengl::deinitialize()
     {
         xgl::DeleteProgram(_prg);
     }
-    if (frame_format() == yuv420p)
+    if (frame_format() == decoder::frame_format_yuv420p)
     {
         glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_y_tex));
         glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_u_tex));
@@ -327,21 +328,21 @@ void video_output_opengl::deinitialize()
     }
 }
 
-video_frame_format video_output_opengl::frame_format() const
+enum decoder::video_frame_format video_output_opengl::frame_format() const
 {
-    if (_src_preferred_frame_format == yuv420p && _yuv420p_supported)
+    if (_src_preferred_frame_format == decoder::frame_format_yuv420p && _yuv420p_supported)
     {
-        return yuv420p;
+        return decoder::frame_format_yuv420p;
     }
     else
     {
-        return bgra32;
+        return decoder::frame_format_bgra32;
     }
 }
 
 void video_output_opengl::bind_textures(int unitset, int index)
 {
-    if (frame_format() == yuv420p)
+    if (frame_format() == decoder::frame_format_yuv420p)
     {
         glActiveTexture(GL_TEXTURE0 + 3 * unitset + 0);
         glBindTexture(GL_TEXTURE_2D, _y_tex[_active_tex_set][index]);
@@ -720,7 +721,7 @@ void video_output_opengl::prepare(
     _input_is_mono = (l_data[0] == r_data[0] && l_data[1] == r_data[1] && l_data[2] == r_data[2]);
 
     glActiveTexture(GL_TEXTURE0);
-    if (frame_format() == yuv420p)
+    if (frame_format() == decoder::frame_format_yuv420p)
     {
         upload_texture(_y_tex[tex_set][0], _pbo,
                 _src_width, _src_height, 1, l_line_size[0],
@@ -744,7 +745,7 @@ void video_output_opengl::prepare(
                     GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[2]);
         }
     }
-    else if (frame_format() == bgra32)
+    else if (frame_format() == decoder::frame_format_bgra32)
     {
         upload_texture(_rgb_tex[tex_set][0], _pbo,
                 _src_width, _src_height, 4, l_line_size[0],

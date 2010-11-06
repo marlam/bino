@@ -534,7 +534,7 @@ main_window::main_window(const player_init_data &init_data)
     QWidget *central_widget = new QWidget(this);
     _layout = new QGridLayout();
     _video_output = new video_output_opengl_qt(central_widget);
-    _video_output->open(bgra32, 1, 1, 1.0f, video_output::mono_left, video_output_state(), 0, 0, 0);
+    _video_output->open(decoder::frame_format_bgra32, 1, 1, 1.0f, video_output::mono_left, video_output_state(), 0, 0, 0);
     _video_widget = _video_output->widget();
     _layout->addWidget(_video_widget, 0, 0);
     _in_out_widget = new in_out_widget(central_widget);

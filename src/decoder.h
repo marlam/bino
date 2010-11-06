@@ -24,8 +24,6 @@
 #include <vector>
 #include <stdint.h>
 
-#include "video_frame_format.h"
-
 
 class decoder
 {
@@ -34,6 +32,14 @@ protected:
     std::vector<std::string> _tag_values;
 
 public:
+    enum video_frame_format
+    {
+        frame_format_yuv420p,    // 3 planes for Y, U, V, with one U and V value per 4 Y values
+        frame_format_bgra32      // 1 plane: BGRABGRABGRA...
+    };
+
+    static std::string video_frame_format_name(enum video_frame_format f);
+
     enum audio_sample_format
     {
         audio_sample_u8,
@@ -71,7 +77,7 @@ public:
     virtual int video_frame_rate_numerator(int video_stream) const throw () = 0;        // frames per second
     virtual int video_frame_rate_denominator(int video_stream) const throw () = 0;      // frames per second
     virtual int64_t video_duration(int video_stream) const throw () = 0;                // microseconds
-    virtual video_frame_format video_preferred_frame_format(int video_stream) const throw () = 0;
+    virtual enum video_frame_format video_preferred_frame_format(int video_stream) const throw () = 0;
 
     /* Get information about audio streams. */
     virtual int audio_rate(int audio_stream) const throw () = 0;                // samples per second
@@ -99,7 +105,7 @@ public:
      * be returned in 'data'. The total size in bytes of one frame line will be returned in
      * 'line_size' for each plane. This may be larger than the size of one line for alignment
      * reasons. */
-    virtual void get_video_frame(int video_stream, video_frame_format fmt,
+    virtual void get_video_frame(int video_stream, enum video_frame_format fmt,
             uint8_t *data[3], size_t line_size[3]) = 0;
     /* Release the video frame from the internal buffer. Can be called after get_video_frame(),
      * but also directly after read_video_frame(), e.g. in case video playback is too slow and

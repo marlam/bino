@@ -230,7 +230,7 @@ bool video_output_opengl_qt::supports_stereo()
 }
 
 void video_output_opengl_qt::open(
-        video_frame_format preferred_frame_format,
+        enum decoder::video_frame_format preferred_frame_format,
         int src_width, int src_height, float src_aspect_ratio,
         int mode, const video_output_state &state, unsigned int flags,
         int win_width, int win_height)

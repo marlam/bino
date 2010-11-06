@@ -32,7 +32,7 @@ private:
     int _src_width;
     int _src_height;
     float _src_aspect_ratio;
-    video_frame_format _src_preferred_frame_format;
+    enum decoder::video_frame_format _src_preferred_frame_format;
     int _screen_width;
     int _screen_height;
     float _screen_pixel_aspect_ratio;
@@ -57,7 +57,7 @@ private:
 
 protected:
     void set_mode(enum video_output::mode mode);
-    void set_source_info(int width, int height, float aspect_ratio, video_frame_format preferred_frame_format);
+    void set_source_info(int width, int height, float aspect_ratio, enum decoder::video_frame_format preferred_frame_format);
     void set_screen_info(int width, int height, float pixel_aspect_ratio);
     void compute_win_size(int width = -1, int height = -1);
     void set_state(const video_output_state &_state);
@@ -98,7 +98,7 @@ public:
     virtual bool supports_stereo() = 0;
 
     virtual void open(
-            video_frame_format preferred_format,
+            enum decoder::video_frame_format preferred_format,
             int src_width, int src_height, float src_aspect_ratio,
             int mode, const video_output_state &state, unsigned int flags,
             int win_width, int win_height) = 0;
@@ -108,7 +108,7 @@ public:
         return _mode;
     }
 
-    virtual video_frame_format frame_format() const;
+    virtual enum decoder::video_frame_format frame_format() const;
 
     virtual const video_output_state &state() const
     {

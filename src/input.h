@@ -53,7 +53,7 @@ private:
     float _video_aspect_ratio;
     int _video_frame_rate_num;
     int _video_frame_rate_den;
-    video_frame_format _video_preferred_frame_format;
+    enum decoder::video_frame_format _video_preferred_frame_format;
     int _audio_rate;
     int _audio_channels;
     enum decoder::audio_sample_format _audio_sample_format;
@@ -105,7 +105,7 @@ public:
         return static_cast<int64_t>(_video_frame_rate_den) * 1000000 / _video_frame_rate_num;
     }
 
-    video_frame_format video_preferred_frame_format() const throw ()
+    enum decoder::video_frame_format video_preferred_frame_format() const throw ()
     {
         return _video_preferred_frame_format;
     }
@@ -136,7 +136,7 @@ public:
     }
 
     int64_t read_video_frame();
-    void get_video_frame(video_frame_format fmt,
+    void get_video_frame(enum decoder::video_frame_format fmt,
             uint8_t *l_data[3], size_t l_line_size[3],
             uint8_t *r_data[3], size_t r_line_size[3]);
     void release_video_frame();

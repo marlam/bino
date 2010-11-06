@@ -23,7 +23,7 @@ class player_eq_node : public player
 {
 private:
     bool _is_master;
-    video_frame_format _fmt;
+    enum decoder::video_frame_format _fmt;
 
 public:
     player_eq_node() : player(player::slave), _is_master(false)
@@ -37,7 +37,8 @@ public:
     }
 
     bool eq_init(const player_init_data &init_data,
-            int *src_width, int *src_height, float *src_aspect_ratio, video_frame_format *src_preferred_frame_format)
+            int *src_width, int *src_height, float *src_aspect_ratio,
+            enum decoder::video_frame_format *src_preferred_frame_format)
     {
         try
         {
@@ -107,7 +108,8 @@ public:
         video_output_opengl::display(mode);
     }
 
-    void eq_initialize(int src_width, int src_height, float src_aspect_ratio, video_frame_format src_preferred_frame_format,
+    void eq_initialize(int src_width, int src_height, float src_aspect_ratio,
+            enum decoder::video_frame_format src_preferred_frame_format,
             bool have_pixel_buffer_object, bool have_texture_non_power_of_two, bool have_fragment_shader)
     {
         set_mode(stereo);       // just to ensure that prepare() does the right thing
@@ -130,7 +132,7 @@ public:
     virtual int window_pos_y() { return 0; }
     virtual void receive_notification(const notification &) {}
     virtual bool supports_stereo() { return false; }
-    virtual void open(video_frame_format, int, int, float, int, const video_output_state&, unsigned int, int, int) {}
+    virtual void open(enum decoder::video_frame_format, int, int, float, int, const video_output_state&, unsigned int, int, int) {}
     virtual void activate() {}
     virtual void process_events() {}
     virtual void close() {}
@@ -278,12 +280,13 @@ private:
 public:
     int src_width, src_height;
     float src_aspect_ratio;
-    video_frame_format src_preferred_frame_format;
+    enum decoder::video_frame_format src_preferred_frame_format;
 
 public:
     eq_config(eq::ServerPtr parent)
         : eq::Config(parent), _is_master_config(false), _eq_init_data(), _eq_frame_data(), _player(),
-        src_width(-1), src_height(-1), src_aspect_ratio(0.0f), src_preferred_frame_format(yuv420p)
+        src_width(-1), src_height(-1), src_aspect_ratio(0.0f),
+        src_preferred_frame_format(decoder::frame_format_yuv420p)
     {
     }
 
@@ -390,12 +393,13 @@ public:
     eq_frame_data frame_data;
     int src_width, src_height;
     float src_aspect_ratio;
-    video_frame_format src_preferred_frame_format;
+    enum decoder::video_frame_format src_preferred_frame_format;
 
     eq_node(eq::Config *parent)
         : eq::Node(parent), _is_app_node(false),
         _player(), init_data(), frame_data(),
-        src_width(-1), src_height(-1), src_aspect_ratio(-1.0f), src_preferred_frame_format(yuv420p)
+        src_width(-1), src_height(-1), src_aspect_ratio(-1.0f),
+        src_preferred_frame_format(decoder::frame_format_yuv420p)
     {
     }
 
@@ -494,7 +498,7 @@ protected:
     }
 
 public:
-    void prep_frame(video_output *vo, video_frame_format fmt)
+    void prep_frame(video_output *vo, enum decoder::video_frame_format fmt)
     {
         msg::dbg(HERE);
         if (fmt != src_preferred_frame_format)

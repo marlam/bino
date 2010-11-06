@@ -9,7 +9,6 @@ SUBDIRS = base
 bin_PROGRAMS = bino
 
 bino_SOURCES = \
-	video_frame_format.h \
 	decoder.h decoder.cpp \
 	decoder_ffmpeg.h decoder_ffmpeg.cpp \
         input.h input.cpp \

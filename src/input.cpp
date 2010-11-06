@@ -261,7 +261,7 @@ void input::open(std::vector<decoder *> decoders,
     msg::inf("input:");
     msg::inf("    video: %dx%d, format %s,",
             video_width(), video_height(),
-            (video_preferred_frame_format() == yuv420p ? "yuv420p" : "bgra32"));
+            decoder::video_frame_format_name(video_preferred_frame_format()).c_str());
     msg::inf("        aspect ratio %g:1, %g fps, %g seconds,",
             video_aspect_ratio(),
             static_cast<float>(video_frame_rate_numerator()) / static_cast<float>(video_frame_rate_denominator()),
@@ -302,7 +302,7 @@ int64_t input::read_video_frame()
     return t;
 }
 
-void input::get_video_frame(video_frame_format fmt,
+void input::get_video_frame(enum decoder::video_frame_format fmt,
         uint8_t *l_data[3], size_t l_line_size[3],
         uint8_t *r_data[3], size_t r_line_size[3])
 {
@@ -350,7 +350,7 @@ void input::get_video_frame(video_frame_format fmt,
         l_line_size[0] = line_size[0];
         l_line_size[1] = line_size[1];
         l_line_size[2] = line_size[2];
-        r_data[0] = data[0] + video_width() * (fmt == yuv420p ? 1 : 4);
+        r_data[0] = data[0] + video_width() * (fmt == decoder::frame_format_yuv420p ? 1 : 4);
         r_data[1] = data[1] + video_width() / 2;        // irrelevant for bgra32
         r_data[2] = data[2] + video_width() / 2;        // irrelevant for bgra32
         r_line_size[0] = line_size[0];

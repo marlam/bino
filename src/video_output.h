@@ -22,7 +22,7 @@
 
 #include <stdint.h>
 
-#include "video_frame_format.h"
+#include "decoder.h"
 #include "controller.h"
 
 
@@ -75,7 +75,7 @@ public:
 
     /* Initialize */
     virtual void open(
-            video_frame_format preferred_format,
+            enum decoder::video_frame_format preferred_format,
             int src_width, int src_height, float src_aspect_ratio,
             int mode, const video_output_state &state, unsigned int flags,
             int win_width, int win_height) = 0;
@@ -84,7 +84,7 @@ public:
     virtual enum mode mode() const = 0;
 
     /* Get the required video frame format. This can differ from the preferred format! */
-    virtual video_frame_format frame_format() const = 0;
+    virtual enum decoder::video_frame_format frame_format() const = 0;
 
     /* Get current state */
     virtual const video_output_state &state() const = 0;

@@ -152,7 +152,7 @@ void player::create_input(enum input::mode input_mode)
             input_mode);
 }
 
-void player::get_input_info(int *w, int *h, float *ar, video_frame_format *fmt)
+void player::get_input_info(int *w, int *h, float *ar, enum decoder::video_frame_format *fmt)
 {
     *w = _input->video_width();
     *h = _input->video_height();
@@ -423,7 +423,7 @@ void player::run_step(bool *more_steps, bool *prep_frame, bool *drop_frame, bool
     }
 }
 
-void player::get_video_frame(video_frame_format fmt)
+void player::get_video_frame(enum decoder::video_frame_format fmt)
 {
     _input->get_video_frame(fmt, _l_data, _l_line_size, _r_data, _r_line_size);
 }
