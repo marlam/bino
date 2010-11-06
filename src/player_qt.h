@@ -147,6 +147,7 @@ private slots:
     void help_about();
 
 protected:
+    void moveEvent(QMoveEvent *event);
     void closeEvent(QCloseEvent *event);	
 
 public:

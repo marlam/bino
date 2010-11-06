@@ -297,7 +297,14 @@ void video_output_opengl_qt::open(
     set_state(state);
 
     _widget->show();
-    _widget->update();
+    if (!_parent && (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard))
+    {
+        // XXX: This is a workaround for a Qt bug: the geometry() function for the widget (used in window_pos_x() and
+        // window_pos_y()) always returns (0,0) until the window is first moved, or until we hide and re-show it.
+        // The above output methods depend on a correct geometry value.
+        _widget->hide();
+        _widget->show();
+    }
 }
 
 void video_output_opengl_qt::activate()

@@ -490,7 +490,7 @@ void video_output_opengl::display(enum video_output::mode mode)
     }
     else if (mode == even_odd_rows)
     {
-        if (window_pos_y() % 2 == 1)
+        if (window_pos_y() % 2 == 0)
         {
             std::swap(left, right);
         }
@@ -524,7 +524,7 @@ void video_output_opengl::display(enum video_output::mode mode)
     }
     else if (mode == checkerboard)
     {
-        if (window_pos_y() % 2 == 1)
+        if (window_pos_y() % 2 == 0)
         {
             std::swap(left, right);
         }

@@ -660,6 +660,19 @@ void main_window::playloop_step()
     }
 }
 
+void main_window::moveEvent(QMoveEvent *)
+{
+    if (_video_output && _video_widget)
+    {
+        if (_video_output->mode() == video_output::even_odd_rows
+                || _video_output->mode() == video_output::even_odd_columns
+                || _video_output->mode() == video_output::checkerboard)
+        {
+            _video_widget->update();
+        }
+    }
+}
+
 void main_window::closeEvent(QCloseEvent *event)
 {
     event->accept();
