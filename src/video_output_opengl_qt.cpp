@@ -86,10 +86,7 @@ void video_output_opengl_qt_widget::initializeGL()
         {
             // Double check that our OpenGL context still has the required capabilities
             if (!format().alpha() || !format().doubleBuffer()
-                    || (_vo->mode() == video_output::stereo && !format().stereo())
-                    || ((_vo->mode() == video_output::even_odd_rows
-                            || _vo->mode() == video_output::even_odd_columns
-                            || _vo->mode() == video_output::checkerboard) && !format().stencil()))
+                    || (_vo->mode() == video_output::stereo && !format().stereo()))
             {
                 throw exc("The GL context lost required capabilities. Something is very wrong!");
             }
@@ -134,6 +131,16 @@ void video_output_opengl_qt_widget::resizeGL(int w, int h)
         _vo->reshape(w, h);
         _last_resize_width = w;
         _last_resize_height = h;
+    }
+}
+
+void video_output_opengl_qt_widget::moveEvent(QMoveEvent *)
+{
+    if (_vo->mode() == video_output::even_odd_rows
+            || _vo->mode() == video_output::even_odd_columns
+            || _vo->mode() == video_output::checkerboard)
+    {
+        update();
     }
 }
 
@@ -232,6 +239,18 @@ video_output_opengl_qt::~video_output_opengl_qt()
     }
 }
 
+int video_output_opengl_qt::window_pos_x()
+{
+    int xo = _parent ? _widget->geometry().x() : 0;
+    return _widget->window()->geometry().x() + xo;
+}
+
+int video_output_opengl_qt::window_pos_y()
+{
+    int yo = _parent ? _widget->geometry().y() : 0;
+    return _widget->window()->geometry().y() + yo;
+}
+
 bool video_output_opengl_qt::supports_stereo()
 {
     QGLFormat fmt;
@@ -261,15 +280,9 @@ void video_output_opengl_qt::open(
     {
         fmt.setStereo(true);
     }
-    else if (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard)
-    {
-        fmt.setStencil(true);
-    }
     _widget = new video_output_opengl_qt_widget(this, fmt, _parent);
     if (!_widget->format().alpha() || !_widget->format().doubleBuffer()
-            || (mode == stereo && !_widget->format().stereo())
-            || ((mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard) &&
-                !_widget->format().stencil()))
+            || (mode == stereo && !_widget->format().stereo()))
     {
         if (mode == stereo)
         {

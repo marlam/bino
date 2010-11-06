@@ -88,6 +88,9 @@ protected:
         return _win_height;
     }
 
+    virtual int window_pos_x() = 0;
+    virtual int window_pos_y() = 0;
+
 public:
     video_output_opengl() throw ();
     ~video_output_opengl();

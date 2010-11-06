@@ -51,6 +51,7 @@ protected:
     virtual void initializeGL();
     virtual void paintGL();
     virtual void resizeGL(int width, int height);
+    virtual void moveEvent(QMoveEvent *event);
     virtual void closeEvent(QCloseEvent *event);
     virtual void keyPressEvent(QKeyEvent *event);
 };
@@ -64,6 +65,10 @@ private:
 
     void enter_fullscreen();
     void exit_fullscreen();
+
+protected:
+    virtual int window_pos_x();
+    virtual int window_pos_y();
 
 public:
     video_output_opengl_qt(QWidget *parent = NULL) throw ();
