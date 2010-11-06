@@ -639,9 +639,10 @@ int64_t decoder_ffmpeg::read_audio_data(int audio_stream, void *buffer, size_t s
                     continue;
                 }
                 // Put it in the decoded audio data buffer
-                _stuff->audio_buffers[audio_stream].resize(tmpbuf_size);
-                memcpy(&(_stuff->audio_buffers[audio_stream][0]), tmpbuf, tmpbuf_size);
-                delete tmpbuf;
+                size_t old_size = _stuff->audio_buffers[audio_stream].size();
+                _stuff->audio_buffers[audio_stream].resize(old_size + tmpbuf_size);
+                memcpy(&(_stuff->audio_buffers[audio_stream][old_size]), tmpbuf, tmpbuf_size);
+                delete[] tmpbuf;
             }
             
             av_free_packet(&packet);
