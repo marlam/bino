@@ -46,9 +46,9 @@ AC_SEARCH_LIBS([clock_gettime], [rt])
 AC_CHECK_FUNCS([backtrace clock_gettime])
 
 dnl ffmpeg
-PKG_CHECK_MODULES([libavformat], [libavformat >= 52.64.2], [HAVE_LIBAVFORMAT=1], [HAVE_LIBAVFORMAT=0])
+PKG_CHECK_MODULES([libavformat], [libavformat >= 52.84.0], [HAVE_LIBAVFORMAT=1], [HAVE_LIBAVFORMAT=0])
 if test "$HAVE_LIBAVFORMAT" != "1"; then
-    AC_MSG_WARN([library libavformat >= 52.64.2 not found:])
+    AC_MSG_WARN([library libavformat >= 52.84.0 not found:])
     AC_MSG_WARN([$libavformat_PKG_ERRORS])
     AC_MSG_WARN([libavformat is provided by ffmpeg; Debian package: libavformat-dev])
 fi
