@@ -27,11 +27,6 @@
 #include <limits>
 #include <sstream>
 
-#include <locale.h>
-#include <langinfo.h>
-
-#include <iconv.h>
-
 #include "debug.h"
 #include "msg.h"
 
@@ -341,71 +336,5 @@ namespace str
         {
             return str::asprintf("%.1f mm", length * 1000.0);
         }
-    }
-
-    /* Get the name of the user's character set */
-    std::string localcharset()
-    {
-        char *bak = setlocale(LC_CTYPE, NULL);
-        setlocale(LC_CTYPE, "");
-        char *charset = nl_langinfo(CODESET);
-        setlocale(LC_CTYPE, bak);
-        return std::string(charset);
-    }
-
-    /* Convert a string from one character set to another */
-    std::string convert(const std::string &src, const std::string &from_charset, const std::string &to_charset)
-    {
-        if (from_charset.compare(to_charset) == 0)
-        {
-            return src;
-        }
-
-        iconv_t cd = iconv_open(to_charset.c_str(), from_charset.c_str());
-        if (cd == reinterpret_cast<iconv_t>(static_cast<size_t>(-1)))
-        {
-            throw exc(std::string("cannot convert ") + from_charset + " to " + to_charset, errno);
-        }
-
-        size_t inbytesleft = src.length() + 1;
-        const char *inbuf = src.c_str();
-        size_t outbytesleft = inbytesleft;
-        if (outbytesleft >= std::numeric_limits<size_t>::max() / 4)
-        {
-            outbytesleft = std::numeric_limits<size_t>::max();
-        }
-        else
-        {
-            outbytesleft = outbytesleft * 4;
-        }
-        char *orig_outbuf = static_cast<char *>(malloc(outbytesleft));
-        if (!orig_outbuf)
-        {
-            iconv_close(cd);
-            throw exc(std::string("cannot convert string from ") + from_charset + " to " + to_charset, ENOMEM);
-        }
-        char *outbuf = orig_outbuf;
-
-        size_t s = iconv(cd, const_cast<char **>(&inbuf), &inbytesleft, &outbuf, &outbytesleft);
-        int saved_errno = errno;
-        iconv_close(cd);
-        if (s == static_cast<size_t>(-1))
-        {
-            free(orig_outbuf);
-            throw exc(std::string("cannot convert string from ") + from_charset + " to " + to_charset, saved_errno);
-        }
-
-        std::string dst;
-        try
-        {
-            dst.assign(orig_outbuf);
-        }
-        catch (std::exception &e)
-        {
-            free(orig_outbuf);
-            throw exc(std::string("cannot convert string from ") + from_charset + " to " + to_charset, ENOMEM);
-        }
-        free(orig_outbuf);
-        return dst;
     }
 }
