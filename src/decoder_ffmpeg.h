@@ -57,7 +57,7 @@ public:
 
     virtual int audio_rate(int audio_stream) const throw ();
     virtual int audio_channels(int audio_stream) const throw ();
-    virtual int audio_bits(int audio_stream) const throw ();
+    virtual enum audio_sample_format audio_sample_format(int audio_stream) const throw ();
     virtual int64_t audio_duration(int video_stream) const throw ();
 
     virtual int64_t read_video_frame(int video_stream);

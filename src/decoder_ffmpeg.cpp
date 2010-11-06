@@ -63,6 +63,7 @@ struct internal_stuff
 
     std::vector<int> audio_streams;
     std::vector<AVCodecContext *> audio_codec_ctxs;
+    std::vector<enum decoder::audio_sample_format> audio_sample_formats;
     std::vector<AVCodec *> audio_codecs;
     std::vector<std::deque<AVPacket> > audio_packet_queues;
     std::vector<bool> audio_flush_flags;
@@ -249,10 +250,27 @@ void decoder_ffmpeg::open(const std::string &filename)
                 _stuff->audio_codecs[j] = NULL;
                 throw exc(filename + " stream " + str::from(i) + ": cannot open audio codec: " + my_av_strerror(e));
             }
-            if (_stuff->audio_codec_ctxs[j]->sample_fmt != SAMPLE_FMT_S16)
+            if (_stuff->audio_codec_ctxs[j]->sample_fmt == SAMPLE_FMT_U8)
+            {
+                _stuff->audio_sample_formats.push_back(audio_sample_u8);
+            }
+            else if (_stuff->audio_codec_ctxs[j]->sample_fmt == SAMPLE_FMT_S16)
+            {
+                _stuff->audio_sample_formats.push_back(audio_sample_s16);
+            }
+            else if (_stuff->audio_codec_ctxs[j]->sample_fmt == SAMPLE_FMT_FLT)
+            {
+                _stuff->audio_sample_formats.push_back(audio_sample_f32);
+            }
+            else if (_stuff->audio_codec_ctxs[j]->sample_fmt == SAMPLE_FMT_DBL)
+            {
+                _stuff->audio_sample_formats.push_back(audio_sample_d64);
+            }
+            else
             {
                 throw exc(filename + " stream " + str::from(i)
-                        + ": ffmpeg does not decode this audio to signed 16 bit");
+                        + ": cannot handle audio sample format " +
+                        av_get_sample_fmt_name(_stuff->audio_codec_ctxs[j]->sample_fmt));
             }
             if (_stuff->audio_codec_ctxs[j]->channels < 1
                     || _stuff->audio_codec_ctxs[j]->channels > 8
@@ -299,8 +317,8 @@ void decoder_ffmpeg::open(const std::string &filename)
     }
     for (int i = 0; i < audio_streams(); i++)
     {
-        msg::inf("    audio stream %d: %d channels, %d bits, %d Hz", i,
-                audio_channels(i), audio_bits(i), audio_rate(i));
+        msg::inf("    audio stream %d: %d channels, %d Hz, sample format %s", i,
+                audio_channels(i), audio_rate(i), audio_sample_format_name(audio_sample_format(i)).c_str());
     }
     if (video_streams() == 0 && audio_streams() == 0)
     {
@@ -404,9 +422,9 @@ int decoder_ffmpeg::audio_channels(int index) const throw ()
     return _stuff->audio_codec_ctxs.at(index)->channels;
 }
 
-int decoder_ffmpeg::audio_bits(int) const throw ()
+enum decoder::audio_sample_format decoder_ffmpeg::audio_sample_format(int index) const throw ()
 {
-    return 16;  // ffmpeg always decodes to 16 bits
+    return _stuff->audio_sample_formats.at(index);
 }
 
 int64_t decoder_ffmpeg::audio_duration(int index) const throw ()
@@ -578,7 +596,7 @@ int64_t decoder_ffmpeg::read_audio_data(int audio_stream, void *buffer, size_t s
             _stuff->audio_buffers[audio_stream].erase(
                     _stuff->audio_buffers[audio_stream].begin(),
                     _stuff->audio_buffers[audio_stream].begin() + remaining);
-            buffer = reinterpret_cast<int16_t *>(reinterpret_cast<unsigned char *>(buffer) + remaining);
+            buffer = reinterpret_cast<unsigned char *>(buffer) + remaining;
             i += remaining;
         }
         if (_stuff->audio_buffers[audio_stream].size() == 0)
@@ -606,7 +624,7 @@ int64_t decoder_ffmpeg::read_audio_data(int audio_stream, void *buffer, size_t s
             while (tmppacket.size > 0)
             {
                 int tmpbuf_size = (AVCODEC_MAX_AUDIO_FRAME_SIZE * 3) / 2;
-                unsigned char tmpbuf[tmpbuf_size];
+                unsigned char *tmpbuf = new unsigned char[tmpbuf_size];
                 int len = avcodec_decode_audio3(_stuff->audio_codec_ctxs[audio_stream],
                         reinterpret_cast<int16_t *>(tmpbuf), &tmpbuf_size, &tmppacket);
                 if (len < 0)
@@ -623,6 +641,7 @@ int64_t decoder_ffmpeg::read_audio_data(int audio_stream, void *buffer, size_t s
                 // Put it in the decoded audio data buffer
                 _stuff->audio_buffers[audio_stream].resize(tmpbuf_size);
                 memcpy(&(_stuff->audio_buffers[audio_stream][0]), tmpbuf, tmpbuf_size);
+                delete tmpbuf;
             }
             
             av_free_packet(&packet);

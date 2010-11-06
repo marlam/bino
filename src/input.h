@@ -56,7 +56,7 @@ private:
     video_frame_format _video_preferred_frame_format;
     int _audio_rate;
     int _audio_channels;
-    int _audio_bits;
+    enum decoder::audio_sample_format _audio_sample_format;
     int64_t _duration;
     blob _audio_buffer;
 
@@ -125,9 +125,9 @@ public:
         return _audio_channels;
     }
 
-    int audio_bits() const throw ()
+    enum decoder::audio_sample_format audio_sample_format() const throw ()
     {
-        return _audio_bits;
+        return _audio_sample_format;
     }
 
     int64_t duration() const throw ()

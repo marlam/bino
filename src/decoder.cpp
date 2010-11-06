@@ -29,6 +29,44 @@ decoder::~decoder()
 {
 }
 
+std::string decoder::audio_sample_format_name(enum audio_sample_format f)
+{
+    switch (f)
+    {
+    case audio_sample_u8:
+        return "u8";
+        break;
+    case audio_sample_s16:
+        return "s16";
+        break;
+    case audio_sample_f32:
+        return "float";
+        break;
+    case audio_sample_d64:
+        return "double";
+        break;
+    }
+}
+
+int decoder::audio_sample_format_bits(enum audio_sample_format f)
+{
+    switch (f)
+    {
+    case audio_sample_u8:
+        return 8;
+        break;
+    case audio_sample_s16:
+        return 16;
+        break;
+    case audio_sample_f32:
+        return 32;
+        break;
+    case audio_sample_d64:
+        return 64;
+        break;
+    }
+}
+
 size_t decoder::tags() const
 {
     return _tag_names.size();

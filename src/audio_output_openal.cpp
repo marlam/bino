@@ -46,7 +46,7 @@ audio_output_openal::~audio_output_openal()
 {
 }
 
-void audio_output_openal::open(int rate, int channels, int bits)
+void audio_output_openal::open(int channels, int rate, enum decoder::audio_sample_format sample_format)
 {
     _buffers.resize(_num_buffers);
     _data.resize(_buffer_size);
@@ -93,7 +93,7 @@ void audio_output_openal::open(int rate, int channels, int bits)
     }
 
     _format = 0;
-    if (bits == 8)
+    if (sample_format == decoder::audio_sample_u8)
     {
         if (channels == 1)
         {
@@ -123,7 +123,7 @@ void audio_output_openal::open(int rate, int channels, int bits)
             }
         }
     }
-    else if (bits == 16)
+    else if (sample_format == decoder::audio_sample_s16)
     {
         if (channels == 1)
         {
@@ -153,6 +153,53 @@ void audio_output_openal::open(int rate, int channels, int bits)
             }
         }
     }
+    else if (sample_format == decoder::audio_sample_f32)
+    {
+        if (alIsExtensionPresent("AL_EXT_float32"))
+        {
+            if (channels == 1)
+            {
+                _format = alGetEnumValue("AL_FORMAT_MONO_FLOAT32");
+            }
+            else if (channels == 2)
+            {
+                _format = alGetEnumValue("AL_FORMAT_STEREO_FLOAT32");
+            }
+            else if (alIsExtensionPresent("AL_EXT_MCFORMATS"))
+            {
+                if (channels == 4)
+                {
+                    _format = alGetEnumValue("AL_FORMAT_QUAD32");
+                }
+                else if (channels == 6)
+                {
+                    _format = alGetEnumValue("AL_FORMAT_51CHN32");
+                }
+                else if (channels == 7)
+                {
+                    _format = alGetEnumValue("AL_FORMAT_61CHN32");
+                }
+                else if (channels == 8)
+                {
+                    _format = alGetEnumValue("AL_FORMAT_71CHN32");
+                }
+            }
+        }
+    }
+    else if (sample_format == decoder::audio_sample_d64)
+    {
+        if (alIsExtensionPresent("AL_EXT_double"))
+        {
+            if (channels == 1)
+            {
+                _format = alGetEnumValue("AL_FORMAT_MONO_DOUBLE_EXT");
+            }
+            else if (channels == 2)
+            {
+                _format = alGetEnumValue("AL_FORMAT_STEREO_DOUBLE_EXT");
+            }
+        }
+    }
     if (_format == 0)
     {
         alDeleteSources(1, &_source);
@@ -161,13 +208,13 @@ void audio_output_openal::open(int rate, int channels, int bits)
         alcDestroyContext(_context);
         alcCloseDevice(_device);
         throw exc(std::string("cannot set OpenAL format for source with ")
-                + str::from(channels) + " channels and "
-                + str::from(bits) + " bits");
+                + str::from(channels) + " channels and sample format "
+                + decoder::audio_sample_format_name(sample_format));
     }
     _state = 0;
     _rate = rate;
     _channels = channels;
-    _bits = bits;
+    _bits = decoder::audio_sample_format_bits(sample_format);
 }
 
 int64_t audio_output_openal::status(size_t *required_data)

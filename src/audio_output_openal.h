@@ -43,8 +43,8 @@ private:
     ALuint _source;
     ALenum _format;
     ALint _state;
-    int _rate;
     int _channels;
+    int _rate;
     int _bits;
     int64_t _basetime;
     int64_t _last_timestamp;
@@ -57,7 +57,7 @@ public:
     audio_output_openal() throw ();
     ~audio_output_openal();
 
-    virtual void open(int rate, int channels, int bits);
+    virtual void open(int channels, int rate, enum decoder::audio_sample_format format);
 
     virtual int64_t status(size_t *required_data);
     virtual void data(const void *buffer, size_t size);

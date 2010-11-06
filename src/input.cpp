@@ -29,7 +29,7 @@
 
 input::input() throw ()
     : _video_width(-1), _video_height(-1), _video_frame_rate_num(-1), _video_frame_rate_den(-1),
-    _audio_rate(-1), _audio_channels(-1), _audio_bits(-1), _duration()
+    _audio_rate(-1), _audio_channels(-1), _audio_sample_format(decoder::audio_sample_u8), _duration()
 {
 }
 
@@ -225,7 +225,7 @@ void input::open(std::vector<decoder *> decoders,
     {
         _audio_rate = _decoders.at(_audio_decoder)->audio_rate(_audio_stream);
         _audio_channels = _decoders.at(_audio_decoder)->audio_channels(_audio_stream);
-        _audio_bits = _decoders.at(_audio_decoder)->audio_bits(_audio_stream);
+        _audio_sample_format = _decoders.at(_audio_decoder)->audio_sample_format(_audio_stream);
     }
 
     _decoders.at(_video_decoders[0])->activate_video_stream(_video_streams[0]);
@@ -275,8 +275,8 @@ void input::open(std::vector<decoder *> decoders,
 
     if (audio_stream != -1)
     {
-        msg::inf("    audio: %d channels, %d bits, %d Hz",
-                audio_channels(), audio_bits(), audio_rate());
+        msg::inf("    audio: %d channels, %d Hz, sample format %s",
+                audio_channels(), audio_rate(), decoder::audio_sample_format_name(audio_sample_format()).c_str());
     }
     else
     {

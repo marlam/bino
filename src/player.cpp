@@ -165,7 +165,7 @@ void player::create_audio_output()
     if (_input->has_audio())
     {
         _audio_output = new audio_output_openal();
-        _audio_output->open(_input->audio_rate(), _input->audio_channels(), _input->audio_bits());
+        _audio_output->open(_input->audio_channels(), _input->audio_rate(), _input->audio_sample_format());
     }
 }
 

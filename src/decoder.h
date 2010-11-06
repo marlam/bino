@@ -34,6 +34,17 @@ protected:
     std::vector<std::string> _tag_values;
 
 public:
+    enum audio_sample_format
+    {
+        audio_sample_u8,
+        audio_sample_s16,
+        audio_sample_f32,
+        audio_sample_d64
+    };
+
+    static std::string audio_sample_format_name(enum audio_sample_format f);
+    static int audio_sample_format_bits(enum audio_sample_format f);
+
     decoder() throw ();
     ~decoder();
 
@@ -65,7 +76,7 @@ public:
     /* Get information about audio streams. */
     virtual int audio_rate(int audio_stream) const throw () = 0;                // samples per second
     virtual int audio_channels(int audio_stream) const throw () = 0;            // 1 (mono), 2 (stereo), 4 (quad), 6 (5:1), 7 (6:1), or 8 (7:1)
-    virtual int audio_bits(int audio_stream) const throw () = 0;                // 8 or 16
+    virtual enum audio_sample_format audio_sample_format(int audio_stream) const throw () = 0;  // one of the formats deinfed above
     virtual int64_t audio_duration(int video_stream) const throw () = 0;        // microseconds
 
     /* Get metadata */

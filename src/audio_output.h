@@ -23,6 +23,7 @@
 #include <cstddef>
 #include <stdint.h>
 
+#include "decoder.h"
 #include "controller.h"
 
 
@@ -34,8 +35,8 @@ public:
 
     /* Open an audio device for output of audio data with the given specifications.
      * Rate is in samples per second, channels is one of 1 (mono), 2 (stereo), 4 (quad),
-     * 6 (5:1), 7 (6:1), or 8 (7:1), and bits is 8 or 16. */
-    virtual void open(int rate, int channels, int bits) = 0;
+     * 6 (5:1), 7 (6:1), or 8 (7:1), and format is one of the formats defined by the decoder. */
+    virtual void open(int channels, int rate, enum decoder::audio_sample_format format) = 0;
    
     /* To play audio, do the following:
      * - First, call status() to find out the initial amount of audio data that
