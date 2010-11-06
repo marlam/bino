@@ -23,7 +23,7 @@
 #include <vector>
 #include <string>
 
-#include <GL/gl.h>
+#include <GL/glew.h>
 
 
 namespace xgl

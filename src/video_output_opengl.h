@@ -20,7 +20,7 @@
 #ifndef VIDEO_OUTPUT_OPENGL_H
 #define VIDEO_OUTPUT_OPENGL_H
 
-#include <GL/gl.h>
+#include <GL/glew.h>
 
 #include "video_output.h"
 

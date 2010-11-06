@@ -20,6 +20,8 @@
 #ifndef VIDEO_OUTPUT_OPENGL_QT_H
 #define VIDEO_OUTPUT_OPENGL_QT_H
 
+#include <GL/glew.h>
+
 #include <QGLWidget>
 
 #include "video_output_opengl.h"
