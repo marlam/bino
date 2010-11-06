@@ -269,8 +269,10 @@ void decoder_ffmpeg::open(const std::string &filename)
             else
             {
                 throw exc(filename + " stream " + str::from(i)
-                        + ": cannot handle audio sample format " +
-                        av_get_sample_fmt_name(_stuff->audio_codec_ctxs[j]->sample_fmt));
+                        + ": cannot handle audio sample format "
+                        + str::from(static_cast<int>(_stuff->audio_codec_ctxs[j]->sample_fmt)));
+                // XXX: Once widely available, use av_get_sample_fmt_name(_stuff->audio_codec_ctxs[j]->sample_fmt)
+                // in this error message.
             }
             if (_stuff->audio_codec_ctxs[j]->channels < 1
                     || _stuff->audio_codec_ctxs[j]->channels > 8
