@@ -557,7 +557,11 @@ main_window::main_window(const player_init_data &init_data)
     file_menu->addAction(file_open_url_act);
     file_menu->addSeparator();
     QAction *file_quit_act = new QAction(tr("&Quit..."), this);
+#if QT_VERSION >= 0x040600
     file_quit_act->setShortcut(QKeySequence::Quit);
+#else
+    file_quit_act->setShortcut(tr("Ctrl+Q"));
+#endif
     connect(file_quit_act, SIGNAL(triggered()), this, SLOT(close()));
     file_menu->addAction(file_quit_act);
     QMenu *help_menu = menuBar()->addMenu(tr("&Help"));
