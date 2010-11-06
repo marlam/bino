@@ -249,7 +249,7 @@ void decoder_ffmpeg::open(const std::string &filename)
                 _stuff->audio_codecs[j] = NULL;
                 throw exc(filename + " stream " + str::from(i) + ": cannot open audio codec: " + my_av_strerror(e));
             }
-            if (_stuff->audio_codec_ctxs[j]->sample_fmt != AV_SAMPLE_FMT_S16)
+            if (_stuff->audio_codec_ctxs[j]->sample_fmt != SAMPLE_FMT_S16)
             {
                 throw exc(filename + " stream " + str::from(i)
                         + ": ffmpeg does not decode this audio to signed 16 bit");
