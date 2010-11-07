@@ -531,7 +531,7 @@ void player::receive_cmd(const command &cmd)
         /* notify when request is fulfilled */
         break;
     case command::toggle_swap_eyes:
-        _video_state.swap_eyes = _video_state.swap_eyes;
+        _video_state.swap_eyes = !_video_state.swap_eyes;
         notify(notification::swap_eyes, !_video_state.swap_eyes, _video_state.swap_eyes);
         break;
     case command::toggle_fullscreen:
