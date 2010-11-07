@@ -174,8 +174,7 @@ void player::create_video_output()
     _video_output = new video_output_opengl_qt();
 }
 
-void player::open_video_output(enum video_output::mode video_mode,
-        const video_output_state &video_state, unsigned int video_flags)
+void player::open_video_output(enum video_output::mode video_mode, unsigned int video_flags)
 {
     if (video_mode == video_output::automatic)
     {
@@ -195,7 +194,7 @@ void player::open_video_output(enum video_output::mode video_mode,
     _video_output->open(
             _input->video_preferred_frame_format(),
             _input->video_width(), _input->video_height(), _input->video_aspect_ratio(),
-            video_mode, video_state, video_flags, -1, -1);
+            video_mode, _video_state, video_flags, -1, -1);
     _video_output->process_events();
 }
 
@@ -446,7 +445,8 @@ void player::open(const player_init_data &init_data)
     create_input(init_data.input_mode);
     create_audio_output();
     create_video_output();
-    open_video_output(init_data.video_mode, init_data.video_state, init_data.video_flags);
+    _video_state = init_data.video_state;
+    open_video_output(init_data.video_mode, init_data.video_flags);
 }
 
 enum input::mode player::input_mode() const
@@ -522,9 +522,7 @@ void player::run()
 
 void player::receive_cmd(const command &cmd)
 {
-    const video_output_state &video_state = _video_output->state();
-    bool flag;
-    float value;
+    float oldval;
 
     switch (cmd.type)
     {
@@ -533,12 +531,12 @@ void player::receive_cmd(const command &cmd)
         /* notify when request is fulfilled */
         break;
     case command::toggle_swap_eyes:
-        flag = !video_state.swap_eyes;
-        notify(notification::swap_eyes, video_state.swap_eyes, flag);
+        _video_state.swap_eyes = _video_state.swap_eyes;
+        notify(notification::swap_eyes, !_video_state.swap_eyes, _video_state.swap_eyes);
         break;
     case command::toggle_fullscreen:
-        flag = !video_state.fullscreen;
-        notify(notification::fullscreen, video_state.fullscreen, flag);
+        _video_state.fullscreen = !_video_state.fullscreen;
+        notify(notification::fullscreen, !_video_state.fullscreen, _video_state.fullscreen);
         break;
     case command::center:
         notify(notification::center);
@@ -548,20 +546,24 @@ void player::receive_cmd(const command &cmd)
         /* notify when request is fulfilled */
         break;
     case command::adjust_contrast:
-        value = std::max(std::min(video_state.contrast + cmd.param, 1.0f), -1.0f);
-        notify(notification::contrast, video_state.contrast, value);
+        oldval = _video_state.contrast;
+        _video_state.contrast = std::max(std::min(_video_state.contrast + cmd.param, 1.0f), -1.0f);
+        notify(notification::contrast, oldval, _video_state.contrast);
         break;
     case command::adjust_brightness:
-        value = std::max(std::min(video_state.brightness + cmd.param, 1.0f), -1.0f);
-        notify(notification::brightness, video_state.brightness, value);
+        oldval = _video_state.brightness;
+        _video_state.brightness = std::max(std::min(_video_state.brightness + cmd.param, 1.0f), -1.0f);
+        notify(notification::brightness, oldval, _video_state.brightness);
         break;
     case command::adjust_hue:
-        value = std::max(std::min(video_state.hue + cmd.param, 1.0f), -1.0f);
-        notify(notification::hue, video_state.hue, value);
+        oldval = _video_state.hue;
+        _video_state.hue = std::max(std::min(_video_state.hue + cmd.param, 1.0f), -1.0f);
+        notify(notification::hue, oldval, _video_state.hue);
         break;
     case command::adjust_saturation:
-        value = std::max(std::min(video_state.saturation + cmd.param, 1.0f), -1.0f);
-        notify(notification::saturation, video_state.saturation, value);
+        oldval = _video_state.saturation;
+        _video_state.saturation = std::max(std::min(_video_state.saturation + cmd.param, 1.0f), -1.0f);
+        notify(notification::saturation, oldval, _video_state.saturation);
         break;
     case command::seek:
         _seek_request = cmd.param * 1e6f;

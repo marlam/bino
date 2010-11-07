@@ -126,6 +126,11 @@ public:
         swap_tex_set();
     }
 
+    void eq_set_state(const video_output_state &video_state)
+    {
+        set_state(video_state);
+    }
+
     // The rest of the interface is irrelevant for Equalizer
     virtual int window_pos_x() { return 0; }
     virtual int window_pos_y() { return 0; }
@@ -281,7 +286,7 @@ protected:
  * eq_config
  */
 
-class eq_config : public eq::Config
+class eq_config : public eq::Config, public controller
 {
 private:
     bool _is_master_config;
@@ -396,6 +401,7 @@ public:
     }
 
     virtual bool handleEvent(const eq::ConfigEvent *event);
+    virtual void receive_notification(const notification &note);
 };
 
 bool eq_config::handleEvent(const eq::ConfigEvent *event)
@@ -404,10 +410,108 @@ bool eq_config::handleEvent(const eq::ConfigEvent *event)
     {
         return true;
     }
+    if (event->data.type == eq::Event::KEY_PRESS)
+    {
+        switch (event->data.keyPress.key)
+        {
+        case 'q':
+            send_cmd(command::toggle_play);
+            break;
+        case 's':
+            send_cmd(command::toggle_swap_eyes);
+            break;
+        case 'f':
+            /* fullscreen toggling not supported with Equalizer */
+            break;
+        case 'c':
+            /* window centering not supported with Equalizer */
+            break;
+        case ' ':
+        case 'p':
+            send_cmd(command::toggle_pause);
+            break;
+        case '1':
+            send_cmd(command::adjust_contrast, -0.05f);
+            break;
+        case '2':
+            send_cmd(command::adjust_contrast, +0.05f);
+            break;
+        case '3':
+            send_cmd(command::adjust_brightness, -0.05f);
+            break;
+        case '4':
+            send_cmd(command::adjust_brightness, +0.05f);
+            break;
+        case '5':
+            send_cmd(command::adjust_hue, -0.05f);
+            break;
+        case '6':
+            send_cmd(command::adjust_hue, +0.05f);
+            break;
+        case '7':
+            send_cmd(command::adjust_saturation, -0.05f);
+            break;
+        case '8':
+            send_cmd(command::adjust_saturation, +0.05f);
+            break;
+        case eq::KC_LEFT:
+            send_cmd(command::seek, -10.0f);
+            break;
+        case eq::KC_RIGHT:
+            send_cmd(command::seek, +10.0f);
+            break;
+        case eq::KC_UP:
+            send_cmd(command::seek, -60.0f);
+            break;
+        case eq::KC_DOWN:
+            send_cmd(command::seek, +60.0f);
+            break;
+        case eq::KC_PAGE_UP:
+            send_cmd(command::seek, -600.0f);
+            break;
+        case eq::KC_PAGE_DOWN:
+            send_cmd(command::seek, +600.0f);
+            break;
+        }
+    }
+    return true;
+}
 
-    /* ... */
-
-    return false;
+void eq_config::receive_notification(const notification &note)
+{
+    switch (note.type)
+    {
+    case notification::play:
+        /* handled by player */
+        break;
+    case notification::pause:
+        /* handled by player */
+        break;
+    case notification::swap_eyes:
+        _eq_frame_data.video_state.swap_eyes = note.current.flag;
+        break;
+    case notification::fullscreen:
+        /* not supported */
+        break;
+    case notification::center:
+        /* not supported */
+        break;
+    case notification::contrast:
+        _eq_frame_data.video_state.contrast = note.current.value;
+        break;
+    case notification::brightness:
+        _eq_frame_data.video_state.brightness = note.current.value;
+        break;
+    case notification::hue:
+        _eq_frame_data.video_state.hue = note.current.value;
+        break;
+    case notification::saturation:
+        _eq_frame_data.video_state.saturation = note.current.value;
+        break;
+    case notification::pos:
+        /* handled by player */
+        break;
+    }
 }
 
 /*
@@ -625,6 +729,7 @@ protected:
     {
         msg::dbg(HERE);
         eq_node *node = static_cast<eq_node *>(getNode());
+        _video_output.eq_set_state(node->frame_data.video_state);
         if (node->frame_data.prep_frame)
         {
             makeCurrent();

@@ -54,7 +54,8 @@ void player_qt_internal::open(const player_init_data &init_data)
     create_input(init_data.input_mode);
     create_audio_output();
     set_video_output(_vo);
-    open_video_output(init_data.video_mode, init_data.video_state, init_data.video_flags);
+    video_state() = init_data.video_state;
+    open_video_output(init_data.video_mode, init_data.video_flags);
 }
 
 void player_qt_internal::close()

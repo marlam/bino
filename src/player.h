@@ -60,6 +60,7 @@ private:
     std::vector<controller *> _controllers;
     audio_output *_audio_output;
     video_output *_video_output;
+    video_output_state _video_state;
 
     bool _running;
     bool _first_frame;
@@ -98,8 +99,8 @@ protected:
     {
         _video_output = vo;
     }
-    void open_video_output(enum video_output::mode video_mode,
-            const video_output_state &video_state, unsigned int video_flags);
+    video_output_state &video_state() { return _video_state; }
+    void open_video_output(enum video_output::mode video_mode, unsigned int video_flags);
     void make_master();
     void run_step(bool *more_steps, bool *prep_frame, bool *drop_frame, bool *display_frame);
     void get_video_frame(enum decoder::video_frame_format fmt);
