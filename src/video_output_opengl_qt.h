@@ -35,14 +35,11 @@ class video_output_opengl_qt_widget : public QGLWidget
 
 private:
     video_output_opengl_qt *_vo;
-    bool _have_valid_data;
 
 public:
     video_output_opengl_qt_widget(video_output_opengl_qt *vo, const QGLFormat &format, QWidget *parent = NULL);
     ~video_output_opengl_qt_widget();
 
-    void activate();
-    void deactivate();
     virtual QSize sizeHint() const;
 
 protected:

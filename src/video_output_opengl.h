@@ -51,6 +51,7 @@ private:
     float _tex_max_y;
     bool _yuv420p_supported;
     GLuint _pbo;
+    bool _have_valid_data;
 
     void bind_textures(int unitset, int index);
     void draw_quad(float x, float y, float w, float h);

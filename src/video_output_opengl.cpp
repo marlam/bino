@@ -126,6 +126,7 @@ void video_output_opengl::swap_tex_set()
 
 void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_texture_non_power_of_two, bool have_fragment_shader)
 {
+    _have_valid_data = false;
     _use_non_power_of_two = true;
     if (!have_texture_non_power_of_two)
     {
@@ -326,6 +327,7 @@ void video_output_opengl::deinitialize()
     {
         glDeleteBuffersARB(1, &_pbo);
     }
+    _have_valid_data = false;
 }
 
 enum decoder::video_frame_format video_output_opengl::frame_format() const
@@ -460,6 +462,12 @@ static const GLubyte *stipple_pattern_checkerboard_inv = stipple_pattern_checker
 
 void video_output_opengl::display(enum video_output::mode mode, float x, float y, float w, float h)
 {
+    glClear(GL_COLOR_BUFFER_BIT);
+    if (!_have_valid_data)
+    {
+        return;
+    }
+
     int64_t display_start = timer::get_microseconds(timer::monotonic);
 
     int left = 0;
@@ -469,7 +477,6 @@ void video_output_opengl::display(enum video_output::mode mode, float x, float y
         std::swap(left, right);
     }
 
-    glClear(GL_COLOR_BUFFER_BIT);
     if (_prg != 0)
     {
         glUniform1f(glGetUniformLocation(_prg, "contrast"), _state.contrast);
@@ -715,6 +722,12 @@ void video_output_opengl::prepare(
         uint8_t *l_data[3], size_t l_line_size[3],
         uint8_t *r_data[3], size_t r_line_size[3])
 {
+    if (!l_data[0])
+    {
+        _have_valid_data = false;
+        return;
+    }
+
     int64_t prepare_start = timer::get_microseconds(timer::monotonic);
 
     int tex_set = (_active_tex_set == 0 ? 1 : 0);
@@ -757,6 +770,7 @@ void video_output_opengl::prepare(
                     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, r_data[0]);
         }
     }
+    _have_valid_data = true;
 
     int64_t prepare_stop = timer::get_microseconds(timer::monotonic);
     msg::dbg("texture upload: %g seconds", (prepare_stop - prepare_start) / 1e6f);

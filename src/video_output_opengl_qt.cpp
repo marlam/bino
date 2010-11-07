@@ -40,7 +40,7 @@
 
 video_output_opengl_qt_widget::video_output_opengl_qt_widget(
         video_output_opengl_qt *vo, const QGLFormat &format, QWidget *parent)
-    : QGLWidget(format, parent), _vo(vo), _have_valid_data(false)
+    : QGLWidget(format, parent), _vo(vo)
 {
     setFocusPolicy(Qt::StrongFocus);
     setWindowIcon(QIcon(":icons/appicon.png"));
@@ -48,17 +48,6 @@ video_output_opengl_qt_widget::video_output_opengl_qt_widget(
 
 video_output_opengl_qt_widget::~video_output_opengl_qt_widget()
 {
-}
-
-void video_output_opengl_qt_widget::activate()
-{
-    _have_valid_data = true;
-}
-
-void video_output_opengl_qt_widget::deactivate()
-{
-    _have_valid_data = false;
-    update();
 }
 
 void video_output_opengl_qt_widget::initializeGL()
@@ -85,14 +74,7 @@ void video_output_opengl_qt_widget::initializeGL()
 
 void video_output_opengl_qt_widget::paintGL()
 {
-    if (_have_valid_data)
-    {
-        _vo->display();
-    }
-    else
-    {
-        glClear(GL_COLOR_BUFFER_BIT);
-    }
+    _vo->display();
 }
 
 void video_output_opengl_qt_widget::resizeGL(int w, int h)
@@ -310,7 +292,6 @@ void video_output_opengl_qt::open(
 void video_output_opengl_qt::activate()
 {
     swap_tex_set();
-    _widget->activate();
     _widget->update();
 }
 
@@ -365,7 +346,9 @@ void video_output_opengl_qt::receive_notification(const notification &note)
     case notification::play:
         if (!note.current.flag)
         {
-            _widget->deactivate();
+            uint8_t *null_data[3] = { NULL, NULL, NULL };
+            size_t null_line_size[3] = { 0, 0, 0 };
+            prepare(null_data, null_line_size, null_data, null_line_size);
             if (state().fullscreen)
             {
                 exit_fullscreen();
