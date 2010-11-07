@@ -104,8 +104,7 @@ public:
 
     void eq_display(enum video_output::mode mode, float x, float y, float w, float h)
     {
-        // TODO: x, y, w, h describe the quad, set by the channel
-        video_output_opengl::display(mode);
+        video_output_opengl::display(mode, x, y, w, h);
     }
 
     void eq_initialize(int src_width, int src_height, float src_aspect_ratio,
@@ -147,9 +146,14 @@ class eq_init_data : public eq::net::Object
 public:
     uint32_t frame_data_id;
     player_init_data init_data;
+    struct { float x, y, w, h; } canvas_video_area;
 
     eq_init_data() : frame_data_id(EQ_ID_INVALID), init_data()
     {
+        canvas_video_area.x = 0.0f;
+        canvas_video_area.y = 0.0f;
+        canvas_video_area.w = 1.0f;
+        canvas_video_area.h = 1.0f;
     }
 
     ~eq_init_data()
@@ -178,6 +182,10 @@ protected:
         s11n::save(oss, init_data.video_state.fullscreen);
         s11n::save(oss, init_data.video_state.swap_eyes);
         s11n::save(oss, init_data.video_flags);
+        s11n::save(oss, canvas_video_area.x);
+        s11n::save(oss, canvas_video_area.y);
+        s11n::save(oss, canvas_video_area.w);
+        s11n::save(oss, canvas_video_area.h);
         os << oss.str();
     }
 
@@ -202,6 +210,10 @@ protected:
         s11n::load(iss, init_data.video_state.fullscreen);
         s11n::load(iss, init_data.video_state.swap_eyes);
         s11n::load(iss, init_data.video_flags);
+        s11n::load(iss, canvas_video_area.x);
+        s11n::load(iss, canvas_video_area.y);
+        s11n::load(iss, canvas_video_area.w);
+        s11n::load(iss, canvas_video_area.h);
     }
 };
 
@@ -304,16 +316,34 @@ public:
         // Initialize master instances
         _eq_init_data.init_data = init_data;
         _eq_frame_data.video_state = _eq_init_data.init_data.video_state;
-        // Register master instances
-        registerObject(&_eq_frame_data);
-        _eq_init_data.frame_data_id = _eq_frame_data.getID();
-        registerObject(&_eq_init_data);
         // Initialize player
         _player.eq_make_master();
         if (!_player.eq_init(init_data, &src_width, &src_height, &src_aspect_ratio, &src_preferred_frame_format))
         {
             return false;
         }
+        // Find region of canvas to use, depending on the video aspect ratio
+        float canvas_w = getCanvases()[0]->getWall().getWidth();
+        float canvas_h = getCanvases()[0]->getWall().getHeight();
+        float canvas_aspect_ratio = canvas_w / canvas_h;
+        _eq_init_data.canvas_video_area.w = 1.0f;
+        _eq_init_data.canvas_video_area.h = 1.0f;
+        if (src_aspect_ratio > canvas_aspect_ratio)
+        {
+            // need black borders top and bottom
+            _eq_init_data.canvas_video_area.h = canvas_aspect_ratio / src_aspect_ratio;
+        }
+        else
+        {
+            // need black borders left and right
+            _eq_init_data.canvas_video_area.w = src_aspect_ratio / canvas_aspect_ratio;
+        }
+        _eq_init_data.canvas_video_area.x = (1.0f - _eq_init_data.canvas_video_area.w) / 2.0f;
+        _eq_init_data.canvas_video_area.y = (1.0f - _eq_init_data.canvas_video_area.h) / 2.0f;
+        // Register master instances
+        registerObject(&_eq_frame_data);
+        _eq_init_data.frame_data_id = _eq_frame_data.getID();
+        registerObject(&_eq_init_data);
         msg::dbg(HERE);
         return eq::Config::init(_eq_init_data.getID());
     }
@@ -550,9 +580,9 @@ public:
     {
     }
 
-    void display(enum video_output::mode mode)
+    void display(enum video_output::mode mode, float x, float y, float w, float h)
     {
-        _video_output.eq_display(mode, -1.0f, -1.0f, 1.0f, 1.0f);
+        _video_output.eq_display(mode, x, y, w, h);
     }
 
 protected:
@@ -638,20 +668,28 @@ protected:
         eq::Channel::frameDraw(frameID);
 
         // Get the current state
-        //eq_node *node = static_cast<eq_node *>(getNode());
+        eq_node *node = static_cast<eq_node *>(getNode());
         eq_window *window = static_cast<eq_window *>(getWindow());
+        const struct { float x, y, w, h; } canvas_video_area = { node->init_data.canvas_video_area.x,
+            node->init_data.canvas_video_area.y, node->init_data.canvas_video_area.w,
+            node->init_data.canvas_video_area.h };
+        const eq::Viewport &canvas_channel_area = getViewport();
 
-        eq::PixelViewport eq_viewport = getPixelViewport();
-        eq::Frustumf eq_frustum = getFrustum();
-        eq::Matrix4f eq_head_transform = getHeadTransform();
+        // Determine video quad
+        float quad_x = ((canvas_video_area.x - canvas_channel_area.x) / canvas_channel_area.w - 0.5) * 2.0f;
+        float quad_y = ((canvas_video_area.y - canvas_channel_area.y) / canvas_channel_area.h - 0.5) * 2.0f;
+        float quad_w = 2.0f * canvas_video_area.w / canvas_channel_area.w;
+        float quad_h = 2.0f * canvas_video_area.h / canvas_channel_area.h;
 
+        // Display
         glEnable(GL_TEXTURE_2D);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        window->display(getEye() == eq::EYE_RIGHT ? video_output::mono_right : video_output::mono_left);
+        window->display(getEye() == eq::EYE_RIGHT ? video_output::mono_right : video_output::mono_left,
+                quad_x, quad_y, quad_w, quad_h);
         msg::dbg(HERE);
     }
 };

@@ -358,17 +358,17 @@ void video_output_opengl::bind_textures(int unitset, int index)
     }
 }
 
-void video_output_opengl::draw_full_quad()
+void video_output_opengl::draw_quad(float x, float y, float w, float h)
 {
     glBegin(GL_QUADS);
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex2f(-1.0f, 1.0f);
-    glTexCoord2f(_tex_max_x, 0.0f);
-    glVertex2f(1.0f, 1.0f);
-    glTexCoord2f(_tex_max_x, _tex_max_y);
-    glVertex2f(1.0f, -1.0f);
     glTexCoord2f(0.0f, _tex_max_y);
-    glVertex2f(-1.0f, -1.0f);
+    glVertex2f(x, y);
+    glTexCoord2f(_tex_max_x, _tex_max_y);
+    glVertex2f(x + w, y);
+    glTexCoord2f(_tex_max_x, 0.0f);
+    glVertex2f(x + w, y + h);
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex2f(x, y + h);
     glEnd();
 }
 
@@ -458,7 +458,7 @@ static const GLubyte stipple_pattern_checkerboard[132] =
 
 static const GLubyte *stipple_pattern_checkerboard_inv = stipple_pattern_checkerboard + 4;
 
-void video_output_opengl::display(enum video_output::mode mode)
+void video_output_opengl::display(enum video_output::mode mode, float x, float y, float w, float h)
 {
     int64_t display_start = timer::get_microseconds(timer::monotonic);
 
@@ -483,10 +483,10 @@ void video_output_opengl::display(enum video_output::mode mode)
     {
         glDrawBuffer(GL_BACK_LEFT);
         bind_textures(0, left);
-        draw_full_quad();
+        draw_quad(x, y, w, h);
         glDrawBuffer(GL_BACK_RIGHT);
         bind_textures(0, right);
-        draw_full_quad();
+        draw_quad(x, y, w, h);
     }
     else if (mode == even_odd_rows)
     {
@@ -499,10 +499,10 @@ void video_output_opengl::display(enum video_output::mode mode)
         glEnable(GL_POLYGON_STIPPLE);
         glPolygonStipple(stipple_pattern_even_rows);
         bind_textures(0, left);
-        draw_full_quad();
+        draw_quad(x, y, w, h);
         glPolygonStipple(stipple_pattern_odd_rows);
         bind_textures(0, right);
-        draw_full_quad();
+        draw_quad(x, y, w, h);
         glDisable(GL_POLYGON_STIPPLE);
     }
     else if (mode == even_odd_columns)
@@ -516,10 +516,10 @@ void video_output_opengl::display(enum video_output::mode mode)
         glEnable(GL_POLYGON_STIPPLE);
         glPolygonStipple(stipple_pattern_even_cols);
         bind_textures(0, left);
-        draw_full_quad();
+        draw_quad(x, y, w, h);
         glPolygonStipple(stipple_pattern_odd_cols);
         bind_textures(0, right);
-        draw_full_quad();
+        draw_quad(x, y, w, h);
         glDisable(GL_POLYGON_STIPPLE);
     }
     else if (mode == checkerboard)
@@ -537,10 +537,10 @@ void video_output_opengl::display(enum video_output::mode mode)
         glEnable(GL_POLYGON_STIPPLE);
         glPolygonStipple(stipple_pattern_checkerboard);
         bind_textures(0, left);
-        draw_full_quad();
+        draw_quad(x, y, w, h);
         glPolygonStipple(stipple_pattern_checkerboard_inv);
         bind_textures(0, right);
-        draw_full_quad();
+        draw_quad(x, y, w, h);
         glDisable(GL_POLYGON_STIPPLE);
     }
     else if (_prg != 0
@@ -551,27 +551,27 @@ void video_output_opengl::display(enum video_output::mode mode)
     {
         bind_textures(0, left);
         bind_textures(1, right);
-        draw_full_quad();
+        draw_quad(x, y, w, h);
     }
     else if (_prg == 0 && mode == anaglyph_red_cyan_full_color)
     {
         glColorMask(GL_TRUE, GL_FALSE, GL_FALSE, GL_FALSE);
         bind_textures(0, left);
-        draw_full_quad();
+        draw_quad(x, y, w, h);
         glColorMask(GL_FALSE, GL_TRUE, GL_TRUE, GL_FALSE);
         bind_textures(0, right);
-        draw_full_quad();
+        draw_quad(x, y, w, h);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     }
     else if (mode == mono_left)
     {
         bind_textures(0, left);
-        draw_full_quad();
+        draw_quad(x, y, w, h);
     }
     else if (mode == mono_right)
     {
         bind_textures(0, right);
-        draw_full_quad();
+        draw_quad(x, y, w, h);
     }
     else if (mode == left_right || mode == left_right_half)
     {

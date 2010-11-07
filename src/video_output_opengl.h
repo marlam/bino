@@ -53,7 +53,7 @@ private:
     GLuint _pbo;
 
     void bind_textures(int unitset, int index);
-    void draw_full_quad();
+    void draw_quad(float x, float y, float w, float h);
 
 protected:
     void set_mode(enum video_output::mode mode);
@@ -63,8 +63,8 @@ protected:
     void set_state(const video_output_state &_state);
     void initialize(bool have_pixel_buffer_object, bool have_texture_non_power_of_two, bool have_fragment_shader);
     void deinitialize();
-    void display(enum video_output::mode mode);
-    void display() { display(_mode); }
+    void display(enum video_output::mode mode, float x, float y, float w, float h);
+    void display() { display(_mode, -1.0f, -1.0f, 2.0f, 2.0f); }
     void reshape(int w, int h);
     void swap_tex_set();
     video_output_state &state()
