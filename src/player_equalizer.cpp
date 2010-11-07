@@ -331,6 +331,8 @@ public:
         deregisterObject(&_eq_init_data);
         deregisterObject(&_eq_frame_data);
         _eq_init_data.frame_data_id = EQ_ID_INVALID;
+        // Cleanup
+        _player.close();
         msg::dbg(HERE);
         return ret;
     }
@@ -456,6 +458,8 @@ protected:
         config->unmapObject(&frame_data);
         // Unmap our InitData instance
         config->unmapObject(&init_data);
+        // Cleanup
+        _player.close();
         msg::dbg(HERE);
         return eq::Node::configExit();
     }
