@@ -278,7 +278,7 @@ std::string xgl::ShaderSourcePrep(const std::string &src, const std::string &def
 GLuint xgl::CompileShader(const std::string &name, GLenum type, const std::string &src)
 {
     msg::dbg("compiling %s shader %s",
-            type == GL_VERTEX_SHADER ? "vertex" : type == GL_GEOMETRY_SHADER ? "geometry" : "fragment",
+            type == GL_VERTEX_SHADER ? "vertex" : type == GL_GEOMETRY_SHADER_EXT ? "geometry" : "fragment",
             name.c_str());
 
     GLuint shader = glCreateShader(type);
@@ -306,14 +306,14 @@ GLuint xgl::CompileShader(const std::string &name, GLenum type, const std::strin
     if (e == GL_TRUE && log.length() > 0)
     {
         msg::wrn("OpenGL %s shader '%s': compiler warning:",
-                type == GL_VERTEX_SHADER ? "vertex" : type == GL_GEOMETRY_SHADER_ARB ? "geometry" : "fragment",
+                type == GL_VERTEX_SHADER ? "vertex" : type == GL_GEOMETRY_SHADER_EXT ? "geometry" : "fragment",
                 name.c_str());
         msg::wrn_txt("%s", log.c_str());
     }
     else if (e != GL_TRUE)
     {
         std::string when = str::asprintf("OpenGL %s shader '%s': compilation failed",
-                type == GL_VERTEX_SHADER ? "vertex" : type == GL_GEOMETRY_SHADER_ARB ? "geometry" : "fragment",
+                type == GL_VERTEX_SHADER ? "vertex" : type == GL_GEOMETRY_SHADER_EXT ? "geometry" : "fragment",
                 name.c_str());
         std::string what = str::asprintf("\n%s", log.length() > 0 ? log.c_str() : "unknown error");
         throw exc(when + ": " + what);
@@ -344,7 +344,7 @@ GLuint xgl::CreateProgram(const std::string &name,
     if (vshader_src.length() > 0)
         vshader = xgl::CompileShader(name, GL_VERTEX_SHADER, vshader_src);
     if (gshader_src.length() > 0)
-        gshader = xgl::CompileShader(name, GL_GEOMETRY_SHADER_ARB, gshader_src);
+        gshader = xgl::CompileShader(name, GL_GEOMETRY_SHADER_EXT, gshader_src);
     if (fshader_src.length() > 0)
         fshader = xgl::CompileShader(name, GL_FRAGMENT_SHADER, fshader_src);
 
