@@ -33,7 +33,8 @@ video_output_state::~video_output_state()
 }
 
 
-video_output::video_output() throw ()
+video_output::video_output(bool receiving_controller) throw ()
+    : controller(receiving_controller)
 {
 }
 

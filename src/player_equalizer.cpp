@@ -103,7 +103,7 @@ public:
 class video_output_opengl_eq_window : public video_output_opengl
 {
 public:
-    video_output_opengl_eq_window() : video_output_opengl()
+    video_output_opengl_eq_window() : video_output_opengl(false)
     {
     }
 

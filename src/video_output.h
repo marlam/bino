@@ -67,7 +67,7 @@ public:
     };
 
 public:
-    video_output() throw ();
+    video_output(bool receiving_controller = true) throw ();
     ~video_output();
 
     /* Get capabilities */

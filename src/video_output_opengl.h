@@ -93,7 +93,7 @@ protected:
     virtual int window_pos_y() = 0;
 
 public:
-    video_output_opengl() throw ();
+    video_output_opengl(bool receiving_controller = true) throw ();
     ~video_output_opengl();
 
     virtual bool supports_stereo() = 0;

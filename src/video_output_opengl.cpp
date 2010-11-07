@@ -36,7 +36,8 @@
 #include "xgl.h"
 
 
-video_output_opengl::video_output_opengl() throw () : video_output()
+video_output_opengl::video_output_opengl(bool receiving_controller) throw ()
+    : video_output(receiving_controller)
 {
 }
 
