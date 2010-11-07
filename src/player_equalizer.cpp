@@ -59,6 +59,11 @@ public:
         return true;
     }
 
+    video_output_state &eq_video_state()
+    {
+        return video_state();
+    }
+
     void eq_read_frame()        // Only called on slave nodes to force reading the next frame
     {
         if (get_input()->read_video_frame() < 0)
@@ -286,13 +291,14 @@ protected:
  * eq_config
  */
 
-class eq_config : public eq::Config, public controller
+class eq_config : public eq::Config
 {
 private:
     bool _is_master_config;
     eq_init_data _eq_init_data;               // Master eq_init_data instance
     eq_frame_data _eq_frame_data;             // Master eq_frame_data instance
     player_eq_node _player;
+    controller _controller;
 
 public:
     int src_width, src_height;
@@ -393,6 +399,8 @@ public:
         _eq_frame_data.drop_frame = drop_frame;
         _eq_frame_data.display_frame = display_frame;
 
+        _eq_frame_data.video_state = _player.eq_video_state();
+
         // Update frame data
         const uint32_t version = _eq_frame_data.commit();
         // Start this frame with the committed frame data
@@ -401,7 +409,6 @@ public:
     }
 
     virtual bool handleEvent(const eq::ConfigEvent *event);
-    virtual void receive_notification(const notification &note);
 };
 
 bool eq_config::handleEvent(const eq::ConfigEvent *event)
@@ -415,10 +422,10 @@ bool eq_config::handleEvent(const eq::ConfigEvent *event)
         switch (event->data.keyPress.key)
         {
         case 'q':
-            send_cmd(command::toggle_play);
+            _controller.send_cmd(command::toggle_play);
             break;
         case 's':
-            send_cmd(command::toggle_swap_eyes);
+            _controller.send_cmd(command::toggle_swap_eyes);
             break;
         case 'f':
             /* fullscreen toggling not supported with Equalizer */
@@ -428,90 +435,53 @@ bool eq_config::handleEvent(const eq::ConfigEvent *event)
             break;
         case ' ':
         case 'p':
-            send_cmd(command::toggle_pause);
+            _controller.send_cmd(command::toggle_pause);
             break;
         case '1':
-            send_cmd(command::adjust_contrast, -0.05f);
+            _controller.send_cmd(command::adjust_contrast, -0.05f);
             break;
         case '2':
-            send_cmd(command::adjust_contrast, +0.05f);
+            _controller.send_cmd(command::adjust_contrast, +0.05f);
             break;
         case '3':
-            send_cmd(command::adjust_brightness, -0.05f);
+            _controller.send_cmd(command::adjust_brightness, -0.05f);
             break;
         case '4':
-            send_cmd(command::adjust_brightness, +0.05f);
+            _controller.send_cmd(command::adjust_brightness, +0.05f);
             break;
         case '5':
-            send_cmd(command::adjust_hue, -0.05f);
+            _controller.send_cmd(command::adjust_hue, -0.05f);
             break;
         case '6':
-            send_cmd(command::adjust_hue, +0.05f);
+            _controller.send_cmd(command::adjust_hue, +0.05f);
             break;
         case '7':
-            send_cmd(command::adjust_saturation, -0.05f);
+            _controller.send_cmd(command::adjust_saturation, -0.05f);
             break;
         case '8':
-            send_cmd(command::adjust_saturation, +0.05f);
+            _controller.send_cmd(command::adjust_saturation, +0.05f);
             break;
         case eq::KC_LEFT:
-            send_cmd(command::seek, -10.0f);
+            _controller.send_cmd(command::seek, -10.0f);
             break;
         case eq::KC_RIGHT:
-            send_cmd(command::seek, +10.0f);
+            _controller.send_cmd(command::seek, +10.0f);
             break;
         case eq::KC_UP:
-            send_cmd(command::seek, -60.0f);
+            _controller.send_cmd(command::seek, -60.0f);
             break;
         case eq::KC_DOWN:
-            send_cmd(command::seek, +60.0f);
+            _controller.send_cmd(command::seek, +60.0f);
             break;
         case eq::KC_PAGE_UP:
-            send_cmd(command::seek, -600.0f);
+            _controller.send_cmd(command::seek, -600.0f);
             break;
         case eq::KC_PAGE_DOWN:
-            send_cmd(command::seek, +600.0f);
+            _controller.send_cmd(command::seek, +600.0f);
             break;
         }
     }
     return true;
-}
-
-void eq_config::receive_notification(const notification &note)
-{
-    switch (note.type)
-    {
-    case notification::play:
-        /* handled by player */
-        break;
-    case notification::pause:
-        /* handled by player */
-        break;
-    case notification::swap_eyes:
-        _eq_frame_data.video_state.swap_eyes = note.current.flag;
-        break;
-    case notification::fullscreen:
-        /* not supported */
-        break;
-    case notification::center:
-        /* not supported */
-        break;
-    case notification::contrast:
-        _eq_frame_data.video_state.contrast = note.current.value;
-        break;
-    case notification::brightness:
-        _eq_frame_data.video_state.brightness = note.current.value;
-        break;
-    case notification::hue:
-        _eq_frame_data.video_state.hue = note.current.value;
-        break;
-    case notification::saturation:
-        _eq_frame_data.video_state.saturation = note.current.value;
-        break;
-    case notification::pos:
-        /* handled by player */
-        break;
-    }
 }
 
 /*
