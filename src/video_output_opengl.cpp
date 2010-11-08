@@ -478,6 +478,17 @@ void video_output_opengl::display(enum video_output::mode mode, float x, float y
         std::swap(left, right);
     }
 
+    int viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    if ((mode == even_odd_rows || mode == checkerboard) && (window_pos_y() + viewport[1]) % 2 == 0)
+    {
+        std::swap(left, right);
+    }
+    if ((mode == even_odd_columns || mode == checkerboard) && (window_pos_x() + viewport[0]) % 2 == 1)
+    {
+        std::swap(left, right);
+    }
+
     if (_prg != 0)
     {
         glUniform1f(glGetUniformLocation(_prg, "contrast"), _state.contrast);
@@ -496,57 +507,19 @@ void video_output_opengl::display(enum video_output::mode mode, float x, float y
         bind_textures(0, right);
         draw_quad(x, y, w, h);
     }
-    else if (mode == even_odd_rows)
+    else if (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard)
     {
-        if (window_pos_y() % 2 == 0)
-        {
-            std::swap(left, right);
-        }
+        const GLubyte *left_stipple = (mode == even_odd_rows ? stipple_pattern_even_rows
+                : mode == even_odd_columns ? stipple_pattern_even_cols : stipple_pattern_checkerboard);
+        const GLubyte *right_stipple = (mode == even_odd_rows ? stipple_pattern_odd_rows
+                : mode == even_odd_columns ? stipple_pattern_odd_cols : stipple_pattern_checkerboard_inv);
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
         glEnable(GL_POLYGON_STIPPLE);
-        glPolygonStipple(stipple_pattern_even_rows);
+        glPolygonStipple(left_stipple);
         bind_textures(0, left);
         draw_quad(x, y, w, h);
-        glPolygonStipple(stipple_pattern_odd_rows);
-        bind_textures(0, right);
-        draw_quad(x, y, w, h);
-        glDisable(GL_POLYGON_STIPPLE);
-    }
-    else if (mode == even_odd_columns)
-    {
-        if (window_pos_x() % 2 == 1)
-        {
-            std::swap(left, right);
-        }
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-        glEnable(GL_POLYGON_STIPPLE);
-        glPolygonStipple(stipple_pattern_even_cols);
-        bind_textures(0, left);
-        draw_quad(x, y, w, h);
-        glPolygonStipple(stipple_pattern_odd_cols);
-        bind_textures(0, right);
-        draw_quad(x, y, w, h);
-        glDisable(GL_POLYGON_STIPPLE);
-    }
-    else if (mode == checkerboard)
-    {
-        if (window_pos_y() % 2 == 0)
-        {
-            std::swap(left, right);
-        }
-        if (window_pos_x() % 2 == 1)
-        {
-            std::swap(left, right);
-        }
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-        glEnable(GL_POLYGON_STIPPLE);
-        glPolygonStipple(stipple_pattern_checkerboard);
-        bind_textures(0, left);
-        draw_quad(x, y, w, h);
-        glPolygonStipple(stipple_pattern_checkerboard_inv);
+        glPolygonStipple(right_stipple);
         bind_textures(0, right);
         draw_quad(x, y, w, h);
         glDisable(GL_POLYGON_STIPPLE);
