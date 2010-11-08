@@ -33,9 +33,9 @@
 extern player *global_player;
 extern std::vector<controller *> global_controllers;
 
-controller::controller(bool receiving) throw ()
+controller::controller(bool receive_notifications) throw ()
 {
-    if (receiving)
+    if (receive_notifications)
     {
         global_controllers.push_back(this);
     }

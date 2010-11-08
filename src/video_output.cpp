@@ -33,8 +33,8 @@ video_output_state::~video_output_state()
 }
 
 
-video_output::video_output(bool receiving_controller) throw ()
-    : controller(receiving_controller)
+video_output::video_output(bool receive_notifications) throw ()
+    : controller(receive_notifications)
 {
 }
 

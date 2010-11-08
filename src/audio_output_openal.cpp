@@ -39,6 +39,7 @@ const size_t audio_output_openal::_num_buffers = 3;
 const size_t audio_output_openal::_buffer_size = 20160;
 
 audio_output_openal::audio_output_openal() throw ()
+    : audio_output(false)       // Currently no notifications supported
 {
 }
 

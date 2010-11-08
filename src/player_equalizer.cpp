@@ -307,7 +307,8 @@ public:
 
 public:
     eq_config(eq::ServerPtr parent)
-        : eq::Config(parent), _is_master_config(false), _eq_init_data(), _eq_frame_data(), _player(),
+        : eq::Config(parent), _is_master_config(false), _eq_init_data(), _eq_frame_data(),
+        _player(), _controller(false),
         src_width(-1), src_height(-1), src_aspect_ratio(0.0f),
         src_preferred_frame_format(decoder::frame_format_yuv420p)
     {

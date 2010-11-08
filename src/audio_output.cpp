@@ -22,7 +22,8 @@
 #include "audio_output.h"
 
 
-audio_output::audio_output() throw ()
+audio_output::audio_output(bool receive_notifications) throw ()
+    : controller(receive_notifications)
 {
 }
 

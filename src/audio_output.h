@@ -30,7 +30,7 @@
 class audio_output : public controller
 {
 public:
-    audio_output() throw ();
+    audio_output(bool receive_notifications = true) throw ();
     ~audio_output();
 
     /* Open an audio device for output of audio data with the given specifications.

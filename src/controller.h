@@ -107,7 +107,7 @@ public:
 class controller
 {
 public:
-    controller(bool receiving = true) throw ();
+    controller(bool receive_notifications = true) throw ();
     ~controller();
 
     /* A controller can use this function to send a command to the player.
