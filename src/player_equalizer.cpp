@@ -342,6 +342,7 @@ public:
         }
         float canvas_w = getCanvases()[0]->getWall().getWidth();
         float canvas_h = getCanvases()[0]->getWall().getHeight();
+        msg::inf("Equalizer canvas: %gx%g", canvas_w, canvas_h);
         float canvas_aspect_ratio = canvas_w / canvas_h;
         _eq_init_data.canvas_video_area.w = 1.0f;
         _eq_init_data.canvas_video_area.h = 1.0f;
@@ -357,6 +358,10 @@ public:
         }
         _eq_init_data.canvas_video_area.x = (1.0f - _eq_init_data.canvas_video_area.w) / 2.0f;
         _eq_init_data.canvas_video_area.y = (1.0f - _eq_init_data.canvas_video_area.h) / 2.0f;
+        msg::inf("Equalizer canvas: %gx%g, aspect ratio %g:1", canvas_w, canvas_h, canvas_w / canvas_h);
+        msg::inf("Equalizer video area relative to canvas: [ %g %g %g %g ]",
+                _eq_init_data.canvas_video_area.x, _eq_init_data.canvas_video_area.y,
+                _eq_init_data.canvas_video_area.w, _eq_init_data.canvas_video_area.h);
         // Register master instances
         registerObject(&_eq_frame_data);
         _eq_init_data.frame_data_id = _eq_frame_data.getID();
