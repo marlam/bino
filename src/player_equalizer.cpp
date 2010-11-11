@@ -335,6 +335,11 @@ public:
             return false;
         }
         // Find region of canvas to use, depending on the video aspect ratio
+        if (getCanvases().size() < 1)
+        {
+            msg::err("No canvas in Equalizer configuration");
+            abort();
+        }
         float canvas_w = getCanvases()[0]->getWall().getWidth();
         float canvas_h = getCanvases()[0]->getWall().getHeight();
         float canvas_aspect_ratio = canvas_w / canvas_h;
