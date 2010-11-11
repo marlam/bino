@@ -250,7 +250,7 @@ void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_te
         }
         else if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
         {
-            msg::wrn("    - Falling back to the low quality output method");
+            msg::wrn("    - Falling back to the low quality version of the output method");
         }
     }
 
