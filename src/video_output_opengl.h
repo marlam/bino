@@ -43,6 +43,7 @@ private:
     GLuint _y_tex[2][2];
     GLuint _u_tex[2][2];
     GLuint _v_tex[2][2];
+    GLuint _mask_tex;
     int _active_tex_set;
     bool _input_is_mono;
     video_output_state _state;

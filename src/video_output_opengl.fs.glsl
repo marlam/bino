@@ -19,11 +19,18 @@
 
 #version 110
 
-// input_bgra32 or input_yuv420p
+// input_bgra32
+// input_yuv420p
 #define $input
 
-// mode_onechannel, mode_anaglyph_monochrome, mode_anaglyph_full_color,
-// mode_anaglyph_half_color, or mode_anaglyph_dubois
+// mode_onechannel
+// mode_anaglyph_monochrome
+// mode_anaglyph_full_color
+// mode_anaglyph_half_color
+// mode_anaglyph_dubois
+// mode_even_odd_rows
+// mode_even_odd_columns
+// mode_checkerboard
 #define $mode
 
 #if defined(input_bgra32)
@@ -40,6 +47,12 @@ uniform sampler2D y_r;
 uniform sampler2D u_r;
 uniform sampler2D v_r;
 # endif
+#endif
+
+#if defined(mode_even_odd_rows) || defined(mode_even_odd_columns) || defined(mode_checkerboard)
+uniform sampler2D mask_tex;
+uniform float step_x;
+uniform float step_y;
 #endif
 
 uniform float contrast;
@@ -72,7 +85,7 @@ vec3 adjust_yuv(vec3 yuv)
 {
     // Adapted from http://www.silicontrip.net/~mark/lavtools/yuvadjust.c
     // (Copyright 2002 Alfonso Garcia-Patiño Barbolani, released under GPLv2 or later)
-    
+
     // brightness and contrast
     float ay = (yuv.x - 0.5) * (contrast + 1.0) + brightness + 0.5;
     // hue and saturation
@@ -82,42 +95,120 @@ vec3 adjust_yuv(vec3 yuv)
     return vec3(ay, au, av);
 }
 
-void main()
+vec3 get_yuv_l(vec2 tex_coord)
 {
-    vec3 yuv_l;
 #if defined(input_bgra32)
-    yuv_l = rgb_to_yuv(texture2D(rgb_l, gl_TexCoord[0].xy).xyz);
+    return rgb_to_yuv(texture2D(rgb_l, tex_coord).xyz);
 #elif defined(input_yuv420p)
-    yuv_l = vec3(
-            texture2D(y_l, gl_TexCoord[0].xy).x,
-            texture2D(u_l, gl_TexCoord[0].xy).x,
-            texture2D(v_l, gl_TexCoord[0].xy).x);
+    return vec3(
+            texture2D(y_l, tex_coord).x,
+            texture2D(u_l, tex_coord).x,
+            texture2D(v_l, tex_coord).x);
 #endif
-    yuv_l = adjust_yuv(yuv_l);
+}
 
 #if !defined(mode_onechannel)
-    vec3 yuv_r;
+vec3 get_yuv_r(vec2 tex_coord)
+{
 # if defined(input_bgra32)
-    yuv_r = rgb_to_yuv(texture2D(rgb_r, gl_TexCoord[0].xy).xyz);
+    return rgb_to_yuv(texture2D(rgb_r, tex_coord).xyz);
 # elif defined(input_yuv420p)
-    yuv_r = vec3(
-            texture2D(y_r, gl_TexCoord[0].xy).x,
-            texture2D(u_r, gl_TexCoord[0].xy).x,
-            texture2D(v_r, gl_TexCoord[0].xy).x);
+    return vec3(
+            texture2D(y_r, tex_coord).x,
+            texture2D(u_r, tex_coord).x,
+            texture2D(v_r, tex_coord).x);
 # endif
-    yuv_r = adjust_yuv(yuv_r);
+}
 #endif
 
+void main()
+{
     vec3 rgb;
-#if defined(mode_onechannel)
+
+#if defined(mode_even_odd_rows) || defined(mode_even_odd_columns) || defined(mode_checkerboard)
+
+    /* This implementation of the masked modes works around many different problems and therefore may seem strange.
+     * Why not use stencil buffers?
+     *  - Because we want to filter, to account for masked out features
+     *  - Because stencil did not work with some drivers when switching fullscreen on/off
+     * Why not use polygon stipple?
+     *  - Because we want to filter, to account for masked out features
+     *  - Because polygon stippling may not be hardware accelerated and is currently broken with many free drivers
+     * Why use a mask texture? Why not use the mod() function to check for even/odd pixels?
+     *  - Because mod() is broken with many drivers, and I found no reliable way to work around it. Some
+     *    drivers seem to use extremely low precision arithmetic in the shaders; too low for reliable pixel
+     *    position computations.
+     * Why use local variables in the if/else branches, and a local computation of the rgb value?
+     *  - To work around driver bugs.
+     */
+    float m = texture2D(mask_tex, gl_TexCoord[1].xy).x;
+# if defined(mode_even_odd_rows)
+    if (m > 0.5)
+    {
+        vec3 yuv0 = get_yuv_l(gl_TexCoord[0].xy - vec2(0.0, step_y));
+        vec3 yuv1 = get_yuv_l(gl_TexCoord[0].xy);
+        vec3 yuv2 = get_yuv_l(gl_TexCoord[0].xy + vec2(0.0, step_y));
+        rgb = yuv_to_rgb(adjust_yuv((yuv0 + 2.0 * yuv1 + yuv2) / 4.0));
+    }
+    else
+    {
+        vec3 yuv0 = get_yuv_r(gl_TexCoord[0].xy - vec2(0.0, step_y));
+        vec3 yuv1 = get_yuv_r(gl_TexCoord[0].xy);
+        vec3 yuv2 = get_yuv_r(gl_TexCoord[0].xy + vec2(0.0, step_y));
+        rgb = yuv_to_rgb(adjust_yuv((yuv0 + 2.0 * yuv1 + yuv2) / 4.0));
+    }
+# elif defined(mode_even_odd_columns)
+    if (m > 0.5)
+    {
+        vec3 yuv0 = get_yuv_l(gl_TexCoord[0].xy - vec2(step_x, 0.0));
+        vec3 yuv1 = get_yuv_l(gl_TexCoord[0].xy);
+        vec3 yuv2 = get_yuv_l(gl_TexCoord[0].xy + vec2(step_x, 0.0));
+        rgb = yuv_to_rgb(adjust_yuv((yuv0 + 2.0 * yuv1 + yuv2) / 4.0));
+    }
+    else
+    {
+        vec3 yuv0 = get_yuv_r(gl_TexCoord[0].xy - vec2(step_x, 0.0));
+        vec3 yuv1 = get_yuv_r(gl_TexCoord[0].xy);
+        vec3 yuv2 = get_yuv_r(gl_TexCoord[0].xy + vec2(step_x, 0.0));
+        rgb = yuv_to_rgb(adjust_yuv((yuv0 + 2.0 * yuv1 + yuv2) / 4.0));
+    }
+# elif defined(mode_checkerboard)
+    if (m > 0.5)
+    {
+        vec3 yuv0 = get_yuv_l(gl_TexCoord[0].xy - vec2(0.0, step_y));
+        vec3 yuv1 = get_yuv_l(gl_TexCoord[0].xy - vec2(step_x, 0.0));
+        vec3 yuv2 = get_yuv_l(gl_TexCoord[0].xy);
+        vec3 yuv3 = get_yuv_l(gl_TexCoord[0].xy + vec2(step_x, 0.0));
+        vec3 yuv4 = get_yuv_l(gl_TexCoord[0].xy + vec2(0.0, step_y));
+        rgb = yuv_to_rgb(adjust_yuv((yuv0 + yuv1 + 4.0 * yuv2 + yuv3 + yuv4) / 8.0));
+    }
+    else
+    {
+        vec3 yuv0 = get_yuv_r(gl_TexCoord[0].xy - vec2(0.0, step_y));
+        vec3 yuv1 = get_yuv_r(gl_TexCoord[0].xy - vec2(step_x, 0.0));
+        vec3 yuv2 = get_yuv_r(gl_TexCoord[0].xy);
+        vec3 yuv3 = get_yuv_r(gl_TexCoord[0].xy + vec2(step_x, 0.0));
+        vec3 yuv4 = get_yuv_r(gl_TexCoord[0].xy + vec2(0.0, step_y));
+        rgb = yuv_to_rgb(adjust_yuv((yuv0 + yuv1 + 4.0 * yuv2 + yuv3 + yuv4) / 8.0));
+    }
+# endif
+
+#else
+
+    vec3 yuv_l = adjust_yuv(get_yuv_l(gl_TexCoord[0].xy));
+# if !defined(mode_onechannel)
+    vec3 yuv_r = adjust_yuv(get_yuv_r(gl_TexCoord[0].xy));
+# endif
+
+# if defined(mode_onechannel)
     rgb = yuv_to_rgb(yuv_l);
-#elif defined(mode_anaglyph_monochrome)
+# elif defined(mode_anaglyph_monochrome)
     rgb = vec3(yuv_l.x, yuv_r.x, yuv_r.x);
-#elif defined(mode_anaglyph_full_color)
+# elif defined(mode_anaglyph_full_color)
     rgb = vec3(yuv_to_rgb(yuv_l).r, yuv_to_rgb(yuv_r).gb);
-#elif defined(mode_anaglyph_half_color)
+# elif defined(mode_anaglyph_half_color)
     rgb = vec3(yuv_l.x, yuv_to_rgb(yuv_r).gb);
-#elif defined(mode_anaglyph_dubois)
+# elif defined(mode_anaglyph_dubois)
     // Dubois anaglyph method.
     // Authors page: http://www.site.uottawa.ca/~edubois/anaglyph/
     // This method depends on the characteristics of the display device
@@ -137,6 +228,8 @@ void main()
             -0.0365, 0.7333, -0.1286,
             -0.0060, 0.0111,  1.2968);
     rgb = m0 * yuv_to_rgb(yuv_l) + m1 * yuv_to_rgb(yuv_r);
+# endif
+
 #endif
 
     gl_FragColor = vec4(rgb, 1.0);

@@ -141,35 +141,27 @@ void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_te
     {
         GLint tex_units;
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &tex_units);
-        if (_mode == anaglyph_red_cyan_monochrome
-                || _mode == anaglyph_red_cyan_full_color
-                || _mode == anaglyph_red_cyan_half_color
-                || _mode == anaglyph_red_cyan_dubois)
+        if (((_mode == even_odd_rows
+                        || _mode == even_odd_columns
+                        || _mode == checkerboard) && tex_units < 7)
+                || ((_mode == anaglyph_red_cyan_monochrome
+                        || _mode == anaglyph_red_cyan_full_color
+                        || _mode == anaglyph_red_cyan_half_color
+                        || _mode == anaglyph_red_cyan_dubois) && tex_units < 6)
+                || tex_units < 3)
         {
-            if (tex_units < 6)
+            _yuv420p_supported = false;
+            if (_src_preferred_frame_format == decoder::frame_format_yuv420p)
             {
-                _yuv420p_supported = false;
-                if (_src_preferred_frame_format == decoder::frame_format_yuv420p)
-                {
-                    msg::wrn("Not enough texture image units for anaglyph output:");
-                    msg::wrn("    Disabling hardware accelerated color space conversion");
-                }
-            }
-        }
-        else
-        {
-            if (tex_units < 3)
-            {
-                _yuv420p_supported = false;
-                if (_src_preferred_frame_format == decoder::frame_format_yuv420p)
-                {
-                    msg::wrn("Not enough texture image units:");
-                    msg::wrn("    Disabling hardware accelerated color space conversion");
-                }
+                msg::wrn("Not enough texture image units for anaglyph output:");
+                msg::wrn("    Disabling hardware accelerated color space conversion");
             }
         }
         std::string mode_str = (
-                _mode == anaglyph_red_cyan_monochrome ? "mode_anaglyph_monochrome"
+                _mode == even_odd_rows ? "mode_even_odd_rows"
+                : _mode == even_odd_columns ? "mode_even_odd_columns"
+                : _mode == checkerboard ? "mode_checkerboard"
+                : _mode == anaglyph_red_cyan_monochrome ? "mode_anaglyph_monochrome"
                 : _mode == anaglyph_red_cyan_full_color ? "mode_anaglyph_full_color"
                 : _mode == anaglyph_red_cyan_half_color ? "mode_anaglyph_half_color"
                 : _mode == anaglyph_red_cyan_dubois ? "mode_anaglyph_dubois"
@@ -180,12 +172,33 @@ void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_te
         _prg = xgl::CreateProgram("video_output", "", "", fs_src);
         xgl::LinkProgram("video_output", _prg);
         glUseProgram(_prg);
+        if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
+        {
+            GLubyte even_odd_rows_mask[4] = { 0xff, 0xff, 0x00, 0x00 };
+            GLubyte even_odd_columns_mask[4] = { 0xff, 0x00, 0xff, 0x00 };
+            GLubyte checkerboard_mask[4] = { 0xff, 0x00, 0x00, 0xff };
+            glGenTextures(1, &_mask_tex);
+            glBindTexture(GL_TEXTURE_2D, _mask_tex);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, 2, 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE,
+                    _mode == even_odd_rows ? even_odd_rows_mask
+                    : _mode == even_odd_columns ? even_odd_columns_mask
+                    : checkerboard_mask);
+        }
         if (frame_format() == decoder::frame_format_yuv420p)
         {
             glUniform1i(glGetUniformLocation(_prg, "y_l"), 0);
             glUniform1i(glGetUniformLocation(_prg, "u_l"), 1);
             glUniform1i(glGetUniformLocation(_prg, "v_l"), 2);
-            if (_mode == anaglyph_red_cyan_monochrome
+            if (_mode == even_odd_rows
+                    || _mode == even_odd_columns
+                    || _mode == checkerboard
+                    || _mode == anaglyph_red_cyan_monochrome
                     || _mode == anaglyph_red_cyan_full_color
                     || _mode == anaglyph_red_cyan_half_color
                     || _mode == anaglyph_red_cyan_dubois)
@@ -194,16 +207,27 @@ void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_te
                 glUniform1i(glGetUniformLocation(_prg, "u_r"), 4);
                 glUniform1i(glGetUniformLocation(_prg, "v_r"), 5);
             }
+            if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
+            {
+                glUniform1i(glGetUniformLocation(_prg, "mask_tex"), 6);
+            }
         }
         else
         {
             glUniform1i(glGetUniformLocation(_prg, "rgb_l"), 0);
-            if (_mode == anaglyph_red_cyan_monochrome
+            if (_mode == even_odd_rows
+                    || _mode == even_odd_columns
+                    || _mode == checkerboard
+                    || _mode == anaglyph_red_cyan_monochrome
                     || _mode == anaglyph_red_cyan_full_color
                     || _mode == anaglyph_red_cyan_half_color
                     || _mode == anaglyph_red_cyan_dubois)
             {
                 glUniform1i(glGetUniformLocation(_prg, "rgb_r"), 1);
+            }
+            if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
+            {
+                glUniform1i(glGetUniformLocation(_prg, "mask_tex"), 2);
             }
         }
     }
@@ -223,6 +247,10 @@ void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_te
         {
             msg::wrn("    - Falling back to the low quality anaglyph-full-color method");
             _mode = anaglyph_red_cyan_full_color;
+        }
+        else if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
+        {
+            msg::wrn("    - Falling back to the low quality output method");
         }
     }
 
@@ -323,6 +351,10 @@ void video_output_opengl::deinitialize()
     else
     {
         glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_rgb_tex));
+    }
+    if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
+    {
+        glDeleteTextures(1, &_mask_tex);
     }
     if (_pbo != 0)
     {
@@ -496,6 +528,11 @@ void video_output_opengl::display(enum video_output::mode mode, float x, float y
         glUniform1f(glGetUniformLocation(_prg, "saturation"), _state.saturation);
         glUniform1f(glGetUniformLocation(_prg, "cos_hue"), std::cos(_state.hue * M_PI));
         glUniform1f(glGetUniformLocation(_prg, "sin_hue"), std::sin(_state.hue * M_PI));
+        if (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard)
+        {
+            glUniform1f(glGetUniformLocation(_prg, "step_x"), _tex_max_x / static_cast<float>(viewport[2]));
+            glUniform1f(glGetUniformLocation(_prg, "step_y"), _tex_max_y / static_cast<float>(viewport[3]));
+        }
     }
 
     if (mode == stereo)
@@ -509,20 +546,46 @@ void video_output_opengl::display(enum video_output::mode mode, float x, float y
     }
     else if (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard)
     {
-        const GLubyte *left_stipple = (mode == even_odd_rows ? stipple_pattern_even_rows
-                : mode == even_odd_columns ? stipple_pattern_even_cols : stipple_pattern_checkerboard);
-        const GLubyte *right_stipple = (mode == even_odd_rows ? stipple_pattern_odd_rows
-                : mode == even_odd_columns ? stipple_pattern_odd_cols : stipple_pattern_checkerboard_inv);
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-        glEnable(GL_POLYGON_STIPPLE);
-        glPolygonStipple(left_stipple);
-        bind_textures(0, left);
-        draw_quad(x, y, w, h);
-        glPolygonStipple(right_stipple);
-        bind_textures(0, right);
-        draw_quad(x, y, w, h);
-        glDisable(GL_POLYGON_STIPPLE);
+        if (_prg != 0)
+        {
+            float vpw = static_cast<float>(viewport[2]);
+            float vph = static_cast<float>(viewport[3]);
+            bind_textures(0, left);
+            bind_textures(1, right);
+            glActiveTexture(GL_TEXTURE0 + (frame_format() == decoder::frame_format_yuv420p ? 6 : 2));
+            glBindTexture(GL_TEXTURE_2D, _mask_tex);
+            glBegin(GL_QUADS);
+            glTexCoord2f(0.0f, _tex_max_y);
+            glMultiTexCoord2f(GL_TEXTURE1, 0.0f, 0.0f);
+            glVertex2f(x, y);
+            glTexCoord2f(_tex_max_x, _tex_max_y);
+            glMultiTexCoord2f(GL_TEXTURE1, vpw / 2.0f, 0.0f);
+            glVertex2f(x + w, y);
+            glTexCoord2f(_tex_max_x, 0.0f);
+            glMultiTexCoord2f(GL_TEXTURE1, vpw / 2.0f, vph / 2.0f);
+            glVertex2f(x + w, y + h);
+            glTexCoord2f(0.0f, 0.0f);
+            glMultiTexCoord2f(GL_TEXTURE1, 0.0f, vph / 2.0f);
+            glVertex2f(x, y + h);
+            glEnd();
+        }
+        else
+        {
+            const GLubyte *left_stipple = (mode == even_odd_rows ? stipple_pattern_even_rows
+                    : mode == even_odd_columns ? stipple_pattern_even_cols : stipple_pattern_checkerboard);
+            const GLubyte *right_stipple = (mode == even_odd_rows ? stipple_pattern_odd_rows
+                    : mode == even_odd_columns ? stipple_pattern_odd_cols : stipple_pattern_checkerboard_inv);
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glEnable(GL_POLYGON_STIPPLE);
+            glPolygonStipple(left_stipple);
+            bind_textures(0, left);
+            draw_quad(x, y, w, h);
+            glPolygonStipple(right_stipple);
+            bind_textures(0, right);
+            draw_quad(x, y, w, h);
+            glDisable(GL_POLYGON_STIPPLE);
+        }
     }
     else if (_prg != 0
             && (mode == anaglyph_red_cyan_monochrome
