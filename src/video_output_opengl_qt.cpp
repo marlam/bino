@@ -353,6 +353,7 @@ void video_output_opengl_qt::receive_notification(const notification &note)
             {
                 exit_fullscreen();
             }
+            _widget->update();
         }
         break;
     case notification::pause:
