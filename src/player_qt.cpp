@@ -19,6 +19,7 @@
 
 #include "config.h"
 
+#include <QCoreApplication>
 #include <QMainWindow>
 #include <QCloseEvent>
 #include <QMenu>
@@ -82,7 +83,7 @@ void player_qt_internal::receive_notification(const notification &note)
     if (note.type == notification::play)
     {
         _playing = note.current.flag;
-    }    
+    }
 }
 
 bool player_qt_internal::playloop_step()
@@ -126,7 +127,8 @@ QWidget *player_qt_internal::video_output_widget()
 }
 
 
-in_out_widget::in_out_widget(QWidget *parent) : QWidget(parent), _lock(false)
+in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
+    : QWidget(parent), _settings(settings), _lock(false)
 {
     QGridLayout *layout0 = new QGridLayout;
     QLabel *input_label = new QLabel("Input:");
@@ -139,6 +141,7 @@ in_out_widget::in_out_widget(QWidget *parent) : QWidget(parent), _lock(false)
     _input_combobox->addItem("Left/right");
     _input_combobox->addItem("Left/right, half width");
     _input_combobox->addItem("Even/odd rows");
+    connect(_input_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(input_changed()));
     layout0->addWidget(_input_combobox, 0, 1);
     QLabel *output_label = new QLabel("Output:");
     layout0->addWidget(output_label, 1, 0);
@@ -187,27 +190,9 @@ in_out_widget::~in_out_widget()
 {
 }
 
-void in_out_widget::swap_eyes_changed()
+void in_out_widget::set_input(enum input::mode m)
 {
-    if (!_lock)
-    {
-        send_cmd(command::toggle_swap_eyes);
-    }
-}
-
-void in_out_widget::fullscreen_pressed()
-{
-    send_cmd(command::toggle_fullscreen);
-}
-
-void in_out_widget::center_pressed()
-{
-    send_cmd(command::center);
-}
-
-void in_out_widget::update(const player_init_data &init_data, bool have_valid_input, bool playing)
-{
-    switch (init_data.input_mode)
+    switch (m)
     {
     default:
     case input::mono:
@@ -232,7 +217,11 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
         _input_combobox->setCurrentIndex(6);
         break;
     }
-    switch (init_data.video_mode)
+}
+
+void in_out_widget::set_output(enum video_output::mode m)
+{
+    switch (m)
     {
     default:
     case video_output::mono_left:
@@ -278,6 +267,46 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
         _output_combobox->setCurrentIndex(13);
         break;
     }
+}
+
+void in_out_widget::input_changed()
+{
+    _settings->beginGroup("Session");
+    if (_input_combobox->currentIndex() == 0)
+    {
+        set_output(static_cast<enum video_output::mode>(
+                    _settings->value("2d-output-mode", static_cast<int>(video_output::mono_left)).toInt()));
+    }
+    else
+    {
+        set_output(static_cast<enum video_output::mode>(
+                    _settings->value("3d-output-mode", static_cast<int>(video_output::anaglyph_red_cyan_dubois)).toInt()));
+    }
+    _settings->endGroup();
+}
+
+void in_out_widget::swap_eyes_changed()
+{
+    if (!_lock)
+    {
+        send_cmd(command::toggle_swap_eyes);
+    }
+}
+
+void in_out_widget::fullscreen_pressed()
+{
+    send_cmd(command::toggle_fullscreen);
+}
+
+void in_out_widget::center_pressed()
+{
+    send_cmd(command::center);
+}
+
+void in_out_widget::update(const player_init_data &init_data, bool have_valid_input, bool playing)
+{
+    set_input(init_data.input_mode);
+    set_output(init_data.video_mode);
     _lock = true;
     _swap_eyes_button->setChecked(init_data.video_state.swap_eyes);
     _lock = false;
@@ -375,7 +404,8 @@ void in_out_widget::receive_notification(const notification &note)
 }
 
 
-controls_widget::controls_widget(QWidget *parent) : QWidget(parent), _playing(false)
+controls_widget::controls_widget(QSettings *settings, QWidget *parent)
+    : QWidget(parent), _settings(settings), _playing(false)
 {
     QGridLayout *layout = new QGridLayout;
     _play_button = new QPushButton(QIcon(":icons/play.png"), "");
@@ -524,8 +554,8 @@ void controls_widget::receive_notification(const notification &note)
 }
 
 
-main_window::main_window(const player_init_data &init_data)
-    : _last_open_dir(QDir::current()), _player(NULL), _init_data(init_data), _stop_request(false)
+main_window::main_window(QSettings *settings, const player_init_data &init_data)
+    : _settings(settings), _player(NULL), _init_data(init_data), _stop_request(false)
 {
     // Application properties
     setWindowTitle(PACKAGE_NAME);
@@ -538,9 +568,9 @@ main_window::main_window(const player_init_data &init_data)
     _video_output->open(decoder::frame_format_bgra32, 1, 1, 1.0f, video_output::mono_left, video_output_state(), 0, 0, 0);
     _video_widget = _video_output->widget();
     _layout->addWidget(_video_widget, 0, 0);
-    _in_out_widget = new in_out_widget(central_widget);
+    _in_out_widget = new in_out_widget(_settings, central_widget);
     _layout->addWidget(_in_out_widget, 1, 0);
-    _controls_widget = new controls_widget(central_widget);
+    _controls_widget = new controls_widget(_settings, central_widget);
     _layout->addWidget(_controls_widget, 2, 0);
     _layout->setRowStretch(0, 1);
     _layout->setColumnStretch(0, 1);
@@ -634,6 +664,16 @@ void main_window::receive_notification(const notification &note)
             {
                 _stop_request = true;
             }
+            _settings->beginGroup("Session");
+            if (_init_data.input_mode == input::mono)
+            {
+                _settings->setValue("2d-output-mode", static_cast<int>(_init_data.video_mode));
+            }
+            else
+            {
+                _settings->setValue("3d-output-mode", static_cast<int>(_init_data.video_mode));
+            }
+            _settings->endGroup();
             _in_out_widget->update(_init_data, true, true);
             _controls_widget->update(_init_data, true, true);
             _video_widget->setFocus(Qt::OtherFocusReason);
@@ -691,12 +731,22 @@ void main_window::open(QStringList filenames, bool automatic)
     if (automatic)
     {
         _init_data.input_mode = input::automatic;
-        _init_data.video_mode = video_output::automatic;
     }
     if (open_player())
     {
         _init_data.input_mode = _player->input_mode();
-        _init_data.video_mode = _player->video_mode();
+        _settings->beginGroup("Session");
+        if (_init_data.input_mode == input::mono)
+        {
+            _init_data.video_mode = static_cast<enum video_output::mode>(
+                    _settings->value("2d-output-mode", static_cast<int>(video_output::mono_left)).toInt());
+        }
+        else
+        {
+            _init_data.video_mode = static_cast<enum video_output::mode>(
+                    _settings->value("3d-output-mode", static_cast<int>(video_output::anaglyph_red_cyan_dubois)).toInt());
+        }
+        _settings->endGroup();
         _in_out_widget->update(_init_data, true, false);
         _controls_widget->update(_init_data, true, false);
     }
@@ -710,7 +760,9 @@ void main_window::open(QStringList filenames, bool automatic)
 void main_window::file_open()
 {
     QFileDialog *file_dialog = new QFileDialog(this);
-    file_dialog->setDirectory(_last_open_dir);
+    _settings->beginGroup("Session");
+    file_dialog->setDirectory(_settings->value("file-open-dir", QDir::currentPath()).toString());
+    _settings->endGroup();
     file_dialog->setWindowTitle("Open up to three files");
     file_dialog->setAcceptMode(QFileDialog::AcceptOpen);
     file_dialog->setFileMode(QFileDialog::ExistingFiles);
@@ -723,12 +775,14 @@ void main_window::file_open()
     {
         return;
     }
-    _last_open_dir = file_dialog->directory().path();
     if (file_names.size() > 3)
     {
         QMessageBox::critical(this, "Error", "Cannot open more than 3 files");
         return;
     }
+    _settings->beginGroup("Session");
+    _settings->setValue("file-open-dir", file_dialog->directory().path());
+    _settings->endGroup();
     open(file_names, true);
 }
 
@@ -800,6 +854,9 @@ void main_window::help_about()
 player_qt::player_qt() : player(player::slave)
 {
     _qt_app_owner = init_qt();
+    QCoreApplication::setOrganizationName(PACKAGE_NAME);
+    QCoreApplication::setApplicationName(PACKAGE_NAME);
+    _settings = new QSettings;
 }
 
 player_qt::~player_qt()
@@ -808,12 +865,13 @@ player_qt::~player_qt()
     {
         exit_qt();
     }
+    delete _settings;
 }
 
 void player_qt::open(const player_init_data &init_data)
 {
     msg::set_level(init_data.log_level);
-    _main_window = new main_window(init_data);
+    _main_window = new main_window(_settings, init_data);
 }
 
 void player_qt::run()

@@ -24,9 +24,9 @@
 #include <QWidget>
 #include <QComboBox>
 #include <QPushButton>
-#include <QDir>
 #include <QGridLayout>
 #include <QTimer>
+#include <QSettings>
 
 #include "input.h"
 #include "controller.h"
@@ -61,6 +61,7 @@ class in_out_widget : public QWidget, public controller
     Q_OBJECT
 
 private:
+    QSettings *_settings;
     QComboBox *_input_combobox;
     QComboBox *_output_combobox;
     QPushButton *_swap_eyes_button;
@@ -68,13 +69,17 @@ private:
     QPushButton *_center_button;
     bool _lock;
 
+    void set_input(enum input::mode m);
+    void set_output(enum video_output::mode m);
+
 private slots:
+    void input_changed();
     void swap_eyes_changed();
     void fullscreen_pressed();
     void center_pressed();
 
 public:
-    in_out_widget(QWidget *parent);
+    in_out_widget(QSettings *settings, QWidget *parent);
     ~in_out_widget();
 
     void update(const player_init_data &init_data, bool have_valid_input, bool playing);
@@ -90,6 +95,7 @@ class controls_widget : public QWidget, public controller
     Q_OBJECT
 
 private:
+    QSettings *_settings;
     QPushButton *_play_button;
     QPushButton *_pause_button;
     QPushButton *_stop_button;
@@ -113,7 +119,7 @@ private slots:
     void fff_pressed();
 
 public:
-    controls_widget(QWidget *parent);
+    controls_widget(QSettings *settings, QWidget *parent);
     ~controls_widget();
 
     void update(const player_init_data &init_data, bool have_valid_input, bool playing);
@@ -125,7 +131,7 @@ class main_window : public QMainWindow, public controller
     Q_OBJECT
 
 private:
-    QDir _last_open_dir;
+    QSettings *_settings;
     player_qt_internal *_player;
     video_output_opengl_qt *_video_output;
     video_output_opengl_qt_widget *_video_widget;
@@ -148,10 +154,10 @@ private slots:
 
 protected:
     void moveEvent(QMoveEvent *event);
-    void closeEvent(QCloseEvent *event);	
+    void closeEvent(QCloseEvent *event);
 
 public:
-    main_window(const player_init_data &init_data);
+    main_window(QSettings *settings, const player_init_data &init_data);
     ~main_window();
 
     virtual void receive_notification(const notification &note);
@@ -162,15 +168,19 @@ class player_qt : public player
 private:
     bool _qt_app_owner;
     main_window *_main_window;
+    QSettings *_settings;
 
 public:
     player_qt();
     ~player_qt();
 
+    QSettings *settings()
+    {
+        return _settings;
+    }
+
     virtual void open(const player_init_data &init_data);
-
     virtual void run();
-
     virtual void close();
 };
 
