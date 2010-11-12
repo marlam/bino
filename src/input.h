@@ -40,6 +40,8 @@ public:
         even_odd_rows,          /* 1 video source: left view even lines, right view odd lines */
         automatic               /* derive mode from metadata or guess */
     };
+    static std::string mode_name(enum mode m);
+    static enum mode mode_from_name(const std::string &name, bool *ok = NULL);
 
 private:
     std::vector<decoder *> _decoders;

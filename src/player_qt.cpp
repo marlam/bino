@@ -669,17 +669,17 @@ void main_window::receive_notification(const notification &note)
             if (_init_data.filenames.size() == 1)
             {
                 _settings->setValue(QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName(),
-                        static_cast<int>(_init_data.input_mode));
+                        QString(input::mode_name(_init_data.input_mode).c_str()));
             }
             _settings->endGroup();
             _settings->beginGroup("Session");
             if (_init_data.input_mode == input::mono)
             {
-                _settings->setValue("2d-output-mode", static_cast<int>(_init_data.video_mode));
+                _settings->setValue("2d-output-mode", QString(video_output::mode_name(_init_data.video_mode).c_str()));
             }
             else
             {
-                _settings->setValue("3d-output-mode", static_cast<int>(_init_data.video_mode));
+                _settings->setValue("3d-output-mode", QString(video_output::mode_name(_init_data.video_mode).c_str()));
             }
             _settings->endGroup();
             _in_out_widget->update(_init_data, true, true);
@@ -745,9 +745,10 @@ void main_window::open(QStringList filenames, bool automatic)
         _settings->beginGroup("Video");
         if (_init_data.filenames.size() == 1)
         {
-            _init_data.input_mode = static_cast<enum input::mode>(
-                    _settings->value(QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName(),
-                        static_cast<int>(_player->input_mode())).toInt());
+            QString fallback_mode_name = QString(input::mode_name(_player->input_mode()).c_str());
+            QString filename = QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName();
+            QString mode_name = _settings->value(filename, fallback_mode_name).toString();
+            _init_data.input_mode = input::mode_from_name(mode_name.toStdString());
         }
         else
         {
@@ -757,13 +758,15 @@ void main_window::open(QStringList filenames, bool automatic)
         _settings->beginGroup("Session");
         if (_init_data.input_mode == input::mono)
         {
-            _init_data.video_mode = static_cast<enum video_output::mode>(
-                    _settings->value("2d-output-mode", static_cast<int>(video_output::mono_left)).toInt());
+            QString fallback_mode_name = QString(video_output::mode_name(video_output::mono_left).c_str());
+            QString mode_name = _settings->value(QString("2d-output-mode"), fallback_mode_name).toString();
+            _init_data.video_mode = video_output::mode_from_name(mode_name.toStdString());
         }
         else
         {
-            _init_data.video_mode = static_cast<enum video_output::mode>(
-                    _settings->value("3d-output-mode", static_cast<int>(video_output::anaglyph_red_cyan_dubois)).toInt());
+            QString fallback_mode_name = QString(video_output::mode_name(video_output::anaglyph_red_cyan_dubois).c_str());
+            QString mode_name = _settings->value(QString("3d-output-mode"), fallback_mode_name).toString();
+            _init_data.video_mode = video_output::mode_from_name(mode_name.toStdString());
         }
         _settings->endGroup();
         _in_out_widget->update(_init_data, true, false);

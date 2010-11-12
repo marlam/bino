@@ -225,102 +225,34 @@ int main(int argc, char *argv[])
     {
         init_data.input_mode = input::automatic;
     }
-    else if (input_mode.value() == "separate")
-    {
-        init_data.input_mode = input::separate;
-    }
-    else if (input_mode.value() == "top-bottom")
-    {
-        init_data.input_mode = input::top_bottom;
-    }
-    else if (input_mode.value() == "top-bottom-half")
-    {
-        init_data.input_mode = input::top_bottom_half;
-    }
-    else if (input_mode.value() == "left-right")
-    {
-        init_data.input_mode = input::left_right;
-    }
-    else if (input_mode.value() == "left-right-half")
-    {
-        init_data.input_mode = input::left_right_half;
-    }
-    else if (input_mode.value() == "even-odd-rows")
-    {
-        init_data.input_mode = input::even_odd_rows;
-    }
     else
     {
-        init_data.input_mode = input::mono;
+        bool ok;
+        init_data.input_mode = input::mode_from_name(input_mode.value(), &ok);
+        if (!ok)
+        {
+            msg::err("invalid input mode name");
+            debug::crash();
+        }
     }
-    if (video_output_mode.value() == "")
-    {
-        init_data.video_mode = video_output::automatic;
-    }
-    else if (video_output_mode.value() == "mono-left")
-    {
-        init_data.video_mode = video_output::mono_left;
-    }
-    else if (video_output_mode.value() == "mono-right")
-    {
-        init_data.video_mode = video_output::mono_right;
-    }
-    else if (video_output_mode.value() == "top-bottom")
-    {
-        init_data.video_mode = video_output::top_bottom;
-    }
-    else if (video_output_mode.value() == "top-bottom-half")
-    {
-        init_data.video_mode = video_output::top_bottom_half;
-    }
-    else if (video_output_mode.value() == "left-right")
-    {
-        init_data.video_mode = video_output::left_right;
-    }
-    else if (video_output_mode.value() == "left-right-half")
-    {
-        init_data.video_mode = video_output::left_right_half;
-    }
-    else if (video_output_mode.value() == "even-odd-rows")
-    {
-        init_data.video_mode = video_output::even_odd_rows;
-    }
-    else if (video_output_mode.value() == "even-odd-columns")
-    {
-        init_data.video_mode = video_output::even_odd_columns;
-    }
-    else if (video_output_mode.value() == "checkerboard")
-    {
-        init_data.video_mode = video_output::checkerboard;
-    }
-    else if (video_output_mode.value() == "anaglyph")
-    {
-        init_data.video_mode = video_output::anaglyph_red_cyan_dubois;
-    }
-    else if (video_output_mode.value() == "anaglyph-monochrome")
-    {
-        init_data.video_mode = video_output::anaglyph_red_cyan_monochrome;
-    }
-    else if (video_output_mode.value() == "anaglyph-full-color")
-    {
-        init_data.video_mode = video_output::anaglyph_red_cyan_full_color;
-    }
-    else if (video_output_mode.value() == "anaglyph-half-color")
-    {
-        init_data.video_mode = video_output::anaglyph_red_cyan_half_color;
-    }
-    else if (video_output_mode.value() == "anaglyph-dubois")
-    {
-        init_data.video_mode = video_output::anaglyph_red_cyan_dubois;
-    }
-    else if (video_output_mode.value() == "stereo")
-    {
-        init_data.video_mode = video_output::stereo;
-    }
-    else
+    if (video_output_mode.value() == "equalizer")
     {
         equalizer = true;
         init_data.video_mode = video_output::mono_left;
+    }
+    else if (video_output_mode.value() == "")
+    {
+        init_data.video_mode = video_output::automatic;
+    }
+    else
+    {
+        bool ok;
+        init_data.video_mode = video_output::mode_from_name(video_output_mode.value(), &ok);
+        if (!ok)
+        {
+            msg::err("invalid output mode name");
+            debug::crash();
+        }
     }
     init_data.video_state.fullscreen = fullscreen.value();
     init_data.video_state.swap_eyes = swap_eyes.value();

@@ -59,8 +59,11 @@ public:
         anaglyph_red_cyan_monochrome,   // Red/cyan anaglyph, monochrome method
         anaglyph_red_cyan_full_color,   // Red/cyan anaglyph, full color method
         anaglyph_red_cyan_half_color,   // Red/cyan anaglyph, half color method
-        anaglyph_red_cyan_dubois,       // Red/cyan anaglyph, high quality Dubois method
+        anaglyph_red_cyan_dubois        // Red/cyan anaglyph, high quality Dubois method
     };
+    static std::string mode_name(enum mode m);
+    static enum mode mode_from_name(const std::string &name, bool *ok = NULL);
+
     enum flags
     {
         center = 1,                     // Center window on screen

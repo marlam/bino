@@ -41,3 +41,134 @@ video_output::video_output(bool receive_notifications) throw ()
 video_output::~video_output()
 {
 }
+
+std::string video_output::mode_name(enum mode m)
+{
+    std::string name;
+    switch (m)
+    {
+    case automatic:
+        name = "automatic";
+        break;
+    case stereo:
+        name = "stereo";
+        break;
+    case mono_left:
+        name = "mono-left";
+        break;
+    case mono_right:
+        name = "mono-right";
+        break;
+    case top_bottom:
+        name = "top-bottom";
+        break;
+    case top_bottom_half:
+        name = "top-bottom-half";
+        break;
+    case left_right:
+        name = "left-right";
+        break;
+    case left_right_half:
+        name = "left-right-half";
+        break;
+    case even_odd_rows:
+        name = "even-odd-rows";
+        break;
+    case even_odd_columns:
+        name = "even-odd-columns";
+        break;
+    case checkerboard:
+        name = "checkerboard";
+        break;
+    case anaglyph_red_cyan_monochrome:
+        name = "anaglyph-red-cyan-monochrome";
+        break;
+    case anaglyph_red_cyan_full_color:
+        name = "anaglyph-red-cyan-full-color";
+        break;
+    case anaglyph_red_cyan_half_color:
+        name = "anaglyph-red-cyan-half-color";
+        break;
+    case anaglyph_red_cyan_dubois:
+        name = "anaglyph-red-cyan-dubois";
+        break;
+    }
+    return name;
+}
+
+enum video_output::mode video_output::mode_from_name(const std::string &name, bool *ok)
+{
+    enum mode m = mono_left;
+    if (ok)
+    {
+        *ok = true;
+    }
+    if (name == "automatic")
+    {
+        m = automatic;
+    }
+    else if (name == "stereo")
+    {
+        m = stereo;
+    }
+    else if (name == "mono-left")
+    {
+        m = mono_left;
+    }
+    else if (name == "mono-right")
+    {
+        m = mono_right;
+    }
+    else if (name == "top-bottom")
+    {
+        m = top_bottom;
+    }
+    else if (name == "top-bottom-half")
+    {
+        m = top_bottom_half;
+    }
+    else if (name == "left-right")
+    {
+        m = left_right;
+    }
+    else if (name == "left-right-half")
+    {
+        m = left_right_half;
+    }
+    else if (name == "even-odd-rows")
+    {
+        m = even_odd_rows;
+    }
+    else if (name == "even-odd-columns")
+    {
+        m = even_odd_columns;
+    }
+    else if (name == "checkerboard")
+    {
+        m = checkerboard;
+    }
+    else if (name == "anaglyph-red-cyan-monochrome")
+    {
+        m = anaglyph_red_cyan_monochrome;
+    }
+    else if (name == "anaglyph-red-cyan-full-color")
+    {
+        m = anaglyph_red_cyan_full_color;
+    }
+    else if (name == "anaglyph-red-cyan-half-color")
+    {
+        m = anaglyph_red_cyan_half_color;
+    }
+    else if (name == "anaglyph-red-cyan-dubois")
+    {
+        m = anaglyph_red_cyan_dubois;
+    }
+    else
+    {
+        if (ok)
+        {
+            *ok = false;
+        }
+    }
+    return m;
+}

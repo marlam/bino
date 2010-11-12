@@ -37,6 +37,88 @@ input::~input()
 {
 }
 
+std::string input::mode_name(enum mode m)
+{
+    std::string name;
+    switch (m)
+    {
+    case mono:
+        name = "mono";
+        break;
+    case separate:
+        name = "separate";
+        break;
+    case top_bottom:
+        name = "top-bottom";
+        break;
+    case top_bottom_half:
+        name = "top-bottom-half";
+        break;
+    case left_right:
+        name = "left-right";
+        break;
+    case left_right_half:
+        name = "left-right-half";
+        break;
+    case even_odd_rows:
+        name = "even-odd-rows";
+        break;
+    case automatic:
+        name = "automatic";
+        break;
+    }
+    return name;
+}
+
+enum input::mode input::mode_from_name(const std::string &name, bool *ok)
+{
+    enum mode m = mono;
+    if (ok)
+    {
+        *ok = true;
+    }
+    if (name == "mono")
+    {
+        m = mono;
+    }
+    else if (name == "separate")
+    {
+        m = separate;
+    }
+    else if (name == "top-bottom")
+    {
+        m = top_bottom;
+    }
+    else if (name == "top-bottom-half")
+    {
+        m = top_bottom_half;
+    }
+    else if (name == "left-right")
+    {
+        m = left_right;
+    }
+    else if (name == "left-right-half")
+    {
+        m = left_right_half;
+    }
+    else if (name == "even-odd-rows")
+    {
+        m = even_odd_rows;
+    }
+    else if (name == "automatic")
+    {
+        m = automatic;
+    }
+    else
+    {
+        if (ok)
+        {
+            *ok = false;
+        }
+    }
+    return m;
+}
+
 void input::open(std::vector<decoder *> decoders,
         int video0_decoder, int video0_stream,
         int video1_decoder, int video1_stream,
