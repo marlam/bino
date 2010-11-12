@@ -15,9 +15,7 @@ public:
     ~player_equalizer();
 
     virtual void open(const player_init_data &init_data);
-
     virtual void run();
-
     virtual void close();
 };
 

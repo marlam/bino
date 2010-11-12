@@ -13,6 +13,25 @@
 
 
 /*
+ * Every eq::Node has a special player: player_eq_node.
+ * These node players do not control the video playing themselves. Instead,
+ * they are told what to do via the frame data.
+ *
+ * eq::Config has the master player object. This master also plays the sound,
+ * to be able to synchronize the video to it.
+ *
+ * The application node reuses the player of eq::Config, so that it does not
+ * need to run two players.
+ *
+ * Each eq::Window has a special video_output_opengl: video_output_opengl_eq_window.
+ * It manages the video textures.
+ *
+ * Each eq::Channel than calls the window's display function to render its subset of
+ * the video.
+ */
+
+
+/*
  * player_eq_node
  *
  * Implementation of player for eq_node.
@@ -116,7 +135,7 @@ public:
             enum decoder::video_frame_format src_preferred_frame_format,
             bool have_pixel_buffer_object, bool have_texture_non_power_of_two, bool have_fragment_shader)
     {
-        set_mode(stereo);       // just to ensure that prepare() does the right thing
+        set_mode(stereo);       // just to ensure that prepare() handles both left and right view
         set_source_info(src_width, src_height, src_aspect_ratio, src_preferred_frame_format);
         initialize(have_pixel_buffer_object, have_texture_non_power_of_two, have_fragment_shader);
     }
@@ -136,7 +155,7 @@ public:
         set_state(video_state);
     }
 
-    // The rest of the interface is irrelevant for Equalizer
+    // The rest of the video_output_opengl interface is irrelevant for Equalizer
     virtual int window_pos_x() { return 0; }
     virtual int window_pos_y() { return 0; }
     virtual void receive_notification(const notification &) {}
@@ -295,12 +314,13 @@ class eq_config : public eq::Config
 {
 private:
     bool _is_master_config;
-    eq_init_data _eq_init_data;               // Master eq_init_data instance
-    eq_frame_data _eq_frame_data;             // Master eq_frame_data instance
-    player_eq_node _player;
-    controller _controller;
+    eq_init_data _eq_init_data;         // Master eq_init_data instance
+    eq_frame_data _eq_frame_data;       // Master eq_frame_data instance
+    player_eq_node _player;             // Master player
+    controller _controller;             // Sends commands to the player
 
 public:
+    // Source video properties:
     int src_width, src_height;
     float src_aspect_ratio;
     enum decoder::video_frame_format src_preferred_frame_format;
@@ -325,10 +345,10 @@ public:
         msg::dbg(HERE);
         // If this function is called, then this is the master config
         _is_master_config = true;
-        // Initialize master instances
+        // Initialize master init/frame data instances
         _eq_init_data.init_data = init_data;
         _eq_frame_data.video_state = _eq_init_data.init_data.video_state;
-        // Initialize player
+        // Initialize master player
         _player.eq_make_master();
         if (!_player.eq_init(init_data, &src_width, &src_height, &src_aspect_ratio, &src_preferred_frame_format))
         {
@@ -337,12 +357,11 @@ public:
         // Find region of canvas to use, depending on the video aspect ratio
         if (getCanvases().size() < 1)
         {
-            msg::err("No canvas in Equalizer configuration");
+            msg::err("no canvas in Equalizer configuration");
             abort();
         }
         float canvas_w = getCanvases()[0]->getWall().getWidth();
         float canvas_h = getCanvases()[0]->getWall().getHeight();
-        msg::inf("Equalizer canvas: %gx%g", canvas_w, canvas_h);
         float canvas_aspect_ratio = canvas_w / canvas_h;
         _eq_init_data.canvas_video_area.w = 1.0f;
         _eq_init_data.canvas_video_area.h = 1.0f;
@@ -358,8 +377,9 @@ public:
         }
         _eq_init_data.canvas_video_area.x = (1.0f - _eq_init_data.canvas_video_area.w) / 2.0f;
         _eq_init_data.canvas_video_area.y = (1.0f - _eq_init_data.canvas_video_area.h) / 2.0f;
-        msg::inf("Equalizer canvas: %gx%g, aspect ratio %g:1", canvas_w, canvas_h, canvas_w / canvas_h);
-        msg::inf("Equalizer video area relative to canvas: [ %g %g %g %g ]",
+        msg::inf("equalizer canvas:");
+        msg::inf("    %gx%g, aspect ratio %g:1", canvas_w, canvas_h, canvas_w / canvas_h);
+        msg::inf("    area for %g:1 video: [ %g %g %g %g ]", src_aspect_ratio,
                 _eq_init_data.canvas_video_area.x, _eq_init_data.canvas_video_area.y,
                 _eq_init_data.canvas_video_area.w, _eq_init_data.canvas_video_area.h);
         // Register master instances
@@ -391,9 +411,10 @@ public:
 
     virtual uint32_t startFrame()
     {
-        msg::dbg(HERE);
+        // Run one player step to find out what to do
         bool more_steps, prep_frame, drop_frame, display_frame;
         _player.eq_run_step(&more_steps, &prep_frame, &drop_frame, &display_frame);
+        // Do it, and also tell other nodes to do it via frame data
         if (!more_steps)
         {
             this->exit();
@@ -409,91 +430,87 @@ public:
         _eq_frame_data.prep_frame = prep_frame;
         _eq_frame_data.drop_frame = drop_frame;
         _eq_frame_data.display_frame = display_frame;
-
+        // Update the video state for all (it might have changed via handleEvent())
         _eq_frame_data.video_state = _player.eq_video_state();
-
-        // Update frame data
+        // Commit the updated frame data
         const uint32_t version = _eq_frame_data.commit();
         // Start this frame with the committed frame data
-        msg::dbg(HERE);
         return eq::Config::startFrame(version);
     }
 
-    virtual bool handleEvent(const eq::ConfigEvent *event);
-};
-
-bool eq_config::handleEvent(const eq::ConfigEvent *event)
-{
-    if (eq::Config::handleEvent(event))
+    virtual bool handleEvent(const eq::ConfigEvent *event)
     {
+        if (eq::Config::handleEvent(event))
+        {
+            return true;
+        }
+        if (event->data.type == eq::Event::KEY_PRESS)
+        {
+            switch (event->data.keyPress.key)
+            {
+            case 'q':
+                _controller.send_cmd(command::toggle_play);
+                break;
+            case 's':
+                _controller.send_cmd(command::toggle_swap_eyes);
+                break;
+            case 'f':
+                /* fullscreen toggling not supported with Equalizer */
+                break;
+            case 'c':
+                /* window centering not supported with Equalizer */
+                break;
+            case ' ':
+            case 'p':
+                _controller.send_cmd(command::toggle_pause);
+                break;
+            case '1':
+                _controller.send_cmd(command::adjust_contrast, -0.05f);
+                break;
+            case '2':
+                _controller.send_cmd(command::adjust_contrast, +0.05f);
+                break;
+            case '3':
+                _controller.send_cmd(command::adjust_brightness, -0.05f);
+                break;
+            case '4':
+                _controller.send_cmd(command::adjust_brightness, +0.05f);
+                break;
+            case '5':
+                _controller.send_cmd(command::adjust_hue, -0.05f);
+                break;
+            case '6':
+                _controller.send_cmd(command::adjust_hue, +0.05f);
+                break;
+            case '7':
+                _controller.send_cmd(command::adjust_saturation, -0.05f);
+                break;
+            case '8':
+                _controller.send_cmd(command::adjust_saturation, +0.05f);
+                break;
+            case eq::KC_LEFT:
+                _controller.send_cmd(command::seek, -10.0f);
+                break;
+            case eq::KC_RIGHT:
+                _controller.send_cmd(command::seek, +10.0f);
+                break;
+            case eq::KC_UP:
+                _controller.send_cmd(command::seek, -60.0f);
+                break;
+            case eq::KC_DOWN:
+                _controller.send_cmd(command::seek, +60.0f);
+                break;
+            case eq::KC_PAGE_UP:
+                _controller.send_cmd(command::seek, -600.0f);
+                break;
+            case eq::KC_PAGE_DOWN:
+                _controller.send_cmd(command::seek, +600.0f);
+                break;
+            }
+        }
         return true;
     }
-    if (event->data.type == eq::Event::KEY_PRESS)
-    {
-        switch (event->data.keyPress.key)
-        {
-        case 'q':
-            _controller.send_cmd(command::toggle_play);
-            break;
-        case 's':
-            _controller.send_cmd(command::toggle_swap_eyes);
-            break;
-        case 'f':
-            /* fullscreen toggling not supported with Equalizer */
-            break;
-        case 'c':
-            /* window centering not supported with Equalizer */
-            break;
-        case ' ':
-        case 'p':
-            _controller.send_cmd(command::toggle_pause);
-            break;
-        case '1':
-            _controller.send_cmd(command::adjust_contrast, -0.05f);
-            break;
-        case '2':
-            _controller.send_cmd(command::adjust_contrast, +0.05f);
-            break;
-        case '3':
-            _controller.send_cmd(command::adjust_brightness, -0.05f);
-            break;
-        case '4':
-            _controller.send_cmd(command::adjust_brightness, +0.05f);
-            break;
-        case '5':
-            _controller.send_cmd(command::adjust_hue, -0.05f);
-            break;
-        case '6':
-            _controller.send_cmd(command::adjust_hue, +0.05f);
-            break;
-        case '7':
-            _controller.send_cmd(command::adjust_saturation, -0.05f);
-            break;
-        case '8':
-            _controller.send_cmd(command::adjust_saturation, +0.05f);
-            break;
-        case eq::KC_LEFT:
-            _controller.send_cmd(command::seek, -10.0f);
-            break;
-        case eq::KC_RIGHT:
-            _controller.send_cmd(command::seek, +10.0f);
-            break;
-        case eq::KC_UP:
-            _controller.send_cmd(command::seek, -60.0f);
-            break;
-        case eq::KC_DOWN:
-            _controller.send_cmd(command::seek, +60.0f);
-            break;
-        case eq::KC_PAGE_UP:
-            _controller.send_cmd(command::seek, -600.0f);
-            break;
-        case eq::KC_PAGE_DOWN:
-            _controller.send_cmd(command::seek, +600.0f);
-            break;
-        }
-    }
-    return true;
-}
+};
 
 /*
  * eq_node
@@ -544,9 +561,9 @@ protected:
             return false;
         }
 
-        // Create decoders and input
         msg::set_level(init_data.init_data.log_level);
         msg::dbg(HERE);
+        // Create decoders and input
         if (!_is_app_node)
         {
             if (!_player.eq_init(init_data.init_data, &src_width, &src_height, &src_aspect_ratio, &src_preferred_frame_format))
@@ -581,10 +598,9 @@ protected:
 
     virtual void frameStart(const uint32_t frameID, const uint32_t frameNumber)
     {
-        msg::dbg(HERE);
-        // Update our FrameData instance from the master instance
+        // Update our frame data
         frame_data.sync(frameID);
-
+        // Do as we're told
         if (!_is_app_node)
         {
             if (frame_data.prep_frame)
@@ -599,12 +615,11 @@ protected:
             }
         }
         startFrame(frameNumber);
-        msg::dbg(HERE);
     }
 
     virtual void frameFinish(const uint32_t, const uint32_t frameNumber)
     {
-        msg::dbg(HERE);
+        // Do as we're told
         if (!_is_app_node)
         {
             if (frame_data.prep_frame)
@@ -613,19 +628,16 @@ protected:
             }
         }
         releaseFrame(frameNumber);
-        msg::dbg(HERE);
     }
 
 public:
     void prep_frame(video_output *vo, enum decoder::video_frame_format fmt)
     {
-        msg::dbg(HERE);
         if (fmt != src_preferred_frame_format)
         {
             msg::err("cannot provide video in requested frame format");
             abort();
         }
-        msg::dbg(HERE);
         if (_is_app_node)
         {
             eq_config *config = static_cast<eq_config *>(getConfig());
@@ -635,7 +647,6 @@ public:
         {
             _player.eq_prep_frame(vo);
         }
-        msg::dbg(HERE);
     }
 };
 
@@ -708,28 +719,26 @@ protected:
 
     virtual void frameStart(const uint32_t, const uint32_t frameNumber)
     {
-        msg::dbg(HERE);
+        // Get frame data via from the node
         eq_node *node = static_cast<eq_node *>(getNode());
         _video_output.eq_set_state(node->frame_data.video_state);
+        // Do as we're told
         if (node->frame_data.prep_frame)
         {
-            makeCurrent();
+            makeCurrent();      // XXX Is this necessary?
             node->prep_frame(&_video_output, _video_output.frame_format());
         }
         else if (node->frame_data.display_frame)
         {
-            makeCurrent();
+            makeCurrent();      // XXX Is this necessary?
             _video_output.eq_swap_tex_set();
         }
         startFrame(frameNumber);
-        msg::dbg(HERE);
     }
 
     virtual void frameFinish(const uint32_t, const uint32_t frameNumber)
     {
-        msg::dbg(HERE);
         releaseFrame(frameNumber);
-        msg::dbg(HERE);
     }
 };
 
@@ -749,24 +758,23 @@ public:
 protected:
     virtual void frameDraw(const uint32_t frameID)
     {
-        msg::dbg(HERE);
         // Let Equalizer initialize some stuff
         eq::Channel::frameDraw(frameID);
-
-        // Get the current state
+        // Get the canvas video area and the canvas channel area
         eq_node *node = static_cast<eq_node *>(getNode());
-        eq_window *window = static_cast<eq_window *>(getWindow());
-        const struct { float x, y, w, h; } canvas_video_area = { node->init_data.canvas_video_area.x,
-            node->init_data.canvas_video_area.y, node->init_data.canvas_video_area.w,
-            node->init_data.canvas_video_area.h };
+        const struct { float x, y, w, h; } canvas_video_area =
+        {
+            node->init_data.canvas_video_area.x,
+            node->init_data.canvas_video_area.y,
+            node->init_data.canvas_video_area.w,
+            node->init_data.canvas_video_area.h
+        };
         const eq::Viewport &canvas_channel_area = getViewport();
-
-        // Determine video quad
+        // Determine the video quad to render
         float quad_x = ((canvas_video_area.x - canvas_channel_area.x) / canvas_channel_area.w - 0.5) * 2.0f;
         float quad_y = ((canvas_video_area.y - canvas_channel_area.y) / canvas_channel_area.h - 0.5) * 2.0f;
         float quad_w = 2.0f * canvas_video_area.w / canvas_channel_area.w;
         float quad_h = 2.0f * canvas_video_area.h / canvas_channel_area.h;
-
         // Display
         glEnable(GL_TEXTURE_2D);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -774,9 +782,9 @@ protected:
         glLoadIdentity();
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
+        eq_window *window = static_cast<eq_window *>(getWindow());
         window->display(getEye() == eq::EYE_RIGHT ? video_output::mono_right : video_output::mono_left,
                 quad_x, quad_y, quad_w, quad_h);
-        msg::dbg(HERE);
     }
 };
 
@@ -824,16 +832,15 @@ player_equalizer::player_equalizer(int *argc, char *argv[])
     _node_factory = static_cast<void *>(new eq_node_factory);
     if (!eq::init(*argc, argv, static_cast<eq::NodeFactory *>(_node_factory)))
     {
-        throw exc("Equalizer initialization failed");
+        throw exc("equalizer initialization failed");
     }
-
     /* Get a configuration */
     _config = static_cast<void *>(eq::getConfig(*argc, argv));
     // The following code is only executed on the application node because
     // eq::getConfig() does not return on other nodes.
     if (!_config)
     {
-        throw exc("Cannot get Equalizer configuration");
+        throw exc("cannot get equalizer configuration");
     }
 }
 
@@ -847,7 +854,7 @@ void player_equalizer::open(const player_init_data &init_data)
     eq_config *config = static_cast<eq_config *>(_config);
     if (!config->init(init_data))
     {
-        throw exc("Equalizer configuration initialization failed");
+        throw exc("equalizer configuration initialization failed");
     }
 }
 
