@@ -33,6 +33,7 @@
 #include <QPushButton>
 #include <QComboBox>
 #include <QTimer>
+#include <QFile>
 
 #include "player_qt.h"
 #include "qt_app.h"
@@ -617,7 +618,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
         QStringList filenames;
         for (size_t i = 0; i < init_data.filenames.size(); i++)
         {
-            filenames.push_back(init_data.filenames[i].c_str());
+            filenames.push_back(QFile::decodeName(init_data.filenames[i].c_str()));
         }
         open(filenames, false);
     }
@@ -664,6 +665,13 @@ void main_window::receive_notification(const notification &note)
             {
                 _stop_request = true;
             }
+            _settings->beginGroup("Video");
+            if (_init_data.filenames.size() == 1)
+            {
+                _settings->setValue(QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName(),
+                        static_cast<int>(_init_data.input_mode));
+            }
+            _settings->endGroup();
             _settings->beginGroup("Session");
             if (_init_data.input_mode == input::mono)
             {
@@ -734,7 +742,18 @@ void main_window::open(QStringList filenames, bool automatic)
     }
     if (open_player())
     {
-        _init_data.input_mode = _player->input_mode();
+        _settings->beginGroup("Video");
+        if (_init_data.filenames.size() == 1)
+        {
+            _init_data.input_mode = static_cast<enum input::mode>(
+                    _settings->value(QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName(),
+                        static_cast<int>(_player->input_mode())).toInt());
+        }
+        else
+        {
+            _init_data.input_mode = _player->input_mode();
+        }
+        _settings->endGroup();
         _settings->beginGroup("Session");
         if (_init_data.input_mode == input::mono)
         {
