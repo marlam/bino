@@ -83,6 +83,12 @@ public:
         return video_state();
     }
 
+    void eq_seek(int64_t seek_to)
+    {
+        get_input()->seek(seek_to);
+        get_input()->read_video_frame();
+    }
+
     void eq_read_frame()        // Only called on slave nodes to force reading the next frame
     {
         if (get_input()->read_video_frame() < 0)
@@ -97,9 +103,9 @@ public:
         prepare_video_frame(vo);
     }
 
-    void eq_run_step(bool *more_steps, bool *prep_frame, bool *drop_frame, bool *display_frame)
+    void eq_run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
     {
-        run_step(more_steps, prep_frame, drop_frame, display_frame);
+        run_step(more_steps, seek_to, prep_frame, drop_frame, display_frame);
     }
 
     void eq_get_frame()
@@ -254,14 +260,14 @@ class eq_frame_data : public eq::net::Object
 {
 public:
     video_output_state video_state;
-    int64_t seek_request;
+    int64_t seek_to;
     bool prep_frame;
     bool drop_frame;
     bool display_frame;
 
 public:
     eq_frame_data()
-        : video_state(), seek_request(0),
+        : video_state(), seek_to(-1),
         prep_frame(false), drop_frame(false), display_frame(false)
     {
     }
@@ -281,7 +287,7 @@ protected:
         s11n::save(oss, video_state.saturation);
         s11n::save(oss, video_state.fullscreen);
         s11n::save(oss, video_state.swap_eyes);
-        s11n::save(oss, seek_request);
+        s11n::save(oss, seek_to);
         s11n::save(oss, prep_frame);
         s11n::save(oss, drop_frame);
         s11n::save(oss, display_frame);
@@ -299,7 +305,7 @@ protected:
         s11n::load(iss, video_state.saturation);
         s11n::load(iss, video_state.fullscreen);
         s11n::load(iss, video_state.swap_eyes);
-        s11n::load(iss, seek_request);
+        s11n::load(iss, seek_to);
         s11n::load(iss, prep_frame);
         s11n::load(iss, drop_frame);
         s11n::load(iss, display_frame);
@@ -412,24 +418,22 @@ public:
     virtual uint32_t startFrame()
     {
         // Run one player step to find out what to do
-        bool more_steps, prep_frame, drop_frame, display_frame;
-        _player.eq_run_step(&more_steps, &prep_frame, &drop_frame, &display_frame);
+        bool more_steps;
+        _player.eq_run_step(&more_steps, &_eq_frame_data.seek_to,
+                &_eq_frame_data.prep_frame, &_eq_frame_data.drop_frame, &_eq_frame_data.display_frame);
         // Do it, and also tell other nodes to do it via frame data
         if (!more_steps)
         {
             this->exit();
         }
-        if (prep_frame)
+        if (_eq_frame_data.prep_frame)
         {
             _player.eq_get_frame();
         }
-        else if (drop_frame)
+        else if (_eq_frame_data.drop_frame)
         {
             _player.eq_release_frame();
         }
-        _eq_frame_data.prep_frame = prep_frame;
-        _eq_frame_data.drop_frame = drop_frame;
-        _eq_frame_data.display_frame = display_frame;
         // Update the video state for all (it might have changed via handleEvent())
         _eq_frame_data.video_state = _player.eq_video_state();
         // Commit the updated frame data
@@ -603,6 +607,10 @@ protected:
         // Do as we're told
         if (!_is_app_node)
         {
+            if (frame_data.seek_to >= 0)
+            {
+                _player.eq_seek(frame_data.seek_to);
+            }
             if (frame_data.prep_frame)
             {
                 _player.eq_read_frame();

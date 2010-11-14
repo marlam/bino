@@ -90,26 +90,23 @@ void player_qt_internal::receive_notification(const notification &note)
 bool player_qt_internal::playloop_step()
 {
     bool more_steps;
-    bool prep_frame;
-    bool drop_frame;
-    bool display_frame;
 
-    run_step(&more_steps, &prep_frame, &drop_frame, &display_frame);
+    run_step(&more_steps, &_seek_to, &_prep_frame, &_drop_frame, &_display_frame);
     if (!more_steps)
     {
         return false;
     }
-    if (prep_frame)
+    if (_prep_frame)
     {
         get_video_frame(get_video_output()->frame_format());
         prepare_video_frame(get_video_output());
         release_video_frame();
     }
-    else if (drop_frame)
+    else if (_drop_frame)
     {
         get_input()->release_video_frame();
     }
-    else if (display_frame)
+    else if (_display_frame)
     {
         get_video_output()->activate();
     }

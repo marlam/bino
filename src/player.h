@@ -102,7 +102,8 @@ protected:
     video_output_state &video_state() { return _video_state; }
     void open_video_output(enum video_output::mode video_mode, unsigned int video_flags);
     void make_master();
-    void run_step(bool *more_steps, bool *prep_frame, bool *drop_frame, bool *display_frame);
+    void run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
+    void seek(int64_t seek_to);
     void get_video_frame(enum decoder::video_frame_format fmt);
     void prepare_video_frame(video_output *vo);
     void release_video_frame();
