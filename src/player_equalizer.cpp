@@ -92,7 +92,7 @@ public:
     {
         if (get_input()->read_video_frame() < 0)
         {
-            msg::wrn("reading input frame failed (EOF?)");
+            msg::err("reading input frame failed (EOF?)");
             abort();
         }
     }
