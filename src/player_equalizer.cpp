@@ -396,11 +396,6 @@ public:
         return eq::Config::init(_eq_init_data.getID());
     }
 
-    void prep_frame(video_output *vo)
-    {
-        _player.eq_prep_frame(vo);
-    }
-
     virtual bool exit()
     {
         msg::dbg(HERE);
@@ -421,18 +416,9 @@ public:
         bool more_steps;
         _player.eq_run_step(&more_steps, &_eq_frame_data.seek_to,
                 &_eq_frame_data.prep_frame, &_eq_frame_data.drop_frame, &_eq_frame_data.display_frame);
-        // Do it, and also tell other nodes to do it via frame data
         if (!more_steps)
         {
             this->exit();
-        }
-        if (_eq_frame_data.prep_frame)
-        {
-            _player.eq_get_frame();
-        }
-        else if (_eq_frame_data.drop_frame)
-        {
-            _player.eq_release_frame();
         }
         // Update the video state for all (it might have changed via handleEvent())
         _eq_frame_data.video_state = _player.eq_video_state();
@@ -513,6 +499,11 @@ public:
             }
         }
         return true;
+    }
+
+    player_eq_node *player()
+    {
+        return &_player;
     }
 };
 
@@ -605,7 +596,19 @@ protected:
         // Update our frame data
         frame_data.sync(frameID);
         // Do as we're told
-        if (!_is_app_node)
+        if (_is_app_node)
+        {
+            eq_config *config = static_cast<eq_config *>(getConfig());
+            if (frame_data.prep_frame)
+            {
+                config->player()->eq_get_frame();
+            }
+            else if (frame_data.drop_frame)
+            {
+                config->player()->eq_release_frame();
+            }
+        }
+        else
         {
             if (frame_data.seek_to >= 0)
             {
@@ -628,7 +631,15 @@ protected:
     virtual void frameFinish(const uint32_t, const uint32_t frameNumber)
     {
         // Do as we're told
-        if (!_is_app_node)
+        if (_is_app_node)
+        {
+            eq_config *config = static_cast<eq_config *>(getConfig());
+            if (frame_data.prep_frame)
+            {
+                config->player()->eq_release_frame();
+            }
+        }
+        else
         {
             if (frame_data.prep_frame)
             {
@@ -649,7 +660,7 @@ public:
         if (_is_app_node)
         {
             eq_config *config = static_cast<eq_config *>(getConfig());
-            config->prep_frame(vo);
+            config->player()->eq_prep_frame(vo);
         }
         else
         {
