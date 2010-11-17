@@ -33,32 +33,57 @@ Select log level:
 \fIdebug\fP, \fIinfo\fP, \fIwarning\fP, \fIerror\fP, or \fIquiet\fP.
 .IP "\-i|\-\-input=\fITYPE\fP"
 Select input type:
+.br
 \fImono\fP (single view),
+.br
 \fIseparate\fP (left/right view separate),
+.br
 \fItop\-bottom\fP (left view top, right view bottom),
+.br
 \fItop\-bottom\-half\fP (left view top, right view bottom, half height),
+.br
 \fIleft\-right\fP (left view left, right view right),
+.br
 \fIleft\-right\-half\fP (left view left, right view right, half width),
+.br
 \fIeven\-odd\-rows\fP (left view even rows, right view odd rows).
 .br
 The default is to autodetect the type.
 .IP "\-o|\-\-output=\fITYPE\fP"
 Select output type: 
+.br
 \fImono\-left\fP (only left view),
+.br
 \fImono\-right\fP (only right view),
+.br
 \fItop\-bottom\fP (left view top, right view bottom),
+.br
 \fItop\-bottom\-half\fP (left view top, right view bottom, half height),
+.br
 \fIleft\-right\fP (left view left, right view right),
+.br
 \fIleft\-right\-half\fP (left view left, right view right, half width),
+.br
 \fIeven\-odd\-rows\fP (left view even rows, right view odd rows),
+.br
 \fIeven\-odd\-columns\fP (left view even columns, right view odd columns),
+.br
 \fIcheckerboard\fP (left and right view in checkerboard pattern),
+.br
 \fIanaglyph\fP (red/cyan anaglyph, default method, same as \fIanaglyph\-dubois\fP),
+.br
 \fIanaglyph\-monochrome\fP (red/cyan anaglyph, monochrome method),
+.br
 \fIanaglyph\-full\-color\fP (red/cyan anaglyph, full color method),
+.br
 \fIanaglyph\-half\-color\fP (red/cyan anaglyph, half color method),
+.br
 \fIanaglyph\-dubois\fP (red/cyan anaglyph, high\-quality Dubois method),
-\fIstereo\fP (OpenGL quad\-buffer stereo).
+.br
+\fIstereo\fP (OpenGL quad\-buffer stereo),
+.br
+\fIequalizer\fP (distributed OpenGL via Equalizer).
+.br
 For stereo input, the default is \fIstereo\fP if the display supports it,
 otherwise \fIanaglyph\fP. The default for mono input is \fImono\-left\fP.
 .IP "\-f|\-\-fullscreen"
