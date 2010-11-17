@@ -210,6 +210,7 @@ void player::make_master()
 void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
 {
     *more_steps = false;
+    *seek_to = -1;
     *prep_frame = false;
     *drop_frame = false;
     *display_frame = false;
@@ -252,7 +253,6 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         _need_frame = false;
         _first_frame = true;
         *more_steps = true;
-        *seek_to = -1;
         *prep_frame = true;
         return;
     }
