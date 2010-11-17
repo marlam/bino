@@ -256,10 +256,22 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         *prep_frame = true;
         return;
     }
-    else if (*seek_to >= 0)
+    else if (_seek_request != 0)
     {
+        if (_seek_request < 0 && -_seek_request > _current_pos)
+        {
+            _seek_request = -_current_pos;
+        }
+        if (_input->duration() > 0)
+        {
+            if (_seek_request > 0 && _current_pos + _seek_request >= std::max(_input->duration() - 5000000, static_cast<int64_t>(0)))
+            {
+                _seek_request = std::max(_input->duration() - 5000000 - _current_pos, static_cast<int64_t>(0));
+            }
+        }
+        *seek_to = _current_pos + _seek_request;
+        _seek_request = 0;
         _input->seek(*seek_to);
-        *seek_to = -1;
         _next_frame_pos = _input->read_video_frame();
         if (_next_frame_pos < 0)
         {
@@ -299,24 +311,6 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             *prep_frame = true;
             return;
         }
-    }
-    else if (_seek_request != 0)
-    {
-        if (_seek_request < 0 && -_seek_request > _current_pos)
-        {
-            _seek_request = -_current_pos;
-        }
-        if (_input->duration() > 0)
-        {
-            if (_seek_request > 0 && _current_pos + _seek_request >= std::max(_input->duration() - 5000000, static_cast<int64_t>(0)))
-            {
-                _seek_request = std::max(_input->duration() - 5000000 - _current_pos, static_cast<int64_t>(0));
-            }
-        }
-        *seek_to = _current_pos + _seek_request;
-        _seek_request = 0;
-        *more_steps = true;
-        return;
     }
     else if (_pause_request)
     {

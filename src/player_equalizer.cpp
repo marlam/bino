@@ -83,10 +83,9 @@ public:
         return video_state();
     }
 
-    void eq_seek(int64_t seek_to)
+    void eq_seek_to(int64_t seek_to)
     {
         get_input()->seek(seek_to);
-        get_input()->read_video_frame();
     }
 
     void eq_read_frame()        // Only called on slave nodes to force reading the next frame
@@ -603,7 +602,7 @@ protected:
             {
                 config->player()->eq_get_frame();
             }
-            else if (frame_data.drop_frame)
+            if (frame_data.drop_frame)
             {
                 config->player()->eq_release_frame();
             }
@@ -612,14 +611,14 @@ protected:
         {
             if (frame_data.seek_to >= 0)
             {
-                _player.eq_seek(frame_data.seek_to);
+                _player.eq_seek_to(frame_data.seek_to);
             }
             if (frame_data.prep_frame)
             {
                 _player.eq_read_frame();
                 _player.eq_get_frame();
             }
-            else if (frame_data.drop_frame)
+            if (frame_data.drop_frame)
             {
                 _player.eq_read_frame();
                 _player.eq_release_frame();
@@ -747,7 +746,7 @@ protected:
             makeCurrent();      // XXX Is this necessary?
             node->prep_frame(&_video_output, _video_output.frame_format());
         }
-        else if (node->frame_data.display_frame)
+        if (node->frame_data.display_frame)
         {
             makeCurrent();      // XXX Is this necessary?
             _video_output.eq_swap_tex_set();

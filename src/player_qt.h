@@ -40,11 +40,6 @@ private:
     video_output_opengl_qt *_vo;
     bool _playing;
 
-    int64_t _seek_to;
-    bool _prep_frame;
-    bool _drop_frame;
-    bool _display_frame;
-
 public:
     player_qt_internal(video_output_opengl_qt *vo);
     ~player_qt_internal();
