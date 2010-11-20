@@ -276,13 +276,15 @@ void in_out_widget::input_changed()
     _settings->beginGroup("Session");
     if (_input_combobox->currentIndex() == 0)
     {
-        set_output(static_cast<enum video_output::mode>(
-                    _settings->value("2d-output-mode", static_cast<int>(video_output::mono_left)).toInt()));
+        QString fallback_mode_name = QString(video_output::mode_name(video_output::mono_left).c_str());
+        QString mode_name = _settings->value(QString("2d-output-mode"), fallback_mode_name).toString();
+        set_output(video_output::mode_from_name(mode_name.toStdString()));
     }
     else
     {
-        set_output(static_cast<enum video_output::mode>(
-                    _settings->value("3d-output-mode", static_cast<int>(video_output::anaglyph_red_cyan_dubois)).toInt()));
+        QString fallback_mode_name = QString(video_output::mode_name(video_output::anaglyph_red_cyan_dubois).c_str());
+        QString mode_name = _settings->value(QString("3d-output-mode"), fallback_mode_name).toString();
+        set_output(video_output::mode_from_name(mode_name.toStdString()));
     }
     _settings->endGroup();
 }
