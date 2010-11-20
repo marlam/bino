@@ -501,8 +501,6 @@ void video_output_opengl::display(enum video_output::mode mode, float x, float y
         return;
     }
 
-    int64_t display_start = timer::get_microseconds(timer::monotonic);
-
     int left = 0;
     int right = (_input_is_mono ? 0 : 1);
     if (_state.swap_eyes)
@@ -667,9 +665,6 @@ void video_output_opengl::display(enum video_output::mode mode, float x, float y
         glVertex2f(-1.0f, -1.0f);
         glEnd();
     }
-
-    int64_t display_stop = timer::get_microseconds(timer::monotonic);
-    msg::dbg("texture display: %g seconds", (display_stop - display_start) / 1e6f);
 }
 
 void video_output_opengl::reshape(int w, int h)
@@ -765,8 +760,6 @@ void video_output_opengl::prepare(
         return;
     }
 
-    int64_t prepare_start = timer::get_microseconds(timer::monotonic);
-
     int tex_set = (_active_tex_set == 0 ? 1 : 0);
     _input_is_mono = (l_data[0] == r_data[0] && l_data[1] == r_data[1] && l_data[2] == r_data[2]);
 
@@ -808,7 +801,4 @@ void video_output_opengl::prepare(
         }
     }
     _have_valid_data = true;
-
-    int64_t prepare_stop = timer::get_microseconds(timer::monotonic);
-    msg::dbg("texture upload: %g seconds", (prepare_stop - prepare_start) / 1e6f);
 }
