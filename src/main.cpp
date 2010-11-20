@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
                 "    anaglyph-half-color  Red/cyan anaglyph, half color method\n"
                 "    anaglyph-dubois      Red/cyan anaglyph, Dubois method\n"
                 "    stereo               OpenGL quad-buffered stereo\n"
-                "    equalizer            Distributed OpenGL using Equalizer\n"
+                "    equalizer            Multi-display OpenGL using Equalizer\n"
                 "  -f|--fullscreen      Fullscreen\n"
                 "  -c|--center          Center window on screen\n"
                 "  -s|--swap-eyes       Swap left/right view\n"        

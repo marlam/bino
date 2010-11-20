@@ -91,7 +91,7 @@ AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
 
 dnl Equalizer
 AC_ARG_WITH([equalizer],
-    [AS_HELP_STRING([--with-equalizer], [Enable distributed rendering via Equalizer (disabled by default)])],
+    [AS_HELP_STRING([--with-equalizer], [Enable multi-display support via Equalizer (disabled by default)])],
     [if test "$withval" = "yes"; then equalizer="yes"; else equalizer="no "; fi], [equalizer="no"])
 if test "$equalizer" = "yes"; then
     PKG_CHECK_MODULES([libEqualizer], [Equalizer = 0.9.2], [HAVE_LIBEQUALIZER=1], [HAVE_LIBEQUALIZER=0])
