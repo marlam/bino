@@ -10,8 +10,8 @@ First, install Equalizer 0.9.1. See <http://www.equalizergraphics.com/>.
 Verify that it works by running the included eqHello example.
 
 Then, build Bino with Equalizer support. You have to use the
-'--with-equalizer' configure option, and additionally tell the configure
-script where to find Equalizer since version 0.9.1 cannot be detected
+'--with-equalizer' configure option and additionally tell the configure
+script where to find Equalizer, since version 0.9.1 cannot be detected
 automatically yet:
 
 $ ./configure --with-equalizer \
@@ -41,8 +41,8 @@ single output channel per window.
 Note that one node is special: the application node, which is the node that
 you initially start (the other nodes are started automatically by Equalizer).
 The application node is called 'appNode' in the Equalizer configuration, and
-Bino will have audio output only on the application node. All video output is
-then synchronized to this audio output.
+Bino will play audio only on the application node. All video output is then
+synchronized to this audio output.
 
 Once you have your configuration file (examples are given below), you can
 check if it works correctly using the eqHello example:
