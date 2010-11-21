@@ -21,7 +21,7 @@ dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 dnl Autotools init stuff
 AC_PREREQ([2.65])
-AC_INIT([bino], [0.4], [marlam@marlam.de], [bino], [http://bino.nongnu.org/])
+AC_INIT([bino], [0.5], [marlam@marlam.de], [bino], [http://bino.nongnu.org/])
 AC_CONFIG_SRCDIR([src/main.cpp])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
