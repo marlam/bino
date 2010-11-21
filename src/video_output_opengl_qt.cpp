@@ -427,8 +427,13 @@ std::vector<std::string> opengl_versions()
 {
     if (opengl_version_vector.size() == 0)
     {
+#ifdef Q_WS_X11
         const char *display = getenv("DISPLAY");
-        if (display && display[0] != '\0')
+        bool have_display = (display && display[0] != '\0');
+#else
+        bool have_display = true;
+#endif
+        if (have_display)
         {
             bool qt_app_owner = init_qt();
             QGLWidget *tmpwidget = new QGLWidget();
