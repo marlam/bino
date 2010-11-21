@@ -802,3 +802,10 @@ void video_output_opengl::prepare(
     }
     _have_valid_data = true;
 }
+
+std::vector<std::string> glew_versions()
+{
+    std::vector<std::string> v;
+    v.push_back(str::asprintf("GLEW %s", reinterpret_cast<const char *>(glewGetString(GLEW_VERSION))));
+    return v;
+}

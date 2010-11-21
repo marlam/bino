@@ -20,6 +20,9 @@
 #ifndef DECODER_FFMPEG_H
 #define DECODER_FFMPEG_H
 
+#include <vector>
+#include <string>
+
 #include "decoder.h"
 
 
@@ -71,5 +74,7 @@ public:
 
     virtual void close();
 };
+
+std::vector<std::string> ffmpeg_versions();
 
 #endif

@@ -20,6 +20,9 @@
 #ifndef VIDEO_OUTPUT_OPENGL_H
 #define VIDEO_OUTPUT_OPENGL_H
 
+#include <vector>
+#include <string>
+
 #include <GL/glew.h>
 
 #include "video_output.h"
@@ -127,5 +130,7 @@ public:
 
     virtual void receive_notification(const notification &note) = 0;
 };
+
+std::vector<std::string> glew_versions();
 
 #endif

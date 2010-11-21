@@ -759,3 +759,18 @@ void decoder_ffmpeg::close()
     delete _stuff;
     _stuff = NULL;
 }
+
+std::vector<std::string> ffmpeg_versions()
+{
+    std::vector<std::string> v;
+    v.push_back(str::asprintf("ffmpeg libavformat %d.%d.%d / %d.%d.%d",
+                LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
+                avformat_version() >> 16, avformat_version() >> 8 & 0xff, avformat_version() & 0xff));
+    v.push_back(str::asprintf("ffmpeg libavcodec %d.%d.%d / %d.%d.%d",
+                LIBAVCODEC_VERSION_MAJOR, LIBAVCODEC_VERSION_MINOR, LIBAVCODEC_VERSION_MICRO,
+                avcodec_version() >> 16, avcodec_version() >> 8 & 0xff, avcodec_version() & 0xff));
+    v.push_back(str::asprintf("ffmpeg libswscale %d.%d.%d / %d.%d.%d",
+                LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO,
+                swscale_version() >> 16, swscale_version() >> 8 & 0xff, swscale_version() & 0xff));
+    return v;
+}

@@ -22,6 +22,7 @@ bino_SOURCES = \
 	player.h player.cpp \
 	player_qt.h player_qt.cpp \
 	qt_app.h qt_app.cpp \
+	lib_versions.h lib_versions.cpp \
 	main.cpp
 
 EXTRA_DIST = \

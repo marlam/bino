@@ -22,6 +22,10 @@
 #include <QCoreApplication>
 #include <QApplication>
 
+#include "qt_app.h"
+
+#include "msg.h"
+
 
 static int qt_argc = 1;
 static const char *qt_argv[2] = { PACKAGE_NAME, NULL };
@@ -52,4 +56,11 @@ void exit_qt()
 int exec_qt()
 {
     return qt_app->exec();
+}
+
+std::vector<std::string> qt_versions()
+{
+    std::vector<std::string> v;
+    v.push_back(std::string("Qt ") + QT_VERSION_STR + " / " + qVersion());
+    return v;
 }

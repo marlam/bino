@@ -1,6 +1,9 @@
 #ifndef PLAYER_EQUALIZER_H
 #define PLAYER_EQUALIZER_H
 
+#include <vector>
+#include <string>
+
 #include "player.h"
 
 
@@ -18,5 +21,7 @@ public:
     virtual void run();
     virtual void close();
 };
+
+std::vector<std::string> equalizer_versions();
 
 #endif

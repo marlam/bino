@@ -34,6 +34,14 @@
 /* This code is adapted from the alffmpeg.c example available here:
  * http://kcat.strangesoft.net/alffmpeg.c (as of 2010-09-12). */
 
+static std::vector<std::string> openal_version_vector;
+
+static void set_openal_version_vector()
+{
+    openal_version_vector.push_back(std::string("OpenAL version ") + static_cast<const char *>(alGetString(AL_VERSION)));
+    openal_version_vector.push_back(std::string("OpenAL renderer ") + static_cast<const char *>(alGetString(AL_RENDERER)));
+    openal_version_vector.push_back(std::string("OpenAL vendor ") + static_cast<const char *>(alGetString(AL_VENDOR)));
+}
 
 const size_t audio_output_openal::_num_buffers = 3;
 const size_t audio_output_openal::_buffer_size = 20160;
@@ -62,6 +70,10 @@ void audio_output_openal::open(int channels, int rate, enum decoder::audio_sampl
         throw exc("no OpenAL context available");
     }
     alcMakeContextCurrent( _context);
+    if (openal_version_vector.size() == 0)
+    {
+        set_openal_version_vector();
+    }
     alGenBuffers(_num_buffers, &(_buffers[0]));
     if (alGetError() != AL_NO_ERROR)
     {
@@ -374,4 +386,34 @@ void audio_output_openal::close()
     alcMakeContextCurrent(NULL);
     alcDestroyContext(_context);
     alcCloseDevice(_device);
+}
+
+std::vector<std::string> openal_versions()
+{
+    if (openal_version_vector.size() == 0)
+    {
+        ALCdevice *device = alcOpenDevice(NULL);
+        if (device)
+        {
+            ALCcontext *context = alcCreateContext(device, NULL);
+            if (context)
+            {
+                alcMakeContextCurrent(context);
+                set_openal_version_vector();
+                alcMakeContextCurrent(NULL);
+                alcDestroyContext(context);
+            }
+            alcCloseDevice(device);
+        }
+    }
+    if (openal_version_vector.size() == 0)
+    {
+        std::vector<std::string> v;
+        v.push_back(std::string("OpenAL unknown"));
+        return v;
+    }
+    else
+    {
+        return openal_version_vector;
+    }
 }

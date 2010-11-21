@@ -892,3 +892,14 @@ void player_equalizer::run()
 void player_equalizer::close()
 {
 }
+
+std::vector<std::string> equalizer_versions()
+{
+    std::vector<std::string> v;
+    v.push_back(str::asprintf("Equalizer %d.%d.%d / %d.%d.%d",
+                EQ_VERSION_MAJOR, EQ_VERSION_MINOR, EQ_VERSION_PATCH,
+                static_cast<int>(eq::Version::getMajor()),
+                static_cast<int>(eq::Version::getMinor()),
+                static_cast<int>(eq::Version::getPatch())));
+    return v;
+}

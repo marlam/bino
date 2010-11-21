@@ -22,6 +22,7 @@
 #include <GL/glew.h>
 
 #include <cmath>
+#include <cstdlib>
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -38,6 +39,15 @@
 #include "video_output_opengl_qt.h"
 
 
+static std::vector<std::string> opengl_version_vector;
+
+static void set_opengl_version_vector()
+{
+    opengl_version_vector.push_back(std::string("OpenGL version ") + reinterpret_cast<const char *>(glGetString(GL_VERSION)));
+    opengl_version_vector.push_back(std::string("OpenGL renderer ") + reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
+    opengl_version_vector.push_back(std::string("OpenGL vendor ") + reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
+}
+
 video_output_opengl_qt_widget::video_output_opengl_qt_widget(
         video_output_opengl_qt *vo, const QGLFormat &format, QWidget *parent)
     : QGLWidget(format, parent), _vo(vo)
@@ -52,6 +62,10 @@ video_output_opengl_qt_widget::~video_output_opengl_qt_widget()
 
 void video_output_opengl_qt_widget::initializeGL()
 {
+    if (opengl_version_vector.size() == 0)
+    {
+        set_opengl_version_vector();
+    }
     try
     {
         GLenum err = glewInit();
@@ -406,5 +420,35 @@ void video_output_opengl_qt::receive_notification(const notification &note)
         break;
     case notification::pos:
         break;
+    }
+}
+
+std::vector<std::string> opengl_versions()
+{
+    if (opengl_version_vector.size() == 0)
+    {
+        const char *display = getenv("DISPLAY");
+        if (display && display[0] != '\0')
+        {
+            bool qt_app_owner = init_qt();
+            QGLWidget *tmpwidget = new QGLWidget();
+            tmpwidget->makeCurrent();
+            set_opengl_version_vector();
+            delete tmpwidget;
+            if (qt_app_owner)
+            {
+                exit_qt();
+            }
+        }
+    }
+    if (opengl_version_vector.size() == 0)
+    {
+        std::vector<std::string> v;
+        v.push_back("OpenGL unknown");
+        return v;
+    }
+    else
+    {
+        return opengl_version_vector;
     }
 }

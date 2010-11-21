@@ -30,6 +30,7 @@
 #if HAVE_LIBEQUALIZER
 # include "player_equalizer.h"
 #endif
+#include "lib_versions.h"
 
 
 int main(int argc, char *argv[])
@@ -116,8 +117,14 @@ int main(int argc, char *argv[])
                 "Copyright (C) 2010  Martin Lambers <marlam@marlam.de>.\n"
                 "This is free software. You may redistribute copies of it under the terms of "
                 "the GNU General Public License.\n"
-                "There is NO WARRANTY, to the extent permitted by law.",
+                "There is NO WARRANTY, to the extent permitted by law.\n"
+                "Libraries used:",
                 PACKAGE_NAME, VERSION, PLATFORM);
+        std::vector<std::string> v = lib_versions();
+        for (size_t i = 0; i < v.size(); i++)
+        {
+            msg::req(v[i]);
+        }
     }
     if (help.value())
     {

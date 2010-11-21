@@ -17,19 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QT_APP_H
-#define QT_APP_H
+#ifndef LIB_VERSIONS_H
+#define LIB_VERSIONS_H
 
 #include <vector>
 #include <string>
 
-/* Initialize Qt. If init_qt() returns true, then the caller is responsible for
- * calling exit_qt() later. If it returns false, then Qt was already
- * initialized elsewhere and the caller must not call exit_qt(). */
-bool init_qt();
-void exit_qt();
-int exec_qt();
-
-std::vector<std::string> qt_versions();
+std::vector<std::string> lib_versions();
 
 #endif

@@ -38,6 +38,7 @@
 #include "player_qt.h"
 #include "qt_app.h"
 #include "video_output_opengl_qt.h"
+#include "lib_versions.h"
 
 
 player_qt_internal::player_qt_internal(video_output_opengl_qt *vo)
@@ -866,15 +867,24 @@ void main_window::help_keyboard()
 
 void main_window::help_about()
 {
-    QMessageBox::about(this, tr("About " PACKAGE_NAME), tr(
-                "<p>%1 version %2</p>"
-                "<p>Copyright (C) 2010 Martin Lambers and others.<br>"
-                "This is free software. You may redistribute copies of it under the terms of "
-                "the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
-                "GNU General Public License</a>.<br>"
-                "There is NO WARRANTY, to the extent permitted by law.</p>"
-                "See <a href=\"%3\">%3</a> for more information on this software.</p>")
-            .arg(PACKAGE_NAME).arg(VERSION).arg(PACKAGE_URL));
+    QString package_blurb = tr(
+            "<p>%1 version %2</p>"
+            "<p>Copyright (C) 2010 Martin Lambers and others.<br>"
+            "This is free software. You may redistribute copies of it under the terms of "
+            "the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
+            "GNU General Public License</a>.<br>"
+            "There is NO WARRANTY, to the extent permitted by law.</p>"
+            "See <a href=\"%3\">%3</a> for more information on this software.</p>")
+        .arg(PACKAGE_NAME).arg(VERSION).arg(PACKAGE_URL);
+    QString libraries_blurb = tr(
+            "<br><p>Libraries used:<br>");
+    std::vector<std::string> libs = lib_versions();
+    for (size_t i = 0; i < libs.size(); i++)
+    {
+        libraries_blurb += QString(libs[i].c_str()) + QString("<br>");
+    }
+    libraries_blurb += QString("</p>");
+    QMessageBox::about(this, tr("About " PACKAGE_NAME), package_blurb + libraries_blurb);
 }
 
 

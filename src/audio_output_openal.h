@@ -23,6 +23,7 @@
 #define AUDIO_OUTPUT_OPENAL_H
 
 #include <vector>
+#include <string>
 #include <stdint.h>
 
 #include <AL/al.h>
@@ -70,5 +71,7 @@ public:
 
     virtual void close();
 };
+
+std::vector<std::string> openal_versions();
 
 #endif
