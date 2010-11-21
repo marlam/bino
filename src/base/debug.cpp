@@ -31,7 +31,9 @@
 # include <cxxabi.h>
 # include <cstring>
 #endif
-#include <signal.h>
+#if HAVE_SIGACTION
+# include <signal.h>
+#endif
 
 #include "msg.h"
 #include "debug.h"
@@ -39,12 +41,14 @@
 
 namespace debug
 {
+#if HAVE_SIGACTION
     static void signal_crash(int signum)
     {
         msg::err("Caught signal %d (%s). Aborting.", signum,
                 (signum == SIGILL ? "SIGILL" : (signum == SIGFPE ? "SIGFPE" : "SIGSEGV")));
         crash();
     }
+#endif
 
     static void exception_crash()
     {
@@ -60,6 +64,7 @@ namespace debug
 
     void init_crashhandler()
     {
+#if HAVE_SIGACTION
         struct sigaction signal_handler;
         signal_handler.sa_handler = signal_crash;
         sigemptyset(&signal_handler.sa_mask);
@@ -67,6 +72,7 @@ namespace debug
         (void)sigaction(SIGILL, &signal_handler, NULL);
         (void)sigaction(SIGFPE, &signal_handler, NULL);
         (void)sigaction(SIGSEGV, &signal_handler, NULL);
+#endif
         std::set_unexpected(exception_crash);
         std::set_terminate(exception_crash);
         std::set_new_handler(oom_abort);

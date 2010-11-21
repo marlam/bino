@@ -26,7 +26,6 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include <ctime>
 #include <stdint.h>
 
 #include "exc.h"
@@ -43,11 +42,6 @@ namespace timer
     };
 
     int64_t get_microseconds(type type);
-
-    inline int64_t to_microseconds(const struct timespec *t) throw ()
-    {
-        return static_cast<int64_t>(t->tv_sec) * 1000000 + t->tv_nsec / 1000;
-    }
 };
 
 #endif

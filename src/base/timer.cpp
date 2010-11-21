@@ -23,6 +23,9 @@
 #ifndef HAVE_CLOCK_GETTIME
 # include <sys/time.h>
 #endif
+#ifdef HAVE_QUERYPERFORMANCECOUNTER
+# include <windows.h>
+#endif
 
 #include "exc.h"
 #include "timer.h"
@@ -53,14 +56,48 @@ int64_t timer::get_microseconds(timer::type t)
                     : "thread CPU")
                 + std::string(" time"), errno);
     }
-    return to_microseconds(&time);
+    return static_cast<int64_t>(time.tv_sec) * 1000000 + time.tv_nsec / 1000;
 
 #else
 
-    // XXX: This ignores the timer type
-    struct timeval tv;
-    int r = gettimeofday(&tv, NULL);
-    return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
+    if (t == realtime
+# ifndef HAVE_QUERYPERFORMANCECOUNTER
+            || t == monotonic)
+# endif
+    {
+        struct timeval tv;
+        int r = gettimeofday(&tv, NULL);
+        if (r != 0)
+        {
+            throw exc(std::string("cannot get ")
+                    + std::string(t == realtime ? "real" : "monotonic")
+                    + std::string(" time"), errno);
+        }
+        return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
+    }
+# ifdef HAVE_QUERYPERFORMANCECOUNTER
+    else if (t == monotonic)
+    {
+        LARGE_INTEGER now, frequency;
+        QueryPerformanceCounter(&now);
+        QueryPerformanceFrequency(&frequency);
+        return (now.QuadPart * 1000000) / frequency.QuadPart;
+    }
+# endif
+    else if (t == process_cpu)
+    {
+        // In W32, clock() starts with zero on program start, so we do not need
+        // to subtract a start value.
+        // XXX: Is this also true on Mac OS X?
+        clock_t c = clock();
+        return (c * static_cast<int64_t>(1000000) / CLOCKS_PER_SEC);
+    }
+    else
+    {
+        throw exc(std::string("cannot get ")
+                + std::string("thread CPU")
+                + std::string(" time"), ENOSYS);
+    }
 
 #endif
 }

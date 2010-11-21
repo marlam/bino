@@ -43,7 +43,7 @@ AC_DEFINE_UNQUOTED([PLATFORM], ["${target}"], [Platform triplet])
 dnl Feature checks needed by the base module
 AC_CHECK_DECLS([optreset], [#include <getopt.h>])
 AC_SEARCH_LIBS([clock_gettime], [rt])
-AC_CHECK_FUNCS([backtrace clock_gettime])
+AC_CHECK_FUNCS([backtrace clock_gettime sigaction vasprintf QueryPerformanceCounter])
 
 dnl ffmpeg
 PKG_CHECK_MODULES([libavformat], [libavformat >= 52.64.2], [HAVE_LIBAVFORMAT=1], [HAVE_LIBAVFORMAT=0])

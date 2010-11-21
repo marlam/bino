@@ -33,6 +33,25 @@
 #include "str.h"
 
 
+#ifndef HAVE_VASPRINTF
+static int vasprintf(char **strp, const char *format, va_list args)
+{
+    /* vasprintf() is only missing on Windows nowadays.
+     * This replacement function only works when the vsnprintf() function is available
+     * and its return value is standards compliant. This is true for the MinGW version
+     * of vsnprintf(), but not for Microsofts version (Visual Studio etc.)!
+     */
+    int length = vsnprintf(NULL, 0, format, args);
+    if (length > std::numeric_limits<int>::max() - 1
+            || !(*strp = static_cast<char *>(malloc(length + 1))))
+    {
+        return -1;
+    }
+    vsnprintf(*strp, length + 1, format, args);
+    return length;
+}
+#endif
+
 /* Convert an unsigned integer to a string.
  * We hide this function so that it cannot be called with invalid arguments. */
 template<typename T>
