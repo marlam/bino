@@ -221,7 +221,7 @@ void input::open(std::vector<decoder *> decoders,
         {
             if ((tag_value = _decoders.at(_video_decoders[0])->tag_value("StereoscopicLayout")))
             {
-                if (std::string(tag_value) == "SideBySideRF")
+                if (std::string(tag_value) == "SideBySideRF" || std::string(tag_value) == "SideBySideLF")
                 {
                     _mode = left_right;
                     if ((tag_value = _decoders.at(_video_decoders[0])->tag_value("StereoscopicHalfWidth"))
@@ -230,25 +230,7 @@ void input::open(std::vector<decoder *> decoders,
                         _mode = left_right_half;
                     }
                 }
-                else if (std::string(tag_value) == "SideBySideLF")
-                {
-                    _mode = left_right;
-                    if ((tag_value = _decoders.at(_video_decoders[0])->tag_value("StereoscopicHalfWidth"))
-                            && std::string(tag_value) == "1")
-                    {
-                        _mode = left_right_half;
-                    }
-                }
-                else if (std::string(tag_value) == "OverUnderRT")
-                {
-                    _mode = top_bottom;
-                    if ((tag_value = _decoders.at(_video_decoders[0])->tag_value("StereoscopicHalfHeight"))
-                            && std::string(tag_value) == "1")
-                    {
-                        _mode = top_bottom_half;
-                    }
-                }
-                else if (std::string(tag_value) == "OverUnderLT")
+                else if (std::string(tag_value) == "OverUnderRT" || std::string(tag_value) == "OverUnderLT")
                 {
                     _mode = top_bottom;
                     if ((tag_value = _decoders.at(_video_decoders[0])->tag_value("StereoscopicHalfHeight"))
