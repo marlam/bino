@@ -172,3 +172,8 @@ enum video_output::mode video_output::mode_from_name(const std::string &name, bo
     }
     return m;
 }
+
+bool video_output::mode_is_2d(enum video_output::mode m)
+{
+    return (m == mono_left || m == mono_right);
+}

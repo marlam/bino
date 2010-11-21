@@ -273,20 +273,22 @@ void in_out_widget::set_output(enum video_output::mode m)
 
 void in_out_widget::input_changed()
 {
-    _settings->beginGroup("Session");
-    if (_input_combobox->currentIndex() == 0)
+    if (input::mode_is_2d(input_mode()) && !video_output::mode_is_2d(video_mode()))
     {
+        _settings->beginGroup("Session");
         QString fallback_mode_name = QString(video_output::mode_name(video_output::mono_left).c_str());
         QString mode_name = _settings->value(QString("2d-output-mode"), fallback_mode_name).toString();
         set_output(video_output::mode_from_name(mode_name.toStdString()));
+        _settings->endGroup();
     }
-    else
+    else if (!input::mode_is_2d(input_mode()) && video_output::mode_is_2d(video_mode()))
     {
+        _settings->beginGroup("Session");
         QString fallback_mode_name = QString(video_output::mode_name(video_output::anaglyph_red_cyan_dubois).c_str());
         QString mode_name = _settings->value(QString("3d-output-mode"), fallback_mode_name).toString();
         set_output(video_output::mode_from_name(mode_name.toStdString()));
+        _settings->endGroup();
     }
-    _settings->endGroup();
 }
 
 void in_out_widget::swap_eyes_changed()

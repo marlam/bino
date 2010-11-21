@@ -63,6 +63,7 @@ public:
     };
     static std::string mode_name(enum mode m);
     static enum mode mode_from_name(const std::string &name, bool *ok = NULL);
+    static bool mode_is_2d(enum mode m);
 
     enum flags
     {

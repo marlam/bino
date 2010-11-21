@@ -119,6 +119,11 @@ enum input::mode input::mode_from_name(const std::string &name, bool *ok)
     return m;
 }
 
+bool input::mode_is_2d(enum input::mode m)
+{
+    return (m == mono);
+}
+
 void input::open(std::vector<decoder *> decoders,
         int video0_decoder, int video0_stream,
         int video1_decoder, int video1_stream,
