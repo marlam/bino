@@ -23,9 +23,6 @@
 #ifndef HAVE_CLOCK_GETTIME
 # include <sys/time.h>
 #endif
-#ifdef HAVE_QUERYPERFORMANCECOUNTER
-# include <windows.h>
-#endif
 
 #include "exc.h"
 #include "timer.h"
@@ -60,10 +57,7 @@ int64_t timer::get_microseconds(timer::type t)
 
 #else
 
-    if (t == realtime
-# ifndef HAVE_QUERYPERFORMANCECOUNTER
-            || t == monotonic)
-# endif
+    if (t == realtime || t == monotonic)
     {
         struct timeval tv;
         int r = gettimeofday(&tv, NULL);
@@ -75,15 +69,6 @@ int64_t timer::get_microseconds(timer::type t)
         }
         return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
     }
-# ifdef HAVE_QUERYPERFORMANCECOUNTER
-    else if (t == monotonic)
-    {
-        LARGE_INTEGER now, frequency;
-        QueryPerformanceCounter(&now);
-        QueryPerformanceFrequency(&frequency);
-        return (now.QuadPart * 1000000) / frequency.QuadPart;
-    }
-# endif
     else if (t == process_cpu)
     {
         // In W32, clock() starts with zero on program start, so we do not need
