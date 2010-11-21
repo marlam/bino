@@ -113,17 +113,18 @@ int main(int argc, char *argv[])
     }
     if (version.value())
     {
-        msg::req_txt("%s version %s on %s\n"
-                "Copyright (C) 2010  Martin Lambers <marlam@marlam.de>.\n"
-                "This is free software. You may redistribute copies of it under the terms of "
-                "the GNU General Public License.\n"
-                "There is NO WARRANTY, to the extent permitted by law.\n"
-                "Libraries used:",
-                PACKAGE_NAME, VERSION, PLATFORM);
+        msg::req("%s version %s", PACKAGE_NAME, VERSION);
+        msg::req("    Copyright (C) 2010 Martin Lambers <marlam@marlam.de>.");
+        msg::req("    This is free software. You may redistribute copies of it");
+        msg::req("    under the terms of the GNU General Public License.");
+        msg::req("    There is NO WARRANTY, to the extent permitted by law.");
+        msg::req("Platform:");
+        msg::req("    %s", PLATFORM);
+        msg::req("Libraries used:");
         std::vector<std::string> v = lib_versions();
         for (size_t i = 0; i < v.size(); i++)
         {
-            msg::req(v[i]);
+            msg::req("    %s", v[i].c_str());
         }
     }
     if (help.value())

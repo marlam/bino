@@ -867,24 +867,24 @@ void main_window::help_keyboard()
 
 void main_window::help_about()
 {
-    QString package_blurb = tr(
+    QString blurb = tr(
             "<p>%1 version %2</p>"
             "<p>Copyright (C) 2010 Martin Lambers and others.<br>"
-            "This is free software. You may redistribute copies of it under the terms of "
-            "the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
+            "This is free software. You may redistribute copies of it<br>"
+            "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
             "GNU General Public License</a>.<br>"
             "There is NO WARRANTY, to the extent permitted by law.</p>"
             "See <a href=\"%3\">%3</a> for more information on this software.</p>")
         .arg(PACKAGE_NAME).arg(VERSION).arg(PACKAGE_URL);
-    QString libraries_blurb = tr(
-            "<br><p>Libraries used:<br>");
+    blurb += tr("<p>Platform:<ul><li>%1</li></ul></p>").arg(PLATFORM);
+    blurb += QString("<p>Libraries used:<ul>");
     std::vector<std::string> libs = lib_versions();
     for (size_t i = 0; i < libs.size(); i++)
     {
-        libraries_blurb += QString(libs[i].c_str()) + QString("<br>");
+        blurb += tr("<li>%1</li>").arg(libs[i].c_str());
     }
-    libraries_blurb += QString("</p>");
-    QMessageBox::about(this, tr("About " PACKAGE_NAME), package_blurb + libraries_blurb);
+    blurb += QString("</ul></p>");
+    QMessageBox::about(this, tr("About " PACKAGE_NAME), blurb);
 }
 
 
