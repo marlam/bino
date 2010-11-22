@@ -746,6 +746,7 @@ void main_window::open(QStringList filenames, bool automatic)
     {
         _init_data.input_mode = input::automatic;
     }
+    _init_data.video_mode = video_output::automatic;
     if (open_player())
     {
         _settings->beginGroup("Video");
