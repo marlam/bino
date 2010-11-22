@@ -745,8 +745,8 @@ void main_window::open(QStringList filenames, bool automatic)
     if (automatic)
     {
         _init_data.input_mode = input::automatic;
+        _init_data.video_mode = video_output::automatic;
     }
-    _init_data.video_mode = video_output::automatic;
     if (open_player())
     {
         _settings->beginGroup("Video");
@@ -763,17 +763,20 @@ void main_window::open(QStringList filenames, bool automatic)
         }
         _settings->endGroup();
         _settings->beginGroup("Session");
-        if (_init_data.input_mode == input::mono)
+        if (automatic)
         {
-            QString fallback_mode_name = QString(video_output::mode_name(video_output::mono_left).c_str());
-            QString mode_name = _settings->value(QString("2d-output-mode"), fallback_mode_name).toString();
-            _init_data.video_mode = video_output::mode_from_name(mode_name.toStdString());
-        }
-        else
-        {
-            QString fallback_mode_name = QString(video_output::mode_name(video_output::anaglyph_red_cyan_dubois).c_str());
-            QString mode_name = _settings->value(QString("3d-output-mode"), fallback_mode_name).toString();
-            _init_data.video_mode = video_output::mode_from_name(mode_name.toStdString());
+            if (_init_data.input_mode == input::mono)
+            {
+                QString fallback_mode_name = QString(video_output::mode_name(video_output::mono_left).c_str());
+                QString mode_name = _settings->value(QString("2d-output-mode"), fallback_mode_name).toString();
+                _init_data.video_mode = video_output::mode_from_name(mode_name.toStdString());
+            }
+            else
+            {
+                QString fallback_mode_name = QString(video_output::mode_name(video_output::anaglyph_red_cyan_dubois).c_str());
+                QString mode_name = _settings->value(QString("3d-output-mode"), fallback_mode_name).toString();
+                _init_data.video_mode = video_output::mode_from_name(mode_name.toStdString());
+            }
         }
         _settings->endGroup();
         _in_out_widget->update(_init_data, true, false);
