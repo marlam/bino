@@ -778,6 +778,10 @@ void main_window::open(QStringList filenames, bool automatic)
                 _init_data.video_mode = video_output::mode_from_name(mode_name.toStdString());
             }
         }
+        else
+        {
+            _init_data.video_mode = _player->video_mode();
+        }
         _settings->endGroup();
         _in_out_widget->update(_init_data, true, false);
         _controls_widget->update(_init_data, true, false);
