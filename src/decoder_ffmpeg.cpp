@@ -630,7 +630,7 @@ int64_t decoder_ffmpeg::read_audio_data(int audio_stream, void *buffer, size_t s
             while (tmppacket.size > 0)
             {
                 int tmpbuf_size = (AVCODEC_MAX_AUDIO_FRAME_SIZE * 3) / 2;
-                std::vector<unsigned char> tmpbuf(tmpbuf_size);
+                unsigned char *tmpbuf = static_cast<unsigned char *>(av_malloc(tmpbuf_size));
                 int len = avcodec_decode_audio3(_stuff->audio_codec_ctxs[audio_stream],
                         reinterpret_cast<int16_t *>(&(tmpbuf[0])), &tmpbuf_size, &tmppacket);
                 if (len < 0)
@@ -645,9 +645,10 @@ int64_t decoder_ffmpeg::read_audio_data(int audio_stream, void *buffer, size_t s
                     continue;
                 }
                 // Put it in the decoded audio data buffer
-                _stuff->audio_buffers[audio_stream].insert(
-                        _stuff->audio_buffers[audio_stream].end(),
-                        tmpbuf.begin(), tmpbuf.begin() + tmpbuf_size);
+                size_t old_size = _stuff->audio_buffers[audio_stream].size();
+                _stuff->audio_buffers[audio_stream].resize(old_size + tmpbuf_size);
+                memcpy(&(_stuff->audio_buffers[audio_stream][old_size]), tmpbuf, tmpbuf_size);
+                av_free(tmpbuf);
             }
             
             av_free_packet(&packet);
