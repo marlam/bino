@@ -629,6 +629,8 @@ int64_t decoder_ffmpeg::read_audio_data(int audio_stream, void *buffer, size_t s
             tmppacket = packet;
             while (tmppacket.size > 0)
             {
+                // Manage tmpbuf with av_malloc/av_free, to guarantee correct alignment.
+                // Not doing this results in hard to debug crashes on some systems.
                 int tmpbuf_size = (AVCODEC_MAX_AUDIO_FRAME_SIZE * 3) / 2;
                 unsigned char *tmpbuf = static_cast<unsigned char *>(av_malloc(tmpbuf_size));
                 int len = avcodec_decode_audio3(_stuff->audio_codec_ctxs[audio_stream],
