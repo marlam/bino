@@ -19,13 +19,10 @@
 
 #include "config.h"
 
-#ifdef HAVE_LIBEQUALIZER
-#  define GLEW_MX
-#  include <GL/glew.h>
+#include <GL/glew.h>
+#ifdef GLEW_MX
 static GLEWContext _glewContext;
 static GLEWContext* glewGetContext() { return &_glewContext; }
-#else
-#  include <GL/glew.h>
 #endif
 
 #include <cmath>

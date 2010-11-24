@@ -67,14 +67,6 @@ if test "$HAVE_LIBOPENAL" != "1"; then
     AC_MSG_WARN([libopenal is provided by OpenAL; Debian package: libopenal-dev])
 fi
 
-dnl glew
-PKG_CHECK_MODULES([libglew], [glew >= 1.5.0], [HAVE_LIBGLEW=1], [HAVE_LIBGLEW=0])
-if test "$HAVE_LIBGLEW" != "1"; then
-    AC_MSG_WARN([library libglew >= 1.5.0 not found:])
-    AC_MSG_WARN([$libglew_PKG_ERRORS])
-    AC_MSG_WARN([libglew is provided by glew; Debian package: libglew-dev])
-fi
-
 dnl Qt
 PKG_CHECK_MODULES([libqtopengl], [QtOpenGL >= 0.0], [HAVE_LIBQTOPENGL=1], [HAVE_LIBQTOPENGL=0])
 if test "$HAVE_LIBQTOPENGL" != "1"; then
@@ -90,6 +82,7 @@ AC_ARG_VAR([MOC], [moc command])
 AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
 
 dnl Equalizer
+dnl We assume that Equalizer includes GLEW. If we don't use Equalizer, we need GLEW separately.
 AC_ARG_WITH([equalizer],
     [AS_HELP_STRING([--with-equalizer], [Enable multi-display support via Equalizer (disabled by default)])],
     [if test "$withval" = "yes"; then equalizer="yes"; else equalizer="no "; fi], [equalizer="no"])
@@ -102,6 +95,13 @@ if test "$equalizer" = "yes"; then
     fi
 else
     HAVE_LIBEQUALIZER=0
+    dnl glew
+    PKG_CHECK_MODULES([libglew], [glew >= 1.5.0], [HAVE_LIBGLEW=1], [HAVE_LIBGLEW=0])
+    if test "$HAVE_LIBGLEW" != "1"; then
+        AC_MSG_WARN([library libglew >= 1.5.0 not found:])
+        AC_MSG_WARN([$libglew_PKG_ERRORS])
+        AC_MSG_WARN([libglew is provided by glew; Debian package: libglew-dev])
+    fi
 fi
 AC_DEFINE_UNQUOTED([HAVE_LIBEQUALIZER], [$HAVE_LIBEQUALIZER], [Have Equalizer?])
 AM_CONDITIONAL([HAVE_LIBEQUALIZER], [test "$HAVE_LIBEQUALIZER" = "1"])
@@ -110,9 +110,9 @@ dnl Check if all libraries were found
 if test "$HAVE_LIBAVFORMAT" != "1" \
     -o "$HAVE_LIBSWSCALE" != "1" \
     -o "$HAVE_LIBOPENAL" != "1" \
-    -o "$HAVE_LIBGLEW" != "1" \
     -o "$HAVE_LIBQTOPENGL" != "1" \
-    -o \( "$equalizer" = "yes" -a "$HAVE_LIBEQUALIZER" != "1" \) ; then
+    -o \( "$equalizer" = "yes" -a "$HAVE_LIBEQUALIZER" != "1" \) \
+    -o \( "$HAVE_LIBEQUALIZER" != "1" -a "$HAVE_LIBGLEW" != "1" \) ; then
     AC_MSG_ERROR([One or more libraries were not found. See messages above.])
 fi
 

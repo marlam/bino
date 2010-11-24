@@ -60,8 +60,11 @@ bino_LDADD = $(top_builddir)/src/base/libbase.a \
 
 if HAVE_LIBEQUALIZER
 bino_SOURCES += player_equalizer.h player_equalizer.cpp
-AM_CPPFLAGS += $(libEqualizer_CFLAGS)
+AM_CPPFLAGS += $(libEqualizer_CFLAGS) -DGLEW_MX
 bino_LDADD += $(libEqualizer_LIBS)
+else
+AM_CPPFLAGS += $(libglew_CFLAGS)
+bino_LDADD += $(libglew_LIBS)
 endif
 
 moc_verbose = $(moc_verbose_$(V))
