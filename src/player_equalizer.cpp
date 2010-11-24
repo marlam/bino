@@ -11,6 +11,20 @@
 #include "video_output_opengl.h"
 #include "player_equalizer.h"
 
+namespace eqs11n
+{
+static void save(std::ostream &os, const eq::base::uint128_t &x)
+{
+    s11n::save( os, x.high( ));
+    s11n::save( os, x.low( ));
+}
+
+static void load(std::istream &is, eq::base::uint128_t &x)
+{
+    s11n::load( is, x.high( ));
+    s11n::load( is, x.low( ));
+}
+}
 
 /*
  * Every eq::Node has a special player: player_eq_node.
@@ -178,11 +192,11 @@ public:
 class eq_init_data : public eq::net::Object
 {
 public:
-    uint32_t frame_data_id;
+    eq::uint128_t frame_data_id;
     player_init_data init_data;
     struct { float x, y, w, h; } canvas_video_area;
 
-    eq_init_data() : frame_data_id(EQ_ID_INVALID), init_data()
+    eq_init_data() : init_data()
     {
         canvas_video_area.x = 0.0f;
         canvas_video_area.y = 0.0f;
@@ -204,7 +218,7 @@ protected:
     virtual void getInstanceData(eq::net::DataOStream &os)
     {
         std::ostringstream oss;
-        s11n::save(oss, frame_data_id);
+        eqs11n::save(oss, frame_data_id);
         s11n::save(oss, static_cast<int>(init_data.log_level));
         s11n::save(oss, init_data.filenames);
         s11n::save(oss, static_cast<int>(init_data.input_mode));
@@ -229,7 +243,7 @@ protected:
         std::string s;
         is >> s;
         std::istringstream iss(s);
-        s11n::load(iss, frame_data_id);
+        eqs11n::load(iss, frame_data_id);
         s11n::load(iss, x);
         init_data.log_level = static_cast<msg::level_t>(x);
         s11n::load(iss, init_data.filenames);
@@ -422,7 +436,7 @@ public:
         // Update the video state for all (it might have changed via handleEvent())
         _eq_frame_data.video_state = _player.eq_video_state();
         // Commit the updated frame data
-        const uint32_t version = _eq_frame_data.commit();
+        const eq::uint128_t version = _eq_frame_data.commit();
         // Start this frame with the committed frame data
         return eq::Config::startFrame(version);
     }
@@ -532,7 +546,7 @@ public:
     }
 
 protected:
-    virtual bool configInit(const uint32_t initID)
+    virtual bool configInit(const eq::uint128_t& initID)
     {
         if (!eq::Node::configInit(initID))
         {
@@ -590,7 +604,7 @@ protected:
         return eq::Node::configExit();
     }
 
-    virtual void frameStart(const uint32_t frameID, const uint32_t frameNumber)
+    virtual void frameStart(const eq::uint128_t& frameID, const uint32_t frameNumber)
     {
         // Update our frame data
         frame_data.sync(frameID);
@@ -627,7 +641,7 @@ protected:
         startFrame(frameNumber);
     }
 
-    virtual void frameFinish(const uint32_t, const uint32_t frameNumber)
+    virtual void frameFinish(const eq::uint128_t&, const uint32_t frameNumber)
     {
         // Do as we're told
         if (_is_app_node)
@@ -700,7 +714,7 @@ public:
     }
 
 protected:
-    virtual bool configInitGL(const uint32_t initID)
+    virtual bool configInitGL(const eq::uint128_t& initID)
     {
         msg::dbg(HERE);
         if (!eq::Window::configInitGL(initID))
@@ -735,7 +749,7 @@ protected:
         return eq::Window::configExitGL();
     }
 
-    virtual void frameStart(const uint32_t, const uint32_t frameNumber)
+    virtual void frameStart(const eq::uint128_t&, const uint32_t frameNumber)
     {
         // Get frame data via from the node
         eq_node *node = static_cast<eq_node *>(getNode());
@@ -754,7 +768,7 @@ protected:
         startFrame(frameNumber);
     }
 
-    virtual void frameFinish(const uint32_t, const uint32_t frameNumber)
+    virtual void frameFinish(const eq::uint128_t&, const uint32_t frameNumber)
     {
         releaseFrame(frameNumber);
     }
@@ -774,7 +788,7 @@ public:
     }
 
 protected:
-    virtual void frameDraw(const uint32_t frameID)
+    virtual void frameDraw(const eq::uint128_t& frameID)
     {
         // Let Equalizer initialize some stuff
         eq::Channel::frameDraw(frameID);
