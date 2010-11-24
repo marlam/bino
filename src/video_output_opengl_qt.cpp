@@ -20,6 +20,10 @@
 #include "config.h"
 
 #include <GL/glew.h>
+#ifdef GLEW_MX
+static GLEWContext _glewContext;
+static GLEWContext* glewGetContext() { return &_glewContext; }
+#endif
 
 #include <cmath>
 #include <cstdlib>
