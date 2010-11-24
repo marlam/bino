@@ -11,6 +11,6 @@ openal) from MacPorts using the universal variant:
 Use the following configure options to select the proper frameworks and
 architecture:
 
-# ./configure --with-equalizer libEqualizer_CFLAGS="-IPATH_TO_EQUALIZER/src/debug/install/include" libEqualizer_LIBS="-LPATH_TO_EQUALIZER/src/debug/install/lib -lEqualizer" libopenal_LIBS="-L/opt/local/lib -framework OpenAL" libopenal_CFLAGS="-framework OpenAL" CFLAGS="-arch i386" CXXFLAGS="-arch i386"
+# ./configure --with-equalizer libEqualizer_CFLAGS="-I<EQ_DIR>/include" libEqualizer_LIBS="-L<EQ_DIR>/lib -lEqualizer" libopenal_LIBS="-L/opt/local/lib -framework OpenAL" libopenal_CFLAGS="-framework OpenAL" CXXFLAGS="-I/usr/X11R6/include" libglew_CFLAGS="-I<EQ_DIR>/include" libglew_LIBS="-L<EQ_DIR>/lib -lEqualizer"
 
 Stefan Eilemann <eile@eyescale.ch>, 22/Nov/2010
