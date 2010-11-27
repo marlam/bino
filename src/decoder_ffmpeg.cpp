@@ -695,6 +695,8 @@ void decoder_ffmpeg::seek(int64_t dest_pos)
         {
             _stuff->audio_flush_flags[i] = true;
         }
+        /* The next read request must update the position */
+        _stuff->pos = std::numeric_limits<int64_t>::min();
     }
 }
 
