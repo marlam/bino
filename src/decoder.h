@@ -32,6 +32,9 @@ protected:
     std::vector<std::string> _tag_values;
 
 public:
+
+    /* The video frame format */
+
     enum video_frame_format
     {
         frame_format_yuv420p,    // 3 planes for Y, U, V, with one U and V value per 4 Y values
@@ -39,6 +42,8 @@ public:
     };
 
     static std::string video_frame_format_name(enum video_frame_format f);
+
+    /* The audio sample format */
 
     enum audio_sample_format
     {
@@ -50,6 +55,8 @@ public:
 
     static std::string audio_sample_format_name(enum audio_sample_format f);
     static int audio_sample_format_bits(enum audio_sample_format f);
+
+    /* Constructor, Destructor */
 
     decoder() throw ();
     ~decoder();
@@ -86,10 +93,10 @@ public:
     virtual int64_t audio_duration(int video_stream) const throw () = 0;        // microseconds
 
     /* Get metadata */
-    virtual size_t tags() const;
-    const char *tag_name(size_t i) const;
-    const char *tag_value(size_t i) const;
-    const char *tag_value(const char *tag_name) const;    
+    virtual size_t tags() const;                        // number of metadata tags
+    const char *tag_name(size_t i) const;               // get name of given tag
+    const char *tag_value(size_t i) const;              // get value of given tag
+    const char *tag_value(const char *tag_name) const;  // get value of tag with the given name (returns NULL if no such tag exists)
 
     /*
      * Access video and audio data
@@ -101,10 +108,9 @@ public:
      * After reading a frame, you may call get_video_frame(), and you must call release_video_frame(). */
     virtual int64_t read_video_frame(int video_stream) = 0;
     /* Decode the video frame from the internal buffer and transform it into a fixed format.
-     * The image will be in the requested format. A pointer to each resulting plane data will
-     * be returned in 'data'. The total size in bytes of one frame line will be returned in
-     * 'line_size' for each plane. This may be larger than the size of one line for alignment
-     * reasons. */
+     * A pointer to each resulting plane data will be returned in 'data'. The total size in
+     * bytes of one frame line will be returned in 'line_size' for each plane. This may be
+     * larger than the size of one line for alignment reasons. */
     virtual void get_video_frame(int video_stream, enum video_frame_format fmt,
             uint8_t *data[3], size_t line_size[3]) = 0;
     /* Release the video frame from the internal buffer. Can be called after get_video_frame(),
@@ -118,10 +124,6 @@ public:
      * by the audio output because it depends on software and hardware buffering.
      * A negative time stamp means that the end of the stream was reached. */
     virtual int64_t read_audio_data(int audio_stream, void *buffer, size_t size) = 0;
-
-    /*
-     * Seek
-     */
 
     /* Seek to the given position in microseconds. Make sure that the position is not out
      * of range. Seeking affects all active video and audio streams.

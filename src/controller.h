@@ -23,6 +23,21 @@
 #include <string>
 
 
+/* A controller can send commands to the player (e.g. "pause", "seek",
+ * "adjust colors", ...). The player then reacts on this command, and sends
+ * a notification to all controllers afterwards. The controllers may react
+ * on the notification or ignore it.
+ *
+ * For example, the video output controller may notice that the user pressed the
+ * 'p' key to pause the video. So it sends the "pause" command to the player.
+ * The player updates its state accordingly, and notifies all controllers that
+ * the video is now paused. The video output could use this notification to display
+ * a pause symbol on screen, and the audio output controller may play a pause jingle
+ * (however, in the case of pause, both currently simply ignore the notification).
+ */
+
+// A command that can be sent to the player by a controller.
+
 class command
 {
 public:
@@ -54,6 +69,8 @@ public:
         param = p;
     }
 };
+
+// A notification that can be sent to controllers by the player.
 
 class notification
 {
@@ -104,22 +121,23 @@ public:
     }
 };
 
+// The controller interface.
+
 class controller
 {
 public:
+    /* A controller usually receives notifications, but may choose not to, e.g. when it
+     * never will react on any notification anyway. */
     controller(bool receive_notifications = true) throw ();
     ~controller();
 
-    /* A controller can use this function to send a command to the player.
-     * The player then reacts on the command, and possibly sends a notification
-     * afterwards. */
+    /* Send a command to the player. */
     void send_cmd(const command &cmd);
     void send_cmd(enum command::type t) { send_cmd(command(t)); }                    // convenience wrapper
     void send_cmd(enum command::type t, float p) { send_cmd(command(t, p)); }        // convenience wrapper
 
-    /* A controller can use this function to receive a notification from the
-     * player. This can be used e.g. to update a GUI or on screen display.
-     * The default implementation simply ignores the notification. */
+    /* Receive notifications via this function. The default implementation
+     * simply ignores the notification. */
     virtual void receive_notification(const notification &note);
 };
 

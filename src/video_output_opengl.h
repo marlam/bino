@@ -28,6 +28,8 @@
 #include "video_output.h"
 
 
+/* See video_output.h for API documentation */
+
 class video_output_opengl : public video_output
 {
 private:
