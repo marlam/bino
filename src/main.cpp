@@ -2,6 +2,7 @@
  * This file is part of bino, a program to play stereoscopic videos.
  *
  * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ *               2010 Stefan Eilemann <eile@eyescale.ch>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,6 +87,7 @@ int main(int argc, char *argv[])
     video_output_modes.push_back("anaglyph-dubois");
     video_output_modes.push_back("stereo");
     video_output_modes.push_back("equalizer");
+    video_output_modes.push_back("equalizer3D");
     opt::val<std::string> video_output_mode("output", 'o', opt::optional, video_output_modes, "");
     options.push_back(&video_output_mode);
     opt::flag fullscreen("fullscreen", 'f', opt::optional);
@@ -163,7 +165,8 @@ int main(int argc, char *argv[])
                 "    anaglyph-half-color  Red/cyan anaglyph, half color method\n"
                 "    anaglyph-dubois      Red/cyan anaglyph, Dubois method\n"
                 "    stereo               OpenGL quad-buffered stereo\n"
-                "    equalizer            Multi-display OpenGL using Equalizer\n"
+                "    equalizer            Multi-display OpenGL using Equalizer with a 2D canvas setup\n"
+                "    equalizer3D          Multi-display OpenGL using Equalizer with a 3D screen setup\n"
                 "  -f|--fullscreen      Fullscreen\n"
                 "  -c|--center          Center window on screen\n"
                 "  -s|--swap-eyes       Swap left/right view\n"        
@@ -193,7 +196,7 @@ int main(int argc, char *argv[])
     {
         try
         {
-            player_equalizer *player = new player_equalizer(&argc, argv);
+            player_equalizer *player = new player_equalizer(&argc, argv, true);
             delete player;
         }
         catch (std::exception &e)
@@ -206,6 +209,7 @@ int main(int argc, char *argv[])
 #endif
 
     bool equalizer = false;
+    bool equalizerFlatScreen = true;
     player_init_data init_data;
     init_data.log_level = msg::level();
     if (log_level.value() == "debug")
@@ -248,6 +252,12 @@ int main(int argc, char *argv[])
         equalizer = true;
         init_data.video_mode = video_output::mono_left;
     }
+    else if (video_output_mode.value() == "equalizer3D")
+    {
+        equalizer = true;
+        equalizerFlatScreen = false;
+        init_data.video_mode = video_output::mono_left;
+    }
     else if (video_output_mode.value() == "")
     {
         init_data.video_mode = video_output::automatic;
@@ -276,7 +286,7 @@ int main(int argc, char *argv[])
         if (equalizer)
         {
 #if HAVE_LIBEQUALIZER
-            player = new class player_equalizer(&argc, argv);
+            player = new class player_equalizer(&argc, argv, equalizerFlatScreen);
 #else
             throw exc("this version of Bino was compiled without support for Equalizer");
 #endif

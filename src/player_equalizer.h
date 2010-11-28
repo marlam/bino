@@ -14,7 +14,7 @@ private:
     void *_config;
 
 public:
-    player_equalizer(int *argc, char *argv[]);
+    player_equalizer(int *argc, char *argv[], const bool flat_screen);
     ~player_equalizer();
 
     virtual void open(const player_init_data &init_data);
