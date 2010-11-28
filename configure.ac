@@ -58,6 +58,7 @@ if test "$HAVE_LIBSWSCALE" != "1"; then
     AC_MSG_WARN([$libswscale_PKG_ERRORS])
     AC_MSG_WARN([libswscale is provided by ffmpeg; Debian package: libswscale-dev])
 fi
+AC_CHECK_FUNCS([sysconf])
 
 dnl OpenAL
 PKG_CHECK_MODULES([libopenal], [openal >= 0.0], [HAVE_LIBOPENAL=1], [HAVE_LIBOPENAL=0])
