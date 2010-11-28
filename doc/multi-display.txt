@@ -59,6 +59,13 @@ using ffserver (part of ffmpeg) or vlc, and then give the appropriate URL to
 Bino. You can use multicast to stream the video to multiple systems
 efficiently.
 
+The ouput mode '-o equalizer3D' allows to configure non-planar projections.
+Bino projects the video onto a virtual screen in 3D space. The screen is
+located 1m from the origin, is 1m high and <aspect_ratio> meters wide.
+By configuring the output segments accordingly, various advanced display
+configurations can be used, e.g., displays rotated around the Z axis by
+an arbitrary angle or non-planar screens.
+
 
 Example Configurations
 ======================
