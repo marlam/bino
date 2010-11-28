@@ -218,10 +218,15 @@ class eq_init_data : public eq::net::Object
 public:
     eq::uint128_t frame_data_id;
     player_init_data init_data;
+<<<<<<< HEAD
     bool flat_screen;
     struct { float x, y, w, h, d; } canvas_video_area;
+=======
+    struct { float x, y, w, h; } canvas_video_area;
+    bool flat_screen;
+>>>>>>> Add 3D output screen mode
 
-    eq_init_data() : init_data()
+    eq_init_data() : init_data(), flat_screen( true )
     {
         flat_screen = true;
         canvas_video_area.x = 0.0f;
@@ -262,7 +267,11 @@ protected:
         s11n::save(oss, canvas_video_area.y);
         s11n::save(oss, canvas_video_area.w);
         s11n::save(oss, canvas_video_area.h);
+<<<<<<< HEAD
         s11n::save(oss, canvas_video_area.d);
+=======
+        s11n::save(oss, flat_screen);
+>>>>>>> Add 3D output screen mode
         os << oss.str();
     }
 
@@ -292,7 +301,11 @@ protected:
         s11n::load(iss, canvas_video_area.y);
         s11n::load(iss, canvas_video_area.w);
         s11n::load(iss, canvas_video_area.h);
+<<<<<<< HEAD
         s11n::load(iss, canvas_video_area.d);
+=======
+        s11n::load(iss, flat_screen);
+>>>>>>> Add 3D output screen mode
     }
 };
 
@@ -373,6 +386,7 @@ public:
     // Source video properties:
     int src_width, src_height;
     float src_aspect_ratio;
+    bool flat_screen;
     enum decoder::video_frame_format src_preferred_frame_format;
 
 public:
@@ -417,7 +431,11 @@ public:
         _eq_init_data.canvas_video_area.w = 1.0f;
         _eq_init_data.canvas_video_area.h = 1.0f;
 
+<<<<<<< HEAD
         if (flat_screen)
+=======
+        if( flat_screen )
+>>>>>>> Add 3D output screen mode
         {
             if (src_aspect_ratio > canvas_aspect_ratio)
             {
@@ -434,11 +452,18 @@ public:
         }
         else
         {
+<<<<<<< HEAD
             compute_3d_canvas(&_eq_init_data.canvas_video_area.h, &_eq_init_data.canvas_video_area.d);
             // compute width and offset for 1m high 'screen' quad in 3D space
             _eq_init_data.canvas_video_area.w = _eq_init_data.canvas_video_area.h * src_aspect_ratio;
             _eq_init_data.canvas_video_area.x = -0.5f * _eq_init_data.canvas_video_area.w;
             _eq_init_data.canvas_video_area.y = -0.5f * _eq_init_data.canvas_video_area.h;
+=======
+            // compute width and offset for 1m high 'screen' quad in 3D space
+            _eq_init_data.canvas_video_area.w = float( src_width ) / float( src_height );
+            _eq_init_data.canvas_video_area.x = -.5f * _eq_init_data.canvas_video_area.w;
+            _eq_init_data.canvas_video_area.y = -.5f;
+>>>>>>> Add 3D output screen mode
         }
         msg::inf("equalizer canvas:");
         msg::inf("    %gx%g, aspect ratio %g:1", canvas_w, canvas_h, canvas_w / canvas_h);
@@ -846,9 +871,18 @@ protected:
         // Disable some things that Equalizer seems to enable for some reason.
         glDisable(GL_LIGHTING);
 
+<<<<<<< HEAD
         eq_node *node = static_cast<eq_node *>(getNode());
         _video_output.eq_initialize(node->src_width, node->src_height,
                 node->src_aspect_ratio, node->src_preferred_frame_format);
+=======
+        bool have_pixel_buffer_object = GLEW_ARB_pixel_buffer_object;
+        bool have_texture_non_power_of_two = GLEW_ARB_texture_non_power_of_two;
+        bool have_fragment_shader = GLEW_ARB_fragment_shader;
+
+        _video_output.eq_initialize(node->src_width, node->src_height, node->src_aspect_ratio, node->src_preferred_frame_format,
+                have_pixel_buffer_object, have_texture_non_power_of_two, have_fragment_shader);
+>>>>>>> Add 3D output screen mode
 
         msg::dbg(HERE);
         return true;
@@ -905,6 +939,7 @@ protected:
     {
         // Let Equalizer initialize some stuff
         eq::Channel::frameDraw(frameID);
+
         // Get the canvas video area and the canvas channel area
         eq_node *node = static_cast<eq_node *>(getNode());
         const struct { float x, y, w, h, d; } canvas_video_area =
@@ -921,23 +956,41 @@ protected:
         float quad_y = canvas_video_area.y;
         float quad_w = canvas_video_area.w;
         float quad_h = canvas_video_area.h;
+<<<<<<< HEAD
         if (node->init_data.flat_screen)
         {
             quad_x = ((quad_x - canvas_channel_area.x) / canvas_channel_area.w - 0.5f) * 2.0f;
             quad_y = ((quad_y - canvas_channel_area.y) / canvas_channel_area.h - 0.5f) * 2.0f;
             quad_w = 2.0f * quad_w / canvas_channel_area.w;
             quad_h = 2.0f * quad_h / canvas_channel_area.h;
+=======
+        if( node->init_data.flat_screen )
+        {
+            quad_x = ((quad_x - canvas_channel_area.x) / canvas_channel_area.w - 0.5) * 2.0f;
+            quad_y = ((quad_y - canvas_channel_area.y) / canvas_channel_area.h - 0.5) * 2.0f;
+            quad_w = 2.0f * quad_w / canvas_channel_area.w;
+            quad_h = 2.0f * quad_h / canvas_channel_area.h;
+
+>>>>>>> Add 3D output screen mode
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
         }
         else
+<<<<<<< HEAD
         {
             glTranslatef(0.0f, 0.0f, -canvas_video_area.d);
         }
 
         // Display
+=======
+            glTranslatef( 0.f, 0.f, -1.f ); // default Eq wall is in 1m distance
+
+        // Display
+        glEnable(GL_TEXTURE_2D);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+>>>>>>> Add 3D output screen mode
         eq_window *window = static_cast<eq_window *>(getWindow());
         bool toggle_swap_eyes = (getEye() == eq::EYE_RIGHT);
         window->display(toggle_swap_eyes, quad_x, quad_y, quad_w, quad_h);
@@ -981,8 +1034,13 @@ public:
  * player_equalizer
  */
 
+<<<<<<< HEAD
 player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen)
     : player(player::slave), _flat_screen(flat_screen)
+=======
+player_equalizer::player_equalizer(int *argc, char *argv[], const bool flat_screen)
+    : player(player::slave)
+>>>>>>> Add 3D output screen mode
 {
     /* Initialize Equalizer */
     _node_factory = static_cast<void *>(new eq_node_factory);
@@ -998,6 +1056,7 @@ player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen)
     {
         throw exc("cannot get equalizer configuration");
     }
+    static_cast<eq_config *>(_config)->flat_screen = flat_screen;
 }
 
 player_equalizer::~player_equalizer()

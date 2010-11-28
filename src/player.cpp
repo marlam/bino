@@ -415,7 +415,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             if (-time_to_next_frame > _input->video_frame_duration() * 75 / 100 && !_benchmark)
             {
                 msg::wrn("video: delay %g seconds; dropping next frame", (-time_to_next_frame) / 1e6f);
-                _drop_next_frame = true;
+                //_drop_next_frame = true;
             }
             if (!_previous_frame_dropped)
             {
