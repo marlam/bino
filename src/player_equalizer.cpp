@@ -214,7 +214,7 @@ class eq_init_data : public eq::net::Object
 public:
     eq::uint128_t frame_data_id;
     player_init_data init_data;
-    struct { float x, y, w, h; } canvas_video_area;
+    struct { float x, y, w, h, d; } canvas_video_area;
     bool flat_screen;
 
     eq_init_data() : init_data(), flat_screen( true )
@@ -223,6 +223,7 @@ public:
         canvas_video_area.y = 0.0f;
         canvas_video_area.w = 1.0f;
         canvas_video_area.h = 1.0f;
+        canvas_video_area.d = 1.0f;
     }
 
     ~eq_init_data()
@@ -255,6 +256,7 @@ protected:
         s11n::save(oss, canvas_video_area.y);
         s11n::save(oss, canvas_video_area.w);
         s11n::save(oss, canvas_video_area.h);
+        s11n::save(oss, canvas_video_area.d);
         s11n::save(oss, flat_screen);
         os << oss.str();
     }
@@ -284,6 +286,7 @@ protected:
         s11n::load(iss, canvas_video_area.y);
         s11n::load(iss, canvas_video_area.w);
         s11n::load(iss, canvas_video_area.h);
+        s11n::load(iss, canvas_video_area.d);
         s11n::load(iss, flat_screen);
     }
 };
@@ -427,16 +430,19 @@ public:
         }
         else
         {
+            _compute_3D_canvas( _eq_init_data.canvas_video_area.h,
+                                _eq_init_data.canvas_video_area.d );
             // compute width and offset for 1m high 'screen' quad in 3D space
-            _eq_init_data.canvas_video_area.w = float( src_width ) / float( src_height );
+            _eq_init_data.canvas_video_area.w = _eq_init_data.canvas_video_area.h * float( src_width ) / float( src_height );
             _eq_init_data.canvas_video_area.x = -.5f * _eq_init_data.canvas_video_area.w;
-            _eq_init_data.canvas_video_area.y = -.5f;
+            _eq_init_data.canvas_video_area.y = -.5f * _eq_init_data.canvas_video_area.h;
         }
         msg::inf("equalizer canvas:");
         msg::inf("    %gx%g, aspect ratio %g:1", canvas_w, canvas_h, canvas_w / canvas_h);
-        msg::inf("    area for %g:1 video: [ %g %g %g %g ]", src_aspect_ratio,
+        msg::inf("    area for %g:1 video: [ %g %g %g %g @ %g ]", src_aspect_ratio,
                 _eq_init_data.canvas_video_area.x, _eq_init_data.canvas_video_area.y,
-                _eq_init_data.canvas_video_area.w, _eq_init_data.canvas_video_area.h);
+                _eq_init_data.canvas_video_area.w, _eq_init_data.canvas_video_area.h,
+                 _eq_init_data.canvas_video_area.d);
         // Register master instances
         registerObject(&_eq_frame_data);
         _eq_init_data.frame_data_id = _eq_frame_data.getID();
@@ -553,6 +559,61 @@ public:
     player_eq_node *player()
     {
         return &_player;
+    }
+
+private:
+    float _compute_3D_canvas( float& height, float& distance )
+    {
+        float angle = -1.f;
+        height = 0.f;
+        distance = 0.f;
+        
+        const eq::Canvases& canvases = getCanvases();
+        for( eq::Canvases::const_iterator i = canvases.begin(); i != canvases.end(); ++i )
+        {
+            const eq::Segments& segments = (*i)->getSegments();
+            for( eq::Segments::const_iterator j = segments.begin(); j != segments.end(); ++j )
+            {
+                const eq::Segment* segment = *j;
+                eq::Wall wall = segment->getWall();
+                const eq::Vector3f u = wall.bottomRight - wall.bottomLeft;
+                const eq::Vector3f v = wall.topLeft - wall.bottomLeft;
+                eq::Vector3f w = u.cross( v );
+                w.normalize();
+
+                const eq::Vector3f dot = w.dot( eq::Vector3f::FORWARD );
+                const float val = dot.squared_length();
+                if( val < angle ) // facing more away then previous segment
+                    continue;
+
+                // transform wall to full canvas
+                eq::Viewport vp = eq::Viewport::FULL;
+                vp.transform( segment->getViewport( ));
+                wall.apply( vp );
+
+                float yMin = EQ_MIN( wall.bottomLeft.y(), wall.bottomRight.y() );
+                float yMax = EQ_MAX( wall.bottomLeft.y(), wall.bottomRight.y() );
+                yMin = EQ_MIN( yMin, wall.topLeft.y() );
+                yMax = EQ_MAX( yMax, wall.topLeft.y() );
+
+                const float h = yMax - yMin;
+                const eq::Vector3f center = (wall.bottomRight + wall.topLeft) * .5f;
+                const float d = center.length(); 
+
+                // 'same' orientation and distance
+                if( fabsf( angle - val ) < .0001f && fabs( d - distance ) < .0001f )
+                {
+                    if( h > height )
+                        height = h;
+                }
+                else
+                {
+                    height = h;
+                    distance = d;
+                    angle = val;
+                }
+            }
+        }
     }
 };
 
@@ -827,12 +888,13 @@ protected:
 
         // Get the canvas video area and the canvas channel area
         eq_node *node = static_cast<eq_node *>(getNode());
-        const struct { float x, y, w, h; } canvas_video_area =
+        const struct { float x, y, w, h, d; } canvas_video_area =
         {
             node->init_data.canvas_video_area.x,
             node->init_data.canvas_video_area.y,
             node->init_data.canvas_video_area.w,
-            node->init_data.canvas_video_area.h
+            node->init_data.canvas_video_area.h,
+            node->init_data.canvas_video_area.d
         };
         const eq::Viewport &canvas_channel_area = getViewport();
         // Determine the video quad to render
@@ -853,7 +915,7 @@ protected:
             glLoadIdentity();
         }
         else
-            glTranslatef( 0.f, 0.f, -1.f ); // default Eq wall is in 1m distance
+            glTranslatef( 0.f, 0.f, -canvas_video_area.d );
 
         // Display
         glEnable(GL_TEXTURE_2D);
