@@ -1,8 +1,31 @@
+/*
+ * This file is part of bino, a program to play stereoscopic videos.
+ *
+ * Copyright (C) 2010
+ * Martin Lambers <marlam@marlam.de>
+ * Stefan Eilemann <eile@eyescale.ch>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "config.h"
 
 #include <sstream>
+#include <cmath>
 
 #include <eq/eq.h>
+#include <eq/client/segment.h>  // FIXME: Remove this when switching to a newer Equalizer version
 
 #include "debug.h"
 #include "msg.h"
@@ -180,14 +203,17 @@ class eq_init_data : public eq::net::Object
 public:
     uint32_t frame_data_id;
     player_init_data init_data;
-    struct { float x, y, w, h; } canvas_video_area;
+    bool flat_screen;
+    struct { float x, y, w, h, d; } canvas_video_area;
 
     eq_init_data() : frame_data_id(EQ_ID_INVALID), init_data()
     {
+        flat_screen = true;
         canvas_video_area.x = 0.0f;
         canvas_video_area.y = 0.0f;
         canvas_video_area.w = 1.0f;
         canvas_video_area.h = 1.0f;
+        canvas_video_area.d = 1.0f;
     }
 
     ~eq_init_data()
@@ -216,10 +242,12 @@ protected:
         s11n::save(oss, init_data.video_state.fullscreen);
         s11n::save(oss, init_data.video_state.swap_eyes);
         s11n::save(oss, init_data.video_flags);
+        s11n::save(oss, flat_screen);
         s11n::save(oss, canvas_video_area.x);
         s11n::save(oss, canvas_video_area.y);
         s11n::save(oss, canvas_video_area.w);
         s11n::save(oss, canvas_video_area.h);
+        s11n::save(oss, canvas_video_area.d);
         os << oss.str();
     }
 
@@ -244,10 +272,12 @@ protected:
         s11n::load(iss, init_data.video_state.fullscreen);
         s11n::load(iss, init_data.video_state.swap_eyes);
         s11n::load(iss, init_data.video_flags);
+        s11n::load(iss, flat_screen);
         s11n::load(iss, canvas_video_area.x);
         s11n::load(iss, canvas_video_area.y);
         s11n::load(iss, canvas_video_area.w);
         s11n::load(iss, canvas_video_area.h);
+        s11n::load(iss, canvas_video_area.d);
     }
 };
 
@@ -344,7 +374,7 @@ public:
         return _is_master_config;
     }
 
-    bool init(const player_init_data &init_data)
+    bool init(const player_init_data &init_data, bool flat_screen)
     {
         msg::set_level(init_data.log_level);
         msg::dbg(HERE);
@@ -352,6 +382,7 @@ public:
         _is_master_config = true;
         // Initialize master init/frame data instances
         _eq_init_data.init_data = init_data;
+        _eq_init_data.flat_screen = flat_screen;
         _eq_frame_data.video_state = _eq_init_data.init_data.video_state;
         // Initialize master player
         _player.eq_make_master();
@@ -370,23 +401,36 @@ public:
         float canvas_aspect_ratio = canvas_w / canvas_h;
         _eq_init_data.canvas_video_area.w = 1.0f;
         _eq_init_data.canvas_video_area.h = 1.0f;
-        if (src_aspect_ratio > canvas_aspect_ratio)
+
+        if (flat_screen)
         {
-            // need black borders top and bottom
-            _eq_init_data.canvas_video_area.h = canvas_aspect_ratio / src_aspect_ratio;
+            if (src_aspect_ratio > canvas_aspect_ratio)
+            {
+                // need black borders top and bottom
+                _eq_init_data.canvas_video_area.h = canvas_aspect_ratio / src_aspect_ratio;
+            }
+            else
+            {
+                // need black borders left and right
+                _eq_init_data.canvas_video_area.w = src_aspect_ratio / canvas_aspect_ratio;
+            }
+            _eq_init_data.canvas_video_area.x = (1.0f - _eq_init_data.canvas_video_area.w) / 2.0f;
+            _eq_init_data.canvas_video_area.y = (1.0f - _eq_init_data.canvas_video_area.h) / 2.0f;
         }
         else
         {
-            // need black borders left and right
-            _eq_init_data.canvas_video_area.w = src_aspect_ratio / canvas_aspect_ratio;
+            compute_3d_canvas(&_eq_init_data.canvas_video_area.h, &_eq_init_data.canvas_video_area.d);
+            // compute width and offset for 1m high 'screen' quad in 3D space
+            _eq_init_data.canvas_video_area.w = _eq_init_data.canvas_video_area.h * src_aspect_ratio;
+            _eq_init_data.canvas_video_area.x = -0.5f * _eq_init_data.canvas_video_area.w;
+            _eq_init_data.canvas_video_area.y = -0.5f * _eq_init_data.canvas_video_area.h;
         }
-        _eq_init_data.canvas_video_area.x = (1.0f - _eq_init_data.canvas_video_area.w) / 2.0f;
-        _eq_init_data.canvas_video_area.y = (1.0f - _eq_init_data.canvas_video_area.h) / 2.0f;
         msg::inf("equalizer canvas:");
         msg::inf("    %gx%g, aspect ratio %g:1", canvas_w, canvas_h, canvas_w / canvas_h);
-        msg::inf("    area for %g:1 video: [ %g %g %g %g ]", src_aspect_ratio,
+        msg::inf("    area for %g:1 video: [ %g %g %g %g @ %g ]", src_aspect_ratio,
                 _eq_init_data.canvas_video_area.x, _eq_init_data.canvas_video_area.y,
-                _eq_init_data.canvas_video_area.w, _eq_init_data.canvas_video_area.h);
+                _eq_init_data.canvas_video_area.w, _eq_init_data.canvas_video_area.h,
+                _eq_init_data.canvas_video_area.d);
         // Register master instances
         registerObject(&_eq_frame_data);
         _eq_init_data.frame_data_id = _eq_frame_data.getID();
@@ -503,6 +547,65 @@ public:
     player_eq_node *player()
     {
         return &_player;
+    }
+
+private:
+    void compute_3d_canvas(float *height, float *distance)
+    {
+        float angle = -1.0f;
+        *height = 0.0f;
+        *distance = 0.0f;
+
+        const eq::CanvasVector &canvases = getCanvases();
+        for (eq::CanvasVector::const_iterator i = canvases.begin(); i != canvases.end(); i++)
+        {
+            const eq::SegmentVector &segments = (*i)->getSegments();
+            for (eq::SegmentVector::const_iterator j = segments.begin(); j != segments.end(); j++)
+            {
+                const eq::Segment *segment = *j;
+                eq::Wall wall = segment->getWall();
+                const eq::Vector3f u = wall.bottomRight - wall.bottomLeft;
+                const eq::Vector3f v = wall.topLeft - wall.bottomLeft;
+                eq::Vector3f w = u.cross(v);
+                w.normalize();
+
+                const eq::Vector3f dot = w.dot(eq::Vector3f::FORWARD);
+                const float val = dot.squared_length();
+                if (val < angle) // facing more away then previous segment
+                {
+                    continue;
+                }
+
+                // transform wall to full canvas
+                eq::Viewport vp = eq::Viewport::FULL;
+                vp.transform(segment->getViewport());
+                wall.apply(vp);
+
+                float yMin = EQ_MIN(wall.bottomLeft.y(), wall.bottomRight.y());
+                float yMax = EQ_MAX(wall.bottomLeft.y(), wall.bottomRight.y());
+                yMin = EQ_MIN(yMin, wall.topLeft.y());
+                yMax = EQ_MAX(yMax, wall.topLeft.y());
+
+                const float h = yMax - yMin;
+                const eq::Vector3f center = (wall.bottomRight + wall.topLeft) * 0.5f;
+                const float d = center.length();
+
+                // 'same' orientation and distance
+                if (std::fabs(angle - val) < 0.0001f && std::fabs(d - *distance) < 0.0001f)
+                {
+                    if (h > *height)
+                    {
+                        *height = h;
+                    }
+                }
+                else
+                {
+                    *height = h;
+                    *distance = d;
+                    angle = val;
+                }
+            }
+        }
     }
 };
 
@@ -710,18 +813,10 @@ protected:
         eq_node *node = static_cast<eq_node *>(getNode());
 
         // Disable some things that Equalizer seems to enable for some reason.
-        glDisable(GL_SCISSOR_TEST);
         glDisable(GL_LIGHTING);
 
-        bool have_pixel_buffer_object = glewContextIsSupported(
-                const_cast<GLEWContext *>(glewGetContext()), "GL_ARB_pixel_buffer_object");
-        bool have_texture_non_power_of_two = glewContextIsSupported(
-                const_cast<GLEWContext *>(glewGetContext()), "GL_ARB_texture_non_power_of_two");
-        bool have_fragment_shader = glewContextIsSupported(
-                const_cast<GLEWContext *>(glewGetContext()), "GL_ARB_fragment_shader");
-
         _video_output.eq_initialize(node->src_width, node->src_height, node->src_aspect_ratio, node->src_preferred_frame_format,
-                have_pixel_buffer_object, have_texture_non_power_of_two, have_fragment_shader);
+                GLEW_ARB_pixel_buffer_object, GLEW_ARB_texture_non_power_of_two, GLEW_ARB_fragment_shader);
 
         msg::dbg(HERE);
         return true;
@@ -780,26 +875,39 @@ protected:
         eq::Channel::frameDraw(frameID);
         // Get the canvas video area and the canvas channel area
         eq_node *node = static_cast<eq_node *>(getNode());
-        const struct { float x, y, w, h; } canvas_video_area =
+        const struct { float x, y, w, h, d; } canvas_video_area =
         {
             node->init_data.canvas_video_area.x,
             node->init_data.canvas_video_area.y,
             node->init_data.canvas_video_area.w,
-            node->init_data.canvas_video_area.h
+            node->init_data.canvas_video_area.h,
+            node->init_data.canvas_video_area.d
         };
         const eq::Viewport &canvas_channel_area = getViewport();
         // Determine the video quad to render
-        float quad_x = ((canvas_video_area.x - canvas_channel_area.x) / canvas_channel_area.w - 0.5) * 2.0f;
-        float quad_y = ((canvas_video_area.y - canvas_channel_area.y) / canvas_channel_area.h - 0.5) * 2.0f;
-        float quad_w = 2.0f * canvas_video_area.w / canvas_channel_area.w;
-        float quad_h = 2.0f * canvas_video_area.h / canvas_channel_area.h;
+        float quad_x = canvas_video_area.x;
+        float quad_y = canvas_video_area.y;
+        float quad_w = canvas_video_area.w;
+        float quad_h = canvas_video_area.h;
+        if (node->init_data.flat_screen)
+        {
+            quad_x = ((quad_x - canvas_channel_area.x) / canvas_channel_area.w - 0.5f) * 2.0f;
+            quad_y = ((quad_y - canvas_channel_area.y) / canvas_channel_area.h - 0.5f) * 2.0f;
+            quad_w = 2.0f * quad_w / canvas_channel_area.w;
+            quad_h = 2.0f * quad_h / canvas_channel_area.h;
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+        }
+        else
+        {
+            glTranslatef(0.0f, 0.0f, -canvas_video_area.d);
+        }
+
         // Display
         glEnable(GL_TEXTURE_2D);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
         eq_window *window = static_cast<eq_window *>(getWindow());
         window->display(getEye() == eq::EYE_RIGHT ? video_output::mono_right : video_output::mono_left,
                 quad_x, quad_y, quad_w, quad_h);
@@ -843,8 +951,8 @@ public:
  * player_equalizer
  */
 
-player_equalizer::player_equalizer(int *argc, char *argv[])
-    : player(player::slave)
+player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen)
+    : player(player::slave), _flat_screen(flat_screen)
 {
     /* Initialize Equalizer */
     _node_factory = static_cast<void *>(new eq_node_factory);
@@ -870,7 +978,7 @@ player_equalizer::~player_equalizer()
 void player_equalizer::open(const player_init_data &init_data)
 {
     eq_config *config = static_cast<eq_config *>(_config);
-    if (!config->init(init_data))
+    if (!config->init(init_data, _flat_screen))
     {
         throw exc("equalizer configuration initialization failed");
     }
