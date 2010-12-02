@@ -815,8 +815,11 @@ protected:
         // Disable some things that Equalizer seems to enable for some reason.
         glDisable(GL_LIGHTING);
 
-        _video_output.eq_initialize(node->src_width, node->src_height, node->src_aspect_ratio, node->src_preferred_frame_format,
-                GLEW_ARB_pixel_buffer_object, GLEW_ARB_texture_non_power_of_two, GLEW_ARB_fragment_shader);
+        _video_output.eq_initialize(node->src_width, node->src_height,
+                node->src_aspect_ratio, node->src_preferred_frame_format,
+                glewIsSupported("GL_ARB_pixel_buffer_object"),
+                glewIsSupported("GL_ARB_texture_non_power_of_two"),
+                glewIsSupported("GL_ARB_fragment_shader"));
 
         msg::dbg(HERE);
         return true;
