@@ -220,9 +220,12 @@ int video_output_opengl_qt::window_pos_y()
 bool video_output_opengl_qt::supports_stereo()
 {
     QGLFormat fmt;
+    fmt.setStereo(true);
+    // The following settings are not strictly necessary, but it may be better
+    // to try the exact same format that will be used by the real widget later.
     fmt.setAlpha(true);
     fmt.setDoubleBuffer(true);
-    fmt.setStereo(true);
+    fmt.setSwapInterval(1);
     QGLWidget *tmpwidget = new QGLWidget(fmt);
     bool ret = tmpwidget->format().stereo();
     delete tmpwidget;
@@ -242,6 +245,7 @@ void video_output_opengl_qt::open(
     QGLFormat fmt;
     fmt.setAlpha(true);
     fmt.setDoubleBuffer(true);
+    fmt.setSwapInterval(1);
     if (mode == stereo)
     {
         fmt.setStereo(true);
