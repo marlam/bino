@@ -176,3 +176,116 @@ server
         }
     }
 }
+
+3. Non-planar Displays (equalizer-3d mode)
+------------------------------------------
+
+The 'equalizer-3d' mode allows to set up arbitrary-oriented screens using
+either the wall-based or projection-based 3D frustum descriptions.
+
+In this example we set up two 16:10 displays side-by-side which have been
+rotated around their Z axis by 1.3 degrees radians (~74 degrees).  The image
+multi-display-rotated.jpg illustrates this setup. Other setups include
+distortion-correct projection for curved screens, or arbitrarily-placed
+screens in a 3D space.
+
+First, we rotate a normally-aligned screen by 1.3 degrees and output the
+result:
+
+    eq::Matrix4f matrix(eq::Matrix4f::IDENTITY);
+    matrix.rotate(1.3f, eq::Vector3f::FORWARD);
+    wall.bottomLeft = matrix * wall.bottomLeft;
+    wall.bottomRight = matrix * wall.bottomRight;
+    wall.topLeft = matrix * wall.topLeft;
+    std::cout << wall << std::endl;
+
+yields a rotated screen centered on the origin:
+
+    bottom_left  [   -0.69578     0.6371         -1 ]
+    bottom_right [   -0.26778    -0.9046         -1 ]
+    top_left     [    0.26778     0.9046         -1 ]
+
+This screen has to be moved along the X-axis for the left and right screen by
+0.5195m, which places the edges of the screen on the origin. The resulting
+wall descriptions are used for the left and right segment, as shown in the
+configuration below.
+
+The configuration references two GPUs full-screen output. By changing the node
+resource section, the ouputs may be mapped to two computers. When disabling
+the fullscreen mode and setting 'device 0' for the second pipe, two windows
+simulate this setup on a single machine.
+
+global
+{
+    EQ_WINDOW_IATTR_HINT_FULLSCREEN ON
+}
+
+server
+{
+    config
+    {
+        appNode
+        {
+            pipe
+            {
+                device 0
+                window
+                {
+                    viewport [ .215 .5 .4 .4 ]
+                    channel { name "channel1" }
+                }
+            }
+            pipe
+            {
+                device 1
+                window
+                {
+                    viewport [ .285 .1 .4 .4 ]
+                    attributes{ hint_drawable window }
+                    channel { name "channel2" }
+                }
+            }
+        }
+
+        layout { view{ }}
+        canvas
+        {
+            layout   0
+
+            segment
+            {
+                channel  "channel1"
+                wall
+                {
+                    bottom_left  [   -1.21528     0.6371         -1 ]
+                    bottom_right [   -0.78728    -0.9046         -1 ]
+                    top_left     [   -0.25172     0.9046         -1 ]
+                }
+            }
+            segment
+            {
+                channel  "channel2"
+                wall
+                {
+                    bottom_left  [   -0.17628     0.6371         -1 ]
+                    bottom_right [    0.25172    -0.9046         -1 ]
+                    top_left     [    0.78728     0.9046         -1 ]
+                }
+            }
+        }
+
+        compound
+        {
+            compound
+            {
+                channel ( segment 0 )
+                swapbarrier{}
+            }
+            compound
+            {
+                channel ( segment 1 )
+                swapbarrier{}
+            }
+        }
+    }
+}

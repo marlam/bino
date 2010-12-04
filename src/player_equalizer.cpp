@@ -564,6 +564,14 @@ private:
             {
                 const eq::Segment *segment = *j;
                 eq::Wall wall = segment->getWall();
+#if 0 // Hack to compute rotated walls for Equalizer configuration. See doc/multi-display.txt.
+                eq::Matrix4f matrix(eq::Matrix4f::IDENTITY);
+                matrix.rotate(1.3f, eq::Vector3f::FORWARD);
+                wall.bottomLeft = matrix * wall.bottomLeft;
+                wall.bottomRight = matrix * wall.bottomRight;
+                wall.topLeft = matrix * wall.topLeft;
+                std::cout << wall << std::endl;
+#endif
                 const eq::Vector3f u = wall.bottomRight - wall.bottomLeft;
                 const eq::Vector3f v = wall.topLeft - wall.bottomLeft;
                 eq::Vector3f w = u.cross(v);
