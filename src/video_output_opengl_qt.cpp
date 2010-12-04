@@ -64,6 +64,16 @@ video_output_opengl_qt_widget::~video_output_opengl_qt_widget()
 {
 }
 
+void video_output_opengl_qt_widget::widget_was_reparented()
+{
+#ifdef Q_WS_WIN
+    // On Windows, reparenting a GL widget results in a new GL context, which must be reinitialized.
+    // Other systems don't have that problem.
+    makeCurrent();
+    initializeGL();
+#endif
+}
+
 void video_output_opengl_qt_widget::initializeGL()
 {
     if (opengl_version_vector.size() == 0)

@@ -655,6 +655,7 @@ bool main_window::open_player()
     delete _video_widget;
     _video_widget = _video_output->widget();
     _layout->addWidget(_video_widget, 0, 0);
+    _video_widget->widget_was_reparented();
     adjustSize();
     return true;
 }
