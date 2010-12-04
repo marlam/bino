@@ -97,6 +97,8 @@ int main(int argc, char *argv[])
     options.push_back(&center);
     opt::flag swap_eyes("swap-eyes", 's', opt::optional);
     options.push_back(&swap_eyes);
+    opt::flag benchmark("benchmark", 'b', opt::optional);
+    options.push_back(&benchmark);
     // Accept some Equalizer options. These are passed to Equalizer for interpretation.
     opt::val<std::string> eq_server("eq-server", '\0', opt::optional);
     options.push_back(&eq_server);
@@ -170,7 +172,8 @@ int main(int argc, char *argv[])
                 "    equalizer-3d         Multi-display OpenGL via Equalizer (3D setup)\n"
                 "  -f|--fullscreen      Fullscreen\n"
                 "  -c|--center          Center window on screen\n"
-                "  -s|--swap-eyes       Swap left/right view\n"        
+                "  -s|--swap-eyes       Swap left/right view\n"
+                "  -b|--benchmark       Benchmark mode (no audio, no timesync, show fps)\n"
                 "\n"
                 "Keyboard control:\n"
                 "  q or ESC             Quit\n"
@@ -278,6 +281,11 @@ int main(int argc, char *argv[])
     if (center.value())
     {
         init_data.video_flags |= video_output::center;
+    }
+    init_data.benchmark = benchmark.value();
+    if (init_data.benchmark)
+    {
+        msg::inf("benchmark mode: audio and time synchronization disabled");
     }
 
     int retval = 0;

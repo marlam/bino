@@ -53,6 +53,7 @@ player_qt_internal::~player_qt_internal()
 void player_qt_internal::open(const player_init_data &init_data)
 {
     reset_playstate();
+    set_benchmark(init_data.benchmark);
     create_decoders(init_data.filenames);
     create_input(init_data.input_mode);
     create_audio_output();

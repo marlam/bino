@@ -84,6 +84,8 @@ public:
     {
         try
         {
+            set_benchmark(init_data.benchmark);
+            reset_playstate();
             create_decoders(init_data.filenames);
             create_input(init_data.input_mode);
             get_input_info(src_width, src_height, src_aspect_ratio, src_preferred_frame_format);

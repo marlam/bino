@@ -35,7 +35,7 @@
 
 
 player_init_data::player_init_data()
-    : filenames(),
+    : log_level(msg::INF), benchmark(false), filenames(),
     input_mode(input::automatic),
     video_mode(video_output::stereo),
     video_state(),
@@ -162,7 +162,7 @@ void player::get_input_info(int *w, int *h, float *ar, enum decoder::video_frame
 
 void player::create_audio_output()
 {
-    if (_input->has_audio())
+    if (_input->has_audio() && !_benchmark)
     {
         _audio_output = new audio_output_openal();
         _audio_output->open(_input->audio_channels(), _input->audio_rate(), _input->audio_sample_format());
@@ -249,6 +249,8 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         {
             _sync_point_time = timer::get_microseconds(timer::monotonic);
         }
+        _fps_mark_time = _sync_point_time;
+        _frames_shown = 0;
         _running = true;
         _need_frame = false;
         _first_frame = true;
@@ -303,6 +305,8 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
                 _sync_point_time = timer::get_microseconds(timer::monotonic);
                 _sync_point_av_offset = 0;
             }
+            _fps_mark_time = _sync_point_time;
+            _frames_shown = 0;
             notify(notification::pos, _current_pos / 1e6f, _sync_point_pos / 1e6f);
             _need_frame = false;
             _current_pos = _sync_point_pos;
@@ -374,6 +378,8 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             else
             {
                 _sync_point_time += timer::get_microseconds(timer::monotonic) - _pause_start;
+                _fps_mark_time = _sync_point_time;
+                _frames_shown = 0;
             }
             _in_pause = false;
             notify(notification::pause, true, false);
@@ -402,11 +408,11 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         }
 
         int64_t time_to_next_frame = (_next_frame_pos - _sync_point_pos) - (_current_time - _sync_point_time) - _sync_point_av_offset;
-        if (time_to_next_frame <= 0)
+        if (time_to_next_frame <= 0 || _benchmark)
         {
             // Output current video frame
             _drop_next_frame = false;
-            if (-time_to_next_frame > _input->video_frame_duration() * 75 / 100)
+            if (-time_to_next_frame > _input->video_frame_duration() * 75 / 100 && !_benchmark)
             {
                 msg::wrn("video: delay %g seconds; dropping next frame", (-time_to_next_frame) / 1e6f);
                 _drop_next_frame = true;
@@ -414,6 +420,16 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             if (!_previous_frame_dropped)
             {
                 *display_frame = true;
+                if (_benchmark)
+                {
+                    _frames_shown++;
+                    if (_frames_shown % 100 == 0) //show fps each 100 frames
+                    {
+                        msg::inf("fps: %.2f", 100.0f / ((_current_time - _fps_mark_time) / 1e6));
+                        _fps_mark_time = _current_time;
+                        _frames_shown = 0;
+                    }
+                }
             }
             _need_frame = true;
             _current_pos = _next_frame_pos;
@@ -442,6 +458,7 @@ void player::release_video_frame()
 void player::open(const player_init_data &init_data)
 {
     msg::set_level(init_data.log_level);
+    set_benchmark(init_data.benchmark);
     reset_playstate();
     create_decoders(init_data.filenames);
     create_input(init_data.input_mode);

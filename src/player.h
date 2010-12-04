@@ -35,6 +35,7 @@ class player_init_data
 {
 public:
     msg::level_t log_level;
+    bool benchmark;
     std::vector<std::string> filenames;
     enum input::mode input_mode;
     enum video_output::mode video_mode;
@@ -61,6 +62,7 @@ private:
     audio_output *_audio_output;
     video_output *_video_output;
     video_output_state _video_state;
+    bool _benchmark;
 
     bool _running;
     bool _first_frame;
@@ -88,7 +90,14 @@ private:
     int64_t _current_time;               // current master time
     int64_t _next_frame_pos;             // presentation time of next video frame
 
+    int _frames_shown;                   // frames shown since last _sync_point_time update
+    int64_t _fps_mark_time;              // time when _frames_shown was reset to zero
+
 protected:
+    void set_benchmark(bool benchmark)
+    {
+        _benchmark = benchmark;
+    }
     void reset_playstate();
     void create_decoders(const std::vector<std::string> &filenames);
     void create_input(enum input::mode input_mode);
