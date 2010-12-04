@@ -125,6 +125,8 @@ right view for the right half of the screen. Additionally, you have a system
 called "master" which has a sound card and should display a small control
 window.
 
+This setup is very similar to the situation shown in multi-display-vrlab.jpg.
+
 The configuration looks like this:
 
 server
