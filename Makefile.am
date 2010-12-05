@@ -6,6 +6,8 @@
 
 SUBDIRS = src doc
 
+EXTRA_DIST = README.Windows
+
 # Create the ChangeLog file from the git log
 dist-hook:
 	if test -d "$(srcdir)/.git" && type git > /dev/null 2>&1; then \
