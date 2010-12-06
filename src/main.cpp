@@ -302,6 +302,8 @@ int main(int argc, char *argv[])
         }
         else if (arguments.size() == 0 || show_gui.value())
         {
+            init_data.video_state.fullscreen = false;   // GUI overrides fullscreen setting
+            init_data.video_flags = 0;                  // GUI overrides center flag
             player = new class player_qt();
         }
         else
