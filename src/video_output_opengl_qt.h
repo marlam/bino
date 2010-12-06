@@ -43,6 +43,8 @@ public:
     video_output_opengl_qt_widget(video_output_opengl_qt *vo, const QGLFormat &format, QWidget *parent = NULL);
     ~video_output_opengl_qt_widget();
 
+    void widget_was_reparented();       // Call this when the widget was reparented, i.e. assigned to a layout
+
     virtual QSize sizeHint() const;
 
 protected:

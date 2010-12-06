@@ -23,6 +23,7 @@
 #include <vector>
 #include <string>
 
+/* Get a vector of strings that describe the versions of all libraries used. */
 std::vector<std::string> lib_versions();
 
 #endif

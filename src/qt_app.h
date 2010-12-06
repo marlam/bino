@@ -28,6 +28,7 @@
  * initialized elsewhere and the caller must not call exit_qt(). */
 bool init_qt();
 void exit_qt();
+/* Run the Qt application */
 int exec_qt();
 
 std::vector<std::string> qt_versions();

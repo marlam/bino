@@ -21,7 +21,7 @@ dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 dnl Autotools init stuff
 AC_PREREQ([2.65])
-AC_INIT([bino], [0.5], [marlam@marlam.de], [bino], [http://bino.nongnu.org/])
+AC_INIT([bino], [0.6], [marlam@marlam.de], [bino], [http://bino.nongnu.org/])
 AC_CONFIG_SRCDIR([src/main.cpp])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -58,6 +58,7 @@ if test "$HAVE_LIBSWSCALE" != "1"; then
     AC_MSG_WARN([$libswscale_PKG_ERRORS])
     AC_MSG_WARN([libswscale is provided by ffmpeg; Debian package: libswscale-dev])
 fi
+AC_CHECK_FUNCS([sysconf])
 
 dnl OpenAL
 PKG_CHECK_MODULES([libopenal], [openal >= 0.0], [HAVE_LIBOPENAL=1], [HAVE_LIBOPENAL=0])

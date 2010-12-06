@@ -26,13 +26,15 @@
 #include "controller.h"
 
 
+/* The current video output state. */
+
 class video_output_state
 {
 public:
-    float contrast;     // -1 - +1
-    float brightness;   // -1 - +1
-    float hue;          // -1 - +1
-    float saturation;   // -1 - +1
+    float contrast;     // -1 .. +1
+    float brightness;   // -1 .. +1
+    float hue;          // -1 .. +1
+    float saturation;   // -1 .. +1
     bool fullscreen;
     bool swap_eyes;
 
@@ -40,9 +42,14 @@ public:
     ~video_output_state();
 };
 
+/* The video output interface. */
+
 class video_output : public controller
 {
 public:
+
+    /* The video output mode. */
+
     enum mode
     {
         automatic,                      // To be determined by app. This must not be passed to open()!
@@ -65,12 +72,15 @@ public:
     static enum mode mode_from_name(const std::string &name, bool *ok = NULL);
     static bool mode_is_2d(enum mode m);
 
+    /* Video output flags. */
+
     enum flags
     {
         center = 1,                     // Center window on screen
     };
 
 public:
+    /* Constructor, Destructor */
     video_output(bool receive_notifications = true) throw ();
     ~video_output();
 

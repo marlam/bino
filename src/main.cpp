@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     video_output_modes.push_back("anaglyph-dubois");
     video_output_modes.push_back("stereo");
     video_output_modes.push_back("equalizer");
-    video_output_modes.push_back("equalizer3D");
+    video_output_modes.push_back("equalizer-3d");
     opt::val<std::string> video_output_mode("output", 'o', opt::optional, video_output_modes, "");
     options.push_back(&video_output_mode);
     opt::flag fullscreen("fullscreen", 'f', opt::optional);
@@ -96,6 +96,8 @@ int main(int argc, char *argv[])
     options.push_back(&center);
     opt::flag swap_eyes("swap-eyes", 's', opt::optional);
     options.push_back(&swap_eyes);
+    opt::flag benchmark("benchmark", 'b', opt::optional);
+    options.push_back(&benchmark);
     // Accept some Equalizer options. These are passed to Equalizer for interpretation.
     opt::val<std::string> eq_server("eq-server", '\0', opt::optional);
     options.push_back(&eq_server);
@@ -165,11 +167,12 @@ int main(int argc, char *argv[])
                 "    anaglyph-half-color  Red/cyan anaglyph, half color method\n"
                 "    anaglyph-dubois      Red/cyan anaglyph, Dubois method\n"
                 "    stereo               OpenGL quad-buffered stereo\n"
-                "    equalizer            Multi-display OpenGL using Equalizer with a 2D canvas setup\n"
-                "    equalizer3D          Multi-display OpenGL using Equalizer with a 3D screen setup\n"
+                "    equalizer            Multi-display OpenGL via Equalizer (2D setup)\n"
+                "    equalizer-3d         Multi-display OpenGL via Equalizer (3D setup)\n"
                 "  -f|--fullscreen      Fullscreen\n"
                 "  -c|--center          Center window on screen\n"
-                "  -s|--swap-eyes       Swap left/right view\n"        
+                "  -s|--swap-eyes       Swap left/right view\n"
+                "  -b|--benchmark       Benchmark mode (no audio, no timesync, show fps)\n"
                 "\n"
                 "Keyboard control:\n"
                 "  q or ESC             Quit\n"
@@ -209,7 +212,7 @@ int main(int argc, char *argv[])
 #endif
 
     bool equalizer = false;
-    bool equalizerFlatScreen = true;
+    bool equalizer_flat_screen = true;
     player_init_data init_data;
     init_data.log_level = msg::level();
     if (log_level.value() == "debug")
@@ -252,10 +255,10 @@ int main(int argc, char *argv[])
         equalizer = true;
         init_data.video_mode = video_output::mono_left;
     }
-    else if (video_output_mode.value() == "equalizer3D")
+    else if (video_output_mode.value() == "equalizer-3d")
     {
         equalizer = true;
-        equalizerFlatScreen = false;
+        equalizer_flat_screen = false;
         init_data.video_mode = video_output::mono_left;
     }
     else if (video_output_mode.value() == "")
@@ -278,6 +281,11 @@ int main(int argc, char *argv[])
     {
         init_data.video_flags |= video_output::center;
     }
+    init_data.benchmark = benchmark.value();
+    if (init_data.benchmark)
+    {
+        msg::inf("benchmark mode: audio and time synchronization disabled");
+    }
 
     int retval = 0;
     player *player = NULL;
@@ -286,13 +294,15 @@ int main(int argc, char *argv[])
         if (equalizer)
         {
 #if HAVE_LIBEQUALIZER
-            player = new class player_equalizer(&argc, argv, equalizerFlatScreen);
+            player = new class player_equalizer(&argc, argv, equalizer_flat_screen);
 #else
             throw exc("this version of Bino was compiled without support for Equalizer");
 #endif
         }
         else if (arguments.size() == 0 || show_gui.value())
         {
+            init_data.video_state.fullscreen = false;   // GUI overrides fullscreen setting
+            init_data.video_flags = 0;                  // GUI overrides center flag
             player = new class player_qt();
         }
         else

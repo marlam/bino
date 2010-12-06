@@ -64,6 +64,16 @@ video_output_opengl_qt_widget::~video_output_opengl_qt_widget()
 {
 }
 
+void video_output_opengl_qt_widget::widget_was_reparented()
+{
+#ifdef Q_WS_WIN
+    // On Windows, reparenting a GL widget results in a new GL context, which must be reinitialized.
+    // Other systems don't have that problem.
+    makeCurrent();
+    initializeGL();
+#endif
+}
+
 void video_output_opengl_qt_widget::initializeGL()
 {
     if (opengl_version_vector.size() == 0)
@@ -220,9 +230,12 @@ int video_output_opengl_qt::window_pos_y()
 bool video_output_opengl_qt::supports_stereo()
 {
     QGLFormat fmt;
+    fmt.setStereo(true);
+    // The following settings are not strictly necessary, but it may be better
+    // to try the exact same format that will be used by the real widget later.
     fmt.setAlpha(true);
     fmt.setDoubleBuffer(true);
-    fmt.setStereo(true);
+    fmt.setSwapInterval(1);
     QGLWidget *tmpwidget = new QGLWidget(fmt);
     bool ret = tmpwidget->format().stereo();
     delete tmpwidget;
@@ -242,6 +255,7 @@ void video_output_opengl_qt::open(
     QGLFormat fmt;
     fmt.setAlpha(true);
     fmt.setDoubleBuffer(true);
+    fmt.setSwapInterval(1);
     if (mode == stereo)
     {
         fmt.setStereo(true);
@@ -337,6 +351,7 @@ void video_output_opengl_qt::enter_fullscreen()
         _widget->setCursor(Qt::BlankCursor);
         _widget->show();
         _widget->setFocus(Qt::OtherFocusReason);
+        _widget->widget_was_reparented();
         state().fullscreen = true;
     }
 }
@@ -353,6 +368,7 @@ void video_output_opengl_qt::exit_fullscreen()
         _widget->setCursor(Qt::ArrowCursor);
         _widget->show();
         _widget->setFocus(Qt::OtherFocusReason);
+        _widget->widget_was_reparented();
         state().fullscreen = false;
     }
 }

@@ -37,16 +37,16 @@ std::vector<std::string> lib_versions()
     v.insert(v.end(), ffmpeg_v.begin(), ffmpeg_v.end());
     std::vector<std::string> openal_v = openal_versions();
     v.insert(v.end(), openal_v.begin(), openal_v.end());
-    std::vector<std::string> glew_v = glew_versions();
-    v.insert(v.end(), glew_v.begin(), glew_v.end());
     std::vector<std::string> opengl_v = opengl_versions();
     v.insert(v.end(), opengl_v.begin(), opengl_v.end());
-    std::vector<std::string> qt_v = qt_versions();
-    v.insert(v.end(), qt_v.begin(), qt_v.end());
+    std::vector<std::string> glew_v = glew_versions();
+    v.insert(v.end(), glew_v.begin(), glew_v.end());
 #if HAVE_LIBEQUALIZER
     std::vector<std::string> equalizer_v = equalizer_versions();
     v.insert(v.end(), equalizer_v.begin(), equalizer_v.end());
 #endif
+    std::vector<std::string> qt_v = qt_versions();
+    v.insert(v.end(), qt_v.begin(), qt_v.end());
 
     return v;
 }

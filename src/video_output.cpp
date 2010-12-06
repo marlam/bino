@@ -81,16 +81,16 @@ std::string video_output::mode_name(enum mode m)
         name = "checkerboard";
         break;
     case anaglyph_red_cyan_monochrome:
-        name = "anaglyph-red-cyan-monochrome";
+        name = "anaglyph-monochrome";
         break;
     case anaglyph_red_cyan_full_color:
-        name = "anaglyph-red-cyan-full-color";
+        name = "anaglyph-full-color";
         break;
     case anaglyph_red_cyan_half_color:
-        name = "anaglyph-red-cyan-half-color";
+        name = "anaglyph-half-color";
         break;
     case anaglyph_red_cyan_dubois:
-        name = "anaglyph-red-cyan-dubois";
+        name = "anaglyph-dubois";
         break;
     }
     return name;
@@ -147,19 +147,19 @@ enum video_output::mode video_output::mode_from_name(const std::string &name, bo
     {
         m = checkerboard;
     }
-    else if (name == "anaglyph-red-cyan-monochrome")
+    else if (name == "anaglyph-monochrome")
     {
         m = anaglyph_red_cyan_monochrome;
     }
-    else if (name == "anaglyph-red-cyan-full-color")
+    else if (name == "anaglyph-full-color")
     {
         m = anaglyph_red_cyan_full_color;
     }
-    else if (name == "anaglyph-red-cyan-half-color")
+    else if (name == "anaglyph-half-color")
     {
         m = anaglyph_red_cyan_half_color;
     }
-    else if (name == "anaglyph-red-cyan-dubois")
+    else if (name == "anaglyph" || name == "anaglyph-dubois")
     {
         m = anaglyph_red_cyan_dubois;
     }

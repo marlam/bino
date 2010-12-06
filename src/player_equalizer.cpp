@@ -1,8 +1,9 @@
 /*
  * This file is part of bino, a program to play stereoscopic videos.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
- *               2010 Stefan Eilemann <eile@eyescale.ch>
+ * Copyright (C) 2010
+ * Martin Lambers <marlam@marlam.de>
+ * Stefan Eilemann <eile@eyescale.ch>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +22,10 @@
 #include "config.h"
 
 #include <sstream>
+#include <cmath>
 
 #include <eq/eq.h>
+#include <eq/client/segment.h>  // FIXME: Remove this when switching to a newer Equalizer version
 
 #include "debug.h"
 #include "msg.h"
@@ -95,6 +98,8 @@ public:
     {
         try
         {
+            set_benchmark(init_data.benchmark);
+            reset_playstate();
             create_decoders(init_data.filenames);
             create_input(init_data.input_mode);
             get_input_info(src_width, src_height, src_aspect_ratio, src_preferred_frame_format);
@@ -214,11 +219,12 @@ class eq_init_data : public eq::net::Object
 public:
     eq::uint128_t frame_data_id;
     player_init_data init_data;
-    struct { float x, y, w, h, d; } canvas_video_area;
     bool flat_screen;
+    struct { float x, y, w, h, d; } canvas_video_area;
 
     eq_init_data() : init_data(), flat_screen( true )
     {
+        flat_screen = true;
         canvas_video_area.x = 0.0f;
         canvas_video_area.y = 0.0f;
         canvas_video_area.w = 1.0f;
@@ -252,12 +258,12 @@ protected:
         s11n::save(oss, init_data.video_state.fullscreen);
         s11n::save(oss, init_data.video_state.swap_eyes);
         s11n::save(oss, init_data.video_flags);
+        s11n::save(oss, flat_screen);
         s11n::save(oss, canvas_video_area.x);
         s11n::save(oss, canvas_video_area.y);
         s11n::save(oss, canvas_video_area.w);
         s11n::save(oss, canvas_video_area.h);
         s11n::save(oss, canvas_video_area.d);
-        s11n::save(oss, flat_screen);
         os << oss.str();
     }
 
@@ -282,12 +288,12 @@ protected:
         s11n::load(iss, init_data.video_state.fullscreen);
         s11n::load(iss, init_data.video_state.swap_eyes);
         s11n::load(iss, init_data.video_flags);
+        s11n::load(iss, flat_screen);
         s11n::load(iss, canvas_video_area.x);
         s11n::load(iss, canvas_video_area.y);
         s11n::load(iss, canvas_video_area.w);
         s11n::load(iss, canvas_video_area.h);
         s11n::load(iss, canvas_video_area.d);
-        s11n::load(iss, flat_screen);
     }
 };
 
@@ -385,7 +391,7 @@ public:
         return _is_master_config;
     }
 
-    bool init(const player_init_data &init_data)
+    bool init(const player_init_data &init_data, bool flat_screen)
     {
         msg::set_level(init_data.log_level);
         msg::dbg(HERE);
@@ -413,7 +419,7 @@ public:
         _eq_init_data.canvas_video_area.w = 1.0f;
         _eq_init_data.canvas_video_area.h = 1.0f;
 
-        if( flat_screen )
+        if (flat_screen)
         {
             if (src_aspect_ratio > canvas_aspect_ratio)
             {
@@ -430,19 +436,18 @@ public:
         }
         else
         {
-            _compute_3D_canvas( _eq_init_data.canvas_video_area.h,
-                                _eq_init_data.canvas_video_area.d );
+            compute_3d_canvas(&_eq_init_data.canvas_video_area.h, &_eq_init_data.canvas_video_area.d);
             // compute width and offset for 1m high 'screen' quad in 3D space
-            _eq_init_data.canvas_video_area.w = _eq_init_data.canvas_video_area.h * float( src_width ) / float( src_height );
-            _eq_init_data.canvas_video_area.x = -.5f * _eq_init_data.canvas_video_area.w;
-            _eq_init_data.canvas_video_area.y = -.5f * _eq_init_data.canvas_video_area.h;
+            _eq_init_data.canvas_video_area.w = _eq_init_data.canvas_video_area.h * src_aspect_ratio;
+            _eq_init_data.canvas_video_area.x = -0.5f * _eq_init_data.canvas_video_area.w;
+            _eq_init_data.canvas_video_area.y = -0.5f * _eq_init_data.canvas_video_area.h;
         }
         msg::inf("equalizer canvas:");
         msg::inf("    %gx%g, aspect ratio %g:1", canvas_w, canvas_h, canvas_w / canvas_h);
         msg::inf("    area for %g:1 video: [ %g %g %g %g @ %g ]", src_aspect_ratio,
                 _eq_init_data.canvas_video_area.x, _eq_init_data.canvas_video_area.y,
                 _eq_init_data.canvas_video_area.w, _eq_init_data.canvas_video_area.h,
-                 _eq_init_data.canvas_video_area.d);
+                _eq_init_data.canvas_video_area.d);
         // Register master instances
         registerObject(&_eq_frame_data);
         _eq_init_data.frame_data_id = _eq_frame_data.getID();
@@ -562,23 +567,23 @@ public:
     }
 
 private:
-    float _compute_3D_canvas( float& height, float& distance )
+    void compute_3d_canvas(float *height, float *distance)
     {
-        float angle = -1.f;
-        height = 0.f;
-        distance = 0.f;
-        
-        const eq::Canvases& canvases = getCanvases();
-        for( eq::Canvases::const_iterator i = canvases.begin(); i != canvases.end(); ++i )
+        float angle = -1.0f;
+        *height = 0.0f;
+        *distance = 0.0f;
+
+        const eq::CanvasVector &canvases = getCanvases();
+        for (eq::CanvasVector::const_iterator i = canvases.begin(); i != canvases.end(); i++)
         {
-            const eq::Segments& segments = (*i)->getSegments();
-            for( eq::Segments::const_iterator j = segments.begin(); j != segments.end(); ++j )
+            const eq::SegmentVector &segments = (*i)->getSegments();
+            for (eq::SegmentVector::const_iterator j = segments.begin(); j != segments.end(); j++)
             {
-                const eq::Segment* segment = *j;
+                const eq::Segment *segment = *j;
                 eq::Wall wall = segment->getWall();
-#if 0 // Hack to compute rotated walls for eqc
-                eq::Matrix4f matrix( eq::Matrix4f::IDENTITY );
-                matrix.rotate( 1.3f, eq::Vector3f::FORWARD );
+#if 0 // Hack to compute rotated walls for Equalizer configuration. See doc/multi-display.txt.
+                eq::Matrix4f matrix(eq::Matrix4f::IDENTITY);
+                matrix.rotate(1.3f, eq::Vector3f::FORWARD);
                 wall.bottomLeft = matrix * wall.bottomLeft;
                 wall.bottomRight = matrix * wall.bottomRight;
                 wall.topLeft = matrix * wall.topLeft;
@@ -586,40 +591,45 @@ private:
 #endif
                 const eq::Vector3f u = wall.bottomRight - wall.bottomLeft;
                 const eq::Vector3f v = wall.topLeft - wall.bottomLeft;
-                eq::Vector3f w = u.cross( v );
+                eq::Vector3f w = u.cross(v);
                 w.normalize();
 
-                const eq::Vector3f dot = w.dot( eq::Vector3f::FORWARD );
+                const eq::Vector3f dot = w.dot(eq::Vector3f::FORWARD);
                 const float val = dot.squared_length();
-                if( val < angle ) // facing more away then previous segment
+                if (val < angle) // facing more away then previous segment
+                {
                     continue;
+                }
 
                 // transform wall to full canvas
                 eq::Viewport vp = eq::Viewport::FULL;
-                vp.transform( segment->getViewport( ));
-                wall.apply( vp );
+                vp.transform(segment->getViewport());
+                wall.apply(vp);
+
                 const eq::Vector3f topRight = wall.topLeft + wall.bottomRight - wall.bottomLeft;
-                float yMin = EQ_MIN( wall.bottomLeft.y(), wall.bottomRight.y() );
-                float yMax = EQ_MAX( wall.bottomLeft.y(), wall.bottomRight.y() );
-                yMin = EQ_MIN( yMin, wall.topLeft.y() );
-                yMax = EQ_MAX( yMax, wall.topLeft.y() );
-                yMin = EQ_MIN( yMin, topRight.y() );
-                yMax = EQ_MAX( yMax, topRight.y() );
+                float yMin = EQ_MIN(wall.bottomLeft.y(), wall.bottomRight.y());
+                float yMax = EQ_MAX(wall.bottomLeft.y(), wall.bottomRight.y());
+                yMin = EQ_MIN(yMin, wall.topLeft.y());
+                yMax = EQ_MAX(yMax, wall.topLeft.y());
+                yMin = EQ_MIN(yMin, topRight.y());
+                yMax = EQ_MAX(yMax, topRight.y());
 
                 const float h = yMax - yMin;
-                const eq::Vector3f center = (wall.bottomRight + wall.topLeft) * .5f;
-                const float d = -center.z(); 
+                const eq::Vector3f center = (wall.bottomRight + wall.topLeft) * 0.5f;
+                const float d = -center.z();
 
                 // 'same' orientation and distance
-                if( fabsf( angle - val ) < .0001f && fabs( d - distance ) < .0001f )
+                if (std::fabs(angle - val) < 0.0001f && std::fabs(d - *distance) < 0.0001f)
                 {
-                    if( h > height )
-                        height = h;
+                    if (h > *height)
+                    {
+                        *height = h;
+                    }
                 }
                 else
                 {
-                    height = h;
-                    distance = d;
+                    *height = h;
+                    *distance = d;
                     angle = val;
                 }
             }
@@ -833,12 +843,11 @@ protected:
         // Disable some things that Equalizer seems to enable for some reason.
         glDisable(GL_LIGHTING);
 
-        bool have_pixel_buffer_object = GLEW_ARB_pixel_buffer_object;
-        bool have_texture_non_power_of_two = GLEW_ARB_texture_non_power_of_two;
-        bool have_fragment_shader = GLEW_ARB_fragment_shader;
-
-        _video_output.eq_initialize(node->src_width, node->src_height, node->src_aspect_ratio, node->src_preferred_frame_format,
-                have_pixel_buffer_object, have_texture_non_power_of_two, have_fragment_shader);
+        _video_output.eq_initialize(node->src_width, node->src_height,
+                node->src_aspect_ratio, node->src_preferred_frame_format,
+                glewIsSupported("GL_ARB_pixel_buffer_object"),
+                glewIsSupported("GL_ARB_texture_non_power_of_two"),
+                glewIsSupported("GL_ARB_fragment_shader"));
 
         msg::dbg(HERE);
         return true;
@@ -912,20 +921,21 @@ protected:
         float quad_y = canvas_video_area.y;
         float quad_w = canvas_video_area.w;
         float quad_h = canvas_video_area.h;
-        if( node->init_data.flat_screen )
+        if (node->init_data.flat_screen)
         {
-            quad_x = ((quad_x - canvas_channel_area.x) / canvas_channel_area.w - 0.5) * 2.0f;
-            quad_y = ((quad_y - canvas_channel_area.y) / canvas_channel_area.h - 0.5) * 2.0f;
+            quad_x = ((quad_x - canvas_channel_area.x) / canvas_channel_area.w - 0.5f) * 2.0f;
+            quad_y = ((quad_y - canvas_channel_area.y) / canvas_channel_area.h - 0.5f) * 2.0f;
             quad_w = 2.0f * quad_w / canvas_channel_area.w;
             quad_h = 2.0f * quad_h / canvas_channel_area.h;
-
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
         }
         else
-            glTranslatef( 0.f, 0.f, -canvas_video_area.d );
+        {
+            glTranslatef(0.0f, 0.0f, -canvas_video_area.d);
+        }
 
         // Display
         glEnable(GL_TEXTURE_2D);
@@ -973,8 +983,8 @@ public:
  * player_equalizer
  */
 
-player_equalizer::player_equalizer(int *argc, char *argv[], const bool flat_screen)
-    : player(player::slave)
+player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen)
+    : player(player::slave), _flat_screen(flat_screen)
 {
     /* Initialize Equalizer */
     _node_factory = static_cast<void *>(new eq_node_factory);
@@ -1001,7 +1011,7 @@ player_equalizer::~player_equalizer()
 void player_equalizer::open(const player_init_data &init_data)
 {
     eq_config *config = static_cast<eq_config *>(_config);
-    if (!config->init(init_data))
+    if (!config->init(init_data, _flat_screen))
     {
         throw exc("equalizer configuration initialization failed");
     }

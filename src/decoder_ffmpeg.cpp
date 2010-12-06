@@ -33,6 +33,12 @@ extern "C"
 #include <cerrno>
 #include <cstring>
 
+#if HAVE_SYSCONF
+#  include <unistd.h>
+#else
+#  include <windows.h>
+#endif
+
 #include "debug.h"
 #include "blob.h"
 #include "exc.h"
@@ -77,6 +83,31 @@ static std::string my_av_strerror(int err)
     blob b(1024);
     av_strerror(err, b.ptr<char>(), b.size());
     return std::string(b.ptr<const char>());
+}
+
+static int decoding_threads()
+{
+    // Use one decoding thread per processor.
+    static long n = -1;
+    if (n < 0)
+    {
+#ifdef HAVE_SYSCONF
+        n = sysconf(_SC_NPROCESSORS_ONLN);
+#else
+        SYSTEM_INFO si;
+        GetSystemInfo(&si);
+        n = si.dwNumberOfProcessors;
+#endif
+        if (n < 1)
+        {
+            n = 1;
+        }
+        else if (n > 64)
+        {
+            n = 64;
+        }
+    }
+    return n;
 }
 
 static void my_av_log(void *ptr, int level, const char *fmt, va_list vl)
@@ -201,6 +232,11 @@ void decoder_ffmpeg::open(const std::string &filename)
             {
                 throw exc(filename + " stream " + str::from(i) + ": invalid frame size");
             }
+            _stuff->video_codec_ctxs[j]->thread_count = decoding_threads();
+            if (avcodec_thread_init(_stuff->video_codec_ctxs[j], _stuff->video_codec_ctxs[j]->thread_count) != 0)
+            {
+                _stuff->video_codec_ctxs[j]->thread_count = 1;
+            }
             _stuff->video_codecs.push_back(avcodec_find_decoder(_stuff->video_codec_ctxs[j]->codec_id));
             if (!_stuff->video_codecs[j])
             {
@@ -318,6 +354,7 @@ void decoder_ffmpeg::open(const std::string &filename)
                 static_cast<float>(video_frame_rate_numerator(i))
                 / static_cast<float>(video_frame_rate_denominator(i)),
                 video_duration(i) / 1e6f);
+        msg::inf("        using up to %d threads for decoding", _stuff->video_codec_ctxs.at(i)->thread_count);
     }
     for (int i = 0; i < audio_streams(); i++)
     {
@@ -695,6 +732,8 @@ void decoder_ffmpeg::seek(int64_t dest_pos)
         {
             _stuff->audio_flush_flags[i] = true;
         }
+        /* The next read request must update the position */
+        _stuff->pos = std::numeric_limits<int64_t>::min();
     }
 }
 

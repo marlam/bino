@@ -1,0 +1,38 @@
+You can build a Windows binary using MinGW.
+
+The easiest way to do this is to use a GNU/Linux system with the Mingw-cross-env
+environment (http://www.nongnu.org/mingw-cross-env). This is because
+Mingw-cross-env not only provides a recent version of gcc as a cross compiler,
+but also all required libraries.
+
+Unfortunately, some libraries do not provide pkg-config files for MinGW, so you
+have to set a few options manually for the configure script.
+
+The following is known to work with Mingw-cross-env 2.17 installed in /path/to/mce:
+
+1. Build the required libraries in Mingw-cross-env:
+   $ cd /path/to/mce
+   $ make glew ffmpeg openal qt
+
+2. Clean your environment from variables that might confuse your cross-compile setup:
+   $ unset PKG_CONFIG_PATH CPPFLAGS LDFLAGS CFLAGS CXXFLAGS
+
+3. Set path variables:
+   $ MCE=/path/to/mce
+   $ MCEPFX="$MCE/usr/i686-pc-mingw32"
+   $ export PATH="$MCE/usr/bin:$PATH"
+
+4. Build Bino
+   $ cd /path/to/bino
+   $ QTOPENGLLIBS="`grep QMAKE_PRL_LIBS "$MCEPFX"/lib/QtOpenGL.prl | sed -e 's/QMAKE_PRL_LIBS = //'`"
+   $ ./configure --host=i686-pc-mingw32 \
+     libglew_CFLAGS="-DGLEW_STATIC" libglew_LIBS="-lglew32s -lopengl32" \
+     libqtopengl_CFLAGS="-D__glu_h__ -I$MCEPFX/include/Qt -I$MCEPFX/include/QtCore -I$MCEPFX/include/QtGui -I$MCEPFX/include/QtOpenGL" \
+     libqtopengl_LIBS="-L$MCEPFX/lib -mwindows -lQtOpenGL $QTOPENGLLIBS"
+   $ make
+   $ i686-pc-mingw32-strip src/bino.exe
+
+Now you can copy the bino.exe binary from the src subdirectory to any Windows machine.
+
+Note that you might want to use a newer ffmpeg version than the one shipped
+with Mingw-cross-env for best results.

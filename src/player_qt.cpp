@@ -53,6 +53,7 @@ player_qt_internal::~player_qt_internal()
 void player_qt_internal::open(const player_init_data &init_data)
 {
     reset_playstate();
+    set_benchmark(init_data.benchmark);
     create_decoders(init_data.filenames);
     create_input(init_data.input_mode);
     create_audio_output();
@@ -654,6 +655,7 @@ bool main_window::open_player()
     delete _video_widget;
     _video_widget = _video_output->widget();
     _layout->addWidget(_video_widget, 0, 0);
+    _video_widget->widget_was_reparented();
     adjustSize();
     return true;
 }
