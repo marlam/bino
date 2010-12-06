@@ -598,15 +598,17 @@ private:
                 eq::Viewport vp = eq::Viewport::FULL;
                 vp.transform( segment->getViewport( ));
                 wall.apply( vp );
-
+                const eq::Vector3f topRight = wall.topLeft + wall.bottomRight - wall.bottomLeft;
                 float yMin = EQ_MIN( wall.bottomLeft.y(), wall.bottomRight.y() );
                 float yMax = EQ_MAX( wall.bottomLeft.y(), wall.bottomRight.y() );
                 yMin = EQ_MIN( yMin, wall.topLeft.y() );
                 yMax = EQ_MAX( yMax, wall.topLeft.y() );
+                yMin = EQ_MIN( yMin, topRight.y() );
+                yMax = EQ_MAX( yMax, topRight.y() );
 
                 const float h = yMax - yMin;
                 const eq::Vector3f center = (wall.bottomRight + wall.topLeft) * .5f;
-                const float d = center.length(); 
+                const float d = -center.z(); 
 
                 // 'same' orientation and distance
                 if( fabsf( angle - val ) < .0001f && fabs( d - distance ) < .0001f )
