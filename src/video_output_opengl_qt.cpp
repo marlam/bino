@@ -30,6 +30,7 @@ static GLEWContext* glewGetContext() { return &_glewContext; }
 
 #include <QApplication>
 #include <QDesktopWidget>
+#include <QGridLayout>
 #include <QKeyEvent>
 #include <QIcon>
 #include <QMessageBox>
@@ -62,16 +63,6 @@ video_output_opengl_qt_widget::video_output_opengl_qt_widget(
 
 video_output_opengl_qt_widget::~video_output_opengl_qt_widget()
 {
-}
-
-void video_output_opengl_qt_widget::widget_was_reparented()
-{
-#ifdef Q_WS_WIN
-    // On Windows, reparenting a GL widget results in a new GL context, which must be reinitialized.
-    // Other systems don't have that problem.
-    makeCurrent();
-    initializeGL();
-#endif
 }
 
 void video_output_opengl_qt_widget::initializeGL()
@@ -200,15 +191,22 @@ QSize video_output_opengl_qt_widget::sizeHint() const
 }
 
 
-video_output_opengl_qt::video_output_opengl_qt(QWidget *parent) throw ()
-    : video_output_opengl(), _qt_app_owner(false), _parent(parent), _widget(NULL)
+video_output_opengl_qt::video_output_opengl_qt(QWidget *container_widget) throw ()
+    : video_output_opengl(), _qt_app_owner(false),
+    _container_widget(container_widget), _container_is_external(container_widget != NULL),
+    _widget(NULL)
 {
     _qt_app_owner = init_qt();
+    if (!_container_widget)
+    {
+        _container_widget = new QWidget();
+    }
 }
 
 video_output_opengl_qt::~video_output_opengl_qt()
 {
     delete _widget;
+    delete _container_widget;
     if (_qt_app_owner)
     {
         exit_qt();
@@ -217,14 +215,14 @@ video_output_opengl_qt::~video_output_opengl_qt()
 
 int video_output_opengl_qt::window_pos_x()
 {
-    int xo = _parent ? _widget->geometry().x() : 0;
-    return _widget->window()->geometry().x() + xo;
+    int xo = _container_is_external ? _container_widget->geometry().x() : 0;
+    return _container_widget->window()->geometry().x() + xo;
 }
 
 int video_output_opengl_qt::window_pos_y()
 {
-    int yo = _parent ? _widget->geometry().y() : 0;
-    return _widget->window()->geometry().y() + yo;
+    int yo = _container_is_external ? _container_widget->geometry().y() : 0;
+    return _container_widget->window()->geometry().y() + yo;
 }
 
 bool video_output_opengl_qt::supports_stereo()
@@ -260,7 +258,7 @@ void video_output_opengl_qt::open(
     {
         fmt.setStereo(true);
     }
-    _widget = new video_output_opengl_qt_widget(this, fmt, _parent);
+    _widget = new video_output_opengl_qt_widget(this, fmt, _container_widget);
     if (!_widget->format().alpha() || !_widget->format().doubleBuffer()
             || (mode == stereo && !_widget->format().stereo()))
     {
@@ -296,28 +294,36 @@ void video_output_opengl_qt::open(
 
     if (state.fullscreen)
     {
-        _widget->setWindowState(_widget->windowState() ^ Qt::WindowFullScreen);
-        _widget->setCursor(Qt::BlankCursor);
+        enter_fullscreen();
     }
     else
     {
         _widget->resize(video_output_opengl::win_width(), video_output_opengl::win_height());
     }
-    if ((flags & center) && !state.fullscreen)
+    if (flags & video_output::center)
     {
-        _widget->move((video_output_opengl::screen_width() - video_output_opengl::win_width()) / 2,
-                (video_output_opengl::screen_height() - video_output_opengl::win_height()) / 2);
+        center();
     }
     set_state(state);
 
+    QGridLayout *container_layout = new QGridLayout();
+    container_layout->addWidget(_widget, 0, 0);
+    container_layout->setContentsMargins(0, 0, 0, 0);
+    container_layout->setRowStretch(0, 1);
+    container_layout->setColumnStretch(0, 1);
+    delete _container_widget->layout();
+    _container_widget->setLayout(container_layout);
+    _container_widget->adjustSize();
+
     _widget->show();
-    if (!_parent && (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard))
+    _container_widget->show();
+    if (!_container_is_external && (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard))
     {
         // XXX: This is a workaround for a Qt bug: the geometry() function for the widget (used in window_pos_x() and
         // window_pos_y()) always returns (0,0) until the window is first moved, or until we hide and re-show it.
         // The above output methods depend on a correct geometry value.
-        _widget->hide();
-        _widget->show();
+        _container_widget->hide();
+        _container_widget->show();
     }
 }
 
@@ -339,19 +345,33 @@ void video_output_opengl_qt::close()
     _widget = NULL;
 }
 
+void video_output_opengl_qt::center()
+{
+    if (!state().fullscreen)
+    {
+        // Move the window, not the widget, so that this also works inside the GUI.
+        int xo = _container_is_external ? _container_widget->geometry().x() : 0;
+        int yo = _container_is_external ? _container_widget->geometry().y() : 0;
+        _container_widget->window()->setGeometry(
+                (video_output_opengl::screen_width() - video_output_opengl::win_width()) / 2 - xo,
+                (video_output_opengl::screen_height() - video_output_opengl::win_height()) / 2 - yo,
+                _container_widget->window()->width(), _container_widget->window()->height());
+        _widget->setFocus(Qt::OtherFocusReason);
+    }
+}
+
 void video_output_opengl_qt::enter_fullscreen()
 {
     if (!state().fullscreen)
     {
-        if (_parent)
+        if (_container_is_external)
         {
-            _widget->setWindowFlags(Qt::Window);
+            _container_widget->setWindowFlags(Qt::Window);
         }
-        _widget->setWindowState(_widget->windowState() ^ Qt::WindowFullScreen);
-        _widget->setCursor(Qt::BlankCursor);
-        _widget->show();
+        _container_widget->setWindowState(_widget->windowState() | Qt::WindowFullScreen);
+        _container_widget->setCursor(Qt::BlankCursor);
+        _container_widget->show();
         _widget->setFocus(Qt::OtherFocusReason);
-        _widget->widget_was_reparented();
         state().fullscreen = true;
     }
 }
@@ -360,15 +380,15 @@ void video_output_opengl_qt::exit_fullscreen()
 {
     if (state().fullscreen)
     {
-        if (_parent)
+        if (_container_is_external)
         {
-            _widget->setWindowFlags(Qt::Widget);
+            _container_widget->setWindowFlags(Qt::Widget);
         }
-        _widget->setWindowState(_widget->windowState() ^ Qt::WindowFullScreen);
-        _widget->setCursor(Qt::ArrowCursor);
-        _widget->show();
+        _container_widget->setWindowState(_widget->windowState() & ~Qt::WindowFullScreen);
+        _container_widget->setCursor(Qt::ArrowCursor);
+        _widget->resize(video_output_opengl::win_width(), video_output_opengl::win_height());
+        _container_widget->show();
         _widget->setFocus(Qt::OtherFocusReason);
-        _widget->widget_was_reparented();
         state().fullscreen = false;
     }
 }
@@ -411,16 +431,7 @@ void video_output_opengl_qt::receive_notification(const notification &note)
         }
         break;
     case notification::center:
-        if (!state().fullscreen)
-        {
-            // Move the window, not the widget, so that this also works inside the GUI.
-            int xo = _parent ? _widget->geometry().x() : 0;
-            int yo = _parent ? _widget->geometry().y() : 0;
-            _widget->window()->setGeometry((video_output_opengl::screen_width() - video_output_opengl::win_width()) / 2 - xo,
-                    (video_output_opengl::screen_height() - video_output_opengl::win_height()) / 2 - yo,
-                    _widget->window()->width(), _widget->window()->height());
-            _widget->setFocus(Qt::OtherFocusReason);
-        }
+        center();
         break;
     case notification::contrast:
         state().contrast = note.current.value;
