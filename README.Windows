@@ -34,5 +34,5 @@ The following is known to work with Mingw-cross-env 2.17 installed in /path/to/m
 
 Now you can copy the bino.exe binary from the src subdirectory to any Windows machine.
 
-Note that you might want to use a newer ffmpeg version than the one shipped
+Note that you might want to use a newer FFmpeg version than the one shipped
 with Mingw-cross-env for best results.

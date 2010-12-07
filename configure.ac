@@ -45,18 +45,18 @@ AC_CHECK_DECLS([optreset], [#include <getopt.h>])
 AC_SEARCH_LIBS([clock_gettime], [rt])
 AC_CHECK_FUNCS([backtrace clock_gettime sigaction vasprintf])
 
-dnl ffmpeg
+dnl FFmpeg
 PKG_CHECK_MODULES([libavformat], [libavformat >= 52.64.2], [HAVE_LIBAVFORMAT=1], [HAVE_LIBAVFORMAT=0])
 if test "$HAVE_LIBAVFORMAT" != "1"; then
     AC_MSG_WARN([library libavformat >= 52.64.2 not found:])
     AC_MSG_WARN([$libavformat_PKG_ERRORS])
-    AC_MSG_WARN([libavformat is provided by ffmpeg; Debian package: libavformat-dev])
+    AC_MSG_WARN([libavformat is provided by FFmpeg; Debian package: libavformat-dev])
 fi
 PKG_CHECK_MODULES([libswscale], [libswscale >= 0.11.0], [HAVE_LIBSWSCALE=1], [HAVE_LIBSWSCALE=0])
 if test "$HAVE_LIBSWSCALE" != "1"; then
     AC_MSG_WARN([library libswscale >= 0.11.0 not found:])
     AC_MSG_WARN([$libswscale_PKG_ERRORS])
-    AC_MSG_WARN([libswscale is provided by ffmpeg; Debian package: libswscale-dev])
+    AC_MSG_WARN([libswscale is provided by FFmpeg; Debian package: libswscale-dev])
 fi
 AC_CHECK_FUNCS([sysconf])
 

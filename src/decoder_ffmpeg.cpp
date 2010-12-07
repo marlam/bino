@@ -48,7 +48,7 @@ extern "C"
 #include "decoder_ffmpeg.h"
 
 
-/* Hide the ffmpeg stuff so that their header files cannot cause problems
+/* Hide the FFmpeg stuff so that their header files cannot cause problems
  * in other source files. */
 struct internal_stuff
 {
@@ -158,10 +158,10 @@ static void my_av_log(void *ptr, int level, const char *fmt, va_list vl)
         size_t n;
         while ((n = line.find('\n')) != std::string::npos)
         {
-            msg::msg(l, std::string("ffmpeg: ") + p + line.substr(0, n));
+            msg::msg(l, std::string("FFmpeg: ") + p + line.substr(0, n));
             line = line.substr(n + 1);
         }
-        msg::msg(l, std::string("ffmpeg: ") + p + line);
+        msg::msg(l, std::string("FFmpeg: ") + p + line);
         line.resize(0);
     }
 }
@@ -804,13 +804,13 @@ void decoder_ffmpeg::close()
 std::vector<std::string> ffmpeg_versions()
 {
     std::vector<std::string> v;
-    v.push_back(str::asprintf("ffmpeg libavformat %d.%d.%d / %d.%d.%d",
+    v.push_back(str::asprintf("FFmpeg libavformat %d.%d.%d / %d.%d.%d",
                 LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
                 avformat_version() >> 16, avformat_version() >> 8 & 0xff, avformat_version() & 0xff));
-    v.push_back(str::asprintf("ffmpeg libavcodec %d.%d.%d / %d.%d.%d",
+    v.push_back(str::asprintf("FFmpeg libavcodec %d.%d.%d / %d.%d.%d",
                 LIBAVCODEC_VERSION_MAJOR, LIBAVCODEC_VERSION_MINOR, LIBAVCODEC_VERSION_MICRO,
                 avcodec_version() >> 16, avcodec_version() >> 8 & 0xff, avcodec_version() & 0xff));
-    v.push_back(str::asprintf("ffmpeg libswscale %d.%d.%d / %d.%d.%d",
+    v.push_back(str::asprintf("FFmpeg libswscale %d.%d.%d / %d.%d.%d",
                 LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO,
                 swscale_version() >> 16, swscale_version() >> 8 & 0xff, swscale_version() & 0xff));
     return v;
