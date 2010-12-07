@@ -43,8 +43,6 @@ public:
     video_output_opengl_qt_widget(video_output_opengl_qt *vo, const QGLFormat &format, QWidget *parent = NULL);
     ~video_output_opengl_qt_widget();
 
-    void widget_was_reparented();       // Call this when the widget was reparented, i.e. assigned to a layout
-
     virtual QSize sizeHint() const;
 
 protected:
@@ -60,9 +58,11 @@ class video_output_opengl_qt : public video_output_opengl
 {
 private:
     bool _qt_app_owner;
-    QWidget *_parent;
+    QWidget *_container_widget;
+    bool _container_is_external;
     video_output_opengl_qt_widget *_widget;
 
+    void center();
     void enter_fullscreen();
     void exit_fullscreen();
 
@@ -71,7 +71,10 @@ protected:
     virtual int window_pos_y();
 
 public:
-    video_output_opengl_qt(QWidget *parent = NULL) throw ();
+    /* If a container widget is given, then it is assumed that this widget is
+     * part of another widget (e.g. a main window). If no container widget is
+     * given, we will use our own, and it will be a top-level window. */
+    video_output_opengl_qt(QWidget *container_widget = NULL) throw ();
     ~video_output_opengl_qt();
 
     virtual bool supports_stereo();

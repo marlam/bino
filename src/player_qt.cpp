@@ -21,6 +21,7 @@
 
 #include <QCoreApplication>
 #include <QMainWindow>
+#include <QGridLayout>
 #include <QCloseEvent>
 #include <QMenu>
 #include <QMenuBar>
@@ -571,18 +572,18 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
 
     // Central widget
     QWidget *central_widget = new QWidget(this);
-    _layout = new QGridLayout();
-    _video_output = new video_output_opengl_qt(central_widget);
+    QGridLayout *layout = new QGridLayout();
+    _video_container_widget = new QWidget(central_widget);
+    _video_output = new video_output_opengl_qt(_video_container_widget);
     _video_output->open(decoder::frame_format_bgra32, 1, 1, 1.0f, video_output::mono_left, video_output_state(), 0, 0, 0);
-    _video_widget = _video_output->widget();
-    _layout->addWidget(_video_widget, 0, 0);
+    layout->addWidget(_video_container_widget, 0, 0);
     _in_out_widget = new in_out_widget(_settings, central_widget);
-    _layout->addWidget(_in_out_widget, 1, 0);
+    layout->addWidget(_in_out_widget, 1, 0);
     _controls_widget = new controls_widget(_settings, central_widget);
-    _layout->addWidget(_controls_widget, 2, 0);
-    _layout->setRowStretch(0, 1);
-    _layout->setColumnStretch(0, 1);
-    central_widget->setLayout(_layout);
+    layout->addWidget(_controls_widget, 2, 0);
+    layout->setRowStretch(0, 1);
+    layout->setColumnStretch(0, 1);
+    central_widget->setLayout(layout);
     setCentralWidget(central_widget);
 
     // Menus
@@ -651,11 +652,6 @@ bool main_window::open_player()
         QMessageBox::critical(this, "Error", tr("%1").arg(e.what()));
         return false;
     }
-    _layout->removeWidget(_video_widget);
-    delete _video_widget;
-    _video_widget = _video_output->widget();
-    _layout->addWidget(_video_widget, 0, 0);
-    _video_widget->widget_was_reparented();
     adjustSize();
     return true;
 }
@@ -692,7 +688,7 @@ void main_window::receive_notification(const notification &note)
             _settings->endGroup();
             _in_out_widget->update(_init_data, true, true);
             _controls_widget->update(_init_data, true, true);
-            _video_widget->setFocus(Qt::OtherFocusReason);
+            _video_container_widget->setFocus(Qt::OtherFocusReason);
             _timer->start(0);
         }
         else
@@ -719,13 +715,13 @@ void main_window::playloop_step()
 
 void main_window::moveEvent(QMoveEvent *)
 {
-    if (_video_output && _video_widget)
+    if (_video_output)
     {
         if (_video_output->mode() == video_output::even_odd_rows
                 || _video_output->mode() == video_output::even_odd_columns
                 || _video_output->mode() == video_output::checkerboard)
         {
-            _video_widget->update();
+            _video_container_widget->update();
         }
     }
 }

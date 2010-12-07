@@ -24,7 +24,6 @@
 #include <QWidget>
 #include <QComboBox>
 #include <QPushButton>
-#include <QGridLayout>
 #include <QTimer>
 #include <QSettings>
 
@@ -133,11 +132,10 @@ class main_window : public QMainWindow, public controller
 private:
     QSettings *_settings;
     player_qt_internal *_player;
+    QWidget *_video_container_widget;
     video_output_opengl_qt *_video_output;
-    video_output_opengl_qt_widget *_video_widget;
     in_out_widget *_in_out_widget;
     controls_widget *_controls_widget;
-    QGridLayout *_layout;
     QTimer *_timer;
     player_init_data _init_data;
     bool _stop_request;
