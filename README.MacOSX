@@ -21,3 +21,99 @@ architecture:
   CXXFLAGS="-I/usr/X11R6/include"
 
 Stefan Eilemann <eile@eyescale.ch>, 06/Dec/2010
+
+===============================================================================
+
+If you are using MacPorts, you can use the following port files to build Bino.
+
+The bino port has two variants:
++qt4nokia to use the official Qt4 installation rather than qt4-mac from MacPorts
++openalsoft to use openal-soft rather than openal, for multi-channel support
+
+These port files were written by Frédéric Devernay
+<Frederic.Devernay@inrialpes.fr>.
+
+audio/openal-soft/Portfile:
+-------------------------------------------------------------------------------
+# -*- coding: utf-8; mode: tcl; tab-width: 4; truncate-lines: t; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem          1.0
+PortGroup           cmake 1.0
+
+name                openal-soft
+version             1.11.753
+categories		    audio devel
+maintainers         openmaintainer
+description         OpenAL Soft with multichannel support for Mac OS X
+long_description    temporary fork of OpenAL Soft for development of a multi-channel capable Mac OS X renderer.
+
+#homepage            http://kcat.strangesoft.net/openal.html
+homepage            https://github.com/garinh/openal-soft
+platforms           darwin
+
+fetch.type          git
+git.url             https://github.com/garinh/openal-soft.git
+git.branch          899eb0747644923239d48dd706fe2d3cde02734a
+
+livecheck.type  none
+-------------------------------------------------------------------------------
+
+multimedia/bino/Portfile:
+-------------------------------------------------------------------------------
+# -*- coding: utf-8; mode: tcl; tab-width: 4; truncate-lines: t; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:et:sw=4:ts=4:sts=4
+# $Id$
+
+PortSystem 1.0
+name		bino
+version		0.6.20101206
+revision	1
+categories	multimedia
+maintainers	frederic.devernay@m4x.org
+description	Bino plays stereoscopic videos, also known as 3D videos
+
+long_description	${description}
+
+homepage	http://www.nongnu.org/bino/
+#checksums           md5     8293eb63a682e61cc7f9ed322fa61dd4 \
+#                    sha1    1de0e1fe6750148d3d7316e719f434101479d4dd \
+#                    rmd160  f2724a8acc79aca9ddd317c7334c9bfa5ed64ef0
+master_sites	http://download.savannah.nongnu.org/releases/bino/
+#use_xz		yes
+#depends_extract port:xz-devel
+
+depends_build	
+depends_lib \
+	port:ffmpeg \
+    port:glew \
+    port:openal \
+    port:qt4-mac
+
+#patchfiles	bino-mac.patch
+#patch.pre_args	-p1
+use_autoreconf	yes
+
+variant qt4nokia description {Use the official Qt4 distribution from http://qt.nokia.com/download} {
+    depends_lib-delete      port:qt4-mac
+	pre-configure {
+		if {![file exists "/Library/Frameworks/QtOpenGL.framework/Headers/QtOpenGL"]} {
+			return -code error "\n********************\n${name} requires Qt for Mac, please download and install it from http://qt.nokia.com/download\n********************"
+		}
+	}
+    configure.args-append \
+        libqtopengl_LIBS="-framework QtCore -framework QtGui -framework QtOpenGL -framework OpenGL" \
+        libqtopengl_CFLAGS="-I/Library/Frameworks/QtCore.framework/Headers -I/Library/Frameworks/QtGui.framework/Headers -I/Library/Frameworks/QtOpenGL.framework/Headers"
+}
+
+variant openalsoft description {Use the OpenAL-soft from https://github.com/garinh/openal-soft with multi-channel support} {
+    depends_lib-delete      port:openal
+    depends_lib-append      port:openal-soft
+}
+
+fetch.type          git
+git.url            git://git.savannah.nongnu.org/bino.git
+#use "git log" to find out branch value
+git.branch          	7974964569005d14bc184166c99d14e2b57b6306
+
+livecheck.type  none
+-------------------------------------------------------------------------------
