@@ -127,7 +127,8 @@ void video_output_opengl::swap_tex_set()
 
 void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_texture_non_power_of_two, bool have_fragment_shader)
 {
-    _have_valid_data = false;
+    _have_valid_data[0] = false;
+    _have_valid_data[1] = false;
     _use_non_power_of_two = true;
     if (!have_texture_non_power_of_two)
     {
@@ -360,7 +361,8 @@ void video_output_opengl::deinitialize()
     {
         glDeleteBuffersARB(1, &_pbo);
     }
-    _have_valid_data = false;
+    _have_valid_data[0] = false;
+    _have_valid_data[1] = false;
 }
 
 enum decoder::video_frame_format video_output_opengl::frame_format() const
@@ -496,7 +498,7 @@ static const GLubyte *stipple_pattern_checkerboard_inv = stipple_pattern_checker
 void video_output_opengl::display(enum video_output::mode mode, float x, float y, float w, float h)
 {
     glClear(GL_COLOR_BUFFER_BIT);
-    if (!_have_valid_data)
+    if (!_have_valid_data[_active_tex_set])
     {
         return;
     }
@@ -754,13 +756,12 @@ void video_output_opengl::prepare(
         uint8_t *l_data[3], size_t l_line_size[3],
         uint8_t *r_data[3], size_t r_line_size[3])
 {
+    int tex_set = (_active_tex_set == 0 ? 1 : 0);
     if (!l_data[0])
     {
-        _have_valid_data = false;
+        _have_valid_data[tex_set] = false;
         return;
     }
-
-    int tex_set = (_active_tex_set == 0 ? 1 : 0);
     _input_is_mono = (l_data[0] == r_data[0] && l_data[1] == r_data[1] && l_data[2] == r_data[2]);
 
     glActiveTexture(GL_TEXTURE0);
@@ -800,7 +801,7 @@ void video_output_opengl::prepare(
                     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, r_data[0]);
         }
     }
-    _have_valid_data = true;
+    _have_valid_data[tex_set] = true;
 }
 
 std::vector<std::string> glew_versions()
