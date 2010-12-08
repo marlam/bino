@@ -411,9 +411,6 @@ void video_output_opengl_qt::receive_notification(const notification &note)
     case notification::play:
         if (!note.current.flag)
         {
-            uint8_t *null_data[3] = { NULL, NULL, NULL };
-            size_t null_line_size[3] = { 0, 0, 0 };
-            prepare(null_data, null_line_size, null_data, null_line_size);
             if (state().fullscreen)
             {
                 exit_fullscreen();
