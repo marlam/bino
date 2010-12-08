@@ -35,6 +35,8 @@
 #include <QComboBox>
 #include <QTimer>
 #include <QFile>
+#include <QByteArray>
+#include <QCryptographicHash>
 
 #include "player_qt.h"
 #include "qt_app.h"
@@ -672,8 +674,9 @@ void main_window::receive_notification(const notification &note)
             _settings->beginGroup("Video");
             if (_init_data.filenames.size() == 1)
             {
-                _settings->setValue(QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName(),
-                        QString(input::mode_name(_init_data.input_mode).c_str()));
+                QString name = QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName();
+                QByteArray hash = QCryptographicHash::hash(name.toUtf8(), QCryptographicHash::Sha1);
+                _settings->setValue(QString(hash.toHex()), QString(input::mode_name(_init_data.input_mode).c_str()));
             }
             _settings->endGroup();
             _settings->beginGroup("Session");
@@ -750,9 +753,10 @@ void main_window::open(QStringList filenames, bool automatic)
         _settings->beginGroup("Video");
         if (_init_data.filenames.size() == 1)
         {
+            QString name = QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName();
+            QByteArray hash = QCryptographicHash::hash(name.toUtf8(), QCryptographicHash::Sha1);
             QString fallback_mode_name = QString(input::mode_name(_player->input_mode()).c_str());
-            QString filename = QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName();
-            QString mode_name = _settings->value(filename, fallback_mode_name).toString();
+            QString mode_name = _settings->value(QString(hash.toHex()), fallback_mode_name).toString();
             _init_data.input_mode = input::mode_from_name(mode_name.toStdString());
         }
         else
