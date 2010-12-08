@@ -135,12 +135,6 @@ void player_qt_internal::force_stop()
     notify(notification::play, false, false);
 }
 
-QWidget *player_qt_internal::video_output_widget()
-{
-    video_output_opengl_qt *vo = static_cast<video_output_opengl_qt *>(player::get_video_output());
-    return vo->widget();
-}
-
 
 in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     : QWidget(parent), _settings(settings), _lock(false)

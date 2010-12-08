@@ -54,8 +54,6 @@ public:
 
     bool playloop_step();
     void force_stop();
-
-    QWidget *video_output_widget();
 };
 
 class in_out_widget : public QWidget, public controller
