@@ -56,7 +56,7 @@ player_qt_internal::~player_qt_internal()
 
 void player_qt_internal::open_dummy_video_output()
 {
-    _vo->open(decoder::frame_format_bgra32, 1, 1, 1.0f, video_output::mono_left, video_output_state(), 0, 0, 0);
+    _vo->open(decoder::frame_format_bgra32, 128, 128, 1.0f, video_output::mono_left, video_output_state(), 0, -1, -1);
 }
 
 void player_qt_internal::open(const player_init_data &init_data)
@@ -638,6 +638,10 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
             filenames.push_back(QFile::decodeName(init_data.filenames[i].c_str()));
         }
         open(filenames, false);
+    }
+    else
+    {
+        adjustSize();   // Adjust size for initial dummy video widget
     }
 }
 
