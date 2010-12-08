@@ -63,6 +63,8 @@ video_output_opengl_qt_widget::video_output_opengl_qt_widget(
 
 video_output_opengl_qt_widget::~video_output_opengl_qt_widget()
 {
+    makeCurrent();
+    _vo->deinitialize();
 }
 
 void video_output_opengl_qt_widget::initializeGL()
