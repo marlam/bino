@@ -39,6 +39,9 @@ private:
     video_output_opengl_qt *_vo;
     bool _playing;
 
+private:
+    void open_dummy_video_output();
+
 public:
     player_qt_internal(video_output_opengl_qt *vo);
     virtual ~player_qt_internal();

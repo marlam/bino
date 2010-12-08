@@ -207,7 +207,10 @@ video_output_opengl_qt::video_output_opengl_qt(QWidget *container_widget) throw 
 video_output_opengl_qt::~video_output_opengl_qt()
 {
     delete _widget;
-    delete _container_widget;
+    if (!_container_is_external)
+    {
+        delete _container_widget;
+    }
     if (_qt_app_owner)
     {
         exit_qt();
@@ -396,6 +399,11 @@ void video_output_opengl_qt::exit_fullscreen()
 
 void video_output_opengl_qt::receive_notification(const notification &note)
 {
+    if (!_widget)
+    {
+        return;
+    }
+
     switch (note.type)
     {
     case notification::play:

@@ -47,10 +47,16 @@
 player_qt_internal::player_qt_internal(video_output_opengl_qt *vo)
     : player(player::master), _vo(vo), _playing(false)
 {
+    open_dummy_video_output();
 }
 
 player_qt_internal::~player_qt_internal()
 {
+}
+
+void player_qt_internal::open_dummy_video_output()
+{
+    _vo->open(decoder::frame_format_bgra32, 1, 1, 1.0f, video_output::mono_left, video_output_state(), 0, 0, 0);
 }
 
 void player_qt_internal::open(const player_init_data &init_data)
@@ -67,6 +73,8 @@ void player_qt_internal::open(const player_init_data &init_data)
 
 void player_qt_internal::close()
 {
+    try { _vo->close(); } catch (...) {}
+    open_dummy_video_output();
     player::set_video_output(NULL);
     player::close();
     player::set_video_output(_vo);
@@ -577,7 +585,6 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     QGridLayout *layout = new QGridLayout();
     _video_container_widget = new QWidget(central_widget);
     _video_output = new video_output_opengl_qt(_video_container_widget);
-    _video_output->open(decoder::frame_format_bgra32, 1, 1, 1.0f, video_output::mono_left, video_output_state(), 0, 0, 0);
     layout->addWidget(_video_container_widget, 0, 0);
     _in_out_widget = new in_out_widget(_settings, central_widget);
     layout->addWidget(_in_out_widget, 1, 0);
