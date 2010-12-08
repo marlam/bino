@@ -360,7 +360,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         {
             *drop_frame = true;
         }
-        else
+        else if (!_pause_request)
         {
             *prep_frame = true;
         }
