@@ -67,6 +67,7 @@ video_output_opengl_qt_widget::~video_output_opengl_qt_widget()
 
 void video_output_opengl_qt_widget::initializeGL()
 {
+    glClear(GL_COLOR_BUFFER_BIT);
     if (opengl_version_vector.size() == 0)
     {
         set_opengl_version_vector();
