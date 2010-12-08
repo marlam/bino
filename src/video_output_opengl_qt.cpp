@@ -252,6 +252,11 @@ void video_output_opengl_qt::open(
         int mode, const video_output_state &state, unsigned int flags,
         int win_width, int win_height)
 {
+    if (_widget)
+    {
+        close();
+    }
+
     set_mode(static_cast<enum video_output::mode>(mode));
     set_source_info(src_width, src_height, src_aspect_ratio, preferred_frame_format);
 

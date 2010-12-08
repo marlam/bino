@@ -129,7 +129,7 @@ void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_te
 {
     if (_initialized)
     {
-        return;
+        deinitialize();
     }
 
     _have_valid_data[0] = false;
