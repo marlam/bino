@@ -59,7 +59,7 @@ public:
     /* Constructor, Destructor */
 
     decoder() throw ();
-    ~decoder();
+    virtual ~decoder();
 
     /*
      * Initialization

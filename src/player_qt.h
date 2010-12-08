@@ -41,7 +41,7 @@ private:
 
 public:
     player_qt_internal(video_output_opengl_qt *vo);
-    ~player_qt_internal();
+    virtual ~player_qt_internal();
 
     virtual void open(const player_init_data &init_data);
     virtual void close();
@@ -79,7 +79,7 @@ private slots:
 
 public:
     in_out_widget(QSettings *settings, QWidget *parent);
-    ~in_out_widget();
+    virtual ~in_out_widget();
 
     void update(const player_init_data &init_data, bool have_valid_input, bool playing);
 
@@ -119,7 +119,7 @@ private slots:
 
 public:
     controls_widget(QSettings *settings, QWidget *parent);
-    ~controls_widget();
+    virtual ~controls_widget();
 
     void update(const player_init_data &init_data, bool have_valid_input, bool playing);
     virtual void receive_notification(const notification &note);
@@ -156,7 +156,7 @@ protected:
 
 public:
     main_window(QSettings *settings, const player_init_data &init_data);
-    ~main_window();
+    virtual ~main_window();
 
     virtual void receive_notification(const notification &note);
 };
@@ -170,7 +170,7 @@ private:
 
 public:
     player_qt();
-    ~player_qt();
+    virtual ~player_qt();
 
     QSettings *settings()
     {

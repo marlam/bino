@@ -218,7 +218,7 @@ public:
         canvas_video_area.d = 1.0f;
     }
 
-    ~eq_init_data()
+    virtual ~eq_init_data()
     {
         frame_data_id = EQ_ID_INVALID;
     }

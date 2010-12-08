@@ -75,7 +75,7 @@ public:
      * part of another widget (e.g. a main window). If no container widget is
      * given, we will use our own, and it will be a top-level window. */
     video_output_opengl_qt(QWidget *container_widget = NULL) throw ();
-    ~video_output_opengl_qt();
+    virtual ~video_output_opengl_qt();
 
     virtual bool supports_stereo();
 

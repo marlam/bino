@@ -100,7 +100,7 @@ protected:
 
 public:
     video_output_opengl(bool receive_notifications = true) throw ();
-    ~video_output_opengl();
+    virtual ~video_output_opengl();
 
     virtual bool supports_stereo() = 0;
 
