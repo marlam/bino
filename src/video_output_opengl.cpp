@@ -37,7 +37,7 @@
 
 
 video_output_opengl::video_output_opengl(bool receive_notifications) throw ()
-    : video_output(receive_notifications)
+    : video_output(receive_notifications), _initialized(false)
 {
 }
 
@@ -127,6 +127,11 @@ void video_output_opengl::swap_tex_set()
 
 void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_texture_non_power_of_two, bool have_fragment_shader)
 {
+    if (_initialized)
+    {
+        return;
+    }
+
     _have_valid_data[0] = false;
     _have_valid_data[1] = false;
     _use_non_power_of_two = true;
@@ -335,10 +340,16 @@ void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_te
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+    _initialized = true;
 }
 
 void video_output_opengl::deinitialize()
 {
+    if (!_initialized)
+    {
+        return;
+    }
+
     if (_prg != 0)
     {
         xgl::DeleteProgram(_prg);
@@ -363,6 +374,7 @@ void video_output_opengl::deinitialize()
     }
     _have_valid_data[0] = false;
     _have_valid_data[1] = false;
+    _initialized = false;
 }
 
 enum decoder::video_frame_format video_output_opengl::frame_format() const

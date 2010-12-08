@@ -43,6 +43,7 @@ private:
     float _screen_pixel_aspect_ratio;
     int _win_width;
     int _win_height;
+    bool _initialized;
     GLuint _prg;
     GLuint _rgb_tex[2][2];
     GLuint _y_tex[2][2];
