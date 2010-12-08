@@ -56,7 +56,6 @@ protected:
     virtual void paintGL();
     virtual void resizeGL(int width, int height);
     virtual void moveEvent(QMoveEvent *event);
-    virtual void closeEvent(QCloseEvent *event);
     virtual void keyPressEvent(QKeyEvent *event);
 };
 
@@ -65,7 +64,7 @@ protected:
  * described below (but note that you still must catch move events for
  * parent widgets yourself). */
 
-class video_container_widget : public QWidget
+class video_container_widget : public QWidget, public controller
 {
     Q_OBJECT
 public:
@@ -74,6 +73,7 @@ signals:
     void move_event();
 protected:
     virtual void moveEvent(QMoveEvent *event);
+    virtual void closeEvent(QCloseEvent *event);
 };
 
 /* Public interface. This subclasses video_output_opengl; see its documentation. */

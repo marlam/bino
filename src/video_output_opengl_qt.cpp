@@ -125,11 +125,6 @@ void video_output_opengl_qt_widget::moveEvent(QMoveEvent *)
     move_event();
 }
 
-void video_output_opengl_qt_widget::closeEvent(QCloseEvent *)
-{
-    _vo->send_cmd(command::toggle_play);
-}
-
 void video_output_opengl_qt_widget::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key())
@@ -215,6 +210,11 @@ video_container_widget::video_container_widget(QWidget *parent) : QWidget(parent
 void video_container_widget::moveEvent(QMoveEvent *)
 {
     emit move_event();
+}
+
+void video_container_widget::closeEvent(QCloseEvent *)
+{
+    send_cmd(command::toggle_play);
 }
 
 
