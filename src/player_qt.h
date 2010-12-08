@@ -133,8 +133,8 @@ class main_window : public QMainWindow, public controller
 private:
     QSettings *_settings;
     player_qt_internal *_player;
-    QWidget *_video_container_widget;
     video_output_opengl_qt *_video_output;
+    video_container_widget *_video_container_widget;
     in_out_widget *_in_out_widget;
     controls_widget *_controls_widget;
     QTimer *_timer;
@@ -145,6 +145,7 @@ private:
     void open(QStringList filenames, bool automatic);
 
 private slots:
+    void move_event();
     void playloop_step();
     void file_open();
     void file_open_url();

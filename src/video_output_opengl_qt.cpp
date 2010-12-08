@@ -44,6 +44,8 @@ static GLEWContext* glewGetContext() { return &_glewContext; }
 #include "video_output_opengl_qt.h"
 
 
+/* OpenGL version handling */
+
 static std::vector<std::string> opengl_version_vector;
 
 static void set_opengl_version_vector()
@@ -52,6 +54,8 @@ static void set_opengl_version_vector()
     opengl_version_vector.push_back(std::string("OpenGL renderer ") + reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
     opengl_version_vector.push_back(std::string("OpenGL vendor ") + reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
 }
+
+/* The GL widget */
 
 video_output_opengl_qt_widget::video_output_opengl_qt_widget(
         video_output_opengl_qt *vo, const QGLFormat &format, QWidget *parent)
@@ -65,6 +69,18 @@ video_output_opengl_qt_widget::~video_output_opengl_qt_widget()
 {
     makeCurrent();
     _vo->deinitialize();
+}
+
+void video_output_opengl_qt_widget::move_event()
+{
+    // The masking modes must know if the video area starts with an even or
+    // odd columns and/or row. If this changes, the display must be updated.
+    if (_vo->mode() == video_output::even_odd_rows
+            || _vo->mode() == video_output::even_odd_columns
+            || _vo->mode() == video_output::checkerboard)
+    {
+        update();
+    }
 }
 
 void video_output_opengl_qt_widget::initializeGL()
@@ -106,12 +122,7 @@ void video_output_opengl_qt_widget::resizeGL(int w, int h)
 
 void video_output_opengl_qt_widget::moveEvent(QMoveEvent *)
 {
-    if (_vo->mode() == video_output::even_odd_rows
-            || _vo->mode() == video_output::even_odd_columns
-            || _vo->mode() == video_output::checkerboard)
-    {
-        update();
-    }
+    move_event();
 }
 
 void video_output_opengl_qt_widget::closeEvent(QCloseEvent *)
@@ -194,7 +205,22 @@ QSize video_output_opengl_qt_widget::sizeHint() const
 }
 
 
-video_output_opengl_qt::video_output_opengl_qt(QWidget *container_widget) throw ()
+/* Our own video container widget, used in case that the video_output_opengl_qt
+ * constructor is called without an external container widget. */
+
+video_container_widget::video_container_widget(QWidget *parent) : QWidget(parent)
+{
+}
+
+void video_container_widget::moveEvent(QMoveEvent *)
+{
+    emit move_event();
+}
+
+
+/* The video_output_opengl_qt class */
+
+video_output_opengl_qt::video_output_opengl_qt(video_container_widget *container_widget) throw ()
     : video_output_opengl(), _qt_app_owner(false),
     _container_widget(container_widget), _container_is_external(container_widget != NULL),
     _widget(NULL)
@@ -202,7 +228,7 @@ video_output_opengl_qt::video_output_opengl_qt(QWidget *container_widget) throw 
     _qt_app_owner = init_qt();
     if (!_container_widget)
     {
-        _container_widget = new QWidget();
+        _container_widget = new video_container_widget(NULL);
     }
 }
 
@@ -221,14 +247,20 @@ video_output_opengl_qt::~video_output_opengl_qt()
 
 int video_output_opengl_qt::window_pos_x()
 {
-    int xo = _container_is_external ? _container_widget->geometry().x() : 0;
-    return _container_widget->window()->geometry().x() + xo;
+    return _widget->mapToGlobal(QPoint(0, 0)).x();
 }
 
 int video_output_opengl_qt::window_pos_y()
 {
-    int yo = _container_is_external ? _container_widget->geometry().y() : 0;
-    return _container_widget->window()->geometry().y() + yo;
+    return _widget->mapToGlobal(QPoint(0, 0)).y();
+}
+
+void video_output_opengl_qt::move_event()
+{
+    if (_widget)
+    {
+        _widget->move_event();
+    }
 }
 
 bool video_output_opengl_qt::supports_stereo()
@@ -260,31 +292,6 @@ void video_output_opengl_qt::open(
     set_mode(static_cast<enum video_output::mode>(mode));
     set_source_info(src_width, src_height, src_aspect_ratio, preferred_frame_format);
 
-    // Initialize widget
-    QGLFormat fmt;
-    fmt.setAlpha(true);
-    fmt.setDoubleBuffer(true);
-    fmt.setSwapInterval(1);
-    if (mode == stereo)
-    {
-        fmt.setStereo(true);
-    }
-    _widget = new video_output_opengl_qt_widget(this, fmt, _container_widget);
-    if (!_widget->format().alpha() || !_widget->format().doubleBuffer()
-            || (mode == stereo && !_widget->format().stereo()))
-    {
-        if (mode == stereo)
-        {
-            // Common failure: display does not support quad buffered stereo
-            throw exc("display does not support stereo mode");
-        }
-        else
-        {
-            // Should never happen
-            throw exc("cannot set GL context format");
-        }
-    }
-
     int screen_width = QApplication::desktop()->screenGeometry().width();
     int screen_height = QApplication::desktop()->screenGeometry().height();
     float screen_pixel_aspect_ratio =
@@ -302,6 +309,32 @@ void video_output_opengl_qt::open(
             screen_width, screen_height, screen_pixel_aspect_ratio);
     set_screen_info(screen_width, screen_height, screen_pixel_aspect_ratio);
     compute_win_size(win_width, win_height);
+
+    // Initialize widget
+    QGLFormat fmt;
+    fmt.setAlpha(true);
+    fmt.setDoubleBuffer(true);
+    fmt.setSwapInterval(1);
+    if (mode == stereo)
+    {
+        fmt.setStereo(true);
+    }
+    _widget = new video_output_opengl_qt_widget(this, fmt, _container_widget);
+    QObject::connect(_container_widget, SIGNAL(move_event()), _widget, SLOT(move_event()));
+    if (!_widget->format().alpha() || !_widget->format().doubleBuffer()
+            || (mode == stereo && !_widget->format().stereo()))
+    {
+        if (mode == stereo)
+        {
+            // Common failure: display does not support quad buffered stereo
+            throw exc("display does not support stereo mode");
+        }
+        else
+        {
+            // Should never happen
+            throw exc("cannot set GL context format");
+        }
+    }
 
     if (state.fullscreen)
     {
@@ -328,14 +361,6 @@ void video_output_opengl_qt::open(
 
     _widget->show();
     _container_widget->show();
-    if (!_container_is_external && (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard))
-    {
-        // XXX: This is a workaround for a Qt bug: the geometry() function for the widget (used in window_pos_x() and
-        // window_pos_y()) always returns (0,0) until the window is first moved, or until we hide and re-show it.
-        // The above output methods depend on a correct geometry value.
-        _container_widget->hide();
-        _container_widget->show();
-    }
 }
 
 void video_output_opengl_qt::activate()

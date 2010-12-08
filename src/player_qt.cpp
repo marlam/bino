@@ -577,7 +577,8 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     // Central widget
     QWidget *central_widget = new QWidget(this);
     QGridLayout *layout = new QGridLayout();
-    _video_container_widget = new QWidget(central_widget);
+    _video_container_widget = new video_container_widget(central_widget);
+    connect(_video_container_widget, SIGNAL(move_event()), this, SLOT(move_event()));
     _video_output = new video_output_opengl_qt(_video_container_widget);
     layout->addWidget(_video_container_widget, 0, 0);
     _in_out_widget = new in_out_widget(_settings, central_widget);
@@ -707,6 +708,24 @@ void main_window::receive_notification(const notification &note)
     }
 }
 
+void main_window::moveEvent(QMoveEvent *)
+{
+    move_event();
+}
+
+void main_window::closeEvent(QCloseEvent *event)
+{
+    event->accept();
+}
+
+void main_window::move_event()
+{
+    if (_video_output)
+    {
+        _video_output->move_event();
+    }
+}
+
 void main_window::playloop_step()
 {
     if (_stop_request)
@@ -719,24 +738,6 @@ void main_window::playloop_step()
     {
         _timer->stop();
     }
-}
-
-void main_window::moveEvent(QMoveEvent *)
-{
-    if (_video_output)
-    {
-        if (_video_output->mode() == video_output::even_odd_rows
-                || _video_output->mode() == video_output::even_odd_columns
-                || _video_output->mode() == video_output::checkerboard)
-        {
-            _video_container_widget->update();
-        }
-    }
-}
-
-void main_window::closeEvent(QCloseEvent *event)
-{
-    event->accept();
 }
 
 void main_window::open(QStringList filenames, bool automatic)
