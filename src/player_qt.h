@@ -36,24 +36,21 @@
 class player_qt_internal : public player, public controller
 {
 private:
-    video_output_opengl_qt *_vo;
+    video_container_widget *_container_widget;
     bool _playing;
 
-private:
-    void open_dummy_video_output();
-
 public:
-    player_qt_internal(video_output_opengl_qt *vo);
+    player_qt_internal(video_container_widget *container_widget);
     virtual ~player_qt_internal();
 
     virtual void open(const player_init_data &init_data);
-    virtual void close();
     virtual void receive_cmd(const command &cmd);
 
     virtual void receive_notification(const notification &note);
 
     bool playloop_step();
     void force_stop();
+    void move_event();
 };
 
 class in_out_widget : public QWidget, public controller
@@ -132,11 +129,10 @@ class main_window : public QMainWindow, public controller
 
 private:
     QSettings *_settings;
-    player_qt_internal *_player;
-    video_output_opengl_qt *_video_output;
     video_container_widget *_video_container_widget;
     in_out_widget *_in_out_widget;
     controls_widget *_controls_widget;
+    player_qt_internal *_player;
     QTimer *_timer;
     player_init_data _init_data;
     bool _stop_request;

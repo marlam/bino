@@ -34,6 +34,7 @@ static GLEWContext* glewGetContext() { return &_glewContext; }
 #include <QKeyEvent>
 #include <QIcon>
 #include <QMessageBox>
+#include <QPalette>
 
 #include "exc.h"
 #include "msg.h"
@@ -205,6 +206,13 @@ QSize video_output_opengl_qt_widget::sizeHint() const
 
 video_container_widget::video_container_widget(QWidget *parent) : QWidget(parent)
 {
+    // Set minimum size > 0 so that the container is always visible
+    setMinimumSize(64, 64);
+    // Always paint the complete widget black
+    QPalette p(palette());
+    p.setColor(QPalette::Background, Qt::black);
+    setPalette(p);
+    setAutoFillBackground(true);
 }
 
 void video_container_widget::moveEvent(QMoveEvent *)

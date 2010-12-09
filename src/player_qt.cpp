@@ -44,19 +44,13 @@
 #include "lib_versions.h"
 
 
-player_qt_internal::player_qt_internal(video_output_opengl_qt *vo)
-    : player(player::master), _vo(vo), _playing(false)
+player_qt_internal::player_qt_internal(video_container_widget *container_widget)
+    : player(player::master), _container_widget(container_widget), _playing(false)
 {
-    open_dummy_video_output();
 }
 
 player_qt_internal::~player_qt_internal()
 {
-}
-
-void player_qt_internal::open_dummy_video_output()
-{
-    _vo->open(decoder::frame_format_bgra32, 128, 128, 1.0f, video_output::mono_left, video_output_state(), 0, -1, -1);
 }
 
 void player_qt_internal::open(const player_init_data &init_data)
@@ -66,18 +60,9 @@ void player_qt_internal::open(const player_init_data &init_data)
     create_decoders(init_data.filenames);
     create_input(init_data.input_mode);
     create_audio_output();
-    set_video_output(_vo);
+    set_video_output(new video_output_opengl_qt(_container_widget));
     video_state() = init_data.video_state;
     open_video_output(init_data.video_mode, init_data.video_flags);
-}
-
-void player_qt_internal::close()
-{
-    try { _vo->close(); } catch (...) {}
-    open_dummy_video_output();
-    player::set_video_output(NULL);
-    player::close();
-    player::set_video_output(_vo);
 }
 
 void player_qt_internal::receive_cmd(const command &cmd)
@@ -133,6 +118,15 @@ bool player_qt_internal::playloop_step()
 void player_qt_internal::force_stop()
 {
     notify(notification::play, false, false);
+}
+
+void player_qt_internal::move_event()
+{
+    video_output_opengl_qt *vo = static_cast<video_output_opengl_qt *>(get_video_output());
+    if (vo)
+    {
+        vo->move_event();
+    }
 }
 
 
@@ -579,7 +573,6 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     QGridLayout *layout = new QGridLayout();
     _video_container_widget = new video_container_widget(central_widget);
     connect(_video_container_widget, SIGNAL(move_event()), this, SLOT(move_event()));
-    _video_output = new video_output_opengl_qt(_video_container_widget);
     layout->addWidget(_video_container_widget, 0, 0);
     _in_out_widget = new in_out_widget(_settings, central_widget);
     layout->addWidget(_in_out_widget, 1, 0);
@@ -620,7 +613,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     show();     // Must happen before opening initial files!
 
     // Player and timer
-    _player = new player_qt_internal(_video_output);
+    _player = new player_qt_internal(_video_container_widget);
     _timer = new QTimer(this);
     connect(_timer, SIGNAL(timeout()), this, SLOT(playloop_step()));
 
@@ -720,9 +713,9 @@ void main_window::closeEvent(QCloseEvent *event)
 
 void main_window::move_event()
 {
-    if (_video_output)
+    if (_player)
     {
-        _video_output->move_event();
+        _player->move_event();
     }
 }
 
