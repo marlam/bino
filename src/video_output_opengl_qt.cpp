@@ -386,12 +386,14 @@ void video_output_opengl_qt::center()
     if (!state().fullscreen)
     {
         // Move the window, not the widget, so that this also works inside the GUI.
-        int xo = _container_is_external ? _container_widget->geometry().x() : 0;
-        int yo = _container_is_external ? _container_widget->geometry().y() : 0;
-        _container_widget->window()->setGeometry(
-                (video_output_opengl::screen_width() - video_output_opengl::win_width()) / 2 - xo,
-                (video_output_opengl::screen_height() - video_output_opengl::win_height()) / 2 - yo,
-                _container_widget->window()->width(), _container_widget->window()->height());
+        int dest_screen_pos_x = (video_output_opengl::screen_width() - video_output_opengl::win_width()) / 2;
+        int dest_screen_pos_y = (video_output_opengl::screen_height() - video_output_opengl::win_height()) / 2;
+        int window_offset_x = _widget->mapTo(_widget->window(), QPoint(0, 0)).x();
+        int window_offset_y = _widget->mapTo(_widget->window(), QPoint(0, 0)).y();
+        _widget->window()->setGeometry(
+                dest_screen_pos_x - window_offset_x,
+                dest_screen_pos_y - window_offset_y,
+                _widget->window()->width(), _widget->window()->height());
         _widget->setFocus(Qt::OtherFocusReason);
     }
 }
