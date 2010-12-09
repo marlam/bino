@@ -315,18 +315,19 @@ void input::open(std::vector<decoder *> decoders,
         _duration = std::min(_duration, _decoders.at(_audio_decoder)->audio_duration(_audio_stream));
     }
 
-    /*
-     * TODO: Once seeking works reliably, skip the initial advertisement in
-     * 3dtv.at examples.
-    _duration -= _initial_skip;
-    try
+    // Skip the initial advertisement in 3dtv.at examples.
+    if (_initial_skip > 0)
     {
-        _decoders.at(_video_decoders[0])->seek(_initial_skip);
+        _duration -= _initial_skip;
+        try
+        {
+            _decoders.at(_video_decoders[0])->seek(_initial_skip);
+        }
+        catch (...)
+        {
+            _duration += _initial_skip;
+        }
     }
-    catch (...)
-    {
-    }
-    */
 
     msg::dbg("video0=%d,%d video1=%d,%d, audio=%d,%d",
             _video_decoders[0], _video_streams[0],
