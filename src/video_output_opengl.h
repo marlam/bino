@@ -96,8 +96,10 @@ protected:
         return _win_height;
     }
 
-    virtual int window_pos_x() = 0;
-    virtual int window_pos_y() = 0;
+    // These functions must be implemented in subclasses and must
+    // return the position of the video area on the screen.
+    virtual int screen_pos_x() = 0;
+    virtual int screen_pos_y() = 0;
 
 public:
     video_output_opengl(bool receive_notifications = true) throw ();

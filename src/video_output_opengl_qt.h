@@ -91,8 +91,8 @@ private:
     void exit_fullscreen();
 
 protected:
-    virtual int window_pos_x();
-    virtual int window_pos_y();
+    virtual int screen_pos_x();
+    virtual int screen_pos_y();
 
 public:
     /* If a container widget is given, then it is assumed that this widget is

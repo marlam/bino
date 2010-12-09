@@ -524,11 +524,11 @@ void video_output_opengl::display(enum video_output::mode mode, float x, float y
 
     int viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
-    if ((mode == even_odd_rows || mode == checkerboard) && (window_pos_y() + viewport[1]) % 2 == 0)
+    if ((mode == even_odd_rows || mode == checkerboard) && (screen_pos_y() + viewport[1]) % 2 == 0)
     {
         std::swap(left, right);
     }
-    if ((mode == even_odd_columns || mode == checkerboard) && (window_pos_x() + viewport[0]) % 2 == 1)
+    if ((mode == even_odd_columns || mode == checkerboard) && (screen_pos_x() + viewport[0]) % 2 == 1)
     {
         std::swap(left, right);
     }

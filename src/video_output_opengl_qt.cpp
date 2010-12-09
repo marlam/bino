@@ -245,12 +245,12 @@ video_output_opengl_qt::~video_output_opengl_qt()
     }
 }
 
-int video_output_opengl_qt::window_pos_x()
+int video_output_opengl_qt::screen_pos_x()
 {
     return _widget->mapToGlobal(QPoint(0, 0)).x();
 }
 
-int video_output_opengl_qt::window_pos_y()
+int video_output_opengl_qt::screen_pos_y()
 {
     return _widget->mapToGlobal(QPoint(0, 0)).y();
 }

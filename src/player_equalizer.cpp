@@ -186,8 +186,8 @@ public:
     }
 
     // The rest of the video_output_opengl interface is irrelevant for Equalizer
-    virtual int window_pos_x() { return 0; }
-    virtual int window_pos_y() { return 0; }
+    virtual int screen_pos_x() { return 0; }
+    virtual int screen_pos_y() { return 0; }
     virtual void receive_notification(const notification &) {}
     virtual bool supports_stereo() { return false; }
     virtual void open(enum decoder::video_frame_format, int, int, float, int, const video_output_state&, unsigned int, int, int) {}
