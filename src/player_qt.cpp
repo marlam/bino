@@ -55,6 +55,8 @@ player_qt_internal::~player_qt_internal()
 
 void player_qt_internal::open(const player_init_data &init_data)
 {
+    // This is the same as player::open except for the creation
+    // of the video output. Here, we must pass the container widget.
     reset_playstate();
     set_benchmark(init_data.benchmark);
     create_decoders(init_data.filenames);
@@ -663,6 +665,9 @@ void main_window::receive_notification(const notification &note)
     {
         if (note.current.flag)
         {
+            // Close and re-open the player. This resets the video state in case
+            // we played it before, and it sets the input/output modes to the
+            // current choice.
             _player->close();
             _init_data.input_mode = _in_out_widget->input_mode();
             _init_data.video_mode = _in_out_widget->video_mode();
@@ -670,6 +675,8 @@ void main_window::receive_notification(const notification &note)
             {
                 _stop_request = true;
             }
+            // Remember the input mode of this video, using an SHA1 hash of its
+            // filename.
             _settings->beginGroup("Video");
             if (_init_data.filenames.size() == 1)
             {
@@ -678,6 +685,7 @@ void main_window::receive_notification(const notification &note)
                 _settings->setValue(QString(hash.toHex()), QString(input::mode_name(_init_data.input_mode).c_str()));
             }
             _settings->endGroup();
+            // Remember the 2D or 3D video output mode.
             _settings->beginGroup("Session");
             if (_init_data.input_mode == input::mono)
             {
@@ -688,9 +696,12 @@ void main_window::receive_notification(const notification &note)
                 _settings->setValue("3d-output-mode", QString(video_output::mode_name(_init_data.video_mode).c_str()));
             }
             _settings->endGroup();
+            // Update widgets: we're now playing
             _in_out_widget->update(_init_data, true, true);
             _controls_widget->update(_init_data, true, true);
+            // Give the keyboard focus to the video widget
             _video_container_widget->setFocus(Qt::OtherFocusReason);
+            // Start the play loop
             _timer->start(0);
         }
         else
