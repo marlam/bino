@@ -321,7 +321,7 @@ void input::open(std::vector<decoder *> decoders,
         _duration -= _initial_skip;
         try
         {
-            _decoders.at(_video_decoders[0])->seek(_initial_skip);
+            seek(0);
         }
         catch (...)
         {
@@ -496,6 +496,7 @@ int64_t input::read_audio_data(void **data, size_t size)
 
 void input::seek(int64_t dest_pos)
 {
+    dest_pos += _initial_skip;
     _decoders.at(_video_decoders[0])->seek(dest_pos);
     if (_video_decoders[1] != -1 && _video_decoders[1] != _video_decoders[0])
     {
