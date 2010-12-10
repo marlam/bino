@@ -53,10 +53,6 @@ private:
     int _active_tex_set;
     bool _input_is_mono;
     video_output_state _state;
-    bool _use_non_power_of_two;
-    float _tex_max_x;
-    float _tex_max_y;
-    bool _yuv420p_supported;
     GLuint _pbo;
     bool _have_valid_data[2];
 
@@ -64,17 +60,25 @@ private:
     void draw_quad(float x, float y, float w, float h);
 
 protected:
+    /* In a sub-class that provides an OpenGL context, call the following
+     * initialization functions in the order in which they appear here.
+     * You must make sure that the OpenGL context provides GL 2.1 + FBOs. */
     void set_mode(enum video_output::mode mode);
     void set_source_info(int width, int height, float aspect_ratio, enum decoder::video_frame_format preferred_frame_format);
     void set_screen_info(int width, int height, float pixel_aspect_ratio);
     void compute_win_size(int width = -1, int height = -1);
     void set_state(const video_output_state &_state);
-    void initialize(bool have_pixel_buffer_object, bool have_texture_non_power_of_two, bool have_fragment_shader);
-    void deinitialize();
+    void initialize();
+
+    // Swap the texture sets (one active, one for preparing the next video frame)
+    void swap_tex_set();
+    // Display the current texture
     void display(enum video_output::mode mode, float x, float y, float w, float h);
     void display() { display(_mode, -1.0f, -1.0f, 2.0f, 2.0f); }
+    // Call this when the GL window was resized:
     void reshape(int w, int h);
-    void swap_tex_set();
+
+    // Access information
     video_output_state &state()
     {
         return _state;
@@ -96,7 +100,10 @@ protected:
         return _win_height;
     }
 
-    // These functions must be implemented in subclasses and must
+    // Deinitialize.
+    void deinitialize();
+
+    // These functions must be implemented in a subclass and must
     // return the position of the video area on the screen.
     virtual int screen_pos_x() = 0;
     virtual int screen_pos_y() = 0;

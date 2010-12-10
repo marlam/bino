@@ -162,12 +162,11 @@ public:
     }
 
     void eq_initialize(int src_width, int src_height, float src_aspect_ratio,
-            enum decoder::video_frame_format src_preferred_frame_format,
-            bool have_pixel_buffer_object, bool have_texture_non_power_of_two, bool have_fragment_shader)
+            enum decoder::video_frame_format src_preferred_frame_format)
     {
         set_mode(stereo);       // just to ensure that prepare() handles both left and right view
         set_source_info(src_width, src_height, src_aspect_ratio, src_preferred_frame_format);
-        initialize(have_pixel_buffer_object, have_texture_non_power_of_two, have_fragment_shader);
+        initialize();
     }
 
     void eq_deinitialize()
@@ -823,21 +822,19 @@ protected:
         {
             return false;
         }
-        eq_node *node = static_cast<eq_node *>(getNode());
+        if (!glewContextIsSupported(const_cast<GLEWContext *>(glewGetContext()),
+                    "GL_VERSION_2_1 GL_EXT_framebuffer_object"))
+        {
+            msg::err("This OpenGL implementation does not support OpenGL 2.1 and framebuffer objects");
+            abort();
+        }
 
         // Disable some things that Equalizer seems to enable for some reason.
         glDisable(GL_LIGHTING);
 
-        bool have_pixel_buffer_object = glewContextIsSupported(
-                const_cast<GLEWContext *>(glewGetContext()), "GL_ARB_pixel_buffer_object");
-        bool have_texture_non_power_of_two = glewContextIsSupported(
-                const_cast<GLEWContext *>(glewGetContext()), "GL_ARB_texture_non_power_of_two");
-        bool have_fragment_shader = glewContextIsSupported(
-                const_cast<GLEWContext *>(glewGetContext()), "GL_ARB_fragment_shader");
-
+        eq_node *node = static_cast<eq_node *>(getNode());
         _video_output.eq_initialize(node->src_width, node->src_height,
-                node->src_aspect_ratio, node->src_preferred_frame_format,
-                have_pixel_buffer_object, have_texture_non_power_of_two, have_fragment_shader);
+                node->src_aspect_ratio, node->src_preferred_frame_format);
 
         msg::dbg(HERE);
         return true;

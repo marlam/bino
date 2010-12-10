@@ -96,13 +96,15 @@ void video_output_opengl_qt_widget::initializeGL()
         GLenum err = glewInit();
         if (err != GLEW_OK)
         {
-            throw exc(std::string("cannot initialize GLEW: ")
+            throw exc(std::string("Cannot initialize GLEW: ")
                     + reinterpret_cast<const char *>(glewGetErrorString(err)));
         }
-        _vo->initialize(
-                glewIsSupported("GL_ARB_pixel_buffer_object"),
-                glewIsSupported("GL_ARB_texture_non_power_of_two"),
-                glewIsSupported("GL_ARB_fragment_shader"));
+        if (!glewIsSupported("GL_VERSION_2_1 GL_EXT_framebuffer_object"))
+        {
+            throw exc(std::string("This OpenGL implementation does not support "
+                        "OpenGL 2.1 and framebuffer objects"));
+        }
+        _vo->initialize();
     }
     catch (std::exception &e)
     {
