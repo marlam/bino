@@ -70,6 +70,8 @@ private:
     GLuint _mask_tex;           // for the masking modes even-odd-{rows,columns}, checkerboard
     // Is the GL stuff initialized?
     bool _initialized;
+    // XXX: Hack: work around broken SRGB texture implementations
+    bool _srgb_textures_are_broken;
 
 protected:
     /* In a sub-class that provides an OpenGL context, call the following

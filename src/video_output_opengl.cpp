@@ -179,6 +179,9 @@ void video_output_opengl::initialize()
         deinitialize();
     }
 
+    // XXX: Hack: work around broken SRGB texture implementations
+    _srgb_textures_are_broken = std::getenv("SRGB_TEXTURES_ARE_BROKEN");
+
     // Step 1: input of video data
     _active_tex_set = 0;
     _input_is_mono = false;
@@ -249,7 +252,9 @@ void video_output_opengl::initialize()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8, _src_width, _src_height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0,
+                _srgb_textures_are_broken ? GL_RGB8 : GL_SRGB8,
+                _src_width, _src_height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
     }
 
     // Step 3: rendering
@@ -262,9 +267,10 @@ void video_output_opengl::initialize()
             : _mode == anaglyph_red_cyan_half_color ? "mode_anaglyph_half_color"
             : _mode == anaglyph_red_cyan_dubois ? "mode_anaglyph_dubois"
             : "mode_onechannel");
+    std::string srgb_broken_str = (_srgb_textures_are_broken ? "1" : "0");
     std::string render_fs_src = xgl::ShaderSourcePrep(
             VIDEO_OUTPUT_OPENGL_RENDER_FS_GLSL_STR,
-            std::string("$mode=") + mode_str);
+            std::string("$mode=") + mode_str + std::string(", $srgb_broken=") + srgb_broken_str);
     _render_prg = xgl::CreateProgram("video_output_render", "", "", render_fs_src);
     xgl::LinkProgram("video_output_render", _render_prg);
     if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)

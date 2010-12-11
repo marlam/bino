@@ -48,20 +48,24 @@ float srgb_to_lum(vec3 srgb)
 
 vec3 rgb_to_srgb(vec3 rgb)
 {
-#if 1
+#if $srgb_broken
+    return rgb;
+#else
+# if 1
     // Correct variant, see GL_ARB_framebuffer_sRGB extension
     return vec3(
             (rgb.r <= 0.0031308 ? (rgb.r * 12.92) : (1.055 * pow(rgb.r, 1.0 / 2.4) - 0.055)),
             (rgb.g <= 0.0031308 ? (rgb.g * 12.92) : (1.055 * pow(rgb.g, 1.0 / 2.4) - 0.055)),
             (rgb.b <= 0.0031308 ? (rgb.b * 12.92) : (1.055 * pow(rgb.b, 1.0 / 2.4) - 0.055)));
-#endif
-#if 0
+# endif
+# if 0
     // Faster variant
     return pow(rgb, 1.0 / 2.2);
-#endif
-#if 0
+# endif
+# if 0
     // Even faster variant, assuming gamma = 2.0
     return sqrt(rgb);
+# endif
 #endif
 }
 
