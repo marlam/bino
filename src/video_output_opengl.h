@@ -33,31 +33,43 @@
 class video_output_opengl : public video_output
 {
 private:
-    enum video_output::mode _mode;
+    // Video properties (fixed during playback)
     int _src_width;
     int _src_height;
     float _src_aspect_ratio;
     enum decoder::video_frame_format _src_preferred_frame_format;
+    // Screen properties (fixed during playback)
     int _screen_width;
     int _screen_height;
     float _screen_pixel_aspect_ratio;
+    // Video output mode (fixed during playback)
+    enum video_output::mode _mode;
+    // Video output properties (variable)
+    video_output_state _state;
     int _win_width;
     int _win_height;
-    bool _initialized;
-    GLuint _prg;
-    GLuint _rgb_tex[2][2];
-    GLuint _y_tex[2][2];
-    GLuint _u_tex[2][2];
-    GLuint _v_tex[2][2];
-    GLuint _mask_tex;
-    int _active_tex_set;
-    bool _input_is_mono;
-    video_output_state _state;
-    GLuint _pbo;
-    bool _have_valid_data[2];
 
-    void bind_textures(int unitset, int index);
-    void draw_quad(float x, float y, float w, float h);
+    /* We have two texture sets for input: one holding the current video frame
+     * for output, and one for preparing the next video frame. Each texture set
+     * has textures for the left and right view. */
+    int _active_tex_set;        // 0 or 1
+    bool _input_is_mono;        // left view == right view
+    bool _have_valid_data[2];   // do we have valid data in the given texture set?
+    // Step 1: input of video data
+    GLuint _pbo;                // pixel-buffer object for texture uploading
+    GLuint _yuv420p_y_tex[2][2];// for yuv420p format: y component
+    GLuint _yuv420p_u_tex[2][2];// for yuv420p format: u component
+    GLuint _yuv420p_v_tex[2][2];// for yuv420p format: v component
+    GLuint _bgra32_tex[2][2];   // for bgra32 format
+    // Step 2: color-correction
+    GLuint _color_prg;          // color space transformation, color adjustment
+    GLuint _color_fbo;          // framebuffer object to render into the sRGB texture
+    GLuint _srgb_tex[2];        // output: sRGB texture
+    // Step 3: rendering
+    GLuint _render_prg;         // reads sRGB texture, renders according to _mode
+    GLuint _mask_tex;           // for the masking modes even-odd-{rows,columns}, checkerboard
+    // Is the GL stuff initialized?
+    bool _initialized;
 
 protected:
     /* In a sub-class that provides an OpenGL context, call the following
@@ -72,7 +84,7 @@ protected:
 
     // Swap the texture sets (one active, one for preparing the next video frame)
     void swap_tex_set();
-    // Display the current texture
+    // Display the current texture set
     void display(enum video_output::mode mode, float x, float y, float w, float h);
     void display() { display(_mode, -1.0f, -1.0f, 2.0f, 2.0f); }
     // Call this when the GL window was resized:

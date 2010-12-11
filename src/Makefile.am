@@ -38,13 +38,15 @@ EXTRA_DIST = \
 	icons/b.ipe icons/b.png \
 	icons/bb.ipe icons/bb.png \
 	icons/bbb.ipe icons/bbb.png \
-	video_output_opengl.fs.glsl
+	video_output_opengl_color.fs.glsl \
+	video_output_opengl_render.fs.glsl
 
 nodist_bino_SOURCES = \
 	qt_resources-rcc.cpp \
 	player_qt-moc.cpp \
 	video_output_opengl_qt-moc.cpp \
-	video_output_opengl.fs.glsl.h
+	video_output_opengl_color.fs.glsl.h \
+	video_output_opengl_render.fs.glsl.h
 
 BUILT_SOURCES = $(nodist_bino_SOURCES)
 

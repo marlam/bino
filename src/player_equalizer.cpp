@@ -924,8 +924,6 @@ protected:
         }
 
         // Display
-        glEnable(GL_TEXTURE_2D);
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
         eq_window *window = static_cast<eq_window *>(getWindow());
         window->display(getEye() == eq::EYE_RIGHT ? video_output::mono_right : video_output::mono_left,
                 quad_x, quad_y, quad_w, quad_h);
