@@ -395,7 +395,7 @@ public:
         if (getCanvases().size() < 1)
         {
             msg::err("no canvas in Equalizer configuration");
-            abort();
+            return false;
         }
         float canvas_w = getCanvases()[0]->getWall().getWidth();
         float canvas_h = getCanvases()[0]->getWall().getHeight();
@@ -826,7 +826,7 @@ protected:
                     "GL_VERSION_2_1 GL_EXT_framebuffer_object"))
         {
             msg::err("This OpenGL implementation does not support OpenGL 2.1 and framebuffer objects");
-            abort();
+            return false;
         }
 
         // Disable some things that Equalizer seems to enable for some reason.
