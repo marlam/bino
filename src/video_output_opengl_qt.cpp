@@ -387,6 +387,7 @@ void video_output_opengl_qt::process_events()
 
 void video_output_opengl_qt::close()
 {
+    exit_fullscreen();
     delete _widget;
     _widget = NULL;
 }
@@ -453,11 +454,7 @@ void video_output_opengl_qt::receive_notification(const notification &note)
     case notification::play:
         if (!note.current.flag)
         {
-            if (state().fullscreen)
-            {
-                exit_fullscreen();
-            }
-            _widget->update();
+            exit_fullscreen();
         }
         break;
     case notification::pause:
