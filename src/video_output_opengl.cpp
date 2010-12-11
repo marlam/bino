@@ -69,6 +69,17 @@
  * values for output. We do not use the GL_ARB_framebuffer_sRGB extension for
  * this purpose because 1) we need computations on non-linear values for the
  * anaglyph methods and 2) sRGB framebuffers are not yet widely supported.
+ *
+ * Open issues / TODO:
+ * 1. The conversion from YUV to non-linear RGB assumes ITU.BT-601 input.
+ *    This is wrong in case of HDTV, where ITU.BT-709 would be correct.
+ *    This is also wrong in case FFmpeg gives us input which uses the full
+ *    value range 0-255 for each component (should not happen for video data).
+ *    We should get the information which conversion to use from FFmpeg,
+ *    but I currently don't know how.
+ * 2. I *think* that the matrices used for the Dubois method in the rendering
+ *    shader should be applied to non-linear RGB values, but I'm not 100%
+ *    sure.
  */
 
 

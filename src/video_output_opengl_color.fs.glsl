@@ -40,21 +40,39 @@ uniform float sin_hue;
 #if defined(input_bgra32)
 vec3 srgb_to_yuv(vec3 srgb)
 {
-    // Values taken from http://www.fourcc.org/fccyvrgb.php
-    float y = dot(srgb, vec3(0.299, 0.587, 0.114));
-    float u = 0.564 * (srgb.b - y) + 0.5;
-    float v = 0.713 * (srgb.r - y) + 0.5;
-    return vec3(y, u, v);
+    // According to ITU.BT-601
+    mat3 m = mat3(
+            0.299, -0.169,  0.5,
+            0.587, -0.331, -0.419,
+            0.114,  0.500, -0.081);
+    return m * srgb + vec3(0.0, 0.5, 0.5);
+# if 0
+    // According to ITU.BT-709
+    mat3 m = mat3(
+            0.2215, -0.1145,  0.5016,
+            0.7154, -0.3855, -0.4556,
+            0.0721,  0.5,    -0.0459);
+    return m * srgb + vec3(0.0, 0.5, 0.5);
+#endif
 }
 #endif
 
 vec3 yuv_to_srgb(vec3 yuv)
 {
-    // Values taken from http://www.fourcc.org/fccyvrgb.php
-    float r = yuv.x                         + 1.403 * (yuv.z - 0.5);
-    float g = yuv.x - 0.344 * (yuv.y - 0.5) - 0.714 * (yuv.z - 0.5);
-    float b = yuv.x + 1.770 * (yuv.y - 0.5);
-    return vec3(r, g, b);
+    // According to ITU.BT-601
+    mat3 m = mat3(
+            1.0,     1.0,  1.0,
+            0.0,   -0.344, 1.773,
+            1.403, -0.714, 0.0);
+    return m * (yuv - vec3(0.0, 0.5, 0.5));
+# if 0
+    // According to ITU.BT-709
+    mat3 m = mat3(
+            1.0,     1.0,     1.0,
+            0.0,    -0.187,  -1.8556,
+            1.5701, -0.4664,  0.0);
+    return m * (yuv - vec3(0.0, 0.5, 0.5));
+#endif
 }
 
 vec3 adjust_yuv(vec3 yuv)
