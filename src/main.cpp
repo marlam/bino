@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     log_levels.push_back("warning");
     log_levels.push_back("error");
     log_levels.push_back("quiet");
-    opt::val<std::string> log_level("log-level", 'l', opt::optional, log_levels, "info");
+    opt::val<std::string> log_level("log-level", 'l', opt::optional, log_levels, "");
     options.push_back(&log_level);
     std::vector<std::string> input_modes;
     input_modes.push_back("mono");
@@ -215,7 +215,11 @@ int main(int argc, char *argv[])
     bool equalizer_flat_screen = true;
     player_init_data init_data;
     init_data.log_level = msg::level();
-    if (log_level.value() == "debug")
+    if (log_level.value() == "")
+    {
+        init_data.log_level = msg::INF;
+    }
+    else if (log_level.value() == "debug")
     {
         init_data.log_level = msg::DBG;
     }
@@ -301,6 +305,10 @@ int main(int argc, char *argv[])
         }
         else if (arguments.size() == 0 || show_gui.value())
         {
+            if (log_level.value() == "")
+            {
+                init_data.log_level = msg::WRN;         // Be silent by default when the GUI is used
+            }
             init_data.video_state.fullscreen = false;   // GUI overrides fullscreen setting
             init_data.video_flags = 0;                  // GUI overrides center flag
             player = new class player_qt();

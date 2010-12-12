@@ -35,6 +35,8 @@
 #include <QComboBox>
 #include <QTimer>
 #include <QFile>
+#include <QByteArray>
+#include <QCryptographicHash>
 
 #include "player_qt.h"
 #include "qt_app.h"
@@ -42,8 +44,8 @@
 #include "lib_versions.h"
 
 
-player_qt_internal::player_qt_internal(video_output_opengl_qt *vo)
-    : player(player::master), _vo(vo), _playing(false)
+player_qt_internal::player_qt_internal(video_container_widget *container_widget)
+    : player(player::master), _container_widget(container_widget), _playing(false)
 {
 }
 
@@ -53,21 +55,16 @@ player_qt_internal::~player_qt_internal()
 
 void player_qt_internal::open(const player_init_data &init_data)
 {
+    // This is the same as player::open except for the creation
+    // of the video output. Here, we must pass the container widget.
     reset_playstate();
     set_benchmark(init_data.benchmark);
     create_decoders(init_data.filenames);
     create_input(init_data.input_mode);
     create_audio_output();
-    set_video_output(_vo);
+    set_video_output(new video_output_opengl_qt(_container_widget));
     video_state() = init_data.video_state;
     open_video_output(init_data.video_mode, init_data.video_flags);
-}
-
-void player_qt_internal::close()
-{
-    player::set_video_output(NULL);
-    player::close();
-    player::set_video_output(_vo);
 }
 
 void player_qt_internal::receive_cmd(const command &cmd)
@@ -125,10 +122,13 @@ void player_qt_internal::force_stop()
     notify(notification::play, false, false);
 }
 
-QWidget *player_qt_internal::video_output_widget()
+void player_qt_internal::move_event()
 {
-    video_output_opengl_qt *vo = static_cast<video_output_opengl_qt *>(player::get_video_output());
-    return vo->widget();
+    video_output_opengl_qt *vo = static_cast<video_output_opengl_qt *>(get_video_output());
+    if (vo)
+    {
+        vo->move_event();
+    }
 }
 
 
@@ -573,9 +573,8 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     // Central widget
     QWidget *central_widget = new QWidget(this);
     QGridLayout *layout = new QGridLayout();
-    _video_container_widget = new QWidget(central_widget);
-    _video_output = new video_output_opengl_qt(_video_container_widget);
-    _video_output->open(decoder::frame_format_bgra32, 1, 1, 1.0f, video_output::mono_left, video_output_state(), 0, 0, 0);
+    _video_container_widget = new video_container_widget(central_widget);
+    connect(_video_container_widget, SIGNAL(move_event()), this, SLOT(move_event()));
     layout->addWidget(_video_container_widget, 0, 0);
     _in_out_widget = new in_out_widget(_settings, central_widget);
     layout->addWidget(_in_out_widget, 1, 0);
@@ -616,7 +615,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     show();     // Must happen before opening initial files!
 
     // Player and timer
-    _player = new player_qt_internal(_video_output);
+    _player = new player_qt_internal(_video_container_widget);
     _timer = new QTimer(this);
     connect(_timer, SIGNAL(timeout()), this, SLOT(playloop_step()));
 
@@ -629,6 +628,10 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
             filenames.push_back(QFile::decodeName(init_data.filenames[i].c_str()));
         }
         open(filenames, false);
+    }
+    else
+    {
+        adjustSize();   // Adjust size for initial dummy video widget
     }
 }
 
@@ -662,6 +665,9 @@ void main_window::receive_notification(const notification &note)
     {
         if (note.current.flag)
         {
+            // Close and re-open the player. This resets the video state in case
+            // we played it before, and it sets the input/output modes to the
+            // current choice.
             _player->close();
             _init_data.input_mode = _in_out_widget->input_mode();
             _init_data.video_mode = _in_out_widget->video_mode();
@@ -669,13 +675,17 @@ void main_window::receive_notification(const notification &note)
             {
                 _stop_request = true;
             }
+            // Remember the input mode of this video, using an SHA1 hash of its
+            // filename.
             _settings->beginGroup("Video");
             if (_init_data.filenames.size() == 1)
             {
-                _settings->setValue(QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName(),
-                        QString(input::mode_name(_init_data.input_mode).c_str()));
+                QString name = QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName();
+                QByteArray hash = QCryptographicHash::hash(name.toUtf8(), QCryptographicHash::Sha1);
+                _settings->setValue(QString(hash.toHex()), QString(input::mode_name(_init_data.input_mode).c_str()));
             }
             _settings->endGroup();
+            // Remember the 2D or 3D video output mode.
             _settings->beginGroup("Session");
             if (_init_data.input_mode == input::mono)
             {
@@ -686,9 +696,12 @@ void main_window::receive_notification(const notification &note)
                 _settings->setValue("3d-output-mode", QString(video_output::mode_name(_init_data.video_mode).c_str()));
             }
             _settings->endGroup();
+            // Update widgets: we're now playing
             _in_out_widget->update(_init_data, true, true);
             _controls_widget->update(_init_data, true, true);
+            // Give the keyboard focus to the video widget
             _video_container_widget->setFocus(Qt::OtherFocusReason);
+            // Start the play loop
             _timer->start(0);
         }
         else
@@ -696,6 +709,24 @@ void main_window::receive_notification(const notification &note)
             _timer->stop();
             _player->close();
         }
+    }
+}
+
+void main_window::moveEvent(QMoveEvent *)
+{
+    move_event();
+}
+
+void main_window::closeEvent(QCloseEvent *event)
+{
+    event->accept();
+}
+
+void main_window::move_event()
+{
+    if (_player)
+    {
+        _player->move_event();
     }
 }
 
@@ -711,24 +742,6 @@ void main_window::playloop_step()
     {
         _timer->stop();
     }
-}
-
-void main_window::moveEvent(QMoveEvent *)
-{
-    if (_video_output)
-    {
-        if (_video_output->mode() == video_output::even_odd_rows
-                || _video_output->mode() == video_output::even_odd_columns
-                || _video_output->mode() == video_output::checkerboard)
-        {
-            _video_container_widget->update();
-        }
-    }
-}
-
-void main_window::closeEvent(QCloseEvent *event)
-{
-    event->accept();
 }
 
 void main_window::open(QStringList filenames, bool automatic)
@@ -750,9 +763,10 @@ void main_window::open(QStringList filenames, bool automatic)
         _settings->beginGroup("Video");
         if (_init_data.filenames.size() == 1)
         {
+            QString name = QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName();
+            QByteArray hash = QCryptographicHash::hash(name.toUtf8(), QCryptographicHash::Sha1);
             QString fallback_mode_name = QString(input::mode_name(_player->input_mode()).c_str());
-            QString filename = QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName();
-            QString mode_name = _settings->value(filename, fallback_mode_name).toString();
+            QString mode_name = _settings->value(QString(hash.toHex()), fallback_mode_name).toString();
             _init_data.input_mode = input::mode_from_name(mode_name.toStdString());
         }
         else

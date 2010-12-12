@@ -82,7 +82,7 @@ public:
 public:
     /* Constructor, Destructor */
     video_output(bool receive_notifications = true) throw ();
-    ~video_output();
+    virtual ~video_output();
 
     /* Get capabilities */
     virtual bool supports_stereo() = 0; // Support for OpenGL quad buffered stereo?

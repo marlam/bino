@@ -129,7 +129,7 @@ public:
     /* A controller usually receives notifications, but may choose not to, e.g. when it
      * never will react on any notification anyway. */
     controller(bool receive_notifications = true) throw ();
-    ~controller();
+    virtual ~controller();
 
     /* Send a command to the player. */
     void send_cmd(const command &cmd);

@@ -32,12 +32,59 @@
 #include "timer.h"
 
 #include "video_output_opengl.h"
-#include "video_output_opengl.fs.glsl.h"
+#include "video_output_opengl_color.fs.glsl.h"
+#include "video_output_opengl_render.fs.glsl.h"
 #include "xgl.h"
 
 
+/* Video output overview:
+ *
+ * Video output happens in three steps: video data input, color correction,
+ * and rendering.
+ *
+ * Step 1: Video data input.
+ * We have two texture sets for input: one holding the current video frame,
+ * and one for preparing the next video frame. Each texture set has textures
+ * for the left and right view. The video data is transferred to texture
+ * memory using pixel buffer objects, for better performance.
+ *
+ * Step 2: Color correction.
+ * The input data is first converted to YUV (for the most common yuv420p
+ * input format, this just means gathering of the three components from the
+ * three planes). Then color adjustment in the YUV space is performed.
+ * Finally the result is converted to sRGB and stored in an GL_SRGB texture.
+ * In this color correction step, no interpolation is done, because we're
+ * dealing with non-linear values, and interpolating them would lead to
+ * errors. We do not convert to linear RGB (as opposed to sRGB) in this step
+ * because storing linear RGB in a GL_RGB texture would lose some precision
+ * when compared to the non-linear input data.
+ *
+ * Step 3: Rendering.
+ * This step reads from the sRGB textures created in the previous step, which
+ * means that the GL will transform the input to linear RGB automatically and
+ * handle hardware accelerated bilinear interpolation correctly. Thus,
+ * magnification or minification are safe in this step. Furthermore, we can
+ * do interpolation on the linear RGB values for the masking output modes.
+ * We then transform the resulting linear RGB values back to non-linear sRGB
+ * values for output. We do not use the GL_ARB_framebuffer_sRGB extension for
+ * this purpose because 1) we need computations on non-linear values for the
+ * anaglyph methods and 2) sRGB framebuffers are not yet widely supported.
+ *
+ * Open issues / TODO:
+ * 1. The conversion from YUV to non-linear RGB assumes ITU.BT-601 input.
+ *    This is wrong in case of HDTV, where ITU.BT-709 would be correct.
+ *    This is also wrong in case FFmpeg gives us input which uses the full
+ *    value range 0-255 for each component (should not happen for video data).
+ *    We should get the information which conversion to use from FFmpeg,
+ *    but I currently don't know how.
+ * 2. I *think* that the matrices used for the Dubois method in the rendering
+ *    shader should be applied to non-linear RGB values, but I'm not 100%
+ *    sure.
+ */
+
+
 video_output_opengl::video_output_opengl(bool receive_notifications) throw ()
-    : video_output(receive_notifications)
+    : video_output(receive_notifications), _initialized(false)
 {
 }
 
@@ -125,181 +172,49 @@ void video_output_opengl::swap_tex_set()
     _active_tex_set = (_active_tex_set == 0 ? 1 : 0);
 }
 
-void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_texture_non_power_of_two, bool have_fragment_shader)
+void video_output_opengl::initialize()
 {
-    _have_valid_data = false;
-    _use_non_power_of_two = true;
-    if (!have_texture_non_power_of_two)
+    if (_initialized)
     {
-        _use_non_power_of_two = false;
-        msg::wrn("OpenGL extension GL_ARB_texture_non_power_of_two is not available:");
-        msg::wrn("    - Inefficient use of graphics memory");
+        deinitialize();
     }
 
-    _yuv420p_supported = true;
-    if (have_fragment_shader)
-    {
-        GLint tex_units;
-        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &tex_units);
-        if (((_mode == even_odd_rows
-                        || _mode == even_odd_columns
-                        || _mode == checkerboard) && tex_units < 7)
-                || ((_mode == anaglyph_red_cyan_monochrome
-                        || _mode == anaglyph_red_cyan_full_color
-                        || _mode == anaglyph_red_cyan_half_color
-                        || _mode == anaglyph_red_cyan_dubois) && tex_units < 6)
-                || tex_units < 3)
-        {
-            _yuv420p_supported = false;
-            if (_src_preferred_frame_format == decoder::frame_format_yuv420p)
-            {
-                msg::wrn("Not enough texture image units for anaglyph output:");
-                msg::wrn("    Disabling hardware accelerated color space conversion");
-            }
-        }
-        std::string mode_str = (
-                _mode == even_odd_rows ? "mode_even_odd_rows"
-                : _mode == even_odd_columns ? "mode_even_odd_columns"
-                : _mode == checkerboard ? "mode_checkerboard"
-                : _mode == anaglyph_red_cyan_monochrome ? "mode_anaglyph_monochrome"
-                : _mode == anaglyph_red_cyan_full_color ? "mode_anaglyph_full_color"
-                : _mode == anaglyph_red_cyan_half_color ? "mode_anaglyph_half_color"
-                : _mode == anaglyph_red_cyan_dubois ? "mode_anaglyph_dubois"
-                : "mode_onechannel");
-        std::string input_str = (frame_format() == decoder::frame_format_yuv420p ? "input_yuv420p" : "input_bgra32");
-        std::string fs_src = xgl::ShaderSourcePrep(VIDEO_OUTPUT_OPENGL_FS_GLSL_STR,
-                std::string("$mode=") + mode_str + ", $input=" + input_str);
-        _prg = xgl::CreateProgram("video_output", "", "", fs_src);
-        xgl::LinkProgram("video_output", _prg);
-        glUseProgram(_prg);
-        if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
-        {
-            GLubyte even_odd_rows_mask[4] = { 0xff, 0xff, 0x00, 0x00 };
-            GLubyte even_odd_columns_mask[4] = { 0xff, 0x00, 0xff, 0x00 };
-            GLubyte checkerboard_mask[4] = { 0xff, 0x00, 0x00, 0xff };
-            glGenTextures(1, &_mask_tex);
-            glBindTexture(GL_TEXTURE_2D, _mask_tex);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, 2, 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE,
-                    _mode == even_odd_rows ? even_odd_rows_mask
-                    : _mode == even_odd_columns ? even_odd_columns_mask
-                    : checkerboard_mask);
-        }
-        if (frame_format() == decoder::frame_format_yuv420p)
-        {
-            glUniform1i(glGetUniformLocation(_prg, "y_l"), 0);
-            glUniform1i(glGetUniformLocation(_prg, "u_l"), 1);
-            glUniform1i(glGetUniformLocation(_prg, "v_l"), 2);
-            if (_mode == even_odd_rows
-                    || _mode == even_odd_columns
-                    || _mode == checkerboard
-                    || _mode == anaglyph_red_cyan_monochrome
-                    || _mode == anaglyph_red_cyan_full_color
-                    || _mode == anaglyph_red_cyan_half_color
-                    || _mode == anaglyph_red_cyan_dubois)
-            {
-                glUniform1i(glGetUniformLocation(_prg, "y_r"), 3);
-                glUniform1i(glGetUniformLocation(_prg, "u_r"), 4);
-                glUniform1i(glGetUniformLocation(_prg, "v_r"), 5);
-            }
-            if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
-            {
-                glUniform1i(glGetUniformLocation(_prg, "mask_tex"), 6);
-            }
-        }
-        else
-        {
-            glUniform1i(glGetUniformLocation(_prg, "rgb_l"), 0);
-            if (_mode == even_odd_rows
-                    || _mode == even_odd_columns
-                    || _mode == checkerboard
-                    || _mode == anaglyph_red_cyan_monochrome
-                    || _mode == anaglyph_red_cyan_full_color
-                    || _mode == anaglyph_red_cyan_half_color
-                    || _mode == anaglyph_red_cyan_dubois)
-            {
-                glUniform1i(glGetUniformLocation(_prg, "rgb_r"), 1);
-            }
-            if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
-            {
-                glUniform1i(glGetUniformLocation(_prg, "mask_tex"), 2);
-            }
-        }
-    }
-    else
-    {
-        _prg = 0;
-        _yuv420p_supported = false;
-        msg::wrn("OpenGL extension GL_ARB_fragment_shader is not available:");
-        if (_src_preferred_frame_format == decoder::frame_format_yuv420p)
-        {
-            msg::wrn("    - Color space conversion will not be hardware accelerated");
-        }
-        msg::wrn("    - Color adjustments will not be possible");
-        if (_mode == anaglyph_red_cyan_monochrome
-                || _mode == anaglyph_red_cyan_half_color
-                || _mode == anaglyph_red_cyan_dubois)
-        {
-            msg::wrn("    - Falling back to the low quality anaglyph-full-color method");
-            _mode = anaglyph_red_cyan_full_color;
-        }
-        else if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
-        {
-            msg::wrn("    - Falling back to the low quality version of the output method");
-        }
-    }
+    // XXX: Hack: work around broken SRGB texture implementations
+    _srgb_textures_are_broken = std::getenv("SRGB_TEXTURES_ARE_BROKEN");
 
-    int tex_width = _src_width;
-    int tex_height = _src_height;
-    _tex_max_x = 1.0f;
-    _tex_max_y = 1.0f;
-    if (!_use_non_power_of_two)
-    {
-        tex_width = 1;
-        while (tex_width < _src_width)
-        {
-            tex_width *= 2;
-        }
-        tex_height = 1;
-        while (tex_height < _src_height)
-        {
-            tex_height *= 2;
-        }
-        _tex_max_x = static_cast<float>(_src_width) / static_cast<float>(tex_width);
-        _tex_max_y = static_cast<float>(_src_height) / static_cast<float>(tex_height);
-    }
+    // Step 1: input of video data
+    _active_tex_set = 0;
+    _input_is_mono = false;
+    _have_valid_data[0] = false;
+    _have_valid_data[1] = false;
+    glGenBuffers(1, &_pbo);
     if (frame_format() == decoder::frame_format_yuv420p)
     {
         for (int i = 0; i < 2; i++)
         {
             for (int j = 0; j < 2; j++)
             {
-                glGenTextures(1, &(_y_tex[i][j]));
-                glBindTexture(GL_TEXTURE_2D, _y_tex[i][j]);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glGenTextures(1, &(_yuv420p_y_tex[i][j]));
+                glBindTexture(GL_TEXTURE_2D, _yuv420p_y_tex[i][j]);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, tex_width, tex_height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
-                glGenTextures(1, &(_u_tex[i][j]));
-                glBindTexture(GL_TEXTURE_2D, _u_tex[i][j]);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, _src_width, _src_height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
+                glGenTextures(1, &(_yuv420p_u_tex[i][j]));
+                glBindTexture(GL_TEXTURE_2D, _yuv420p_u_tex[i][j]);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, tex_width / 2, tex_height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
-                glGenTextures(1, &(_v_tex[i][j]));
-                glBindTexture(GL_TEXTURE_2D, _v_tex[i][j]);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, _src_width / 2, _src_height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
+                glGenTextures(1, &(_yuv420p_v_tex[i][j]));
+                glBindTexture(GL_TEXTURE_2D, _yuv420p_v_tex[i][j]);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, tex_width / 2, tex_height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, _src_width / 2, _src_height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
             }
         }
     }
@@ -309,197 +224,140 @@ void video_output_opengl::initialize(bool have_pixel_buffer_object, bool have_te
         {
             for (int j = 0; j < 2; j++)
             {
-                glGenTextures(1, &(_rgb_tex[i][j]));
-                glBindTexture(GL_TEXTURE_2D, _rgb_tex[i][j]);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glGenTextures(1, &(_bgra32_tex[i][j]));
+                glBindTexture(GL_TEXTURE_2D, _bgra32_tex[i][j]);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, tex_width, tex_height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, _src_width, _src_height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
             }
         }
     }
-    _active_tex_set = 0;
 
-    if (have_pixel_buffer_object)
+    // Step 2: color-correction
+    std::string input_str = (frame_format() == decoder::frame_format_yuv420p
+            ? "input_yuv420p" : "input_bgra32");
+    std::string color_fs_src = xgl::ShaderSourcePrep(
+            VIDEO_OUTPUT_OPENGL_COLOR_FS_GLSL_STR,
+            std::string("$input=") + input_str);
+    _color_prg = xgl::CreateProgram("video_output_color", "", "", color_fs_src);
+    xgl::LinkProgram("video_output_color", _color_prg);
+    glGenFramebuffersEXT(1, &_color_fbo);
+    for (int j = 0; j < 2; j++)
     {
-        glGenBuffersARB(1, &_pbo);
-    }
-    else
-    {
-        _pbo = 0;
+        glGenTextures(1, &(_srgb_tex[j]));
+        glBindTexture(GL_TEXTURE_2D, _srgb_tex[j]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexImage2D(GL_TEXTURE_2D, 0,
+                _srgb_textures_are_broken ? GL_RGB8 : GL_SRGB8,
+                _src_width, _src_height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
     }
 
-    glEnable(GL_TEXTURE_2D);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    // Step 3: rendering
+    std::string mode_str = (
+            _mode == even_odd_rows ? "mode_even_odd_rows"
+            : _mode == even_odd_columns ? "mode_even_odd_columns"
+            : _mode == checkerboard ? "mode_checkerboard"
+            : _mode == anaglyph_red_cyan_monochrome ? "mode_anaglyph_monochrome"
+            : _mode == anaglyph_red_cyan_full_color ? "mode_anaglyph_full_color"
+            : _mode == anaglyph_red_cyan_half_color ? "mode_anaglyph_half_color"
+            : _mode == anaglyph_red_cyan_dubois ? "mode_anaglyph_dubois"
+            : "mode_onechannel");
+    std::string srgb_broken_str = (_srgb_textures_are_broken ? "1" : "0");
+    std::string render_fs_src = xgl::ShaderSourcePrep(
+            VIDEO_OUTPUT_OPENGL_RENDER_FS_GLSL_STR,
+            std::string("$mode=") + mode_str + std::string(", $srgb_broken=") + srgb_broken_str);
+    _render_prg = xgl::CreateProgram("video_output_render", "", "", render_fs_src);
+    xgl::LinkProgram("video_output_render", _render_prg);
+    if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
+    {
+        GLubyte even_odd_rows_mask[4] = { 0xff, 0xff, 0x00, 0x00 };
+        GLubyte even_odd_columns_mask[4] = { 0xff, 0x00, 0xff, 0x00 };
+        GLubyte checkerboard_mask[4] = { 0xff, 0x00, 0x00, 0xff };
+        glGenTextures(1, &_mask_tex);
+        glBindTexture(GL_TEXTURE_2D, _mask_tex);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, 2, 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE,
+                _mode == even_odd_rows ? even_odd_rows_mask
+                : _mode == even_odd_columns ? even_odd_columns_mask
+                : checkerboard_mask);
+    }
+
+    // Initialize GL things
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+
+    _initialized = true;
 }
 
 void video_output_opengl::deinitialize()
 {
-    if (_prg != 0)
+    if (!_initialized)
     {
-        xgl::DeleteProgram(_prg);
+        return;
     }
+
+    _have_valid_data[0] = false;
+    _have_valid_data[1] = false;
+    glDeleteBuffers(1, &_pbo);
     if (frame_format() == decoder::frame_format_yuv420p)
     {
-        glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_y_tex));
-        glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_u_tex));
-        glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_v_tex));
+        glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_yuv420p_y_tex));
+        glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_yuv420p_u_tex));
+        glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_yuv420p_v_tex));
     }
     else
     {
-        glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_rgb_tex));
+        glDeleteTextures(2 * 2, reinterpret_cast<GLuint *>(_bgra32_tex));
     }
+    xgl::DeleteProgram(_color_prg);
+    glDeleteFramebuffersEXT(1, &_color_fbo);
+    glDeleteTextures(2, reinterpret_cast<GLuint *>(_srgb_tex));
+    xgl::DeleteProgram(_render_prg);
     if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
     {
         glDeleteTextures(1, &_mask_tex);
     }
-    if (_pbo != 0)
-    {
-        glDeleteBuffersARB(1, &_pbo);
-    }
-    _have_valid_data = false;
+    _initialized = false;
 }
 
 enum decoder::video_frame_format video_output_opengl::frame_format() const
 {
-    if (_src_preferred_frame_format == decoder::frame_format_yuv420p && _yuv420p_supported)
-    {
-        return decoder::frame_format_yuv420p;
-    }
-    else
-    {
-        return decoder::frame_format_bgra32;
-    }
+    return _src_preferred_frame_format;
 }
 
-void video_output_opengl::bind_textures(int unitset, int index)
-{
-    if (frame_format() == decoder::frame_format_yuv420p)
-    {
-        glActiveTexture(GL_TEXTURE0 + 3 * unitset + 0);
-        glBindTexture(GL_TEXTURE_2D, _y_tex[_active_tex_set][index]);
-        glActiveTexture(GL_TEXTURE0 + 3 * unitset + 1);
-        glBindTexture(GL_TEXTURE_2D, _u_tex[_active_tex_set][index]);
-        glActiveTexture(GL_TEXTURE0 + 3 * unitset + 2);
-        glBindTexture(GL_TEXTURE_2D, _v_tex[_active_tex_set][index]);
-    }
-    else
-    {
-        glActiveTexture(GL_TEXTURE0 + unitset);
-        glBindTexture(GL_TEXTURE_2D, _rgb_tex[_active_tex_set][index]);
-    }
-}
-
-void video_output_opengl::draw_quad(float x, float y, float w, float h)
+static void draw_quad(float x, float y, float w, float h)
 {
     glBegin(GL_QUADS);
-    glTexCoord2f(0.0f, _tex_max_y);
-    glVertex2f(x, y);
-    glTexCoord2f(_tex_max_x, _tex_max_y);
-    glVertex2f(x + w, y);
-    glTexCoord2f(_tex_max_x, 0.0f);
-    glVertex2f(x + w, y + h);
     glTexCoord2f(0.0f, 0.0f);
+    glVertex2f(x, y);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex2f(x + w, y);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex2f(x + w, y + h);
+    glTexCoord2f(0.0f, 1.0f);
     glVertex2f(x, y + h);
     glEnd();
 }
 
-static const GLubyte stipple_pattern_even_rows[132] =
-{
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00,
-    0xff, 0xff, 0xff, 0xff
-};
-
-static const GLubyte *stipple_pattern_odd_rows = stipple_pattern_even_rows + 4;
-
-static const GLubyte stipple_pattern_even_cols[128] =
-{
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
-    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa
-};
-
-static const GLubyte stipple_pattern_odd_cols[128] =
-{
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55
-};
-
-static const GLubyte stipple_pattern_checkerboard[132] =
-{
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa, 0x55, 0x55, 0x55, 0x55,
-    0xaa, 0xaa, 0xaa, 0xaa
-};
-
-static const GLubyte *stipple_pattern_checkerboard_inv = stipple_pattern_checkerboard + 4;
-
 void video_output_opengl::display(enum video_output::mode mode, float x, float y, float w, float h)
 {
     glClear(GL_COLOR_BUFFER_BIT);
-    if (!_have_valid_data)
+    if (!_have_valid_data[_active_tex_set])
     {
         return;
     }
+
+    /* Use correct left and right view indices */
 
     int left = 0;
     int right = (_input_is_mono ? 0 : 1);
@@ -507,163 +365,197 @@ void video_output_opengl::display(enum video_output::mode mode, float x, float y
     {
         std::swap(left, right);
     }
-
     int viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
-    if ((mode == even_odd_rows || mode == checkerboard) && (window_pos_y() + viewport[1]) % 2 == 0)
+    if ((mode == even_odd_rows || mode == checkerboard) && (screen_pos_y() + viewport[1]) % 2 == 0)
     {
         std::swap(left, right);
     }
-    if ((mode == even_odd_columns || mode == checkerboard) && (window_pos_x() + viewport[0]) % 2 == 1)
+    if ((mode == even_odd_columns || mode == checkerboard) && (screen_pos_x() + viewport[0]) % 2 == 1)
     {
         std::swap(left, right);
     }
 
-    if (_prg != 0)
+    /* Initialize GL things */
+
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+    /* Step 2: color-correction */
+
+    GLboolean scissor_test = glIsEnabled(GL_SCISSOR_TEST);
+    glDisable(GL_SCISSOR_TEST);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glViewport(0, 0, _src_width, _src_height);
+    glUseProgram(_color_prg);
+    if (frame_format() == decoder::frame_format_yuv420p)
     {
-        glUniform1f(glGetUniformLocation(_prg, "contrast"), _state.contrast);
-        glUniform1f(glGetUniformLocation(_prg, "brightness"), _state.brightness);
-        glUniform1f(glGetUniformLocation(_prg, "saturation"), _state.saturation);
-        glUniform1f(glGetUniformLocation(_prg, "cos_hue"), std::cos(_state.hue * M_PI));
-        glUniform1f(glGetUniformLocation(_prg, "sin_hue"), std::sin(_state.hue * M_PI));
-        if (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard)
+        glUniform1i(glGetUniformLocation(_color_prg, "y_tex"), 0);
+        glUniform1i(glGetUniformLocation(_color_prg, "u_tex"), 1);
+        glUniform1i(glGetUniformLocation(_color_prg, "v_tex"), 2);
+    }
+    else
+    {
+        glUniform1i(glGetUniformLocation(_color_prg, "srgb_tex"), 0);
+    }
+    glUniform1f(glGetUniformLocation(_color_prg, "contrast"), _state.contrast);
+    glUniform1f(glGetUniformLocation(_color_prg, "brightness"), _state.brightness);
+    glUniform1f(glGetUniformLocation(_color_prg, "saturation"), _state.saturation);
+    glUniform1f(glGetUniformLocation(_color_prg, "cos_hue"), std::cos(_state.hue * M_PI));
+    glUniform1f(glGetUniformLocation(_color_prg, "sin_hue"), std::sin(_state.hue * M_PI));
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _color_fbo);
+    // left view: render into _srgb_tex[0]
+    if (frame_format() == decoder::frame_format_yuv420p)
+    {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _yuv420p_y_tex[_active_tex_set][left]);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, _yuv420p_u_tex[_active_tex_set][left]);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, _yuv420p_v_tex[_active_tex_set][left]);
+    }
+    else
+    {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _bgra32_tex[_active_tex_set][left]);
+    }
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
+            GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _srgb_tex[0], 0);
+    draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
+    // right view: render into _srgb_tex[1]
+    if (left != right)
+    {
+        if (frame_format() == decoder::frame_format_yuv420p)
         {
-            glUniform1f(glGetUniformLocation(_prg, "step_x"), _tex_max_x / static_cast<float>(viewport[2]));
-            glUniform1f(glGetUniformLocation(_prg, "step_y"), _tex_max_y / static_cast<float>(viewport[3]));
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, _yuv420p_y_tex[_active_tex_set][right]);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, _yuv420p_u_tex[_active_tex_set][right]);
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, _yuv420p_v_tex[_active_tex_set][right]);
         }
+        else
+        {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, _bgra32_tex[_active_tex_set][right]);
+        }
+        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
+                GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _srgb_tex[1], 0);
+        draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
+    }
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+    glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    if (scissor_test)
+    {
+        glEnable(GL_SCISSOR_TEST);
+    }
+
+    // at this point, the left view is in _srgb_tex[0],
+    // and the right view (if it exists) is in _srgb_tex[1]
+    right = (left != right ? 1 : 0);
+    left = 0;
+
+    // Step 3: rendering
+    glUseProgram(_render_prg);
+    glUniform1i(glGetUniformLocation(_render_prg, "rgb_l"), left);
+    glUniform1i(glGetUniformLocation(_render_prg, "rgb_r"), right);
+    if (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard)
+    {
+        glUniform1i(glGetUniformLocation(_render_prg, "mask_tex"), 2);
+        glUniform1f(glGetUniformLocation(_render_prg, "step_x"), 1.0f / static_cast<float>(viewport[2]));
+        glUniform1f(glGetUniformLocation(_render_prg, "step_y"), 1.0f / static_cast<float>(viewport[3]));
     }
 
     if (mode == stereo)
     {
+        glActiveTexture(GL_TEXTURE0);
         glDrawBuffer(GL_BACK_LEFT);
-        bind_textures(0, left);
+        glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
         draw_quad(x, y, w, h);
         glDrawBuffer(GL_BACK_RIGHT);
-        bind_textures(0, right);
+        glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
         draw_quad(x, y, w, h);
     }
     else if (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard)
     {
-        if (_prg != 0)
+        float vpw = static_cast<float>(viewport[2]);
+        float vph = static_cast<float>(viewport[3]);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
+        if (left != right)
         {
-            float vpw = static_cast<float>(viewport[2]);
-            float vph = static_cast<float>(viewport[3]);
-            bind_textures(0, left);
-            bind_textures(1, right);
-            glActiveTexture(GL_TEXTURE0 + (frame_format() == decoder::frame_format_yuv420p ? 6 : 2));
-            glBindTexture(GL_TEXTURE_2D, _mask_tex);
-            glBegin(GL_QUADS);
-            glTexCoord2f(0.0f, _tex_max_y);
-            glMultiTexCoord2f(GL_TEXTURE1, 0.0f, 0.0f);
-            glVertex2f(x, y);
-            glTexCoord2f(_tex_max_x, _tex_max_y);
-            glMultiTexCoord2f(GL_TEXTURE1, vpw / 2.0f, 0.0f);
-            glVertex2f(x + w, y);
-            glTexCoord2f(_tex_max_x, 0.0f);
-            glMultiTexCoord2f(GL_TEXTURE1, vpw / 2.0f, vph / 2.0f);
-            glVertex2f(x + w, y + h);
-            glTexCoord2f(0.0f, 0.0f);
-            glMultiTexCoord2f(GL_TEXTURE1, 0.0f, vph / 2.0f);
-            glVertex2f(x, y + h);
-            glEnd();
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
         }
-        else
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, _mask_tex);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 0.0f);
+        glMultiTexCoord2f(GL_TEXTURE1, 0.0f, 0.0f);
+        glVertex2f(x, y);
+        glTexCoord2f(1.0f, 0.0f);
+        glMultiTexCoord2f(GL_TEXTURE1, vpw / 2.0f, 0.0f);
+        glVertex2f(x + w, y);
+        glTexCoord2f(1.0f, 1.0f);
+        glMultiTexCoord2f(GL_TEXTURE1, vpw / 2.0f, vph / 2.0f);
+        glVertex2f(x + w, y + h);
+        glTexCoord2f(0.0f, 1.0f);
+        glMultiTexCoord2f(GL_TEXTURE1, 0.0f, vph / 2.0f);
+        glVertex2f(x, y + h);
+        glEnd();
+    }
+    else if (mode == anaglyph_red_cyan_monochrome
+            || mode == anaglyph_red_cyan_full_color
+            || mode == anaglyph_red_cyan_half_color
+            || mode == anaglyph_red_cyan_dubois)
+    {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
+        if (left != right)
         {
-            const GLubyte *left_stipple = (mode == even_odd_rows ? stipple_pattern_even_rows
-                    : mode == even_odd_columns ? stipple_pattern_even_cols : stipple_pattern_checkerboard);
-            const GLubyte *right_stipple = (mode == even_odd_rows ? stipple_pattern_odd_rows
-                    : mode == even_odd_columns ? stipple_pattern_odd_cols : stipple_pattern_checkerboard_inv);
-            glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-            glEnable(GL_POLYGON_STIPPLE);
-            glPolygonStipple(left_stipple);
-            bind_textures(0, left);
-            draw_quad(x, y, w, h);
-            glPolygonStipple(right_stipple);
-            bind_textures(0, right);
-            draw_quad(x, y, w, h);
-            glDisable(GL_POLYGON_STIPPLE);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
         }
-    }
-    else if (_prg != 0
-            && (mode == anaglyph_red_cyan_monochrome
-                || mode == anaglyph_red_cyan_full_color
-                || mode == anaglyph_red_cyan_half_color
-                || mode == anaglyph_red_cyan_dubois))
-    {
-        bind_textures(0, left);
-        bind_textures(1, right);
         draw_quad(x, y, w, h);
-    }
-    else if (_prg == 0 && mode == anaglyph_red_cyan_full_color)
-    {
-        glColorMask(GL_TRUE, GL_FALSE, GL_FALSE, GL_FALSE);
-        bind_textures(0, left);
-        draw_quad(x, y, w, h);
-        glColorMask(GL_FALSE, GL_TRUE, GL_TRUE, GL_FALSE);
-        bind_textures(0, right);
-        draw_quad(x, y, w, h);
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     }
     else if (mode == mono_left)
     {
-        bind_textures(0, left);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
         draw_quad(x, y, w, h);
     }
     else if (mode == mono_right)
     {
-        bind_textures(0, right);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
         draw_quad(x, y, w, h);
     }
     else if (mode == left_right || mode == left_right_half)
     {
-        bind_textures(0, left);
-        glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(-1.0f, 1.0f);
-        glTexCoord2f(_tex_max_x, 0.0f);
-        glVertex2f(0.0f, 1.0f);
-        glTexCoord2f(_tex_max_x, _tex_max_y);
-        glVertex2f(0.0f, -1.0f);
-        glTexCoord2f(0.0f, _tex_max_y);
-        glVertex2f(-1.0f, -1.0f);
-        glEnd();
-        bind_textures(0, right);
-        glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(0.0f, 1.0f);
-        glTexCoord2f(_tex_max_x, 0.0f);
-        glVertex2f(1.0f, 1.0f);
-        glTexCoord2f(_tex_max_x, _tex_max_y);
-        glVertex2f(1.0f, -1.0f);
-        glTexCoord2f(0.0f, _tex_max_y);
-        glVertex2f(0.0f, -1.0f);
-        glEnd();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
+        draw_quad(-1.0f, -1.0f, 1.0f, 2.0f);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
+        draw_quad(0.0f, -1.0f, 1.0f, 2.0f);
     }
     else if (mode == top_bottom || mode == top_bottom_half)
     {
-        bind_textures(0, left);
-        glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(-1.0f, 1.0f);
-        glTexCoord2f(_tex_max_x, 0.0f);
-        glVertex2f(1.0f, 1.0f);
-        glTexCoord2f(_tex_max_x, _tex_max_y);
-        glVertex2f(1.0f, 0.0f);
-        glTexCoord2f(0.0f, _tex_max_y);
-        glVertex2f(-1.0f, 0.0f);
-        glEnd();
-        bind_textures(0, right);
-        glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(-1.0f, 0.0f);
-        glTexCoord2f(_tex_max_x, 0.0f);
-        glVertex2f(1.0f, 0.0f);
-        glTexCoord2f(_tex_max_x, _tex_max_y);
-        glVertex2f(1.0f, -1.0f);
-        glTexCoord2f(0.0f, _tex_max_y);
-        glVertex2f(-1.0f, -1.0f);
-        glEnd();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
+        draw_quad(-1.0f, 0.0f, 2.0f, 1.0f);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
+        draw_quad(-1.0f, -1.0f, 2.0f, 1.0f);
     }
 }
 
@@ -734,73 +626,67 @@ static void upload_texture(
     glPixelStorei(GL_UNPACK_ALIGNMENT, row_alignment);
     glBindTexture(GL_TEXTURE_2D, tex);
 
-    if (pbo != 0)
-    {
-        glBindBufferARB(GL_PIXEL_UNPACK_BUFFER, pbo);
-        glBufferDataARB(GL_PIXEL_UNPACK_BUFFER, h * line_size, NULL, GL_STREAM_DRAW);
-        void *pboptr = glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, GL_WRITE_ONLY);
-        std::memcpy(pboptr, data, h * line_size);
-        glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, fmt, type, NULL);
-        glBindBufferARB(GL_PIXEL_UNPACK_BUFFER, 0);
-    }
-    else
-    {
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, fmt, type, data);
-    }
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, h * line_size, NULL, GL_STREAM_DRAW);
+    void *pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+    std::memcpy(pboptr, data, h * line_size);
+    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, fmt, type, NULL);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
 void video_output_opengl::prepare(
         uint8_t *l_data[3], size_t l_line_size[3],
         uint8_t *r_data[3], size_t r_line_size[3])
 {
+    int tex_set = (_active_tex_set == 0 ? 1 : 0);
     if (!l_data[0])
     {
-        _have_valid_data = false;
+        _have_valid_data[tex_set] = false;
         return;
     }
-
-    int tex_set = (_active_tex_set == 0 ? 1 : 0);
     _input_is_mono = (l_data[0] == r_data[0] && l_data[1] == r_data[1] && l_data[2] == r_data[2]);
+
+    /* Step 1: input of video data */
 
     glActiveTexture(GL_TEXTURE0);
     if (frame_format() == decoder::frame_format_yuv420p)
     {
-        upload_texture(_y_tex[tex_set][0], _pbo,
+        upload_texture(_yuv420p_y_tex[tex_set][0], _pbo,
                 _src_width, _src_height, 1, l_line_size[0],
                 GL_LUMINANCE, GL_UNSIGNED_BYTE, l_data[0]);
-        upload_texture(_u_tex[tex_set][0], _pbo,
+        upload_texture(_yuv420p_u_tex[tex_set][0], _pbo,
                 _src_width / 2, _src_height / 2, 1, l_line_size[1],
                 GL_LUMINANCE, GL_UNSIGNED_BYTE, l_data[1]);
-        upload_texture(_v_tex[tex_set][0], _pbo,
+        upload_texture(_yuv420p_v_tex[tex_set][0], _pbo,
                 _src_width / 2, _src_height / 2, 1, l_line_size[2],
                 GL_LUMINANCE, GL_UNSIGNED_BYTE, l_data[2]);
         if (!_input_is_mono)
         {
-            upload_texture(_y_tex[tex_set][1], _pbo,
+            upload_texture(_yuv420p_y_tex[tex_set][1], _pbo,
                     _src_width, _src_height, 1, r_line_size[0],
                     GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[0]);
-            upload_texture(_u_tex[tex_set][1], _pbo,
+            upload_texture(_yuv420p_u_tex[tex_set][1], _pbo,
                     _src_width / 2, _src_height / 2, 1, r_line_size[1],
                     GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[1]);
-            upload_texture(_v_tex[tex_set][1], _pbo,
+            upload_texture(_yuv420p_v_tex[tex_set][1], _pbo,
                     _src_width / 2, _src_height / 2, 1, r_line_size[2],
                     GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[2]);
         }
     }
     else if (frame_format() == decoder::frame_format_bgra32)
     {
-        upload_texture(_rgb_tex[tex_set][0], _pbo,
+        upload_texture(_bgra32_tex[tex_set][0], _pbo,
                 _src_width, _src_height, 4, l_line_size[0],
                 GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, l_data[0]);
         if (!_input_is_mono)
         {
-            upload_texture(_rgb_tex[tex_set][1], _pbo,
+            upload_texture(_bgra32_tex[tex_set][1], _pbo,
                     _src_width, _src_height, 4, r_line_size[0],
                     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, r_data[0]);
         }
     }
-    _have_valid_data = true;
+    _have_valid_data[tex_set] = true;
 }
 
 std::vector<std::string> glew_versions()

@@ -55,7 +55,7 @@ Note that all your nodes need access to the video file using the same name, so
 a shared filesystem is helpful if you use multiple systems.
 
 To play live video from a webcam or TV card, you can set up a streaming server
-using ffserver (part of ffmpeg) or vlc, and then give the appropriate URL to
+using ffserver (part of FFmpeg) or vlc, and then give the appropriate URL to
 Bino. You can use multicast to stream the video to multiple systems
 efficiently.
 

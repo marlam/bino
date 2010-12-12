@@ -61,7 +61,7 @@ private:
 
 public:
     audio_output_openal() throw ();
-    ~audio_output_openal();
+    virtual ~audio_output_openal();
 
     virtual void open(int channels, int rate, enum decoder::audio_sample_format format);
 

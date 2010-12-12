@@ -176,12 +176,11 @@ public:
     }
 
     void eq_initialize(int src_width, int src_height, float src_aspect_ratio,
-            enum decoder::video_frame_format src_preferred_frame_format,
-            bool have_pixel_buffer_object, bool have_texture_non_power_of_two, bool have_fragment_shader)
+            enum decoder::video_frame_format src_preferred_frame_format)
     {
         set_mode(stereo);       // just to ensure that prepare() handles both left and right view
         set_source_info(src_width, src_height, src_aspect_ratio, src_preferred_frame_format);
-        initialize(have_pixel_buffer_object, have_texture_non_power_of_two, have_fragment_shader);
+        initialize();
     }
 
     void eq_deinitialize()
@@ -200,8 +199,8 @@ public:
     }
 
     // The rest of the video_output_opengl interface is irrelevant for Equalizer
-    virtual int window_pos_x() { return 0; }
-    virtual int window_pos_y() { return 0; }
+    virtual int screen_pos_x() { return 0; }
+    virtual int screen_pos_y() { return 0; }
     virtual void receive_notification(const notification &) {}
     virtual bool supports_stereo() { return false; }
     virtual void open(enum decoder::video_frame_format, int, int, float, int, const video_output_state&, unsigned int, int, int) {}
@@ -232,7 +231,7 @@ public:
         canvas_video_area.d = 1.0f;
     }
 
-    ~eq_init_data()
+    virtual ~eq_init_data()
     {
         frame_data_id = EQ_ID_INVALID;
     }
@@ -411,7 +410,7 @@ public:
         if (getCanvases().size() < 1)
         {
             msg::err("no canvas in Equalizer configuration");
-            abort();
+            return false;
         }
         float canvas_w = getCanvases()[0]->getWall().getWidth();
         float canvas_h = getCanvases()[0]->getWall().getHeight();
@@ -838,16 +837,19 @@ protected:
         {
             return false;
         }
-        eq_node *node = static_cast<eq_node *>(getNode());
+        if (!glewContextIsSupported(const_cast<GLEWContext *>(glewGetContext()),
+                    "GL_VERSION_2_1 GL_EXT_framebuffer_object"))
+        {
+            msg::err("This OpenGL implementation does not support OpenGL 2.1 and framebuffer objects");
+            return false;
+        }
 
         // Disable some things that Equalizer seems to enable for some reason.
         glDisable(GL_LIGHTING);
 
+        eq_node *node = static_cast<eq_node *>(getNode());
         _video_output.eq_initialize(node->src_width, node->src_height,
-                node->src_aspect_ratio, node->src_preferred_frame_format,
-                glewIsSupported("GL_ARB_pixel_buffer_object"),
-                glewIsSupported("GL_ARB_texture_non_power_of_two"),
-                glewIsSupported("GL_ARB_fragment_shader"));
+                node->src_aspect_ratio, node->src_preferred_frame_format);
 
         msg::dbg(HERE);
         return true;
@@ -938,8 +940,6 @@ protected:
         }
 
         // Display
-        glEnable(GL_TEXTURE_2D);
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
         eq_window *window = static_cast<eq_window *>(getWindow());
         window->display(getEye() == eq::EYE_RIGHT ? video_output::mono_right : video_output::mono_left,
                 quad_x, quad_y, quad_w, quad_h);

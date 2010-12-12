@@ -39,7 +39,7 @@ private:
 
 public:
     decoder_ffmpeg() throw ();
-    ~decoder_ffmpeg();
+    virtual ~decoder_ffmpeg();
 
     virtual void open(const std::string &filename);
 

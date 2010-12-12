@@ -33,47 +33,66 @@
 class video_output_opengl : public video_output
 {
 private:
-    enum video_output::mode _mode;
+    // Video properties (fixed during playback)
     int _src_width;
     int _src_height;
     float _src_aspect_ratio;
     enum decoder::video_frame_format _src_preferred_frame_format;
+    // Screen properties (fixed during playback)
     int _screen_width;
     int _screen_height;
     float _screen_pixel_aspect_ratio;
+    // Video output mode (fixed during playback)
+    enum video_output::mode _mode;
+    // Video output properties (variable)
+    video_output_state _state;
     int _win_width;
     int _win_height;
-    GLuint _prg;
-    GLuint _rgb_tex[2][2];
-    GLuint _y_tex[2][2];
-    GLuint _u_tex[2][2];
-    GLuint _v_tex[2][2];
-    GLuint _mask_tex;
-    int _active_tex_set;
-    bool _input_is_mono;
-    video_output_state _state;
-    bool _use_non_power_of_two;
-    float _tex_max_x;
-    float _tex_max_y;
-    bool _yuv420p_supported;
-    GLuint _pbo;
-    bool _have_valid_data;
 
-    void bind_textures(int unitset, int index);
-    void draw_quad(float x, float y, float w, float h);
+    /* We have two texture sets for input: one holding the current video frame
+     * for output, and one for preparing the next video frame. Each texture set
+     * has textures for the left and right view. */
+    int _active_tex_set;        // 0 or 1
+    bool _input_is_mono;        // left view == right view
+    bool _have_valid_data[2];   // do we have valid data in the given texture set?
+    // Step 1: input of video data
+    GLuint _pbo;                // pixel-buffer object for texture uploading
+    GLuint _yuv420p_y_tex[2][2];// for yuv420p format: y component
+    GLuint _yuv420p_u_tex[2][2];// for yuv420p format: u component
+    GLuint _yuv420p_v_tex[2][2];// for yuv420p format: v component
+    GLuint _bgra32_tex[2][2];   // for bgra32 format
+    // Step 2: color-correction
+    GLuint _color_prg;          // color space transformation, color adjustment
+    GLuint _color_fbo;          // framebuffer object to render into the sRGB texture
+    GLuint _srgb_tex[2];        // output: sRGB texture
+    // Step 3: rendering
+    GLuint _render_prg;         // reads sRGB texture, renders according to _mode
+    GLuint _mask_tex;           // for the masking modes even-odd-{rows,columns}, checkerboard
+    // Is the GL stuff initialized?
+    bool _initialized;
+    // XXX: Hack: work around broken SRGB texture implementations
+    bool _srgb_textures_are_broken;
 
 protected:
+    /* In a sub-class that provides an OpenGL context, call the following
+     * initialization functions in the order in which they appear here.
+     * You must make sure that the OpenGL context provides GL 2.1 + FBOs. */
     void set_mode(enum video_output::mode mode);
     void set_source_info(int width, int height, float aspect_ratio, enum decoder::video_frame_format preferred_frame_format);
     void set_screen_info(int width, int height, float pixel_aspect_ratio);
     void compute_win_size(int width = -1, int height = -1);
     void set_state(const video_output_state &_state);
-    void initialize(bool have_pixel_buffer_object, bool have_texture_non_power_of_two, bool have_fragment_shader);
-    void deinitialize();
+    void initialize();
+
+    // Swap the texture sets (one active, one for preparing the next video frame)
+    void swap_tex_set();
+    // Display the current texture set
     void display(enum video_output::mode mode, float x, float y, float w, float h);
     void display() { display(_mode, -1.0f, -1.0f, 2.0f, 2.0f); }
+    // Call this when the GL window was resized:
     void reshape(int w, int h);
-    void swap_tex_set();
+
+    // Access information
     video_output_state &state()
     {
         return _state;
@@ -95,12 +114,17 @@ protected:
         return _win_height;
     }
 
-    virtual int window_pos_x() = 0;
-    virtual int window_pos_y() = 0;
+    // Deinitialize.
+    void deinitialize();
+
+    // These functions must be implemented in a subclass and must
+    // return the position of the video area on the screen.
+    virtual int screen_pos_x() = 0;
+    virtual int screen_pos_y() = 0;
 
 public:
     video_output_opengl(bool receive_notifications = true) throw ();
-    ~video_output_opengl();
+    virtual ~video_output_opengl();
 
     virtual bool supports_stereo() = 0;
 

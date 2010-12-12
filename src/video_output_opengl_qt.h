@@ -25,10 +25,13 @@
 
 #include <GL/glew.h>
 
+#include <QWidget>
 #include <QGLWidget>
 
 #include "video_output_opengl.h"
 
+
+/* Internal interface */
 
 class video_output_opengl_qt;
 
@@ -45,20 +48,41 @@ public:
 
     virtual QSize sizeHint() const;
 
+public slots:
+    void move_event();
+
 protected:
     virtual void initializeGL();
     virtual void paintGL();
     virtual void resizeGL(int width, int height);
     virtual void moveEvent(QMoveEvent *event);
-    virtual void closeEvent(QCloseEvent *event);
     virtual void keyPressEvent(QKeyEvent *event);
 };
+
+/* Public interface. You can use this as a video container widget, to
+ * conveniently catch move events and pass them to the video output, as
+ * described below (but note that you still must catch move events for
+ * parent widgets yourself). */
+
+class video_container_widget : public QWidget, public controller
+{
+    Q_OBJECT
+public:
+    video_container_widget(QWidget *parent = NULL);
+signals:
+    void move_event();
+protected:
+    virtual void moveEvent(QMoveEvent *event);
+    virtual void closeEvent(QCloseEvent *event);
+};
+
+/* Public interface. This subclasses video_output_opengl; see its documentation. */
 
 class video_output_opengl_qt : public video_output_opengl
 {
 private:
     bool _qt_app_owner;
-    QWidget *_container_widget;
+    video_container_widget *_container_widget;
     bool _container_is_external;
     video_output_opengl_qt_widget *_widget;
 
@@ -67,15 +91,22 @@ private:
     void exit_fullscreen();
 
 protected:
-    virtual int window_pos_x();
-    virtual int window_pos_y();
+    virtual int screen_pos_x();
+    virtual int screen_pos_y();
 
 public:
     /* If a container widget is given, then it is assumed that this widget is
-     * part of another widget (e.g. a main window). If no container widget is
+     * part of another widget (e.g. a main window). In this case, you also need
+     * to use the move_event() function; see below. If no container widget is
      * given, we will use our own, and it will be a top-level window. */
-    video_output_opengl_qt(QWidget *container_widget = NULL) throw ();
-    ~video_output_opengl_qt();
+    video_output_opengl_qt(video_container_widget *container_widget = NULL) throw ();
+    virtual ~video_output_opengl_qt();
+
+    /* If you give a container element to the constructor, you have to call
+     * this function for every move events that the container widget or its
+     * parent widgets receive. This is required for the masking output modes
+     * (even-odd-*, checkerboard). */
+    void move_event();
 
     virtual bool supports_stereo();
 
@@ -91,11 +122,6 @@ public:
     virtual void close();
 
     virtual void receive_notification(const notification &note);
-
-    video_output_opengl_qt_widget *widget()
-    {
-        return _widget;
-    }
 
 friend class video_output_opengl_qt_widget;
 };
