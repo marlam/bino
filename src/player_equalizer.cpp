@@ -572,11 +572,11 @@ private:
         *height = 0.0f;
         *distance = 0.0f;
 
-        const eq::CanvasVector &canvases = getCanvases();
-        for (eq::CanvasVector::const_iterator i = canvases.begin(); i != canvases.end(); i++)
+        const eq::Canvases &canvases = getCanvases();
+        for (eq::Canvases::const_iterator i = canvases.begin(); i != canvases.end(); i++)
         {
-            const eq::SegmentVector &segments = (*i)->getSegments();
-            for (eq::SegmentVector::const_iterator j = segments.begin(); j != segments.end(); j++)
+            const eq::Segments &segments = (*i)->getSegments();
+            for (eq::Segments::const_iterator j = segments.begin(); j != segments.end(); j++)
             {
                 const eq::Segment *segment = *j;
                 eq::Wall wall = segment->getWall();
