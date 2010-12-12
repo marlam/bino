@@ -356,6 +356,43 @@ protected:
     }
 };
 
+/** Defines errors produced by player. */
+enum Error
+{
+    ERROR_MAP_INITDATA_FAILED = eq::ERROR_CUSTOM,
+    ERROR_MAP_FRAMEDATA_FAILED,
+    ERROR_PLAYER_INIT_FAILED,
+    ERROR_OPENGL_2_1_NEEDED
+};
+
+struct ErrorData
+{
+    const uint32_t code;
+    const std::string text;
+};
+
+ErrorData _errors[] = {
+    { ERROR_MAP_FRAMEDATA_FAILED, "Init data mapping failed" },
+    { ERROR_MAP_INITDATA_FAILED, "Frame data mapping failed" },
+    { ERROR_PLAYER_INIT_FAILED, "Video player initialization failed" },
+    { ERROR_OPENGL_2_1_NEEDED, "Need at least OpenGL 2.1" },
+    { 0, "" } // last!
+};
+
+static void initErrors()
+{
+    eq::base::ErrorRegistry& registry = eq::base::Global::getErrorRegistry();
+    for( size_t i=0; _errors[i].code != 0; ++i )
+        registry.setString( _errors[i].code, _errors[i].text );
+}
+
+static void exitErrors()
+{
+    eq::base::ErrorRegistry& registry = eq::base::Global::getErrorRegistry();
+    for( size_t i=0; _errors[i].code != 0; ++i )
+        registry.eraseString( _errors[i].code );
+}
+
 /*
  * eq_config
  */
@@ -672,6 +709,7 @@ protected:
         eq_config *config = static_cast<eq_config *>(getConfig());
         if (!config->mapObject(&init_data, initID))
         {
+            setError( ERROR_MAP_INITDATA_FAILED );
             return false;
         }
         // Is this the application node?
@@ -682,6 +720,7 @@ protected:
         // Map our FrameData instance to the master instance
         if (!config->mapObject(&frame_data, init_data.frame_data_id))
         {
+            setError( ERROR_MAP_FRAMEDATA_FAILED );
             return false;
         }
 
@@ -692,6 +731,7 @@ protected:
         {
             if (!_player.eq_init(init_data.init_data, &src_width, &src_height, &src_aspect_ratio, &src_preferred_frame_format))
             {
+                setError( ERROR_PLAYER_INIT_FAILED );
                 return false;
             }
         }
@@ -841,6 +881,7 @@ protected:
                     "GL_VERSION_2_1 GL_EXT_framebuffer_object"))
         {
             msg::err("This OpenGL implementation does not support OpenGL 2.1 and framebuffer objects");
+            setError( ERROR_OPENGL_2_1_NEEDED );
             return false;
         }
 
@@ -987,6 +1028,7 @@ player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen)
     : player(player::slave), _flat_screen(flat_screen)
 {
     /* Initialize Equalizer */
+    initErrors();
     _node_factory = static_cast<void *>(new eq_node_factory);
     if (!eq::init(*argc, argv, static_cast<eq::NodeFactory *>(_node_factory)))
     {
@@ -1028,6 +1070,7 @@ void player_equalizer::run()
     config->exit();
     eq::releaseConfig(config);
     eq::exit();
+    exitErrors();
 }
 
 void player_equalizer::close()
