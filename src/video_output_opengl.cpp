@@ -335,6 +335,21 @@ enum decoder::video_frame_format video_output_opengl::frame_format() const
     return _src_preferred_frame_format;
 }
 
+void video_output_opengl::clear()
+{
+    if (_mode == stereo)
+    {
+        glDrawBuffer(GL_BACK_LEFT);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDrawBuffer(GL_BACK_RIGHT);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+    else
+    {
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+}
+
 static void draw_quad(float x, float y, float w, float h)
 {
     glBegin(GL_QUADS);
@@ -351,7 +366,7 @@ static void draw_quad(float x, float y, float w, float h)
 
 void video_output_opengl::display(bool toggle_swap_eyes, float x, float y, float w, float h)
 {
-    glClear(GL_COLOR_BUFFER_BIT);
+    clear();
     if (!_have_valid_data[_active_tex_set])
     {
         return;
@@ -567,7 +582,7 @@ void video_output_opengl::reshape(int w, int h)
 {
     // Clear
     glViewport(0, 0, w, h);
-    glClear(GL_COLOR_BUFFER_BIT);
+    clear();
 
     // Compute viewport with the right aspect ratio
     float dst_w = w;

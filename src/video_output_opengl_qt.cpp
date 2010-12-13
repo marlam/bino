@@ -86,7 +86,7 @@ void video_output_opengl_qt_widget::move_event()
 
 void video_output_opengl_qt_widget::initializeGL()
 {
-    glClear(GL_COLOR_BUFFER_BIT);
+    _vo->clear();
     if (opengl_version_vector.size() == 0)
     {
         set_opengl_version_vector();

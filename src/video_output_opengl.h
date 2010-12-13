@@ -86,6 +86,8 @@ protected:
 
     // Swap the texture sets (one active, one for preparing the next video frame)
     void swap_tex_set();
+    // Clear the video area
+    void clear();
     // Display the current texture set. The first version of this function is used
     // by Equalizer; simple windows will use the second version.
     void display(bool toggle_swap_eyes, float x, float y, float w, float h);
