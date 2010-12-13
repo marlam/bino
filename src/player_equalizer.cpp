@@ -156,15 +156,15 @@ public:
     {
     }
 
-    void eq_display(enum video_output::mode mode, float x, float y, float w, float h)
+    void eq_display(bool toggle_swap_eyes, float x, float y, float w, float h)
     {
-        video_output_opengl::display(mode, x, y, w, h);
+        video_output_opengl::display(toggle_swap_eyes, x, y, w, h);
     }
 
     void eq_initialize(int src_width, int src_height, float src_aspect_ratio,
             enum decoder::video_frame_format src_preferred_frame_format)
     {
-        set_mode(stereo);       // just to ensure that prepare() handles both left and right view
+        set_mode(mono_left);    // to display the right view, we can toggle the swap_eyes flag
         set_source_info(src_width, src_height, src_aspect_ratio, src_preferred_frame_format);
         initialize();
     }
@@ -809,9 +809,9 @@ public:
     {
     }
 
-    void display(enum video_output::mode mode, float x, float y, float w, float h)
+    void display(bool toggle_swap_eyes, float x, float y, float w, float h)
     {
-        _video_output.eq_display(mode, x, y, w, h);
+        _video_output.eq_display(toggle_swap_eyes, x, y, w, h);
     }
 
 protected:
@@ -925,8 +925,8 @@ protected:
 
         // Display
         eq_window *window = static_cast<eq_window *>(getWindow());
-        window->display(getEye() == eq::EYE_RIGHT ? video_output::mono_right : video_output::mono_left,
-                quad_x, quad_y, quad_w, quad_h);
+        bool toggle_swap_eyes = (getEye() == eq::EYE_RIGHT);
+        window->display(toggle_swap_eyes, quad_x, quad_y, quad_w, quad_h);
     }
 };
 
