@@ -93,7 +93,8 @@ public:
     virtual int64_t audio_duration(int video_stream) const throw () = 0;        // microseconds
 
     /* Get metadata */
-    virtual size_t tags() const;                        // number of metadata tags
+    virtual const char *file_name() const = 0;          // the file name, or URL
+    size_t tags() const;                                // number of metadata tags
     const char *tag_name(size_t i) const;               // get name of given tag
     const char *tag_value(size_t i) const;              // get value of given tag
     const char *tag_value(const char *tag_name) const;  // get value of tag with the given name (returns NULL if no such tag exists)

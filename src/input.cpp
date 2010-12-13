@@ -19,6 +19,8 @@
 
 #include "config.h"
 
+#include <cctype>
+
 #include "debug.h"
 #include "exc.h"
 #include "msg.h"
@@ -216,56 +218,135 @@ void input::open(std::vector<decoder *> decoders,
             _swap_eyes = true;
         }
     }
+    /* If we have more than one video stream, the input mode must be "separate". */
     if (_mode == automatic)
     {
         if (video1_decoder != -1)
         {
             _mode = separate;
         }
-        else
+    }
+    /* First, try to determine the input mode from meta data if none is given. */
+    if (_mode == automatic)
+    {
+        if ((tag_value = _decoders.at(_video_decoders[0])->tag_value("StereoscopicLayout")))
         {
-            if ((tag_value = _decoders.at(_video_decoders[0])->tag_value("StereoscopicLayout")))
+            if (std::string(tag_value) == "SideBySideRF" || std::string(tag_value) == "SideBySideLF")
             {
-                if (std::string(tag_value) == "SideBySideRF" || std::string(tag_value) == "SideBySideLF")
+                _mode = left_right;
+                if ((tag_value = _decoders.at(_video_decoders[0])->tag_value("StereoscopicHalfWidth"))
+                        && std::string(tag_value) == "1")
                 {
-                    _mode = left_right;
-                    if ((tag_value = _decoders.at(_video_decoders[0])->tag_value("StereoscopicHalfWidth"))
-                            && std::string(tag_value) == "1")
-                    {
-                        _mode = left_right_half;
-                    }
-                }
-                else if (std::string(tag_value) == "OverUnderRT" || std::string(tag_value) == "OverUnderLT")
-                {
-                    _mode = top_bottom;
-                    if ((tag_value = _decoders.at(_video_decoders[0])->tag_value("StereoscopicHalfHeight"))
-                            && std::string(tag_value) == "1")
-                    {
-                        _mode = top_bottom_half;
-                    }
+                    _mode = left_right_half;
                 }
             }
-            if (_mode == automatic)
+            else if (std::string(tag_value) == "OverUnderRT" || std::string(tag_value) == "OverUnderLT")
             {
-                // these are guesses for untagged video files
-                if (_video_width > _video_height)
+                _mode = top_bottom;
+                if ((tag_value = _decoders.at(_video_decoders[0])->tag_value("StereoscopicHalfHeight"))
+                        && std::string(tag_value) == "1")
                 {
-                    if (_video_width / 2 > _video_height)
-                    {
-                        _mode = left_right;
-                    }
-                    else
-                    {
-                        _mode = mono;
-                    }
-                }
-                else
-                {
-                    _mode = top_bottom;
+                    _mode = top_bottom_half;
                 }
             }
         }
     }
+    /* If that fails, try to determine the input mode by looking at the file name.
+     * These are the file name conventions described here:
+     * http://www.tru3d.com/technology/3D_Media_Formats_Software.php?file=TriDef%20Supported%203D%20Formats */
+    if (_mode == automatic)
+    {
+        std::string name = _decoders.at(video0_decoder)->file_name();
+        size_t last_dot = name.find_last_of('.');
+        name = name.substr(0, last_dot);
+        for (size_t i = 0; i < name.length(); i++)
+        {
+            name[i] = std::tolower(name[i]);
+        }
+        if (name.length() >= 3 && name.substr(name.length() - 3, 3) == "-lr")
+        {
+            _mode = left_right;
+        }
+        else if (name.length() >= 3 && name.substr(name.length() - 3, 3) == "-rl")
+        {
+            _mode = left_right;
+            _swap_eyes = true;
+        }
+        else if (name.length() >= 4 && name.substr(name.length() - 4, 4) == "-lrq")
+        {
+            _mode = left_right_half;
+        }
+        else if (name.length() >= 4 && name.substr(name.length() - 4, 4) == "-rlq")
+        {
+            _mode = left_right_half;
+            _swap_eyes = true;
+        }
+        else if (name.length() >= 3 && name.substr(name.length() - 3, 3) == "-ab")
+        {
+            _mode = top_bottom;
+        }
+        else if (name.length() >= 3 && name.substr(name.length() - 3, 3) == "-ba")
+        {
+            _mode = top_bottom;
+            _swap_eyes = true;
+        }
+        else if (name.length() >= 4 && name.substr(name.length() - 4, 4) == "-abq")
+        {
+            _mode = top_bottom_half;
+        }
+        else if (name.length() >= 4 && name.substr(name.length() - 4, 4) == "-baq")
+        {
+            _mode = top_bottom_half;
+            _swap_eyes = true;
+        }
+        else if (name.length() >= 3 && name.substr(name.length() - 3, 3) == "-eo")
+        {
+            _mode = even_odd_rows;
+            // all image lines are given in this case, and there should be no interpolation [TODO]
+        }
+        else if (name.length() >= 3 && name.substr(name.length() - 3, 3) == "-oe")
+        {
+            _mode = even_odd_rows;
+            _swap_eyes = true;
+            // all image lines are given in this case, and there should be no interpolation [TODO]
+        }
+        else if ((name.length() >= 4 && name.substr(name.length() - 4, 4) == "-eoq")
+            || (name.length() >= 5 && name.substr(name.length() - 5, 5) == "-3dir"))
+        {
+            _mode = even_odd_rows;
+        }
+        else if ((name.length() >= 4 && name.substr(name.length() - 4, 4) == "-oeq")
+            || (name.length() >= 4 && name.substr(name.length() - 4, 4) == "-3di"))
+        {
+            _mode = even_odd_rows;
+            _swap_eyes = true;
+        }
+        else if (name.length() >= 3 && name.substr(name.length() - 3, 3) == "-2d")
+        {
+            _mode = mono;
+        }
+    }
+    /* If that fails, too, try to determine the input mode from the resolution.*/
+    if (_mode == automatic)
+    {
+        if (_video_width > _video_height)
+        {
+            if (_video_width / 2 > _video_height)
+            {
+                _mode = left_right;
+            }
+            else
+            {
+                _mode = mono;
+            }
+        }
+        else
+        {
+            _mode = top_bottom;
+        }
+    }
+    /* At this point, _mode != automatic */
+
     if (_mode == left_right)
     {
         _video_width /= 2;
