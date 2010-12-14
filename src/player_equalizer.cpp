@@ -985,6 +985,17 @@ protected:
         window->display(getEye() == eq::EYE_RIGHT ? video_output::mono_right : video_output::mono_left,
                 quad_x, quad_y, quad_w, quad_h);
     }
+
+#if 0
+    void frameViewFinish( const eq::uint128_t& frameID )
+    {
+        //const FrameData& frameData = _getFrameData();
+
+        applyBuffer();
+        applyViewport();
+        drawStatistics();
+    }
+#endif
 };
 
 /*
