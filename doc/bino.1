@@ -34,19 +34,19 @@ Select log level:
 .IP "\-i|\-\-input=\fITYPE\fP"
 Select input type.
 .RS
-.IP \fImono\fP
+.IP "\fImono\fP"
 Single view
-.IP \fIseparate\fP
+.IP "\fIseparate\fP"
 Left/right view in separate streams
-.IP \fItop\-bottom\fP
+.IP "\fItop\-bottom\fP"
 Left view top, right view bottom
-.IP \fItop\-bottom\-half\fP
+.IP "\fItop\-bottom\-half\fP"
 Left view top, right view bottom, half height
-.IP \fIleft\-right\fP
+.IP "\fIleft\-right\fP"
 Left view left, right view right
-.IP \fIleft\-right\-half\fP
+.IP "\fIleft\-right\-half\fP"
 Left view left, right view right, half width
-.IP \fIeven\-odd\-rows\fP
+.IP "\fIeven\-odd\-rows\fP"
 Left view even rows, right view odd rows
 .PP
 The default is to autodetect the input type from meta data stored in the file.
@@ -55,25 +55,25 @@ by looking at the last part of the file name before the file name extension
 (.ext). If that fails, too, Bino guesses based on the resolution of the input.
 .br
 The following file name forms are recognized:
-.IP *\-lr.ext
+.IP "*\-lr.ext"
 left\-right
-.IP *\-lrq.ext
+.IP "*\-lrq.ext"
 left\-right\-half
-.IP *\-rl.ext
+.IP "*\-rl.ext"
 left\-right swapped
-.IP *\-rlq.ext
+.IP "*\-rlq.ext"
 left\-right\-half swapped
-.IP *\-ab.ext
+.IP "*\-tb.ext or *\-ab.ext"
 top\-bottom
-.IP *\-abq.ext
+.IP "*\-tbq.ext or *\-abq.ext"
 top\-bottom\-half
-.IP *\-ba.ext
+.IP "*\-bt.ext or *\-ba.ext"
 top\-bottom swapped
-.IP *\-baq.ext
+.IP "*\-btq.ext or *\-baq.ext"
 top\-bottom\-half swapped
-.IP *\-eo.ext
+.IP "*\-eo.ext"
 even\-odd\-rows
-.IP *\-oe.ext
+.IP "*\-oe.ext"
 even\-odd\-rows swapped
 .RE
 .IP "\-s|\-\-swap\-eyes"
@@ -81,39 +81,39 @@ Swap left/right view
 .IP "\-o|\-\-output=\fITYPE\fP"
 Select output type.
 .RS
-.IP \fImono\-left\fP
+.IP "\fImono\-left\fP"
 Left view only
-.IP \fImono\-right\fP
+.IP "\fImono\-right\fP"
 Right view only
-.IP \fItop\-bottom\fP
+.IP "\fItop\-bottom\fP"
 Left view top, right view bottom
-.IP \fItop\-bottom\-half\fP
+.IP "\fItop\-bottom\-half\fP"
 Left view top, right view bottom, half height
-.IP \fIleft\-right\fP
+.IP "\fIleft\-right\fP"
 Left view left, right view right
-.IP \fIleft\-right\-half\fP
+.IP "\fIleft\-right\-half\fP"
 Left view left, right view right, half width
-.IP \fIeven\-odd\-rows\fP
+.IP "\fIeven\-odd\-rows\fP"
 Left view even rows, right view odd rows
-.IP \fIeven\-odd\-columns\fP
+.IP "\fIeven\-odd\-columns\fP"
 Left view even columns, right view odd columns
-.IP \fIcheckerboard\fP
+.IP "\fIcheckerboard\fP"
 Left and right view in checkerboard pattern
-.IP \fIanaglyph\fP
-Red/cyan anaglyph, default method, same as \fIanaglyph\-dubois\fP
-.IP \fIanaglyph\-monochrome\fP
+.IP "\fIanaglyph\fP"
+Red/cyan anaglyph, default method, same as \fIanaglyph\-dubois\fP"
+.IP "\fIanaglyph\-monochrome\fP"
 Red/cyan anaglyph, monochrome method
-.IP \fIanaglyph\-full\-color\fP
+.IP "\fIanaglyph\-full\-color\fP"
 Red/cyan anaglyph, full color method
-.IP \fIanaglyph\-half\-color\fP
+.IP "\fIanaglyph\-half\-color\fP"
 Red/cyan anaglyph, half color method
-.IP \fIanaglyph\-dubois\fP
+.IP "\fIanaglyph\-dubois\fP"
 Red/cyan anaglyph, high\-quality Dubois method
-.IP \fIstereo\fP
+.IP "\fIstereo\fP"
 OpenGL quad\-buffer stereo
-.IP \fIequalizer\fP
+.IP "\fIequalizer\fP"
 Multi-display OpenGL via Equalizer with a 2D canvas setup
-.IP \fIequalizer\-3d\fP
+.IP "\fIequalizer\-3d\fP"
 Multi-display OpenGL via Equalizer with a 3D screen setup
 .PP
 For stereo input, the default is \fIstereo\fP if the display supports it,
