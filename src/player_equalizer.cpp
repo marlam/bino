@@ -987,6 +987,17 @@ protected:
         bool toggle_swap_eyes = (getEye() == eq::EYE_RIGHT);
         window->display(toggle_swap_eyes, quad_x, quad_y, quad_w, quad_h);
     }
+
+#if 0
+    void frameViewFinish( const eq::uint128_t& frameID )
+    {
+        //const FrameData& frameData = _getFrameData();
+
+        applyBuffer();
+        applyViewport();
+        drawStatistics();
+    }
+#endif
 };
 
 /*
