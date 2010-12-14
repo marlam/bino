@@ -221,7 +221,7 @@ public:
     bool flat_screen;
     struct { float x, y, w, h, d; } canvas_video_area;
 
-    eq_init_data() : init_data(), flat_screen( true )
+    eq_init_data() : init_data()
     {
         flat_screen = true;
         canvas_video_area.x = 0.0f;
@@ -410,7 +410,6 @@ public:
     // Source video properties:
     int src_width, src_height;
     float src_aspect_ratio;
-    bool flat_screen;
     enum decoder::video_frame_format src_preferred_frame_format;
 
 public:
@@ -1055,7 +1054,6 @@ player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen)
     {
         throw exc("cannot get equalizer configuration");
     }
-    static_cast<eq_config *>(_config)->flat_screen = flat_screen;
 }
 
 player_equalizer::~player_equalizer()
