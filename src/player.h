@@ -1,7 +1,9 @@
 /*
- * This file is part of bino, a program to play stereoscopic videos.
+ * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010
+ * Martin Lambers <marlam@marlam.de>
+ * Lion-Simba <lion-simba@pridelands.ru>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -1,5 +1,5 @@
 /*
- * This file is part of bino, a program to play stereoscopic videos.
+ * This file is part of bino, a 3D video player.
  *
  * Copyright (C) 2010
  * Martin Lambers <marlam@marlam.de>
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
     if (version.value())
     {
         msg::req("%s version %s", PACKAGE_NAME, VERSION);
-        msg::req("    Copyright (C) 2010 Martin Lambers <marlam@marlam.de>.");
+        msg::req("    Copyright (C) 2010 the Bino developers.");
         msg::req("    This is free software. You may redistribute copies of it");
         msg::req("    under the terms of the GNU General Public License.");
         msg::req("    There is NO WARRANTY, to the extent permitted by law.");

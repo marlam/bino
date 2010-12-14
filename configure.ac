@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 dnl configure.ac
 dnl
-dnl This file is part of bino, a program to play stereoscopic videos.
+dnl This file is part of bino, a 3D video player.
 dnl
 dnl Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
 dnl
