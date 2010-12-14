@@ -15,7 +15,7 @@ The following is known to work with Mingw-cross-env 2.17 installed in /path/to/m
    $ make glew ffmpeg openal qt
 
 2. Clean your environment from variables that might confuse your cross-compile setup:
-   $ unset PKG_CONFIG_PATH CPPFLAGS LDFLAGS CFLAGS CXXFLAGS
+   $ unset PKG_CONFIG_PATH CC CPPFLAGS CFLAGS CXXFLAGS LDFLAGS
 
 3. Set path variables:
    $ MCE=/path/to/mce
