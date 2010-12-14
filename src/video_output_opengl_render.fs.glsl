@@ -46,6 +46,11 @@ float srgb_to_lum(vec3 srgb)
 }
 #endif
 
+float linear_to_nonlinear(float x)
+{
+    return (x <= 0.0031308 ? (x * 12.92) : (1.055 * pow(x, 1.0 / 2.4) - 0.055));
+}
+
 vec3 rgb_to_srgb(vec3 rgb)
 {
 #if $srgb_broken
@@ -53,10 +58,10 @@ vec3 rgb_to_srgb(vec3 rgb)
 #else
 # if 1
     // Correct variant, see GL_ARB_framebuffer_sRGB extension
-    return vec3(
-            (rgb.r <= 0.0031308 ? (rgb.r * 12.92) : (1.055 * pow(rgb.r, 1.0 / 2.4) - 0.055)),
-            (rgb.g <= 0.0031308 ? (rgb.g * 12.92) : (1.055 * pow(rgb.g, 1.0 / 2.4) - 0.055)),
-            (rgb.b <= 0.0031308 ? (rgb.b * 12.92) : (1.055 * pow(rgb.b, 1.0 / 2.4) - 0.055)));
+    float sr = linear_to_nonlinear(rgb.r);
+    float sg = linear_to_nonlinear(rgb.g);
+    float sb = linear_to_nonlinear(rgb.b);
+    return vec3(sr, sg, sb);
 # endif
 # if 0
     // Faster variant

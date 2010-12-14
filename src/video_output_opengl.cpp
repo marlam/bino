@@ -335,6 +335,21 @@ enum decoder::video_frame_format video_output_opengl::frame_format() const
     return _src_preferred_frame_format;
 }
 
+void video_output_opengl::clear()
+{
+    if (_mode == stereo)
+    {
+        glDrawBuffer(GL_BACK_LEFT);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDrawBuffer(GL_BACK_RIGHT);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+    else
+    {
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+}
+
 static void draw_quad(float x, float y, float w, float h)
 {
     glBegin(GL_QUADS);
@@ -349,9 +364,9 @@ static void draw_quad(float x, float y, float w, float h)
     glEnd();
 }
 
-void video_output_opengl::display(enum video_output::mode mode, float x, float y, float w, float h)
+void video_output_opengl::display(bool toggle_swap_eyes, float x, float y, float w, float h)
 {
-    glClear(GL_COLOR_BUFFER_BIT);
+    clear();
     if (!_have_valid_data[_active_tex_set])
     {
         return;
@@ -365,13 +380,17 @@ void video_output_opengl::display(enum video_output::mode mode, float x, float y
     {
         std::swap(left, right);
     }
-    int viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    if ((mode == even_odd_rows || mode == checkerboard) && (screen_pos_y() + viewport[1]) % 2 == 0)
+    if (toggle_swap_eyes)
     {
         std::swap(left, right);
     }
-    if ((mode == even_odd_columns || mode == checkerboard) && (screen_pos_x() + viewport[0]) % 2 == 1)
+    int viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    if ((_mode == even_odd_rows || _mode == checkerboard) && (screen_pos_y() + viewport[1]) % 2 == 0)
+    {
+        std::swap(left, right);
+    }
+    if ((_mode == even_odd_columns || _mode == checkerboard) && (screen_pos_x() + viewport[0]) % 2 == 1)
     {
         std::swap(left, right);
     }
@@ -468,14 +487,14 @@ void video_output_opengl::display(enum video_output::mode mode, float x, float y
     glUseProgram(_render_prg);
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_l"), left);
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_r"), right);
-    if (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard)
+    if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
     {
         glUniform1i(glGetUniformLocation(_render_prg, "mask_tex"), 2);
         glUniform1f(glGetUniformLocation(_render_prg, "step_x"), 1.0f / static_cast<float>(viewport[2]));
         glUniform1f(glGetUniformLocation(_render_prg, "step_y"), 1.0f / static_cast<float>(viewport[3]));
     }
 
-    if (mode == stereo)
+    if (_mode == stereo)
     {
         glActiveTexture(GL_TEXTURE0);
         glDrawBuffer(GL_BACK_LEFT);
@@ -485,7 +504,7 @@ void video_output_opengl::display(enum video_output::mode mode, float x, float y
         glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
         draw_quad(x, y, w, h);
     }
-    else if (mode == even_odd_rows || mode == even_odd_columns || mode == checkerboard)
+    else if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
     {
         float vpw = static_cast<float>(viewport[2]);
         float vph = static_cast<float>(viewport[3]);
@@ -513,10 +532,10 @@ void video_output_opengl::display(enum video_output::mode mode, float x, float y
         glVertex2f(x, y + h);
         glEnd();
     }
-    else if (mode == anaglyph_red_cyan_monochrome
-            || mode == anaglyph_red_cyan_full_color
-            || mode == anaglyph_red_cyan_half_color
-            || mode == anaglyph_red_cyan_dubois)
+    else if (_mode == anaglyph_red_cyan_monochrome
+            || _mode == anaglyph_red_cyan_full_color
+            || _mode == anaglyph_red_cyan_half_color
+            || _mode == anaglyph_red_cyan_dubois)
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
@@ -527,19 +546,19 @@ void video_output_opengl::display(enum video_output::mode mode, float x, float y
         }
         draw_quad(x, y, w, h);
     }
-    else if (mode == mono_left)
+    else if (_mode == mono_left)
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
         draw_quad(x, y, w, h);
     }
-    else if (mode == mono_right)
+    else if (_mode == mono_right)
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
         draw_quad(x, y, w, h);
     }
-    else if (mode == left_right || mode == left_right_half)
+    else if (_mode == left_right || _mode == left_right_half)
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
@@ -548,7 +567,7 @@ void video_output_opengl::display(enum video_output::mode mode, float x, float y
         glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
         draw_quad(0.0f, -1.0f, 1.0f, 2.0f);
     }
-    else if (mode == top_bottom || mode == top_bottom_half)
+    else if (_mode == top_bottom || _mode == top_bottom_half)
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
@@ -563,7 +582,7 @@ void video_output_opengl::reshape(int w, int h)
 {
     // Clear
     glViewport(0, 0, w, h);
-    glClear(GL_COLOR_BUFFER_BIT);
+    clear();
 
     // Compute viewport with the right aspect ratio
     float dst_w = w;

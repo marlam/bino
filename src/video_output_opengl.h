@@ -86,9 +86,12 @@ protected:
 
     // Swap the texture sets (one active, one for preparing the next video frame)
     void swap_tex_set();
-    // Display the current texture set
-    void display(enum video_output::mode mode, float x, float y, float w, float h);
-    void display() { display(_mode, -1.0f, -1.0f, 2.0f, 2.0f); }
+    // Clear the video area
+    void clear();
+    // Display the current texture set. The first version of this function is used
+    // by Equalizer; simple windows will use the second version.
+    void display(bool toggle_swap_eyes, float x, float y, float w, float h);
+    void display() { display(false, -1.0f, -1.0f, 2.0f, 2.0f); }
     // Call this when the GL window was resized:
     void reshape(int w, int h);
 

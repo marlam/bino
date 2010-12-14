@@ -41,6 +41,11 @@ public:
     decoder_ffmpeg() throw ();
     virtual ~decoder_ffmpeg();
 
+    virtual const char *file_name() const
+    {
+        return _filename.c_str();
+    }
+
     virtual void open(const std::string &filename);
 
     virtual int audio_streams() const throw ();
