@@ -32,68 +32,97 @@ Show the GUI even if input files are given on the command line.
 Select log level:
 \fIdebug\fP, \fIinfo\fP, \fIwarning\fP, \fIerror\fP, or \fIquiet\fP.
 .IP "\-i|\-\-input=\fITYPE\fP"
-Select input type:
+Select input type.
+.RS
+.IP \fImono\fP
+Single view
+.IP \fIseparate\fP
+Left/right view in separate streams
+.IP \fItop\-bottom\fP
+Left view top, right view bottom
+.IP \fItop\-bottom\-half\fP
+Left view top, right view bottom, half height
+.IP \fIleft\-right\fP
+Left view left, right view right
+.IP \fIleft\-right\-half\fP
+Left view left, right view right, half width
+.IP \fIeven\-odd\-rows\fP
+Left view even rows, right view odd rows
+.PP
+The default is to autodetect the input type from meta data stored in the file.
+If this fails, Bino tries to autodetect the input type based on the file name,
+by looking at the last part of the file name before the file name extension
+(.ext). If that fails, too, Bino guesses based on the resolution of the input.
 .br
-\fImono\fP (single view),
-.br
-\fIseparate\fP (left/right view separate),
-.br
-\fItop\-bottom\fP (left view top, right view bottom),
-.br
-\fItop\-bottom\-half\fP (left view top, right view bottom, half height),
-.br
-\fIleft\-right\fP (left view left, right view right),
-.br
-\fIleft\-right\-half\fP (left view left, right view right, half width),
-.br
-\fIeven\-odd\-rows\fP (left view even rows, right view odd rows).
-.br
-The default is to autodetect the type.
+The following file name forms are recognized:
+.IP *\-lr.ext
+left\-right
+.IP *\-lrq.ext
+left\-right\-half
+.IP *\-rl.ext
+left\-right swapped
+.IP *\-rlq.ext
+left\-right\-half swapped
+.IP *\-ab.ext
+top\-bottom
+.IP *\-abq.ext
+top\-bottom\-half
+.IP *\-ba.ext
+top\-bottom swapped
+.IP *\-baq.ext
+top\-bottom\-half swapped
+.IP *\-eo.ext
+even\-odd\-rows
+.IP *\-oe.ext
+even\-odd\-rows swapped
+.RE
+.IP "\-s|\-\-swap\-eyes"
+Swap left/right view
 .IP "\-o|\-\-output=\fITYPE\fP"
-Select output type: 
-.br
-\fImono\-left\fP (only left view),
-.br
-\fImono\-right\fP (only right view),
-.br
-\fItop\-bottom\fP (left view top, right view bottom),
-.br
-\fItop\-bottom\-half\fP (left view top, right view bottom, half height),
-.br
-\fIleft\-right\fP (left view left, right view right),
-.br
-\fIleft\-right\-half\fP (left view left, right view right, half width),
-.br
-\fIeven\-odd\-rows\fP (left view even rows, right view odd rows),
-.br
-\fIeven\-odd\-columns\fP (left view even columns, right view odd columns),
-.br
-\fIcheckerboard\fP (left and right view in checkerboard pattern),
-.br
-\fIanaglyph\fP (red/cyan anaglyph, default method, same as \fIanaglyph\-dubois\fP),
-.br
-\fIanaglyph\-monochrome\fP (red/cyan anaglyph, monochrome method),
-.br
-\fIanaglyph\-full\-color\fP (red/cyan anaglyph, full color method),
-.br
-\fIanaglyph\-half\-color\fP (red/cyan anaglyph, half color method),
-.br
-\fIanaglyph\-dubois\fP (red/cyan anaglyph, high\-quality Dubois method),
-.br
-\fIstereo\fP (OpenGL quad\-buffer stereo),
-.br
-\fIequalizer\fP (multi-display OpenGL via Equalizer with a 2D canvas setup),
-.br
-\fIequalizer\-3d\fP (multi-display OpenGL via Equalizer with a 3D screen setup).
-.br
+Select output type.
+.RS
+.IP \fImono\-left\fP
+Left view only
+.IP \fImono\-right\fP
+Right view only
+.IP \fItop\-bottom\fP
+Left view top, right view bottom
+.IP \fItop\-bottom\-half\fP
+Left view top, right view bottom, half height
+.IP \fIleft\-right\fP
+Left view left, right view right
+.IP \fIleft\-right\-half\fP
+Left view left, right view right, half width
+.IP \fIeven\-odd\-rows\fP
+Left view even rows, right view odd rows
+.IP \fIeven\-odd\-columns\fP
+Left view even columns, right view odd columns
+.IP \fIcheckerboard\fP
+Left and right view in checkerboard pattern
+.IP \fIanaglyph\fP
+Red/cyan anaglyph, default method, same as \fIanaglyph\-dubois\fP
+.IP \fIanaglyph\-monochrome\fP
+Red/cyan anaglyph, monochrome method
+.IP \fIanaglyph\-full\-color\fP
+Red/cyan anaglyph, full color method
+.IP \fIanaglyph\-half\-color\fP
+Red/cyan anaglyph, half color method
+.IP \fIanaglyph\-dubois\fP
+Red/cyan anaglyph, high\-quality Dubois method
+.IP \fIstereo\fP
+OpenGL quad\-buffer stereo
+.IP \fIequalizer\fP
+Multi-display OpenGL via Equalizer with a 2D canvas setup
+.IP \fIequalizer\-3d\fP
+Multi-display OpenGL via Equalizer with a 3D screen setup
+.PP
 For stereo input, the default is \fIstereo\fP if the display supports it,
 otherwise \fIanaglyph\fP. The default for mono input is \fImono\-left\fP.
+.RE
 .IP "\-f|\-\-fullscreen"
 Fullscreen
 .IP "\-c|\-\-center"
 Center window on screen
-.IP "\-s|\-\-swap\-eyes"
-Swap left/right view
 .IP "\-b|\-\-benchmark"
 Benchmark mode: no audio, no time synchronization, output of frames-per-second
 measurements.
