@@ -266,6 +266,10 @@ int main(int argc, char *argv[])
         equalizer_flat_screen = false;
         init_data.video_mode = video_output::mono_left;
     }
+    else if (video_output_mode.value() == "anaglyph")
+    {
+        init_data.video_mode = video_output::anaglyph_red_cyan_dubois;
+    }
     else if (video_output_mode.value() == "")
     {
         init_data.video_mode = video_output::automatic;
