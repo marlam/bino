@@ -300,13 +300,13 @@ void input::open(std::vector<decoder *> decoders,
         }
         else if (name.length() >= 4
                 && (name.substr(name.length() - 4, 4) == "-tbh"
-                    || name.substr(name.length() - 3, 3) == "-abq"))
+                    || name.substr(name.length() - 4, 4) == "-abq"))
         {
             _mode = top_bottom_half;
         }
         else if (name.length() >= 4
                 && (name.substr(name.length() - 4, 4) == "-bth"
-                    || name.substr(name.length() - 3, 3) == "-baq"))
+                    || name.substr(name.length() - 4, 4) == "-baq"))
         {
             _mode = top_bottom_half;
             _swap_eyes = true;
