@@ -281,20 +281,24 @@ void input::open(std::vector<decoder *> decoders,
             _mode = left_right_half;
             _swap_eyes = true;
         }
-        else if (name.length() >= 3 && name.substr(name.length() - 3, 3) == "-ab")
+        else if (name.length() >= 3
+                && (name.substr(name.length() - 3, 3) == "-tb" || name.substr(name.length() - 3, 3) == "-ab"))
         {
             _mode = top_bottom;
         }
-        else if (name.length() >= 3 && name.substr(name.length() - 3, 3) == "-ba")
+        else if (name.length() >= 3
+                && (name.substr(name.length() - 3, 3) == "-bt" || name.substr(name.length() - 3, 3) == "-ba"))
         {
             _mode = top_bottom;
             _swap_eyes = true;
         }
-        else if (name.length() >= 4 && name.substr(name.length() - 4, 4) == "-abq")
+        else if (name.length() >= 4
+                && (name.substr(name.length() - 4, 4) == "-tbq" || name.substr(name.length() - 3, 3) == "-abq"))
         {
             _mode = top_bottom_half;
         }
-        else if (name.length() >= 4 && name.substr(name.length() - 4, 4) == "-baq")
+        else if (name.length() >= 4
+                && (name.substr(name.length() - 4, 4) == "-btq" || name.substr(name.length() - 3, 3) == "-baq"))
         {
             _mode = top_bottom_half;
             _swap_eyes = true;
