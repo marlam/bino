@@ -25,7 +25,6 @@
 #include <cmath>
 
 #include <eq/eq.h>
-#include <eq/client/segment.h>  // FIXME: Remove this when switching to a newer Equalizer version
 
 #include "debug.h"
 #include "msg.h"
@@ -36,17 +35,17 @@
 
 namespace eqs11n
 {
-static void save(std::ostream &os, const eq::base::uint128_t &x)
-{
-    s11n::save( os, x.high( ));
-    s11n::save( os, x.low( ));
-}
+    static void save(std::ostream &os, const eq::base::uint128_t &x)
+    {
+        s11n::save(os, x.high());
+        s11n::save(os, x.low());
+    }
 
-static void load(std::istream &is, eq::base::uint128_t &x)
-{
-    s11n::load( is, x.high( ));
-    s11n::load( is, x.low( ));
-}
+    static void load(std::istream &is, eq::base::uint128_t &x)
+    {
+        s11n::load(is, x.high());
+        s11n::load(is, x.low());
+    }
 }
 
 /*
@@ -357,6 +356,7 @@ protected:
 };
 
 /** Defines errors produced by player. */
+
 enum Error
 {
     ERROR_MAP_INITDATA_FAILED = eq::ERROR_CUSTOM,
@@ -371,7 +371,8 @@ struct ErrorData
     const std::string text;
 };
 
-ErrorData _errors[] = {
+ErrorData _errors[] =
+{
     { ERROR_MAP_FRAMEDATA_FAILED, "Init data mapping failed" },
     { ERROR_MAP_INITDATA_FAILED, "Frame data mapping failed" },
     { ERROR_PLAYER_INIT_FAILED, "Video player initialization failed" },
@@ -379,18 +380,22 @@ ErrorData _errors[] = {
     { 0, "" } // last!
 };
 
-static void initErrors()
+static void init_errors()
 {
     eq::base::ErrorRegistry& registry = eq::base::Global::getErrorRegistry();
-    for( size_t i=0; _errors[i].code != 0; ++i )
-        registry.setString( _errors[i].code, _errors[i].text );
+    for (size_t i = 0; _errors[i].code != 0; i++)
+    {
+        registry.setString(_errors[i].code, _errors[i].text);
+    }
 }
 
-static void exitErrors()
+static void exit_errors()
 {
     eq::base::ErrorRegistry& registry = eq::base::Global::getErrorRegistry();
-    for( size_t i=0; _errors[i].code != 0; ++i )
-        registry.eraseString( _errors[i].code );
+    for (size_t i = 0; _errors[i].code != 0; i++)
+    {
+        registry.eraseString(_errors[i].code);
+    }
 }
 
 /*
@@ -708,7 +713,7 @@ protected:
         eq_config *config = static_cast<eq_config *>(getConfig());
         if (!config->mapObject(&init_data, initID))
         {
-            setError( ERROR_MAP_INITDATA_FAILED );
+            setError(ERROR_MAP_INITDATA_FAILED);
             return false;
         }
         // Is this the application node?
@@ -719,7 +724,7 @@ protected:
         // Map our FrameData instance to the master instance
         if (!config->mapObject(&frame_data, init_data.frame_data_id))
         {
-            setError( ERROR_MAP_FRAMEDATA_FAILED );
+            setError(ERROR_MAP_FRAMEDATA_FAILED);
             return false;
         }
 
@@ -730,7 +735,7 @@ protected:
         {
             if (!_player.eq_init(init_data.init_data, &src_width, &src_height, &src_aspect_ratio, &src_preferred_frame_format))
             {
-                setError( ERROR_PLAYER_INIT_FAILED );
+                setError(ERROR_PLAYER_INIT_FAILED);
                 return false;
             }
         }
@@ -880,7 +885,7 @@ protected:
                     "GL_VERSION_2_1 GL_EXT_framebuffer_object"))
         {
             msg::err("This OpenGL implementation does not support OpenGL 2.1 and framebuffer objects");
-            setError( ERROR_OPENGL_2_1_NEEDED );
+            setError(ERROR_OPENGL_2_1_NEEDED);
             return false;
         }
 
@@ -986,7 +991,7 @@ protected:
     }
 
 #if 0
-    void frameViewFinish( const eq::uint128_t& frameID )
+    void frameViewFinish(const eq::uint128_t& frameID)
     {
         //const FrameData& frameData = _getFrameData();
 
@@ -1038,7 +1043,7 @@ player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen)
     : player(player::slave), _flat_screen(flat_screen)
 {
     /* Initialize Equalizer */
-    initErrors();
+    init_errors();
     _node_factory = static_cast<void *>(new eq_node_factory);
     if (!eq::init(*argc, argv, static_cast<eq::NodeFactory *>(_node_factory)))
     {
@@ -1079,7 +1084,7 @@ void player_equalizer::run()
     config->exit();
     eq::releaseConfig(config);
     eq::exit();
-    exitErrors();
+    exit_errors();
 }
 
 void player_equalizer::close()
