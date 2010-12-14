@@ -1,5 +1,5 @@
 /*
- * This file is part of bino, a program to play stereoscopic videos.
+ * This file is part of bino, a 3D video player.
  *
  * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
  *
@@ -889,7 +889,7 @@ void main_window::help_about()
 {
     QString blurb = tr(
             "<p>%1 version %2</p>"
-            "<p>Copyright (C) 2010 Martin Lambers and others.<br>"
+            "<p>Copyright (C) 2010 the Bino developers.<br>"
             "This is free software. You may redistribute copies of it<br>"
             "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
             "GNU General Public License</a>.<br>"

@@ -1,5 +1,5 @@
 /*
- * This file is part of bino, a program to play stereoscopic videos.
+ * This file is part of bino, a 3D video player.
  *
  * Copyright (C) 2009, 2010
  * Martin Lambers <marlam@marlam.de>
