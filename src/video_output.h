@@ -89,16 +89,13 @@ public:
 
     /* Initialize */
     virtual void open(
-            enum decoder::video_frame_format preferred_format,
+            enum decoder::video_frame_format format, bool mono,
             int src_width, int src_height, float src_aspect_ratio,
             int mode, const video_output_state &state, unsigned int flags,
             int win_width, int win_height) = 0;
 
     /* Get the video mode */
     virtual enum mode mode() const = 0;
-
-    /* Get the required video frame format. This can differ from the preferred format! */
-    virtual enum decoder::video_frame_format frame_format() const = 0;
 
     /* Get current state */
     virtual const video_output_state &state() const = 0;

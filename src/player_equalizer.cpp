@@ -65,7 +65,6 @@ class player_eq_node : public player
 {
 private:
     bool _is_master;
-    enum decoder::video_frame_format _fmt;
 
 public:
     player_eq_node() : player(player::slave), _is_master(false)
@@ -80,7 +79,7 @@ public:
 
     bool eq_init(const player_init_data &init_data,
             int *src_width, int *src_height, float *src_aspect_ratio,
-            enum decoder::video_frame_format *src_preferred_frame_format)
+            enum decoder::video_frame_format *src_frame_format, bool *src_is_mono)
     {
         try
         {
@@ -88,8 +87,11 @@ public:
             reset_playstate();
             create_decoders(init_data.filenames);
             create_input(init_data.input_mode);
-            get_input_info(src_width, src_height, src_aspect_ratio, src_preferred_frame_format);
-            _fmt = *src_preferred_frame_format;
+            *src_width = get_input()->video_width();
+            *src_height = get_input()->video_height();
+            *src_aspect_ratio = get_input()->video_aspect_ratio();
+            *src_frame_format = get_input()->video_frame_format();
+            *src_is_mono = get_input()->video_is_mono();
             if (_is_master)
             {
                 create_audio_output();
@@ -134,7 +136,7 @@ public:
 
     void eq_get_frame()
     {
-        get_video_frame(_fmt);
+        get_video_frame(get_input()->video_frame_format());
     }
 
     void eq_release_frame()
@@ -162,10 +164,10 @@ public:
     }
 
     void eq_initialize(int src_width, int src_height, float src_aspect_ratio,
-            enum decoder::video_frame_format src_preferred_frame_format)
+            enum decoder::video_frame_format src_frame_format, bool src_is_mono)
     {
         set_mode(mono_left);    // to display the right view, we can toggle the swap_eyes flag
-        set_source_info(src_width, src_height, src_aspect_ratio, src_preferred_frame_format);
+        set_source_info(src_width, src_height, src_aspect_ratio, src_frame_format, src_is_mono);
         initialize();
     }
 
@@ -189,7 +191,8 @@ public:
     virtual int screen_pos_y() { return 0; }
     virtual void receive_notification(const notification &) {}
     virtual bool supports_stereo() { return false; }
-    virtual void open(enum decoder::video_frame_format, int, int, float, int, const video_output_state&, unsigned int, int, int) {}
+    virtual void open(enum decoder::video_frame_format, bool, int, int, float, int,
+            const video_output_state&, unsigned int, int, int) {}
     virtual void activate() {}
     virtual void process_events() {}
     virtual void close() {}
@@ -359,14 +362,15 @@ public:
     // Source video properties:
     int src_width, src_height;
     float src_aspect_ratio;
-    enum decoder::video_frame_format src_preferred_frame_format;
+    enum decoder::video_frame_format src_frame_format;
+    bool src_is_mono;
 
 public:
     eq_config(eq::ServerPtr parent)
         : eq::Config(parent), _is_master_config(false), _eq_init_data(), _eq_frame_data(),
         _player(), _controller(false),
         src_width(-1), src_height(-1), src_aspect_ratio(0.0f),
-        src_preferred_frame_format(decoder::frame_format_yuv420p)
+        src_frame_format(decoder::frame_format_yuv420p), src_is_mono(true)
     {
     }
 
@@ -387,7 +391,8 @@ public:
         _eq_frame_data.video_state = _eq_init_data.init_data.video_state;
         // Initialize master player
         _player.eq_make_master();
-        if (!_player.eq_init(init_data, &src_width, &src_height, &src_aspect_ratio, &src_preferred_frame_format))
+        if (!_player.eq_init(init_data, &src_width, &src_height, &src_aspect_ratio,
+                    &src_frame_format, &src_is_mono))
         {
             return false;
         }
@@ -636,13 +641,14 @@ public:
     eq_frame_data frame_data;
     int src_width, src_height;
     float src_aspect_ratio;
-    enum decoder::video_frame_format src_preferred_frame_format;
+    enum decoder::video_frame_format src_frame_format;
+    bool src_is_mono;
 
     eq_node(eq::Config *parent)
         : eq::Node(parent), _is_app_node(false),
         _player(), init_data(), frame_data(),
         src_width(-1), src_height(-1), src_aspect_ratio(-1.0f),
-        src_preferred_frame_format(decoder::frame_format_yuv420p)
+        src_frame_format(decoder::frame_format_yuv420p), src_is_mono(true)
     {
     }
 
@@ -675,7 +681,8 @@ protected:
         // Create decoders and input
         if (!_is_app_node)
         {
-            if (!_player.eq_init(init_data.init_data, &src_width, &src_height, &src_aspect_ratio, &src_preferred_frame_format))
+            if (!_player.eq_init(init_data.init_data, &src_width, &src_height, &src_aspect_ratio,
+                        &src_frame_format, &src_is_mono))
             {
                 return false;
             }
@@ -685,7 +692,8 @@ protected:
             src_width = config->src_width;
             src_height = config->src_height;
             src_aspect_ratio = config->src_aspect_ratio;
-            src_preferred_frame_format = config->src_preferred_frame_format;
+            src_frame_format = config->src_frame_format;
+            src_is_mono = config->src_is_mono;
         }
         msg::dbg(HERE);
         return true;
@@ -764,13 +772,8 @@ protected:
     }
 
 public:
-    void prep_frame(video_output *vo, enum decoder::video_frame_format fmt)
+    void prep_frame(video_output *vo)
     {
-        if (fmt != src_preferred_frame_format)
-        {
-            msg::err("cannot provide video in requested frame format");
-            abort();
-        }
         if (_is_app_node)
         {
             eq_config *config = static_cast<eq_config *>(getConfig());
@@ -834,7 +837,7 @@ protected:
 
         eq_node *node = static_cast<eq_node *>(getNode());
         _video_output.eq_initialize(node->src_width, node->src_height,
-                node->src_aspect_ratio, node->src_preferred_frame_format);
+                node->src_aspect_ratio, node->src_frame_format, node->src_is_mono);
 
         msg::dbg(HERE);
         return true;
@@ -857,7 +860,7 @@ protected:
         if (node->frame_data.prep_frame)
         {
             makeCurrent();      // XXX Is this necessary?
-            node->prep_frame(&_video_output, _video_output.frame_format());
+            node->prep_frame(&_video_output);
         }
         if (node->frame_data.display_frame)
         {

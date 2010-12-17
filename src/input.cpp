@@ -181,10 +181,10 @@ void input::open(std::vector<decoder *> decoders,
         {
             throw exc("video streams have different frame rates");
         }
-        if (decoders.at(video1_decoder)->video_preferred_frame_format(video1_stream)
-                != decoders.at(video0_decoder)->video_preferred_frame_format(video0_stream))
+        if (decoders.at(video1_decoder)->video_frame_format(video1_stream)
+                != decoders.at(video0_decoder)->video_frame_format(video0_stream))
         {
-            throw exc("video streams have different preferred frame formats");
+            throw exc("video streams have different frame formats");
         }
     }
     _mode = mode;
@@ -388,7 +388,7 @@ void input::open(std::vector<decoder *> decoders,
     }
     _video_frame_rate_num = _decoders.at(_video_decoders[0])->video_frame_rate_numerator(_video_streams[0]);
     _video_frame_rate_den = _decoders.at(_video_decoders[0])->video_frame_rate_denominator(_video_streams[0]);
-    _video_preferred_frame_format = _decoders.at(_video_decoders[0])->video_preferred_frame_format(_video_streams[0]);
+    _video_frame_format = _decoders.at(_video_decoders[0])->video_frame_format(_video_streams[0]);
 
     if (audio_stream != -1)
     {
@@ -431,7 +431,7 @@ void input::open(std::vector<decoder *> decoders,
     msg::inf("input:");
     msg::inf("    video: %dx%d, format %s,",
             video_width(), video_height(),
-            decoder::video_frame_format_name(video_preferred_frame_format()).c_str());
+            decoder::video_frame_format_name(video_frame_format()).c_str());
     msg::inf("        aspect ratio %g:1, %g fps, %g seconds,",
             video_aspect_ratio(),
             static_cast<float>(video_frame_rate_numerator()) / static_cast<float>(video_frame_rate_denominator()),

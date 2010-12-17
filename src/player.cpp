@@ -154,14 +154,6 @@ void player::create_input(enum input::mode input_mode)
             input_mode);
 }
 
-void player::get_input_info(int *w, int *h, float *ar, enum decoder::video_frame_format *fmt)
-{
-    *w = _input->video_width();
-    *h = _input->video_height();
-    *ar = _input->video_aspect_ratio();
-    *fmt = _input->video_preferred_frame_format();
-}
-
 void player::create_audio_output()
 {
     if (_input->has_audio() && !_benchmark)
@@ -194,7 +186,7 @@ void player::open_video_output(enum video_output::mode video_mode, unsigned int 
         }
     }
     _video_output->open(
-            _input->video_preferred_frame_format(),
+            _input->video_frame_format(), _input->video_is_mono(),
             _input->video_width(), _input->video_height(), _input->video_aspect_ratio(),
             video_mode, _video_state, video_flags, -1, -1);
     _video_output->process_events();
@@ -526,7 +518,7 @@ void player::run()
         }
         if (prep_frame)
         {
-            get_video_frame(_video_output->frame_format());
+            get_video_frame(_input->video_frame_format());
             prepare_video_frame(_video_output);
             release_video_frame();
         }

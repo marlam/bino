@@ -84,7 +84,7 @@ public:
     virtual int video_frame_rate_numerator(int video_stream) const throw () = 0;        // frames per second
     virtual int video_frame_rate_denominator(int video_stream) const throw () = 0;      // frames per second
     virtual int64_t video_duration(int video_stream) const throw () = 0;                // microseconds
-    virtual enum video_frame_format video_preferred_frame_format(int video_stream) const throw () = 0;
+    virtual enum video_frame_format video_frame_format(int video_stream) const throw () = 0;
 
     /* Get information about audio streams. */
     virtual int audio_rate(int audio_stream) const throw () = 0;                // samples per second

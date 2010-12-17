@@ -448,7 +448,7 @@ int64_t decoder_ffmpeg::video_duration(int index) const throw ()
     return duration * 1000000 * time_base.num / time_base.den;
 }
 
-enum decoder::video_frame_format decoder_ffmpeg::video_preferred_frame_format(int index) const throw ()
+enum decoder::video_frame_format decoder_ffmpeg::video_frame_format(int index) const throw ()
 {
     return (_stuff->video_codec_ctxs.at(index)->pix_fmt == PIX_FMT_YUV420P
             ? decoder::frame_format_yuv420p
@@ -576,7 +576,7 @@ void decoder_ffmpeg::release_video_frame(int video_stream)
     av_free_packet(&(_stuff->packets[video_stream]));
 }
 
-void decoder_ffmpeg::get_video_frame(int video_stream, video_frame_format fmt,
+void decoder_ffmpeg::get_video_frame(int video_stream, enum video_frame_format fmt,
             uint8_t *data[3], size_t line_size[3])
 {
     data[0] = NULL;
@@ -587,7 +587,7 @@ void decoder_ffmpeg::get_video_frame(int video_stream, video_frame_format fmt,
     line_size[2] = 0;
     if (fmt == decoder::frame_format_yuv420p)
     {
-        if (video_preferred_frame_format(video_stream) == decoder::frame_format_yuv420p)
+        if (video_frame_format(video_stream) == decoder::frame_format_yuv420p)
         {
             data[0] = _stuff->frames[video_stream]->data[0];
             data[1] = _stuff->frames[video_stream]->data[1];

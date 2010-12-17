@@ -289,7 +289,7 @@ bool video_output_opengl_qt::supports_stereo()
 }
 
 void video_output_opengl_qt::open(
-        enum decoder::video_frame_format preferred_frame_format,
+        enum decoder::video_frame_format src_format, bool src_mono,
         int src_width, int src_height, float src_aspect_ratio,
         int mode, const video_output_state &state, unsigned int flags,
         int win_width, int win_height)
@@ -300,7 +300,7 @@ void video_output_opengl_qt::open(
     }
 
     set_mode(static_cast<enum video_output::mode>(mode));
-    set_source_info(src_width, src_height, src_aspect_ratio, preferred_frame_format);
+    set_source_info(src_width, src_height, src_aspect_ratio, src_format, src_mono);
 
     int screen_width = QApplication::desktop()->screenGeometry().width();
     int screen_height = QApplication::desktop()->screenGeometry().height();

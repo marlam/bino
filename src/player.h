@@ -103,7 +103,6 @@ protected:
     void reset_playstate();
     void create_decoders(const std::vector<std::string> &filenames);
     void create_input(enum input::mode input_mode);
-    void get_input_info(int *w, int *h, float *ar, enum decoder::video_frame_format *fmt);
     void create_audio_output();
     void create_video_output();
     void set_video_output(video_output *vo)
