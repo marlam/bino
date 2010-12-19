@@ -102,7 +102,7 @@ bool player_qt_internal::playloop_step()
     }
     if (prep_frame)
     {
-        get_video_frame(get_input()->video_frame_format());
+        get_video_frame();
         prepare_video_frame(get_video_output());
         release_video_frame();
     }

@@ -42,6 +42,19 @@ std::string decoder::video_frame_format_name(enum video_frame_format f)
     }
 }
 
+int decoder::video_frame_format_planes(enum video_frame_format f)
+{
+    switch (f)
+    {
+    case frame_format_yuv420p:
+        return 3;
+        break;
+    case frame_format_bgra32:
+        return 1;
+        break;
+    }
+}
+
 std::string decoder::audio_sample_format_name(enum audio_sample_format f)
 {
     switch (f)

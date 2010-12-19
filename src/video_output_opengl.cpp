@@ -32,6 +32,7 @@
 #include "msg.h"
 #include "str.h"
 #include "timer.h"
+#include "debug.h"
 
 #include "video_output_opengl.h"
 #include "video_output_opengl_color.fs.glsl.h"
@@ -622,89 +623,96 @@ void video_output_opengl::reshape(int w, int h)
     }
 }
 
-static void upload_texture(
-        GLuint tex, GLuint pbo,
-        GLsizei w, GLsizei h, int bytes_per_pixel, int line_size,
-        GLenum fmt, GLenum type, const GLvoid *data)
+/* Step 1: Input of video data:
+ * prepare_start() and prepare_finish() for each data plane and each view
+ * (for mono: only view 0). */
+
+static int next_multiple_of_4(int x)
 {
-    uintptr_t p = reinterpret_cast<uintptr_t>(data);
-    int row_alignment = 1;
-    if (p % 8 == 0 && line_size % 8 == 0)
-    {
-        row_alignment = 8;
-    }
-    else if (p % 4 == 0 && line_size % 4 == 0)
-    {
-        row_alignment = 4;
-    }
-    else if (p % 2 == 0 && line_size % 2 == 0)
-    {
-        row_alignment = 2;
-    }
-
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, line_size / bytes_per_pixel);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, row_alignment);
-    glBindTexture(GL_TEXTURE_2D, tex);
-
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, h * line_size, NULL, GL_STREAM_DRAW);
-    void *pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-    std::memcpy(pboptr, data, h * line_size);
-    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, fmt, type, NULL);
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+    return (x / 4 + (x % 4 == 0 ? 0 : 1)) * 4;
 }
 
-void video_output_opengl::prepare(
-        uint8_t *l_data[3], size_t l_line_size[3],
-        uint8_t *r_data[3], size_t r_line_size[3])
+void *video_output_opengl::prepare_start(int /* view */, int plane)
 {
-    int tex_set = (_active_tex_set == 0 ? 1 : 0);
-    if (!l_data[0])
-    {
-        _have_valid_data[tex_set] = false;
-        return;
-    }
-
-    /* Step 1: input of video data */
-
-    glActiveTexture(GL_TEXTURE0);
+    int w, h;
+    int bytes_per_pixel;
     if (_src_format == decoder::frame_format_yuv420p)
     {
-        upload_texture(_yuv420p_y_tex[tex_set][0], _pbo,
-                _src_width, _src_height, 1, l_line_size[0],
-                GL_LUMINANCE, GL_UNSIGNED_BYTE, l_data[0]);
-        upload_texture(_yuv420p_u_tex[tex_set][0], _pbo,
-                _src_width / 2, _src_height / 2, 1, l_line_size[1],
-                GL_LUMINANCE, GL_UNSIGNED_BYTE, l_data[1]);
-        upload_texture(_yuv420p_v_tex[tex_set][0], _pbo,
-                _src_width / 2, _src_height / 2, 1, l_line_size[2],
-                GL_LUMINANCE, GL_UNSIGNED_BYTE, l_data[2]);
-        if (!_src_is_mono)
+        if (plane == 0)
         {
-            upload_texture(_yuv420p_y_tex[tex_set][1], _pbo,
-                    _src_width, _src_height, 1, r_line_size[0],
-                    GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[0]);
-            upload_texture(_yuv420p_u_tex[tex_set][1], _pbo,
-                    _src_width / 2, _src_height / 2, 1, r_line_size[1],
-                    GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[1]);
-            upload_texture(_yuv420p_v_tex[tex_set][1], _pbo,
-                    _src_width / 2, _src_height / 2, 1, r_line_size[2],
-                    GL_LUMINANCE, GL_UNSIGNED_BYTE, r_data[2]);
+            w = next_multiple_of_4(_src_width);
+            h = next_multiple_of_4(_src_height);
         }
+        else
+        {
+            w = next_multiple_of_4(_src_width / 2);
+            h = next_multiple_of_4(_src_height / 2);
+        }
+        bytes_per_pixel = 1;
     }
-    else if (_src_format == decoder::frame_format_bgra32)
+    else
     {
-        upload_texture(_bgra32_tex[tex_set][0], _pbo,
-                _src_width, _src_height, 4, l_line_size[0],
-                GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, l_data[0]);
-        if (!_src_is_mono)
-        {
-            upload_texture(_bgra32_tex[tex_set][1], _pbo,
-                    _src_width, _src_height, 4, r_line_size[0],
-                    GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, r_data[0]);
-        }
+        w = _src_width;
+        h = _src_height;
+        bytes_per_pixel = 4;
     }
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, _pbo);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, w * h * bytes_per_pixel, NULL, GL_STREAM_DRAW);
+    void *pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+    if (!pboptr)
+    {
+        debug::oom_abort();
+    }
+    if (reinterpret_cast<uintptr_t>(pboptr) % 4 != 0)
+    {
+        // We can assume that the buffer is always at least aligned at a 4-byte boundary.
+        // This is just a sanity check; this error should never be triggered.
+        msg::err("pixel buffer alignment is less than 4!");
+        debug::crash();
+    }
+    return pboptr;
+}
+
+void video_output_opengl::prepare_finish(int view, int plane)
+{
+    int tex_set = (_active_tex_set == 0 ? 1 : 0);
+    int w, h;
+    GLenum format;
+    GLenum type;
+    GLuint tex;
+    if (_src_format == decoder::frame_format_yuv420p)
+    {
+        if (plane == 0)
+        {
+            w = _src_width;
+            h = _src_height;
+            tex = _yuv420p_y_tex[tex_set][view];
+        }
+        else
+        {
+            w = _src_width / 2;
+            h = _src_height / 2;
+            tex = (plane == 1 ? _yuv420p_u_tex[tex_set][view] : _yuv420p_v_tex[tex_set][view]);
+        }
+        format = GL_LUMINANCE;
+        type = GL_UNSIGNED_BYTE;
+    }
+    else
+    {
+        w = _src_width;
+        h = _src_height;
+        format = GL_BGRA;
+        type = GL_UNSIGNED_INT_8_8_8_8_REV;
+        tex = _bgra32_tex[tex_set][view];
+    }
+
+    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, w);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, format, type, NULL);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
     _have_valid_data[tex_set] = true;
 }
 

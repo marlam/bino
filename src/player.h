@@ -77,8 +77,6 @@ private:
     bool _pause_request;
     int64_t _seek_request;
 
-    uint8_t *_l_data[3], *_r_data[3];
-    size_t _l_line_size[3], _r_line_size[3];
     void *_audio_data;
     size_t _required_audio_data_size;
     int64_t _pause_start;
@@ -114,7 +112,7 @@ protected:
     void make_master();
     void run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
     void seek(int64_t seek_to);
-    void get_video_frame(enum decoder::video_frame_format fmt);
+    void get_video_frame();
     void prepare_video_frame(video_output *vo);
     void release_video_frame();
     input *get_input() { return _input; }

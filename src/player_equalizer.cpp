@@ -136,7 +136,7 @@ public:
 
     void eq_get_frame()
     {
-        get_video_frame(get_input()->video_frame_format());
+        get_video_frame();
     }
 
     void eq_release_frame()

@@ -42,6 +42,7 @@ public:
     };
 
     static std::string video_frame_format_name(enum video_frame_format f);
+    static int video_frame_format_planes(enum video_frame_format f);
 
     /* The audio sample format */
 

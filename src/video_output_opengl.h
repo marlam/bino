@@ -149,9 +149,9 @@ public:
         return _state;
     }
 
-    virtual void prepare(
-            uint8_t *l_data[3], size_t l_line_size[3],
-            uint8_t *r_data[3], size_t r_line_size[3]);
+    virtual void *prepare_start(int view, int plane);
+    virtual void prepare_finish(int view, int plane);
+
     virtual void activate() = 0;
     virtual void process_events() = 0;
 

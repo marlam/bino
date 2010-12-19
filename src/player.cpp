@@ -434,14 +434,22 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
     }
 }
 
-void player::get_video_frame(enum decoder::video_frame_format fmt)
+void player::get_video_frame()
 {
-    _input->get_video_frame(fmt, _l_data, _l_line_size, _r_data, _r_line_size);
+    _input->prepare_video_frame();
 }
 
 void player::prepare_video_frame(video_output *vo)
 {
-    vo->prepare(_l_data, _l_line_size, _r_data, _r_line_size);
+    for (int i = 0; i < (_input->video_is_mono() ? 1 : 2); i++)
+    {
+        for (int j = 0; j < decoder::video_frame_format_planes(_input->video_frame_format()); j++)
+        {
+            void *buf = vo->prepare_start(i, j);
+            _input->get_video_frame(i, j, buf);
+            vo->prepare_finish(i, j);
+        }
+    }
 }
 
 void player::release_video_frame()
@@ -518,7 +526,7 @@ void player::run()
         }
         if (prep_frame)
         {
-            get_video_frame(_input->video_frame_format());
+            get_video_frame();
             prepare_video_frame(_video_output);
             release_video_frame();
         }

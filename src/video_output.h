@@ -100,10 +100,14 @@ public:
     /* Get current state */
     virtual const video_output_state &state() const = 0;
 
-    /* Prepare a left/right view pair for display */
-    virtual void prepare(
-            uint8_t *l_data[3], size_t l_line_size[3],
-            uint8_t *r_data[3], size_t r_line_size[3]) = 0;
+    /* Prepare a left/right view pair for display.
+     * The video data is organized in planes, depending on the frame format.
+     * First, call prepare_start() to get a buffer. Then copy the plane data
+     * to this buffer, with a 4-byte alignment of line lengths. Then, call
+     * prepare_finish() with the same parameters and this buffer. Repeat for
+     * all planes in both views. */
+    virtual void *prepare_start(int view, int plane) = 0;
+    virtual void prepare_finish(int view, int plane) = 0;
     /* Display the prepared left/right view pair */
     virtual void activate() = 0;
     /* Process window system events */
