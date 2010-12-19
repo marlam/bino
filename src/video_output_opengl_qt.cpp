@@ -371,6 +371,7 @@ void video_output_opengl_qt::open(
 
     _widget->show();
     _container_widget->show();
+    _container_widget->raise();
 }
 
 void video_output_opengl_qt::activate()

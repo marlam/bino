@@ -613,6 +613,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     help_menu->addAction(help_about_act);
 
     show();     // Must happen before opening initial files!
+    raise();
 
     // Player and timer
     _player = new player_qt_internal(_video_container_widget);
