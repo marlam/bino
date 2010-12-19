@@ -1,7 +1,9 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010
+ * Martin Lambers <marlam@marlam.de>
+ * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -500,6 +502,11 @@ bool decoder_ffmpeg::read()
     {
         if (packet.stream_index == _stuff->video_streams[i])
         {
+            if (av_dup_packet(&packet) < 0)
+            {
+                msg::dbg(_filename + ": cannot duplicate packet");
+                return false;
+            }
             _stuff->video_packet_queues[i].push_back(packet);
             msg::dbg(_filename + ": "
                     + str::from(_stuff->video_packet_queues[i].size())
@@ -511,6 +518,11 @@ bool decoder_ffmpeg::read()
     {
         if (packet.stream_index == _stuff->audio_streams[i])
         {
+            if (av_dup_packet(&packet) < 0)
+            {
+                msg::dbg(_filename + ": cannot duplicate packet");
+                return false;
+            }
             _stuff->audio_packet_queues[i].push_back(packet);
             msg::dbg(_filename + ": "
                     + str::from(_stuff->audio_packet_queues[i].size())
@@ -553,6 +565,7 @@ int64_t decoder_ffmpeg::read_video_frame(int video_stream)
         avcodec_decode_video2(_stuff->video_codec_ctxs[video_stream],
                 _stuff->frames[video_stream], &frame_finished,
                 &(_stuff->packets[video_stream]));
+        av_free_packet(&(_stuff->packets[video_stream]));
     }
     while (!frame_finished);
 
@@ -571,9 +584,12 @@ int64_t decoder_ffmpeg::read_video_frame(int video_stream)
     return timestamp;
 }
 
-void decoder_ffmpeg::release_video_frame(int video_stream)
+void decoder_ffmpeg::release_video_frame(int /* video_stream */)
 {
-    av_free_packet(&(_stuff->packets[video_stream]));
+    // TODO
+    // This used to free the packet, but this is now done directly after decoding
+    // in read_video_frame. Nevertheless, we keep this function for now, until it
+    // is clear that we will never need it.
 }
 
 void decoder_ffmpeg::get_video_frame(int video_stream, enum video_frame_format fmt,
