@@ -364,7 +364,7 @@ static void draw_quad(float x, float y, float w, float h)
     glEnd();
 }
 
-void video_output_opengl::display(bool toggle_swap_eyes, float x, float y, float w, float h)
+void video_output_opengl::display(bool toggle_swap_eyes, float x, float y, float w, float h, const int viewport[4])
 {
     clear();
     if (!_have_valid_data[_active_tex_set])
@@ -384,8 +384,6 @@ void video_output_opengl::display(bool toggle_swap_eyes, float x, float y, float
     {
         std::swap(left, right);
     }
-    int viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
     if ((_mode == even_odd_rows || _mode == checkerboard) && (screen_pos_y() + viewport[1]) % 2 == 0)
     {
         std::swap(left, right);
@@ -612,8 +610,11 @@ void video_output_opengl::reshape(int w, int h)
     int vp_x = (w - vp_w) / 2;
     int vp_y = (h - vp_h) / 2;
 
-    // Setup viewport and save new size
-    glViewport(vp_x, vp_y, vp_w, vp_h);
+    // Save new size
+    _viewport[0] = vp_x;
+    _viewport[1] = vp_y;
+    _viewport[2] = vp_w;
+    _viewport[3] = vp_h;
     if (!_state.fullscreen)
     {
         _win_width = w;

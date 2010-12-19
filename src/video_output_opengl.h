@@ -72,6 +72,8 @@ private:
     bool _initialized;
     // XXX: Hack: work around broken SRGB texture implementations
     bool _srgb_textures_are_broken;
+    // OpenGL Viewport for drawing the video frame
+    GLint _viewport[4];
 
 protected:
     /* In a sub-class that provides an OpenGL context, call the following
@@ -90,8 +92,8 @@ protected:
     void clear();
     // Display the current texture set. The first version of this function is used
     // by Equalizer; simple windows will use the second version.
-    void display(bool toggle_swap_eyes, float x, float y, float w, float h);
-    void display() { display(false, -1.0f, -1.0f, 2.0f, 2.0f); }
+    void display(bool toggle_swap_eyes, float x, float y, float w, float h, const int viewport[4]);
+    void display() { display(false, -1.0f, -1.0f, 2.0f, 2.0f, _viewport); }
     // Call this when the GL window was resized:
     void reshape(int w, int h);
 
