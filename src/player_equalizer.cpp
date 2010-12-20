@@ -232,7 +232,6 @@ public:
 
     virtual ~eq_init_data()
     {
-        frame_data_id = EQ_ID_INVALID;
     }
 
 protected:
@@ -503,7 +502,6 @@ public:
         // Deregister master instances
         deregisterObject(&_eq_init_data);
         deregisterObject(&_eq_frame_data);
-        _eq_init_data.frame_data_id = EQ_ID_INVALID;
         // Cleanup
         _player.close();
         msg::dbg(HERE);

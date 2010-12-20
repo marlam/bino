@@ -88,11 +88,7 @@ int main(int argc, char *argv[])
     video_output_modes.push_back("anaglyph-dubois");
     video_output_modes.push_back("stereo");
     video_output_modes.push_back("equalizer");
-<<<<<<< HEAD
     video_output_modes.push_back("equalizer-3d");
-=======
-    video_output_modes.push_back("equalizer3D");
->>>>>>> Add 3D output screen mode
     opt::val<std::string> video_output_mode("output", 'o', opt::optional, video_output_modes, "");
     options.push_back(&video_output_mode);
     opt::flag fullscreen("fullscreen", 'f', opt::optional);
@@ -172,13 +168,8 @@ int main(int argc, char *argv[])
                 "    anaglyph-half-color  Red/cyan anaglyph, half color method\n"
                 "    anaglyph-dubois      Red/cyan anaglyph, Dubois method\n"
                 "    stereo               OpenGL quad-buffered stereo\n"
-<<<<<<< HEAD
                 "    equalizer            Multi-display OpenGL via Equalizer (2D setup)\n"
                 "    equalizer-3d         Multi-display OpenGL via Equalizer (3D setup)\n"
-=======
-                "    equalizer            Multi-display OpenGL using Equalizer with a 2D canvas setup\n"
-                "    equalizer3D          Multi-display OpenGL using Equalizer with a 3D screen setup\n"
->>>>>>> Add 3D output screen mode
                 "  -f|--fullscreen      Fullscreen\n"
                 "  -c|--center          Center window on screen\n"
                 "  -s|--swap-eyes       Swap left/right view\n"
@@ -222,11 +213,7 @@ int main(int argc, char *argv[])
 #endif
 
     bool equalizer = false;
-<<<<<<< HEAD
     bool equalizer_flat_screen = true;
-=======
-    bool equalizerFlatScreen = true;
->>>>>>> Add 3D output screen mode
     player_init_data init_data;
     init_data.log_level = msg::level();
     if (log_level.value() == "")
@@ -273,7 +260,6 @@ int main(int argc, char *argv[])
         equalizer = true;
         init_data.video_mode = video_output::mono_left;
     }
-<<<<<<< HEAD
     else if (video_output_mode.value() == "equalizer-3d")
     {
         equalizer = true;
@@ -284,14 +270,6 @@ int main(int argc, char *argv[])
     {
         init_data.video_mode = video_output::anaglyph_red_cyan_dubois;
     }
-=======
-    else if (video_output_mode.value() == "equalizer3D")
-    {
-        equalizer = true;
-        equalizerFlatScreen = false;
-        init_data.video_mode = video_output::mono_left;
-    }
->>>>>>> Add 3D output screen mode
     else if (video_output_mode.value() == "")
     {
         init_data.video_mode = video_output::automatic;
@@ -325,11 +303,7 @@ int main(int argc, char *argv[])
         if (equalizer)
         {
 #if HAVE_LIBEQUALIZER
-<<<<<<< HEAD
             player = new class player_equalizer(&argc, argv, equalizer_flat_screen);
-=======
-            player = new class player_equalizer(&argc, argv, equalizerFlatScreen);
->>>>>>> Add 3D output screen mode
 #else
             throw exc("this version of Bino was compiled without support for Equalizer");
 #endif
