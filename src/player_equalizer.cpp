@@ -212,7 +212,7 @@ public:
  * eq_init_data
  */
 
-class eq_init_data : public eq::net::Object
+class eq_init_data : public co::Object
 {
 public:
     eq::uint128_t frame_data_id;
@@ -237,10 +237,10 @@ public:
 protected:
     virtual ChangeType getChangeType() const
     {
-        return eq::net::Object::STATIC;
+        return co::Object::STATIC;
     }
 
-    virtual void getInstanceData(eq::net::DataOStream &os)
+    virtual void getInstanceData(co::DataOStream &os)
     {
         std::ostringstream oss;
         eqs11n::save(oss, frame_data_id);
@@ -264,7 +264,7 @@ protected:
         os << oss.str();
     }
 
-    virtual void applyInstanceData(eq::net::DataIStream &is)
+    virtual void applyInstanceData(co::DataIStream &is)
     {
         int x;
         std::string s;
@@ -298,7 +298,7 @@ protected:
  * eq_frame_data
  */
 
-class eq_frame_data : public eq::net::Object
+class eq_frame_data : public co::Object
 {
 public:
     video_output_state video_state;
@@ -317,10 +317,10 @@ public:
 protected:
     virtual ChangeType getChangeType() const
     {
-        return eq::net::Object::INSTANCE;
+        return co::Object::INSTANCE;
     }
 
-    virtual void getInstanceData(eq::net::DataOStream &os)
+    virtual void getInstanceData(co::DataOStream &os)
     {
         std::ostringstream oss;
         s11n::save(oss, video_state.contrast);
@@ -336,7 +336,7 @@ protected:
         os << oss.str();
     }
 
-    virtual void applyInstanceData(eq::net::DataIStream &is)
+    virtual void applyInstanceData(co::DataIStream &is)
     {
         std::string s;
         is >> s;
