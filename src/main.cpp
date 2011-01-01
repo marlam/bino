@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010
+ * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
  * Stefan Eilemann <eile@eyescale.ch>
  *
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
     if (version.value())
     {
         msg::req("%s version %s", PACKAGE_NAME, VERSION);
-        msg::req("    Copyright (C) 2010 the Bino developers.");
+        msg::req("    Copyright (C) 2011 the Bino developers.");
         msg::req("    This is free software. You may redistribute copies of it");
         msg::req("    under the terms of the GNU General Public License.");
         msg::req("    There is NO WARRANTY, to the extent permitted by law.");

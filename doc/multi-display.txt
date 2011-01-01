@@ -1,3 +1,13 @@
+# Copyright (C) 2010-2011
+# Martin Lambers <marlam@marlam.de>
+# Stefan Eilemann <eile@eyescale.ch>
+#
+# Copying and distribution of this file and the referenced image files, with or
+# without modification, are permitted in any medium without royalty provided the
+# copyright notice and this notice are preserved. These files are offered as-is,
+# without any warranty.
+
+
 Bino supports multi-display output via the Equalizer framework.
 
 This is how it works:
