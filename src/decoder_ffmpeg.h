@@ -70,8 +70,7 @@ public:
     virtual int64_t audio_duration(int video_stream) const throw ();
 
     virtual int64_t read_video_frame(int video_stream);
-    virtual void get_video_frame(int video_stream, enum video_frame_format fmt,
-            uint8_t *data[3], size_t line_size[3]);
+    virtual void get_video_frame(int video_stream, uint8_t *data[3], size_t line_size[3]);
     virtual void release_video_frame(int video_stream);
 
     virtual int64_t read_audio_data(int audio_stream, void *buffer, size_t size);

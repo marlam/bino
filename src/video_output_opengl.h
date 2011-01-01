@@ -58,9 +58,11 @@ private:
     bool _have_valid_data[2];   // do we have valid data in the given texture set?
     // Step 1: input of video data
     GLuint _pbo;                // pixel-buffer object for texture uploading
-    GLuint _yuv420p_y_tex[2][2];// for yuv420p format: y component
-    GLuint _yuv420p_u_tex[2][2];// for yuv420p format: u component
-    GLuint _yuv420p_v_tex[2][2];// for yuv420p format: v component
+    GLuint _yuv_y_tex[2][2];    // for yuv formats: y component
+    GLuint _yuv_u_tex[2][2];    // for yuv formats: u component
+    GLuint _yuv_v_tex[2][2];    // for yuv formats: v component
+    int _yuv_chroma_width_divisor;      // for yuv formats: chroma subsampling
+    int _yuv_chroma_height_divisor;     // for yuv formats: chroma subsampling
     GLuint _bgra32_tex[2][2];   // for bgra32 format
     // Step 2: color-correction
     GLuint _color_prg;          // color space transformation, color adjustment

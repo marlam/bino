@@ -20,11 +20,17 @@
 
 #version 120
 
+// input_yuv_p
 // input_bgra32
-// input_yuv420p
 #define $input
 
-#if defined(input_yuv420p)
+// colorspace_yuv601
+// colorspace_yuv709
+// colorspace_yuvjpg
+// colorspace_rgb
+#define $colorspace
+
+#if defined(input_yuv_p)
 uniform sampler2D y_tex;
 uniform sampler2D u_tex;
 uniform sampler2D v_tex;
@@ -60,18 +66,23 @@ vec3 srgb_to_yuv(vec3 srgb)
 
 vec3 yuv_to_srgb(vec3 yuv)
 {
-    // According to ITU.BT-601
-    mat3 m = mat3(
-            1.0,     1.0,  1.0,
-            0.0,   -0.344, 1.773,
-            1.403, -0.714, 0.0);
-    return m * (yuv - vec3(0.0, 0.5, 0.5));
-# if 0
+#if defined(colorspace_yuvjpg)
+    // Convert the JPEG range to the MPEG range for each component
+    yuv = yuv * vec3(220.0 / 256.0, 225.0 / 256.0, 225.0 / 256.0) + vec3(16.0 / 255.0);
+#endif
+#if defined(colorspace_yuv709)
     // According to ITU.BT-709
     mat3 m = mat3(
             1.0,     1.0,     1.0,
             0.0,    -0.187,  -1.8556,
             1.5701, -0.4664,  0.0);
+    return m * (yuv - vec3(0.0, 0.5, 0.5));
+#else // 601, jpg, or RGB (which was converted to 601)
+    // According to ITU.BT-601
+    mat3 m = mat3(
+            1.0,     1.0,  1.0,
+            0.0,   -0.344, 1.773,
+            1.403, -0.714, 0.0);
     return m * (yuv - vec3(0.0, 0.5, 0.5));
 #endif
 }
@@ -94,7 +105,7 @@ vec3 get_yuv(vec2 tex_coord)
 {
 #if defined(input_bgra32)
     return srgb_to_yuv(texture2D(srgb_tex, tex_coord).xyz);
-#elif defined(input_yuv420p)
+#elif defined(input_yuv_p)
     return vec3(
             texture2D(y_tex, tex_coord).x,
             texture2D(u_tex, tex_coord).x,

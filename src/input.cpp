@@ -475,12 +475,10 @@ int64_t input::read_video_frame()
 
 void input::prepare_video_frame()
 {
-    _decoders.at(_video_decoders[0])->get_video_frame(_video_streams[0], video_frame_format(),
-            _video_data[0], _video_data_line_size[0]);
+    _decoders.at(_video_decoders[0])->get_video_frame(_video_streams[0], _video_data[0], _video_data_line_size[0]);
     if (_mode == separate)
     {
-        _decoders.at(_video_decoders[1])->get_video_frame(_video_streams[1], video_frame_format(),
-                _video_data[1], _video_data_line_size[1]);
+        _decoders.at(_video_decoders[1])->get_video_frame(_video_streams[1], _video_data[1], _video_data_line_size[1]);
     }
 }
 
@@ -504,8 +502,36 @@ void input::get_video_frame(int view, int plane, void *buf)
     size_t dst_row_size;
     size_t height;
 
-    if (video_frame_format() == decoder::frame_format_yuv420p)
+    switch (video_frame_format())
     {
+    case decoder::frame_format_yuv601_444p:
+    case decoder::frame_format_yuv709_444p:
+    case decoder::frame_format_yuvjpg_444p:
+        dst_row_width = video_width();
+        dst_row_size = next_multiple_of_4(dst_row_width);
+        height = video_height();
+        break;
+
+    case decoder::frame_format_yuv601_422p:
+    case decoder::frame_format_yuv709_422p:
+    case decoder::frame_format_yuvjpg_422p:
+        if (plane == 0)
+        {
+            dst_row_width = video_width();
+            dst_row_size = next_multiple_of_4(dst_row_width);
+            height = video_height();
+        }
+        else
+        {
+            dst_row_width = video_width() / 2;
+            dst_row_size = next_multiple_of_4(dst_row_width);
+            height = video_height();
+        }
+        break;
+
+    case decoder::frame_format_yuv601_420p:
+    case decoder::frame_format_yuv709_420p:
+    case decoder::frame_format_yuvjpg_420p:
         if (plane == 0)
         {
             dst_row_width = video_width();
@@ -518,12 +544,13 @@ void input::get_video_frame(int view, int plane, void *buf)
             dst_row_size = next_multiple_of_4(dst_row_width);
             height = video_height() / 2;
         }
-    }
-    else
-    {
+        break;
+
+    case decoder::frame_format_bgra32:
         dst_row_width = video_width() * 4;
         dst_row_size = dst_row_width;
         height = video_height();
+        break;
     }
 
     switch (_mode)

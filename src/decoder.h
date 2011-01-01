@@ -38,8 +38,25 @@ public:
 
     enum video_frame_format
     {
-        frame_format_yuv420p,    // 3 planes for Y, U, V, with one U and V value per 4 Y values
-        frame_format_bgra32      // 1 plane: BGRABGRABGRA...
+        frame_format_bgra32,     // 1 plane: BGRABGRABGRA... Used as fallback format.
+        // YUV color spaces:
+        // yuv601 means YUV according to ITU.BT-601
+        // yuv709 means YUV according to ITU.BT-709
+        // yuvjpg means YUV as used by JPEG (like 601, but using the full range of values)
+        // All YUV formats use 3 separate planes for the Y, U, and V components.
+        // The size of the planes is determined by the chroma subsampling method:
+        // 444p: no chroma subsampling; all planes have the same size
+        // 420p: U and V planes have half width and height: one U/V pair per 4 Y values
+        // 422p: U and V planes have half width: one U/V pair per 2 Y values
+        frame_format_yuv601_444p,
+        frame_format_yuv601_422p,
+        frame_format_yuv601_420p,
+        frame_format_yuv709_444p,
+        frame_format_yuv709_422p,
+        frame_format_yuv709_420p,
+        frame_format_yuvjpg_444p,
+        frame_format_yuvjpg_422p,
+        frame_format_yuvjpg_420p,
     };
 
     static std::string video_frame_format_name(enum video_frame_format f);
@@ -110,12 +127,11 @@ public:
      * A negative time stamp means that the end of the stream was reached.
      * After reading a frame, you may call get_video_frame(), and you must call release_video_frame(). */
     virtual int64_t read_video_frame(int video_stream) = 0;
-    /* Decode the video frame from the internal buffer and transform it into a fixed format.
+    /* Decode the video frame from the internal buffer into the frame format of the given stream.
      * A pointer to each resulting plane data will be returned in 'data'. The total size in
      * bytes of one frame line will be returned in 'line_size' for each plane. This may be
      * larger than the size of one line for alignment reasons. */
-    virtual void get_video_frame(int video_stream, enum video_frame_format fmt,
-            uint8_t *data[3], size_t line_size[3]) = 0;
+    virtual void get_video_frame(int video_stream, uint8_t *data[3], size_t line_size[3]) = 0;
     /* Release the video frame from the internal buffer. Can be called after get_video_frame(),
      * but also directly after read_video_frame(), e.g. in case video playback is too slow and
      * you need to skip frames. */

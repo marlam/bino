@@ -32,28 +32,64 @@ decoder::~decoder()
 
 std::string decoder::video_frame_format_name(enum video_frame_format f)
 {
+    std::string name;
     switch (f)
     {
-    case frame_format_yuv420p:
-        return "yuv420p";
-        break;
     case frame_format_bgra32:
-        return "bgra32";
+        name = "bgra32";
+        break;
+    case frame_format_yuv601_444p:
+        name = "yuv601-444p";
+        break;
+    case frame_format_yuv601_422p:
+        name = "yuv601-422p";
+        break;
+    case frame_format_yuv601_420p:
+        name = "yuv601-420p";
+        break;
+    case frame_format_yuv709_444p:
+        name = "yuv709-444p";
+        break;
+    case frame_format_yuv709_422p:
+        name = "yuv709-422p";
+        break;
+    case frame_format_yuv709_420p:
+        name = "yuv709-420p";
+        break;
+    case frame_format_yuvjpg_444p:
+        name = "yuvjpg-444p";
+        break;
+    case frame_format_yuvjpg_422p:
+        name = "yuvjpg-422p";
+        break;
+    case frame_format_yuvjpg_420p:
+        name = "yuvjpg-420p";
         break;
     }
+    return name;
 }
 
 int decoder::video_frame_format_planes(enum video_frame_format f)
 {
+    int planes = 0;
     switch (f)
     {
-    case frame_format_yuv420p:
-        return 3;
-        break;
     case frame_format_bgra32:
-        return 1;
+        planes = 1;
+        break;
+    case frame_format_yuv601_444p:
+    case frame_format_yuv601_422p:
+    case frame_format_yuv601_420p:
+    case frame_format_yuv709_444p:
+    case frame_format_yuv709_422p:
+    case frame_format_yuv709_420p:
+    case frame_format_yuvjpg_444p:
+    case frame_format_yuvjpg_422p:
+    case frame_format_yuvjpg_420p:
+        planes = 3;
         break;
     }
+    return planes;
 }
 
 std::string decoder::audio_sample_format_name(enum audio_sample_format f)

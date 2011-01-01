@@ -370,7 +370,7 @@ public:
         : eq::Config(parent), _is_master_config(false), _eq_init_data(), _eq_frame_data(),
         _player(), _controller(false),
         src_width(-1), src_height(-1), src_aspect_ratio(0.0f),
-        src_frame_format(decoder::frame_format_yuv420p), src_is_mono(true)
+        src_frame_format(decoder::frame_format_bgra32), src_is_mono(true)
     {
     }
 
@@ -648,7 +648,7 @@ public:
         : eq::Node(parent), _is_app_node(false),
         _player(), init_data(), frame_data(),
         src_width(-1), src_height(-1), src_aspect_ratio(-1.0f),
-        src_frame_format(decoder::frame_format_yuv420p), src_is_mono(true)
+        src_frame_format(decoder::frame_format_bgra32), src_is_mono(true)
     {
     }
 

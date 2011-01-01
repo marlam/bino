@@ -59,6 +59,7 @@ struct internal_stuff
 
     std::vector<int> video_streams;
     std::vector<AVCodecContext *> video_codec_ctxs;
+    std::vector<enum decoder::video_frame_format> frame_formats;
     std::vector<struct SwsContext *> img_conv_ctxs;
     std::vector<AVCodec *> video_codecs;
     std::vector<std::deque<AVPacket> > video_packet_queues;
@@ -249,26 +250,101 @@ void decoder_ffmpeg::open(const std::string &filename)
                 _stuff->video_codecs[j] = NULL;
                 throw exc(filename + " stream " + str::from(i) + ": cannot open video codec: " + my_av_strerror(e));
             }
-            int bufsize = avpicture_get_size(PIX_FMT_BGRA,
-                    _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height);
+            // Determine pixel format
+            _stuff->frame_formats.push_back(frame_format_bgra32);       // fallback format
+            if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV444P)
+            {
+                if (_stuff->video_codec_ctxs[j]->color_range == AVCOL_RANGE_JPEG)
+                {
+                    _stuff->frame_formats[j] = frame_format_yuvjpg_444p;
+                }
+                else if (_stuff->video_codec_ctxs[j]->colorspace == AVCOL_SPC_BT709)
+                {
+                    _stuff->frame_formats[j] = frame_format_yuv709_444p;
+                }
+                else
+                {
+                    _stuff->frame_formats[j] = frame_format_yuv601_444p;
+                }
+            }
+            else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV422P)
+            {
+                if (_stuff->video_codec_ctxs[j]->color_range == AVCOL_RANGE_JPEG)
+                {
+                    _stuff->frame_formats[j] = frame_format_yuvjpg_422p;
+                }
+                else if (_stuff->video_codec_ctxs[j]->colorspace == AVCOL_SPC_BT709)
+                {
+                    _stuff->frame_formats[j] = frame_format_yuv709_422p;
+                }
+                else
+                {
+                    _stuff->frame_formats[j] = frame_format_yuv601_422p;
+                }
+            }
+            else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV420P)
+            {
+                if (_stuff->video_codec_ctxs[j]->color_range == AVCOL_RANGE_JPEG)
+                {
+                    _stuff->frame_formats[j] = frame_format_yuvjpg_420p;
+                }
+                else if (_stuff->video_codec_ctxs[j]->colorspace == AVCOL_SPC_BT709)
+                {
+                    _stuff->frame_formats[j] = frame_format_yuv709_420p;
+                }
+                else
+                {
+                    _stuff->frame_formats[j] = frame_format_yuv601_420p;
+                }
+            }
+            else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ444P)
+            {
+                _stuff->frame_formats[j] = frame_format_yuvjpg_444p;
+            }
+            else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ422P)
+            {
+                _stuff->frame_formats[j] = frame_format_yuvjpg_422p;
+            }
+            else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ420P)
+            {
+                _stuff->frame_formats[j] = frame_format_yuvjpg_420p;
+            }
+            if ((_stuff->frame_formats[j] == frame_format_yuvjpg_444p
+                        || _stuff->frame_formats[j] == frame_format_yuvjpg_422p
+                        || _stuff->frame_formats[j] == frame_format_yuvjpg_420p)
+                    && _stuff->video_codec_ctxs[j]->colorspace == AVCOL_SPC_BT709)
+            {
+                throw exc(filename + " stream " + str::from(i)
+                        + ": cannot handle ITU709 color space with JPEG color range");
+            }
             _stuff->packets.push_back(AVPacket());
             _stuff->video_flush_flags.push_back(false);
             _stuff->frames.push_back(avcodec_alloc_frame());
-            _stuff->out_frames.push_back(avcodec_alloc_frame());
-            _stuff->buffers.push_back(static_cast<uint8_t *>(av_malloc(bufsize)));
-            if (!_stuff->frames[j] || !_stuff->out_frames[j] || !_stuff->buffers[j])
+            if (!_stuff->frames[j])
             {
                 throw exc(HERE + ": " + strerror(ENOMEM));
             }
-            avpicture_fill(reinterpret_cast<AVPicture *>(_stuff->out_frames[j]), _stuff->buffers[j],
-                    PIX_FMT_BGRA, _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height);
-            _stuff->img_conv_ctxs.push_back(sws_getContext(
-                        _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height, _stuff->video_codec_ctxs[j]->pix_fmt,
-                        _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height, PIX_FMT_BGRA,
-                        SWS_FAST_BILINEAR, NULL, NULL, NULL));
-            if (!_stuff->img_conv_ctxs[j])
+            if (_stuff->frame_formats[j] == frame_format_bgra32)
             {
-                throw exc(filename + " stream " + str::from(i) + ": cannot initialize conversion context");
+                // Initialize things needed for software pixel format conversion
+                int bufsize = avpicture_get_size(PIX_FMT_BGRA,
+                        _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height);
+                _stuff->out_frames.push_back(avcodec_alloc_frame());
+                _stuff->buffers.push_back(static_cast<uint8_t *>(av_malloc(bufsize)));
+                if (!_stuff->frames[j] || !_stuff->out_frames[j] || !_stuff->buffers[j])
+                {
+                    throw exc(HERE + ": " + strerror(ENOMEM));
+                }
+                avpicture_fill(reinterpret_cast<AVPicture *>(_stuff->out_frames[j]), _stuff->buffers[j],
+                        PIX_FMT_BGRA, _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height);
+                _stuff->img_conv_ctxs.push_back(sws_getContext(
+                            _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height, _stuff->video_codec_ctxs[j]->pix_fmt,
+                            _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height, PIX_FMT_BGRA,
+                            SWS_FAST_BILINEAR, NULL, NULL, NULL));
+                if (!_stuff->img_conv_ctxs[j])
+                {
+                    throw exc(filename + " stream " + str::from(i) + ": cannot initialize conversion context");
+                }
             }
             _stuff->video_pos_offsets.push_back(std::numeric_limits<int64_t>::min());
         }
@@ -346,10 +422,10 @@ void decoder_ffmpeg::open(const std::string &filename)
     {
         msg::inf("    video stream %d: %dx%d, format %s,",
                 i, video_width(i), video_height(i),
-                _stuff->video_codec_ctxs.at(i)->pix_fmt == PIX_FMT_YUV420P
-                ? decoder::video_frame_format_name(decoder::frame_format_yuv420p).c_str()
-                : str::asprintf("%d (converted to %s)", _stuff->video_codec_ctxs.at(i)->pix_fmt,
-                    decoder::video_frame_format_name(decoder::frame_format_bgra32).c_str()).c_str());
+                video_frame_format(i) == frame_format_bgra32
+                ? str::asprintf("%d (converted to %s)", _stuff->video_codec_ctxs.at(i)->pix_fmt,
+                    decoder::video_frame_format_name(decoder::frame_format_bgra32).c_str()).c_str()
+                : decoder::video_frame_format_name(video_frame_format(i)).c_str());
         msg::inf("        aspect ratio %g:1, %g fps, %g seconds",
                 static_cast<float>(video_aspect_ratio_numerator(i))
                 / static_cast<float>(video_aspect_ratio_denominator(i)),
@@ -452,9 +528,7 @@ int64_t decoder_ffmpeg::video_duration(int index) const throw ()
 
 enum decoder::video_frame_format decoder_ffmpeg::video_frame_format(int index) const throw ()
 {
-    return (_stuff->video_codec_ctxs.at(index)->pix_fmt == PIX_FMT_YUV420P
-            ? decoder::frame_format_yuv420p
-            : decoder::frame_format_bgra32);
+    return _stuff->frame_formats.at(index);
 }
 
 int decoder_ffmpeg::audio_rate(int index) const throw ()
@@ -592,28 +666,9 @@ void decoder_ffmpeg::release_video_frame(int /* video_stream */)
     // is clear that we will never need it.
 }
 
-void decoder_ffmpeg::get_video_frame(int video_stream, enum video_frame_format fmt,
-            uint8_t *data[3], size_t line_size[3])
+void decoder_ffmpeg::get_video_frame(int video_stream, uint8_t *data[3], size_t line_size[3])
 {
-    data[0] = NULL;
-    data[1] = NULL;
-    data[2] = NULL;
-    line_size[0] = 0;
-    line_size[1] = 0;
-    line_size[2] = 0;
-    if (fmt == decoder::frame_format_yuv420p)
-    {
-        if (video_frame_format(video_stream) == decoder::frame_format_yuv420p)
-        {
-            data[0] = _stuff->frames[video_stream]->data[0];
-            data[1] = _stuff->frames[video_stream]->data[1];
-            data[2] = _stuff->frames[video_stream]->data[2];
-            line_size[0] = _stuff->frames[video_stream]->linesize[0];
-            line_size[1] = _stuff->frames[video_stream]->linesize[1];
-            line_size[2] = _stuff->frames[video_stream]->linesize[2];
-        }
-    }
-    else
+    if (video_frame_format(video_stream) == frame_format_bgra32)
     {
         sws_scale(_stuff->img_conv_ctxs[video_stream],
                 _stuff->frames[video_stream]->data,
@@ -623,7 +678,20 @@ void decoder_ffmpeg::get_video_frame(int video_stream, enum video_frame_format f
                 _stuff->out_frames[video_stream]->linesize);
         // TODO: Handle sws_scale errors. How?
         data[0] = _stuff->out_frames[video_stream]->data[0];
+        data[1] = NULL;
+        data[2] = NULL;
         line_size[0] = _stuff->out_frames[video_stream]->linesize[0];
+        line_size[1] = 0;
+        line_size[2] = 0;
+    }
+    else
+    {
+        data[0] = _stuff->frames[video_stream]->data[0];
+        data[1] = _stuff->frames[video_stream]->data[1];
+        data[2] = _stuff->frames[video_stream]->data[2];
+        line_size[0] = _stuff->frames[video_stream]->linesize[0];
+        line_size[1] = _stuff->frames[video_stream]->linesize[1];
+        line_size[2] = _stuff->frames[video_stream]->linesize[2];
     }
 }
 
