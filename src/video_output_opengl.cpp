@@ -93,7 +93,7 @@ video_output_opengl::~video_output_opengl()
 }
 
 void video_output_opengl::set_source_info(int width, int height, float aspect_ratio,
-        enum decoder::video_frame_format format, bool mono)
+        int format, bool mono)
 {
     _src_format = format;
     _src_is_mono = mono;
@@ -188,7 +188,7 @@ void video_output_opengl::initialize()
     _have_valid_data[0] = false;
     _have_valid_data[1] = false;
     glGenBuffers(1, &_pbo);
-    if (_src_format == decoder::frame_format_bgra32)
+    if (decoder::video_format_layout(_src_format) == decoder::video_layout_bgra32)
     {
         for (int i = 0; i < 2; i++)
         {
@@ -208,15 +208,11 @@ void video_output_opengl::initialize()
     {
         _yuv_chroma_width_divisor = 1;
         _yuv_chroma_height_divisor = 1;
-        if (_src_format == decoder::frame_format_yuv601_422p
-                || _src_format == decoder::frame_format_yuv709_422p
-                || _src_format == decoder::frame_format_yuvjpg_422p)
+        if (decoder::video_format_layout(_src_format) == decoder::video_layout_yuv422p)
         {
             _yuv_chroma_width_divisor = 2;
         }
-        else if (_src_format == decoder::frame_format_yuv601_420p
-                || _src_format == decoder::frame_format_yuv709_420p
-                || _src_format == decoder::frame_format_yuvjpg_420p)
+        else if (decoder::video_format_layout(_src_format) == decoder::video_layout_yuv420p)
         {
             _yuv_chroma_width_divisor = 2;
             _yuv_chroma_height_divisor = 2;
@@ -257,36 +253,40 @@ void video_output_opengl::initialize()
     }
 
     // Step 2: color-correction
-    std::string input_str;
-    std::string colorspace_str;
-    if (_src_format == decoder::frame_format_bgra32)
+    std::string layout_str;
+    std::string color_space_str;
+    std::string value_range_str;
+    if (decoder::video_format_layout(_src_format) == decoder::video_layout_bgra32)
     {
-        input_str = "input_bgra32";
-        colorspace_str = "colorspace_rgb";
+        layout_str = "layout_bgra32";
+        color_space_str = "color_space_srgb";
+        value_range_str = "value_range_8bit_full";
     }
     else
     {
-        input_str = "input_yuv_p";
-        switch (_src_format)
+        layout_str = "layout_yuv_p";
+        if (decoder::video_format_color_space(_src_format) == decoder::video_color_space_yuv709)
         {
-        case decoder::frame_format_yuv709_444p:
-        case decoder::frame_format_yuv709_422p:
-        case decoder::frame_format_yuv709_420p:
-            colorspace_str = "colorspace_yuv709";
-            break;
-        case decoder::frame_format_yuvjpg_444p:
-        case decoder::frame_format_yuvjpg_422p:
-        case decoder::frame_format_yuvjpg_420p:
-            colorspace_str = "colorspace_yuvjpg";
-            break;
-        default:
-            colorspace_str = "colorspace_yuv601";
-            break;
+            color_space_str = "color_space_yuv709";
+        }
+        else
+        {
+            color_space_str = "color_space_yuv601";
+        }
+        if (decoder::video_format_value_range(_src_format) == decoder::video_value_range_8bit_full)
+        {
+            value_range_str = "value_range_8bit_full";
+        }
+        else
+        {
+            value_range_str = "value_range_8bit_mpeg";
         }
     }
     std::string color_fs_src = xgl::ShaderSourcePrep(
             VIDEO_OUTPUT_OPENGL_COLOR_FS_GLSL_STR,
-            std::string("$input=") + input_str + std::string("$colorspace=") + colorspace_str);
+            std::string("$layout=") + layout_str
+            + std::string(", $color_space=") + color_space_str
+            + std::string(", $value_range=") + value_range_str);
     _color_prg = xgl::CreateProgram("video_output_color", "", "", color_fs_src);
     xgl::LinkProgram("video_output_color", _color_prg);
     glGenFramebuffersEXT(1, &_color_fbo);
@@ -355,7 +355,7 @@ void video_output_opengl::deinitialize()
     _have_valid_data[0] = false;
     _have_valid_data[1] = false;
     glDeleteBuffers(1, &_pbo);
-    if (_src_format == decoder::frame_format_bgra32)
+    if (decoder::video_format_layout(_src_format) == decoder::video_layout_bgra32)
     {
         glDeleteTextures(_src_is_mono ? 1 : 2, _bgra32_tex[0]);
     }
@@ -454,7 +454,7 @@ void video_output_opengl::display(bool toggle_swap_eyes, float x, float y, float
     glLoadIdentity();
     glViewport(0, 0, _src_width, _src_height);
     glUseProgram(_color_prg);
-    if (_src_format == decoder::frame_format_bgra32)
+    if (decoder::video_format_layout(_src_format) == decoder::video_layout_bgra32)
     {
         glUniform1i(glGetUniformLocation(_color_prg, "srgb_tex"), 0);
     }
@@ -471,7 +471,7 @@ void video_output_opengl::display(bool toggle_swap_eyes, float x, float y, float
     glUniform1f(glGetUniformLocation(_color_prg, "sin_hue"), std::sin(_state.hue * M_PI));
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _color_fbo);
     // left view: render into _srgb_tex[0]
-    if (_src_format == decoder::frame_format_bgra32)
+    if (decoder::video_format_layout(_src_format) == decoder::video_layout_bgra32)
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _bgra32_tex[_active_tex_set][left]);
@@ -491,7 +491,7 @@ void video_output_opengl::display(bool toggle_swap_eyes, float x, float y, float
     // right view: render into _srgb_tex[1]
     if (left != right)
     {
-        if (_src_format == decoder::frame_format_bgra32)
+        if (decoder::video_format_layout(_src_format) == decoder::video_layout_bgra32)
         {
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, _bgra32_tex[_active_tex_set][right]);
@@ -679,7 +679,7 @@ void *video_output_opengl::prepare_start(int /* view */, int plane)
 {
     int w, h;
     int bytes_per_pixel;
-    if (_src_format == decoder::frame_format_bgra32)
+    if (decoder::video_format_layout(_src_format) == decoder::video_layout_bgra32)
     {
         w = _src_width;
         h = _src_height;
@@ -723,7 +723,7 @@ void video_output_opengl::prepare_finish(int view, int plane)
     GLenum format;
     GLenum type;
     GLuint tex;
-    if (_src_format == decoder::frame_format_bgra32)
+    if (decoder::video_format_layout(_src_format) == decoder::video_layout_bgra32)
     {
         w = _src_width;
         h = _src_height;

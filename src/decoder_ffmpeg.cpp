@@ -59,7 +59,7 @@ struct internal_stuff
 
     std::vector<int> video_streams;
     std::vector<AVCodecContext *> video_codec_ctxs;
-    std::vector<enum decoder::video_frame_format> frame_formats;
+    std::vector<int> frame_formats;
     std::vector<struct SwsContext *> img_conv_ctxs;
     std::vector<AVCodec *> video_codecs;
     std::vector<std::deque<AVPacket> > video_packet_queues;
@@ -250,73 +250,69 @@ void decoder_ffmpeg::open(const std::string &filename)
                 _stuff->video_codecs[j] = NULL;
                 throw exc(filename + " stream " + str::from(i) + ": cannot open video codec: " + my_av_strerror(e));
             }
-            // Determine pixel format
-            _stuff->frame_formats.push_back(frame_format_bgra32);       // fallback format
-            if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV444P)
+            // Determine pixel format. Use BGRA32 as fallback.
+            enum video_layout vl = video_layout_bgra32;
+            enum video_color_space vcs = video_color_space_srgb;
+            enum video_value_range vvr = video_value_range_8bit_full;
+            enum video_chroma_location vcl = video_chroma_location_center;
+            if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV444P
+                    || _stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV422P
+                    || _stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV420P)
             {
-                if (_stuff->video_codec_ctxs[j]->color_range == AVCOL_RANGE_JPEG)
+                if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV444P)
                 {
-                    _stuff->frame_formats[j] = frame_format_yuvjpg_444p;
+                    vl = video_layout_yuv444p;
                 }
-                else if (_stuff->video_codec_ctxs[j]->colorspace == AVCOL_SPC_BT709)
+                else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV422P)
                 {
-                    _stuff->frame_formats[j] = frame_format_yuv709_444p;
+                    vl = video_layout_yuv422p;
                 }
                 else
                 {
-                    _stuff->frame_formats[j] = frame_format_yuv601_444p;
+                    vl = video_layout_yuv420p;
                 }
-            }
-            else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV422P)
-            {
+                vcs = video_color_space_yuv601;
+                if (_stuff->video_codec_ctxs[j]->colorspace == AVCOL_SPC_BT709)
+                {
+                    vcs = video_color_space_yuv709;
+                }
+                vvr = video_value_range_8bit_mpeg;
                 if (_stuff->video_codec_ctxs[j]->color_range == AVCOL_RANGE_JPEG)
                 {
-                    _stuff->frame_formats[j] = frame_format_yuvjpg_422p;
+                    vvr = video_value_range_8bit_full;
                 }
-                else if (_stuff->video_codec_ctxs[j]->colorspace == AVCOL_SPC_BT709)
+                vcl = video_chroma_location_center;
+                if (_stuff->video_codec_ctxs[j]->chroma_sample_location == AVCHROMA_LOC_LEFT)
                 {
-                    _stuff->frame_formats[j] = frame_format_yuv709_422p;
+                    vcl = video_chroma_location_left;
+                }
+                else if (_stuff->video_codec_ctxs[j]->chroma_sample_location == AVCHROMA_LOC_TOPLEFT)
+                {
+                    vcl = video_chroma_location_topleft;
+                }
+            }
+            else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ444P
+                    || _stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ422P
+                    || _stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ420P)
+            {
+                if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ444P)
+                {
+                    vl = video_layout_yuv444p;
+                }
+                else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ422P)
+                {
+                    vl = video_layout_yuv422p;
                 }
                 else
                 {
-                    _stuff->frame_formats[j] = frame_format_yuv601_422p;
+                    vl = video_layout_yuv420p;
                 }
+                vcs = video_color_space_yuv601;
+                vvr = video_value_range_8bit_full;
+                vcl = video_chroma_location_center;
             }
-            else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV420P)
-            {
-                if (_stuff->video_codec_ctxs[j]->color_range == AVCOL_RANGE_JPEG)
-                {
-                    _stuff->frame_formats[j] = frame_format_yuvjpg_420p;
-                }
-                else if (_stuff->video_codec_ctxs[j]->colorspace == AVCOL_SPC_BT709)
-                {
-                    _stuff->frame_formats[j] = frame_format_yuv709_420p;
-                }
-                else
-                {
-                    _stuff->frame_formats[j] = frame_format_yuv601_420p;
-                }
-            }
-            else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ444P)
-            {
-                _stuff->frame_formats[j] = frame_format_yuvjpg_444p;
-            }
-            else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ422P)
-            {
-                _stuff->frame_formats[j] = frame_format_yuvjpg_422p;
-            }
-            else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ420P)
-            {
-                _stuff->frame_formats[j] = frame_format_yuvjpg_420p;
-            }
-            if ((_stuff->frame_formats[j] == frame_format_yuvjpg_444p
-                        || _stuff->frame_formats[j] == frame_format_yuvjpg_422p
-                        || _stuff->frame_formats[j] == frame_format_yuvjpg_420p)
-                    && _stuff->video_codec_ctxs[j]->colorspace == AVCOL_SPC_BT709)
-            {
-                throw exc(filename + " stream " + str::from(i)
-                        + ": cannot handle ITU709 color space with JPEG color range");
-            }
+            _stuff->frame_formats.push_back(decoder::video_format(vl, vcs, vvr, vcl));
+            // Allocate packets and frames
             _stuff->packets.push_back(AVPacket());
             _stuff->video_flush_flags.push_back(false);
             _stuff->frames.push_back(avcodec_alloc_frame());
@@ -324,7 +320,7 @@ void decoder_ffmpeg::open(const std::string &filename)
             {
                 throw exc(HERE + ": " + strerror(ENOMEM));
             }
-            if (_stuff->frame_formats[j] == frame_format_bgra32)
+            if (video_format_layout(_stuff->frame_formats[j]) == video_layout_bgra32)
             {
                 // Initialize things needed for software pixel format conversion
                 int bufsize = avpicture_get_size(PIX_FMT_BGRA,
@@ -422,10 +418,10 @@ void decoder_ffmpeg::open(const std::string &filename)
     {
         msg::inf("    video stream %d: %dx%d, format %s,",
                 i, video_width(i), video_height(i),
-                video_frame_format(i) == frame_format_bgra32
+                video_format_layout(video_format(i)) == video_layout_bgra32
                 ? str::asprintf("%d (converted to %s)", _stuff->video_codec_ctxs.at(i)->pix_fmt,
-                    decoder::video_frame_format_name(decoder::frame_format_bgra32).c_str()).c_str()
-                : decoder::video_frame_format_name(video_frame_format(i)).c_str());
+                    decoder::video_format_name(video_format(i)).c_str()).c_str()
+                : decoder::video_format_name(video_format(i)).c_str());
         msg::inf("        aspect ratio %g:1, %g fps, %g seconds",
                 static_cast<float>(video_aspect_ratio_numerator(i))
                 / static_cast<float>(video_aspect_ratio_denominator(i)),
@@ -526,7 +522,7 @@ int64_t decoder_ffmpeg::video_duration(int index) const throw ()
     return duration * 1000000 * time_base.num / time_base.den;
 }
 
-enum decoder::video_frame_format decoder_ffmpeg::video_frame_format(int index) const throw ()
+int decoder_ffmpeg::video_format(int index) const throw ()
 {
     return _stuff->frame_formats.at(index);
 }
@@ -668,7 +664,7 @@ void decoder_ffmpeg::release_video_frame(int /* video_stream */)
 
 void decoder_ffmpeg::get_video_frame(int video_stream, uint8_t *data[3], size_t line_size[3])
 {
-    if (video_frame_format(video_stream) == frame_format_bgra32)
+    if (video_format_layout(video_format(video_stream)) == video_layout_bgra32)
     {
         sws_scale(_stuff->img_conv_ctxs[video_stream],
                 _stuff->frames[video_stream]->data,

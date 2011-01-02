@@ -186,7 +186,7 @@ void player::open_video_output(enum video_output::mode video_mode, unsigned int 
         }
     }
     _video_output->open(
-            _input->video_frame_format(), _input->video_is_mono(),
+            _input->video_format(), _input->video_is_mono(),
             _input->video_width(), _input->video_height(), _input->video_aspect_ratio(),
             video_mode, _video_state, video_flags, -1, -1);
     _video_output->process_events();
@@ -443,7 +443,7 @@ void player::prepare_video_frame(video_output *vo)
 {
     for (int i = 0; i < (_input->video_is_mono() ? 1 : 2); i++)
     {
-        for (int j = 0; j < decoder::video_frame_format_planes(_input->video_frame_format()); j++)
+        for (int j = 0; j < decoder::video_format_planes(_input->video_format()); j++)
         {
             void *buf = vo->prepare_start(i, j);
             _input->get_video_frame(i, j, buf);

@@ -60,7 +60,7 @@ private:
     float _video_aspect_ratio;
     int _video_frame_rate_num;
     int _video_frame_rate_den;
-    enum decoder::video_frame_format _video_frame_format;
+    int _video_format;
     bool _video_is_mono;
     int _audio_rate;
     int _audio_channels;
@@ -122,9 +122,9 @@ public:
         return static_cast<int64_t>(_video_frame_rate_den) * 1000000 / _video_frame_rate_num;
     }
 
-    enum decoder::video_frame_format video_frame_format() const throw ()
+    int video_format() const throw ()
     {
-        return _video_frame_format;
+        return _video_format;
     }
 
     bool video_is_mono() const throw ()

@@ -35,7 +35,7 @@ class video_output_opengl : public video_output
 {
 private:
     // Video properties (fixed during playback)
-    enum decoder::video_frame_format _src_format;
+    int _src_format;
     bool _src_is_mono;
     int _src_width;
     int _src_height;
@@ -83,7 +83,7 @@ protected:
      * initialization functions in the order in which they appear here.
      * You must make sure that the OpenGL context provides GL 2.1 + FBOs. */
     void set_mode(enum video_output::mode mode);
-    void set_source_info(int width, int height, float aspect_ratio, enum decoder::video_frame_format format, bool mono);
+    void set_source_info(int width, int height, float aspect_ratio, int format, bool mono);
     void set_screen_info(int width, int height, float pixel_aspect_ratio);
     void compute_win_size(int width = -1, int height = -1);
     void set_state(const video_output_state &_state);
@@ -137,7 +137,7 @@ public:
     virtual bool supports_stereo() = 0;
 
     virtual void open(
-            enum decoder::video_frame_format format, bool mono,
+            int video_format, bool mono,
             int src_width, int src_height, float src_aspect_ratio,
             int mode, const video_output_state &state, unsigned int flags,
             int win_width, int win_height) = 0;

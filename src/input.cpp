@@ -182,8 +182,8 @@ void input::open(std::vector<decoder *> decoders,
         {
             throw exc("video streams have different frame rates");
         }
-        if (decoders.at(video1_decoder)->video_frame_format(video1_stream)
-                != decoders.at(video0_decoder)->video_frame_format(video0_stream))
+        if (decoders.at(video1_decoder)->video_format(video1_stream)
+                != decoders.at(video0_decoder)->video_format(video0_stream))
         {
             throw exc("video streams have different frame formats");
         }
@@ -389,7 +389,7 @@ void input::open(std::vector<decoder *> decoders,
     }
     _video_frame_rate_num = _decoders.at(_video_decoders[0])->video_frame_rate_numerator(_video_streams[0]);
     _video_frame_rate_den = _decoders.at(_video_decoders[0])->video_frame_rate_denominator(_video_streams[0]);
-    _video_frame_format = _decoders.at(_video_decoders[0])->video_frame_format(_video_streams[0]);
+    _video_format = _decoders.at(_video_decoders[0])->video_format(_video_streams[0]);
 
     if (audio_stream != -1)
     {
@@ -432,7 +432,7 @@ void input::open(std::vector<decoder *> decoders,
     msg::inf("input:");
     msg::inf("    video: %dx%d, format %s,",
             video_width(), video_height(),
-            decoder::video_frame_format_name(video_frame_format()).c_str());
+            decoder::video_format_name(video_format()).c_str());
     msg::inf("        aspect ratio %g:1, %g fps, %g seconds,",
             video_aspect_ratio(),
             static_cast<float>(video_frame_rate_numerator()) / static_cast<float>(video_frame_rate_denominator()),
@@ -502,19 +502,21 @@ void input::get_video_frame(int view, int plane, void *buf)
     size_t dst_row_size;
     size_t height;
 
-    switch (video_frame_format())
+    switch (decoder::video_format_layout(video_format()))
     {
-    case decoder::frame_format_yuv601_444p:
-    case decoder::frame_format_yuv709_444p:
-    case decoder::frame_format_yuvjpg_444p:
+    case decoder::video_layout_bgra32:
+        dst_row_width = video_width() * 4;
+        dst_row_size = dst_row_width;
+        height = video_height();
+        break;
+
+    case decoder::video_layout_yuv444p:
         dst_row_width = video_width();
         dst_row_size = next_multiple_of_4(dst_row_width);
         height = video_height();
         break;
 
-    case decoder::frame_format_yuv601_422p:
-    case decoder::frame_format_yuv709_422p:
-    case decoder::frame_format_yuvjpg_422p:
+    case decoder::video_layout_yuv422p:
         if (plane == 0)
         {
             dst_row_width = video_width();
@@ -529,9 +531,7 @@ void input::get_video_frame(int view, int plane, void *buf)
         }
         break;
 
-    case decoder::frame_format_yuv601_420p:
-    case decoder::frame_format_yuv709_420p:
-    case decoder::frame_format_yuvjpg_420p:
+    case decoder::video_layout_yuv420p:
         if (plane == 0)
         {
             dst_row_width = video_width();
@@ -544,12 +544,6 @@ void input::get_video_frame(int view, int plane, void *buf)
             dst_row_size = next_multiple_of_4(dst_row_width);
             height = video_height() / 2;
         }
-        break;
-
-    case decoder::frame_format_bgra32:
-        dst_row_width = video_width() * 4;
-        dst_row_size = dst_row_width;
-        height = video_height();
         break;
     }
 

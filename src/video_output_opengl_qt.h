@@ -112,7 +112,7 @@ public:
     virtual bool supports_stereo();
 
     virtual void open(
-            enum decoder::video_frame_format src_format, bool src_mono,
+            int src_format, bool src_mono,
             int src_width, int src_height, float src_aspect_ratio,
             int mode, const video_output_state &state, unsigned int flags,
             int win_width, int win_height);
