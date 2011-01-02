@@ -66,9 +66,13 @@ vec3 srgb_to_yuv(vec3 srgb)
 
 vec3 yuv_to_srgb(vec3 yuv)
 {
-#if defined(colorspace_yuvjpg)
-    // Convert the JPEG range to the MPEG range for each component
-    yuv = yuv * vec3(220.0 / 256.0, 225.0 / 256.0, 225.0 / 256.0) + vec3(16.0 / 255.0);
+    // 8 bit yuvjpg samples use the full [0,255] range, while 8 bit yuv601 and
+    // yuv709 samples use the ranges [16,235] for Y and [16,240] for U and V.
+    // These limited ranges must be transformed to the full range for the
+    // subsequent matrix multiplications.
+#if !defined(colorspace_yuvjpg)
+    // Convert the MPEG range to the full range for each component
+    yuv = (yuv - vec3(16.0 / 255.0)) * vec3(256.0 / 220.0, 256.0 / 225.0, 256.0 / 225.0);
 #endif
 #if defined(colorspace_yuv709)
     // According to ITU.BT-709
