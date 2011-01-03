@@ -74,12 +74,12 @@
  * anaglyph methods and 2) sRGB framebuffers are not yet widely supported.
  *
  * Open issues / TODO:
- * The 420p and 422p chroma subsampling formats are currently handled in the
- * simple and direct way: the chroma value for the current pixel is taken from
- * the nearest chroma sample, without interpolation. It might be better to use
- * some kind of chroma filtering. This would depend on the location of the
- * chroma subsamples, which differs between different codecs, so this might add
- * some complexity...
+ * The 420p and 422p chroma subsampling formats are currently handled by
+ * sampling the U and V textures with bilinear interpolation at the correct
+ * position according to the chroma location. Bilinear interpolation of U and V
+ * is questionable since these values are not linear. However, I could not find
+ * information on a better way to do this, and other players seem to use linear
+ * interpolation, too.
  */
 
 
@@ -208,14 +208,17 @@ void video_output_opengl::initialize()
     {
         _yuv_chroma_width_divisor = 1;
         _yuv_chroma_height_divisor = 1;
+        bool need_chroma_filtering = false;
         if (decoder::video_format_layout(_src_format) == decoder::video_layout_yuv422p)
         {
             _yuv_chroma_width_divisor = 2;
+            need_chroma_filtering = true;
         }
         else if (decoder::video_format_layout(_src_format) == decoder::video_layout_yuv420p)
         {
             _yuv_chroma_width_divisor = 2;
             _yuv_chroma_height_divisor = 2;
+            need_chroma_filtering = true;
         }
         for (int i = 0; i < 2; i++)
         {
@@ -232,8 +235,8 @@ void video_output_opengl::initialize()
                         0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
                 glGenTextures(1, &(_yuv_u_tex[i][j]));
                 glBindTexture(GL_TEXTURE_2D, _yuv_u_tex[i][j]);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, need_chroma_filtering ? GL_LINEAR : GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, need_chroma_filtering ? GL_LINEAR : GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8,
@@ -241,8 +244,8 @@ void video_output_opengl::initialize()
                         0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
                 glGenTextures(1, &(_yuv_v_tex[i][j]));
                 glBindTexture(GL_TEXTURE_2D, _yuv_v_tex[i][j]);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, need_chroma_filtering ? GL_LINEAR : GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, need_chroma_filtering ? GL_LINEAR : GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8,
@@ -256,6 +259,8 @@ void video_output_opengl::initialize()
     std::string layout_str;
     std::string color_space_str;
     std::string value_range_str;
+    std::string chroma_offset_x_str;
+    std::string chroma_offset_y_str;
     if (decoder::video_format_layout(_src_format) == decoder::video_layout_bgra32)
     {
         layout_str = "layout_bgra32";
@@ -281,12 +286,34 @@ void video_output_opengl::initialize()
         {
             value_range_str = "value_range_8bit_mpeg";
         }
+        chroma_offset_x_str = "0.0";
+        chroma_offset_y_str = "0.0";
+        if (decoder::video_format_layout(_src_format) == decoder::video_layout_yuv422p)
+        {
+            if (decoder::video_format_chroma_location(_src_format) != decoder::video_chroma_location_center)
+            {
+                chroma_offset_x_str = str::from(1.0f / static_cast<float>(_src_width));
+            }
+        }
+        else if (decoder::video_format_layout(_src_format) == decoder::video_layout_yuv420p)
+        {
+            if (decoder::video_format_chroma_location(_src_format) == decoder::video_chroma_location_left)
+            {
+                chroma_offset_x_str = str::from(1.0f / static_cast<float>(_src_width));
+            }
+            else if (decoder::video_format_chroma_location(_src_format) == decoder::video_chroma_location_topleft)
+            {
+                chroma_offset_x_str = str::from(1.0f / static_cast<float>(_src_width));
+                chroma_offset_y_str = str::from(1.0f / static_cast<float>(_src_height));
+            }
+        }
     }
-    std::string color_fs_src = xgl::ShaderSourcePrep(
-            VIDEO_OUTPUT_OPENGL_COLOR_FS_GLSL_STR,
-            std::string("$layout=") + layout_str
-            + std::string(", $color_space=") + color_space_str
-            + std::string(", $value_range=") + value_range_str);
+    std::string color_fs_src(VIDEO_OUTPUT_OPENGL_COLOR_FS_GLSL_STR);
+    str::replace(color_fs_src, "$layout", layout_str);
+    str::replace(color_fs_src, "$color_space", color_space_str);
+    str::replace(color_fs_src, "$value_range", value_range_str);
+    str::replace(color_fs_src, "$chroma_offset_x", chroma_offset_x_str);
+    str::replace(color_fs_src, "$chroma_offset_y", chroma_offset_y_str);
     _color_prg = xgl::CreateProgram("video_output_color", "", "", color_fs_src);
     xgl::LinkProgram("video_output_color", _color_prg);
     glGenFramebuffersEXT(1, &_color_fbo);

@@ -33,6 +33,11 @@
 // value_range_8bit_mpeg
 #define $value_range
 
+// the offset between the y texture coordinates and the appropriate
+// u and v texture coordinates, according to the chroma sample location
+#define chroma_offset_x $chroma_offset_x
+#define chroma_offset_y $chroma_offset_y
+
 #if defined(layout_yuv_p)
 uniform sampler2D y_tex;
 uniform sampler2D u_tex;
@@ -110,11 +115,10 @@ vec3 get_yuv(vec2 tex_coord)
 #if defined(layout_bgra32)
     return srgb_to_yuv(texture2D(srgb_tex, tex_coord).xyz);
 #elif defined(layout_yuv_p)
-    // TODO: Implement proper chroma filtering for yuv422 and yuv420 layouts
     return vec3(
             texture2D(y_tex, tex_coord).x,
-            texture2D(u_tex, tex_coord).x,
-            texture2D(v_tex, tex_coord).x);
+            texture2D(u_tex, tex_coord + vec2(chroma_offset_x, chroma_offset_y)).x,
+            texture2D(v_tex, tex_coord + vec2(chroma_offset_x, chroma_offset_y)).x);
 #endif
 }
 
