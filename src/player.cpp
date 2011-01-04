@@ -346,6 +346,10 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         {
             _first_frame = false;
         }
+        if (!_audio_output)
+        {
+            _current_pos = _next_frame_pos;
+        }
         _need_frame = false;
         if (_drop_next_frame)
         {
@@ -383,13 +387,15 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             // Output requested audio data
             if (_required_audio_data_size > 0)
             {
-                if (_input->read_audio_data(&_audio_data, _required_audio_data_size) == std::numeric_limits<int64_t>::min())
+                int64_t audio_pos = _input->read_audio_data(&_audio_data, _required_audio_data_size);
+                if (audio_pos == std::numeric_limits<int64_t>::min())
                 {
                     msg::dbg("end of audio stream");
                     notify(notification::play, true, false);
                     return;
                 }
                 _audio_output->data(_audio_data, _required_audio_data_size);
+                _current_pos = audio_pos;
             }
         }
         else
@@ -423,7 +429,6 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
                 }
             }
             _need_frame = true;
-            _current_pos = _next_frame_pos;
             _previous_frame_dropped = _drop_next_frame;
         }
         *more_steps = true;
