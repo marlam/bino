@@ -86,11 +86,10 @@ private:
     int64_t _start_pos;                 // initial input position
     int64_t _current_pos;               // current input position
     int64_t _video_pos;                 // presentation time of current video frame
-    int64_t _last_video_pos;            // presentation time of previous video frame
     int64_t _audio_pos;                 // presentation time of current audio data block
     int64_t _master_time_start;         // master time offset
     int64_t _master_time_current;       // current master time
-    int64_t _master_time_audio_pos;     // if audio is master clock: audio position at master time start
+    int64_t _master_time_pos;           // input position at master time start
 
     int _frames_shown;                   // frames shown since last _sync_point_time update
     int64_t _fps_mark_time;              // time when _frames_shown was reset to zero

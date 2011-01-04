@@ -224,7 +224,6 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             notify(notification::play, true, false);
             return;
         }
-        _last_video_pos = _video_pos;
         if (_audio_output)
         {
             _audio_output->status(&_required_audio_data_size);
@@ -237,12 +236,13 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             }
             _audio_output->data(_audio_data, _required_audio_data_size);
             _master_time_start = _audio_output->start();
-            _master_time_audio_pos = _audio_pos;
+            _master_time_pos = _audio_pos;
             _current_pos = _audio_pos;
         }
         else
         {
             _master_time_start = timer::get_microseconds(timer::monotonic);
+            _master_time_pos = _video_pos;
             _current_pos = _video_pos;
         }
         _start_pos = _current_pos;
@@ -280,7 +280,6 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             notify(notification::play, true, false);
             return;
         }
-        _last_video_pos = _video_pos;
         if (_audio_output)
         {
             _audio_output->stop();
@@ -294,12 +293,13 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             }
             _audio_output->data(_audio_data, _required_audio_data_size);
             _master_time_start = _audio_output->start();
-            _master_time_audio_pos = _audio_pos;
+            _master_time_pos = _audio_pos;
             _current_pos = _audio_pos;
         }
         else
         {
             _master_time_start = timer::get_microseconds(timer::monotonic);
+            _master_time_pos = _video_pos;
             _current_pos = _video_pos;
         }
         notify(notification::pos, _current_pos / 1e6f, old_pos / 1e6f);
@@ -329,7 +329,6 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
     }
     else if (_need_frame)
     {
-        _last_video_pos = _video_pos;
         _video_pos = _input->read_video_frame();
         if (_video_pos == std::numeric_limits<int64_t>::min())
         {
@@ -351,6 +350,8 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         }
         if (!_audio_output)
         {
+            _master_time_start += (_video_pos - _master_time_pos);
+            _master_time_pos = _video_pos;
             _current_pos = _video_pos;
         }
         _need_frame = false;
@@ -385,7 +386,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         {
             // Check if audio needs more data, and get audio time
             _master_time_current = _audio_output->status(&_required_audio_data_size) - _master_time_start
-                + _master_time_audio_pos;
+                + _master_time_pos;
             // Output requested audio data
             if (_required_audio_data_size > 0)
             {
@@ -396,8 +397,8 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
                     notify(notification::play, true, false);
                     return;
                 }
-                _master_time_start += (_audio_pos - _master_time_audio_pos);
-                _master_time_audio_pos = _audio_pos;
+                _master_time_start += (_audio_pos - _master_time_pos);
+                _master_time_pos = _audio_pos;
                 _audio_output->data(_audio_data, _required_audio_data_size);
                 _current_pos = _audio_pos;
             }
@@ -405,7 +406,8 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         else
         {
             // Use our own timer
-            _master_time_current = timer::get_microseconds(timer::monotonic) - _master_time_start + _last_video_pos;
+            _master_time_current = timer::get_microseconds(timer::monotonic) - _master_time_start
+                + _master_time_pos;
         }
 
         if (_master_time_current >= _video_pos || _benchmark)
