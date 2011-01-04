@@ -384,7 +384,8 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         if (_audio_output)
         {
             // Check if audio needs more data, and get audio time
-            _master_time_current = _audio_output->status(&_required_audio_data_size) - _master_time_start + _audio_pos;
+            _master_time_current = _audio_output->status(&_required_audio_data_size) - _master_time_start
+                + _master_time_audio_pos;
             // Output requested audio data
             if (_required_audio_data_size > 0)
             {
