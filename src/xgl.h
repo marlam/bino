@@ -79,23 +79,6 @@ namespace xgl
      */
 
     /**
-     * \param src       The shader source code.
-     * \param defines   A comma separated list of value definitions.
-     * \returns         The augmented source code.
-     *
-     * The string \a defines consists of a comma separated list of
-     * definitions in the following form: "name1=val1, name2=val2, ...".
-     * Whitespace is ignored. The string may also be empty. Names and values
-     * may only consist of letters, numbers, and the underscore. Names must
-     * start with a dollar sign. Values may be empty.\n
-     * This function will replace all occurences of names in the shader
-     * source code with their corresponding values.\n
-     * Example: With the definition "$kh=3", the line "const int kh = $kh;"
-     * in the source code will become "const int kh = 3;".\n
-     */
-    std::string ShaderSourcePrep(const std::string &src, const std::string &defines);
-
-    /**
      * \param name      Name of the shader. Can be an arbitrary string.
      * \param type      GL_VERTEX_SHADER or GL_GEOMETRY_SHADER or GL_FRAGMENT_SHADER.
      * \param src       The source code of the shader.

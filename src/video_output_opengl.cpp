@@ -331,6 +331,7 @@ void video_output_opengl::initialize()
     }
 
     // Step 3: rendering
+    std::string render_fs_src(VIDEO_OUTPUT_OPENGL_RENDER_FS_GLSL_STR);
     std::string mode_str = (
             _mode == even_odd_rows ? "mode_even_odd_rows"
             : _mode == even_odd_columns ? "mode_even_odd_columns"
@@ -341,9 +342,8 @@ void video_output_opengl::initialize()
             : _mode == anaglyph_red_cyan_dubois ? "mode_anaglyph_dubois"
             : "mode_onechannel");
     std::string srgb_broken_str = (_srgb_textures_are_broken ? "1" : "0");
-    std::string render_fs_src = xgl::ShaderSourcePrep(
-            VIDEO_OUTPUT_OPENGL_RENDER_FS_GLSL_STR,
-            std::string("$mode=") + mode_str + std::string(", $srgb_broken=") + srgb_broken_str);
+    str::replace(render_fs_src, "$mode", mode_str);
+    str::replace(render_fs_src, "$srgb_broken", srgb_broken_str);
     _render_prg = xgl::CreateProgram("video_output_render", "", "", render_fs_src);
     xgl::LinkProgram("video_output_render", _render_prg);
     if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
