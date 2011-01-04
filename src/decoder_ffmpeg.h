@@ -37,6 +37,9 @@ private:
     stuff_t *_stuff;
 
     bool read();
+    int64_t handle_timestamp(int64_t &last_timestamp, int64_t timestamp);
+    int64_t handle_video_timestamp(int video_stream, int64_t timestamp);
+    int64_t handle_audio_timestamp(int audio_stream, int64_t timestamp);
 
 public:
     decoder_ffmpeg() throw ();

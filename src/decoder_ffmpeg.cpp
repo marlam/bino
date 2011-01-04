@@ -55,6 +55,8 @@ extern "C"
 struct internal_stuff
 {
     AVFormatContext *format_ctx;
+
+    bool have_active_audio_stream;
     int64_t pos;
 
     std::vector<int> video_streams;
@@ -68,7 +70,7 @@ struct internal_stuff
     std::vector<AVFrame *> frames;
     std::vector<AVFrame *> out_frames;
     std::vector<uint8_t *> buffers;
-    std::vector<int64_t> video_pos_offsets;
+    std::vector<int64_t> video_last_timestamps;
 
     std::vector<int> audio_streams;
     std::vector<AVCodecContext *> audio_codec_ctxs;
@@ -78,7 +80,6 @@ struct internal_stuff
     std::vector<bool> audio_flush_flags;
     std::vector<std::vector<unsigned char> > audio_buffers;
     std::vector<int64_t> audio_last_timestamps;
-    std::vector<int64_t> audio_pos_offsets;
 };
 
 static std::string my_av_strerror(int err)
@@ -219,6 +220,8 @@ void decoder_ffmpeg::open(const std::string &filename)
         throw exc(filename + ": cannot read stream info: " + my_av_strerror(e));
     }
     dump_format(_stuff->format_ctx, 0, filename.c_str(), 0);
+
+    _stuff->have_active_audio_stream = false;
     _stuff->pos = std::numeric_limits<int64_t>::min();
 
     for (unsigned int i = 0; i < _stuff->format_ctx->nb_streams
@@ -348,7 +351,7 @@ void decoder_ffmpeg::open(const std::string &filename)
                 _stuff->buffers.push_back(NULL);
                 _stuff->img_conv_ctxs.push_back(NULL);
             }
-            _stuff->video_pos_offsets.push_back(std::numeric_limits<int64_t>::min());
+            _stuff->video_last_timestamps.push_back(std::numeric_limits<int64_t>::min());
         }
         else if (_stuff->format_ctx->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO)
         {
@@ -401,7 +404,6 @@ void decoder_ffmpeg::open(const std::string &filename)
             _stuff->audio_flush_flags.push_back(false);
             _stuff->audio_buffers.push_back(std::vector<unsigned char>());
             _stuff->audio_last_timestamps.push_back(std::numeric_limits<int64_t>::min());
-            _stuff->audio_pos_offsets.push_back(std::numeric_limits<int64_t>::min());
         }
         else
         {
@@ -460,6 +462,7 @@ int decoder_ffmpeg::video_streams() const throw ()
 void decoder_ffmpeg::activate_video_stream(int index)
 {
     _stuff->format_ctx->streams[_stuff->video_streams.at(index)]->discard = AVDISCARD_DEFAULT;
+    _stuff->have_active_audio_stream = true;
 }
 
 void decoder_ffmpeg::activate_audio_stream(int index)
@@ -614,6 +617,33 @@ bool decoder_ffmpeg::read()
     return true;
 }
 
+int64_t decoder_ffmpeg::handle_timestamp(int64_t &last_timestamp, int64_t timestamp)
+{
+    if (timestamp == std::numeric_limits<int64_t>::min())
+    {
+        timestamp = last_timestamp;
+    }
+    last_timestamp = timestamp;
+    return timestamp;
+}
+
+int64_t decoder_ffmpeg::handle_video_timestamp(int video_stream, int64_t timestamp)
+{
+    int64_t ts = handle_timestamp(_stuff->video_last_timestamps[video_stream], timestamp);
+    if (!_stuff->have_active_audio_stream || _stuff->pos == std::numeric_limits<int64_t>::min())
+    {
+        _stuff->pos = ts;
+    }
+    return ts;
+}
+
+int64_t decoder_ffmpeg::handle_audio_timestamp(int audio_stream, int64_t timestamp)
+{
+    int64_t ts = handle_timestamp(_stuff->audio_last_timestamps[audio_stream], timestamp);
+    _stuff->pos = ts;
+    return ts;
+}
+
 int64_t decoder_ffmpeg::read_video_frame(int video_stream)
 {
     if (_stuff->video_flush_flags[video_stream])
@@ -633,7 +663,7 @@ int64_t decoder_ffmpeg::read_video_frame(int video_stream)
         {
             if (!read())
             {
-                return -1;
+                return std::numeric_limits<int64_t>::min();
             }
         }
         _stuff->packets[video_stream] = _stuff->video_packet_queues[video_stream].front();
@@ -648,16 +678,7 @@ int64_t decoder_ffmpeg::read_video_frame(int video_stream)
     int64_t timestamp = _stuff->packets[video_stream].dts * 1000000
         * _stuff->format_ctx->streams[_stuff->video_streams[video_stream]]->time_base.num 
         / _stuff->format_ctx->streams[_stuff->video_streams[video_stream]]->time_base.den;
-    if (_stuff->video_pos_offsets[video_stream] == std::numeric_limits<int64_t>::min())
-    {
-        _stuff->video_pos_offsets[video_stream] = timestamp;
-    }
-    timestamp -= _stuff->video_pos_offsets[video_stream];
-    if (timestamp > _stuff->pos)
-    {
-        _stuff->pos = timestamp;
-    }
-    return timestamp;
+    return handle_video_timestamp(video_stream, timestamp);
 }
 
 void decoder_ffmpeg::release_video_frame(int /* video_stream */)
@@ -736,7 +757,7 @@ int64_t decoder_ffmpeg::read_audio_data(int audio_stream, void *buffer, size_t s
             {
                 if (!read())
                 {
-                    return -1;
+                    return std::numeric_limits<int64_t>::min();
                 }
             }
             packet = _stuff->audio_packet_queues[audio_stream].front();
@@ -780,20 +801,7 @@ int64_t decoder_ffmpeg::read_audio_data(int audio_stream, void *buffer, size_t s
         }
     }
 
-    if (timestamp != std::numeric_limits<int64_t>::min())
-    {
-        if (_stuff->audio_pos_offsets[audio_stream] == std::numeric_limits<int64_t>::min())
-        {
-            _stuff->audio_pos_offsets[audio_stream] = timestamp;
-        }
-        timestamp -= _stuff->audio_pos_offsets[audio_stream];
-        _stuff->audio_last_timestamps[audio_stream] = timestamp;
-    }
-    if (_stuff->audio_last_timestamps[audio_stream] > _stuff->pos)
-    {
-        _stuff->pos = _stuff->audio_last_timestamps[audio_stream];
-    }
-    return _stuff->audio_last_timestamps[audio_stream];
+    return handle_audio_timestamp(audio_stream, timestamp);
 }
 
 void decoder_ffmpeg::seek(int64_t dest_pos)

@@ -160,7 +160,7 @@ public:
     /* Read audio and video data */
 
     /* Read the next video frame into an internal buffer. Return its time stamp in microseconds,
-     * or a negative value on end-of-file. */
+     * or the minimum possible value on end-of-file. */
     int64_t read_video_frame();
     /* Prepare the video frame that is currently in the internal buffer. Must be called before get_video_frame(). */
     void prepare_video_frame();
@@ -172,8 +172,8 @@ public:
     void release_video_frame();
 
     /* Read the requested amount of audio data from the input. The data will be stored in an
-     * internal buffer, and a pointer to that buffer is returned in 'data'. On end-of-file, a
-     * negative value is returned. */
+     * internal buffer, and a pointer to that buffer is returned in 'data'. On end-of-file, the
+     * minimum possible value is returned. */
     int64_t read_audio_data(void **data, size_t size);
 
     /* Seek to the given position in microseconds. */

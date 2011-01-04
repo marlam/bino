@@ -217,20 +217,18 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
     else if (!_running)
     {
         // Read initial data and start output
-        if (_input->read_video_frame() < 0)
+        _next_frame_pos = _input->read_video_frame();
+        if (_next_frame_pos == std::numeric_limits<int64_t>::min())
         {
             msg::dbg("empty video input");
             notify(notification::play, true, false);
             return;
         }
-        _current_pos = 0;
-        _next_frame_pos = 0;
-        _sync_point_pos = 0;
-        _sync_point_av_offset = 0;
         if (_audio_output)
         {
             _audio_output->status(&_required_audio_data_size);
-            if (_input->read_audio_data(&_audio_data, _required_audio_data_size) < 0)
+            int64_t audio_pos = _input->read_audio_data(&_audio_data, _required_audio_data_size);
+            if (audio_pos == std::numeric_limits<int64_t>::min())
             {
                 msg::dbg("empty audio input");
                 notify(notification::play, true, false);
@@ -238,13 +236,17 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             }
             _audio_output->data(_audio_data, _required_audio_data_size);
             _sync_point_time = _audio_output->start();
+            _sync_point_pos = audio_pos;
         }
         else
         {
             _sync_point_time = timer::get_microseconds(timer::monotonic);
+            _sync_point_pos = _next_frame_pos;
         }
         _fps_mark_time = _sync_point_time;
         _frames_shown = 0;
+        _start_pos = _sync_point_pos;
+        _current_pos = _sync_point_pos;
         _running = true;
         _need_frame = false;
         _first_frame = true;
@@ -254,61 +256,56 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
     }
     else if (_seek_request != 0)
     {
-        if (_seek_request < 0 && -_seek_request > _current_pos)
+        if (_current_pos + _seek_request < _start_pos)
         {
-            _seek_request = -_current_pos;
+            _seek_request = _start_pos - _current_pos;
         }
         if (_input->duration() > 0)
         {
-            if (_seek_request > 0 && _current_pos + _seek_request >= std::max(_input->duration() - 5000000, static_cast<int64_t>(0)))
+            if (_seek_request > 0 && _current_pos + _seek_request >= std::max(_start_pos + _input->duration() - 5000000, static_cast<int64_t>(0)))
             {
-                _seek_request = std::max(_input->duration() - 5000000 - _current_pos, static_cast<int64_t>(0));
+                _seek_request = std::max(_start_pos + _input->duration() - 5000000 - _current_pos, static_cast<int64_t>(0));
             }
         }
         *seek_to = _current_pos + _seek_request;
         _seek_request = 0;
         _input->seek(*seek_to);
         _next_frame_pos = _input->read_video_frame();
-        if (_next_frame_pos < 0)
+        if (_next_frame_pos == std::numeric_limits<int64_t>::min())
         {
             msg::wrn("seeked to end of video?!");
             notify(notification::play, true, false);
             return;
         }
+        if (_audio_output)
+        {
+            _audio_output->stop();
+            _audio_output->status(&_required_audio_data_size);
+            int64_t audio_pos = _input->read_audio_data(&_audio_data, _required_audio_data_size);
+            if (audio_pos == std::numeric_limits<int64_t>::min())
+            {
+                msg::wrn("seeked to end of audio?!");
+                notify(notification::play, true, false);
+                return;
+            }
+            _audio_output->data(_audio_data, _required_audio_data_size);
+            _sync_point_time = _audio_output->start();
+            _sync_point_pos = audio_pos;
+        }
         else
         {
-            if (_audio_output)
-            {
-                _audio_output->stop();
-                _audio_output->status(&_required_audio_data_size);
-                int64_t audio_pos = _input->read_audio_data(&_audio_data, _required_audio_data_size);
-                if (audio_pos < 0)
-                {
-                    msg::wrn("seeked to end of audio?!");
-                    notify(notification::play, true, false);
-                    return;
-                }
-                _audio_output->data(_audio_data, _required_audio_data_size);
-                _sync_point_time = _audio_output->start();
-                _sync_point_pos = audio_pos;
-                _sync_point_av_offset = _next_frame_pos - audio_pos;
-            }
-            else
-            {
-                _sync_point_pos = _next_frame_pos;
-                _sync_point_time = timer::get_microseconds(timer::monotonic);
-                _sync_point_av_offset = 0;
-            }
-            _fps_mark_time = _sync_point_time;
-            _frames_shown = 0;
-            notify(notification::pos, _current_pos / 1e6f, _sync_point_pos / 1e6f);
-            _need_frame = false;
-            _current_pos = _sync_point_pos;
-            _previous_frame_dropped = false;
-            *more_steps = true;
-            *prep_frame = true;
-            return;
+            _sync_point_time = timer::get_microseconds(timer::monotonic);
+            _sync_point_pos = _next_frame_pos;
         }
+        _fps_mark_time = _sync_point_time;
+        _frames_shown = 0;
+        notify(notification::pos, _current_pos / 1e6f, _sync_point_pos / 1e6f);
+        _current_pos = _sync_point_pos;
+        _need_frame = false;
+        _previous_frame_dropped = false;
+        *more_steps = true;
+        *prep_frame = true;
+        return;
     }
     else if (_pause_request)
     {
@@ -331,7 +328,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
     else if (_need_frame)
     {
         _next_frame_pos = _input->read_video_frame();
-        if (_next_frame_pos < 0)
+        if (_next_frame_pos == std::numeric_limits<int64_t>::min())
         {
             if (_first_frame)
             {
@@ -386,7 +383,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             // Output requested audio data
             if (_required_audio_data_size > 0)
             {
-                if (_input->read_audio_data(&_audio_data, _required_audio_data_size) < 0)
+                if (_input->read_audio_data(&_audio_data, _required_audio_data_size) == std::numeric_limits<int64_t>::min())
                 {
                     msg::dbg("end of audio stream");
                     notify(notification::play, true, false);
@@ -401,7 +398,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             _current_time = timer::get_microseconds(timer::monotonic);
         }
 
-        int64_t time_to_next_frame = (_next_frame_pos - _sync_point_pos) - (_current_time - _sync_point_time) - _sync_point_av_offset;
+        int64_t time_to_next_frame = (_next_frame_pos - _sync_point_pos) - (_current_time - _sync_point_time);
         if (time_to_next_frame <= 0 || _benchmark)
         {
             // Output current video frame

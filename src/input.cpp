@@ -458,14 +458,14 @@ void input::open(std::vector<decoder *> decoders,
 int64_t input::read_video_frame()
 {
     int64_t t = _decoders.at(_video_decoders[0])->read_video_frame(_video_streams[0]);
-    if (t < 0)
+    if (t == std::numeric_limits<int64_t>::min())
     {
         return t;
     }
     if (_video_decoders[1] != -1)
     {
         int64_t t2 = _decoders.at(_video_decoders[1])->read_video_frame(_video_streams[1]);
-        if (t2 < 0)
+        if (t2 == std::numeric_limits<int64_t>::min())
         {
             return t2;
         }

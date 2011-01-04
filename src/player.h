@@ -83,9 +83,9 @@ private:
     // Audio / video timing, relative to a synchronization point.
     // The master time is the audio time, or external time if there is no audio.
     // All times are in microseconds.
+    int64_t _start_pos;                  // input position at first data
     int64_t _sync_point_pos;             // input position at last sync point
     int64_t _sync_point_time;            // master time at last sync point
-    int64_t _sync_point_av_offset;       // audio/video offset at last sync point
     int64_t _current_pos;                // current input position
     int64_t _current_time;               // current master time
     int64_t _next_frame_pos;             // presentation time of next video frame

@@ -162,7 +162,7 @@ public:
 
     /* Read a video frame into an internal buffer, and return its presentation time stamp
      * in microseconds (between 0 and video_duration(video_stream)).
-     * A negative time stamp means that the end of the stream was reached.
+     * The minimum possible time stamp means that the end of the stream was reached.
      * After reading a frame, you may call get_video_frame(), and you must call release_video_frame(). */
     virtual int64_t read_video_frame(int video_stream) = 0;
     /* Decode the video frame from the internal buffer into the frame format of the given stream.
@@ -179,7 +179,7 @@ public:
      * Return the presentation time stamp in microseconds. Beware: this is only useful
      * when starting audio playback; after that, the exact audio time should be measured
      * by the audio output because it depends on software and hardware buffering.
-     * A negative time stamp means that the end of the stream was reached. */
+     * The minimum possible time stamp means that the end of the stream was reached. */
     virtual int64_t read_audio_data(int audio_stream, void *buffer, size_t size) = 0;
 
     /* Seek to the given position in microseconds. Make sure that the position is not out
