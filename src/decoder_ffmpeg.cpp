@@ -327,7 +327,7 @@ void decoder_ffmpeg::open(const std::string &filename)
                         _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height);
                 _stuff->out_frames.push_back(avcodec_alloc_frame());
                 _stuff->buffers.push_back(static_cast<uint8_t *>(av_malloc(bufsize)));
-                if (!_stuff->frames[j] || !_stuff->out_frames[j] || !_stuff->buffers[j])
+                if (!_stuff->out_frames[j] || !_stuff->buffers[j])
                 {
                     throw exc(HERE + ": " + strerror(ENOMEM));
                 }
@@ -341,6 +341,12 @@ void decoder_ffmpeg::open(const std::string &filename)
                 {
                     throw exc(filename + " stream " + str::from(i) + ": cannot initialize conversion context");
                 }
+            }
+            else
+            {
+                _stuff->out_frames.push_back(NULL);
+                _stuff->buffers.push_back(NULL);
+                _stuff->img_conv_ctxs.push_back(NULL);
             }
             _stuff->video_pos_offsets.push_back(std::numeric_limits<int64_t>::min());
         }
