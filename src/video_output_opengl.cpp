@@ -290,21 +290,26 @@ void video_output_opengl::initialize()
         chroma_offset_y_str = "0.0";
         if (decoder::video_format_layout(_src_format) == decoder::video_layout_yuv422p)
         {
-            if (decoder::video_format_chroma_location(_src_format) != decoder::video_chroma_location_center)
+            if (decoder::video_format_chroma_location(_src_format) == decoder::video_chroma_location_left)
             {
-                chroma_offset_x_str = str::from(1.0f / static_cast<float>(_src_width));
+                chroma_offset_x_str = str::from(0.5f / static_cast<float>(_src_width / yuv_chroma_width_divisor));
+            }
+            else if (decoder::video_format_chroma_location(_src_format) == decoder::video_chroma_location_topleft)
+            {
+                chroma_offset_x_str = str::from(0.5f / static_cast<float>(_src_width / yuv_chroma_width_divisor));
+                chroma_offset_y_str = str::from(0.5f / static_cast<float>(_src_height / yuv_chroma_height_divisor));
             }
         }
         else if (decoder::video_format_layout(_src_format) == decoder::video_layout_yuv420p)
         {
             if (decoder::video_format_chroma_location(_src_format) == decoder::video_chroma_location_left)
             {
-                chroma_offset_x_str = str::from(1.0f / static_cast<float>(_src_width));
+                chroma_offset_x_str = str::from(0.5f / static_cast<float>(_src_width / yuv_chroma_width_divisor));
             }
             else if (decoder::video_format_chroma_location(_src_format) == decoder::video_chroma_location_topleft)
             {
-                chroma_offset_x_str = str::from(1.0f / static_cast<float>(_src_width));
-                chroma_offset_y_str = str::from(1.0f / static_cast<float>(_src_height));
+                chroma_offset_x_str = str::from(0.5f / static_cast<float>(_src_width / yuv_chroma_width_divisor));
+                chroma_offset_y_str = str::from(0.5f / static_cast<float>(_src_height / yuv_chroma_height_divisor));
             }
         }
     }
