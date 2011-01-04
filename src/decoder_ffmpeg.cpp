@@ -105,9 +105,9 @@ static int decoding_threads()
         {
             n = 1;
         }
-        else if (n > 64)
+        else if (n > 16)
         {
-            n = 64;
+            n = 16;
         }
     }
     return n;
