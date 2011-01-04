@@ -425,7 +425,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
                     if (_frames_shown == 100)   //show fps each 100 frames
                     {
                         int64_t now = timer::get_microseconds(timer::monotonic);
-                        msg::inf("fps: %.2f", 100.0f / (now - _fps_mark_time) / 1e6f);
+                        msg::inf("fps: %.2f", static_cast<float>(_frames_shown) / ((now - _fps_mark_time) / 1e6f));
                         _fps_mark_time = now;
                         _frames_shown = 0;
                     }
