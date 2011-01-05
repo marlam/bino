@@ -70,6 +70,12 @@ AM_CPPFLAGS += $(libglew_CFLAGS)
 bino_LDADD += $(libglew_LIBS)
 endif
 
+if W32
+bino_SOURCES += icons/appicon.ico
+.ico.o:
+	$(AM_V_GEN)echo "IDI_ICON1 ICON DISCARDABLE \"$<\"" | $(WINDRES) -o $@
+endif
+
 moc_verbose = $(moc_verbose_$(V))
 moc_verbose_ = $(moc_verbose_$(AM_DEFAULT_VERBOSITY))
 moc_verbose_0 = @echo "  MOC   " $@;

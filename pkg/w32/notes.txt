@@ -1,0 +1,18 @@
+Bino uses the following libraries:
+
+- FFmpeg for video and audio decoding: http://ffmpeg.org/
+- OpenAL Soft for audio output: http://kcat.strangesoft.net/openal.html
+- OpenGL for video output: http://www.opengl.org/
+- GLEW for OpenGL extensions: http://glew.sourceforge.net/
+- Qt for the user interface: http://qt.nokia.com/
+
+This package was produced on a GNU/Linux system using the Mingw-cross-env
+cross-compiler environment: http://www.nongnu.org/mingw-cross-env/
+
+The installer was produced using NSIS: http://nsis.sourceforge.net/
+
+The source code for Bino is available here:
+http://bino.nongnu.org/download.html
+
+Instructions to build this package from source can be found here:
+http://git.savannah.gnu.org/cgit/bino.git/plain/README.Windows

@@ -20,3 +20,19 @@ dist-hook:
 mydist:
 	umask 022; \
 	TAR_OPTIONS='--owner=0 --group=0 --numeric-owner --mode=u+rw,go+r-w' $(MAKE) dist-xz
+
+# Make a W32 installer using NSIS
+EXTRA_DIST += pkg/w32/bino.nsi pkg/w32/notes.txt
+if HAVE_MAKENSIS
+package-w32:
+	TMPDIR="`mktemp -d`" && \
+	$(MAKE) -C src install-strip prefix="$$TMPDIR" bindir="$$TMPDIR" && \
+	cp $(top_srcdir)/pkg/w32/bino.nsi "$$TMPDIR" && \
+	cp $(top_srcdir)/pkg/w32/notes.txt "$$TMPDIR" && \
+	cp $(top_srcdir)/COPYING "$$TMPDIR" && \
+	cp $(top_srcdir)/src/icons/appicon.ico "$$TMPDIR" && \
+	$(MAKENSIS) -DPACKAGE_VERSION="$(PACKAGE_VERSION)" "$$TMPDIR/bino.nsi" && \
+	cp "$$TMPDIR/bino-$(PACKAGE_VERSION)-w32.exe" . && \
+	chmod 644 bino-$(PACKAGE_VERSION)-w32.exe && \
+	rm -rf "$$TMPDIR"
+endif

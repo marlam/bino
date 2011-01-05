@@ -41,6 +41,23 @@ AC_C_BIGENDIAN
 dnl Useful definitions
 AC_DEFINE_UNQUOTED([PLATFORM], ["${target}"], [Platform triplet])
 
+dnl Special handling of W32
+case "${target}" in *-*-mingw32*) w32="yes" ;; *) w32="no " ;; esac
+if test "$w32" = "yes"; then
+    AC_CHECK_TOOL([WINDRES], [windres], [:])
+    if test "$WINDRES" = ":"; then
+        AC_MSG_ERROR([windres not found])
+    fi
+    AC_CHECK_TOOL([MAKENSIS], [makensis], [:])
+    if test "$MAKENSIS" = ":"; then
+        AC_MSG_WARN([makensis not found: you will not be able to create a W32 installer])
+    fi
+else
+    MAKENSIS=":"
+fi
+AM_CONDITIONAL([HAVE_MAKENSIS], [test "$MAKENSIS" != ":"])
+AM_CONDITIONAL([W32], [test "$w32" = "yes"])
+
 dnl Feature checks needed by the base module
 AC_CHECK_DECLS([optreset], [#include <getopt.h>])
 AC_SEARCH_LIBS([clock_gettime], [rt])
