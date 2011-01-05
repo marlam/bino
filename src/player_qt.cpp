@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
+ * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +22,7 @@
 #include "config.h"
 
 #include <QCoreApplication>
+#include <QApplication>
 #include <QMainWindow>
 #include <QGridLayout>
 #include <QCloseEvent>
@@ -613,6 +615,9 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     connect(help_about_act, SIGNAL(triggered()), this, SLOT(help_about()));
     help_menu->addAction(help_about_act);
 
+    // Handle FileOpen events
+    QApplication::instance()->installEventFilter(this);
+
     show();     // Must happen before opening initial files!
     raise();
 
@@ -909,6 +914,19 @@ void main_window::help_about()
     QMessageBox::about(this, tr("About " PACKAGE_NAME), blurb);
 }
 
+bool main_window::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::FileOpen)
+    {
+        open(QStringList(static_cast<QFileOpenEvent *>(event)->file()), true);
+        return true;
+    }
+    else
+    {
+        // pass the event on to the parent class
+        return QMainWindow::eventFilter(obj, event);
+    }
+}
 
 player_qt::player_qt() : player(player::slave)
 {
