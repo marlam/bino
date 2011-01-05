@@ -4,6 +4,7 @@
  * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
  * Stefan Eilemann <eile@eyescale.ch>
+ * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,6 +113,14 @@ int main(int argc, char *argv[])
     options.push_back(&eq_render_client);
 
     std::vector<std::string> arguments;
+#ifdef __APPLE__
+    // strip -psn* option when launching from the Finder on mac
+    if (argc > 1 && strncmp("-psn", argv[1], 4) == 0)
+    {
+        argc--;
+        argv++;
+    }
+#endif
     if (!opt::parse(argc, argv, options, 0, 3, arguments))
     {
         return 1;
