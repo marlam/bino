@@ -249,18 +249,25 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         _fps_mark_time = timer::get_microseconds(timer::monotonic);
         _frames_shown = 0;
         _running = true;
-        _need_frame = false;
-        _first_frame = true;
-        *more_steps = true;
-        *prep_frame = true;
-        return;
+        if (_input->initial_skip() > 0)
+        {
+            _seek_request = _input->initial_skip();
+        }
+        else
+        {
+            _need_frame = false;
+            _first_frame = true;
+            *more_steps = true;
+            *prep_frame = true;
+            return;
+        }
     }
-    else if (_seek_request != 0)
+    if (_seek_request != 0)
     {
         int64_t old_pos = _current_pos;
-        if (_current_pos + _seek_request < _start_pos)
+        if (_current_pos + _seek_request < _start_pos + _input->initial_skip())
         {
-            _seek_request = _start_pos - _current_pos;
+            _seek_request = _start_pos + _input->initial_skip() - _current_pos;
         }
         if (_input->duration() > 0)
         {

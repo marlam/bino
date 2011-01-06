@@ -152,6 +152,11 @@ public:
         return _audio_sample_format;
     }
 
+    int64_t initial_skip() const throw ()
+    {
+        return _initial_skip;
+    }
+
     int64_t duration() const throw ()
     {
         return _duration;
