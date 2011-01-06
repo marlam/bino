@@ -140,5 +140,6 @@ AC_CONFIG_FILES([Makefile	\
 	src/base/Makefile	\
 	src/Makefile		\
 	doc/Makefile		\
+	pkg/macosx/Info.plist	\
 	])
 AC_OUTPUT
