@@ -326,6 +326,10 @@ protected:
         s11n::save(oss, video_state.brightness);
         s11n::save(oss, video_state.hue);
         s11n::save(oss, video_state.saturation);
+        s11n::save(oss, video_state.crosstalk_r);
+        s11n::save(oss, video_state.crosstalk_g);
+        s11n::save(oss, video_state.crosstalk_b);
+        s11n::save(oss, video_state.ghostbust);
         s11n::save(oss, video_state.fullscreen);
         s11n::save(oss, video_state.swap_eyes);
         s11n::save(oss, seek_to);
@@ -344,6 +348,10 @@ protected:
         s11n::load(iss, video_state.brightness);
         s11n::load(iss, video_state.hue);
         s11n::load(iss, video_state.saturation);
+        s11n::load(iss, video_state.crosstalk_r);
+        s11n::load(iss, video_state.crosstalk_g);
+        s11n::load(iss, video_state.crosstalk_b);
+        s11n::load(iss, video_state.ghostbust);
         s11n::load(iss, video_state.fullscreen);
         s11n::load(iss, video_state.swap_eyes);
         s11n::load(iss, seek_to);
