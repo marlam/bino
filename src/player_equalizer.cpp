@@ -243,6 +243,10 @@ protected:
         s11n::save(oss, init_data.video_state.brightness);
         s11n::save(oss, init_data.video_state.hue);
         s11n::save(oss, init_data.video_state.saturation);
+        s11n::save(oss, init_data.video_state.crosstalk_r);
+        s11n::save(oss, init_data.video_state.crosstalk_g);
+        s11n::save(oss, init_data.video_state.crosstalk_b);
+        s11n::save(oss, init_data.video_state.ghostbust);
         s11n::save(oss, init_data.video_state.fullscreen);
         s11n::save(oss, init_data.video_state.swap_eyes);
         s11n::save(oss, init_data.video_flags);
@@ -273,6 +277,10 @@ protected:
         s11n::load(iss, init_data.video_state.brightness);
         s11n::load(iss, init_data.video_state.hue);
         s11n::load(iss, init_data.video_state.saturation);
+        s11n::load(iss, init_data.video_state.crosstalk_r);
+        s11n::load(iss, init_data.video_state.crosstalk_g);
+        s11n::load(iss, init_data.video_state.crosstalk_b);
+        s11n::load(iss, init_data.video_state.ghostbust);
         s11n::load(iss, init_data.video_state.fullscreen);
         s11n::load(iss, init_data.video_state.swap_eyes);
         s11n::load(iss, init_data.video_flags);
