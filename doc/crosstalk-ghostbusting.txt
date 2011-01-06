@@ -1,0 +1,43 @@
+# Copyright (C) 2011
+# Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
+# Martin Lambers <marlam@marlam.de>
+#
+# Copying and distribution of this file and the referenced image files, with or
+# without modification, are permitted in any medium without royalty provided the
+# copyright notice and this notice are preserved. These files are offered as-is,
+# without any warranty.
+
+Many stereoscopic display devices suffer from crosstalk between the left and
+right view. This results in ghosting artifacts that can degrade the viewing
+quality, depending on the video content.
+
+Bino can optionally reduce the ghosting artifacts. For this, it needs two know
+1) the amount of crosstalk of your display device and
+2) the amount of ghostbusting that is adequate for the video you want to
+watch.
+
+Please note that ghostbusting does not work with anaglyph glasses.
+
+To measure the display crosstalk, do the following:
+
+1. Display the gamma pattern image and correct the display gamma settings
+   according to the included instructions. You need to have correct gamma
+   settings before measuring crosstalk.
+   $ bino -i mono gamma-pattern.png
+
+2. Display the crosstalk pattern images and determine the crosstalk levels
+   using the included instructions.
+   $ bino crosstalk-pattern-l.png crosstalk-pattern-r.png
+
+You now have three crosstalk values (for the red, green, and blue channels) or
+alternatively one combined crosstalk value. You can now tell Bino about this
+using the --crosstalk option. For example, if you have measured 8% of
+crosstalk for red, 12% for green, and 10% for blue, use
+$ bino --crosstalk 8,12,10
+
+Once you know the crosstalk levels of your display device, you can set the
+amount of ghostbusting that Bino should apply using the --ghostbust option. This
+will vary depending on the content you want to watch. Movies with very dark
+scenes should be viewed with at least 50% ghostbusting (--ghostbust 50), whereas
+overall bright movies, where crosstalk is less disturbing, could be viewed with
+a lower level (e.g. --ghostbust 10).

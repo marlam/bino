@@ -559,8 +559,25 @@ void video_output_opengl::display(bool toggle_swap_eyes, float x, float y, float
 
     // Step 3: rendering
     glUseProgram(_render_prg);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
+    if (left != right)
+    {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
+    }
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_l"), left);
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_r"), right);
+    if (_mode != anaglyph_red_cyan_monochrome
+            && _mode != anaglyph_red_cyan_full_color
+            && _mode != anaglyph_red_cyan_half_color
+            && _mode != anaglyph_red_cyan_dubois)
+    {
+        glUniform3f(glGetUniformLocation(_render_prg, "crosstalk"),
+                _state.crosstalk_r * _state.ghostbust,
+                _state.crosstalk_g * _state.ghostbust,
+                _state.crosstalk_b * _state.ghostbust);
+    }
     if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
     {
         glUniform1i(glGetUniformLocation(_render_prg, "mask_tex"), 2);
@@ -570,25 +587,17 @@ void video_output_opengl::display(bool toggle_swap_eyes, float x, float y, float
 
     if (_mode == stereo)
     {
-        glActiveTexture(GL_TEXTURE0);
+        glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
         glDrawBuffer(GL_BACK_LEFT);
-        glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
         draw_quad(x, y, w, h);
+        glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
         glDrawBuffer(GL_BACK_RIGHT);
-        glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
         draw_quad(x, y, w, h);
     }
     else if (_mode == even_odd_rows || _mode == even_odd_columns || _mode == checkerboard)
     {
         float vpw = static_cast<float>(viewport[2]);
         float vph = static_cast<float>(viewport[3]);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
-        if (left != right)
-        {
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
-        }
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, _mask_tex);
         glBegin(GL_QUADS);
@@ -611,43 +620,30 @@ void video_output_opengl::display(bool toggle_swap_eyes, float x, float y, float
             || _mode == anaglyph_red_cyan_half_color
             || _mode == anaglyph_red_cyan_dubois)
     {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
-        if (left != right)
-        {
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
-        }
         draw_quad(x, y, w, h);
     }
     else if (_mode == mono_left)
     {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
+        glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
         draw_quad(x, y, w, h);
     }
     else if (_mode == mono_right)
     {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
+        glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
         draw_quad(x, y, w, h);
     }
     else if (_mode == left_right || _mode == left_right_half)
     {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
+        glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
         draw_quad(-1.0f, -1.0f, 1.0f, 2.0f);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
+        glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
         draw_quad(0.0f, -1.0f, 1.0f, 2.0f);
     }
     else if (_mode == top_bottom || _mode == top_bottom_half)
     {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _srgb_tex[left]);
+        glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
         draw_quad(-1.0f, 0.0f, 2.0f, 1.0f);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _srgb_tex[right]);
+        glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
         draw_quad(-1.0f, -1.0f, 2.0f, 1.0f);
     }
 }

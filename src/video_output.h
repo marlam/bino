@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
+ * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +37,10 @@ public:
     float brightness;   // -1 .. +1
     float hue;          // -1 .. +1
     float saturation;   // -1 .. +1
+    float crosstalk_r;  // 0 .. 1
+    float crosstalk_g;  // 0 .. 1
+    float crosstalk_b;  // 0 .. 1
+    float ghostbust;    // 0 .. 1
     bool fullscreen;
     bool swap_eyes;
 

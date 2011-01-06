@@ -2,6 +2,7 @@
 .\"
 .\" Copyright (C) 2010-2011
 .\" Martin Lambers <marlam@marlam.de>
+.\" Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
 .\"
 .\" Copying and distribution of this file, with or without modification, are
 .\" permitted in any medium without royalty provided the copyright notice and this
@@ -126,6 +127,11 @@ otherwise \fIanaglyph\fP. The default for mono input is \fImono\-left\fP.
 Fullscreen
 .IP "\-c|\-\-center"
 Center window on screen
+.IP "\-C|\-\-crosstalk=\fIVAL\fP"
+Crosstalk leak level in % (0 to 100). \fIVAL\fP may be one value or
+comma-separated R,G,B values.
+.IP "\-G|\-\-ghostbust=\fIVAL\fP"
+Amount of ghostbusting to apply, in % (0 to 100).
 .IP "\-b|\-\-benchmark"
 Benchmark mode: no audio, no time synchronization, output of frames-per-second
 measurements.
