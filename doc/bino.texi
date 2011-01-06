@@ -1,0 +1,644 @@
+\input texinfo   @c -*-texinfo-*-
+@afourpaper
+@setfilename bino.info
+@documentencoding UTF-8
+@include version.texi
+@settitle Bino @value{VERSION}
+
+@finalout
+@copying
+This manual was last updated @value{UPDATED} for version
+@value{VERSION} of Bino.
+
+Copyright @copyright{} 2011
+Martin Lambers (@email{marlam@@marlam.de}),
+Stefan Eilemann (@email{eile@@eyescale.ch}),
+Frédéric Devernay (@email{Frederic.Devernay@@inrialpes.fr})
+
+@quotation
+Copying and distribution of this file and the referenced image files, with or
+without modification, are permitted in any medium without royalty provided the
+copyright notice and this notice are preserved. These files are offered as-is,
+without any warranty.
+@end quotation
+@end copying
+
+@dircategory Individual utilities
+@direntry
+* bino: (bino).         A 3D video player with multi-display support.
+@end direntry
+
+@titlepage
+@title Bino
+@subtitle A 3D video player with multi-display support.
+@subtitle Version @value{VERSION}, @value{UPDATED}
+@author The Bino developers
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top Bino
+@insertcopying
+@end ifnottex
+
+@menu
+* Overview::
+* Invocation::
+* Input Layouts::
+* Output Techniques::
+* File Name Conventions::
+* Interactive Control::
+* Crosstalk Ghostbusting::
+* Multi Display Support::
+@end menu
+
+@node Overview
+@chapter Overview
+
+Bino is a 3D video player with multi-display support.
+
+3D videos are more accurately called stereoscopic videos. Such videos have
+separate views for the left and right eye and thus allow depth perception
+through stereopsis.
+
+The input streams (one or two video streams, zero or one audio streams)
+can be in one, two, or three input files. The files are decoded with the
+@url{http://ffmpeg.org/,FFmpeg} libraries, so URLs are supported.
+
+Bino supports a wide variety of stereoscopic input layouts and display
+techniques.
+
+@node Invocation
+@chapter Invocation
+
+Synopsis:
+@code{bino [@var{option}@dots{}] [@var{file-0}] [@var{file-1}] [@var{file-2}]}
+
+If input files are given on the command line, Bino immediately starts playing
+them. Otherwise, it starts in GUI mode.
+
+@table @samp
+@item --help
+Print help.
+@item --version
+Print version.
+@item -g
+@itemx --gui
+Show the GUI even if input files are given on the command line.
+@item -l
+@itemx --log-level=@var{LEVEL}
+Select log level: @var{debug}, @var{info}, @var{warning}, @var{error}, or
+@var{quiet}.
+@item -i
+@itemx --input=@var{TYPE}
+Select input type. @xref{Input Layouts}.
+@item -s
+@itemx --swap-eyes
+Swap left/right view.
+@item -o
+@itemx --output=@var{TYPE}
+Select output type. @xref{Output Techniques}.
+@item -f
+@itemx --fullscreen
+Fullscreen.
+@item -c
+@itemx --center
+Center window on screen.
+@item -C
+@itemx --crosstalk=@var{VAL}
+Crosstalk leak level in % (0 to 100). @var{VAL} may be one value or
+comma-separated R,G,B values.
+@item -G
+@itemx --ghostbust=@var{VAL}
+Amount of ghostbusting to apply, in % (0 to 100).
+@item -b
+@itemx --benchmark
+Benchmark mode: no audio, no time synchronization, output of frames-per-second
+measurements.
+@end table
+
+@node Input Layouts
+@chapter Input Layouts
+
+Bino supports the following stereoscopic input layouts:
+@table @var
+@item @var{mono}
+Single view (2D).
+@item @var{separate}
+Left/right view in separate streams.
+@item @var{top-bottom}
+Left view top, right view bottom.
+@item @var{top-bottom-half}
+Left view top, right view bottom, half height.
+@item @var{left-right}
+Left view left, right view right.
+@item @var{left-right-half}
+Left view left, right view right, half width.
+@item @var{even-odd-rows}
+Left view even rows, right view odd rows.
+@end table
+
+The default is to autodetect the input type from meta data stored in the file.
+If this fails, Bino tries to autodetect the input type based on the file name.
+@xref{File Name Conventions}.  If that fails, too, Bino guesses based on the
+resolution of the input.
+
+@node Output Techniques
+@chapter Output Techniques
+
+Bino supports the following stereoscopic display techniques:
+@table @var
+@item @var{mono-left}
+Left view only.
+@item @var{mono-right}
+Right view only.
+@item @var{top-bottom}
+Left view top, right view bottom.
+@item @var{top-bottom-half}
+Left view top, right view bottom, half height.
+@item @var{left-right}
+Left view left, right view right.
+@item @var{left-right-half}
+Left view left, right view right, half width.
+@item @var{even-odd-rows}
+Left view even rows, right view odd rows.
+@item @var{even-odd-columns}
+Left view even columns, right view odd columns.
+@item @var{checkerboard}
+Left and right view in checkerboard pattern.
+@item @var{anaglyph}
+Red/cyan anaglyph, default method, same as @var{anaglyph-dubois}.
+@item @var{anaglyph-monochrome}
+Red/cyan anaglyph, monochrome method.
+@item @var{anaglyph-full-color}
+Red/cyan anaglyph, full color method.
+@item @var{anaglyph-half-color}
+Red/cyan anaglyph, half color method.
+@item @var{anaglyph-dubois}
+Red/cyan anaglyph, high-quality Dubois method.
+@item @var{stereo}
+OpenGL quad-buffer stereo.
+@item @var{equalizer}
+Multi-display OpenGL via Equalizer with a 2D canvas setup.
+@item @var{equalizer-3d}
+Multi-display OpenGL via Equalizer with a 3D screen setup.
+@end table
+
+For stereo input, the default is @var{stereo} if the display supports it,
+otherwise @var{anaglyph}. The default for mono input is @var{mono-left}.
+
+@node File Name Conventions
+@chapter File Name Conventions
+
+If the meta data stored in a file does not indicate its stereoscopic layout,
+Bino tries to guess it by looking at the last part of the file name before
+the file name extension (@file{.ext}).
+
+The following file name forms are recognized:
+@table @file
+@item @file{*-lr.ext}
+@var{left-right}
+@item @file{*-lrh.ext}
+@itemx @file{*-lrq.ext}
+@var{left-right-half}
+@item @file{*-rl.ext}
+@var{left-right swapped}
+@item @file{*-rlh.ext}
+@itemx @file{*-rlq.ext}
+@var{left-right-half swapped}
+@item @file{*-tb.ext}
+@itemx @file{*-ab.ext}
+@var{top-bottom}
+@item @file{*-tbh.ext}
+@itemx @file{*-abq.ext}
+@var{top-bottom-half}
+@item @file{*-bt.ext}
+@itemx @file{*-ba.ext}
+@var{top-bottom swapped}
+@item @file{*-bth.ext}
+@itemx @file{*-baq.ext}
+@var{top-bottom-half swapped}
+@item @file{*-eo.ext}
+@itemx @file{*-eoq.ext}
+@itemx @file{*-3dir.ext}
+@var{even-odd-rows}
+@item @file{*-oe.ext}
+@itemx @file{*-oeq.ext}
+@itemx @file{*-3di.ext}
+@var{even-odd-rows swapped}
+@item @file{*-2d.ext}
+@var{mono}
+@end table
+
+@node Interactive Control
+@chapter Interactive Control
+
+Bino reacts on a number of keyboard shortcuts during playback.
+
+In GUI mode, make sure that the video area has the keyboard focus before using
+these shortcuts.
+
+The following shortcuts are recognized:
+@table @kbd
+@item @kbd{q}
+@itemx @kbd{ESC}
+Quit.
+@item @kbd{p}
+@itemx @kbd{SPACE}
+Pause / unpause.
+@item @kbd{f}
+Toggle fullscreen.
+@item @kbd{c}
+Center window.
+@item @kbd{s}
+Swap left/right view.
+@item @kbd{1}
+@itemx @kbd{2}
+Adjust contrast.
+@item @kbd{3}
+@itemx @kbd{4}
+Adjust brightness.
+@item @kbd{5}
+@itemx @kbd{6}
+Adjust hue.
+@item @kbd{7}
+@itemx @kbd{8}
+Adjust saturation.
+@item @kbd{LEFT}
+@itemx @kbd{RIGHT}
+Seek 10 seconds backward / forward.
+@item @kbd{UP}
+@itemx @kbd{DOWN}
+Seek 1 minute backward / forward.
+@item @kbd{PAGE UP}
+@itemx @kbd{PAGE DOWN}
+Seek 10 minutes backward / forward.
+@end table
+
+@node Crosstalk Ghostbusting
+@chapter Crosstalk Ghostbusting
+
+Many stereoscopic display devices suffer from crosstalk between the left and
+right view. This results in ghosting artifacts that can degrade the viewing
+quality, depending on the video content.
+
+Bino can optionally reduce the ghosting artifacts. For this, it needs two know
+@enumerate
+@item the amount of crosstalk of your display device and
+@item the amount of ghostbusting that is adequate for the video you want to
+watch.
+@end enumerate
+
+Please note that ghostbusting does not work with anaglyph glasses.
+
+To measure the display crosstalk, do the following:
+
+@enumerate
+@item Display the @uref{gamma-pattern-tb.png,@code{gamma-pattern-tb.png}} image
+and correct the display gamma settings according to the included instructions.
+You need to have correct gamma settings before measuring crosstalk.
+@item Display the
+@uref{crosstalk-pattern-tb.png,@code{crosstalk-pattern-tb.png}} image and
+determine the crosstalk levels using the included instructions.
+@end enumerate
+
+You now have three crosstalk values (for the red, green, and blue channels) or
+alternatively one combined crosstalk value. You can now tell Bino about this
+using the @option{--crosstalk} option. For example, if you have measured 8% of
+crosstalk for red, 12% for green, and 10% for blue, use
+@example
+$ bino --crosstalk 8,12,10
+@end example
+
+Once you know the crosstalk levels of your display device, you can set the
+amount of ghostbusting that Bino should apply using the @option{--ghostbust}
+option. This will vary depending on the content you want to watch. Movies with
+very dark scenes should be viewed with at least 50% ghostbusting
+(@option{--ghostbust 50}), whereas overall bright movies, where crosstalk is
+less disturbing, could be viewed with a lower level (e.g. @option{--ghostbust}
+10).
+
+To check if you crosstalk calibration is correct, display the crosstalk patterns
+with full ghostbusting, like this:
+@example
+$ bino --crosstalk 8,12,10 --ghostbust 100 crosstalk-pattern-tb.png
+@end example
+The remaining crosstalk should optimally be 0%.
+
+@node Multi Display Support
+@chapter Multi Display Support
+
+Bino supports multi-display output via the Equalizer framework.
+
+This is how it works:
+
+@section Building Bino with Equalizer Support
+
+First, install Equalizer 0.9.1. See @url{http://www.equalizergraphics.com/}.
+Verify that it works by running the included eqHello example.
+
+Then, build Bino with Equalizer support. You have to use the
+@option{--with-equalizer} configure option and additionally tell the configure
+script where to find Equalizer, since version 0.9.1 cannot be detected
+automatically yet:
+
+@example
+$ ./configure --with-equalizer \
+  libEqualizer_CFLAGS="-I/path/to/equalizer/include" \
+  libEqualizer_LIBS="-L/path/to/equalizer/lib -leq"
+@end example
+
+Now you need an Equalizer configuration file for your display setup.
+
+@section Configuring Equalizer and Starting Bino
+
+Bino needs a two-dimensional Equalizer canvas (= combined screen area),
+subdivided into segments (= single display areas). For example, if you have
+two projectors that project onto a 2m x 1m screen side-by-side, then your
+canvas is 2m x 1m large, and you have two segments: the first segment fills
+the left half of the canvas, and the second segment fills the right half.
+
+Next, Equalizer needs to know how to render into each segment. For this
+purpose, you define several hierarchical objects: nodes (= processes, possibly
+on different systems), pipes (= graphics cards), windows (= output windows
+with OpenGL contexts), and channels (= parts of windows). The video output
+happens at the channel level: each channel is assigned to one segment of the
+canvas. Most probably you just have one fullscreen window per pipe, and a
+single output channel per window.
+
+Note that one node is special: the application node, which is the node that
+you initially start (the other nodes are started automatically by Equalizer).
+The application node is called 'appNode' in the Equalizer configuration, and
+Bino will play audio only on the application node. All video output is then
+synchronized to this audio output.
+
+Once you have your configuration file (examples are given below), you can
+check if it works correctly using the @command{eqHello} example:
+@example
+$ eqHello --eq-config configuration.eqc
+@end example
+
+Once you made sure that this works, you can start Bino using this command:
+@example
+$ bino -o equalizer --eq-config configuration.eqc video.mp4
+@end example
+
+Note that all your nodes need access to the video file using the same name, so
+a shared filesystem is helpful if you use multiple systems.
+
+To play live video from a webcam or TV card, you can set up a streaming server
+using ffserver (part of FFmpeg) or vlc, and then give the appropriate URL to
+Bino. You can use multicast to stream the video to multiple systems
+efficiently.
+
+The output mode @option{-o equalizer-3d} allows to configure non-planar projections.
+Bino projects the video onto a virtual screen in 3D space. The screen is
+located in the distance of the biggest front-facing segment, and sized to fill
+the wall optimally. By configuring the output segments accordingly, various
+advanced display configurations can be used, e.g. displays rotated around the
+Z axis by an arbitrary angle or non-planar screens.
+
+@section Example Configurations
+
+@subsection Simple 2D video output
+
+In this example, you have a 2m x 1m screen and two projectors: one for the
+left half of the screen, and one for the right half. The two projectors are
+connected to two graphics cards on the same system.
+
+In this situation, you have one node with two pipes, and each pipe has a
+fullscreen window with a single output channel. The first output channel is
+assigned to the left segment, and the second output channel is assigned to the
+right channel. The resulting configuration looks like this:
+
+@example
+@verbatim
+server
+{
+    config
+    {
+        appNode
+        {
+            pipe { device 0 window { attributes { hint_fullscreen ON } channel { name "left" }}}
+            pipe { device 1 window { attributes { hint_fullscreen ON } channel { name "right" }}}
+        }
+        observer {}
+        layout { view { observer 0 }}
+        canvas
+        {
+            layout 0
+            wall
+            {
+                bottom_left  [ 0.0  0.0 -1 ]
+                bottom_right [ 2.0  0.0 -1 ]
+                top_left     [ 0.0  1.0 -1 ]
+            }
+            segment { channel "left" viewport [ 0.0 0.0 0.5 1.0 ] }
+            segment { channel "right" viewport [ 0.5 0.0 0.5 1.0 ] }
+        }
+        compound
+        {
+            compound { channel ( view 0 segment 0 ) swapbarrier {} }
+            compound { channel ( view 0 segment 1 ) swapbarrier {} }
+        }
+    }
+}
+@end verbatim
+@end example
+
+@subsection 3D video output across multiple systems
+
+In the following example, you have a 4m x 3m screen for 3D projection via
+passive stereo (e.g. polarization). You have two systems, "render1" and
+"render2", each equipped with two graphics cards. The two cards on "render1"
+generate two images for the left half of the screen: one for the left eye view
+and one for the right eye view. The two cards on "render2" generate left and
+right view for the right half of the screen. Additionally, you have a system
+called "master" which has a sound card and should display a small control
+window.
+
+This setup is very similar to the situation shown in
+@uref{multi-display-vrlab.jpg,@code{multi-display-vrlab.jpg}}.
+
+The configuration looks like this:
+
+@example
+@verbatim
+server
+{
+    connection { hostname "master" }
+    config
+    {
+        appNode
+        {
+            connection { hostname "master" }
+            pipe { window { viewport [ 100 100 400 300 ] channel { name "control" }}}
+        }
+        node
+        {
+            connection { hostname "render1" }
+            pipe { device 0 window { attributes { hint_fullscreen ON } channel { name "render1left" }}}
+            pipe { device 1 window { attributes { hint_fullscreen ON } channel { name "render1right" }}}
+        }
+        node
+        {
+            connection { hostname "render2" }
+            pipe { device 0 window { attributes { hint_fullscreen ON } channel { name "render2left" }}}
+            pipe { device 1 window { attributes { hint_fullscreen ON } channel { name "render2right" }}}
+        }
+        observer {}
+        layout { view { observer 0 }}
+        canvas
+        {
+            layout 0
+            wall
+            {
+                bottom_left  [ 0.0 0.0 -1 ]
+                bottom_right [ 4.0 0.0 -1 ]
+                top_left     [ 0.0 3.0 -1 ]
+            }
+            segment { channel "render1left"  viewport [ 0.0 0.0 0.5 1.0 ] }
+            segment { channel "render1right" viewport [ 0.0 0.0 0.5 1.0 ] }
+            segment { channel "render2left"  viewport [ 0.5 0.0 0.5 1.0 ] }
+            segment { channel "render2right" viewport [ 0.5 0.0 0.5 1.0 ] }
+            segment { channel "control"      viewport [ 0.0 0.0 1.0 1.0 ] }
+        }
+        compound
+        {
+            compound { eye [ LEFT  ] channel ( view 0 segment 0 ) swapbarrier {} }
+            compound { eye [ RIGHT ] channel ( view 0 segment 1 ) swapbarrier {} }
+            compound { eye [ LEFT  ] channel ( view 0 segment 2 ) swapbarrier {} }
+            compound { eye [ RIGHT ] channel ( view 0 segment 3 ) swapbarrier {} }
+            compound {               channel ( view 0 segment 4 ) swapbarrier {} }
+        }
+    }
+}
+@end verbatim
+@end example
+
+@subsection Non-planar Displays
+
+The @option{-o equalizer-3d} mode allows to set up arbitrary-oriented screens
+using either the wall-based or projection-based 3D frustum descriptions.
+
+In this example we set up two 16:10 displays side-by-side which have been
+rotated around their Z axis by 1.3 degrees radians (~74 degrees).  The image
+@uref{multi-display-rotated.jpg,@code{multi-display-rotated.jpg}} illustrates
+this setup. Other setups include distortion-correct projection for curved
+screens, or arbitrarily-placed screens in a 3D space.
+
+First, we rotate a normally-aligned screen by 1.3 degrees and output the
+result:
+
+@example
+eq::Matrix4f matrix(eq::Matrix4f::IDENTITY);
+matrix.rotate(1.3f, eq::Vector3f::FORWARD);
+wall.bottomLeft = matrix * wall.bottomLeft;
+wall.bottomRight = matrix * wall.bottomRight;
+wall.topLeft = matrix * wall.topLeft;
+std::cout << wall << std::endl;
+@end example
+
+yields a rotated screen centered on the origin:
+
+@example
+bottom_left  [   -0.69578     0.6371         -1 ]
+bottom_right [   -0.26778    -0.9046         -1 ]
+top_left     [    0.26778     0.9046         -1 ]
+@end example
+
+This screen has to be moved along the X-axis for the left and right screen by
+0.5195m, which places the edges of the screen on the origin. The resulting
+wall descriptions are used for the left and right segment, as shown in the
+configuration below.
+
+The configuration references two GPUs full-screen output. By changing the node
+resource section, the outputs may be mapped to two computers. When disabling
+the fullscreen mode and setting 'device 0' for the second pipe, two windows
+simulate this setup on a single machine.
+
+@example
+@verbatim
+global
+{
+    EQ_WINDOW_IATTR_HINT_FULLSCREEN ON
+}
+
+server
+{
+    config
+    {
+        appNode
+        {
+            pipe
+            {
+                device 0
+                window
+                {
+                    viewport [ .215 .5 .4 .4 ]
+                    channel { name "channel1" }
+                }
+            }
+            pipe
+            {
+                device 1
+                window
+                {
+                    viewport [ .285 .1 .4 .4 ]
+                    attributes{ hint_drawable window }
+                    channel { name "channel2" }
+                }
+            }
+        }
+
+        layout { view{ }}
+        canvas
+        {
+            layout   0
+
+            segment
+            {
+                channel  "channel1"
+                wall
+                {
+                    bottom_left  [   -1.21528     0.6371         -1 ]
+                    bottom_right [   -0.78728    -0.9046         -1 ]
+                    top_left     [   -0.25172     0.9046         -1 ]
+                }
+            }
+            segment
+            {
+                channel  "channel2"
+                wall
+                {
+                    bottom_left  [   -0.17628     0.6371         -1 ]
+                    bottom_right [    0.25172    -0.9046         -1 ]
+                    top_left     [    0.78728     0.9046         -1 ]
+                }
+            }
+        }
+
+        compound
+        {
+            compound
+            {
+                channel ( segment 0 )
+                swapbarrier{}
+            }
+            compound
+            {
+                channel ( segment 1 )
+                swapbarrier{}
+            }
+        }
+    }
+}
+@end verbatim
+@end example
+
+@bye

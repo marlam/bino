@@ -1,9 +1,17 @@
 man_MANS = bino.1
-EXTRA_DIST = $(man_MANS)
-dist_doc_DATA = multi-display.txt \
+
+info_TEXINFOS = bino.texi
+
+IMAGES = \
 	multi-display-vrlab.jpg \
 	multi-display-rotated.jpg \
-	crosstalk-ghostbusting.txt \
-	gamma-pattern.png \
-	crosstalk-pattern-l.png \
-	crosstalk-pattern-r.png
+	gamma-pattern-tb.png \
+	crosstalk-pattern-tb.png
+
+bino_TEXINFOS = bino.texi $(IMAGES)
+
+AM_MAKEINFOHTMLFLAGS = --no-split
+
+dist_doc_DATA = bino.html $(IMAGES)
+
+EXTRA_DIST = $(man_MANS)
