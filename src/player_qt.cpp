@@ -40,6 +40,8 @@
 #include <QFile>
 #include <QByteArray>
 #include <QCryptographicHash>
+#include <QUrl>
+#include <QDesktopServices>
 
 #include "player_qt.h"
 #include "qt_app.h"
@@ -607,8 +609,11 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     connect(file_quit_act, SIGNAL(triggered()), this, SLOT(close()));
     file_menu->addAction(file_quit_act);
     QMenu *help_menu = menuBar()->addMenu(tr("&Help"));
+    QAction *help_manual_act = new QAction(tr("&Manual"), this);
+    help_manual_act->setShortcut(QKeySequence::HelpContents);
+    connect(help_manual_act, SIGNAL(triggered()), this, SLOT(help_manual()));
+    help_menu->addAction(help_manual_act);
     QAction *help_keyboard_act = new QAction(tr("&Keyboard Shortcuts"), this);
-    help_keyboard_act->setShortcut(QKeySequence::HelpContents);
     connect(help_keyboard_act, SIGNAL(triggered()), this, SLOT(help_keyboard()));
     help_menu->addAction(help_keyboard_act);
     QAction *help_about_act = new QAction(tr("&About"), this);
@@ -865,6 +870,16 @@ void main_window::file_open_url()
     {
         QString url = url_edit->text();
         open(QStringList(url), true);
+    }
+}
+
+void main_window::help_manual()
+{
+    QUrl manual_url;
+    manual_url = QUrl::fromLocalFile(DOCDIR "/bino.html");
+    if (!QDesktopServices::openUrl(manual_url))
+    {
+        QMessageBox::critical(this, "Error", "Cannot open manual");
     }
 }
 

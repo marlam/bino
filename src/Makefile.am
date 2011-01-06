@@ -53,6 +53,8 @@ BUILT_SOURCES = $(nodist_bino_SOURCES)
 
 CLEANFILES = $(BUILT_SOURCES)
 
+DEFS += -DDOCDIR=\"$(docdir)\"
+
 AM_CPPFLAGS = -I$(top_srcdir)/src/base \
 	$(libavformat_CFLAGS) $(libswscale_CFLAGS) \
 	$(libopenal_CFLAGS) $(libglew_CFLAGS) $(libqtopengl_CFLAGS)

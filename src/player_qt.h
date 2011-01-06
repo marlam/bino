@@ -147,6 +147,7 @@ private slots:
     void playloop_step();
     void file_open();
     void file_open_url();
+    void help_manual();
     void help_keyboard();
     void help_about();
 
