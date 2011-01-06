@@ -55,6 +55,12 @@ Section "Bino Program" SecTools
 
   SetOutPath $INSTDIR\bin
   FILE bino.exe
+  SetOutPath $INSTDIR\doc
+  FILE bino.html
+  FILE multi-display-vrlab.jpg
+  FILE multi-display-rotated.jpg
+  FILE gamma-pattern-tb.png
+  FILE crosstalk-pattern-tb.png
   
 SectionEnd
 
@@ -85,8 +91,9 @@ Section
 ;Create shortcuts
   CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
   CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Bino.lnk" "$INSTDIR\bin\bino.exe"
-  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
+  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\bino.html"
   WriteINIStr "$SMPROGRAMS\$STARTMENU_FOLDER\Website.url" "InternetShortcut" "URL" "http://bino.nongnu.org/"
+  CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
 !insertmacro MUI_STARTMENU_WRITE_END
 
 SectionEnd
@@ -111,11 +118,18 @@ Section "Uninstall"
   ; Remove files
   Delete $INSTDIR\bin\bino.exe
   RMDir $INSTDIR\bin
+  Delete $INSTDIR\doc\bino.html
+  Delete $INSTDIR\doc\multi-display-vrlab.jpg
+  Delete $INSTDIR\doc\multi-display-rotated.jpg
+  Delete $INSTDIR\doc\gamma-pattern-tb.png
+  Delete $INSTDIR\doc\crosstalk-pattern-tb.png
+  RMDir $INSTDIR\doc
   ; Remove uninstaller
   Delete $INSTDIR\uninstall.exe
   ; Remove shortcuts, if any
   !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
   Delete "$SMPROGRAMS\$MUI_TEMP\Bino.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\Manual.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Website.url"
   Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
   ;Delete empty start menu parent diretories

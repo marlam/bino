@@ -27,7 +27,7 @@ EXTRA_DIST += pkg/w32/bino.nsi pkg/w32/notes.txt
 if HAVE_MAKENSIS
 package-w32:
 	TMPDIR="`mktemp -d`" && \
-	$(MAKE) -C src install-strip prefix="$$TMPDIR" bindir="$$TMPDIR" && \
+	$(MAKE) install-strip prefix="$$TMPDIR" bindir="$$TMPDIR" docdir="$$TMPDIR" && \
 	cp $(top_srcdir)/pkg/w32/bino.nsi "$$TMPDIR" && \
 	cp $(top_srcdir)/pkg/w32/notes.txt "$$TMPDIR" && \
 	cp $(top_srcdir)/COPYING "$$TMPDIR" && \
