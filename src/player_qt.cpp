@@ -779,6 +779,13 @@ void main_window::receive_notification(const notification &note)
             _player->close();
         }
     }
+    else if (note.type == notification::swap_eyes)
+    {
+        _init_data.video_state.swap_eyes = note.current.flag;
+        _settings->beginGroup("Video");
+        _settings->setValue(current_file_hash() + "-swap-eyes", QVariant(_init_data.video_state.swap_eyes).toString());
+        _settings->endGroup();
+    }
     else if (note.type == notification::ghostbust)
     {
         _init_data.video_state.ghostbust = note.current.value;
@@ -853,6 +860,7 @@ void main_window::open(QStringList filenames, bool automatic)
         {
             _init_data.input_mode = _player->input_mode();
         }
+        _init_data.video_state.swap_eyes = QVariant(_settings->value(current_file_hash() + "-swap-eyes", QString("false")).toString()).toBool();
         _init_data.video_state.ghostbust = QVariant(_settings->value(current_file_hash() + "-ghostbust", QString("0")).toString()).toFloat();
         _settings->endGroup();
         _settings->beginGroup("Session");
