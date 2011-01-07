@@ -37,7 +37,10 @@
 
 
 player_init_data::player_init_data()
-    : log_level(msg::INF), benchmark(false), filenames(),
+    : log_level(msg::INF),
+    benchmark(false),
+    filenames(),
+    audio_stream(0),
     input_mode(input::automatic),
     video_mode(video_output::stereo),
     video_state(),
@@ -108,12 +111,13 @@ void player::create_decoders(const std::vector<std::string> &filenames)
     }
 }
 
-void player::create_input(enum input::mode input_mode)
+void player::create_input(enum input::mode input_mode, int selected_audio_stream)
 {
     int video_decoder[2] = { -1, -1 };
     int video_stream[2] = { -1, -1 };
     int audio_decoder = -1;
     int audio_stream = -1;
+    int skip_audio_streams = selected_audio_stream;
     for (size_t i = 0; i < _decoders.size(); i++)
     {
         for (int j = 0; j < _decoders[i]->video_streams(); j++)
@@ -139,12 +143,21 @@ void player::create_input(enum input::mode input_mode)
             {
                 continue;
             }
+            else if (skip_audio_streams > 0)
+            {
+                skip_audio_streams--;
+                continue;
+            }
             else
             {
                 audio_decoder = i;
                 audio_stream = j;
             }
         }
+    }
+    if (selected_audio_stream > 0 && audio_stream == -1)
+    {
+        throw exc(str::asprintf("audio stream %d not found", selected_audio_stream + 1));
     }
     _input = new input();
     _input->open(_decoders,
@@ -478,7 +491,7 @@ void player::open(const player_init_data &init_data)
     set_benchmark(init_data.benchmark);
     reset_playstate();
     create_decoders(init_data.filenames);
-    create_input(init_data.input_mode);
+    create_input(init_data.input_mode, init_data.audio_stream);
     create_audio_output();
     create_video_output();
     _video_state = init_data.video_state;

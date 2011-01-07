@@ -86,7 +86,7 @@ public:
             set_benchmark(init_data.benchmark);
             reset_playstate();
             create_decoders(init_data.filenames);
-            create_input(init_data.input_mode);
+            create_input(init_data.input_mode, init_data.audio_stream);
             *src_width = get_input()->video_width();
             *src_height = get_input()->video_height();
             *src_aspect_ratio = get_input()->video_aspect_ratio();
@@ -237,6 +237,7 @@ protected:
         s11n::save(oss, frame_data_id);
         s11n::save(oss, static_cast<int>(init_data.log_level));
         s11n::save(oss, init_data.filenames);
+        s11n::save(oss, init_data.audio_stream);
         s11n::save(oss, static_cast<int>(init_data.input_mode));
         s11n::save(oss, static_cast<int>(init_data.video_mode));
         s11n::save(oss, init_data.video_state.contrast);
@@ -270,6 +271,7 @@ protected:
         s11n::load(iss, x);
         init_data.log_level = static_cast<msg::level_t>(x);
         s11n::load(iss, init_data.filenames);
+        s11n::load(iss, init_data.audio_stream);
         s11n::load(iss, x);
         init_data.input_mode = static_cast<enum input::mode>(x);
         s11n::load(iss, x);

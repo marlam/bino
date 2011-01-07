@@ -39,6 +39,7 @@ public:
     msg::level_t log_level;
     bool benchmark;
     std::vector<std::string> filenames;
+    int audio_stream;
     enum input::mode input_mode;
     enum video_output::mode video_mode;
     video_output_state video_state;
@@ -101,7 +102,7 @@ protected:
     }
     void reset_playstate();
     void create_decoders(const std::vector<std::string> &filenames);
-    void create_input(enum input::mode input_mode);
+    void create_input(enum input::mode input_mode, int audio_stream);
     void create_audio_output();
     void create_video_output();
     void set_video_output(video_output *vo)

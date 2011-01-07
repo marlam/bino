@@ -72,6 +72,8 @@ int main(int argc, char *argv[])
     input_modes.push_back("even-odd-rows");
     opt::val<std::string> input_mode("input", 'i', opt::optional, input_modes, "");
     options.push_back(&input_mode);
+    opt::val<int> audio("audio", 'a', opt::optional, 1, 999, 1);
+    options.push_back(&audio);
     std::vector<std::string> video_output_modes;
     video_output_modes.push_back("mono-left");
     video_output_modes.push_back("mono-right");
@@ -158,6 +160,7 @@ int main(int argc, char *argv[])
                 "  --version            Print version\n"
                 "  -g|--gui             Show the GUI (default if no files are given)\n"
                 "  -l|--log-level=LEVEL Set log level (debug, info, warning, error, quiet)\n"
+                "  -a|--audio=STREAM    Select audio stream (1-n, depending on the input)\n"
                 "  -i|--input=TYPE      Select input type (default autodetect):\n"
                 "    mono                 Single view\n"
                 "    separate             Left/right view in separate streams\n"
@@ -267,6 +270,7 @@ int main(int argc, char *argv[])
         init_data.log_level = msg::REQ;
     }
     init_data.filenames = arguments;
+    init_data.audio_stream = audio.value() - 1;
     if (input_mode.value() == "")
     {
         init_data.input_mode = input::automatic;

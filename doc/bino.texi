@@ -95,6 +95,9 @@ Show the GUI even if input files are given on the command line.
 @itemx --log-level=@var{LEVEL}
 Select log level: @var{debug}, @var{info}, @var{warning}, @var{error}, or
 @var{quiet}.
+@item -a
+@itemx --audio=@var{STREAM}
+Select audio stream (1-n, depending on the input).
 @item -i
 @itemx --input=@var{TYPE}
 Select input type. @xref{Input Layouts}.

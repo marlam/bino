@@ -65,6 +65,7 @@ class in_out_widget : public QWidget, public controller
 private:
     QSettings *_settings;
     QComboBox *_input_combobox;
+    QSpinBox *_audio_spinbox;
     QComboBox *_output_combobox;
     QPushButton *_swap_eyes_button;
     QPushButton *_fullscreen_button;
@@ -93,6 +94,7 @@ public:
     void update(const player_init_data &init_data, bool have_valid_input, bool playing);
 
     enum input::mode input_mode();
+    int audio_stream();
     enum video_output::mode video_mode();
 
     virtual void receive_notification(const notification &note);

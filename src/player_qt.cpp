@@ -67,7 +67,7 @@ void player_qt_internal::open(const player_init_data &init_data)
     reset_playstate();
     set_benchmark(init_data.benchmark);
     create_decoders(init_data.filenames);
-    create_input(init_data.input_mode);
+    create_input(init_data.input_mode, init_data.audio_stream);
     create_audio_output();
     set_video_output(new video_output_opengl_qt(_container_widget));
     video_state() = init_data.video_state;
@@ -155,8 +155,16 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     _input_combobox->addItem("Even/odd rows");
     connect(_input_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(input_changed()));
     layout0->addWidget(_input_combobox, 0, 1);
+    layout0->setColumnStretch(1, 1);
+    QLabel *audio_label = new QLabel("Audio:");
+    layout0->addWidget(audio_label, 0, 2);
+    _audio_spinbox = new QSpinBox();
+    _audio_spinbox->setRange(1, 999);
+    _audio_spinbox->setValue(1);
+    layout0->addWidget(_audio_spinbox, 0, 3);
     QLabel *output_label = new QLabel("Output:");
-    layout0->addWidget(output_label, 1, 0);
+    QGridLayout *layout1 = new QGridLayout;
+    layout1->addWidget(output_label, 1, 0);
     _output_combobox = new QComboBox(this);
     _output_combobox->addItem("Left view");
     _output_combobox->addItem("Right view");
@@ -172,42 +180,48 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     _output_combobox->addItem("Red/cyan glasses, full-color method");
     _output_combobox->addItem("Red/cyan glasses, half-color method");
     _output_combobox->addItem("OpenGL stereo");
-    layout0->addWidget(_output_combobox, 1, 1);
-    layout0->setColumnStretch(1, 1);
-    QGridLayout *layout1 = new QGridLayout;
+    layout1->addWidget(_output_combobox, 1, 1);
+    layout1->setColumnStretch(1, 1);
+    QGridLayout *layout2 = new QGridLayout;
     _swap_eyes_button = new QPushButton("Swap eyes");
     _swap_eyes_button->setCheckable(true);
     connect(_swap_eyes_button, SIGNAL(toggled(bool)), this, SLOT(swap_eyes_changed()));
-    layout1->addWidget(_swap_eyes_button, 0, 0, 1, 2);
+    layout2->addWidget(_swap_eyes_button, 0, 0, 1, 2);
     _fullscreen_button = new QPushButton("Fullscreen");
     connect(_fullscreen_button, SIGNAL(pressed()), this, SLOT(fullscreen_pressed()));
-    layout1->addWidget(_fullscreen_button, 0, 2, 1, 2);
+    layout2->addWidget(_fullscreen_button, 0, 2, 1, 2);
     _center_button = new QPushButton("Center");
     connect(_center_button, SIGNAL(pressed()), this, SLOT(center_pressed()));
-    layout1->addWidget(_center_button, 0, 4, 1, 2);
+    layout2->addWidget(_center_button, 0, 4, 1, 2);
     _parallax_label = new QLabel("Parallax:");
-    layout1->addWidget(_parallax_label, 0, 6, 1, 1);
+    layout2->addWidget(_parallax_label, 0, 6, 1, 1);
     _parallax_spinbox = new QDoubleSpinBox();
     _parallax_spinbox->setRange(-1.0, +1.0);
     _parallax_spinbox->setValue(0);
     _parallax_spinbox->setDecimals(2);
     _parallax_spinbox->setSingleStep(0.01);
     connect(_parallax_spinbox, SIGNAL(valueChanged(double)), this, SLOT(parallax_changed()));
-    layout1->addWidget(_parallax_spinbox, 0, 7, 1, 1);
+    layout2->addWidget(_parallax_spinbox, 0, 7, 1, 1);
     _ghostbust_label = new QLabel("Ghostbusting:");
-    layout1->addWidget(_ghostbust_label, 0, 8, 1, 1);
+    layout2->addWidget(_ghostbust_label, 0, 8, 1, 1);
     _ghostbust_spinbox = new QSpinBox();
     _ghostbust_spinbox->setRange(0, 100);
     _ghostbust_spinbox->setValue(0);
     connect(_ghostbust_spinbox, SIGNAL(valueChanged(int)), this, SLOT(ghostbust_changed()));
-    layout1->addWidget(_ghostbust_spinbox, 0, 9, 1, 1);
-    layout1->setRowStretch(0, 1);
+    layout2->addWidget(_ghostbust_spinbox, 0, 9, 1, 1);
+    layout2->setRowStretch(0, 1);
     QGridLayout *layout = new QGridLayout;
     layout->addLayout(layout0, 0, 0);
     layout->addLayout(layout1, 1, 0);
+    layout->addLayout(layout2, 2, 0);
     setLayout(layout);
 
+    // Align the input and output labels
+    output_label->setMinimumSize(output_label->minimumSizeHint());
+    input_label->setMinimumSize(output_label->minimumSizeHint());
+
     _input_combobox->setEnabled(false);
+    _audio_spinbox->setEnabled(false);
     _output_combobox->setEnabled(false);
     _swap_eyes_button->setEnabled(false);
     _fullscreen_button->setEnabled(false);
@@ -360,6 +374,7 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
     set_input(init_data.input_mode);
     set_output(init_data.video_mode);
     _lock = true;
+    _audio_spinbox->setValue(init_data.audio_stream + 1);
     _swap_eyes_button->setChecked(init_data.video_state.swap_eyes);
     _parallax_spinbox->setValue(init_data.video_state.parallax);
     _ghostbust_spinbox->setValue(qRound(init_data.video_state.ghostbust * 100.0f));
@@ -371,6 +386,7 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
     else
     {
         _input_combobox->setEnabled(false);
+        _audio_spinbox->setEnabled(false);
         _output_combobox->setEnabled(false);
         _swap_eyes_button->setEnabled(false);
         _fullscreen_button->setEnabled(false);
@@ -402,6 +418,11 @@ enum input::mode in_out_widget::input_mode()
     default:
         return input::even_odd_rows;
     }
+}
+
+int in_out_widget::audio_stream()
+{
+    return _audio_spinbox->value() - 1;
 }
 
 enum video_output::mode in_out_widget::video_mode()
@@ -446,6 +467,7 @@ void in_out_widget::receive_notification(const notification &note)
     {
     case notification::play:
         _input_combobox->setEnabled(!note.current.flag);
+        _audio_spinbox->setEnabled(!note.current.flag);
         _output_combobox->setEnabled(!note.current.flag);
         _swap_eyes_button->setEnabled(note.current.flag);
         _fullscreen_button->setEnabled(note.current.flag);
@@ -776,18 +798,19 @@ void main_window::receive_notification(const notification &note)
             // current choice.
             _player->close();
             _init_data.input_mode = _in_out_widget->input_mode();
+            _init_data.audio_stream = _in_out_widget->audio_stream();
             _init_data.video_mode = _in_out_widget->video_mode();
             if (!open_player())
             {
                 _stop_request = true;
             }
-            // Remember the input mode of this video, using an SHA1 hash of its
-            // filename.
+            // Remember the input settings of this video, using an SHA1 hash of its filename.
             _settings->beginGroup("Video");
             if (_init_data.filenames.size() == 1)
             {
                 _settings->setValue(current_file_hash(), QString(input::mode_name(_init_data.input_mode).c_str()));
             }
+            _settings->setValue(current_file_hash() + "-audio-stream", QVariant(_init_data.audio_stream + 1).toString());
             _settings->endGroup();
             // Remember the 2D or 3D video output mode.
             _settings->beginGroup("Session");
@@ -918,6 +941,7 @@ void main_window::open(QStringList filenames, bool automatic)
         {
             _init_data.input_mode = _player->input_mode();
         }
+        _init_data.audio_stream = QVariant(_settings->value(current_file_hash() + "-audio-stream", QString("1")).toString()).toInt() - 1;
         _init_data.video_state.swap_eyes = QVariant(_settings->value(current_file_hash() + "-swap-eyes", QString("false")).toString()).toBool();
         _init_data.video_state.parallax = QVariant(_settings->value(current_file_hash() + "-parallax", QString("0")).toString()).toFloat();
         _init_data.video_state.ghostbust = QVariant(_settings->value(current_file_hash() + "-ghostbust", QString("0")).toString()).toFloat();
