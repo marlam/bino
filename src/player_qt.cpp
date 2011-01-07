@@ -954,6 +954,7 @@ void main_window::open(QStringList filenames, bool automatic)
     if (automatic)
     {
         _init_data.input_mode = input::automatic;
+        _init_data.audio_stream = 0;
         _init_data.video_mode = video_output::automatic;
     }
     if (open_player())
