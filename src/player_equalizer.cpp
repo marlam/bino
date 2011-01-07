@@ -543,6 +543,12 @@ public:
             case '8':
                 _controller.send_cmd(command::adjust_saturation, +0.05f);
                 break;
+            case '(':
+                _controller.send_cmd(command::adjust_ghostbust, -0.01f);
+                break;
+            case ')':
+                _controller.send_cmd(command::adjust_ghostbust, +0.01f);
+                break;
             case eq::KC_LEFT:
                 _controller.send_cmd(command::seek, -10.0f);
                 break;

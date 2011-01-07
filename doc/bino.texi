@@ -270,6 +270,9 @@ Adjust hue.
 @item @kbd{7}
 @itemx @kbd{8}
 Adjust saturation.
+@item @kbd{(}
+@itemx @kbd{)}
+Adjust ghostbusting.
 @item @kbd{LEFT}
 @itemx @kbd{RIGHT}
 Seek 10 seconds backward / forward.

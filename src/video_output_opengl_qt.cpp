@@ -175,6 +175,12 @@ void video_output_opengl_qt_widget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_8:
         _vo->send_cmd(command::adjust_saturation, +0.05f);
         break;
+    case Qt::Key_ParenLeft:
+        _vo->send_cmd(command::adjust_ghostbust, -0.01f);
+        break;
+    case Qt::Key_ParenRight:
+        _vo->send_cmd(command::adjust_ghostbust, +0.01f);
+        break;
     case Qt::Key_Left:
         _vo->send_cmd(command::seek, -10.0f);
         break;
