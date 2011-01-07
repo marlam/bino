@@ -40,8 +40,12 @@ The following is known to work with Mingw-cross-env 2.18 installed in /path/to/m
    $ i686-pc-mingw32-strip src/bino.exe
 
 Now you can copy the bino.exe binary from the src subdirectory to any Windows
-machine. Since Bino only consists of a single binary, it does not really need
-an installer. But you can optionally build an NSIS-based installer as follows:
+machine. If you want to access the Bino manual from the GUI, keep the following
+directory structure on the Windows machine:
+c:\<path_to_bino>\bin\bino.exe
+c:\<path_to_bino>\doc\bino.html
+c:\<path_to_bino>\doc\<image_files...>
+You can also build an NSIS-based installer to take care of this for you.
 
 5. Build installer
 
