@@ -606,6 +606,16 @@ void player::receive_cmd(const command &cmd)
         _seek_request = cmd.param * 1e6f;
         /* notify when request is fulfilled */
         break;
+    case command::adjust_ghostbust:
+        oldval = _video_state.ghostbust;
+        _video_state.ghostbust = std::max(std::min(_video_state.ghostbust + cmd.param, 1.0f), 0.0f);
+        notify(notification::ghostbust, oldval, _video_state.ghostbust);
+        break;
+    case command::set_ghostbust:
+        oldval = _video_state.ghostbust;
+        _video_state.ghostbust = std::max(std::min(cmd.param, 1.0f), 0.0f);
+        notify(notification::ghostbust, oldval, _video_state.ghostbust);
+        break;
     }
 }
 

@@ -499,6 +499,10 @@ void video_output_opengl_qt::receive_notification(const notification &note)
         break;
     case notification::pos:
         break;
+    case notification::ghostbust:
+        state().ghostbust = note.current.value;
+        _widget->update();
+        break;
     }
 }
 

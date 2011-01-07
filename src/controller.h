@@ -53,7 +53,9 @@ public:
         adjust_brightness,
         adjust_hue,
         adjust_saturation,
-        seek
+        seek,
+        adjust_ghostbust,
+        set_ghostbust
     };
     
     type type;
@@ -87,7 +89,8 @@ public:
         brightness,
         hue,
         saturation,
-        pos
+        pos,
+        ghostbust
     };
     
     type type;

@@ -26,6 +26,8 @@
 #include <QWidget>
 #include <QComboBox>
 #include <QPushButton>
+#include <QLabel>
+#include <QSpinBox>
 #include <QTimer>
 #include <QSettings>
 
@@ -66,6 +68,8 @@ private:
     QPushButton *_swap_eyes_button;
     QPushButton *_fullscreen_button;
     QPushButton *_center_button;
+    QLabel *_ghostbust_label;
+    QSpinBox *_ghostbust_spinbox;
     bool _lock;
 
     void set_input(enum input::mode m);
@@ -76,6 +80,7 @@ private slots:
     void swap_eyes_changed();
     void fullscreen_pressed();
     void center_pressed();
+    void ghostbust_changed();
 
 public:
     in_out_widget(QSettings *settings, QWidget *parent);
@@ -139,6 +144,7 @@ private:
     player_init_data _init_data;
     bool _stop_request;
 
+    QString current_file_hash();
     bool open_player();
     void open(QStringList filenames, bool automatic);
 
@@ -147,6 +153,7 @@ private slots:
     void playloop_step();
     void file_open();
     void file_open_url();
+    void preferences_crosstalk();
     void help_manual();
     void help_website();
     void help_keyboard();
