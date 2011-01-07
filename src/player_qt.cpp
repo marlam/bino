@@ -994,6 +994,8 @@ void main_window::help_manual()
     QUrl manual_url;
 #if defined(Q_WS_WIN32)
     manual_url = QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/../doc/bino.html");
+#elif defined(Q_WS_MAC)
+    manual_url = QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/../Resources/Bino Help/bino.html");
 #else
     manual_url = QUrl::fromLocalFile(DOCDIR "/bino.html");
 #endif
