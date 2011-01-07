@@ -609,11 +609,11 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     connect(file_quit_act, SIGNAL(triggered()), this, SLOT(close()));
     file_menu->addAction(file_quit_act);
     QMenu *help_menu = menuBar()->addMenu(tr("&Help"));
-    QAction *help_manual_act = new QAction(tr("&Manual"), this);
+    QAction *help_manual_act = new QAction(tr("&Manual..."), this);
     help_manual_act->setShortcut(QKeySequence::HelpContents);
     connect(help_manual_act, SIGNAL(triggered()), this, SLOT(help_manual()));
     help_menu->addAction(help_manual_act);
-    QAction *help_website_act = new QAction(tr("&Website"), this);
+    QAction *help_website_act = new QAction(tr("&Website..."), this);
     connect(help_website_act, SIGNAL(triggered()), this, SLOT(help_website()));
     help_menu->addAction(help_website_act);
     QAction *help_keyboard_act = new QAction(tr("&Keyboard Shortcuts"), this);
