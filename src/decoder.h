@@ -1,7 +1,8 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010-2011
+ * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,14 +36,69 @@ public:
 
     /* The video frame format */
 
-    enum video_frame_format
+    enum video_layout
     {
-        frame_format_yuv420p,    // 3 planes for Y, U, V, with one U and V value per 4 Y values
-        frame_format_bgra32      // 1 plane: BGRABGRABGRA...
+        video_layout_bgra32           = 0,       // Single plane: BGRABGRABGRA....
+        video_layout_yuv444p          = 1,       // Three planes, all with the same size
+        video_layout_yuv422p          = 2,       // Three planes, U and V with half width: one U/V pair for 2x1 Y values
+        video_layout_yuv420p          = 3        // Three planes, U and V with half width and half height: one U/V pair for 2x2 Y values
     };
 
-    static std::string video_frame_format_name(enum video_frame_format f);
-    static int video_frame_format_planes(enum video_frame_format f);
+    enum video_color_space
+    {
+        video_color_space_srgb        = 0 << 2,  // SRGB color space
+        video_color_space_yuv601      = 1 << 2,  // YUV according to ITU.BT-601
+        video_color_space_yuv709      = 2 << 2,  // YUV according to ITU.BT-709
+    };
+
+    enum video_value_range
+    {
+        video_value_range_8bit_full   = 0 << 4,  // 0-255 for all components
+        video_value_range_8bit_mpeg   = 1 << 4   // 16-235 for Y, 16-240 for U and V
+    };
+
+    enum video_chroma_location
+    {
+        video_chroma_location_center  = 0 << 5,  // U/V at center of the corresponding Y locations
+        video_chroma_location_left    = 1 << 5,  // U/V vertically at the center, horizontally at the left Y locations
+        video_chroma_location_topleft = 2 << 5   // U/V at the corresponding top left Y location
+    };
+
+    static int video_format(
+            enum video_layout l,
+            enum video_color_space cs,
+            enum video_value_range vr,
+            enum video_chroma_location cl)
+    {
+        return (l | cs | vr | cl);
+    }
+
+    static enum video_layout video_format_layout(int video_format)
+    {
+        return static_cast<enum video_layout>(video_format & 0x03);
+    }
+
+    static enum video_color_space video_format_color_space(int video_format)
+    {
+        return static_cast<enum video_color_space>(video_format & 0x0c);
+    }
+
+    static enum video_value_range video_format_value_range(int video_format)
+    {
+        return static_cast<enum video_value_range>(video_format & 0x10);
+    }
+
+    static enum video_chroma_location video_format_chroma_location(int video_format)
+    {
+        return static_cast<enum video_chroma_location>(video_format & 0x60);
+    }
+
+    static int video_format_planes(int video_format)
+    {
+        return (video_format_layout(video_format) == video_layout_bgra32 ? 1 : 3);
+    }
+
+    static std::string video_format_name(int video_format);
 
     /* The audio sample format */
 
@@ -85,7 +141,7 @@ public:
     virtual int video_frame_rate_numerator(int video_stream) const throw () = 0;        // frames per second
     virtual int video_frame_rate_denominator(int video_stream) const throw () = 0;      // frames per second
     virtual int64_t video_duration(int video_stream) const throw () = 0;                // microseconds
-    virtual enum video_frame_format video_frame_format(int video_stream) const throw () = 0;
+    virtual int video_format(int video_stream) const throw () = 0;
 
     /* Get information about audio streams. */
     virtual int audio_rate(int audio_stream) const throw () = 0;                // samples per second
@@ -106,15 +162,14 @@ public:
 
     /* Read a video frame into an internal buffer, and return its presentation time stamp
      * in microseconds (between 0 and video_duration(video_stream)).
-     * A negative time stamp means that the end of the stream was reached.
+     * The minimum possible time stamp means that the end of the stream was reached.
      * After reading a frame, you may call get_video_frame(), and you must call release_video_frame(). */
     virtual int64_t read_video_frame(int video_stream) = 0;
-    /* Decode the video frame from the internal buffer and transform it into a fixed format.
+    /* Decode the video frame from the internal buffer into the frame format of the given stream.
      * A pointer to each resulting plane data will be returned in 'data'. The total size in
      * bytes of one frame line will be returned in 'line_size' for each plane. This may be
      * larger than the size of one line for alignment reasons. */
-    virtual void get_video_frame(int video_stream, enum video_frame_format fmt,
-            uint8_t *data[3], size_t line_size[3]) = 0;
+    virtual void get_video_frame(int video_stream, uint8_t *data[3], size_t line_size[3]) = 0;
     /* Release the video frame from the internal buffer. Can be called after get_video_frame(),
      * but also directly after read_video_frame(), e.g. in case video playback is too slow and
      * you need to skip frames. */
@@ -124,7 +179,7 @@ public:
      * Return the presentation time stamp in microseconds. Beware: this is only useful
      * when starting audio playback; after that, the exact audio time should be measured
      * by the audio output because it depends on software and hardware buffering.
-     * A negative time stamp means that the end of the stream was reached. */
+     * The minimum possible time stamp means that the end of the stream was reached. */
     virtual int64_t read_audio_data(int audio_stream, void *buffer, size_t size) = 0;
 
     /* Seek to the given position in microseconds. Make sure that the position is not out

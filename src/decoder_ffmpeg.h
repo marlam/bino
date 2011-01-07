@@ -1,7 +1,8 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010-2011
+ * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +37,9 @@ private:
     stuff_t *_stuff;
 
     bool read();
+    int64_t handle_timestamp(int64_t &last_timestamp, int64_t timestamp);
+    int64_t handle_video_timestamp(int video_stream, int64_t timestamp);
+    int64_t handle_audio_timestamp(int audio_stream, int64_t timestamp);
 
 public:
     decoder_ffmpeg() throw ();
@@ -61,7 +65,7 @@ public:
     virtual int video_frame_rate_numerator(int video_stream) const throw ();
     virtual int video_frame_rate_denominator(int video_stream) const throw ();
     virtual int64_t video_duration(int video_stream) const throw ();
-    virtual enum video_frame_format video_frame_format(int video_stream) const throw ();
+    virtual int video_format(int video_stream) const throw ();
 
     virtual int audio_rate(int audio_stream) const throw ();
     virtual int audio_channels(int audio_stream) const throw ();
@@ -69,8 +73,7 @@ public:
     virtual int64_t audio_duration(int video_stream) const throw ();
 
     virtual int64_t read_video_frame(int video_stream);
-    virtual void get_video_frame(int video_stream, enum video_frame_format fmt,
-            uint8_t *data[3], size_t line_size[3]);
+    virtual void get_video_frame(int video_stream, uint8_t *data[3], size_t line_size[3]);
     virtual void release_video_frame(int video_stream);
 
     virtual int64_t read_audio_data(int audio_stream, void *buffer, size_t size);

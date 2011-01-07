@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010
+ * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
  * Alexey Osipov <lion-simba@pridelands.ru>
  *
@@ -186,7 +186,7 @@ void player::open_video_output(enum video_output::mode video_mode, unsigned int 
         }
     }
     _video_output->open(
-            _input->video_frame_format(), _input->video_is_mono(),
+            _input->video_format(), _input->video_is_mono(),
             _input->video_width(), _input->video_height(), _input->video_aspect_ratio(),
             video_mode, _video_state, video_flags, -1, -1);
     _video_output->process_events();
@@ -217,98 +217,104 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
     else if (!_running)
     {
         // Read initial data and start output
-        if (_input->read_video_frame() < 0)
+        _video_pos = _input->read_video_frame();
+        if (_video_pos == std::numeric_limits<int64_t>::min())
         {
             msg::dbg("empty video input");
             notify(notification::play, true, false);
             return;
         }
-        _current_pos = 0;
-        _next_frame_pos = 0;
-        _sync_point_pos = 0;
-        _sync_point_av_offset = 0;
         if (_audio_output)
         {
             _audio_output->status(&_required_audio_data_size);
-            if (_input->read_audio_data(&_audio_data, _required_audio_data_size) < 0)
+            _audio_pos = _input->read_audio_data(&_audio_data, _required_audio_data_size);
+            if (_audio_pos == std::numeric_limits<int64_t>::min())
             {
                 msg::dbg("empty audio input");
                 notify(notification::play, true, false);
                 return;
             }
             _audio_output->data(_audio_data, _required_audio_data_size);
-            _sync_point_time = _audio_output->start();
+            _master_time_start = _audio_output->start();
+            _master_time_pos = _audio_pos;
+            _current_pos = _audio_pos;
         }
         else
         {
-            _sync_point_time = timer::get_microseconds(timer::monotonic);
+            _master_time_start = timer::get_microseconds(timer::monotonic);
+            _master_time_pos = _video_pos;
+            _current_pos = _video_pos;
         }
-        _fps_mark_time = _sync_point_time;
+        _start_pos = _current_pos;
+        _fps_mark_time = timer::get_microseconds(timer::monotonic);
         _frames_shown = 0;
         _running = true;
-        _need_frame = false;
-        _first_frame = true;
-        *more_steps = true;
-        *prep_frame = true;
-        return;
-    }
-    else if (_seek_request != 0)
-    {
-        if (_seek_request < 0 && -_seek_request > _current_pos)
+        if (_input->initial_skip() > 0)
         {
-            _seek_request = -_current_pos;
+            _seek_request = _input->initial_skip();
+        }
+        else
+        {
+            _need_frame = false;
+            _first_frame = true;
+            *more_steps = true;
+            *prep_frame = true;
+            return;
+        }
+    }
+    if (_seek_request != 0)
+    {
+        int64_t old_pos = _current_pos;
+        if (_current_pos + _seek_request < _start_pos + _input->initial_skip())
+        {
+            _seek_request = _start_pos + _input->initial_skip() - _current_pos;
         }
         if (_input->duration() > 0)
         {
-            if (_seek_request > 0 && _current_pos + _seek_request >= std::max(_input->duration() - 5000000, static_cast<int64_t>(0)))
+            if (_seek_request > 0 && _current_pos + _seek_request >= std::max(_start_pos + _input->duration() - 5000000, static_cast<int64_t>(0)))
             {
-                _seek_request = std::max(_input->duration() - 5000000 - _current_pos, static_cast<int64_t>(0));
+                _seek_request = std::max(_start_pos + _input->duration() - 5000000 - _current_pos, static_cast<int64_t>(0));
             }
         }
         *seek_to = _current_pos + _seek_request;
         _seek_request = 0;
         _input->seek(*seek_to);
-        _next_frame_pos = _input->read_video_frame();
-        if (_next_frame_pos < 0)
+
+        _video_pos = _input->read_video_frame();
+        if (_video_pos == std::numeric_limits<int64_t>::min())
         {
             msg::wrn("seeked to end of video?!");
             notify(notification::play, true, false);
             return;
         }
+        if (_audio_output)
+        {
+            _audio_output->stop();
+            _audio_output->status(&_required_audio_data_size);
+            _audio_pos = _input->read_audio_data(&_audio_data, _required_audio_data_size);
+            if (_audio_pos == std::numeric_limits<int64_t>::min())
+            {
+                msg::wrn("seeked to end of audio?!");
+                notify(notification::play, true, false);
+                return;
+            }
+            _audio_output->data(_audio_data, _required_audio_data_size);
+            _master_time_start = _audio_output->start();
+            _master_time_pos = _audio_pos;
+            _current_pos = _audio_pos;
+        }
         else
         {
-            if (_audio_output)
-            {
-                _audio_output->stop();
-                _audio_output->status(&_required_audio_data_size);
-                int64_t audio_pos = _input->read_audio_data(&_audio_data, _required_audio_data_size);
-                if (audio_pos < 0)
-                {
-                    msg::wrn("seeked to end of audio?!");
-                    notify(notification::play, true, false);
-                    return;
-                }
-                _audio_output->data(_audio_data, _required_audio_data_size);
-                _sync_point_time = _audio_output->start();
-                _sync_point_pos = audio_pos;
-                _sync_point_av_offset = _next_frame_pos - audio_pos;
-            }
-            else
-            {
-                _sync_point_pos = _next_frame_pos;
-                _sync_point_time = timer::get_microseconds(timer::monotonic);
-                _sync_point_av_offset = 0;
-            }
-            _fps_mark_time = _sync_point_time;
-            _frames_shown = 0;
-            notify(notification::pos, _current_pos / 1e6f, _sync_point_pos / 1e6f);
-            _need_frame = false;
-            _current_pos = _sync_point_pos;
-            _previous_frame_dropped = false;
-            *more_steps = true;
-            *prep_frame = true;
-            return;
+            _master_time_start = timer::get_microseconds(timer::monotonic);
+            _master_time_pos = _video_pos;
+            _current_pos = _video_pos;
         }
+        notify(notification::pos, _current_pos / 1e6f, old_pos / 1e6f);
+        _need_frame = false;
+        _previous_frame_dropped = false;
+        *more_steps = true;
+        *prep_frame = true;
+        return;
     }
     else if (_pause_request)
     {
@@ -330,8 +336,8 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
     }
     else if (_need_frame)
     {
-        _next_frame_pos = _input->read_video_frame();
-        if (_next_frame_pos < 0)
+        _video_pos = _input->read_video_frame();
+        if (_video_pos == std::numeric_limits<int64_t>::min())
         {
             if (_first_frame)
             {
@@ -348,6 +354,12 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         else
         {
             _first_frame = false;
+        }
+        if (!_audio_output)
+        {
+            _master_time_start += (_video_pos - _master_time_pos);
+            _master_time_pos = _video_pos;
+            _current_pos = _video_pos;
         }
         _need_frame = false;
         if (_drop_next_frame)
@@ -371,9 +383,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             }
             else
             {
-                _sync_point_time += timer::get_microseconds(timer::monotonic) - _pause_start;
-                _fps_mark_time = _sync_point_time;
-                _frames_shown = 0;
+                _master_time_start += timer::get_microseconds(timer::monotonic) - _pause_start;
             }
             _in_pause = false;
             notify(notification::pause, true, false);
@@ -382,33 +392,38 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         if (_audio_output)
         {
             // Check if audio needs more data, and get audio time
-            _current_time = _audio_output->status(&_required_audio_data_size);
+            _master_time_current = _audio_output->status(&_required_audio_data_size) - _master_time_start
+                + _master_time_pos;
             // Output requested audio data
             if (_required_audio_data_size > 0)
             {
-                if (_input->read_audio_data(&_audio_data, _required_audio_data_size) < 0)
+                _audio_pos = _input->read_audio_data(&_audio_data, _required_audio_data_size);
+                if (_audio_pos == std::numeric_limits<int64_t>::min())
                 {
                     msg::dbg("end of audio stream");
                     notify(notification::play, true, false);
                     return;
                 }
+                _master_time_start += (_audio_pos - _master_time_pos);
+                _master_time_pos = _audio_pos;
                 _audio_output->data(_audio_data, _required_audio_data_size);
+                _current_pos = _audio_pos;
             }
         }
         else
         {
             // Use our own timer
-            _current_time = timer::get_microseconds(timer::monotonic);
+            _master_time_current = timer::get_microseconds(timer::monotonic) - _master_time_start
+                + _master_time_pos;
         }
 
-        int64_t time_to_next_frame = (_next_frame_pos - _sync_point_pos) - (_current_time - _sync_point_time) - _sync_point_av_offset;
-        if (time_to_next_frame <= 0 || _benchmark)
+        if (_master_time_current >= _video_pos || _benchmark)
         {
             // Output current video frame
             _drop_next_frame = false;
-            if (-time_to_next_frame > _input->video_frame_duration() * 75 / 100 && !_benchmark)
+            if (_master_time_current - _video_pos > _input->video_frame_duration() * 75 / 100 && !_benchmark)
             {
-                msg::wrn("video: delay %g seconds; dropping next frame", (-time_to_next_frame) / 1e6f);
+                msg::wrn("video: delay %g seconds; dropping next frame", (_master_time_current - _video_pos) / 1e6f);
                 _drop_next_frame = true;
             }
             if (!_previous_frame_dropped)
@@ -417,16 +432,16 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
                 if (_benchmark)
                 {
                     _frames_shown++;
-                    if (_frames_shown % 100 == 0) //show fps each 100 frames
+                    if (_frames_shown == 100)   //show fps each 100 frames
                     {
-                        msg::inf("fps: %.2f", 100.0f / ((_current_time - _fps_mark_time) / 1e6));
-                        _fps_mark_time = _current_time;
+                        int64_t now = timer::get_microseconds(timer::monotonic);
+                        msg::inf("fps: %.2f", static_cast<float>(_frames_shown) / ((now - _fps_mark_time) / 1e6f));
+                        _fps_mark_time = now;
                         _frames_shown = 0;
                     }
                 }
             }
             _need_frame = true;
-            _current_pos = _next_frame_pos;
             _previous_frame_dropped = _drop_next_frame;
         }
         *more_steps = true;
@@ -443,7 +458,7 @@ void player::prepare_video_frame(video_output *vo)
 {
     for (int i = 0; i < (_input->video_is_mono() ? 1 : 2); i++)
     {
-        for (int j = 0; j < decoder::video_frame_format_planes(_input->video_frame_format()); j++)
+        for (int j = 0; j < decoder::video_format_planes(_input->video_format()); j++)
         {
             void *buf = vo->prepare_start(i, j);
             _input->get_video_frame(i, j, buf);
@@ -590,6 +605,16 @@ void player::receive_cmd(const command &cmd)
     case command::seek:
         _seek_request = cmd.param * 1e6f;
         /* notify when request is fulfilled */
+        break;
+    case command::adjust_ghostbust:
+        oldval = _video_state.ghostbust;
+        _video_state.ghostbust = std::max(std::min(_video_state.ghostbust + cmd.param, 1.0f), 0.0f);
+        notify(notification::ghostbust, oldval, _video_state.ghostbust);
+        break;
+    case command::set_ghostbust:
+        oldval = _video_state.ghostbust;
+        _video_state.ghostbust = std::max(std::min(cmd.param, 1.0f), 0.0f);
+        notify(notification::ghostbust, oldval, _video_state.ghostbust);
         break;
     }
 }

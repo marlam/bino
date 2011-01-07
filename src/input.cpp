@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010
+ * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  *
@@ -182,8 +182,8 @@ void input::open(std::vector<decoder *> decoders,
         {
             throw exc("video streams have different frame rates");
         }
-        if (decoders.at(video1_decoder)->video_frame_format(video1_stream)
-                != decoders.at(video0_decoder)->video_frame_format(video0_stream))
+        if (decoders.at(video1_decoder)->video_format(video1_stream)
+                != decoders.at(video0_decoder)->video_format(video0_stream))
         {
             throw exc("video streams have different frame formats");
         }
@@ -206,6 +206,7 @@ void input::open(std::vector<decoder *> decoders,
      * This is necessary to make the example movies provided by 3dtv.at work out of the box. */
     if ((tag_value = _decoders.at(_video_decoders[0])->tag_value("StereoscopicSkip")))
     {
+        // Skip the initial advertisement.
         try
         {
             _initial_skip = str::to<int64_t>(tag_value);
@@ -389,7 +390,7 @@ void input::open(std::vector<decoder *> decoders,
     }
     _video_frame_rate_num = _decoders.at(_video_decoders[0])->video_frame_rate_numerator(_video_streams[0]);
     _video_frame_rate_den = _decoders.at(_video_decoders[0])->video_frame_rate_denominator(_video_streams[0]);
-    _video_frame_format = _decoders.at(_video_decoders[0])->video_frame_format(_video_streams[0]);
+    _video_format = _decoders.at(_video_decoders[0])->video_format(_video_streams[0]);
 
     if (audio_stream != -1)
     {
@@ -411,20 +412,6 @@ void input::open(std::vector<decoder *> decoders,
         _duration = std::min(_duration, _decoders.at(_audio_decoder)->audio_duration(_audio_stream));
     }
 
-    // Skip the initial advertisement in 3dtv.at examples.
-    if (_initial_skip > 0)
-    {
-        _duration -= _initial_skip;
-        try
-        {
-            seek(0);
-        }
-        catch (...)
-        {
-            _duration += _initial_skip;
-        }
-    }
-
     msg::dbg("video0=%d,%d video1=%d,%d, audio=%d,%d",
             _video_decoders[0], _video_streams[0],
             _video_decoders[1], _video_streams[1],
@@ -432,7 +419,7 @@ void input::open(std::vector<decoder *> decoders,
     msg::inf("input:");
     msg::inf("    video: %dx%d, format %s,",
             video_width(), video_height(),
-            decoder::video_frame_format_name(video_frame_format()).c_str());
+            decoder::video_format_name(video_format()).c_str());
     msg::inf("        aspect ratio %g:1, %g fps, %g seconds,",
             video_aspect_ratio(),
             static_cast<float>(video_frame_rate_numerator()) / static_cast<float>(video_frame_rate_denominator()),
@@ -458,14 +445,14 @@ void input::open(std::vector<decoder *> decoders,
 int64_t input::read_video_frame()
 {
     int64_t t = _decoders.at(_video_decoders[0])->read_video_frame(_video_streams[0]);
-    if (t < 0)
+    if (t == std::numeric_limits<int64_t>::min())
     {
         return t;
     }
     if (_video_decoders[1] != -1)
     {
         int64_t t2 = _decoders.at(_video_decoders[1])->read_video_frame(_video_streams[1]);
-        if (t2 < 0)
+        if (t2 == std::numeric_limits<int64_t>::min())
         {
             return t2;
         }
@@ -475,12 +462,10 @@ int64_t input::read_video_frame()
 
 void input::prepare_video_frame()
 {
-    _decoders.at(_video_decoders[0])->get_video_frame(_video_streams[0], video_frame_format(),
-            _video_data[0], _video_data_line_size[0]);
+    _decoders.at(_video_decoders[0])->get_video_frame(_video_streams[0], _video_data[0], _video_data_line_size[0]);
     if (_mode == separate)
     {
-        _decoders.at(_video_decoders[1])->get_video_frame(_video_streams[1], video_frame_format(),
-                _video_data[1], _video_data_line_size[1]);
+        _decoders.at(_video_decoders[1])->get_video_frame(_video_streams[1], _video_data[1], _video_data_line_size[1]);
     }
 }
 
@@ -504,8 +489,36 @@ void input::get_video_frame(int view, int plane, void *buf)
     size_t dst_row_size;
     size_t height;
 
-    if (video_frame_format() == decoder::frame_format_yuv420p)
+    switch (decoder::video_format_layout(video_format()))
     {
+    case decoder::video_layout_bgra32:
+        dst_row_width = video_width() * 4;
+        dst_row_size = dst_row_width;
+        height = video_height();
+        break;
+
+    case decoder::video_layout_yuv444p:
+        dst_row_width = video_width();
+        dst_row_size = next_multiple_of_4(dst_row_width);
+        height = video_height();
+        break;
+
+    case decoder::video_layout_yuv422p:
+        if (plane == 0)
+        {
+            dst_row_width = video_width();
+            dst_row_size = next_multiple_of_4(dst_row_width);
+            height = video_height();
+        }
+        else
+        {
+            dst_row_width = video_width() / 2;
+            dst_row_size = next_multiple_of_4(dst_row_width);
+            height = video_height();
+        }
+        break;
+
+    case decoder::video_layout_yuv420p:
         if (plane == 0)
         {
             dst_row_width = video_width();
@@ -518,12 +531,7 @@ void input::get_video_frame(int view, int plane, void *buf)
             dst_row_size = next_multiple_of_4(dst_row_width);
             height = video_height() / 2;
         }
-    }
-    else
-    {
-        dst_row_width = video_width() * 4;
-        dst_row_size = dst_row_width;
-        height = video_height();
+        break;
     }
 
     switch (_mode)
@@ -590,7 +598,6 @@ int64_t input::read_audio_data(void **data, size_t size)
 
 void input::seek(int64_t dest_pos)
 {
-    dest_pos += _initial_skip;
     _decoders.at(_video_decoders[0])->seek(dest_pos);
     if (_video_decoders[1] != -1 && _video_decoders[1] != _video_decoders[0])
     {

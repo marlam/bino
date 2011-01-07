@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010
+ * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  *
@@ -55,10 +55,13 @@ extern "C"
 struct internal_stuff
 {
     AVFormatContext *format_ctx;
+
+    bool have_active_audio_stream;
     int64_t pos;
 
     std::vector<int> video_streams;
     std::vector<AVCodecContext *> video_codec_ctxs;
+    std::vector<int> frame_formats;
     std::vector<struct SwsContext *> img_conv_ctxs;
     std::vector<AVCodec *> video_codecs;
     std::vector<std::deque<AVPacket> > video_packet_queues;
@@ -67,7 +70,7 @@ struct internal_stuff
     std::vector<AVFrame *> frames;
     std::vector<AVFrame *> out_frames;
     std::vector<uint8_t *> buffers;
-    std::vector<int64_t> video_pos_offsets;
+    std::vector<int64_t> video_last_timestamps;
 
     std::vector<int> audio_streams;
     std::vector<AVCodecContext *> audio_codec_ctxs;
@@ -77,7 +80,6 @@ struct internal_stuff
     std::vector<bool> audio_flush_flags;
     std::vector<std::vector<unsigned char> > audio_buffers;
     std::vector<int64_t> audio_last_timestamps;
-    std::vector<int64_t> audio_pos_offsets;
 };
 
 static std::string my_av_strerror(int err)
@@ -104,9 +106,9 @@ static int decoding_threads()
         {
             n = 1;
         }
-        else if (n > 64)
+        else if (n > 16)
         {
-            n = 64;
+            n = 16;
         }
     }
     return n;
@@ -218,6 +220,8 @@ void decoder_ffmpeg::open(const std::string &filename)
         throw exc(filename + ": cannot read stream info: " + my_av_strerror(e));
     }
     dump_format(_stuff->format_ctx, 0, filename.c_str(), 0);
+
+    _stuff->have_active_audio_stream = false;
     _stuff->pos = std::numeric_limits<int64_t>::min();
 
     for (unsigned int i = 0; i < _stuff->format_ctx->nb_streams
@@ -249,28 +253,105 @@ void decoder_ffmpeg::open(const std::string &filename)
                 _stuff->video_codecs[j] = NULL;
                 throw exc(filename + " stream " + str::from(i) + ": cannot open video codec: " + my_av_strerror(e));
             }
-            int bufsize = avpicture_get_size(PIX_FMT_BGRA,
-                    _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height);
+            // Determine pixel format. Use BGRA32 as fallback.
+            enum video_layout vl = video_layout_bgra32;
+            enum video_color_space vcs = video_color_space_srgb;
+            enum video_value_range vvr = video_value_range_8bit_full;
+            enum video_chroma_location vcl = video_chroma_location_center;
+            if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV444P
+                    || _stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV422P
+                    || _stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV420P)
+            {
+                if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV444P)
+                {
+                    vl = video_layout_yuv444p;
+                }
+                else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUV422P)
+                {
+                    vl = video_layout_yuv422p;
+                }
+                else
+                {
+                    vl = video_layout_yuv420p;
+                }
+                vcs = video_color_space_yuv601;
+                if (_stuff->video_codec_ctxs[j]->colorspace == AVCOL_SPC_BT709)
+                {
+                    vcs = video_color_space_yuv709;
+                }
+                vvr = video_value_range_8bit_mpeg;
+                if (_stuff->video_codec_ctxs[j]->color_range == AVCOL_RANGE_JPEG)
+                {
+                    vvr = video_value_range_8bit_full;
+                }
+                vcl = video_chroma_location_center;
+                if (_stuff->video_codec_ctxs[j]->chroma_sample_location == AVCHROMA_LOC_LEFT)
+                {
+                    vcl = video_chroma_location_left;
+                }
+                else if (_stuff->video_codec_ctxs[j]->chroma_sample_location == AVCHROMA_LOC_TOPLEFT)
+                {
+                    vcl = video_chroma_location_topleft;
+                }
+            }
+            else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ444P
+                    || _stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ422P
+                    || _stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ420P)
+            {
+                if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ444P)
+                {
+                    vl = video_layout_yuv444p;
+                }
+                else if (_stuff->video_codec_ctxs[j]->pix_fmt == PIX_FMT_YUVJ422P)
+                {
+                    vl = video_layout_yuv422p;
+                }
+                else
+                {
+                    vl = video_layout_yuv420p;
+                }
+                vcs = video_color_space_yuv601;
+                vvr = video_value_range_8bit_full;
+                vcl = video_chroma_location_center;
+            }
+            _stuff->frame_formats.push_back(decoder::video_format(vl, vcs, vvr, vcl));
+            // Allocate packets and frames
             _stuff->packets.push_back(AVPacket());
             _stuff->video_flush_flags.push_back(false);
             _stuff->frames.push_back(avcodec_alloc_frame());
-            _stuff->out_frames.push_back(avcodec_alloc_frame());
-            _stuff->buffers.push_back(static_cast<uint8_t *>(av_malloc(bufsize)));
-            if (!_stuff->frames[j] || !_stuff->out_frames[j] || !_stuff->buffers[j])
+            if (!_stuff->frames[j])
             {
                 throw exc(HERE + ": " + strerror(ENOMEM));
             }
-            avpicture_fill(reinterpret_cast<AVPicture *>(_stuff->out_frames[j]), _stuff->buffers[j],
-                    PIX_FMT_BGRA, _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height);
-            _stuff->img_conv_ctxs.push_back(sws_getContext(
-                        _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height, _stuff->video_codec_ctxs[j]->pix_fmt,
-                        _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height, PIX_FMT_BGRA,
-                        SWS_FAST_BILINEAR, NULL, NULL, NULL));
-            if (!_stuff->img_conv_ctxs[j])
+            if (video_format_layout(_stuff->frame_formats[j]) == video_layout_bgra32)
             {
-                throw exc(filename + " stream " + str::from(i) + ": cannot initialize conversion context");
+                // Initialize things needed for software pixel format conversion
+                int bufsize = avpicture_get_size(PIX_FMT_BGRA,
+                        _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height);
+                _stuff->out_frames.push_back(avcodec_alloc_frame());
+                _stuff->buffers.push_back(static_cast<uint8_t *>(av_malloc(bufsize)));
+                if (!_stuff->out_frames[j] || !_stuff->buffers[j])
+                {
+                    throw exc(HERE + ": " + strerror(ENOMEM));
+                }
+                avpicture_fill(reinterpret_cast<AVPicture *>(_stuff->out_frames[j]), _stuff->buffers[j],
+                        PIX_FMT_BGRA, _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height);
+                _stuff->img_conv_ctxs.push_back(sws_getContext(
+                            _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height, _stuff->video_codec_ctxs[j]->pix_fmt,
+                            _stuff->video_codec_ctxs[j]->width, _stuff->video_codec_ctxs[j]->height, PIX_FMT_BGRA,
+                            SWS_FAST_BILINEAR, NULL, NULL, NULL));
+                if (!_stuff->img_conv_ctxs[j])
+                {
+                    throw exc(filename + " stream " + str::from(i) + ": cannot initialize conversion context");
+                }
             }
-            _stuff->video_pos_offsets.push_back(std::numeric_limits<int64_t>::min());
+            else
+            {
+                _stuff->out_frames.push_back(NULL);
+                _stuff->buffers.push_back(NULL);
+                _stuff->img_conv_ctxs.push_back(NULL);
+            }
+            _stuff->video_last_timestamps.push_back(std::numeric_limits<int64_t>::min());
         }
         else if (_stuff->format_ctx->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO)
         {
@@ -323,7 +404,6 @@ void decoder_ffmpeg::open(const std::string &filename)
             _stuff->audio_flush_flags.push_back(false);
             _stuff->audio_buffers.push_back(std::vector<unsigned char>());
             _stuff->audio_last_timestamps.push_back(std::numeric_limits<int64_t>::min());
-            _stuff->audio_pos_offsets.push_back(std::numeric_limits<int64_t>::min());
         }
         else
         {
@@ -346,10 +426,10 @@ void decoder_ffmpeg::open(const std::string &filename)
     {
         msg::inf("    video stream %d: %dx%d, format %s,",
                 i, video_width(i), video_height(i),
-                _stuff->video_codec_ctxs.at(i)->pix_fmt == PIX_FMT_YUV420P
-                ? decoder::video_frame_format_name(decoder::frame_format_yuv420p).c_str()
-                : str::asprintf("%d (converted to %s)", _stuff->video_codec_ctxs.at(i)->pix_fmt,
-                    decoder::video_frame_format_name(decoder::frame_format_bgra32).c_str()).c_str());
+                video_format_layout(video_format(i)) == video_layout_bgra32
+                ? str::asprintf("%d (converted to %s)", _stuff->video_codec_ctxs.at(i)->pix_fmt,
+                    decoder::video_format_name(video_format(i)).c_str()).c_str()
+                : decoder::video_format_name(video_format(i)).c_str());
         msg::inf("        aspect ratio %g:1, %g fps, %g seconds",
                 static_cast<float>(video_aspect_ratio_numerator(i))
                 / static_cast<float>(video_aspect_ratio_denominator(i)),
@@ -382,6 +462,7 @@ int decoder_ffmpeg::video_streams() const throw ()
 void decoder_ffmpeg::activate_video_stream(int index)
 {
     _stuff->format_ctx->streams[_stuff->video_streams.at(index)]->discard = AVDISCARD_DEFAULT;
+    _stuff->have_active_audio_stream = true;
 }
 
 void decoder_ffmpeg::activate_audio_stream(int index)
@@ -450,11 +531,9 @@ int64_t decoder_ffmpeg::video_duration(int index) const throw ()
     return duration * 1000000 * time_base.num / time_base.den;
 }
 
-enum decoder::video_frame_format decoder_ffmpeg::video_frame_format(int index) const throw ()
+int decoder_ffmpeg::video_format(int index) const throw ()
 {
-    return (_stuff->video_codec_ctxs.at(index)->pix_fmt == PIX_FMT_YUV420P
-            ? decoder::frame_format_yuv420p
-            : decoder::frame_format_bgra32);
+    return _stuff->frame_formats.at(index);
 }
 
 int decoder_ffmpeg::audio_rate(int index) const throw ()
@@ -538,6 +617,33 @@ bool decoder_ffmpeg::read()
     return true;
 }
 
+int64_t decoder_ffmpeg::handle_timestamp(int64_t &last_timestamp, int64_t timestamp)
+{
+    if (timestamp == std::numeric_limits<int64_t>::min())
+    {
+        timestamp = last_timestamp;
+    }
+    last_timestamp = timestamp;
+    return timestamp;
+}
+
+int64_t decoder_ffmpeg::handle_video_timestamp(int video_stream, int64_t timestamp)
+{
+    int64_t ts = handle_timestamp(_stuff->video_last_timestamps[video_stream], timestamp);
+    if (!_stuff->have_active_audio_stream || _stuff->pos == std::numeric_limits<int64_t>::min())
+    {
+        _stuff->pos = ts;
+    }
+    return ts;
+}
+
+int64_t decoder_ffmpeg::handle_audio_timestamp(int audio_stream, int64_t timestamp)
+{
+    int64_t ts = handle_timestamp(_stuff->audio_last_timestamps[audio_stream], timestamp);
+    _stuff->pos = ts;
+    return ts;
+}
+
 int64_t decoder_ffmpeg::read_video_frame(int video_stream)
 {
     if (_stuff->video_flush_flags[video_stream])
@@ -557,7 +663,7 @@ int64_t decoder_ffmpeg::read_video_frame(int video_stream)
         {
             if (!read())
             {
-                return -1;
+                return std::numeric_limits<int64_t>::min();
             }
         }
         _stuff->packets[video_stream] = _stuff->video_packet_queues[video_stream].front();
@@ -572,16 +678,7 @@ int64_t decoder_ffmpeg::read_video_frame(int video_stream)
     int64_t timestamp = _stuff->packets[video_stream].dts * 1000000
         * _stuff->format_ctx->streams[_stuff->video_streams[video_stream]]->time_base.num 
         / _stuff->format_ctx->streams[_stuff->video_streams[video_stream]]->time_base.den;
-    if (_stuff->video_pos_offsets[video_stream] == std::numeric_limits<int64_t>::min())
-    {
-        _stuff->video_pos_offsets[video_stream] = timestamp;
-    }
-    timestamp -= _stuff->video_pos_offsets[video_stream];
-    if (timestamp > _stuff->pos)
-    {
-        _stuff->pos = timestamp;
-    }
-    return timestamp;
+    return handle_video_timestamp(video_stream, timestamp);
 }
 
 void decoder_ffmpeg::release_video_frame(int /* video_stream */)
@@ -592,28 +689,9 @@ void decoder_ffmpeg::release_video_frame(int /* video_stream */)
     // is clear that we will never need it.
 }
 
-void decoder_ffmpeg::get_video_frame(int video_stream, enum video_frame_format fmt,
-            uint8_t *data[3], size_t line_size[3])
+void decoder_ffmpeg::get_video_frame(int video_stream, uint8_t *data[3], size_t line_size[3])
 {
-    data[0] = NULL;
-    data[1] = NULL;
-    data[2] = NULL;
-    line_size[0] = 0;
-    line_size[1] = 0;
-    line_size[2] = 0;
-    if (fmt == decoder::frame_format_yuv420p)
-    {
-        if (video_frame_format(video_stream) == decoder::frame_format_yuv420p)
-        {
-            data[0] = _stuff->frames[video_stream]->data[0];
-            data[1] = _stuff->frames[video_stream]->data[1];
-            data[2] = _stuff->frames[video_stream]->data[2];
-            line_size[0] = _stuff->frames[video_stream]->linesize[0];
-            line_size[1] = _stuff->frames[video_stream]->linesize[1];
-            line_size[2] = _stuff->frames[video_stream]->linesize[2];
-        }
-    }
-    else
+    if (video_format_layout(video_format(video_stream)) == video_layout_bgra32)
     {
         sws_scale(_stuff->img_conv_ctxs[video_stream],
                 _stuff->frames[video_stream]->data,
@@ -623,7 +701,20 @@ void decoder_ffmpeg::get_video_frame(int video_stream, enum video_frame_format f
                 _stuff->out_frames[video_stream]->linesize);
         // TODO: Handle sws_scale errors. How?
         data[0] = _stuff->out_frames[video_stream]->data[0];
+        data[1] = NULL;
+        data[2] = NULL;
         line_size[0] = _stuff->out_frames[video_stream]->linesize[0];
+        line_size[1] = 0;
+        line_size[2] = 0;
+    }
+    else
+    {
+        data[0] = _stuff->frames[video_stream]->data[0];
+        data[1] = _stuff->frames[video_stream]->data[1];
+        data[2] = _stuff->frames[video_stream]->data[2];
+        line_size[0] = _stuff->frames[video_stream]->linesize[0];
+        line_size[1] = _stuff->frames[video_stream]->linesize[1];
+        line_size[2] = _stuff->frames[video_stream]->linesize[2];
     }
 }
 
@@ -666,7 +757,7 @@ int64_t decoder_ffmpeg::read_audio_data(int audio_stream, void *buffer, size_t s
             {
                 if (!read())
                 {
-                    return -1;
+                    return std::numeric_limits<int64_t>::min();
                 }
             }
             packet = _stuff->audio_packet_queues[audio_stream].front();
@@ -710,20 +801,7 @@ int64_t decoder_ffmpeg::read_audio_data(int audio_stream, void *buffer, size_t s
         }
     }
 
-    if (timestamp != std::numeric_limits<int64_t>::min())
-    {
-        if (_stuff->audio_pos_offsets[audio_stream] == std::numeric_limits<int64_t>::min())
-        {
-            _stuff->audio_pos_offsets[audio_stream] = timestamp;
-        }
-        timestamp -= _stuff->audio_pos_offsets[audio_stream];
-        _stuff->audio_last_timestamps[audio_stream] = timestamp;
-    }
-    if (_stuff->audio_last_timestamps[audio_stream] > _stuff->pos)
-    {
-        _stuff->pos = _stuff->audio_last_timestamps[audio_stream];
-    }
-    return _stuff->audio_last_timestamps[audio_stream];
+    return handle_audio_timestamp(audio_stream, timestamp);
 }
 
 void decoder_ffmpeg::seek(int64_t dest_pos)

@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010
+ * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
  * Gabriele Greco <gabrielegreco@gmail.com>
  *
@@ -372,6 +372,20 @@ void audio_output_openal::stop()
     {
         throw exc("cannot stop OpenAL source playback");
     }
+    // flush all buffers and reset the state
+    ALint processed_buffers;
+    alGetSourcei(_source, AL_BUFFERS_PROCESSED, &processed_buffers);
+    while (processed_buffers > 0)
+    {
+        ALuint buf = 0;
+        alSourceUnqueueBuffers(_source, 1, &buf);
+        if (alGetError() != AL_NO_ERROR)
+        {
+            throw exc("cannot unqueue OpenAL source buffers");
+        }
+        alGetSourcei(_source, AL_BUFFERS_PROCESSED, &processed_buffers);
+    }
+    _state = 0;
 }
 
 void audio_output_openal::close()

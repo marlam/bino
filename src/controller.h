@@ -1,7 +1,8 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010-2011
+ * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +53,9 @@ public:
         adjust_brightness,
         adjust_hue,
         adjust_saturation,
-        seek
+        seek,
+        adjust_ghostbust,
+        set_ghostbust
     };
     
     type type;
@@ -86,7 +89,8 @@ public:
         brightness,
         hue,
         saturation,
-        pos
+        pos,
+        ghostbust
     };
     
     type type;

@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010
+ * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  *
@@ -26,6 +26,7 @@
 
 video_output_state::video_output_state() throw ()
     : contrast(0.0f), brightness(0.0f), hue(0.0f), saturation(0.0f),
+    crosstalk_r(0.0f), crosstalk_g(0.0f), crosstalk_b(0.0f), ghostbust(0.0f),
     fullscreen(false), swap_eyes(false)
 {
 }

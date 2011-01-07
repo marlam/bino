@@ -1,4 +1,5 @@
-# Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+# Copyright (C) 2010-2011
+# Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
 # permitted in any medium without royalty provided the copyright notice and this
@@ -52,6 +53,8 @@ BUILT_SOURCES = $(nodist_bino_SOURCES)
 
 CLEANFILES = $(BUILT_SOURCES)
 
+DEFS += -DDOCDIR=\"$(docdir)\"
+
 AM_CPPFLAGS = -I$(top_srcdir)/src/base \
 	$(libavformat_CFLAGS) $(libswscale_CFLAGS) \
 	$(libopenal_CFLAGS) $(libglew_CFLAGS) $(libqtopengl_CFLAGS)
@@ -67,6 +70,12 @@ bino_LDADD += $(libEqualizer_LIBS)
 else
 AM_CPPFLAGS += $(libglew_CFLAGS)
 bino_LDADD += $(libglew_LIBS)
+endif
+
+if W32
+bino_SOURCES += icons/appicon.ico
+.ico.o:
+	$(AM_V_GEN)echo "IDI_ICON1 ICON DISCARDABLE \"$<\"" | $(WINDRES) -o $@
 endif
 
 moc_verbose = $(moc_verbose_$(V))

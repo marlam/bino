@@ -3,26 +3,33 @@ You can build a Windows binary using MinGW.
 The easiest way to do this is to use a GNU/Linux system with the Mingw-cross-env
 environment (http://www.nongnu.org/mingw-cross-env). This is because
 Mingw-cross-env not only provides a recent version of gcc as a cross compiler,
-but also all required libraries.
+but also all required libraries, and the nsis package to build an installer.
 
 Unfortunately, some libraries do not provide pkg-config files for MinGW, so you
 have to set a few options manually for the configure script.
 
-The following is known to work with Mingw-cross-env 2.17 installed in /path/to/mce:
+The following is known to work with Mingw-cross-env 2.18 installed in /path/to/mce:
 
 1. Build the required libraries in Mingw-cross-env:
+
    $ cd /path/to/mce
    $ make glew ffmpeg openal qt
 
+   If you want to build a Bino installer later, you need to build nsis, too:
+   $ make nsis
+
 2. Clean your environment from variables that might confuse your cross-compile setup:
+
    $ unset PKG_CONFIG_PATH CC CPPFLAGS CFLAGS CXXFLAGS LDFLAGS
 
 3. Set path variables:
+
    $ MCE=/path/to/mce
    $ MCEPFX="$MCE/usr/i686-pc-mingw32"
    $ export PATH="$MCE/usr/bin:$PATH"
 
 4. Build Bino
+
    $ cd /path/to/bino
    $ QTOPENGLLIBS="`grep QMAKE_PRL_LIBS "$MCEPFX"/lib/QtOpenGL.prl | sed -e 's/QMAKE_PRL_LIBS = //'`"
    $ ./configure --host=i686-pc-mingw32 \
@@ -32,7 +39,20 @@ The following is known to work with Mingw-cross-env 2.17 installed in /path/to/m
    $ make
    $ i686-pc-mingw32-strip src/bino.exe
 
-Now you can copy the bino.exe binary from the src subdirectory to any Windows machine.
+Now you can copy the bino.exe binary from the src subdirectory to any Windows
+machine. If you want to access the Bino manual from the GUI, keep the following
+directory structure on the Windows machine:
+c:\<path_to_bino>\bin\bino.exe
+c:\<path_to_bino>\doc\bino.html
+c:\<path_to_bino>\doc\<image_files...>
+You can also build an NSIS-based installer to take care of this for you.
+
+5. Build installer
+
+   (This only works if you built the nsis package in Mingw-cross-env)
+   $ make package-w32
+
+   This will produce the installer bino-VERSION.exe.
 
 Note that you might want to use a newer FFmpeg version than the one shipped
 with Mingw-cross-env for best results.

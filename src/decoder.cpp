@@ -1,7 +1,8 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010-2011
+ * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,30 +30,65 @@ decoder::~decoder()
 {
 }
 
-std::string decoder::video_frame_format_name(enum video_frame_format f)
+std::string decoder::video_format_name(int video_format)
 {
-    switch (f)
+    std::string name;
+    switch (video_format_layout(video_format))
     {
-    case frame_format_yuv420p:
-        return "yuv420p";
+    case video_layout_bgra32:
+        name = "bgra32";
         break;
-    case frame_format_bgra32:
-        return "bgra32";
+    case video_layout_yuv444p:
+        name = "yuv444p";
+        break;
+    case video_layout_yuv422p:
+        name = "yuv422p";
+        break;
+    case video_layout_yuv420p:
+        name = "yuv420p";
         break;
     }
-}
-
-int decoder::video_frame_format_planes(enum video_frame_format f)
-{
-    switch (f)
+    switch (video_format_color_space(video_format))
     {
-    case frame_format_yuv420p:
-        return 3;
+    case video_color_space_srgb:
+        name += "-srgb";
         break;
-    case frame_format_bgra32:
-        return 1;
+    case video_color_space_yuv601:
+        name += "-601";
+        break;
+    case video_color_space_yuv709:
+        name += "-709";
         break;
     }
+    if (video_format_layout(video_format) != video_layout_bgra32)
+    {
+        switch (video_format_value_range(video_format))
+        {
+        case video_value_range_8bit_full:
+            name += "-jpg";
+            break;
+        case video_value_range_8bit_mpeg:
+            name += "-mpg";
+            break;
+        }
+    }
+    if (video_format_layout(video_format) == video_layout_yuv422p
+            || video_format_layout(video_format) == video_layout_yuv420p)
+    {
+        switch (video_format_chroma_location(video_format))
+        {
+        case video_chroma_location_center:
+            name += "-c";
+            break;
+        case video_chroma_location_left:
+            name += "-l";
+            break;
+        case video_chroma_location_topleft:
+            name += "-tl";
+            break;
+        }
+    }
+    return name;
 }
 
 std::string decoder::audio_sample_format_name(enum audio_sample_format f)

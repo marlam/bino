@@ -1,13 +1,15 @@
 .\" -*-nroff-*-
 .\"
-.\" Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+.\" Copyright (C) 2010-2011
+.\" Martin Lambers <marlam@marlam.de>
+.\" Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
 .\"
 .\" Copying and distribution of this file, with or without modification, are
 .\" permitted in any medium without royalty provided the copyright notice and this
 .\" notice are preserved. This file is offered as-is, without any warranty.
-.TH Bino 1 2010-12
+.TH Bino 1 2011-01
 .SH NAME
-Bino - a player for stereoscopic videos.
+Bino - a 3D video player with multi-display support.
 .SH SYNOPSIS
 .B bino
 [option...] [file-0] [file-1] [file-2]
@@ -23,9 +25,9 @@ can be in one, two, or three input files. The files are decoded with the
 If input files are given, Bino immediately starts playing them. Otherwise, it
 starts in GUI mode.
 .IP "\-\-help"
-Print help
+Print help.
 .IP "\-\-version"
-Print version
+Print version.
 .IP "\-g|\-\-gui"
 Show the GUI even if input files are given on the command line.
 .IP "\-l|\-\-log\-level=\fILEVEL\fP"
@@ -35,19 +37,19 @@ Select log level:
 Select input type.
 .RS
 .IP "\fImono\fP"
-Single view
+Single view.
 .IP "\fIseparate\fP"
-Left/right view in separate streams
+Left/right view in separate streams.
 .IP "\fItop\-bottom\fP"
-Left view top, right view bottom
+Left view top, right view bottom.
 .IP "\fItop\-bottom\-half\fP"
-Left view top, right view bottom, half height
+Left view top, right view bottom, half height.
 .IP "\fIleft\-right\fP"
-Left view left, right view right
+Left view left, right view right.
 .IP "\fIleft\-right\-half\fP"
-Left view left, right view right, half width
+Left view left, right view right, half width.
 .IP "\fIeven\-odd\-rows\fP"
-Left view even rows, right view odd rows
+Left view even rows, right view odd rows.
 .PP
 The default is to autodetect the input type from meta data stored in the file.
 If this fails, Bino tries to autodetect the input type based on the file name,
@@ -79,82 +81,89 @@ even\-odd\-rows swapped
 mono
 .RE
 .IP "\-s|\-\-swap\-eyes"
-Swap left/right view
+Swap left/right view.
 .IP "\-o|\-\-output=\fITYPE\fP"
 Select output type.
 .RS
 .IP "\fImono\-left\fP"
-Left view only
+Left view only.
 .IP "\fImono\-right\fP"
-Right view only
+Right view only.
 .IP "\fItop\-bottom\fP"
-Left view top, right view bottom
+Left view top, right view bottom.
 .IP "\fItop\-bottom\-half\fP"
-Left view top, right view bottom, half height
+Left view top, right view bottom, half height.
 .IP "\fIleft\-right\fP"
-Left view left, right view right
+Left view left, right view right.
 .IP "\fIleft\-right\-half\fP"
-Left view left, right view right, half width
+Left view left, right view right, half width.
 .IP "\fIeven\-odd\-rows\fP"
-Left view even rows, right view odd rows
+Left view even rows, right view odd rows.
 .IP "\fIeven\-odd\-columns\fP"
-Left view even columns, right view odd columns
+Left view even columns, right view odd columns.
 .IP "\fIcheckerboard\fP"
-Left and right view in checkerboard pattern
+Left and right view in checkerboard pattern.
 .IP "\fIanaglyph\fP"
-Red/cyan anaglyph, default method, same as \fIanaglyph\-dubois\fP"
+Red/cyan anaglyph, default method, same as \fIanaglyph\-dubois\fP.
 .IP "\fIanaglyph\-monochrome\fP"
-Red/cyan anaglyph, monochrome method
+Red/cyan anaglyph, monochrome method.
 .IP "\fIanaglyph\-full\-color\fP"
-Red/cyan anaglyph, full color method
+Red/cyan anaglyph, full color method.
 .IP "\fIanaglyph\-half\-color\fP"
-Red/cyan anaglyph, half color method
+Red/cyan anaglyph, half color method.
 .IP "\fIanaglyph\-dubois\fP"
-Red/cyan anaglyph, high\-quality Dubois method
+Red/cyan anaglyph, high\-quality Dubois method.
 .IP "\fIstereo\fP"
-OpenGL quad\-buffer stereo
+OpenGL quad\-buffer stereo.
 .IP "\fIequalizer\fP"
-Multi-display OpenGL via Equalizer with a 2D canvas setup
+Multi-display OpenGL via Equalizer with a 2D canvas setup.
 .IP "\fIequalizer\-3d\fP"
-Multi-display OpenGL via Equalizer with a 3D screen setup
+Multi-display OpenGL via Equalizer with a 3D screen setup.
 .PP
 For stereo input, the default is \fIstereo\fP if the display supports it,
 otherwise \fIanaglyph\fP. The default for mono input is \fImono\-left\fP.
 .RE
 .IP "\-f|\-\-fullscreen"
-Fullscreen
+Fullscreen.
 .IP "\-c|\-\-center"
-Center window on screen
+Center window on screen.
+.IP "\-C|\-\-crosstalk=\fIVAL\fP"
+Crosstalk leak level in % (0 to 100). \fIVAL\fP may be one value or
+comma-separated R,G,B values.
+.IP "\-G|\-\-ghostbust=\fIVAL\fP"
+Amount of ghostbusting to apply, in % (0 to 100).
 .IP "\-b|\-\-benchmark"
 Benchmark mode: no audio, no time synchronization, output of frames-per-second
 measurements.
 .SH INTERACTIVE CONTROL
 .IP "q or ESC"
-quit
+Quit.
 .IP "p or SPACE"
-Pause / unpause
+Pause / unpause.
 .IP "f"
-Toggle fullscreen
+Toggle fullscreen.
 .IP "c"
-Center window
+Center window.
 .IP "s"
-Swap left/right view
+Swap left/right view.
 .IP "1, 2"
-Adjust contrast
+Adjust contrast.
 .IP "3, 4"
-Adjust brightness
+Adjust brightness.
 .IP "5, 6"
-Adjust hue
+Adjust hue.
 .IP "7, 8"
-Adjust saturation
+Adjust saturation.
+.IP "(, )"
+Adjust ghostbusting.
 .IP "left, right"
-Seek 10 seconds backward / forward
+Seek 10 seconds backward / forward.
 .IP "up, down"
-Seek 1 minute backward / forward
+Seek 1 minute backward / forward.
 .IP "page up, page down"
-Seek 10 minutes backward / forward
+Seek 10 minutes backward / forward.
 .SH AUTHORS
-Bino was written by Martin Lambers <marlam@marlam.de>.
+The Bino developers.
 .SH SEE ALSO
 .BR mplayer (1),
 .BR ffmpeg (1)

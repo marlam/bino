@@ -1,7 +1,9 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010-2011
+ * Martin Lambers <marlam@marlam.de>
+ * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +22,7 @@
 #include "config.h"
 
 #include <QCoreApplication>
+#include <QApplication>
 #include <QMainWindow>
 #include <QGridLayout>
 #include <QCloseEvent>
@@ -37,6 +40,9 @@
 #include <QFile>
 #include <QByteArray>
 #include <QCryptographicHash>
+#include <QUrl>
+#include <QDesktopServices>
+#include <QSpinBox>
 
 #include "player_qt.h"
 #include "qt_app.h"
@@ -171,13 +177,20 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     _swap_eyes_button = new QPushButton("Swap eyes");
     _swap_eyes_button->setCheckable(true);
     connect(_swap_eyes_button, SIGNAL(toggled(bool)), this, SLOT(swap_eyes_changed()));
-    layout1->addWidget(_swap_eyes_button, 0, 4);
+    layout1->addWidget(_swap_eyes_button, 0, 0, 1, 2);
     _fullscreen_button = new QPushButton("Fullscreen");
     connect(_fullscreen_button, SIGNAL(pressed()), this, SLOT(fullscreen_pressed()));
-    layout1->addWidget(_fullscreen_button, 0, 5);
+    layout1->addWidget(_fullscreen_button, 0, 2, 1, 2);
     _center_button = new QPushButton("Center");
     connect(_center_button, SIGNAL(pressed()), this, SLOT(center_pressed()));
-    layout1->addWidget(_center_button, 0, 6);
+    layout1->addWidget(_center_button, 0, 4, 1, 2);
+    _ghostbust_label = new QLabel("Ghostbusting:");
+    layout1->addWidget(_ghostbust_label, 0, 6, 1, 1);
+    _ghostbust_spinbox = new QSpinBox();
+    _ghostbust_spinbox->setRange(0, 100);
+    _ghostbust_spinbox->setValue(0);
+    connect(_ghostbust_spinbox, SIGNAL(valueChanged(int)), this, SLOT(ghostbust_changed()));
+    layout1->addWidget(_ghostbust_spinbox, 0, 7, 1, 1);
     layout1->setRowStretch(0, 1);
     QGridLayout *layout = new QGridLayout;
     layout->addLayout(layout0, 0, 0);
@@ -189,6 +202,8 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     _swap_eyes_button->setEnabled(false);
     _fullscreen_button->setEnabled(false);
     _center_button->setEnabled(false);
+    _ghostbust_label->setEnabled(false);
+    _ghostbust_spinbox->setEnabled(false);
 }
 
 in_out_widget::~in_out_widget()
@@ -312,12 +327,21 @@ void in_out_widget::center_pressed()
     send_cmd(command::center);
 }
 
+void in_out_widget::ghostbust_changed()
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_ghostbust, _ghostbust_spinbox->value() / 100.0f);
+    }
+}
+
 void in_out_widget::update(const player_init_data &init_data, bool have_valid_input, bool playing)
 {
     set_input(init_data.input_mode);
     set_output(init_data.video_mode);
     _lock = true;
     _swap_eyes_button->setChecked(init_data.video_state.swap_eyes);
+    _ghostbust_spinbox->setValue(qRound(init_data.video_state.ghostbust * 100.0f));
     _lock = false;
     if (have_valid_input)
     {
@@ -330,6 +354,8 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
         _swap_eyes_button->setEnabled(false);
         _fullscreen_button->setEnabled(false);
         _center_button->setEnabled(false);
+        _ghostbust_label->setEnabled(false);
+        _ghostbust_spinbox->setEnabled(false);
     }
 }
 
@@ -401,12 +427,28 @@ void in_out_widget::receive_notification(const notification &note)
         _swap_eyes_button->setEnabled(note.current.flag);
         _fullscreen_button->setEnabled(note.current.flag);
         _center_button->setEnabled(note.current.flag);
+        {
+            bool ghostbust = (note.current.flag
+                    && video_mode() != video_output::anaglyph_red_cyan_dubois
+                    && video_mode() != video_output::anaglyph_red_cyan_monochrome
+                    && video_mode() != video_output::anaglyph_red_cyan_full_color
+                    && video_mode() != video_output::anaglyph_red_cyan_half_color);
+            _ghostbust_label->setEnabled(ghostbust);
+            _ghostbust_spinbox->setEnabled(ghostbust);
+        }
         break;
     case notification::swap_eyes:
         _lock = true;
         _swap_eyes_button->setChecked(note.current.flag);
         _lock = false;
         break;
+    case notification::ghostbust:
+        _lock = true;
+        if (_ghostbust_spinbox->isEnabled())
+        {
+            _ghostbust_spinbox->setValue(qRound(note.current.value * 100.0f));
+        }
+        _lock = false;
     default:
         break;
     }
@@ -570,6 +612,13 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     setWindowTitle(PACKAGE_NAME);
     setWindowIcon(QIcon(":icons/appicon.png"));
 
+    // Load preferences
+    _settings->beginGroup("Session");
+    _init_data.video_state.crosstalk_r = _settings->value("crosstalk_r", QString("0")).toFloat();
+    _init_data.video_state.crosstalk_g = _settings->value("crosstalk_g", QString("0")).toFloat();
+    _init_data.video_state.crosstalk_b = _settings->value("crosstalk_b", QString("0")).toFloat();
+    _settings->endGroup();
+
     // Central widget
     QWidget *central_widget = new QWidget(this);
     QGridLayout *layout = new QGridLayout();
@@ -603,14 +652,27 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
 #endif
     connect(file_quit_act, SIGNAL(triggered()), this, SLOT(close()));
     file_menu->addAction(file_quit_act);
+    QMenu *preferences_menu = menuBar()->addMenu(tr("&Preferences"));
+    QAction *preferences_crosstalk_act = new QAction(tr("&Crosstalk..."), this);
+    connect(preferences_crosstalk_act, SIGNAL(triggered()), this, SLOT(preferences_crosstalk()));
+    preferences_menu->addAction(preferences_crosstalk_act);
     QMenu *help_menu = menuBar()->addMenu(tr("&Help"));
+    QAction *help_manual_act = new QAction(tr("&Manual..."), this);
+    help_manual_act->setShortcut(QKeySequence::HelpContents);
+    connect(help_manual_act, SIGNAL(triggered()), this, SLOT(help_manual()));
+    help_menu->addAction(help_manual_act);
+    QAction *help_website_act = new QAction(tr("&Website..."), this);
+    connect(help_website_act, SIGNAL(triggered()), this, SLOT(help_website()));
+    help_menu->addAction(help_website_act);
     QAction *help_keyboard_act = new QAction(tr("&Keyboard Shortcuts"), this);
-    help_keyboard_act->setShortcut(QKeySequence::HelpContents);
     connect(help_keyboard_act, SIGNAL(triggered()), this, SLOT(help_keyboard()));
     help_menu->addAction(help_keyboard_act);
     QAction *help_about_act = new QAction(tr("&About"), this);
     connect(help_about_act, SIGNAL(triggered()), this, SLOT(help_about()));
     help_menu->addAction(help_about_act);
+
+    // Handle FileOpen events
+    QApplication::instance()->installEventFilter(this);
 
     show();     // Must happen before opening initial files!
     raise();
@@ -643,6 +705,14 @@ main_window::~main_window()
         try { _player->close(); } catch (...) { }
         delete _player;
     }
+}
+
+QString main_window::current_file_hash()
+{
+    // Return SHA1 hash of the name of the current file as a hex string
+    QString name = QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName();
+    QString hash = QCryptographicHash::hash(name.toUtf8(), QCryptographicHash::Sha1).toHex();
+    return hash;
 }
 
 bool main_window::open_player()
@@ -681,9 +751,7 @@ void main_window::receive_notification(const notification &note)
             _settings->beginGroup("Video");
             if (_init_data.filenames.size() == 1)
             {
-                QString name = QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName();
-                QByteArray hash = QCryptographicHash::hash(name.toUtf8(), QCryptographicHash::Sha1);
-                _settings->setValue(QString(hash.toHex()), QString(input::mode_name(_init_data.input_mode).c_str()));
+                _settings->setValue(current_file_hash(), QString(input::mode_name(_init_data.input_mode).c_str()));
             }
             _settings->endGroup();
             // Remember the 2D or 3D video output mode.
@@ -711,6 +779,36 @@ void main_window::receive_notification(const notification &note)
             _player->close();
         }
     }
+    else if (note.type == notification::contrast)
+    {
+        _init_data.video_state.contrast = note.current.value;
+    }
+    else if (note.type == notification::brightness)
+    {
+        _init_data.video_state.brightness = note.current.value;
+    }
+    else if (note.type == notification::hue)
+    {
+        _init_data.video_state.hue = note.current.value;
+    }
+    else if (note.type == notification::saturation)
+    {
+        _init_data.video_state.saturation = note.current.value;
+    }
+    else if (note.type == notification::swap_eyes)
+    {
+        _init_data.video_state.swap_eyes = note.current.flag;
+        _settings->beginGroup("Video");
+        _settings->setValue(current_file_hash() + "-swap-eyes", QVariant(_init_data.video_state.swap_eyes).toString());
+        _settings->endGroup();
+    }
+    else if (note.type == notification::ghostbust)
+    {
+        _init_data.video_state.ghostbust = note.current.value;
+        _settings->beginGroup("Video");
+        _settings->setValue(current_file_hash() + "-ghostbust", QVariant(_init_data.video_state.ghostbust).toString());
+        _settings->endGroup();
+    }
 }
 
 void main_window::moveEvent(QMoveEvent *)
@@ -720,6 +818,12 @@ void main_window::moveEvent(QMoveEvent *)
 
 void main_window::closeEvent(QCloseEvent *event)
 {
+    // Remember the preferences
+    _settings->beginGroup("Session");
+    _settings->setValue("crosstalk_r", QVariant(_init_data.video_state.crosstalk_r).toString());
+    _settings->setValue("crosstalk_g", QVariant(_init_data.video_state.crosstalk_g).toString());
+    _settings->setValue("crosstalk_b", QVariant(_init_data.video_state.crosstalk_b).toString());
+    _settings->endGroup();
     event->accept();
 }
 
@@ -764,16 +868,16 @@ void main_window::open(QStringList filenames, bool automatic)
         _settings->beginGroup("Video");
         if (_init_data.filenames.size() == 1)
         {
-            QString name = QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName();
-            QByteArray hash = QCryptographicHash::hash(name.toUtf8(), QCryptographicHash::Sha1);
             QString fallback_mode_name = QString(input::mode_name(_player->input_mode()).c_str());
-            QString mode_name = _settings->value(QString(hash.toHex()), fallback_mode_name).toString();
+            QString mode_name = _settings->value(current_file_hash(), fallback_mode_name).toString();
             _init_data.input_mode = input::mode_from_name(mode_name.toStdString());
         }
         else
         {
             _init_data.input_mode = _player->input_mode();
         }
+        _init_data.video_state.swap_eyes = QVariant(_settings->value(current_file_hash() + "-swap-eyes", QString("false")).toString()).toBool();
+        _init_data.video_state.ghostbust = QVariant(_settings->value(current_file_hash() + "-ghostbust", QString("0")).toString()).toFloat();
         _settings->endGroup();
         _settings->beginGroup("Session");
         if (automatic)
@@ -862,6 +966,77 @@ void main_window::file_open_url()
     }
 }
 
+void main_window::preferences_crosstalk()
+{
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("Set crosstalk levels");
+    QGridLayout *layout = new QGridLayout;
+    QLabel *rtfm_label = new QLabel(
+            "<p>Please read the manual to find out<br>"
+            "how to measure the crosstalk levels<br>"
+            "of your display.</p>");
+    layout->addWidget(rtfm_label, 0, 0, 1, 6);
+    QLabel *red_label = new QLabel("Red:");
+    layout->addWidget(red_label, 1, 0, 1, 2);
+    QSpinBox *red_spinbox = new QSpinBox();
+    red_spinbox->setRange(0, 100);
+    red_spinbox->setValue(_init_data.video_state.crosstalk_r * 100.0f);
+    layout->addWidget(red_spinbox, 1, 2, 1, 4);
+    QLabel *green_label = new QLabel("Green:");
+    layout->addWidget(green_label, 2, 0, 1, 3);
+    QSpinBox *green_spinbox = new QSpinBox();
+    green_spinbox->setRange(0, 100);
+    green_spinbox->setValue(_init_data.video_state.crosstalk_g * 100.0f);
+    layout->addWidget(green_spinbox, 2, 2, 1, 4);
+    QLabel *blue_label = new QLabel("Blue:");
+    layout->addWidget(blue_label, 3, 0, 1, 2);
+    QSpinBox *blue_spinbox = new QSpinBox();
+    blue_spinbox->setRange(0, 100);
+    blue_spinbox->setValue(_init_data.video_state.crosstalk_b * 100.0f);
+    layout->addWidget(blue_spinbox, 3, 2, 1, 4);
+    QPushButton *ok_button = new QPushButton(tr("&OK"));
+    ok_button->setDefault(true);
+    connect(ok_button, SIGNAL(clicked()), dialog, SLOT(accept()));
+    layout->addWidget(ok_button, 4, 0, 1, 3);
+    QPushButton *cancel_button = new QPushButton(tr("&Cancel"), dialog);
+    connect(cancel_button, SIGNAL(clicked()), dialog, SLOT(reject()));
+    layout->addWidget(cancel_button, 4, 3, 1, 3);
+    dialog->setLayout(layout);
+    if (dialog->exec() == QDialog::Rejected)
+    {
+        return;
+    }
+    _init_data.video_state.crosstalk_r = red_spinbox->value() / 100.0f;
+    _init_data.video_state.crosstalk_g = green_spinbox->value() / 100.0f;
+    _init_data.video_state.crosstalk_b = blue_spinbox->value() / 100.0f;
+    delete dialog;
+}
+
+void main_window::help_manual()
+{
+    QUrl manual_url;
+#if defined(Q_WS_WIN32)
+    manual_url = QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/../doc/bino.html");
+#elif defined(Q_WS_MAC)
+    manual_url = QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/../Resources/Bino Help/bino.html");
+#else
+    manual_url = QUrl::fromLocalFile(DOCDIR "/bino.html");
+#endif
+    if (!QDesktopServices::openUrl(manual_url))
+    {
+        QMessageBox::critical(this, "Error", "Cannot open manual");
+    }
+}
+
+void main_window::help_website()
+{
+    if (!QDesktopServices::openUrl(QUrl(PACKAGE_URL)))
+    {
+        QMessageBox::critical(this, "Error", "Cannot open website");
+    }
+}
+
 void main_window::help_keyboard()
 {
     QMessageBox::information(this, tr("Keyboard Shortcuts"), tr(
@@ -876,6 +1051,7 @@ void main_window::help_keyboard()
                 "<tr><td>3, 4</td><td>Adjust brightness</td></tr>"
                 "<tr><td>5, 6</td><td>Adjust hue</td></tr>"
                 "<tr><td>7, 8</td><td>Adjust saturation</td></tr>"
+                "<tr><td>(, )</td><td>Adjust ghostbusting</td></tr>"
                 "<tr><td>left, right</td><td>Seek 10 seconds backward / forward</td></tr>"
                 "<tr><td>up, down</td><td>Seek 1 minute backward / forward</td></tr>"
                 "<tr><td>page up, page down</td><td>Seek 10 minutes backward / forward</td></tr>"
@@ -890,7 +1066,7 @@ void main_window::help_about()
 {
     QString blurb = tr(
             "<p>%1 version %2</p>"
-            "<p>Copyright (C) 2010 the Bino developers.<br>"
+            "<p>Copyright (C) 2011 the Bino developers.<br>"
             "This is free software. You may redistribute copies of it<br>"
             "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
             "GNU General Public License</a>.<br>"
@@ -908,6 +1084,19 @@ void main_window::help_about()
     QMessageBox::about(this, tr("About " PACKAGE_NAME), blurb);
 }
 
+bool main_window::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::FileOpen)
+    {
+        open(QStringList(static_cast<QFileOpenEvent *>(event)->file()), true);
+        return true;
+    }
+    else
+    {
+        // pass the event on to the parent class
+        return QMainWindow::eventFilter(obj, event);
+    }
+}
 
 player_qt::player_qt() : player(player::slave)
 {

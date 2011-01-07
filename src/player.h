@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010
+ * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
  * Alexey Osipov <lion-simba@pridelands.ru>
  *
@@ -83,12 +83,13 @@ private:
     // Audio / video timing, relative to a synchronization point.
     // The master time is the audio time, or external time if there is no audio.
     // All times are in microseconds.
-    int64_t _sync_point_pos;             // input position at last sync point
-    int64_t _sync_point_time;            // master time at last sync point
-    int64_t _sync_point_av_offset;       // audio/video offset at last sync point
-    int64_t _current_pos;                // current input position
-    int64_t _current_time;               // current master time
-    int64_t _next_frame_pos;             // presentation time of next video frame
+    int64_t _start_pos;                 // initial input position
+    int64_t _current_pos;               // current input position
+    int64_t _video_pos;                 // presentation time of current video frame
+    int64_t _audio_pos;                 // presentation time of current audio data block
+    int64_t _master_time_start;         // master time offset
+    int64_t _master_time_current;       // current master time
+    int64_t _master_time_pos;           // input position at master time start
 
     int _frames_shown;                   // frames shown since last _sync_point_time update
     int64_t _fps_mark_time;              // time when _frames_shown was reset to zero

@@ -1,7 +1,9 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010-2011
+ * Martin Lambers <marlam@marlam.de>
+ * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +26,8 @@
 #include <QWidget>
 #include <QComboBox>
 #include <QPushButton>
+#include <QLabel>
+#include <QSpinBox>
 #include <QTimer>
 #include <QSettings>
 
@@ -64,6 +68,8 @@ private:
     QPushButton *_swap_eyes_button;
     QPushButton *_fullscreen_button;
     QPushButton *_center_button;
+    QLabel *_ghostbust_label;
+    QSpinBox *_ghostbust_spinbox;
     bool _lock;
 
     void set_input(enum input::mode m);
@@ -74,6 +80,7 @@ private slots:
     void swap_eyes_changed();
     void fullscreen_pressed();
     void center_pressed();
+    void ghostbust_changed();
 
 public:
     in_out_widget(QSettings *settings, QWidget *parent);
@@ -137,6 +144,7 @@ private:
     player_init_data _init_data;
     bool _stop_request;
 
+    QString current_file_hash();
     bool open_player();
     void open(QStringList filenames, bool automatic);
 
@@ -145,12 +153,16 @@ private slots:
     void playloop_step();
     void file_open();
     void file_open_url();
+    void preferences_crosstalk();
+    void help_manual();
+    void help_website();
     void help_keyboard();
     void help_about();
 
 protected:
     void moveEvent(QMoveEvent *event);
     void closeEvent(QCloseEvent *event);
+    bool eventFilter(QObject *obj, QEvent *event);
 
 public:
     main_window(QSettings *settings, const player_init_data &init_data);

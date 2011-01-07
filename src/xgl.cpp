@@ -1,7 +1,8 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010-2011
+ * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -234,45 +235,6 @@ static void xglKillCrlf(char *str)
         str[--l] = '\0';
     if (l > 0 && str[l - 1] == '\r')
         str[l - 1] = '\0';
-}
-
-static int xglSkipWhitespace(const std::string &s, int i)
-{
-    while (isspace(s[i]))
-        i++;
-    return i;
-}
-
-std::string xgl::ShaderSourcePrep(const std::string &src, const std::string &defines)
-{
-    std::string prepped_src(src);
-    int defines_index = 0;
-    for (;;)
-    {
-        defines_index = xglSkipWhitespace(defines, defines_index);
-        if (defines[defines_index] == '\0')
-            break;
-        assert(defines[defines_index] == '$');
-        int name_start = defines_index;
-        defines_index++;
-        while (isalnum(defines[defines_index]) || defines[defines_index] == '_')
-            defines_index++;
-        int name_end = defines_index - 1;
-        defines_index = xglSkipWhitespace(defines, defines_index);
-        assert(defines[defines_index] == '=');
-        defines_index = xglSkipWhitespace(defines, defines_index + 1);
-        int value_start = defines_index;
-        while (isalnum(defines[defines_index]) || defines[defines_index] == '_')
-            defines_index++;
-        int value_end = defines_index - 1;
-        str::replace(prepped_src,
-                std::string(defines, name_start, name_end - name_start + 1),
-                std::string(defines, value_start, value_end - value_start + 1));
-        defines_index = xglSkipWhitespace(defines, defines_index);
-        if (defines[defines_index] == ',')
-            defines_index++;
-    }
-    return prepped_src;
 }
 
 GLuint xgl::CompileShader(const std::string &name, GLenum type, const std::string &src)

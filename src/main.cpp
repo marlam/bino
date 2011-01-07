@@ -1,9 +1,10 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010
+ * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
  * Stefan Eilemann <eile@eyescale.ch>
+ * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -99,6 +100,10 @@ int main(int argc, char *argv[])
     options.push_back(&swap_eyes);
     opt::flag benchmark("benchmark", 'b', opt::optional);
     options.push_back(&benchmark);
+    opt::tuple<float> crosstalk("crosstalk", 'C', opt::optional, 0.0f, 100.0f, std::vector<float>(3, 0.0f));
+    options.push_back(&crosstalk);
+    opt::val<float> ghostbust("ghostbust", 'G', opt::optional, 0.0f, 100.0f);
+    options.push_back(&ghostbust);
     // Accept some Equalizer options. These are passed to Equalizer for interpretation.
     opt::val<std::string> eq_server("eq-server", '\0', opt::optional);
     options.push_back(&eq_server);
@@ -112,6 +117,14 @@ int main(int argc, char *argv[])
     options.push_back(&eq_render_client);
 
     std::vector<std::string> arguments;
+#ifdef __APPLE__
+    // strip -psn* option when launching from the Finder on mac
+    if (argc > 1 && strncmp("-psn", argv[1], 4) == 0)
+    {
+        argc--;
+        argv++;
+    }
+#endif
     if (!opt::parse(argc, argv, options, 0, 3, arguments))
     {
         return 1;
@@ -119,7 +132,7 @@ int main(int argc, char *argv[])
     if (version.value())
     {
         msg::req("%s version %s", PACKAGE_NAME, VERSION);
-        msg::req("    Copyright (C) 2010 the Bino developers.");
+        msg::req("    Copyright (C) 2011 the Bino developers.");
         msg::req("    This is free software. You may redistribute copies of it");
         msg::req("    under the terms of the GNU General Public License.");
         msg::req("    There is NO WARRANTY, to the extent permitted by law.");
@@ -173,6 +186,9 @@ int main(int argc, char *argv[])
                 "  -f|--fullscreen      Fullscreen\n"
                 "  -c|--center          Center window on screen\n"
                 "  -s|--swap-eyes       Swap left/right view\n"
+                "  -C|--crosstalk=VAL   Crosstalk leak level in %% (0 to 100). VAL may\n"
+                "                       be one value or comma-separated R,G,B values.\n"
+                "  -G|--ghostbust=VAL   Amount of ghostbusting to apply, in %% (0 to 100).\n"
                 "  -b|--benchmark       Benchmark mode (no audio, no timesync, show fps)\n"
                 "\n"
                 "Keyboard control:\n"
@@ -193,6 +209,11 @@ int main(int argc, char *argv[])
     if (version.value() || help.value())
     {
         return 0;
+    }
+    if (crosstalk.value().size() != 1 && crosstalk.value().size() != 3)
+    {
+        msg::err("invalid crosstalk levels");
+        return 1;
     }
 
 #if HAVE_LIBEQUALIZER
@@ -284,6 +305,10 @@ int main(int argc, char *argv[])
             debug::crash();
         }
     }
+    init_data.video_state.crosstalk_r = crosstalk.value()[0] / 100.0f;
+    init_data.video_state.crosstalk_g = crosstalk.value()[crosstalk.value().size() == 3 ? 1 : 0] / 100.0f;
+    init_data.video_state.crosstalk_b = crosstalk.value()[crosstalk.value().size() == 3 ? 2 : 0] / 100.0f;
+    init_data.video_state.ghostbust = ghostbust.value() / 100.0f;
     init_data.video_state.fullscreen = fullscreen.value();
     init_data.video_state.swap_eyes = swap_eyes.value();
     if (center.value())

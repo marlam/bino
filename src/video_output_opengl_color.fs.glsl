@@ -1,7 +1,8 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010-2011
+ * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,15 +20,29 @@
 
 #version 120
 
-// input_bgra32
-// input_yuv420p
-#define $input
+// layout_yuv_p
+// layout_bgra32
+#define $layout
 
-#if defined(input_yuv420p)
+// color_space_yuv601
+// color_space_yuv709
+// color_space_srgb
+#define $color_space
+
+// value_range_8bit_full
+// value_range_8bit_mpeg
+#define $value_range
+
+// the offset between the y texture coordinates and the appropriate
+// u and v texture coordinates, according to the chroma sample location
+#define chroma_offset_x $chroma_offset_x
+#define chroma_offset_y $chroma_offset_y
+
+#if defined(layout_yuv_p)
 uniform sampler2D y_tex;
 uniform sampler2D u_tex;
 uniform sampler2D v_tex;
-#elif defined(input_bgra32)
+#elif defined(layout_bgra32)
 uniform sampler2D srgb_tex;
 #endif
 
@@ -37,40 +52,46 @@ uniform float saturation;
 uniform float cos_hue;
 uniform float sin_hue;
 
-#if defined(input_bgra32)
+/* The YUV triplets used internally in this shader use the following
+ * conventions:
+ * - All three components are in the range [0,1]
+ * - The U and V components refer to the normalized E_Cr and E_Cb
+ *   components in the ITU.BT-* documents, shifted from [-0.5,+0.5]
+ *   to [0,1]
+ * - The color space is either the one defined in ITU.BT-601 or the one
+ *   defined in ITU.BT-709. */
+
+#if defined(layout_bgra32)
 vec3 srgb_to_yuv(vec3 srgb)
 {
-    // According to ITU.BT-601
+    // According to ITU.BT-601 (see formulas in Sec. 2.5.1 and 2.5.2)
     mat3 m = mat3(
-            0.299, -0.169,  0.5,
-            0.587, -0.331, -0.419,
-            0.114,  0.500, -0.081);
+            0.299, -0.168736,  0.5,
+            0.587, -0.331264, -0.418688,
+            0.114,  0.5,      -0.081312);
     return m * srgb + vec3(0.0, 0.5, 0.5);
-# if 0
-    // According to ITU.BT-709
-    mat3 m = mat3(
-            0.2215, -0.1145,  0.5016,
-            0.7154, -0.3855, -0.4556,
-            0.0721,  0.5,    -0.0459);
-    return m * srgb + vec3(0.0, 0.5, 0.5);
-#endif
 }
 #endif
 
 vec3 yuv_to_srgb(vec3 yuv)
 {
-    // According to ITU.BT-601
+#if defined(value_range_8bit_mpeg)
+    // Convert the MPEG range to the full range for each component
+    yuv = (yuv - vec3(16.0 / 255.0)) * vec3(256.0 / 220.0, 256.0 / 225.0, 256.0 / 225.0);
+#endif
+#if defined(color_space_yuv709)
+    // According to ITU.BT-709 (see entries 3.2 and 3.3 in Sec. 3 ("Signal format"))
     mat3 m = mat3(
-            1.0,     1.0,  1.0,
-            0.0,   -0.344, 1.773,
-            1.403, -0.714, 0.0);
+            1.0,     1.0,      1.0,
+            0.0,    -0.187324, 1.8556,
+            1.5748, -0.468124, 0.0);
     return m * (yuv - vec3(0.0, 0.5, 0.5));
-# if 0
-    // According to ITU.BT-709
+#else // 601 or RGB (which was converted to 601)
+    // According to ITU.BT-601 (see formulas in Sec. 2.5.1 and 2.5.2)
     mat3 m = mat3(
-            1.0,     1.0,     1.0,
-            0.0,    -0.187,  -1.8556,
-            1.5701, -0.4664,  0.0);
+            1.0,    1.0,      1.0,
+            0.0,   -0.344136, 1.772,
+            1.402, -0.714136, 0.0);
     return m * (yuv - vec3(0.0, 0.5, 0.5));
 #endif
 }
@@ -91,13 +112,13 @@ vec3 adjust_yuv(vec3 yuv)
 
 vec3 get_yuv(vec2 tex_coord)
 {
-#if defined(input_bgra32)
+#if defined(layout_bgra32)
     return srgb_to_yuv(texture2D(srgb_tex, tex_coord).xyz);
-#elif defined(input_yuv420p)
+#elif defined(layout_yuv_p)
     return vec3(
             texture2D(y_tex, tex_coord).x,
-            texture2D(u_tex, tex_coord).x,
-            texture2D(v_tex, tex_coord).x);
+            texture2D(u_tex, tex_coord + vec2(chroma_offset_x, chroma_offset_y)).x,
+            texture2D(v_tex, tex_coord + vec2(chroma_offset_x, chroma_offset_y)).x);
 #endif
 }
 

@@ -1,7 +1,8 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010-2011
+ * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,7 +60,7 @@ private:
     float _video_aspect_ratio;
     int _video_frame_rate_num;
     int _video_frame_rate_den;
-    enum decoder::video_frame_format _video_frame_format;
+    int _video_format;
     bool _video_is_mono;
     int _audio_rate;
     int _audio_channels;
@@ -121,9 +122,9 @@ public:
         return static_cast<int64_t>(_video_frame_rate_den) * 1000000 / _video_frame_rate_num;
     }
 
-    enum decoder::video_frame_format video_frame_format() const throw ()
+    int video_format() const throw ()
     {
-        return _video_frame_format;
+        return _video_format;
     }
 
     bool video_is_mono() const throw ()
@@ -151,6 +152,11 @@ public:
         return _audio_sample_format;
     }
 
+    int64_t initial_skip() const throw ()
+    {
+        return _initial_skip;
+    }
+
     int64_t duration() const throw ()
     {
         return _duration;
@@ -159,7 +165,7 @@ public:
     /* Read audio and video data */
 
     /* Read the next video frame into an internal buffer. Return its time stamp in microseconds,
-     * or a negative value on end-of-file. */
+     * or the minimum possible value on end-of-file. */
     int64_t read_video_frame();
     /* Prepare the video frame that is currently in the internal buffer. Must be called before get_video_frame(). */
     void prepare_video_frame();
@@ -171,8 +177,8 @@ public:
     void release_video_frame();
 
     /* Read the requested amount of audio data from the input. The data will be stored in an
-     * internal buffer, and a pointer to that buffer is returned in 'data'. On end-of-file, a
-     * negative value is returned. */
+     * internal buffer, and a pointer to that buffer is returned in 'data'. On end-of-file, the
+     * minimum possible value is returned. */
     int64_t read_audio_data(void **data, size_t size);
 
     /* Seek to the given position in microseconds. */

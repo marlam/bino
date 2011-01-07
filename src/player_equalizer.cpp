@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010
+ * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
  * Stefan Eilemann <eile@eyescale.ch>
  *
@@ -92,7 +92,7 @@ public:
 
     bool eq_init(const player_init_data &init_data,
             int *src_width, int *src_height, float *src_aspect_ratio,
-            enum decoder::video_frame_format *src_frame_format, bool *src_is_mono)
+            int *src_frame_format, bool *src_is_mono)
     {
         try
         {
@@ -103,7 +103,7 @@ public:
             *src_width = get_input()->video_width();
             *src_height = get_input()->video_height();
             *src_aspect_ratio = get_input()->video_aspect_ratio();
-            *src_frame_format = get_input()->video_frame_format();
+            *src_frame_format = get_input()->video_format();
             *src_is_mono = get_input()->video_is_mono();
             if (_is_master)
             {
@@ -177,7 +177,7 @@ public:
     }
 
     void eq_initialize(int src_width, int src_height, float src_aspect_ratio,
-            enum decoder::video_frame_format src_frame_format, bool src_is_mono)
+            int src_frame_format, bool src_is_mono)
     {
         set_mode(mono_left);    // to display the right view, we can toggle the swap_eyes flag
         set_source_info(src_width, src_height, src_aspect_ratio, src_frame_format, src_is_mono);
@@ -204,7 +204,7 @@ public:
     virtual int screen_pos_y() { return 0; }
     virtual void receive_notification(const notification &) {}
     virtual bool supports_stereo() { return false; }
-    virtual void open(enum decoder::video_frame_format, bool, int, int, float, int,
+    virtual void open(int, bool, int, int, float, int,
             const video_output_state&, unsigned int, int, int) {}
     virtual void activate() {}
     virtual void process_events() {}
@@ -255,6 +255,10 @@ protected:
         s11n::save(oss, init_data.video_state.brightness);
         s11n::save(oss, init_data.video_state.hue);
         s11n::save(oss, init_data.video_state.saturation);
+        s11n::save(oss, init_data.video_state.crosstalk_r);
+        s11n::save(oss, init_data.video_state.crosstalk_g);
+        s11n::save(oss, init_data.video_state.crosstalk_b);
+        s11n::save(oss, init_data.video_state.ghostbust);
         s11n::save(oss, init_data.video_state.fullscreen);
         s11n::save(oss, init_data.video_state.swap_eyes);
         s11n::save(oss, init_data.video_flags);
@@ -285,6 +289,10 @@ protected:
         s11n::load(iss, init_data.video_state.brightness);
         s11n::load(iss, init_data.video_state.hue);
         s11n::load(iss, init_data.video_state.saturation);
+        s11n::load(iss, init_data.video_state.crosstalk_r);
+        s11n::load(iss, init_data.video_state.crosstalk_g);
+        s11n::load(iss, init_data.video_state.crosstalk_b);
+        s11n::load(iss, init_data.video_state.ghostbust);
         s11n::load(iss, init_data.video_state.fullscreen);
         s11n::load(iss, init_data.video_state.swap_eyes);
         s11n::load(iss, init_data.video_flags);
@@ -330,6 +338,10 @@ protected:
         s11n::save(oss, video_state.brightness);
         s11n::save(oss, video_state.hue);
         s11n::save(oss, video_state.saturation);
+        s11n::save(oss, video_state.crosstalk_r);
+        s11n::save(oss, video_state.crosstalk_g);
+        s11n::save(oss, video_state.crosstalk_b);
+        s11n::save(oss, video_state.ghostbust);
         s11n::save(oss, video_state.fullscreen);
         s11n::save(oss, video_state.swap_eyes);
         s11n::save(oss, seek_to);
@@ -348,6 +360,10 @@ protected:
         s11n::load(iss, video_state.brightness);
         s11n::load(iss, video_state.hue);
         s11n::load(iss, video_state.saturation);
+        s11n::load(iss, video_state.crosstalk_r);
+        s11n::load(iss, video_state.crosstalk_g);
+        s11n::load(iss, video_state.crosstalk_b);
+        s11n::load(iss, video_state.ghostbust);
         s11n::load(iss, video_state.fullscreen);
         s11n::load(iss, video_state.swap_eyes);
         s11n::load(iss, seek_to);
@@ -417,7 +433,7 @@ public:
     // Source video properties:
     int src_width, src_height;
     float src_aspect_ratio;
-    enum decoder::video_frame_format src_frame_format;
+    int src_frame_format;
     bool src_is_mono;
 
 public:
@@ -425,7 +441,7 @@ public:
         : eq::Config(parent), _is_master_config(false), _eq_init_data(), _eq_frame_data(),
         _player(), _controller(false),
         src_width(-1), src_height(-1), src_aspect_ratio(0.0f),
-        src_frame_format(decoder::frame_format_yuv420p), src_is_mono(true)
+        src_frame_format(0), src_is_mono(true)
     {
     }
 
@@ -581,6 +597,12 @@ public:
             case '8':
                 _controller.send_cmd(command::adjust_saturation, +0.05f);
                 break;
+            case '(':
+                _controller.send_cmd(command::adjust_ghostbust, -0.01f);
+                break;
+            case ')':
+                _controller.send_cmd(command::adjust_ghostbust, +0.01f);
+                break;
             case eq::KC_LEFT:
                 _controller.send_cmd(command::seek, -10.0f);
                 break;
@@ -695,14 +717,14 @@ public:
     eq_frame_data frame_data;
     int src_width, src_height;
     float src_aspect_ratio;
-    enum decoder::video_frame_format src_frame_format;
+    int src_frame_format;
     bool src_is_mono;
 
     eq_node(eq::Config *parent)
         : eq::Node(parent), _is_app_node(false),
         _player(), init_data(), frame_data(),
         src_width(-1), src_height(-1), src_aspect_ratio(-1.0f),
-        src_frame_format(decoder::frame_format_yuv420p), src_is_mono(true)
+        src_frame_format(0), src_is_mono(true)
     {
     }
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010
+ * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  *
@@ -175,6 +175,12 @@ void video_output_opengl_qt_widget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_8:
         _vo->send_cmd(command::adjust_saturation, +0.05f);
         break;
+    case Qt::Key_ParenLeft:
+        _vo->send_cmd(command::adjust_ghostbust, -0.01f);
+        break;
+    case Qt::Key_ParenRight:
+        _vo->send_cmd(command::adjust_ghostbust, +0.01f);
+        break;
     case Qt::Key_Left:
         _vo->send_cmd(command::seek, -10.0f);
         break;
@@ -291,7 +297,7 @@ bool video_output_opengl_qt::supports_stereo()
 }
 
 void video_output_opengl_qt::open(
-        enum decoder::video_frame_format src_format, bool src_mono,
+        int src_format, bool src_mono,
         int src_width, int src_height, float src_aspect_ratio,
         int mode, const video_output_state &state, unsigned int flags,
         int win_width, int win_height)
@@ -498,6 +504,10 @@ void video_output_opengl_qt::receive_notification(const notification &note)
         _widget->update();
         break;
     case notification::pos:
+        break;
+    case notification::ghostbust:
+        state().ghostbust = note.current.value;
+        _widget->update();
         break;
     }
 }
