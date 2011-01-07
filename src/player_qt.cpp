@@ -613,6 +613,9 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     help_manual_act->setShortcut(QKeySequence::HelpContents);
     connect(help_manual_act, SIGNAL(triggered()), this, SLOT(help_manual()));
     help_menu->addAction(help_manual_act);
+    QAction *help_website_act = new QAction(tr("&Website"), this);
+    connect(help_website_act, SIGNAL(triggered()), this, SLOT(help_website()));
+    help_menu->addAction(help_website_act);
     QAction *help_keyboard_act = new QAction(tr("&Keyboard Shortcuts"), this);
     connect(help_keyboard_act, SIGNAL(triggered()), this, SLOT(help_keyboard()));
     help_menu->addAction(help_keyboard_act);
@@ -884,6 +887,14 @@ void main_window::help_manual()
     if (!QDesktopServices::openUrl(manual_url))
     {
         QMessageBox::critical(this, "Error", "Cannot open manual");
+    }
+}
+
+void main_window::help_website()
+{
+    if (!QDesktopServices::openUrl(QUrl(PACKAGE_URL)))
+    {
+        QMessageBox::critical(this, "Error", "Cannot open website");
     }
 }
 
