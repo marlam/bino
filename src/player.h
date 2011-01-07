@@ -77,6 +77,7 @@ private:
     bool _quit_request;
     bool _pause_request;
     int64_t _seek_request;
+    float _set_pos_request;
 
     void *_audio_data;
     size_t _required_audio_data_size;
@@ -94,6 +95,8 @@ private:
 
     int _frames_shown;                   // frames shown since last _sync_point_time update
     int64_t _fps_mark_time;              // time when _frames_shown was reset to zero
+
+    float normalize_pos(int64_t pos);   // transform a position into [0,1]
 
 protected:
     void set_benchmark(bool benchmark)

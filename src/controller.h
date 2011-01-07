@@ -54,6 +54,7 @@ public:
         adjust_hue,
         adjust_saturation,
         seek,
+        set_pos,
         adjust_parallax,
         set_parallax,
         adjust_ghostbust,

@@ -105,6 +105,7 @@ class controls_widget : public QWidget, public controller
     Q_OBJECT
 
 private:
+    bool _lock;
     QSettings *_settings;
     QPushButton *_play_button;
     QPushButton *_pause_button;
@@ -115,6 +116,7 @@ private:
     QPushButton *_f_button;
     QPushButton *_ff_button;
     QPushButton *_fff_button;
+    QSlider *_seek_slider;
     bool _playing;
 
 private slots:
@@ -127,6 +129,7 @@ private slots:
     void f_pressed();
     void ff_pressed();
     void fff_pressed();
+    void seek_slider_changed();
 
 public:
     controls_widget(QSettings *settings, QWidget *parent);

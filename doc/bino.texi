@@ -291,6 +291,8 @@ Seek 1 minute backward / forward.
 @item @kbd{PAGE UP}
 @itemx @kbd{PAGE DOWN}
 Seek 10 minutes backward / forward.
+@item @kbd{Mouse click}
+Seek according to the horizontal click position.
 @end table
 
 @node Crosstalk Ghostbusting

@@ -77,6 +77,14 @@ player::~player()
     }
 }
 
+float player::normalize_pos(int64_t pos)
+{
+    double pos_min = _start_pos + _input->initial_skip();
+    double pos_max = pos_min + _input->duration();
+    double npos = (pos_max > pos_min ? (static_cast<double>(pos) - pos_min) / (pos_max - pos_min) : 0.0f);
+    return npos;
+}
+
 void player::reset_playstate()
 {
     _running = false;
@@ -88,6 +96,7 @@ void player::reset_playstate()
     _quit_request = false;
     _pause_request = false;
     _seek_request = 0;
+    _set_pos_request = -1.0f;
 }
 
 void player::create_decoders(const std::vector<std::string> &filenames)
@@ -275,22 +284,40 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             return;
         }
     }
-    if (_seek_request != 0)
+    if (_seek_request != 0 || _set_pos_request >= 0.0f)
     {
         int64_t old_pos = _current_pos;
-        if (_current_pos + _seek_request < _start_pos + _input->initial_skip())
+        if (_set_pos_request >= 0.0f)
         {
-            _seek_request = _start_pos + _input->initial_skip() - _current_pos;
-        }
-        if (_input->duration() > 0)
-        {
-            if (_seek_request > 0 && _current_pos + _seek_request >= std::max(_start_pos + _input->duration() - 5000000, static_cast<int64_t>(0)))
+            int64_t dest_pos_min = _start_pos + _input->initial_skip();
+            int64_t dest_pos_max = dest_pos_min + _input->duration() - 2000000;
+            if (dest_pos_max <= dest_pos_min)
             {
-                _seek_request = std::max(_start_pos + _input->duration() - 5000000 - _current_pos, static_cast<int64_t>(0));
+                *seek_to = _current_pos;
+            }
+            else
+            {
+                *seek_to = static_cast<double>(_set_pos_request) * dest_pos_max
+                    + (1.0 - static_cast<double>(_set_pos_request)) * dest_pos_min;
             }
         }
-        *seek_to = _current_pos + _seek_request;
+        else
+        {
+            if (_current_pos + _seek_request < _start_pos + _input->initial_skip())
+            {
+                _seek_request = _start_pos + _input->initial_skip() - _current_pos;
+            }
+            if (_input->duration() > 0)
+            {
+                if (_seek_request > 0 && _current_pos + _seek_request >= std::max(_start_pos + _input->duration() - 2000000, static_cast<int64_t>(0)))
+                {
+                    _seek_request = std::max(_start_pos + _input->duration() - 2000000 - _current_pos, static_cast<int64_t>(0));
+                }
+            }
+            *seek_to = _current_pos + _seek_request;
+        }
         _seek_request = 0;
+        _set_pos_request = -1.0f;
         _input->seek(*seek_to);
 
         _video_pos = _input->read_video_frame();
@@ -322,7 +349,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             _master_time_pos = _video_pos;
             _current_pos = _video_pos;
         }
-        notify(notification::pos, _current_pos / 1e6f, old_pos / 1e6f);
+        notify(notification::pos, normalize_pos(old_pos), normalize_pos(_current_pos));
         _need_frame = false;
         _previous_frame_dropped = false;
         *more_steps = true;
@@ -373,6 +400,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             _master_time_start += (_video_pos - _master_time_pos);
             _master_time_pos = _video_pos;
             _current_pos = _video_pos;
+            notify(notification::pos, normalize_pos(_current_pos), normalize_pos(_current_pos));
         }
         _need_frame = false;
         if (_drop_next_frame)
@@ -421,6 +449,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
                 _master_time_pos = _audio_pos;
                 _audio_output->data(_audio_data, _required_audio_data_size);
                 _current_pos = _audio_pos;
+                notify(notification::pos, normalize_pos(_current_pos), normalize_pos(_current_pos));
             }
         }
         else
@@ -617,6 +646,10 @@ void player::receive_cmd(const command &cmd)
         break;
     case command::seek:
         _seek_request = cmd.param * 1e6f;
+        /* notify when request is fulfilled */
+        break;
+    case command::set_pos:
+        _set_pos_request = cmd.param;
         /* notify when request is fulfilled */
         break;
     case command::adjust_parallax:

@@ -211,6 +211,11 @@ void video_output_opengl_qt_widget::keyPressEvent(QKeyEvent *event)
     }
 }
 
+void video_output_opengl_qt_widget::mouseReleaseEvent(QMouseEvent *event)
+{
+    _vo->mouse_set_pos(std::max(std::min(static_cast<float>(event->posF().x()) / this->width(), 1.0f), 0.0f));
+}
+
 QSize video_output_opengl_qt_widget::sizeHint() const
 {
     return QSize(std::max(_vo->win_width(), 128), std::max(_vo->win_height(), 128));
@@ -453,6 +458,16 @@ void video_output_opengl_qt::exit_fullscreen()
         _container_widget->show();
         _widget->setFocus(Qt::OtherFocusReason);
     }
+}
+
+void video_output_opengl_qt::mouse_set_pos(float dest)
+{
+    if (state().fullscreen || _container_is_external)
+    {
+        // Disabled in fullscreen and GUI mode
+        return;
+    }
+    send_cmd(command::set_pos, dest);
 }
 
 void video_output_opengl_qt::receive_notification(const notification &note)

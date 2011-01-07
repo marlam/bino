@@ -58,6 +58,7 @@ protected:
     virtual void resizeGL(int width, int height);
     virtual void moveEvent(QMoveEvent *event);
     virtual void keyPressEvent(QKeyEvent *event);
+    virtual void mouseReleaseEvent(QMouseEvent *event);
 };
 
 /* Public interface. You can use this as a video container widget, to
@@ -90,6 +91,7 @@ private:
     void center();
     void enter_fullscreen();
     void exit_fullscreen();
+    void mouse_set_pos(float dest);
 
 protected:
     virtual int screen_pos_x();

@@ -513,37 +513,42 @@ void in_out_widget::receive_notification(const notification &note)
 
 
 controls_widget::controls_widget(QSettings *settings, QWidget *parent)
-    : QWidget(parent), _settings(settings), _playing(false)
+    : QWidget(parent), _lock(false), _settings(settings), _playing(false)
 {
     QGridLayout *layout = new QGridLayout;
+    _seek_slider = new QSlider(Qt::Horizontal);
+    _seek_slider->setRange(0, 2000);
+    _seek_slider->setTracking(false);
+    connect(_seek_slider, SIGNAL(valueChanged(int)), this, SLOT(seek_slider_changed()));
+    layout->addWidget(_seek_slider, 0, 0, 1, 10);
     _play_button = new QPushButton(QIcon(":icons/play.png"), "");
     connect(_play_button, SIGNAL(pressed()), this, SLOT(play_pressed()));
-    layout->addWidget(_play_button, 0, 0);
+    layout->addWidget(_play_button, 1, 0);
     _pause_button = new QPushButton(QIcon(":icons/pause.png"), "");
     connect(_pause_button, SIGNAL(pressed()), this, SLOT(pause_pressed()));
-    layout->addWidget(_pause_button, 0, 1);
+    layout->addWidget(_pause_button, 1, 1);
     _stop_button = new QPushButton(QIcon(":icons/stop.png"), "");
     connect(_stop_button, SIGNAL(pressed()), this, SLOT(stop_pressed()));
-    layout->addWidget(_stop_button, 0, 2);
-    layout->addWidget(new QWidget, 0, 3);
+    layout->addWidget(_stop_button, 1, 2);
+    layout->addWidget(new QWidget, 1, 3);
     _bbb_button = new QPushButton(QIcon(":icons/bbb.png"), "");
     connect(_bbb_button, SIGNAL(pressed()), this, SLOT(bbb_pressed()));
-    layout->addWidget(_bbb_button, 0, 4);
+    layout->addWidget(_bbb_button, 1, 4);
     _bb_button = new QPushButton(QIcon(":icons/bb.png"), "");
     connect(_bb_button, SIGNAL(pressed()), this, SLOT(bb_pressed()));
-    layout->addWidget(_bb_button, 0, 5);
+    layout->addWidget(_bb_button, 1, 5);
     _b_button = new QPushButton(QIcon(":icons/b.png"), "");
     connect(_b_button, SIGNAL(pressed()), this, SLOT(b_pressed()));
-    layout->addWidget(_b_button, 0, 6);
+    layout->addWidget(_b_button, 1, 6);
     _f_button = new QPushButton(QIcon(":icons/f.png"), "");
     connect(_f_button, SIGNAL(pressed()), this, SLOT(f_pressed()));
-    layout->addWidget(_f_button, 0, 7);
+    layout->addWidget(_f_button, 1, 7);
     _ff_button = new QPushButton(QIcon(":icons/ff.png"), "");
     connect(_ff_button, SIGNAL(pressed()), this, SLOT(ff_pressed()));
-    layout->addWidget(_ff_button, 0, 8);
+    layout->addWidget(_ff_button, 1, 8);
     _fff_button = new QPushButton(QIcon(":icons/fff.png"), "");
     connect(_fff_button, SIGNAL(pressed()), this, SLOT(fff_pressed()));
-    layout->addWidget(_fff_button, 0, 9);
+    layout->addWidget(_fff_button, 1, 9);
     layout->setRowStretch(0, 0);
     layout->setColumnStretch(3, 1);
     setLayout(layout);
@@ -557,6 +562,7 @@ controls_widget::controls_widget(QSettings *settings, QWidget *parent)
     _f_button->setEnabled(false);
     _ff_button->setEnabled(false);
     _fff_button->setEnabled(false);
+    _seek_slider->setEnabled(false);
 }
 
 controls_widget::~controls_widget()
@@ -615,6 +621,14 @@ void controls_widget::fff_pressed()
     send_cmd(command::seek, +600.0f);
 }
 
+void controls_widget::seek_slider_changed()
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_pos, static_cast<float>(_seek_slider->value()) / 2000.0f);
+    }
+}
+
 void controls_widget::update(const player_init_data &, bool have_valid_input, bool playing)
 {
     if (have_valid_input)
@@ -633,6 +647,8 @@ void controls_widget::update(const player_init_data &, bool have_valid_input, bo
         _f_button->setEnabled(false);
         _ff_button->setEnabled(false);
         _fff_button->setEnabled(false);
+        _seek_slider->setEnabled(false);
+        _seek_slider->setValue(0);
     }
 }
 
@@ -651,11 +667,23 @@ void controls_widget::receive_notification(const notification &note)
         _f_button->setEnabled(note.current.flag);
         _ff_button->setEnabled(note.current.flag);
         _fff_button->setEnabled(note.current.flag);
+        _seek_slider->setEnabled(note.current.flag);
+        if (!note.current.flag)
+        {
+            _seek_slider->setValue(0);
+        }
         break;
     case notification::pause:
         _play_button->setEnabled(note.current.flag);
         _pause_button->setEnabled(!note.current.flag);
         break;
+    case notification::pos:
+        _lock = true;
+        if (!_seek_slider->isSliderDown())
+        {
+            _seek_slider->setValue(qRound(note.current.value * 2000.0f));
+        }
+        _lock = false;
     default:
         break;
     }

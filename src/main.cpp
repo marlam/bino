@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
                 "  -G|--ghostbust=VAL   Amount of ghostbusting to apply, in %% (0 to 100).\n"
                 "  -b|--benchmark       Benchmark mode (no audio, no timesync, show fps)\n"
                 "\n"
-                "Keyboard control:\n"
+                "Interactive control:\n"
                 "  q or ESC             Quit\n"
                 "  p or SPACE           Pause / unpause\n"
                 "  f                    Toggle fullscreen\n"
@@ -211,7 +211,8 @@ int main(int argc, char *argv[])
                 "  (, )                 Adjust ghostbusting\n"
                 "  left, right          Seek 10 seconds backward / forward\n"
                 "  up, down             Seek 1 minute backward / forward\n"
-                "  page up, page down   Seek 10 minutes backward / forward",
+                "  page up, page down   Seek 10 minutes backward / forward\n"
+                "  Mouse click          Seek according to the horizontal click position",
                 program_name);
     }
     if (version.value() || help.value())
