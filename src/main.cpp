@@ -100,6 +100,8 @@ int main(int argc, char *argv[])
     options.push_back(&swap_eyes);
     opt::flag benchmark("benchmark", 'b', opt::optional);
     options.push_back(&benchmark);
+    opt::val<float> parallax("parallax", 'P', opt::optional, -1.0f, +1.0f, 0.0f);
+    options.push_back(&parallax);
     opt::tuple<float> crosstalk("crosstalk", 'C', opt::optional, 0.0f, 100.0f, std::vector<float>(3, 0.0f));
     options.push_back(&crosstalk);
     opt::val<float> ghostbust("ghostbust", 'G', opt::optional, 0.0f, 100.0f);
@@ -186,6 +188,7 @@ int main(int argc, char *argv[])
                 "  -f|--fullscreen      Fullscreen\n"
                 "  -c|--center          Center window on screen\n"
                 "  -s|--swap-eyes       Swap left/right view\n"
+                "  -P|--parallax=VAL    Parallax adjustment (-1 to +1)\n"
                 "  -C|--crosstalk=VAL   Crosstalk leak level in %% (0 to 100). VAL may\n"
                 "                       be one value or comma-separated R,G,B values.\n"
                 "  -G|--ghostbust=VAL   Amount of ghostbusting to apply, in %% (0 to 100).\n"
@@ -201,6 +204,7 @@ int main(int argc, char *argv[])
                 "  3, 4                 Adjust brightness\n"
                 "  5, 6                 Adjust hue\n"
                 "  7, 8                 Adjust saturation\n"
+                "  <, >                 Adjust parallax\n"
                 "  (, )                 Adjust ghostbusting\n"
                 "  left, right          Seek 10 seconds backward / forward\n"
                 "  up, down             Seek 1 minute backward / forward\n"
@@ -306,6 +310,7 @@ int main(int argc, char *argv[])
             debug::crash();
         }
     }
+    init_data.video_state.parallax = parallax.value();
     init_data.video_state.crosstalk_r = crosstalk.value()[0] / 100.0f;
     init_data.video_state.crosstalk_g = crosstalk.value()[crosstalk.value().size() == 3 ? 1 : 0] / 100.0f;
     init_data.video_state.crosstalk_b = crosstalk.value()[crosstalk.value().size() == 3 ? 2 : 0] / 100.0f;

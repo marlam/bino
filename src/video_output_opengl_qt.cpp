@@ -181,6 +181,12 @@ void video_output_opengl_qt_widget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_ParenRight:
         _vo->send_cmd(command::adjust_ghostbust, +0.01f);
         break;
+    case Qt::Key_Less:
+        _vo->send_cmd(command::adjust_parallax, -0.01f);
+        break;
+    case Qt::Key_Greater:
+        _vo->send_cmd(command::adjust_parallax, +0.01f);
+        break;
     case Qt::Key_Left:
         _vo->send_cmd(command::seek, -10.0f);
         break;
@@ -504,6 +510,10 @@ void video_output_opengl_qt::receive_notification(const notification &note)
         _widget->update();
         break;
     case notification::pos:
+        break;
+    case notification::parallax:
+        state().parallax = note.current.value;
+        _widget->update();
         break;
     case notification::ghostbust:
         state().ghostbust = note.current.value;

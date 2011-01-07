@@ -42,6 +42,7 @@
 #include <QCryptographicHash>
 #include <QUrl>
 #include <QDesktopServices>
+#include <QDoubleSpinBox>
 #include <QSpinBox>
 
 #include "player_qt.h"
@@ -184,13 +185,22 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     _center_button = new QPushButton("Center");
     connect(_center_button, SIGNAL(pressed()), this, SLOT(center_pressed()));
     layout1->addWidget(_center_button, 0, 4, 1, 2);
+    _parallax_label = new QLabel("Parallax:");
+    layout1->addWidget(_parallax_label, 0, 6, 1, 1);
+    _parallax_spinbox = new QDoubleSpinBox();
+    _parallax_spinbox->setRange(-1.0, +1.0);
+    _parallax_spinbox->setValue(0);
+    _parallax_spinbox->setDecimals(2);
+    _parallax_spinbox->setSingleStep(0.01);
+    connect(_parallax_spinbox, SIGNAL(valueChanged(double)), this, SLOT(parallax_changed()));
+    layout1->addWidget(_parallax_spinbox, 0, 7, 1, 1);
     _ghostbust_label = new QLabel("Ghostbusting:");
-    layout1->addWidget(_ghostbust_label, 0, 6, 1, 1);
+    layout1->addWidget(_ghostbust_label, 0, 8, 1, 1);
     _ghostbust_spinbox = new QSpinBox();
     _ghostbust_spinbox->setRange(0, 100);
     _ghostbust_spinbox->setValue(0);
     connect(_ghostbust_spinbox, SIGNAL(valueChanged(int)), this, SLOT(ghostbust_changed()));
-    layout1->addWidget(_ghostbust_spinbox, 0, 7, 1, 1);
+    layout1->addWidget(_ghostbust_spinbox, 0, 9, 1, 1);
     layout1->setRowStretch(0, 1);
     QGridLayout *layout = new QGridLayout;
     layout->addLayout(layout0, 0, 0);
@@ -202,6 +212,8 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     _swap_eyes_button->setEnabled(false);
     _fullscreen_button->setEnabled(false);
     _center_button->setEnabled(false);
+    _parallax_label->setEnabled(false);
+    _parallax_spinbox->setEnabled(false);
     _ghostbust_label->setEnabled(false);
     _ghostbust_spinbox->setEnabled(false);
 }
@@ -327,6 +339,14 @@ void in_out_widget::center_pressed()
     send_cmd(command::center);
 }
 
+void in_out_widget::parallax_changed()
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_parallax, _parallax_spinbox->value());
+    }
+}
+
 void in_out_widget::ghostbust_changed()
 {
     if (!_lock)
@@ -341,6 +361,7 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
     set_output(init_data.video_mode);
     _lock = true;
     _swap_eyes_button->setChecked(init_data.video_state.swap_eyes);
+    _parallax_spinbox->setValue(init_data.video_state.parallax);
     _ghostbust_spinbox->setValue(qRound(init_data.video_state.ghostbust * 100.0f));
     _lock = false;
     if (have_valid_input)
@@ -354,6 +375,8 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
         _swap_eyes_button->setEnabled(false);
         _fullscreen_button->setEnabled(false);
         _center_button->setEnabled(false);
+        _parallax_label->setEnabled(false);
+        _parallax_spinbox->setEnabled(false);
         _ghostbust_label->setEnabled(false);
         _ghostbust_spinbox->setEnabled(false);
     }
@@ -428,6 +451,11 @@ void in_out_widget::receive_notification(const notification &note)
         _fullscreen_button->setEnabled(note.current.flag);
         _center_button->setEnabled(note.current.flag);
         {
+            bool parallax = (note.current.flag && input_mode() != input::mono);
+            _parallax_label->setEnabled(parallax);
+            _parallax_spinbox->setEnabled(parallax);
+        }
+        {
             bool ghostbust = (note.current.flag
                     && video_mode() != video_output::anaglyph_red_cyan_dubois
                     && video_mode() != video_output::anaglyph_red_cyan_monochrome
@@ -442,6 +470,13 @@ void in_out_widget::receive_notification(const notification &note)
         _swap_eyes_button->setChecked(note.current.flag);
         _lock = false;
         break;
+    case notification::parallax:
+        _lock = true;
+        if (_parallax_spinbox->isEnabled())
+        {
+            _parallax_spinbox->setValue(note.current.value);
+        }
+        _lock = false;
     case notification::ghostbust:
         _lock = true;
         if (_ghostbust_spinbox->isEnabled())
@@ -802,6 +837,13 @@ void main_window::receive_notification(const notification &note)
         _settings->setValue(current_file_hash() + "-swap-eyes", QVariant(_init_data.video_state.swap_eyes).toString());
         _settings->endGroup();
     }
+    else if (note.type == notification::parallax)
+    {
+        _init_data.video_state.parallax = note.current.value;
+        _settings->beginGroup("Video");
+        _settings->setValue(current_file_hash() + "-parallax", QVariant(_init_data.video_state.parallax).toString());
+        _settings->endGroup();
+    }
     else if (note.type == notification::ghostbust)
     {
         _init_data.video_state.ghostbust = note.current.value;
@@ -877,6 +919,7 @@ void main_window::open(QStringList filenames, bool automatic)
             _init_data.input_mode = _player->input_mode();
         }
         _init_data.video_state.swap_eyes = QVariant(_settings->value(current_file_hash() + "-swap-eyes", QString("false")).toString()).toBool();
+        _init_data.video_state.parallax = QVariant(_settings->value(current_file_hash() + "-parallax", QString("0")).toString()).toFloat();
         _init_data.video_state.ghostbust = QVariant(_settings->value(current_file_hash() + "-ghostbust", QString("0")).toString()).toFloat();
         _settings->endGroup();
         _settings->beginGroup("Session");
@@ -1051,6 +1094,7 @@ void main_window::help_keyboard()
                 "<tr><td>3, 4</td><td>Adjust brightness</td></tr>"
                 "<tr><td>5, 6</td><td>Adjust hue</td></tr>"
                 "<tr><td>7, 8</td><td>Adjust saturation</td></tr>"
+                "<tr><td><, ></td><td>Adjust parallax</td></tr>"
                 "<tr><td>(, )</td><td>Adjust ghostbusting</td></tr>"
                 "<tr><td>left, right</td><td>Seek 10 seconds backward / forward</td></tr>"
                 "<tr><td>up, down</td><td>Seek 1 minute backward / forward</td></tr>"

@@ -27,6 +27,7 @@
 #include <QComboBox>
 #include <QPushButton>
 #include <QLabel>
+#include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QTimer>
 #include <QSettings>
@@ -68,6 +69,8 @@ private:
     QPushButton *_swap_eyes_button;
     QPushButton *_fullscreen_button;
     QPushButton *_center_button;
+    QLabel *_parallax_label;
+    QDoubleSpinBox *_parallax_spinbox;
     QLabel *_ghostbust_label;
     QSpinBox *_ghostbust_spinbox;
     bool _lock;
@@ -80,6 +83,7 @@ private slots:
     void swap_eyes_changed();
     void fullscreen_pressed();
     void center_pressed();
+    void parallax_changed();
     void ghostbust_changed();
 
 public:

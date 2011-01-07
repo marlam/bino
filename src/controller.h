@@ -54,6 +54,8 @@ public:
         adjust_hue,
         adjust_saturation,
         seek,
+        adjust_parallax,
+        set_parallax,
         adjust_ghostbust,
         set_ghostbust
     };
@@ -90,6 +92,7 @@ public:
         hue,
         saturation,
         pos,
+        parallax,
         ghostbust
     };
     

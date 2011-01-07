@@ -568,6 +568,7 @@ void video_output_opengl::display(bool toggle_swap_eyes, float x, float y, float
     }
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_l"), left);
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_r"), right);
+    glUniform1f(glGetUniformLocation(_render_prg, "parallax"), _state.parallax * 0.05f);
     if (_mode != anaglyph_red_cyan_monochrome
             && _mode != anaglyph_red_cyan_full_color
             && _mode != anaglyph_red_cyan_half_color

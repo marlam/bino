@@ -33,6 +33,7 @@
 
 uniform sampler2D rgb_l;
 uniform sampler2D rgb_r;
+uniform float parallax;
 
 #if defined(mode_onechannel)
 uniform float channel;  // 0.0 for left, 1.0 for right
@@ -91,14 +92,24 @@ vec3 ghostbust(vec3 original, vec3 other)
 }
 #endif
 
+vec3 tex_l(vec2 texcoord)
+{
+    return texture2D(rgb_l, texcoord - vec2(parallax, 0.0)).rgb;
+}
+
+vec3 tex_r(vec2 texcoord)
+{
+    return texture2D(rgb_r, texcoord + vec2(parallax, 0.0)).rgb;
+}
+
 void main()
 {
     vec3 srgb;
 
 #if defined(mode_onechannel)
 
-    vec3 rgbc_l = texture2D(rgb_l, gl_TexCoord[0].xy).rgb;
-    vec3 rgbc_r = texture2D(rgb_r, gl_TexCoord[0].xy).rgb;
+    vec3 rgbc_l = tex_l(gl_TexCoord[0].xy);
+    vec3 rgbc_r = tex_r(gl_TexCoord[0].xy);
     srgb = rgb_to_srgb(ghostbust(mix(rgbc_l, rgbc_r, channel), mix(rgbc_r, rgbc_l, channel)));
 
 #elif defined(mode_even_odd_rows) || defined(mode_even_odd_columns) || defined(mode_checkerboard)
@@ -117,43 +128,43 @@ void main()
      */
     float m = texture2D(mask_tex, gl_TexCoord[1].xy).x;
 # if defined(mode_even_odd_rows)
-    vec3 rgb0_l = texture2D(rgb_l, gl_TexCoord[0].xy - vec2(0.0, step_y)).rgb;
-    vec3 rgb1_l = texture2D(rgb_l, gl_TexCoord[0].xy).rgb;
-    vec3 rgb2_l = texture2D(rgb_l, gl_TexCoord[0].xy + vec2(0.0, step_y)).rgb;
+    vec3 rgb0_l = tex_l(gl_TexCoord[0].xy - vec2(0.0, step_y));
+    vec3 rgb1_l = tex_l(gl_TexCoord[0].xy);
+    vec3 rgb2_l = tex_l(gl_TexCoord[0].xy + vec2(0.0, step_y));
     vec3 rgbc_l = (rgb0_l + 2.0 * rgb1_l + rgb2_l) / 4.0;
-    vec3 rgb0_r = texture2D(rgb_r, gl_TexCoord[0].xy - vec2(0.0, step_y)).rgb;
-    vec3 rgb1_r = texture2D(rgb_r, gl_TexCoord[0].xy).rgb;
-    vec3 rgb2_r = texture2D(rgb_r, gl_TexCoord[0].xy + vec2(0.0, step_y)).rgb;
+    vec3 rgb0_r = tex_r(gl_TexCoord[0].xy - vec2(0.0, step_y));
+    vec3 rgb1_r = tex_r(gl_TexCoord[0].xy);
+    vec3 rgb2_r = tex_r(gl_TexCoord[0].xy + vec2(0.0, step_y));
     vec3 rgbc_r = (rgb0_r + 2.0 * rgb1_r + rgb2_r) / 4.0;
 # elif defined(mode_even_odd_columns)
-    vec3 rgb0_l = texture2D(rgb_l, gl_TexCoord[0].xy - vec2(step_x, 0.0)).rgb;
-    vec3 rgb1_l = texture2D(rgb_l, gl_TexCoord[0].xy).rgb;
-    vec3 rgb2_l = texture2D(rgb_l, gl_TexCoord[0].xy + vec2(step_x, 0.0)).rgb;
+    vec3 rgb0_l = tex_l(gl_TexCoord[0].xy - vec2(step_x, 0.0));
+    vec3 rgb1_l = tex_l(gl_TexCoord[0].xy);
+    vec3 rgb2_l = tex_l(gl_TexCoord[0].xy + vec2(step_x, 0.0));
     vec3 rgbc_l = (rgb0_l + 2.0 * rgb1_l + rgb2_l) / 4.0;
-    vec3 rgb0_r = texture2D(rgb_r, gl_TexCoord[0].xy - vec2(step_x, 0.0)).rgb;
-    vec3 rgb1_r = texture2D(rgb_r, gl_TexCoord[0].xy).rgb;
-    vec3 rgb2_r = texture2D(rgb_r, gl_TexCoord[0].xy + vec2(step_x, 0.0)).rgb;
+    vec3 rgb0_r = tex_r(gl_TexCoord[0].xy - vec2(step_x, 0.0));
+    vec3 rgb1_r = tex_r(gl_TexCoord[0].xy);
+    vec3 rgb2_r = tex_r(gl_TexCoord[0].xy + vec2(step_x, 0.0));
     vec3 rgbc_r = (rgb0_r + 2.0 * rgb1_r + rgb2_r) / 4.0;
 # elif defined(mode_checkerboard)
-    vec3 rgb0_l = texture2D(rgb_l, gl_TexCoord[0].xy - vec2(0.0, step_y)).rgb;
-    vec3 rgb1_l = texture2D(rgb_l, gl_TexCoord[0].xy - vec2(step_x, 0.0)).rgb;
-    vec3 rgb2_l = texture2D(rgb_l, gl_TexCoord[0].xy).rgb;
-    vec3 rgb3_l = texture2D(rgb_l, gl_TexCoord[0].xy + vec2(step_x, 0.0)).rgb;
-    vec3 rgb4_l = texture2D(rgb_l, gl_TexCoord[0].xy + vec2(0.0, step_y)).rgb;
+    vec3 rgb0_l = tex_l(gl_TexCoord[0].xy - vec2(0.0, step_y));
+    vec3 rgb1_l = tex_l(gl_TexCoord[0].xy - vec2(step_x, 0.0));
+    vec3 rgb2_l = tex_l(gl_TexCoord[0].xy);
+    vec3 rgb3_l = tex_l(gl_TexCoord[0].xy + vec2(step_x, 0.0));
+    vec3 rgb4_l = tex_l(gl_TexCoord[0].xy + vec2(0.0, step_y));
     vec3 rgbc_l = (rgb0_l + rgb1_l + 4.0 * rgb2_l + rgb3_l + rgb4_l) / 8.0;
-    vec3 rgb0_r = texture2D(rgb_r, gl_TexCoord[0].xy - vec2(0.0, step_y)).rgb;
-    vec3 rgb1_r = texture2D(rgb_r, gl_TexCoord[0].xy - vec2(step_x, 0.0)).rgb;
-    vec3 rgb2_r = texture2D(rgb_r, gl_TexCoord[0].xy).rgb;
-    vec3 rgb3_r = texture2D(rgb_r, gl_TexCoord[0].xy + vec2(step_x, 0.0)).rgb;
-    vec3 rgb4_r = texture2D(rgb_r, gl_TexCoord[0].xy + vec2(0.0, step_y)).rgb;
+    vec3 rgb0_r = tex_r(gl_TexCoord[0].xy - vec2(0.0, step_y));
+    vec3 rgb1_r = tex_r(gl_TexCoord[0].xy - vec2(step_x, 0.0));
+    vec3 rgb2_r = tex_r(gl_TexCoord[0].xy);
+    vec3 rgb3_r = tex_r(gl_TexCoord[0].xy + vec2(step_x, 0.0));
+    vec3 rgb4_r = tex_r(gl_TexCoord[0].xy + vec2(0.0, step_y));
     vec3 rgbc_r = (rgb0_r + rgb1_r + 4.0 * rgb2_r + rgb3_r + rgb4_r) / 8.0;
 # endif
     srgb = rgb_to_srgb(ghostbust(mix(rgbc_r, rgbc_l, m), mix(rgbc_l, rgbc_r, m)));
 
 #else // mode_anaglyph_*
 
-    vec3 l = rgb_to_srgb(texture2D(rgb_l, gl_TexCoord[0].xy).rgb);
-    vec3 r = rgb_to_srgb(texture2D(rgb_r, gl_TexCoord[0].xy).rgb);
+    vec3 l = rgb_to_srgb(tex_l(gl_TexCoord[0].xy));
+    vec3 r = rgb_to_srgb(tex_r(gl_TexCoord[0].xy));
 # if defined(mode_anaglyph_monochrome)
     srgb = vec3(srgb_to_lum(l), srgb_to_lum(r), srgb_to_lum(r));
 # elif defined(mode_anaglyph_full_color)

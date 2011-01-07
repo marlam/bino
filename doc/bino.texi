@@ -110,6 +110,9 @@ Fullscreen.
 @item -c
 @itemx --center
 Center window on screen.
+@item -P
+@itemx --parallax=@var{VAL}
+Parallax adjustment (-1 to +1).
 @item -C
 @itemx --crosstalk=@var{VAL}
 Crosstalk leak level in % (0 to 100). @var{VAL} may be one value or
@@ -270,6 +273,9 @@ Adjust hue.
 @item @kbd{7}
 @itemx @kbd{8}
 Adjust saturation.
+@item @kbd{<}
+@itemx @kbd{>}
+Adjust parallax.
 @item @kbd{(}
 @itemx @kbd{)}
 Adjust ghostbusting.

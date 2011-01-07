@@ -243,6 +243,7 @@ protected:
         s11n::save(oss, init_data.video_state.brightness);
         s11n::save(oss, init_data.video_state.hue);
         s11n::save(oss, init_data.video_state.saturation);
+        s11n::save(oss, init_data.video_state.parallax);
         s11n::save(oss, init_data.video_state.crosstalk_r);
         s11n::save(oss, init_data.video_state.crosstalk_g);
         s11n::save(oss, init_data.video_state.crosstalk_b);
@@ -277,6 +278,7 @@ protected:
         s11n::load(iss, init_data.video_state.brightness);
         s11n::load(iss, init_data.video_state.hue);
         s11n::load(iss, init_data.video_state.saturation);
+        s11n::load(iss, init_data.video_state.parallax);
         s11n::load(iss, init_data.video_state.crosstalk_r);
         s11n::load(iss, init_data.video_state.crosstalk_g);
         s11n::load(iss, init_data.video_state.crosstalk_b);
@@ -326,6 +328,7 @@ protected:
         s11n::save(oss, video_state.brightness);
         s11n::save(oss, video_state.hue);
         s11n::save(oss, video_state.saturation);
+        s11n::save(oss, video_state.parallax);
         s11n::save(oss, video_state.crosstalk_r);
         s11n::save(oss, video_state.crosstalk_g);
         s11n::save(oss, video_state.crosstalk_b);
@@ -348,6 +351,7 @@ protected:
         s11n::load(iss, video_state.brightness);
         s11n::load(iss, video_state.hue);
         s11n::load(iss, video_state.saturation);
+        s11n::load(iss, video_state.parallax);
         s11n::load(iss, video_state.crosstalk_r);
         s11n::load(iss, video_state.crosstalk_g);
         s11n::load(iss, video_state.crosstalk_b);
@@ -542,6 +546,12 @@ public:
                 break;
             case '8':
                 _controller.send_cmd(command::adjust_saturation, +0.05f);
+                break;
+            case '<':
+                _controller.send_cmd(command::adjust_parallax, -0.01f);
+                break;
+            case '>':
+                _controller.send_cmd(command::adjust_parallax, +0.01f);
                 break;
             case '(':
                 _controller.send_cmd(command::adjust_ghostbust, -0.01f);

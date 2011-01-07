@@ -25,7 +25,7 @@
 
 
 video_output_state::video_output_state() throw ()
-    : contrast(0.0f), brightness(0.0f), hue(0.0f), saturation(0.0f),
+    : contrast(0.0f), brightness(0.0f), hue(0.0f), saturation(0.0f), parallax(0.0f),
     crosstalk_r(0.0f), crosstalk_g(0.0f), crosstalk_b(0.0f), ghostbust(0.0f),
     fullscreen(false), swap_eyes(false)
 {

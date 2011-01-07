@@ -37,6 +37,7 @@ public:
     float brightness;   // -1 .. +1
     float hue;          // -1 .. +1
     float saturation;   // -1 .. +1
+    float parallax;     // -1 .. +1
     float crosstalk_r;  // 0 .. 1
     float crosstalk_g;  // 0 .. 1
     float crosstalk_b;  // 0 .. 1
