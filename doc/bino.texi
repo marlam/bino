@@ -1,6 +1,7 @@
 \input texinfo   @c -*-texinfo-*-
 @afourpaper
 @setfilename bino.info
+@documentlanguage en
 @documentencoding UTF-8
 @include version.texi
 @settitle Bino @value{VERSION}
