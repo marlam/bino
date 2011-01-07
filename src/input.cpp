@@ -22,6 +22,7 @@
 #include "config.h"
 
 #include <cctype>
+#include <cstdlib>
 
 #include "debug.h"
 #include "exc.h"
@@ -181,10 +182,10 @@ void input::open(std::vector<decoder *> decoders,
         {
             throw exc("video streams have different frame rates");
         }
-        if (decoders.at(video1_decoder)->video_preferred_frame_format(video1_stream)
-                != decoders.at(video0_decoder)->video_preferred_frame_format(video0_stream))
+        if (decoders.at(video1_decoder)->video_frame_format(video1_stream)
+                != decoders.at(video0_decoder)->video_frame_format(video0_stream))
         {
-            throw exc("video streams have different preferred frame formats");
+            throw exc("video streams have different frame formats");
         }
     }
     _mode = mode;
@@ -388,7 +389,7 @@ void input::open(std::vector<decoder *> decoders,
     }
     _video_frame_rate_num = _decoders.at(_video_decoders[0])->video_frame_rate_numerator(_video_streams[0]);
     _video_frame_rate_den = _decoders.at(_video_decoders[0])->video_frame_rate_denominator(_video_streams[0]);
-    _video_preferred_frame_format = _decoders.at(_video_decoders[0])->video_preferred_frame_format(_video_streams[0]);
+    _video_frame_format = _decoders.at(_video_decoders[0])->video_frame_format(_video_streams[0]);
 
     if (audio_stream != -1)
     {
@@ -431,7 +432,7 @@ void input::open(std::vector<decoder *> decoders,
     msg::inf("input:");
     msg::inf("    video: %dx%d, format %s,",
             video_width(), video_height(),
-            decoder::video_frame_format_name(video_preferred_frame_format()).c_str());
+            decoder::video_frame_format_name(video_frame_format()).c_str());
     msg::inf("        aspect ratio %g:1, %g fps, %g seconds,",
             video_aspect_ratio(),
             static_cast<float>(video_frame_rate_numerator()) / static_cast<float>(video_frame_rate_denominator()),
@@ -472,101 +473,99 @@ int64_t input::read_video_frame()
     return t;
 }
 
-void input::get_video_frame(enum decoder::video_frame_format fmt,
-        uint8_t *l_data[3], size_t l_line_size[3],
-        uint8_t *r_data[3], size_t r_line_size[3])
+void input::prepare_video_frame()
 {
-    uint8_t *data[3], *data1[3];
-    size_t line_size[3], line_size1[3];
+    _decoders.at(_video_decoders[0])->get_video_frame(_video_streams[0], video_frame_format(),
+            _video_data[0], _video_data_line_size[0]);
+    if (_mode == separate)
+    {
+        _decoders.at(_video_decoders[1])->get_video_frame(_video_streams[1], video_frame_format(),
+                _video_data[1], _video_data_line_size[1]);
+    }
+}
 
-    _decoders.at(_video_decoders[0])->get_video_frame(_video_streams[0], fmt, data, line_size);
+static int next_multiple_of_4(int x)
+{
+    return (x / 4 + (x % 4 == 0 ? 0 : 1)) * 4;
+}
+
+void input::get_video_frame(int view, int plane, void *buf)
+{
+    if (_swap_eyes)
+    {
+        view = (view == 0 ? 1 : 0);
+    }
+
+    uint8_t *dst = reinterpret_cast<uint8_t *>(buf);
+    uint8_t *src;
+    size_t src_offset;
+    size_t src_row_size;
+    size_t dst_row_width;
+    size_t dst_row_size;
+    size_t height;
+
+    if (video_frame_format() == decoder::frame_format_yuv420p)
+    {
+        if (plane == 0)
+        {
+            dst_row_width = video_width();
+            dst_row_size = next_multiple_of_4(dst_row_width);
+            height = video_height();
+        }
+        else
+        {
+            dst_row_width = video_width() / 2;
+            dst_row_size = next_multiple_of_4(dst_row_width);
+            height = video_height() / 2;
+        }
+    }
+    else
+    {
+        dst_row_width = video_width() * 4;
+        dst_row_size = dst_row_width;
+        height = video_height();
+    }
+
     switch (_mode)
     {
     case separate:
-        _decoders.at(_video_decoders[1])->get_video_frame(_video_streams[1], fmt, data1, line_size1);
-        l_data[0] = data[0];
-        l_data[1] = data[1];
-        l_data[2] = data[2];
-        l_line_size[0] = line_size[0];
-        l_line_size[1] = line_size[1];
-        l_line_size[2] = line_size[2];
-        r_data[0] = data1[0];
-        r_data[1] = data1[1];
-        r_data[2] = data1[2];
-        r_line_size[0] = line_size1[0];
-        r_line_size[1] = line_size1[1];
-        r_line_size[2] = line_size1[2];
+        src = _video_data[view][plane];
+        src_row_size = _video_data_line_size[view][plane];
+        src_offset = 0;
         break;
     case top_bottom:
     case top_bottom_half:
-        l_data[0] = data[0];
-        l_data[1] = data[1];
-        l_data[2] = data[2];
-        l_line_size[0] = line_size[0];
-        l_line_size[1] = line_size[1];
-        l_line_size[2] = line_size[2];
-        r_data[0] = l_data[0] + video_height() * line_size[0];
-        r_data[1] = l_data[1] + video_height() / 2 * line_size[1];
-        r_data[2] = l_data[2] + video_height() / 2 * line_size[2];
-        r_line_size[0] = l_line_size[0];
-        r_line_size[1] = l_line_size[1];
-        r_line_size[2] = l_line_size[2];
+        src = _video_data[0][plane];
+        src_row_size = _video_data_line_size[0][plane];
+        src_offset = view * height * src_row_size;
         break;
     case left_right:
     case left_right_half:
-        l_data[0] = data[0];
-        l_data[1] = data[1];
-        l_data[2] = data[2];
-        l_line_size[0] = line_size[0];
-        l_line_size[1] = line_size[1];
-        l_line_size[2] = line_size[2];
-        r_data[0] = data[0] + video_width() * (fmt == decoder::frame_format_yuv420p ? 1 : 4);
-        r_data[1] = data[1] + video_width() / 2;        // irrelevant for bgra32
-        r_data[2] = data[2] + video_width() / 2;        // irrelevant for bgra32
-        r_line_size[0] = line_size[0];
-        r_line_size[1] = line_size[1];
-        r_line_size[2] = line_size[2];
+        src = _video_data[0][plane];
+        src_row_size = _video_data_line_size[0][plane];
+        src_offset = view * dst_row_width;
         break;
     case even_odd_rows:
-        l_data[0] = data[0];
-        l_data[1] = data[1];
-        l_data[2] = data[2];
-        l_line_size[0] = 2 * line_size[0];
-        l_line_size[1] = 2 * line_size[1];
-        l_line_size[2] = 2 * line_size[2];
-        r_data[0] = data[0] + line_size[0];
-        r_data[1] = data[1] + line_size[1];
-        r_data[2] = data[2] + line_size[2];
-        r_line_size[0] = 2 * line_size[0];
-        r_line_size[1] = 2 * line_size[1];
-        r_line_size[2] = 2 * line_size[2];
+        src = _video_data[0][plane];
+        src_row_size = 2 * _video_data_line_size[0][plane];
+        src_offset = view * _video_data_line_size[0][plane];
         break;
     case mono:
-        l_data[0] = data[0];
-        l_data[1] = data[1];
-        l_data[2] = data[2];
-        l_line_size[0] = line_size[0];
-        l_line_size[1] = line_size[1];
-        l_line_size[2] = line_size[2];
-        r_data[0] = data[0];
-        r_data[1] = data[1];
-        r_data[2] = data[2];
-        r_line_size[0] = line_size[0];
-        r_line_size[1] = line_size[1];
-        r_line_size[2] = line_size[2];
+        src = _video_data[0][plane];
+        src_row_size = _video_data_line_size[0][plane];
+        src_offset = 0;
         break;
     case automatic:
         /* cannot happen */
         break;
     }
-    if (_swap_eyes)
+
+    size_t dst_offset = 0;
+    for (size_t y = 0; y < height; y++)
     {
-        std::swap(l_data[0], r_data[0]);
-        std::swap(l_data[1], r_data[1]);
-        std::swap(l_data[2], r_data[2]);
-        std::swap(l_line_size[0], r_line_size[0]);
-        std::swap(l_line_size[1], r_line_size[1]);
-        std::swap(l_line_size[2], r_line_size[2]);
+        std::memcpy(dst + dst_offset, src + src_offset, dst_row_width);
+        dst_offset += dst_row_size;
+        src_offset += src_row_size;
     }
 }
 

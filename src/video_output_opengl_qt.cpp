@@ -1,7 +1,9 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010  Martin Lambers <marlam@marlam.de>
+ * Copyright (C) 2010
+ * Martin Lambers <marlam@marlam.de>
+ * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -289,7 +291,7 @@ bool video_output_opengl_qt::supports_stereo()
 }
 
 void video_output_opengl_qt::open(
-        enum decoder::video_frame_format preferred_frame_format,
+        enum decoder::video_frame_format src_format, bool src_mono,
         int src_width, int src_height, float src_aspect_ratio,
         int mode, const video_output_state &state, unsigned int flags,
         int win_width, int win_height)
@@ -300,7 +302,7 @@ void video_output_opengl_qt::open(
     }
 
     set_mode(static_cast<enum video_output::mode>(mode));
-    set_source_info(src_width, src_height, src_aspect_ratio, preferred_frame_format);
+    set_source_info(src_width, src_height, src_aspect_ratio, src_format, src_mono);
 
     int screen_width = QApplication::desktop()->screenGeometry().width();
     int screen_height = QApplication::desktop()->screenGeometry().height();
@@ -346,19 +348,12 @@ void video_output_opengl_qt::open(
         }
     }
 
-    if (state.fullscreen)
-    {
-        enter_fullscreen();
-    }
-    else
-    {
-        _widget->resize(video_output_opengl::win_width(), video_output_opengl::win_height());
-    }
+
+    _widget->resize(video_output_opengl::win_width(), video_output_opengl::win_height());
     if (flags & video_output::center)
     {
         center();
     }
-    set_state(state);
 
     QGridLayout *container_layout = new QGridLayout();
     container_layout->addWidget(_widget, 0, 0);
@@ -368,9 +363,15 @@ void video_output_opengl_qt::open(
     delete _container_widget->layout();
     _container_widget->setLayout(container_layout);
     _container_widget->adjustSize();
+    if (state.fullscreen)
+    {
+        enter_fullscreen();
+    }
+    set_state(state);
 
     _widget->show();
     _container_widget->show();
+    _container_widget->raise();
 }
 
 void video_output_opengl_qt::activate()
@@ -413,6 +414,7 @@ void video_output_opengl_qt::enter_fullscreen()
 {
     if (!state().fullscreen)
     {
+        state().fullscreen = true;
         if (_container_is_external)
         {
             _container_widget->setWindowFlags(Qt::Window);
@@ -421,7 +423,6 @@ void video_output_opengl_qt::enter_fullscreen()
         _container_widget->setCursor(Qt::BlankCursor);
         _container_widget->show();
         _widget->setFocus(Qt::OtherFocusReason);
-        state().fullscreen = true;
     }
 }
 
@@ -429,6 +430,7 @@ void video_output_opengl_qt::exit_fullscreen()
 {
     if (state().fullscreen)
     {
+        state().fullscreen = false;
         if (_container_is_external)
         {
             _container_widget->setWindowFlags(Qt::Widget);
@@ -438,7 +440,6 @@ void video_output_opengl_qt::exit_fullscreen()
         _widget->resize(video_output_opengl::win_width(), video_output_opengl::win_height());
         _container_widget->show();
         _widget->setFocus(Qt::OtherFocusReason);
-        state().fullscreen = false;
     }
 }
 

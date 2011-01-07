@@ -102,7 +102,7 @@ bool player_qt_internal::playloop_step()
     }
     if (prep_frame)
     {
-        get_video_frame(get_video_output()->frame_format());
+        get_video_frame();
         prepare_video_frame(get_video_output());
         release_video_frame();
     }
@@ -613,6 +613,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     help_menu->addAction(help_about_act);
 
     show();     // Must happen before opening initial files!
+    raise();
 
     // Player and timer
     _player = new player_qt_internal(_video_container_widget);

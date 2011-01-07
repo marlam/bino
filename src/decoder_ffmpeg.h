@@ -61,7 +61,7 @@ public:
     virtual int video_frame_rate_numerator(int video_stream) const throw ();
     virtual int video_frame_rate_denominator(int video_stream) const throw ();
     virtual int64_t video_duration(int video_stream) const throw ();
-    virtual video_frame_format video_preferred_frame_format(int video_stream) const throw ();
+    virtual enum video_frame_format video_frame_format(int video_stream) const throw ();
 
     virtual int audio_rate(int audio_stream) const throw ();
     virtual int audio_channels(int audio_stream) const throw ();
@@ -69,7 +69,7 @@ public:
     virtual int64_t audio_duration(int video_stream) const throw ();
 
     virtual int64_t read_video_frame(int video_stream);
-    virtual void get_video_frame(int video_stream, video_frame_format fmt,
+    virtual void get_video_frame(int video_stream, enum video_frame_format fmt,
             uint8_t *data[3], size_t line_size[3]);
     virtual void release_video_frame(int video_stream);
 

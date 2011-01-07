@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2010
  * Martin Lambers <marlam@marlam.de>
- * Lion-Simba <lion-simba@pridelands.ru>
+ * Alexey Osipov <lion-simba@pridelands.ru>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,8 +77,6 @@ private:
     bool _pause_request;
     int64_t _seek_request;
 
-    uint8_t *_l_data[3], *_r_data[3];
-    size_t _l_line_size[3], _r_line_size[3];
     void *_audio_data;
     size_t _required_audio_data_size;
     int64_t _pause_start;
@@ -103,7 +101,6 @@ protected:
     void reset_playstate();
     void create_decoders(const std::vector<std::string> &filenames);
     void create_input(enum input::mode input_mode);
-    void get_input_info(int *w, int *h, float *ar, enum decoder::video_frame_format *fmt);
     void create_audio_output();
     void create_video_output();
     void set_video_output(video_output *vo)
@@ -115,7 +112,7 @@ protected:
     void make_master();
     void run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
     void seek(int64_t seek_to);
-    void get_video_frame(enum decoder::video_frame_format fmt);
+    void get_video_frame();
     void prepare_video_frame(video_output *vo);
     void release_video_frame();
     input *get_input() { return _input; }

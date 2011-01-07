@@ -89,7 +89,7 @@ public:
 
     /* Initialize */
     virtual void open(
-            enum decoder::video_frame_format preferred_format,
+            enum decoder::video_frame_format format, bool mono,
             int src_width, int src_height, float src_aspect_ratio,
             int mode, const video_output_state &state, unsigned int flags,
             int win_width, int win_height) = 0;
@@ -97,16 +97,17 @@ public:
     /* Get the video mode */
     virtual enum mode mode() const = 0;
 
-    /* Get the required video frame format. This can differ from the preferred format! */
-    virtual enum decoder::video_frame_format frame_format() const = 0;
-
     /* Get current state */
     virtual const video_output_state &state() const = 0;
 
-    /* Prepare a left/right view pair for display */
-    virtual void prepare(
-            uint8_t *l_data[3], size_t l_line_size[3],
-            uint8_t *r_data[3], size_t r_line_size[3]) = 0;
+    /* Prepare a left/right view pair for display.
+     * The video data is organized in planes, depending on the frame format.
+     * First, call prepare_start() to get a buffer. Then copy the plane data
+     * to this buffer, with a 4-byte alignment of line lengths. Then, call
+     * prepare_finish() with the same parameters and this buffer. Repeat for
+     * all planes in both views. */
+    virtual void *prepare_start(int view, int plane) = 0;
+    virtual void prepare_finish(int view, int plane) = 0;
     /* Display the prepared left/right view pair */
     virtual void activate() = 0;
     /* Process window system events */

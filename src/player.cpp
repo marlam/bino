@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2010
  * Martin Lambers <marlam@marlam.de>
- * Lion-Simba <lion-simba@pridelands.ru>
+ * Alexey Osipov <lion-simba@pridelands.ru>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -154,14 +154,6 @@ void player::create_input(enum input::mode input_mode)
             input_mode);
 }
 
-void player::get_input_info(int *w, int *h, float *ar, enum decoder::video_frame_format *fmt)
-{
-    *w = _input->video_width();
-    *h = _input->video_height();
-    *ar = _input->video_aspect_ratio();
-    *fmt = _input->video_preferred_frame_format();
-}
-
 void player::create_audio_output()
 {
     if (_input->has_audio() && !_benchmark)
@@ -194,7 +186,7 @@ void player::open_video_output(enum video_output::mode video_mode, unsigned int 
         }
     }
     _video_output->open(
-            _input->video_preferred_frame_format(),
+            _input->video_frame_format(), _input->video_is_mono(),
             _input->video_width(), _input->video_height(), _input->video_aspect_ratio(),
             video_mode, _video_state, video_flags, -1, -1);
     _video_output->process_events();
@@ -442,14 +434,22 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
     }
 }
 
-void player::get_video_frame(enum decoder::video_frame_format fmt)
+void player::get_video_frame()
 {
-    _input->get_video_frame(fmt, _l_data, _l_line_size, _r_data, _r_line_size);
+    _input->prepare_video_frame();
 }
 
 void player::prepare_video_frame(video_output *vo)
 {
-    vo->prepare(_l_data, _l_line_size, _r_data, _r_line_size);
+    for (int i = 0; i < (_input->video_is_mono() ? 1 : 2); i++)
+    {
+        for (int j = 0; j < decoder::video_frame_format_planes(_input->video_frame_format()); j++)
+        {
+            void *buf = vo->prepare_start(i, j);
+            _input->get_video_frame(i, j, buf);
+            vo->prepare_finish(i, j);
+        }
+    }
 }
 
 void player::release_video_frame()
@@ -526,7 +526,7 @@ void player::run()
         }
         if (prep_frame)
         {
-            get_video_frame(_video_output->frame_format());
+            get_video_frame();
             prepare_video_frame(_video_output);
             release_video_frame();
         }

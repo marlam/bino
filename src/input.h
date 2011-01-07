@@ -59,11 +59,15 @@ private:
     float _video_aspect_ratio;
     int _video_frame_rate_num;
     int _video_frame_rate_den;
-    enum decoder::video_frame_format _video_preferred_frame_format;
+    enum decoder::video_frame_format _video_frame_format;
+    bool _video_is_mono;
     int _audio_rate;
     int _audio_channels;
     enum decoder::audio_sample_format _audio_sample_format;
     int64_t _duration;
+
+    uint8_t *_video_data[2][3];
+    size_t _video_data_line_size[2][3];
     blob _audio_buffer;
 
 public:
@@ -117,9 +121,14 @@ public:
         return static_cast<int64_t>(_video_frame_rate_den) * 1000000 / _video_frame_rate_num;
     }
 
-    enum decoder::video_frame_format video_preferred_frame_format() const throw ()
+    enum decoder::video_frame_format video_frame_format() const throw ()
     {
-        return _video_preferred_frame_format;
+        return _video_frame_format;
+    }
+
+    bool video_is_mono() const throw ()
+    {
+        return (_mode == mono);
     }
 
     bool has_audio() const throw ()
@@ -152,10 +161,12 @@ public:
     /* Read the next video frame into an internal buffer. Return its time stamp in microseconds,
      * or a negative value on end-of-file. */
     int64_t read_video_frame();
-    /* Get the video frame that is currently in the internal buffer, in the given format. */
-    void get_video_frame(enum decoder::video_frame_format fmt,
-            uint8_t *l_data[3], size_t l_line_size[3],
-            uint8_t *r_data[3], size_t r_line_size[3]);
+    /* Prepare the video frame that is currently in the internal buffer. Must be called before get_video_frame(). */
+    void prepare_video_frame();
+    /* Get the video frame data from the internal buffer, for the given view (0=left, 1=right) and the given plane
+     * (depending on the video_frame_format()), and copy it to the given buffer with guaranteed 4-byte alignment for
+     * each row. */
+    void get_video_frame(int view, int plane, void *buf);
     /* Release the video frame from the internal buffer */
     void release_video_frame();
 
