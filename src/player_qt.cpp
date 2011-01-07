@@ -779,6 +779,22 @@ void main_window::receive_notification(const notification &note)
             _player->close();
         }
     }
+    else if (note.type == notification::contrast)
+    {
+        _init_data.video_state.contrast = note.current.value;
+    }
+    else if (note.type == notification::brightness)
+    {
+        _init_data.video_state.brightness = note.current.value;
+    }
+    else if (note.type == notification::hue)
+    {
+        _init_data.video_state.hue = note.current.value;
+    }
+    else if (note.type == notification::saturation)
+    {
+        _init_data.video_state.saturation = note.current.value;
+    }
     else if (note.type == notification::swap_eyes)
     {
         _init_data.video_state.swap_eyes = note.current.flag;
