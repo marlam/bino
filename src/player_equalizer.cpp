@@ -35,13 +35,13 @@
 
 namespace eqs11n
 {
-    static void save(std::ostream &os, const eq::base::uint128_t &x)
+    static void save(std::ostream &os, const eq::uint128_t &x)
     {
         s11n::save(os, x.high());
         s11n::save(os, x.low());
     }
 
-    static void load(std::istream &is, eq::base::uint128_t &x)
+    static void load(std::istream &is, eq::uint128_t &x)
     {
         s11n::load(is, x.high());
         s11n::load(is, x.low());
@@ -400,7 +400,7 @@ ErrorData _errors[] =
 
 static void init_errors()
 {
-    eq::base::ErrorRegistry& registry = eq::base::Global::getErrorRegistry();
+    co::base::ErrorRegistry& registry = co::base::Global::getErrorRegistry();
     for (size_t i = 0; _errors[i].code != 0; i++)
     {
         registry.setString(_errors[i].code, _errors[i].text);
@@ -409,7 +409,7 @@ static void init_errors()
 
 static void exit_errors()
 {
-    eq::base::ErrorRegistry& registry = eq::base::Global::getErrorRegistry();
+    co::base::ErrorRegistry& registry = co::base::Global::getErrorRegistry();
     for (size_t i = 0; _errors[i].code != 0; i++)
     {
         registry.eraseString(_errors[i].code);
