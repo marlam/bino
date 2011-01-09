@@ -333,8 +333,8 @@ void video_output_opengl_qt::open(
         // 1.0 so that the user gets expected results.
         screen_pixel_aspect_ratio = 1.0f;
     }
-    msg::inf("display:");
-    msg::inf("    resolution %dx%d, pixel aspect ratio %g:1",
+    msg::inf("Display:");
+    msg::inf("    Resolution %dx%d, pixel aspect ratio %g:1",
             screen_width, screen_height, screen_pixel_aspect_ratio);
     set_screen_info(screen_width, screen_height, screen_pixel_aspect_ratio);
     compute_win_size(win_width, win_height);
@@ -356,12 +356,12 @@ void video_output_opengl_qt::open(
         if (mode == stereo)
         {
             // Common failure: display does not support quad buffered stereo
-            throw exc("display does not support stereo mode");
+            throw exc("The display does not support OpenGL stereo mode");
         }
         else
         {
             // Should never happen
-            throw exc("cannot set GL context format");
+            throw exc("Cannot set GL context format");
         }
     }
 

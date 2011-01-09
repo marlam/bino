@@ -145,16 +145,16 @@ namespace opt
             {
                 if (optopt == 0)
                 {
-                    msg::err("invalid option %s", argv[optind - 1]);
+                    msg::err("Invalid option %s", argv[optind - 1]);
                 }
                 else if (optopt >= optval_base)
                 {
-                    msg::err("option --%s does not take an argument",
+                    msg::err("Option --%s does not take an argument",
                             options[optopt - optval_base]->longname().c_str());
                 }
                 else
                 {
-                    msg::err("invalid option -%c", optopt);
+                    msg::err("Invalid option -%c", optopt);
                 }
                 error = true;
                 break;
@@ -163,12 +163,12 @@ namespace opt
             {
                 if (optopt >= optval_base)
                 {
-                    msg::err("option --%s requires an argument",
+                    msg::err("Option --%s requires an argument",
                             options[optopt - optval_base]->longname().c_str());
                 }
                 else
                 {
-                    msg::err("option -%c requires an argument", optopt);
+                    msg::err("Option -%c requires an argument", optopt);
                 }
                 error = true;
                 break;
@@ -189,11 +189,11 @@ namespace opt
             {
                 if (option_shortname)
                 {
-                    msg::err("invalid argument for -%c", options[optval]->shortname());
+                    msg::err("Invalid argument for -%c", options[optval]->shortname());
                 }
                 else
                 {
-                    msg::err("invalid argument for --%s", options[optval]->longname().c_str());
+                    msg::err("Invalid argument for --%s", options[optval]->longname().c_str());
                 }
                 error = true;
             }
@@ -212,11 +212,11 @@ namespace opt
                 {
                     if (options[i]->shortname() != '\0')
                     {
-                        msg::err("option --%s (-%c) is mandatory", options[i]->longname().c_str(), options[i]->shortname());
+                        msg::err("Option --%s (-%c) is mandatory", options[i]->longname().c_str(), options[i]->shortname());
                     }
                     else
                     {
-                        msg::err("option --%s is mandatory", options[i]->longname().c_str());
+                        msg::err("Option --%s is mandatory", options[i]->longname().c_str());
                     }
                     error = true;
                     /* Do not break the loop. Print an error message for every missing option. */
@@ -230,12 +230,12 @@ namespace opt
         {
             if (args < min_arguments)
             {
-                msg::err("too few arguments");
+                msg::err("Too few arguments");
                 error = true;
             }
             else if (max_arguments >= 0 && args > max_arguments)
             {
-                msg::err("too many arguments");
+                msg::err("Too many arguments");
                 error = true;
             }
         }

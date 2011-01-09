@@ -239,7 +239,7 @@ static void xglKillCrlf(char *str)
 
 GLuint xgl::CompileShader(const std::string &name, GLenum type, const std::string &src)
 {
-    msg::dbg("compiling %s shader %s",
+    msg::dbg("Compiling %s shader %s",
             type == GL_VERTEX_SHADER ? "vertex" : type == GL_GEOMETRY_SHADER_EXT ? "geometry" : "fragment",
             name.c_str());
 
@@ -315,7 +315,7 @@ GLuint xgl::CreateProgram(const std::string &name,
 
 void xgl::LinkProgram(const std::string &name, const GLuint prg)
 {
-    msg::dbg("linking OpenGL program %s", name.c_str());
+    msg::dbg("Linking OpenGL program %s", name.c_str());
 
     glLinkProgram(prg);
 

@@ -735,7 +735,7 @@ void *video_output_opengl::prepare_start(int /* view */, int plane)
     {
         // We can assume that the buffer is always at least aligned at a 4-byte boundary.
         // This is just a sanity check; this error should never be triggered.
-        msg::err("pixel buffer alignment is less than 4!");
+        msg::err("Pixel buffer alignment is less than 4!");
         debug::crash();
     }
     return pboptr;

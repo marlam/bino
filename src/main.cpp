@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
     }
     if (crosstalk.value().size() != 1 && crosstalk.value().size() != 3)
     {
-        msg::err("invalid crosstalk levels");
+        msg::err("Invalid crosstalk levels");
         return 1;
     }
 
@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
         init_data.input_mode = input::mode_from_name(input_mode.value(), &ok);
         if (!ok)
         {
-            msg::err("invalid input mode name");
+            msg::err("Invalid input mode name");
             debug::crash();
         }
     }
@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
         init_data.video_mode = video_output::mode_from_name(video_output_mode.value(), &ok);
         if (!ok)
         {
-            msg::err("invalid output mode name");
+            msg::err("Invalid output mode name");
             debug::crash();
         }
     }
@@ -329,7 +329,7 @@ int main(int argc, char *argv[])
     init_data.benchmark = benchmark.value();
     if (init_data.benchmark)
     {
-        msg::inf("benchmark mode: audio and time synchronization disabled");
+        msg::inf("Benchmark mode: audio and time synchronization disabled");
     }
 
     int retval = 0;
@@ -341,7 +341,7 @@ int main(int argc, char *argv[])
 #if HAVE_LIBEQUALIZER
             player = new class player_equalizer(&argc, argv, equalizer_flat_screen);
 #else
-            throw exc("this version of Bino was compiled without support for Equalizer");
+            throw exc("This version of Bino was compiled without support for Equalizer");
 #endif
         }
         else if (arguments.size() == 0 || show_gui.value())

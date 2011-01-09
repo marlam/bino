@@ -46,7 +46,7 @@ int64_t timer::get_microseconds(timer::type t)
             : CLOCK_THREAD_CPUTIME_ID, &time);
     if (r != 0)
     {
-        throw exc(std::string("cannot get ")
+        throw exc(std::string("Cannot get ")
                 + std::string(
                       t == realtime ? "real"
                     : t == monotonic ? "monotonic"
@@ -64,7 +64,7 @@ int64_t timer::get_microseconds(timer::type t)
         int r = gettimeofday(&tv, NULL);
         if (r != 0)
         {
-            throw exc(std::string("cannot get ")
+            throw exc(std::string("Cannot get ")
                     + std::string(t == realtime ? "real" : "monotonic")
                     + std::string(" time"), errno);
         }
@@ -80,7 +80,7 @@ int64_t timer::get_microseconds(timer::type t)
     }
     else
     {
-        throw exc(std::string("cannot get ")
+        throw exc(std::string("Cannot get ")
                 + std::string("thread CPU")
                 + std::string(" time"), ENOSYS);
     }

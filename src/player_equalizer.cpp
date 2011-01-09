@@ -119,7 +119,7 @@ public:
     {
         if (get_input()->read_video_frame() < 0)
         {
-            msg::err("reading input frame failed (EOF?)");
+            msg::err("Reading input frame failed (EOF?)");
             abort();
         }
     }
@@ -421,7 +421,7 @@ public:
         // Find region of canvas to use, depending on the video aspect ratio
         if (getCanvases().size() < 1)
         {
-            msg::err("no canvas in Equalizer configuration");
+            msg::err("No canvas in Equalizer configuration");
             return false;
         }
         float canvas_w = getCanvases()[0]->getWall().getWidth();
@@ -453,9 +453,9 @@ public:
             _eq_init_data.canvas_video_area.x = -0.5f * _eq_init_data.canvas_video_area.w;
             _eq_init_data.canvas_video_area.y = -0.5f * _eq_init_data.canvas_video_area.h;
         }
-        msg::inf("equalizer canvas:");
+        msg::inf("Equalizer canvas:");
         msg::inf("    %gx%g, aspect ratio %g:1", canvas_w, canvas_h, canvas_w / canvas_h);
-        msg::inf("    area for %g:1 video: [ %g %g %g %g @ %g ]", src_aspect_ratio,
+        msg::inf("    Area for %g:1 video: [ %g %g %g %g @ %g ]", src_aspect_ratio,
                 _eq_init_data.canvas_video_area.x, _eq_init_data.canvas_video_area.y,
                 _eq_init_data.canvas_video_area.w, _eq_init_data.canvas_video_area.h,
                 _eq_init_data.canvas_video_area.d);
@@ -1013,7 +1013,7 @@ player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen)
     _node_factory = static_cast<void *>(new eq_node_factory);
     if (!eq::init(*argc, argv, static_cast<eq::NodeFactory *>(_node_factory)))
     {
-        throw exc("equalizer initialization failed");
+        throw exc("Equalizer initialization failed");
     }
     /* Get a configuration */
     _config = static_cast<void *>(eq::getConfig(*argc, argv));
@@ -1021,7 +1021,7 @@ player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen)
     // eq::getConfig() does not return on other nodes.
     if (!_config)
     {
-        throw exc("cannot get equalizer configuration");
+        throw exc("Cannot get equalizer configuration");
     }
 }
 
@@ -1035,7 +1035,7 @@ void player_equalizer::open(const player_init_data &init_data)
     eq_config *config = static_cast<eq_config *>(_config);
     if (!config->init(init_data, _flat_screen))
     {
-        throw exc("equalizer configuration initialization failed");
+        throw exc("Equalizer configuration initialization failed");
     }
 }
 

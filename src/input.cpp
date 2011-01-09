@@ -139,25 +139,25 @@ void input::open(std::vector<decoder *> decoders,
 
     if (video0_decoder == -1)
     {
-        throw exc("no video stream");
+        throw exc("No video stream");
     }
     if (mode == separate && video1_decoder == -1)
     {
-        throw exc("need two video streams");
+        throw exc("Need two video streams");
     }
     if ((mode == left_right || mode == left_right_half)
             && decoders.at(video0_decoder)->video_width(video0_stream) % 2 != 0)
     {
-        throw exc("invalid width of left-right video stream");
+        throw exc("Invalid width of left-right video stream");
     }
     if ((mode == top_bottom || mode == top_bottom_half)
             && decoders.at(video0_decoder)->video_height(video0_stream) % 2 != 0)
     {
-        throw exc("invalid height of top-bottom video stream");
+        throw exc("Invalid height of top-bottom video stream");
     }
     if (mode == even_odd_rows && decoders.at(video0_decoder)->video_height(video0_stream) % 2 != 0)
     {
-        throw exc("invalid height of even-odd-rows video stream");
+        throw exc("Invalid height of even-odd-rows video stream");
     }
     if (video1_decoder != -1)
     {
@@ -166,26 +166,26 @@ void input::open(std::vector<decoder *> decoders,
             || decoders.at(video1_decoder)->video_height(video1_stream)
                 != decoders.at(video0_decoder)->video_height(video0_stream))
         {
-            throw exc("video streams have different dimensions");
+            throw exc("Video streams have different dimensions");
         }
         if (decoders.at(video1_decoder)->video_aspect_ratio_numerator(video1_stream)
                 != decoders.at(video0_decoder)->video_aspect_ratio_numerator(video0_stream)
                 || decoders.at(video1_decoder)->video_aspect_ratio_denominator(video1_stream)
                 != decoders.at(video0_decoder)->video_aspect_ratio_denominator(video0_stream))
         {
-            throw exc("video streams have different aspect ratios");
+            throw exc("Video streams have different aspect ratios");
         }
         if (decoders.at(video1_decoder)->video_frame_rate_numerator(video1_stream)
                 != decoders.at(video0_decoder)->video_frame_rate_numerator(video0_stream)
             || decoders.at(video1_decoder)->video_frame_rate_denominator(video1_stream)
                 > decoders.at(video0_decoder)->video_frame_rate_denominator(video0_stream))
         {
-            throw exc("video streams have different frame rates");
+            throw exc("Video streams have different frame rates");
         }
         if (decoders.at(video1_decoder)->video_format(video1_stream)
                 != decoders.at(video0_decoder)->video_format(video0_stream))
         {
-            throw exc("video streams have different frame formats");
+            throw exc("Video streams have different frame formats");
         }
     }
     _mode = mode;
@@ -416,15 +416,15 @@ void input::open(std::vector<decoder *> decoders,
             _video_decoders[0], _video_streams[0],
             _video_decoders[1], _video_streams[1],
             _audio_decoder, _audio_stream);
-    msg::inf("input:");
-    msg::inf("    video: %dx%d, format %s,",
+    msg::inf("Input:");
+    msg::inf("    Video: %dx%d, format %s,",
             video_width(), video_height(),
             decoder::video_format_name(video_format()).c_str());
-    msg::inf("        aspect ratio %g:1, %g fps, %g seconds,",
+    msg::inf("        Aspect ratio %g:1, %g fps, %g seconds,",
             video_aspect_ratio(),
             static_cast<float>(video_frame_rate_numerator()) / static_cast<float>(video_frame_rate_denominator()),
             duration() / 1e6f);
-    msg::inf("        stereo mode %s, input eye swap %s",
+    msg::inf("        Stereo mode %s, input eye swap %s",
             (_mode == separate ? "separate-streams"
              : _mode == top_bottom ? "top-bottom" : _mode == top_bottom_half ?  "top-bottom-half"
              : _mode == left_right ? "left-right" : _mode == left_right_half ?  "left-right-half"
@@ -433,12 +433,12 @@ void input::open(std::vector<decoder *> decoders,
 
     if (audio_stream != -1)
     {
-        msg::inf("    audio: %d channels, %d Hz, sample format %s",
+        msg::inf("    Audio: %d channels, %d Hz, sample format %s",
                 audio_channels(), audio_rate(), decoder::audio_sample_format_name(audio_sample_format()).c_str());
     }
     else
     {
-        msg::inf("    audio: none");
+        msg::inf("    Audio: none");
     }
 }
 

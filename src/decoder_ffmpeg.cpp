@@ -217,7 +217,7 @@ void decoder_ffmpeg::open(const std::string &filename)
     }
     if ((e = av_find_stream_info(_stuff->format_ctx)) < 0)
     {
-        throw exc(filename + ": cannot read stream info: " + my_av_strerror(e));
+        throw exc(filename + ": Cannot read stream info: " + my_av_strerror(e));
     }
     dump_format(_stuff->format_ctx, 0, filename.c_str(), 0);
 
@@ -236,7 +236,7 @@ void decoder_ffmpeg::open(const std::string &filename)
             _stuff->video_codec_ctxs.push_back(_stuff->format_ctx->streams[i]->codec);
             if (_stuff->video_codec_ctxs[j]->width < 1 || _stuff->video_codec_ctxs[j]->height < 1)
             {
-                throw exc(filename + " stream " + str::from(i) + ": invalid frame size");
+                throw exc(filename + " stream " + str::from(i) + ": Invalid frame size");
             }
             _stuff->video_codec_ctxs[j]->thread_count = decoding_threads();
             if (avcodec_thread_init(_stuff->video_codec_ctxs[j], _stuff->video_codec_ctxs[j]->thread_count) != 0)
@@ -246,12 +246,12 @@ void decoder_ffmpeg::open(const std::string &filename)
             _stuff->video_codecs.push_back(avcodec_find_decoder(_stuff->video_codec_ctxs[j]->codec_id));
             if (!_stuff->video_codecs[j])
             {
-                throw exc(filename + " stream " + str::from(i) + ": unsupported video codec");
+                throw exc(filename + " stream " + str::from(i) + ": Unsupported video codec");
             }
             if ((e = avcodec_open(_stuff->video_codec_ctxs[j], _stuff->video_codecs[j])) < 0)
             {
                 _stuff->video_codecs[j] = NULL;
-                throw exc(filename + " stream " + str::from(i) + ": cannot open video codec: " + my_av_strerror(e));
+                throw exc(filename + " stream " + str::from(i) + ": Cannot open video codec: " + my_av_strerror(e));
             }
             // Determine pixel format. Use BGRA32 as fallback.
             enum video_layout vl = video_layout_bgra32;
@@ -342,7 +342,7 @@ void decoder_ffmpeg::open(const std::string &filename)
                             SWS_FAST_BILINEAR, NULL, NULL, NULL));
                 if (!_stuff->img_conv_ctxs[j])
                 {
-                    throw exc(filename + " stream " + str::from(i) + ": cannot initialize conversion context");
+                    throw exc(filename + " stream " + str::from(i) + ": Cannot initialize conversion context");
                 }
             }
             else
@@ -362,12 +362,12 @@ void decoder_ffmpeg::open(const std::string &filename)
             _stuff->audio_codecs.push_back(avcodec_find_decoder(_stuff->audio_codec_ctxs[j]->codec_id));
             if (!_stuff->audio_codecs[j])
             {
-                throw exc(filename + " stream " + str::from(i) + ": unsupported audio codec");
+                throw exc(filename + " stream " + str::from(i) + ": Unsupported audio codec");
             }
             if ((e = avcodec_open(_stuff->audio_codec_ctxs[j], _stuff->audio_codecs[j])) < 0)
             {
                 _stuff->audio_codecs[j] = NULL;
-                throw exc(filename + " stream " + str::from(i) + ": cannot open audio codec: " + my_av_strerror(e));
+                throw exc(filename + " stream " + str::from(i) + ": Cannot open audio codec: " + my_av_strerror(e));
             }
             if (_stuff->audio_codec_ctxs[j]->sample_fmt == SAMPLE_FMT_U8)
             {
@@ -388,7 +388,7 @@ void decoder_ffmpeg::open(const std::string &filename)
             else
             {
                 throw exc(filename + " stream " + str::from(i)
-                        + ": cannot handle audio sample format "
+                        + ": Cannot handle audio sample format "
                         + str::from(static_cast<int>(_stuff->audio_codec_ctxs[j]->sample_fmt)));
                 // XXX: Once widely available, use av_get_sample_fmt_name(_stuff->audio_codec_ctxs[j]->sample_fmt)
                 // in this error message.
@@ -398,7 +398,7 @@ void decoder_ffmpeg::open(const std::string &filename)
                     || _stuff->audio_codec_ctxs[j]->channels == 3
                     || _stuff->audio_codec_ctxs[j]->channels == 5)
             {
-                throw exc(filename + " stream " + str::from(i) + ": cannot handle audio with "
+                throw exc(filename + " stream " + str::from(i) + ": Cannot handle audio with "
                         + str::from(_stuff->audio_codec_ctxs[j]->channels) + " channels");
             }
             _stuff->audio_flush_flags.push_back(false);
@@ -424,28 +424,28 @@ void decoder_ffmpeg::open(const std::string &filename)
     msg::inf(filename + ":");
     for (int i = 0; i < video_streams(); i++)
     {
-        msg::inf("    video stream %d: %dx%d, format %s,",
+        msg::inf("    Video stream %d: %dx%d, format %s,",
                 i, video_width(i), video_height(i),
                 video_format_layout(video_format(i)) == video_layout_bgra32
                 ? str::asprintf("%d (converted to %s)", _stuff->video_codec_ctxs.at(i)->pix_fmt,
                     decoder::video_format_name(video_format(i)).c_str()).c_str()
                 : decoder::video_format_name(video_format(i)).c_str());
-        msg::inf("        aspect ratio %g:1, %g fps, %g seconds",
+        msg::inf("        Aspect ratio %g:1, %g fps, %g seconds",
                 static_cast<float>(video_aspect_ratio_numerator(i))
                 / static_cast<float>(video_aspect_ratio_denominator(i)),
                 static_cast<float>(video_frame_rate_numerator(i))
                 / static_cast<float>(video_frame_rate_denominator(i)),
                 video_duration(i) / 1e6f);
-        msg::inf("        using up to %d threads for decoding", _stuff->video_codec_ctxs.at(i)->thread_count);
+        msg::inf("        Using up to %d threads for decoding", _stuff->video_codec_ctxs.at(i)->thread_count);
     }
     for (int i = 0; i < audio_streams(); i++)
     {
-        msg::inf("    audio stream %d: %d channels, %d Hz, sample format %s", i,
+        msg::inf("    Audio stream %d: %d channels, %d Hz, sample format %s", i,
                 audio_channels(i), audio_rate(i), audio_sample_format_name(audio_sample_format(i)).c_str());
     }
     if (video_streams() == 0 && audio_streams() == 0)
     {
-        msg::inf("    no usable streams");
+        msg::inf("    No usable streams");
     }
 }
 
@@ -560,7 +560,7 @@ int64_t decoder_ffmpeg::audio_duration(int index) const throw ()
 
 bool decoder_ffmpeg::read()
 {
-    msg::dbg(_filename + ": reading a packet");
+    msg::dbg(_filename + ": Reading a packet");
 
     AVPacket packet;
     int e;
@@ -583,7 +583,7 @@ bool decoder_ffmpeg::read()
         {
             if (av_dup_packet(&packet) < 0)
             {
-                msg::dbg(_filename + ": cannot duplicate packet");
+                msg::dbg(_filename + ": Cannot duplicate packet");
                 return false;
             }
             _stuff->video_packet_queues[i].push_back(packet);
@@ -599,7 +599,7 @@ bool decoder_ffmpeg::read()
         {
             if (av_dup_packet(&packet) < 0)
             {
-                msg::dbg(_filename + ": cannot duplicate packet");
+                msg::dbg(_filename + ": Cannot duplicate packet");
                 return false;
             }
             _stuff->audio_packet_queues[i].push_back(packet);
@@ -806,14 +806,14 @@ int64_t decoder_ffmpeg::read_audio_data(int audio_stream, void *buffer, size_t s
 
 void decoder_ffmpeg::seek(int64_t dest_pos)
 {
-    msg::dbg(_filename + ": seeking from " + str::from(_stuff->pos / 1e6f) + " to " + str::from(dest_pos / 1e6f));
+    msg::dbg(_filename + ": Seeking from " + str::from(_stuff->pos / 1e6f) + " to " + str::from(dest_pos / 1e6f));
 
     int e = av_seek_frame(_stuff->format_ctx, -1,
             dest_pos * AV_TIME_BASE / 1000000,
             dest_pos < _stuff->pos ?  AVSEEK_FLAG_BACKWARD : 0);
     if (e < 0)
     {
-        msg::err(_filename + ": seeking failed");
+        msg::err(_filename + ": Seeking failed");
     }
     else
     {

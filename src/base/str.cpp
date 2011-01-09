@@ -201,7 +201,7 @@ namespace str
         is >> v;
         if (is.fail() || !is.eof())
         {
-            throw exc(std::string("cannot convert '") + sanitize(s) + "' to " + name, EINVAL);
+            throw exc(std::string("Cannot convert '") + sanitize(s) + "' to " + name, EINVAL);
         }
         return v;
     }
@@ -231,7 +231,7 @@ namespace str
             /* Should never happen (out of memory or some invalid conversions).
              * We do not want to throw an exception because this function might
              * be called because of an exception. Inform the user instead. */
-            msg::err("FAILURE IN str::vasprintf().");
+            msg::err("Failure in str::vasprintf().");
             debug::crash();
         }
         std::string s(cstr);

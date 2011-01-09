@@ -112,11 +112,11 @@ void player::create_decoders(const std::vector<std::string> &filenames)
     }
     if (video_streams == 0)
     {
-        throw exc("no video streams found");
+        throw exc("No video streams found");
     }
     if (video_streams > 2)
     {
-        throw exc("cannot handle more than 2 video streams");
+        throw exc("Cannot handle more than 2 video streams");
     }
 }
 
@@ -166,7 +166,7 @@ void player::create_input(enum input::mode input_mode, int selected_audio_stream
     }
     if (selected_audio_stream > 0 && audio_stream == -1)
     {
-        throw exc(str::asprintf("audio stream %d not found", selected_audio_stream + 1));
+        throw exc(str::asprintf("Audio stream %d not found", selected_audio_stream + 1));
     }
     _input = new input();
     _input->open(_decoders,
@@ -218,7 +218,7 @@ void player::make_master()
 {
     if (global_player)
     {
-        throw exc("cannot create a second master player");
+        throw exc("Cannot create a second master player");
     }
     global_player = this;
 }
@@ -242,7 +242,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         _video_pos = _input->read_video_frame();
         if (_video_pos == std::numeric_limits<int64_t>::min())
         {
-            msg::dbg("empty video input");
+            msg::dbg("Empty video input");
             notify(notification::play, true, false);
             return;
         }
@@ -252,7 +252,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             _audio_pos = _input->read_audio_data(&_audio_data, _required_audio_data_size);
             if (_audio_pos == std::numeric_limits<int64_t>::min())
             {
-                msg::dbg("empty audio input");
+                msg::dbg("Empty audio input");
                 notify(notification::play, true, false);
                 return;
             }
@@ -323,7 +323,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         _video_pos = _input->read_video_frame();
         if (_video_pos == std::numeric_limits<int64_t>::min())
         {
-            msg::wrn("seeked to end of video?!");
+            msg::wrn("Seeked to end of video?!");
             notify(notification::play, true, false);
             return;
         }
@@ -334,7 +334,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             _audio_pos = _input->read_audio_data(&_audio_data, _required_audio_data_size);
             if (_audio_pos == std::numeric_limits<int64_t>::min())
             {
-                msg::wrn("seeked to end of audio?!");
+                msg::wrn("Seeked to end of audio?!");
                 notify(notification::play, true, false);
                 return;
             }
@@ -381,12 +381,12 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         {
             if (_first_frame)
             {
-                msg::dbg("single-frame video input: going into pause mode");
+                msg::dbg("Single-frame video input: going into pause mode");
                 _pause_request = true;
             }
             else
             {
-                msg::dbg("end of video stream");
+                msg::dbg("End of video stream");
                 notify(notification::play, true, false);
                 return;
             }
@@ -441,7 +441,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
                 _audio_pos = _input->read_audio_data(&_audio_data, _required_audio_data_size);
                 if (_audio_pos == std::numeric_limits<int64_t>::min())
                 {
-                    msg::dbg("end of audio stream");
+                    msg::dbg("End of audio stream");
                     notify(notification::play, true, false);
                     return;
                 }
@@ -465,7 +465,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             _drop_next_frame = false;
             if (_master_time_current - _video_pos > _input->video_frame_duration() * 75 / 100 && !_benchmark)
             {
-                msg::wrn("video: delay %g seconds; dropping next frame", (_master_time_current - _video_pos) / 1e6f);
+                msg::wrn("Video: delay %g seconds; dropping next frame", (_master_time_current - _video_pos) / 1e6f);
                 _drop_next_frame = true;
             }
             if (!_previous_frame_dropped)
@@ -477,7 +477,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
                     if (_frames_shown == 100)   //show fps each 100 frames
                     {
                         int64_t now = timer::get_microseconds(timer::monotonic);
-                        msg::inf("fps: %.2f", static_cast<float>(_frames_shown) / ((now - _fps_mark_time) / 1e6f));
+                        msg::inf("FPS: %.2f", static_cast<float>(_frames_shown) / ((now - _fps_mark_time) / 1e6f));
                         _fps_mark_time = now;
                         _frames_shown = 0;
                     }
