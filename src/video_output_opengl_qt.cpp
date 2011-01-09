@@ -365,13 +365,7 @@ void video_output_opengl_qt::open(
         }
     }
 
-
     _widget->resize(video_output_opengl::win_width(), video_output_opengl::win_height());
-    if (flags & video_output::center)
-    {
-        center();
-    }
-
     QGridLayout *container_layout = new QGridLayout();
     container_layout->addWidget(_widget, 0, 0);
     container_layout->setContentsMargins(0, 0, 0, 0);
@@ -389,6 +383,10 @@ void video_output_opengl_qt::open(
     _widget->show();
     _container_widget->show();
     _container_widget->raise();
+    if (flags & video_output::center)
+    {
+        center();
+    }
 }
 
 void video_output_opengl_qt::activate()
