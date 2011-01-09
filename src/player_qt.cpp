@@ -144,8 +144,11 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
 {
     QGridLayout *layout0 = new QGridLayout;
     QLabel *input_label = new QLabel("Input:");
+    input_label->setToolTip(
+            "<p>Set the 3D layout type of your input file(s).</p>");
     layout0->addWidget(input_label, 0, 0);
     _input_combobox = new QComboBox(this);
+    _input_combobox->setToolTip(input_label->toolTip());
     _input_combobox->addItem("2D");
     _input_combobox->addItem("Separate streams");
     _input_combobox->addItem("Top/bottom");
@@ -157,15 +160,22 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     layout0->addWidget(_input_combobox, 0, 1);
     layout0->setColumnStretch(1, 1);
     QLabel *audio_label = new QLabel("Audio:");
+    audio_label->setToolTip(
+            "<p>Choose the audio stream, from 1 to the number of "
+            "audio streams available in your input file(s).</p>");
     layout0->addWidget(audio_label, 0, 2);
     _audio_spinbox = new QSpinBox();
+    _audio_spinbox->setToolTip(audio_label->toolTip());
     _audio_spinbox->setRange(1, 999);
     _audio_spinbox->setValue(1);
     layout0->addWidget(_audio_spinbox, 0, 3);
     QLabel *output_label = new QLabel("Output:");
+    output_label->setToolTip(
+            "<p>Set the 3D output type for your display.</p>");
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(output_label, 1, 0);
     _output_combobox = new QComboBox(this);
+    _output_combobox->setToolTip(output_label->toolTip());
     _output_combobox->addItem("Left view");
     _output_combobox->addItem("Right view");
     _output_combobox->addItem("Top/bottom");
@@ -184,31 +194,50 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     layout1->setColumnStretch(1, 1);
     QGridLayout *layout2 = new QGridLayout;
     _swap_eyes_button = new QPushButton("Swap eyes");
+    _swap_eyes_button->setToolTip(
+            "<p>Swap the left and right view. "
+            "Use this if the 3D effect seems wrong.</p>");
     _swap_eyes_button->setCheckable(true);
     connect(_swap_eyes_button, SIGNAL(toggled(bool)), this, SLOT(swap_eyes_changed()));
     layout2->addWidget(_swap_eyes_button, 0, 0, 1, 2);
     _fullscreen_button = new QPushButton("Fullscreen");
+    _fullscreen_button->setToolTip(
+            "<p>Switch to fullscreen mode. "
+            "You can leave fullscreen mode by pressing the f key.</p>");
     connect(_fullscreen_button, SIGNAL(pressed()), this, SLOT(fullscreen_pressed()));
     layout2->addWidget(_fullscreen_button, 0, 2, 1, 2);
     _center_button = new QPushButton("Center");
+    _center_button->setToolTip(
+            "<p>Center the video area on your screen.</p>");
     connect(_center_button, SIGNAL(pressed()), this, SLOT(center_pressed()));
     layout2->addWidget(_center_button, 0, 4, 1, 2);
+    layout2->addWidget(new QWidget(), 0, 6, 1, 1);
     _parallax_label = new QLabel("Parallax:");
-    layout2->addWidget(_parallax_label, 0, 6, 1, 1);
+    _parallax_label->setToolTip(
+            "<p>Adjust parallax. This changes the separation of left and right view, "
+            "and thus moves the point where both lines of sight meet.</p>");
+    layout2->addWidget(_parallax_label, 0, 7, 1, 1);
     _parallax_spinbox = new QDoubleSpinBox();
+    _parallax_spinbox->setToolTip(_parallax_label->toolTip());
     _parallax_spinbox->setRange(-1.0, +1.0);
     _parallax_spinbox->setValue(0);
     _parallax_spinbox->setDecimals(2);
     _parallax_spinbox->setSingleStep(0.01);
     connect(_parallax_spinbox, SIGNAL(valueChanged(double)), this, SLOT(parallax_changed()));
-    layout2->addWidget(_parallax_spinbox, 0, 7, 1, 1);
+    layout2->addWidget(_parallax_spinbox, 0, 8, 1, 1);
     _ghostbust_label = new QLabel("Ghostbusting:");
-    layout2->addWidget(_ghostbust_label, 0, 8, 1, 1);
+    _ghostbust_label->setToolTip(
+            "<p>Set the amount of crosstalk ghostbusting. "
+            "You need to set the crosstalk levels of your display in the Preferences menu first. "
+            "Note that crosstalk ghostbusting does not work with anaglyph glasses.</p>");
+    layout2->addWidget(_ghostbust_label, 0, 9, 1, 1);
     _ghostbust_spinbox = new QSpinBox();
+    _ghostbust_spinbox->setToolTip(_ghostbust_label->toolTip());
     _ghostbust_spinbox->setRange(0, 100);
     _ghostbust_spinbox->setValue(0);
     connect(_ghostbust_spinbox, SIGNAL(valueChanged(int)), this, SLOT(ghostbust_changed()));
-    layout2->addWidget(_ghostbust_spinbox, 0, 9, 1, 1);
+    layout2->addWidget(_ghostbust_spinbox, 0, 10, 1, 1);
+    layout2->setColumnStretch(6, 1);
     layout2->setRowStretch(0, 1);
     QGridLayout *layout = new QGridLayout;
     layout->addLayout(layout0, 0, 0);
@@ -517,36 +546,49 @@ controls_widget::controls_widget(QSettings *settings, QWidget *parent)
 {
     QGridLayout *layout = new QGridLayout;
     _seek_slider = new QSlider(Qt::Horizontal);
+    _seek_slider->setToolTip(
+            "<p>This slider shows the progress during video playback, "
+            "and can be used to seek in the video. Note that this may "
+            "not work with all videos.</p>");
     _seek_slider->setRange(0, 2000);
     _seek_slider->setTracking(false);
     connect(_seek_slider, SIGNAL(valueChanged(int)), this, SLOT(seek_slider_changed()));
     layout->addWidget(_seek_slider, 0, 0, 1, 10);
     _play_button = new QPushButton(QIcon(":icons/play.png"), "");
+    _play_button->setToolTip("<p>Play.</p>");
     connect(_play_button, SIGNAL(pressed()), this, SLOT(play_pressed()));
     layout->addWidget(_play_button, 1, 0);
     _pause_button = new QPushButton(QIcon(":icons/pause.png"), "");
+    _pause_button->setToolTip("<p>Pause.</p>");
     connect(_pause_button, SIGNAL(pressed()), this, SLOT(pause_pressed()));
     layout->addWidget(_pause_button, 1, 1);
     _stop_button = new QPushButton(QIcon(":icons/stop.png"), "");
+    _stop_button->setToolTip("<p>Stop.</p>");
     connect(_stop_button, SIGNAL(pressed()), this, SLOT(stop_pressed()));
     layout->addWidget(_stop_button, 1, 2);
     layout->addWidget(new QWidget, 1, 3);
     _bbb_button = new QPushButton(QIcon(":icons/bbb.png"), "");
+    _bbb_button->setToolTip("<p>Seek backward 10 minutes.</p>");
     connect(_bbb_button, SIGNAL(pressed()), this, SLOT(bbb_pressed()));
     layout->addWidget(_bbb_button, 1, 4);
     _bb_button = new QPushButton(QIcon(":icons/bb.png"), "");
+    _bb_button->setToolTip("<p>Seek backward 1 minute.</p>");
     connect(_bb_button, SIGNAL(pressed()), this, SLOT(bb_pressed()));
     layout->addWidget(_bb_button, 1, 5);
     _b_button = new QPushButton(QIcon(":icons/b.png"), "");
+    _b_button->setToolTip("<p>Seek backward 10 seconds.</p>");
     connect(_b_button, SIGNAL(pressed()), this, SLOT(b_pressed()));
     layout->addWidget(_b_button, 1, 6);
     _f_button = new QPushButton(QIcon(":icons/f.png"), "");
+    _f_button->setToolTip("<p>Seek forward 10 seconds.</p>");
     connect(_f_button, SIGNAL(pressed()), this, SLOT(f_pressed()));
     layout->addWidget(_f_button, 1, 7);
     _ff_button = new QPushButton(QIcon(":icons/ff.png"), "");
+    _ff_button->setToolTip("<p>Seek forward 1 minute.</p>");
     connect(_ff_button, SIGNAL(pressed()), this, SLOT(ff_pressed()));
     layout->addWidget(_ff_button, 1, 8);
     _fff_button = new QPushButton(QIcon(":icons/fff.png"), "");
+    _fff_button->setToolTip("<p>Seek forward 10 minutes.</p>");
     connect(_fff_button, SIGNAL(pressed()), this, SLOT(fff_pressed()));
     layout->addWidget(_fff_button, 1, 9);
     layout->setRowStretch(0, 0);
