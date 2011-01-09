@@ -529,6 +529,7 @@ void in_out_widget::receive_notification(const notification &note)
             _parallax_spinbox->setValue(note.current.value);
         }
         _lock = false;
+        break;
     case notification::ghostbust:
         _lock = true;
         if (_ghostbust_spinbox->isEnabled())
@@ -536,6 +537,7 @@ void in_out_widget::receive_notification(const notification &note)
             _ghostbust_spinbox->setValue(qRound(note.current.value * 100.0f));
         }
         _lock = false;
+        break;
     default:
         break;
     }
