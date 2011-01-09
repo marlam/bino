@@ -6,7 +6,6 @@
 @include version.texi
 @settitle Bino @value{VERSION}
 
-@finalout
 @copying
 This manual was last updated @value{UPDATED} for version
 @value{VERSION} of Bino.
@@ -29,6 +28,7 @@ without any warranty.
 * bino: (bino).         A 3D video player with multi-display support.
 @end direntry
 
+@finalout
 @titlepage
 @title Bino
 @subtitle A 3D video player with multi-display support.
@@ -39,7 +39,9 @@ without any warranty.
 @insertcopying
 @end titlepage
 
+@ifnothtml
 @contents
+@end ifnothtml
 
 @ifnottex
 @node Top
@@ -47,6 +49,9 @@ without any warranty.
 @insertcopying
 @end ifnottex
 
+@ifhtml
+Table of Contents:
+@end ifhtml
 @menu
 * Overview::
 * Invocation::
@@ -134,19 +139,19 @@ measurements.
 
 Bino supports the following stereoscopic input layouts:
 @table @var
-@item @var{mono}
+@item mono
 Single view (2D).
-@item @var{separate}
+@item separate
 Left/right view in separate streams.
-@item @var{top-bottom}
+@item top-bottom
 Left view top, right view bottom.
-@item @var{top-bottom-half}
+@item top-bottom-half
 Left view top, right view bottom, half height.
-@item @var{left-right}
+@item left-right
 Left view left, right view right.
-@item @var{left-right-half}
+@item left-right-half
 Left view left, right view right, half width.
-@item @var{even-odd-rows}
+@item even-odd-rows
 Left view even rows, right view odd rows.
 @end table
 
@@ -160,39 +165,39 @@ resolution of the input.
 
 Bino supports the following stereoscopic display techniques:
 @table @var
-@item @var{mono-left}
+@item mono-left
 Left view only.
-@item @var{mono-right}
+@item mono-right
 Right view only.
-@item @var{top-bottom}
+@item top-bottom
 Left view top, right view bottom.
-@item @var{top-bottom-half}
+@item top-bottom-half
 Left view top, right view bottom, half height.
-@item @var{left-right}
+@item left-right
 Left view left, right view right.
-@item @var{left-right-half}
+@item left-right-half
 Left view left, right view right, half width.
-@item @var{even-odd-rows}
+@item even-odd-rows
 Left view even rows, right view odd rows.
-@item @var{even-odd-columns}
+@item even-odd-columns
 Left view even columns, right view odd columns.
-@item @var{checkerboard}
+@item checkerboard
 Left and right view in checkerboard pattern.
-@item @var{anaglyph}
+@item anaglyph
 Red/cyan anaglyph, default method, same as @var{anaglyph-dubois}.
-@item @var{anaglyph-monochrome}
+@item anaglyph-monochrome
 Red/cyan anaglyph, monochrome method.
-@item @var{anaglyph-full-color}
+@item anaglyph-full-color
 Red/cyan anaglyph, full color method.
-@item @var{anaglyph-half-color}
+@item anaglyph-half-color
 Red/cyan anaglyph, half color method.
-@item @var{anaglyph-dubois}
+@item anaglyph-dubois
 Red/cyan anaglyph, high-quality Dubois method.
-@item @var{stereo}
+@item stereo
 OpenGL quad-buffer stereo.
-@item @var{equalizer}
+@item equalizer
 Multi-display OpenGL via Equalizer with a 2D canvas setup.
-@item @var{equalizer-3d}
+@item equalizer-3d
 Multi-display OpenGL via Equalizer with a 3D screen setup.
 @end table
 
@@ -208,37 +213,37 @@ the file name extension (@file{.ext}).
 
 The following file name forms are recognized:
 @table @file
-@item @file{*-lr.ext}
+@item *-lr.ext
 @var{left-right}
-@item @file{*-lrh.ext}
-@itemx @file{*-lrq.ext}
+@item *-lrh.ext
+@itemx *-lrq.ext
 @var{left-right-half}
-@item @file{*-rl.ext}
+@item *-rl.ext
 @var{left-right swapped}
-@item @file{*-rlh.ext}
-@itemx @file{*-rlq.ext}
+@item *-rlh.ext
+@itemx *-rlq.ext
 @var{left-right-half swapped}
-@item @file{*-tb.ext}
-@itemx @file{*-ab.ext}
+@item *-tb.ext
+@itemx *-ab.ext
 @var{top-bottom}
-@item @file{*-tbh.ext}
-@itemx @file{*-abq.ext}
+@item *-tbh.ext
+@itemx *-abq.ext
 @var{top-bottom-half}
-@item @file{*-bt.ext}
-@itemx @file{*-ba.ext}
+@item *-bt.ext
+@itemx *-ba.ext
 @var{top-bottom swapped}
-@item @file{*-bth.ext}
-@itemx @file{*-baq.ext}
+@item *-bth.ext
+@itemx *-baq.ext
 @var{top-bottom-half swapped}
-@item @file{*-eo.ext}
-@itemx @file{*-eoq.ext}
-@itemx @file{*-3dir.ext}
+@item *-eo.ext
+@itemx *-eoq.ext
+@itemx *-3dir.ext
 @var{even-odd-rows}
-@item @file{*-oe.ext}
-@itemx @file{*-oeq.ext}
-@itemx @file{*-3di.ext}
+@item *-oe.ext
+@itemx *-oeq.ext
+@itemx *-3di.ext
 @var{even-odd-rows swapped}
-@item @file{*-2d.ext}
+@item *-2d.ext
 @var{mono}
 @end table
 
@@ -252,46 +257,46 @@ these shortcuts.
 
 The following shortcuts are recognized:
 @table @kbd
-@item @kbd{q}
-@itemx @kbd{ESC}
+@item q
+@item ESC
 Quit.
-@item @kbd{p}
-@itemx @kbd{SPACE}
+@item p
+@item SPACE
 Pause / unpause.
-@item @kbd{f}
+@item f
 Toggle fullscreen.
-@item @kbd{c}
+@item c
 Center window.
-@item @kbd{s}
+@item s
 Swap left/right view.
-@item @kbd{1}
-@itemx @kbd{2}
+@item 1
+@item 2
 Adjust contrast.
-@item @kbd{3}
-@itemx @kbd{4}
+@item 3
+@item 4
 Adjust brightness.
-@item @kbd{5}
-@itemx @kbd{6}
+@item 5
+@item 6
 Adjust hue.
-@item @kbd{7}
-@itemx @kbd{8}
+@item 7
+@item 8
 Adjust saturation.
-@item @kbd{<}
-@itemx @kbd{>}
+@item <
+@item >
 Adjust parallax.
-@item @kbd{(}
-@itemx @kbd{)}
+@item (
+@item )
 Adjust ghostbusting.
-@item @kbd{LEFT}
-@itemx @kbd{RIGHT}
+@item LEFT
+@item RIGHT
 Seek 10 seconds backward / forward.
-@item @kbd{UP}
-@itemx @kbd{DOWN}
+@item UP
+@item DOWN
 Seek 1 minute backward / forward.
-@item @kbd{PAGE UP}
-@itemx @kbd{PAGE DOWN}
+@item PAGE UP
+@item PAGE DOWN
 Seek 10 minutes backward / forward.
-@item @kbd{Mouse click}
+@item Mouse click
 Seek according to the horizontal click position.
 @end table
 
