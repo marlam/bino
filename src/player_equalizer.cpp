@@ -117,7 +117,8 @@ public:
 
     void eq_read_frame()        // Only called on slave nodes to force reading the next frame
     {
-        if (get_input()->read_video_frame() < 0)
+        int64_t video_pos = get_input()->read_video_frame();
+        if (video_pos == std::numeric_limits<int64_t>::min())
         {
             msg::err("Reading input frame failed (EOF?)");
             abort();
