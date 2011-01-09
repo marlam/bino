@@ -1228,7 +1228,8 @@ void main_window::help_website()
 void main_window::help_keyboard()
 {
     QMessageBox::information(this, tr("Keyboard Shortcuts"), tr(
-                "<p>Keyboard control:"
+                "<p>Keyboard control:<br>"
+                "(Click into the video area to give it the keyboard focus if necessary.)"
                 "<table>"
                 "<tr><td>q or ESC</td><td>Stop</td></tr>"
                 "<tr><td>p or SPACE</td><td>Pause / unpause</td></tr>"
@@ -1239,15 +1240,12 @@ void main_window::help_keyboard()
                 "<tr><td>3, 4</td><td>Adjust brightness</td></tr>"
                 "<tr><td>5, 6</td><td>Adjust hue</td></tr>"
                 "<tr><td>7, 8</td><td>Adjust saturation</td></tr>"
-                "<tr><td><, ></td><td>Adjust parallax</td></tr>"
+                "<tr><td>&lt;, &gt;</td><td>Adjust parallax</td></tr>"
                 "<tr><td>(, )</td><td>Adjust ghostbusting</td></tr>"
                 "<tr><td>left, right</td><td>Seek 10 seconds backward / forward</td></tr>"
                 "<tr><td>up, down</td><td>Seek 1 minute backward / forward</td></tr>"
                 "<tr><td>page up, page down</td><td>Seek 10 minutes backward / forward</td></tr>"
                 "</table>"
-                "</p>"
-                "<p>"
-                "(Click into the video area to give it the keyboard focus if necessary.)"
                 "</p>"));
 }
 
