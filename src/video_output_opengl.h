@@ -95,7 +95,7 @@ protected:
     void clear();
     // Display the current texture set. The first version of this function is used
     // by Equalizer; simple windows will use the second version.
-    void display(bool toggle_swap_eyes, float x, float y, float w, float h, const int viewport[4]);
+    void display(bool mono_right_instead_of_left, float x, float y, float w, float h, const int viewport[4]);
     void display() { display(false, -1.0f, -1.0f, 2.0f, 2.0f, _viewport); }
     // Call this when the GL window was resized:
     void reshape(int w, int h);

@@ -158,9 +158,9 @@ public:
     {
     }
 
-    void eq_display(bool toggle_swap_eyes, float x, float y, float w, float h, const int viewport[4])
+    void eq_display(bool mono_right_instead_of_left, float x, float y, float w, float h, const int viewport[4])
     {
-        video_output_opengl::display(toggle_swap_eyes, x, y, w, h, viewport);
+        video_output_opengl::display(mono_right_instead_of_left, x, y, w, h, viewport);
     }
 
     void eq_initialize(int src_width, int src_height, float src_aspect_ratio,
@@ -846,9 +846,9 @@ public:
     {
     }
 
-    void display(bool toggle_swap_eyes, float x, float y, float w, float h, const int viewport[4])
+    void display(bool mono_right_instead_of_left, float x, float y, float w, float h, const int viewport[4])
     {
-        _video_output.eq_display(toggle_swap_eyes, x, y, w, h, viewport);
+        _video_output.eq_display(mono_right_instead_of_left, x, y, w, h, viewport);
     }
 
 protected:
@@ -962,10 +962,10 @@ protected:
 
         // Display
         eq_window *window = static_cast<eq_window *>(getWindow());
-        bool toggle_swap_eyes = (getEye() == eq::EYE_RIGHT);
+        bool mono_right_instead_of_left = (getEye() == eq::EYE_RIGHT);
         GLint viewport[4];
         glGetIntegerv(GL_VIEWPORT, viewport);
-        window->display(toggle_swap_eyes, quad_x, quad_y, quad_w, quad_h, viewport);
+        window->display(mono_right_instead_of_left, quad_x, quad_y, quad_w, quad_h, viewport);
     }
 };
 

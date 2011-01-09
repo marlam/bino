@@ -440,7 +440,7 @@ static void draw_quad(float x, float y, float w, float h)
     glEnd();
 }
 
-void video_output_opengl::display(bool toggle_swap_eyes, float x, float y, float w, float h, const int viewport[4])
+void video_output_opengl::display(bool mono_right_instead_of_left, float x, float y, float w, float h, const int viewport[4])
 {
     clear();
     if (!_have_valid_data[_active_tex_set])
@@ -453,10 +453,6 @@ void video_output_opengl::display(bool toggle_swap_eyes, float x, float y, float
     int left = 0;
     int right = (_src_is_mono ? 0 : 1);
     if (_state.swap_eyes)
-    {
-        std::swap(left, right);
-    }
-    if (toggle_swap_eyes)
     {
         std::swap(left, right);
     }
@@ -623,12 +619,12 @@ void video_output_opengl::display(bool toggle_swap_eyes, float x, float y, float
     {
         draw_quad(x, y, w, h);
     }
-    else if (_mode == mono_left)
+    else if (_mode == mono_left && !mono_right_instead_of_left)
     {
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
         draw_quad(x, y, w, h);
     }
-    else if (_mode == mono_right)
+    else if (_mode == mono_right || (_mode == mono_left && mono_right_instead_of_left))
     {
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
         draw_quad(x, y, w, h);
