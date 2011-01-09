@@ -994,6 +994,20 @@ void main_window::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
+bool main_window::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::FileOpen)
+    {
+        open(QStringList(static_cast<QFileOpenEvent *>(event)->file()), true);
+        return true;
+    }
+    else
+    {
+        // pass the event on to the parent class
+        return QMainWindow::eventFilter(obj, event);
+    }
+}
+
 void main_window::move_event()
 {
     if (_player)
@@ -1253,20 +1267,6 @@ void main_window::help_about()
     }
     blurb += QString("</ul></p>");
     QMessageBox::about(this, tr("About " PACKAGE_NAME), blurb);
-}
-
-bool main_window::eventFilter(QObject *obj, QEvent *event)
-{
-    if (event->type() == QEvent::FileOpen)
-    {
-        open(QStringList(static_cast<QFileOpenEvent *>(event)->file()), true);
-        return true;
-    }
-    else
-    {
-        // pass the event on to the parent class
-        return QMainWindow::eventFilter(obj, event);
-    }
 }
 
 player_qt::player_qt() : player(player::slave)
