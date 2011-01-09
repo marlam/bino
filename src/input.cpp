@@ -565,6 +565,9 @@ void input::get_video_frame(int view, int plane, void *buf)
         break;
     case automatic:
         /* cannot happen */
+        src = NULL;
+        src_row_size = 0;
+        src_offset = 0;
         break;
     }
 
