@@ -214,7 +214,7 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     layout2->addWidget(new QWidget(), 0, 6, 1, 1);
     _parallax_label = new QLabel("Parallax:");
     _parallax_label->setToolTip(
-            "<p>Adjust parallax. This changes the separation of left and right view, "
+            "<p>Adjust parallax, from -1 to +1. This changes the separation of left and right view, "
             "and thus moves the point where both lines of sight meet.</p>");
     layout2->addWidget(_parallax_label, 0, 7, 1, 1);
     _parallax_spinbox = new QDoubleSpinBox();
@@ -227,12 +227,13 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     layout2->addWidget(_parallax_spinbox, 0, 8, 1, 1);
     _ghostbust_label = new QLabel("Ghostbusting:");
     _ghostbust_label->setToolTip(
-            "<p>Set the amount of crosstalk ghostbusting. "
+            "<p>Set the amount of crosstalk ghostbusting, from 0% to 100%. "
             "You need to set the crosstalk levels of your display in the Preferences menu first. "
             "Note that crosstalk ghostbusting does not work with anaglyph glasses.</p>");
     layout2->addWidget(_ghostbust_label, 0, 9, 1, 1);
     _ghostbust_spinbox = new QSpinBox();
     _ghostbust_spinbox->setToolTip(_ghostbust_label->toolTip());
+    _ghostbust_spinbox->setSuffix(" %");
     _ghostbust_spinbox->setRange(0, 100);
     _ghostbust_spinbox->setValue(0);
     connect(_ghostbust_spinbox, SIGNAL(valueChanged(int)), this, SLOT(ghostbust_changed()));
@@ -1165,18 +1166,21 @@ void main_window::preferences_crosstalk()
     layout->addWidget(red_label, 1, 0, 1, 2);
     QSpinBox *red_spinbox = new QSpinBox();
     red_spinbox->setRange(0, 100);
+    red_spinbox->setSuffix(" %");
     red_spinbox->setValue(_init_data.video_state.crosstalk_r * 100.0f);
     layout->addWidget(red_spinbox, 1, 2, 1, 4);
     QLabel *green_label = new QLabel("Green:");
     layout->addWidget(green_label, 2, 0, 1, 3);
     QSpinBox *green_spinbox = new QSpinBox();
     green_spinbox->setRange(0, 100);
+    green_spinbox->setSuffix(" %");
     green_spinbox->setValue(_init_data.video_state.crosstalk_g * 100.0f);
     layout->addWidget(green_spinbox, 2, 2, 1, 4);
     QLabel *blue_label = new QLabel("Blue:");
     layout->addWidget(blue_label, 3, 0, 1, 2);
     QSpinBox *blue_spinbox = new QSpinBox();
     blue_spinbox->setRange(0, 100);
+    blue_spinbox->setSuffix(" %");
     blue_spinbox->setValue(_init_data.video_state.crosstalk_b * 100.0f);
     layout->addWidget(blue_spinbox, 3, 2, 1, 4);
     QPushButton *ok_button = new QPushButton(tr("&OK"));
