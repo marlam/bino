@@ -800,6 +800,8 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
 
     // Handle FileOpen events
     QApplication::instance()->installEventFilter(this);
+    // Handle Drop events
+    setAcceptDrops(true);
 
     show();     // Must happen before opening initial files!
     raise();
@@ -943,6 +945,36 @@ void main_window::receive_notification(const notification &note)
         _settings->beginGroup("Video");
         _settings->setValue(current_file_hash() + "-ghostbust", QVariant(_init_data.video_state.ghostbust).toString());
         _settings->endGroup();
+    }
+}
+
+void main_window::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasUrls())
+    {
+        event->acceptProposedAction();
+    }
+}
+
+void main_window::dropEvent(QDropEvent *event)
+{
+    if (event->mimeData()->hasUrls())
+    {
+        QList<QUrl> url_list = event->mimeData()->urls();
+        if (url_list.size() > 3)
+        {
+            QMessageBox::critical(this, "Error", "Cannot open more than 3 files");
+        }
+        else
+        {
+            QStringList urls;
+            for (int i = 0; i < url_list.size(); i++)
+            {
+                urls.append(url_list[i].toString());
+            }
+            open(urls, true);
+            event->acceptProposedAction();
+        }
     }
 }
 
