@@ -349,19 +349,15 @@ void in_out_widget::input_changed()
 {
     if (input::mode_is_2d(input_mode()) && !video_output::mode_is_2d(video_mode()))
     {
-        _settings->beginGroup("Session");
         QString fallback_mode_name = QString(video_output::mode_name(video_output::mono_left).c_str());
-        QString mode_name = _settings->value(QString("2d-output-mode"), fallback_mode_name).toString();
+        QString mode_name = _settings->value("Session/2d-output-mode", fallback_mode_name).toString();
         set_output(video_output::mode_from_name(mode_name.toStdString()));
-        _settings->endGroup();
     }
     else if (!input::mode_is_2d(input_mode()) && video_output::mode_is_2d(video_mode()))
     {
-        _settings->beginGroup("Session");
         QString fallback_mode_name = QString(video_output::mode_name(video_output::anaglyph_red_cyan_dubois).c_str());
-        QString mode_name = _settings->value(QString("3d-output-mode"), fallback_mode_name).toString();
+        QString mode_name = _settings->value("Session/3d-output-mode", fallback_mode_name).toString();
         set_output(video_output::mode_from_name(mode_name.toStdString()));
-        _settings->endGroup();
     }
 }
 
@@ -524,18 +520,12 @@ void in_out_widget::receive_notification(const notification &note)
         break;
     case notification::parallax:
         _lock = true;
-        if (_parallax_spinbox->isEnabled())
-        {
-            _parallax_spinbox->setValue(note.current.value);
-        }
+        _parallax_spinbox->setValue(note.current.value);
         _lock = false;
         break;
     case notification::ghostbust:
         _lock = true;
-        if (_ghostbust_spinbox->isEnabled())
-        {
-            _ghostbust_spinbox->setValue(qRound(note.current.value * 100.0f));
-        }
+        _ghostbust_spinbox->setValue(qRound(note.current.value * 100.0f));
         _lock = false;
         break;
     default:
@@ -880,24 +870,22 @@ void main_window::receive_notification(const notification &note)
                 _stop_request = true;
             }
             // Remember the input settings of this video, using an SHA1 hash of its filename.
-            _settings->beginGroup("Video");
+            _settings->beginGroup("Video/" + current_file_hash());
             if (_init_data.filenames.size() == 1)
             {
-                _settings->setValue(current_file_hash(), QString(input::mode_name(_init_data.input_mode).c_str()));
+                _settings->setValue("input-mode", QString(input::mode_name(_init_data.input_mode).c_str()));
             }
-            _settings->setValue(current_file_hash() + "-audio-stream", QVariant(_init_data.audio_stream + 1).toString());
+            _settings->setValue("audio-stream", QVariant(_init_data.audio_stream + 1).toString());
             _settings->endGroup();
             // Remember the 2D or 3D video output mode.
-            _settings->beginGroup("Session");
             if (_init_data.input_mode == input::mono)
             {
-                _settings->setValue("2d-output-mode", QString(video_output::mode_name(_init_data.video_mode).c_str()));
+                _settings->setValue("Session/2d-output-mode", QString(video_output::mode_name(_init_data.video_mode).c_str()));
             }
             else
             {
-                _settings->setValue("3d-output-mode", QString(video_output::mode_name(_init_data.video_mode).c_str()));
+                _settings->setValue("Session/3d-output-mode", QString(video_output::mode_name(_init_data.video_mode).c_str()));
             }
-            _settings->endGroup();
             // Update widgets: we're now playing
             _in_out_widget->update(_init_data, true, true);
             _controls_widget->update(_init_data, true, true);
@@ -931,22 +919,22 @@ void main_window::receive_notification(const notification &note)
     else if (note.type == notification::swap_eyes)
     {
         _init_data.video_state.swap_eyes = note.current.flag;
-        _settings->beginGroup("Video");
-        _settings->setValue(current_file_hash() + "-swap-eyes", QVariant(_init_data.video_state.swap_eyes).toString());
+        _settings->beginGroup("Video/" + current_file_hash());
+        _settings->setValue("swap-eyes", QVariant(_init_data.video_state.swap_eyes).toString());
         _settings->endGroup();
     }
     else if (note.type == notification::parallax)
     {
         _init_data.video_state.parallax = note.current.value;
-        _settings->beginGroup("Video");
-        _settings->setValue(current_file_hash() + "-parallax", QVariant(_init_data.video_state.parallax).toString());
+        _settings->beginGroup("Video/" + current_file_hash());
+        _settings->setValue("parallax", QVariant(_init_data.video_state.parallax).toString());
         _settings->endGroup();
     }
     else if (note.type == notification::ghostbust)
     {
         _init_data.video_state.ghostbust = note.current.value;
-        _settings->beginGroup("Video");
-        _settings->setValue(current_file_hash() + "-ghostbust", QVariant(_init_data.video_state.ghostbust).toString());
+        _settings->beginGroup("Video/" + current_file_hash());
+        _settings->setValue("ghostbust", QVariant(_init_data.video_state.ghostbust).toString());
         _settings->endGroup();
     }
 }
@@ -1050,35 +1038,34 @@ void main_window::open(QStringList filenames, bool automatic)
     }
     if (open_player())
     {
-        _settings->beginGroup("Video");
+        _settings->beginGroup("Video/" + current_file_hash());
         if (_init_data.filenames.size() == 1)
         {
             QString fallback_mode_name = QString(input::mode_name(_player->input_mode()).c_str());
-            QString mode_name = _settings->value(current_file_hash(), fallback_mode_name).toString();
+            QString mode_name = _settings->value("input-mode", fallback_mode_name).toString();
             _init_data.input_mode = input::mode_from_name(mode_name.toStdString());
         }
         else
         {
             _init_data.input_mode = _player->input_mode();
         }
-        _init_data.audio_stream = QVariant(_settings->value(current_file_hash() + "-audio-stream", QString("1")).toString()).toInt() - 1;
-        _init_data.video_state.swap_eyes = QVariant(_settings->value(current_file_hash() + "-swap-eyes", QString("false")).toString()).toBool();
-        _init_data.video_state.parallax = QVariant(_settings->value(current_file_hash() + "-parallax", QString("0")).toString()).toFloat();
-        _init_data.video_state.ghostbust = QVariant(_settings->value(current_file_hash() + "-ghostbust", QString("0")).toString()).toFloat();
+        _init_data.audio_stream = QVariant(_settings->value("audio-stream", QString("1")).toString()).toInt() - 1;
+        _init_data.video_state.swap_eyes = QVariant(_settings->value("swap-eyes", QString("false")).toString()).toBool();
+        _init_data.video_state.parallax = QVariant(_settings->value("parallax", QString("0")).toString()).toFloat();
+        _init_data.video_state.ghostbust = QVariant(_settings->value("ghostbust", QString("0")).toString()).toFloat();
         _settings->endGroup();
-        _settings->beginGroup("Session");
         if (automatic)
         {
             if (_init_data.input_mode == input::mono)
             {
                 QString fallback_mode_name = QString(video_output::mode_name(video_output::mono_left).c_str());
-                QString mode_name = _settings->value(QString("2d-output-mode"), fallback_mode_name).toString();
+                QString mode_name = _settings->value("Session/2d-output-mode", fallback_mode_name).toString();
                 _init_data.video_mode = video_output::mode_from_name(mode_name.toStdString());
             }
             else
             {
                 QString fallback_mode_name = QString(video_output::mode_name(video_output::anaglyph_red_cyan_dubois).c_str());
-                QString mode_name = _settings->value(QString("3d-output-mode"), fallback_mode_name).toString();
+                QString mode_name = _settings->value("Session/3d-output-mode", fallback_mode_name).toString();
                 _init_data.video_mode = video_output::mode_from_name(mode_name.toStdString());
             }
         }
@@ -1086,7 +1073,6 @@ void main_window::open(QStringList filenames, bool automatic)
         {
             _init_data.video_mode = _player->video_mode();
         }
-        _settings->endGroup();
         _in_out_widget->update(_init_data, true, false);
         _controls_widget->update(_init_data, true, false);
     }
@@ -1100,9 +1086,7 @@ void main_window::open(QStringList filenames, bool automatic)
 void main_window::file_open()
 {
     QFileDialog *file_dialog = new QFileDialog(this);
-    _settings->beginGroup("Session");
-    file_dialog->setDirectory(_settings->value("file-open-dir", QDir::currentPath()).toString());
-    _settings->endGroup();
+    file_dialog->setDirectory(_settings->value("Session/file-open-dir", QDir::currentPath()).toString());
     file_dialog->setWindowTitle("Open up to three files");
     file_dialog->setAcceptMode(QFileDialog::AcceptOpen);
     file_dialog->setFileMode(QFileDialog::ExistingFiles);
@@ -1120,9 +1104,7 @@ void main_window::file_open()
         QMessageBox::critical(this, "Error", "Cannot open more than 3 files");
         return;
     }
-    _settings->beginGroup("Session");
-    _settings->setValue("file-open-dir", file_dialog->directory().path());
-    _settings->endGroup();
+    _settings->setValue("Session/file-open-dir", file_dialog->directory().path());
     open(file_names, true);
 }
 
