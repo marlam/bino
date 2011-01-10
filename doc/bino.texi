@@ -359,18 +359,14 @@ This is how it works:
 
 @section Building Bino with Equalizer Support
 
-First, install Equalizer 0.9.1. See @url{http://www.equalizergraphics.com/}.
-Verify that it works by running the included eqHello example.
+First, install Equalizer 0.9.2 or later. See
+@url{http://www.equalizergraphics.com/}.  Verify that it works by running the
+included eqHello example.
 
-Then, build Bino with Equalizer support. You have to use the
-@option{--with-equalizer} configure option and additionally tell the configure
-script where to find Equalizer, since version 0.9.1 cannot be detected
-automatically yet:
-
+Then, build Bino with Equalizer support by using the @option{--with-equalizer}
+configure option:
 @example
-$ ./configure --with-equalizer \
-  libEqualizer_CFLAGS="-I/path/to/equalizer/include" \
-  libEqualizer_LIBS="-L/path/to/equalizer/lib -leq"
+$ ./configure --with-equalizer
 @end example
 
 Now you need an Equalizer configuration file for your display setup.
