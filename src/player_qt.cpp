@@ -498,20 +498,10 @@ void in_out_widget::receive_notification(const notification &note)
         _swap_eyes_button->setEnabled(note.current.flag);
         _fullscreen_button->setEnabled(note.current.flag);
         _center_button->setEnabled(note.current.flag);
-        {
-            bool parallax = (note.current.flag && input_mode() != input::mono);
-            _parallax_label->setEnabled(parallax);
-            _parallax_spinbox->setEnabled(parallax);
-        }
-        {
-            bool ghostbust = (note.current.flag
-                    && video_mode() != video_output::anaglyph_red_cyan_dubois
-                    && video_mode() != video_output::anaglyph_red_cyan_monochrome
-                    && video_mode() != video_output::anaglyph_red_cyan_full_color
-                    && video_mode() != video_output::anaglyph_red_cyan_half_color);
-            _ghostbust_label->setEnabled(ghostbust);
-            _ghostbust_spinbox->setEnabled(ghostbust);
-        }
+        _parallax_label->setEnabled(note.current.flag);
+        _parallax_spinbox->setEnabled(note.current.flag);
+        _ghostbust_label->setEnabled(note.current.flag);
+        _ghostbust_spinbox->setEnabled(note.current.flag);
         break;
     case notification::swap_eyes:
         _lock = true;
