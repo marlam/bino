@@ -106,7 +106,7 @@ AC_ARG_WITH([equalizer],
     [AS_HELP_STRING([--with-equalizer], [Enable multi-display support via Equalizer (disabled by default)])],
     [if test "$withval" = "yes"; then equalizer="yes"; else equalizer="no "; fi], [equalizer="no"])
 if test "$equalizer" = "yes"; then
-    PKG_CHECK_MODULES([libEqualizer], [Equalizer = 0.9.2], [HAVE_LIBEQUALIZER=1], [HAVE_LIBEQUALIZER=0])
+    PKG_CHECK_MODULES([libEqualizer], [Equalizer >= 0.9.2], [HAVE_LIBEQUALIZER=1], [HAVE_LIBEQUALIZER=0])
     if test "$HAVE_LIBEQUALIZER" != "1"; then
         AC_MSG_WARN([library libEqualizer not found:])
         AC_MSG_WARN([$libEqualizer_PKG_ERRORS])
