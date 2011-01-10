@@ -25,7 +25,6 @@
 #include <cmath>
 
 #include <eq/eq.h>
-#include <eq/client/segment.h>  // FIXME: Remove this when switching to a newer Equalizer version
 
 #include "debug.h"
 #include "msg.h"
@@ -34,6 +33,20 @@
 #include "video_output_opengl.h"
 #include "player_equalizer.h"
 
+namespace eqs11n
+{
+    static void save(std::ostream &os, const eq::uint128_t &x)
+    {
+        s11n::save(os, x.high());
+        s11n::save(os, x.low());
+    }
+
+    static void load(std::istream &is, eq::uint128_t &x)
+    {
+        s11n::load(is, x.high());
+        s11n::load(is, x.low());
+    }
+}
 
 /*
  * Every eq::Node has a special player: player_eq_node.
@@ -204,15 +217,15 @@ public:
  * eq_init_data
  */
 
-class eq_init_data : public eq::net::Object
+class eq_init_data : public co::Object
 {
 public:
-    uint32_t frame_data_id;
+    eq::uint128_t frame_data_id;
     player_init_data init_data;
     bool flat_screen;
     struct { float x, y, w, h, d; } canvas_video_area;
 
-    eq_init_data() : frame_data_id(EQ_ID_INVALID), init_data()
+    eq_init_data() : init_data()
     {
         flat_screen = true;
         canvas_video_area.x = 0.0f;
@@ -224,19 +237,18 @@ public:
 
     virtual ~eq_init_data()
     {
-        frame_data_id = EQ_ID_INVALID;
     }
 
 protected:
     virtual ChangeType getChangeType() const
     {
-        return eq::net::Object::STATIC;
+        return co::Object::STATIC;
     }
 
-    virtual void getInstanceData(eq::net::DataOStream &os)
+    virtual void getInstanceData(co::DataOStream &os)
     {
         std::ostringstream oss;
-        s11n::save(oss, frame_data_id);
+        eqs11n::save(oss, frame_data_id);
         s11n::save(oss, static_cast<int>(init_data.log_level));
         s11n::save(oss, init_data.filenames);
         s11n::save(oss, init_data.audio_stream);
@@ -263,13 +275,13 @@ protected:
         os << oss.str();
     }
 
-    virtual void applyInstanceData(eq::net::DataIStream &is)
+    virtual void applyInstanceData(co::DataIStream &is)
     {
         int x;
         std::string s;
         is >> s;
         std::istringstream iss(s);
-        s11n::load(iss, frame_data_id);
+        eqs11n::load(iss, frame_data_id);
         s11n::load(iss, x);
         init_data.log_level = static_cast<msg::level_t>(x);
         s11n::load(iss, init_data.filenames);
@@ -303,7 +315,7 @@ protected:
  * eq_frame_data
  */
 
-class eq_frame_data : public eq::net::Object
+class eq_frame_data : public co::Object
 {
 public:
     video_output_state video_state;
@@ -322,10 +334,10 @@ public:
 protected:
     virtual ChangeType getChangeType() const
     {
-        return eq::net::Object::INSTANCE;
+        return co::Object::INSTANCE;
     }
 
-    virtual void getInstanceData(eq::net::DataOStream &os)
+    virtual void getInstanceData(co::DataOStream &os)
     {
         std::ostringstream oss;
         s11n::save(oss, video_state.contrast);
@@ -346,7 +358,7 @@ protected:
         os << oss.str();
     }
 
-    virtual void applyInstanceData(eq::net::DataIStream &is)
+    virtual void applyInstanceData(co::DataIStream &is)
     {
         std::string s;
         is >> s;
@@ -368,6 +380,49 @@ protected:
         s11n::load(iss, display_frame);
     }
 };
+
+/** Defines errors produced by player. */
+
+enum Error
+{
+    ERROR_MAP_INITDATA_FAILED = eq::ERROR_CUSTOM,
+    ERROR_MAP_FRAMEDATA_FAILED,
+    ERROR_PLAYER_INIT_FAILED,
+    ERROR_OPENGL_2_1_NEEDED
+};
+
+struct ErrorData
+{
+    const uint32_t code;
+    const std::string text;
+};
+
+ErrorData _errors[] =
+{
+    { ERROR_MAP_FRAMEDATA_FAILED, "Init data mapping failed" },
+    { ERROR_MAP_INITDATA_FAILED, "Frame data mapping failed" },
+    { ERROR_PLAYER_INIT_FAILED, "Video player initialization failed" },
+    { ERROR_OPENGL_2_1_NEEDED, "Need at least OpenGL 2.1" },
+    { 0, "" } // last!
+};
+
+static void init_errors()
+{
+    co::base::ErrorRegistry& registry = co::base::Global::getErrorRegistry();
+    for (size_t i = 0; _errors[i].code != 0; i++)
+    {
+        registry.setString(_errors[i].code, _errors[i].text);
+    }
+}
+
+static void exit_errors()
+{
+    co::base::ErrorRegistry& registry = co::base::Global::getErrorRegistry();
+    for (size_t i = 0; _errors[i].code != 0; i++)
+    {
+        registry.eraseString(_errors[i].code);
+    }
+}
 
 /*
  * eq_config
@@ -476,7 +531,6 @@ public:
         // Deregister master instances
         deregisterObject(&_eq_init_data);
         deregisterObject(&_eq_frame_data);
-        _eq_init_data.frame_data_id = EQ_ID_INVALID;
         // Cleanup
         _player.close();
         msg::dbg(HERE);
@@ -496,7 +550,7 @@ public:
         // Update the video state for all (it might have changed via handleEvent())
         _eq_frame_data.video_state = _player.eq_video_state();
         // Commit the updated frame data
-        const uint32_t version = _eq_frame_data.commit();
+        const eq::uint128_t version = _eq_frame_data.commit();
         // Start this frame with the committed frame data
         return eq::Config::startFrame(version);
     }
@@ -598,11 +652,11 @@ private:
         *height = 0.0f;
         *distance = 0.0f;
 
-        const eq::CanvasVector &canvases = getCanvases();
-        for (eq::CanvasVector::const_iterator i = canvases.begin(); i != canvases.end(); i++)
+        const eq::Canvases &canvases = getCanvases();
+        for (eq::Canvases::const_iterator i = canvases.begin(); i != canvases.end(); i++)
         {
-            const eq::SegmentVector &segments = (*i)->getSegments();
-            for (eq::SegmentVector::const_iterator j = segments.begin(); j != segments.end(); j++)
+            const eq::Segments &segments = (*i)->getSegments();
+            for (eq::Segments::const_iterator j = segments.begin(); j != segments.end(); j++)
             {
                 const eq::Segment *segment = *j;
                 eq::Wall wall = segment->getWall();
@@ -689,7 +743,7 @@ public:
     }
 
 protected:
-    virtual bool configInit(const uint32_t initID)
+    virtual bool configInit(const eq::uint128_t& initID)
     {
         if (!eq::Node::configInit(initID))
         {
@@ -699,6 +753,7 @@ protected:
         eq_config *config = static_cast<eq_config *>(getConfig());
         if (!config->mapObject(&init_data, initID))
         {
+            setError(ERROR_MAP_INITDATA_FAILED);
             return false;
         }
         // Is this the application node?
@@ -709,6 +764,7 @@ protected:
         // Map our FrameData instance to the master instance
         if (!config->mapObject(&frame_data, init_data.frame_data_id))
         {
+            setError(ERROR_MAP_FRAMEDATA_FAILED);
             return false;
         }
 
@@ -720,6 +776,7 @@ protected:
             if (!_player.eq_init(init_data.init_data, &src_width, &src_height, &src_aspect_ratio,
                         &src_frame_format, &src_is_mono))
             {
+                setError(ERROR_PLAYER_INIT_FAILED);
                 return false;
             }
         }
@@ -749,7 +806,7 @@ protected:
         return eq::Node::configExit();
     }
 
-    virtual void frameStart(const uint32_t frameID, const uint32_t frameNumber)
+    virtual void frameStart(const eq::uint128_t& frameID, const uint32_t frameNumber)
     {
         // Update our frame data
         frame_data.sync(frameID);
@@ -786,7 +843,7 @@ protected:
         startFrame(frameNumber);
     }
 
-    virtual void frameFinish(const uint32_t, const uint32_t frameNumber)
+    virtual void frameFinish(const eq::uint128_t&, const uint32_t frameNumber)
     {
         // Do as we're told
         if (_is_app_node)
@@ -854,7 +911,7 @@ public:
     }
 
 protected:
-    virtual bool configInitGL(const uint32_t initID)
+    virtual bool configInitGL(const eq::uint128_t& initID)
     {
         msg::dbg(HERE);
         if (!eq::Window::configInitGL(initID))
@@ -865,6 +922,7 @@ protected:
                     "GL_VERSION_2_1 GL_EXT_framebuffer_object"))
         {
             msg::err("This OpenGL implementation does not support OpenGL 2.1 and framebuffer objects");
+            setError(ERROR_OPENGL_2_1_NEEDED);
             return false;
         }
 
@@ -887,7 +945,7 @@ protected:
         return eq::Window::configExitGL();
     }
 
-    virtual void frameStart(const uint32_t, const uint32_t frameNumber)
+    virtual void frameStart(const eq::uint128_t&, const uint32_t frameNumber)
     {
         // Get frame data via from the node
         eq_node *node = static_cast<eq_node *>(getNode());
@@ -906,7 +964,7 @@ protected:
         startFrame(frameNumber);
     }
 
-    virtual void frameFinish(const uint32_t, const uint32_t frameNumber)
+    virtual void frameFinish(const eq::uint128_t&, const uint32_t frameNumber)
     {
         releaseFrame(frameNumber);
     }
@@ -926,10 +984,11 @@ public:
     }
 
 protected:
-    virtual void frameDraw(const uint32_t frameID)
+    virtual void frameDraw(const eq::uint128_t& frameID)
     {
         // Let Equalizer initialize some stuff
         eq::Channel::frameDraw(frameID);
+
         // Get the canvas video area and the canvas channel area
         eq_node *node = static_cast<eq_node *>(getNode());
         const struct { float x, y, w, h, d; } canvas_video_area =
@@ -963,12 +1022,25 @@ protected:
         }
 
         // Display
+        glEnable(GL_TEXTURE_2D);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
         eq_window *window = static_cast<eq_window *>(getWindow());
         bool mono_right_instead_of_left = (getEye() == eq::EYE_RIGHT);
         GLint viewport[4];
         glGetIntegerv(GL_VIEWPORT, viewport);
         window->display(mono_right_instead_of_left, quad_x, quad_y, quad_w, quad_h, viewport);
     }
+
+#if 0
+    void frameViewFinish(const eq::uint128_t& frameID)
+    {
+        //const FrameData& frameData = _getFrameData();
+
+        applyBuffer();
+        applyViewport();
+        drawStatistics();
+    }
+#endif
 };
 
 /*
@@ -1012,6 +1084,7 @@ player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen)
     : player(player::slave), _flat_screen(flat_screen)
 {
     /* Initialize Equalizer */
+    init_errors();
     _node_factory = static_cast<void *>(new eq_node_factory);
     if (!eq::init(*argc, argv, static_cast<eq::NodeFactory *>(_node_factory)))
     {
@@ -1052,6 +1125,7 @@ void player_equalizer::run()
     config->exit();
     eq::releaseConfig(config);
     eq::exit();
+    exit_errors();
 }
 
 void player_equalizer::close()
