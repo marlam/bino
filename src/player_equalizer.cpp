@@ -102,6 +102,7 @@ public:
             msg::err("%s", e.what());
             return false;
         }
+        video_state() = init_data.video_state;
         return true;
     }
 
