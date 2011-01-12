@@ -35,7 +35,7 @@
     { \
         msg::err_txt("%s:%d: %s: Assertion '%s' failed.", \
                 __FILE__, __LINE__, __PRETTY_FUNCTION__, #condition); \
-        debug::crash(); \
+        dbg::crash(); \
     }
 #endif
 

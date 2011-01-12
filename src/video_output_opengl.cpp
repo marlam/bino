@@ -729,15 +729,10 @@ void *video_output_opengl::prepare_start(int /* view */, int plane)
     void *pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
     if (!pboptr)
     {
-        debug::oom_abort();
+        dbg::oom_abort();
     }
-    if (reinterpret_cast<uintptr_t>(pboptr) % 4 != 0)
-    {
-        // We can assume that the buffer is always at least aligned at a 4-byte boundary.
-        // This is just a sanity check; this error should never be triggered.
-        msg::err("Pixel buffer alignment is less than 4!");
-        debug::crash();
-    }
+    // We can assume that the buffer is always at least aligned at a 4-byte boundary.
+    assert(reinterpret_cast<uintptr_t>(pboptr) % 4 == 0);
     return pboptr;
 }
 

@@ -232,7 +232,7 @@ namespace str
              * We do not want to throw an exception because this function might
              * be called because of an exception. Inform the user instead. */
             msg::err("Failure in str::vasprintf().");
-            debug::crash();
+            dbg::crash();
         }
         std::string s(cstr);
         free(cstr);

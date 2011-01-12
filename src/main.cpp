@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     msg::set_level(msg::INF);
     msg::set_program_name(program_name);
     msg::set_columns_from_env();
-    debug::init_crashhandler();
+    dbg::init_crashhandler();
 
     /* Command line handling */
     std::vector<opt::option *> options;
@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
         if (!ok)
         {
             msg::err("Invalid input mode name");
-            debug::crash();
+            dbg::crash();
         }
     }
     if (video_output_mode.value() == "equalizer")
@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
         if (!ok)
         {
             msg::err("Invalid output mode name");
-            debug::crash();
+            dbg::crash();
         }
     }
     init_data.video_state.parallax = parallax.value();
