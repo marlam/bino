@@ -41,7 +41,7 @@ extern "C"
 #  include <windows.h>
 #endif
 
-#include "debug.h"
+#include "dbg.h"
 #include "blob.h"
 #include "exc.h"
 #include "msg.h"

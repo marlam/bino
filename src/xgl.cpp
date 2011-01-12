@@ -24,7 +24,7 @@
 
 #include <GL/glew.h>
 
-#include "debug.h"
+#include "dbg.h"
 #include "exc.h"
 #include "str.h"
 #include "msg.h"

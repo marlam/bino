@@ -24,7 +24,7 @@
 #include <cctype>
 #include <cstdlib>
 
-#include "debug.h"
+#include "dbg.h"
 #include "exc.h"
 #include "msg.h"
 #include "str.h"

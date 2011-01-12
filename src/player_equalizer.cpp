@@ -26,7 +26,7 @@
 
 #include <eq/eq.h>
 
-#include "debug.h"
+#include "dbg.h"
 #include "msg.h"
 #include "s11n.h"
 

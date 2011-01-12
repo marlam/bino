@@ -36,10 +36,10 @@
 #endif
 
 #include "msg.h"
-#include "debug.h"
+#include "dbg.h"
 
 
-namespace debug
+namespace dbg
 {
 #if HAVE_SIGACTION
     static void signal_crash(int signum)
@@ -137,7 +137,7 @@ namespace debug
     void crash()
     {
         backtrace();
-        msg::err("Please report this bug to <%s>.", PACKAGE_BUGREPORT);
+        msg::err("Report bugs to <%s>.", PACKAGE_BUGREPORT);
         abort();
     }
 }

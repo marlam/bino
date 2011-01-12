@@ -32,7 +32,7 @@
 #include "msg.h"
 #include "str.h"
 #include "timer.h"
-#include "debug.h"
+#include "dbg.h"
 
 #include "video_output_opengl.h"
 #include "video_output_opengl_color.fs.glsl.h"

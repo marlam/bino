@@ -27,7 +27,7 @@
 #include "str.h"
 #include "msg.h"
 #include "timer.h"
-#include "debug.h"
+#include "dbg.h"
 
 #include "audio_output_openal.h"
 

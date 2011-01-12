@@ -9,7 +9,7 @@ noinst_LIBRARIES = libbase.a
 libbase_a_SOURCES = \
 	str.h str.cpp \
 	msg.h msg.cpp \
-	debug.h debug.cpp \
+	dbg.h dbg.cpp \
 	exc.h exc.cpp \
 	intcheck.h \
 	opt.h opt.cpp \

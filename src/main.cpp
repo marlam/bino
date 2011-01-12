@@ -24,7 +24,7 @@
 
 #include <cstring>
 
-#include "debug.h"
+#include "dbg.h"
 #include "msg.h"
 #include "opt.h"
 

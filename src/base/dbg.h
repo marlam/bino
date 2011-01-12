@@ -18,23 +18,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DEBUG_H
-#define DEBUG_H
+#ifndef DBG_H
+#define DBG_H
+
+#include <cassert>
 
 #include "str.h"
 
-namespace debug
-{
-    void init_crashhandler();
-    void backtrace();
-    void crash();
-    void oom_abort();
-}
-
-#define HERE str::asprintf("%s, function %s, line %d", __FILE__, __func__, __LINE__)
-
 #undef assert
-#if DEBUG
+#ifdef NDEBUG
+# define assert(condition)
+#else
 # include "msg.h"
 # define assert(condition) \
     if (!(condition)) \
@@ -43,8 +37,16 @@ namespace debug
                 __FILE__, __LINE__, __PRETTY_FUNCTION__, #condition); \
         debug::crash(); \
     }
-#else
-# define assert(condition) /* empty */
 #endif
+
+#define HERE str::asprintf("%s, function %s, line %d", __FILE__, __func__, __LINE__)
+
+namespace dbg
+{
+    void init_crashhandler();
+    void backtrace();
+    void crash();
+    void oom_abort();
+}
 
 #endif
