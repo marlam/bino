@@ -364,9 +364,14 @@ First, install Equalizer 0.9.2 or later. See
 included eqHello example.
 
 Then, build Bino with Equalizer support by using the @option{--with-equalizer}
-configure option:
+configure option. Note that Equalizer currently requires the application to be
+compiled with the same setting of @code{NDEBUG} that was used to compile the
+Equalizer libraries. Therefore, if you want to link against the debug version
+of the Equalizer libraries, you must also add the @option{--enable-debug}
+configure option, and if you want to link against the release version of the
+Equalizer libraries, you must not use this option.
 @example
-$ ./configure --with-equalizer
+$ ./configure --with-equalizer --enable-debug
 @end example
 
 Now you need an Equalizer configuration file for your display setup.
