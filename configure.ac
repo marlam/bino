@@ -61,7 +61,7 @@ AM_CONDITIONAL([W32], [test "$w32" = "yes"])
 dnl Configure switches
 AC_ARG_ENABLE([debug],
     [AS_HELP_STRING([--enable-debug], [Enable debugging checks. Disabled by default.])],
-    [if test "$enableval" = "yes"; then ndebug=1; else ndebug=0; fi], [ndebug=0])
+    [if test "$enableval" = "yes"; then ndebug=0; else ndebug=1; fi], [ndebug=1])
 AC_DEFINE_UNQUOTED([NDEBUG], [$ndebug], [Define to 1 to disable assertions and other debugging checks.])
 
 dnl Feature checks needed by the base module
