@@ -62,7 +62,9 @@ dnl Configure switches
 AC_ARG_ENABLE([debug],
     [AS_HELP_STRING([--enable-debug], [Enable debugging checks. Disabled by default.])],
     [if test "$enableval" = "yes"; then ndebug=0; else ndebug=1; fi], [ndebug=1])
-AC_DEFINE_UNQUOTED([NDEBUG], [$ndebug], [Define to 1 to disable assertions and other debugging checks.])
+if test "$ndebug" = "1"; then
+    AC_DEFINE_UNQUOTED([NDEBUG], [1], [Define to 1 to disable assertions and other debugging checks.])
+fi
 
 dnl Feature checks needed by the base module
 AC_CHECK_DECLS([optreset], [#include <getopt.h>])
