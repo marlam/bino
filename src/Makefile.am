@@ -10,6 +10,7 @@ SUBDIRS = base
 bin_PROGRAMS = bino
 
 bino_SOURCES = \
+	media_data.h media_data.cpp \
 	decoder.h decoder.cpp \
 	decoder_ffmpeg.h decoder_ffmpeg.cpp \
         input.h input.cpp \
@@ -19,7 +20,6 @@ bino_SOURCES = \
         video_output_opengl.h video_output_opengl.cpp \
         video_output_opengl_qt.h video_output_opengl_qt.cpp \
 	audio_output.h audio_output.cpp \
-	audio_output_openal.h audio_output_openal.cpp \
 	player.h player.cpp \
 	player_qt.h player_qt.cpp \
 	qt_app.h qt_app.cpp \

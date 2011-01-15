@@ -31,7 +31,7 @@
 #include "decoder_ffmpeg.h"
 #include "input.h"
 #include "controller.h"
-#include "audio_output_openal.h"
+#include "audio_output.h"
 #include "video_output_opengl_qt.h"
 #include "player.h"
 
@@ -180,8 +180,8 @@ void player::create_audio_output()
 {
     if (_input->has_audio() && !_benchmark)
     {
-        _audio_output = new audio_output_openal();
-        _audio_output->open(_input->audio_channels(), _input->audio_rate(), _input->audio_sample_format());
+        _audio_output = new audio_output();
+        _audio_output->init();
     }
 }
 
@@ -256,7 +256,13 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
                 notify(notification::play, true, false);
                 return;
             }
-            _audio_output->data(_audio_data, _required_audio_data_size);
+            audio_blob blob;
+            blob.channels = _input->audio_channels();
+            blob.rate = _input->audio_rate();
+            blob.sample_format = static_cast<audio_blob::sample_format_t>(_input->audio_sample_format());
+            blob.data = _audio_data;
+            blob.size = _required_audio_data_size;
+            _audio_output->data(blob);
             _master_time_start = _audio_output->start();
             _master_time_pos = _audio_pos;
             _current_pos = _audio_pos;
@@ -338,7 +344,13 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
                 notify(notification::play, true, false);
                 return;
             }
-            _audio_output->data(_audio_data, _required_audio_data_size);
+            audio_blob blob;
+            blob.channels = _input->audio_channels();
+            blob.rate = _input->audio_rate();
+            blob.sample_format = static_cast<audio_blob::sample_format_t>(_input->audio_sample_format());
+            blob.data = _audio_data;
+            blob.size = _required_audio_data_size;
+            _audio_output->data(blob);
             _master_time_start = _audio_output->start();
             _master_time_pos = _audio_pos;
             _current_pos = _audio_pos;
@@ -447,7 +459,13 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
                 }
                 _master_time_start += (_audio_pos - _master_time_pos);
                 _master_time_pos = _audio_pos;
-                _audio_output->data(_audio_data, _required_audio_data_size);
+                audio_blob blob;
+                blob.channels = _input->audio_channels();
+                blob.rate = _input->audio_rate();
+                blob.sample_format = static_cast<audio_blob::sample_format_t>(_input->audio_sample_format());
+                blob.data = _audio_data;
+                blob.size = _required_audio_data_size;
+                _audio_output->data(blob);
                 _current_pos = _audio_pos;
                 notify(notification::pos, normalize_pos(_current_pos), normalize_pos(_current_pos));
             }
@@ -542,7 +560,7 @@ void player::close()
     reset_playstate();
     if (_audio_output)
     {
-        try { _audio_output->close(); } catch (...) {}
+        try { _audio_output->deinit(); } catch (...) {}
         delete _audio_output;
         _audio_output = NULL;
     }
