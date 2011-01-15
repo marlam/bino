@@ -62,12 +62,9 @@ private:
     ALenum get_al_format(const audio_blob &blob);
 
 public:
-    audio_output();
+    audio_output(bool receive_notifications = false);
     ~audio_output();
     
-    /* Get information about the libraries used */
-    static std::vector<std::string> lib_versions();
-
     /* Initialize the audio device for output. Throw an exception if this fails. */
     void init();
     /* Deinitialize the audio device. */

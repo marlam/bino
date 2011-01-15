@@ -21,9 +21,6 @@
 #ifndef QT_APP_H
 #define QT_APP_H
 
-#include <vector>
-#include <string>
-
 /* Initialize Qt. If init_qt() returns true, then the caller is responsible for
  * calling exit_qt() later. If it returns false, then Qt was already
  * initialized elsewhere and the caller must not call exit_qt(). */
@@ -31,7 +28,5 @@ bool init_qt();
 void exit_qt();
 /* Run the Qt application */
 int exec_qt();
-
-std::vector<std::string> qt_versions();
 
 #endif

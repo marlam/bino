@@ -83,6 +83,4 @@ public:
     virtual void close();
 };
 
-std::vector<std::string> ffmpeg_versions();
-
 #endif

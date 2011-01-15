@@ -44,6 +44,4 @@ public:
     virtual void close();
 };
 
-std::vector<std::string> equalizer_versions();
-
 #endif

@@ -39,8 +39,8 @@
 const size_t audio_output::_num_buffers = 3;
 const size_t audio_output::_buffer_size = 20160;
 
-audio_output::audio_output() :
-    controller(false),  // this implementation currently does not receive notifications
+audio_output::audio_output(bool receive_notifications) :
+    controller(receive_notifications),
     _initialized(false)
 {
 }
@@ -48,45 +48,6 @@ audio_output::audio_output() :
 audio_output::~audio_output()
 {
     deinit();
-}
-
-static std::vector<std::string> openal_version_vector;
-
-static void set_openal_version_vector()
-{
-    openal_version_vector.push_back(std::string("OpenAL version ") + static_cast<const char *>(alGetString(AL_VERSION)));
-    openal_version_vector.push_back(std::string("OpenAL renderer ") + static_cast<const char *>(alGetString(AL_RENDERER)));
-    openal_version_vector.push_back(std::string("OpenAL vendor ") + static_cast<const char *>(alGetString(AL_VENDOR)));
-}
-
-std::vector<std::string> audio_output::lib_versions()
-{
-    if (openal_version_vector.size() == 0)
-    {
-        ALCdevice *device = alcOpenDevice(NULL);
-        if (device)
-        {
-            ALCcontext *context = alcCreateContext(device, NULL);
-            if (context)
-            {
-                alcMakeContextCurrent(context);
-                set_openal_version_vector();
-                alcMakeContextCurrent(NULL);
-                alcDestroyContext(context);
-            }
-            alcCloseDevice(device);
-        }
-    }
-    if (openal_version_vector.size() == 0)
-    {
-        std::vector<std::string> v;
-        v.push_back(std::string("OpenAL unknown"));
-        return v;
-    }
-    else
-    {
-        return openal_version_vector;
-    }
 }
 
 void audio_output::init()
@@ -103,10 +64,6 @@ void audio_output::init()
             throw exc("No OpenAL context available");
         }
         alcMakeContextCurrent(_context);
-        if (openal_version_vector.size() == 0)
-        {
-            set_openal_version_vector();
-        }
         _buffers.resize(_num_buffers);
         alGenBuffers(_num_buffers, &(_buffers[0]));
         if (alGetError() != AL_NO_ERROR)

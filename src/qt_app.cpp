@@ -58,10 +58,3 @@ int exec_qt()
 {
     return qt_app->exec();
 }
-
-std::vector<std::string> qt_versions()
-{
-    std::vector<std::string> v;
-    v.push_back(std::string("Qt ") + QT_VERSION_STR + " / " + qVersion());
-    return v;
-}

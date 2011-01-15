@@ -24,7 +24,9 @@
 #include <vector>
 #include <string>
 
-/* Get a vector of strings that describe the versions of all libraries used. */
-std::vector<std::string> lib_versions();
+/* Get a vector of strings that describe the versions of all libraries used.
+ * If 'html' is set, then the strings will contains HTML links to the
+ * websites of the libraries. */
+std::vector<std::string> lib_versions(bool html);
 
 #endif
