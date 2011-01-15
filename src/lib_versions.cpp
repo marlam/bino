@@ -133,21 +133,23 @@ static std::vector<std::string> glew_versions(bool html)
     return v;
 }
 
-#if HAVE_LIBEQUALIZER
 static std::vector<std::string> equalizer_versions(bool html)
 {
     const char *eq_str = html
         ? "<a href=\"http://www.equalizergraphics.com/\">Equalizer</a>"
         : "Equalizer";
     std::vector<std::string> v;
+#if HAVE_LIBEQUALIZER
     v.push_back(str::asprintf("%s %d.%d.%d / %d.%d.%d", eq_str,
                 EQ_VERSION_MAJOR, EQ_VERSION_MINOR, EQ_VERSION_PATCH,
                 static_cast<int>(eq::Version::getMajor()),
                 static_cast<int>(eq::Version::getMinor()),
                 static_cast<int>(eq::Version::getPatch())));
+#else
+    v.push_back(str::asprintf("%s not included"));
+#endif
     return v;
 }
-#endif
 
 static std::vector<std::string> qt_versions(bool html)
 {
@@ -171,10 +173,8 @@ std::vector<std::string> lib_versions(bool html)
     v.insert(v.end(), opengl_v.begin(), opengl_v.end());
     std::vector<std::string> glew_v = glew_versions(html);
     v.insert(v.end(), glew_v.begin(), glew_v.end());
-#if HAVE_LIBEQUALIZER
     std::vector<std::string> equalizer_v = equalizer_versions(html);
     v.insert(v.end(), equalizer_v.begin(), equalizer_v.end());
-#endif
     std::vector<std::string> qt_v = qt_versions(html);
     v.insert(v.end(), qt_v.begin(), qt_v.end());
 
