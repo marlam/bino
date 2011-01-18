@@ -847,7 +847,7 @@ void decoder_ffmpeg::close()
     }
     for (size_t i = 0; i < _stuff->video_codec_ctxs.size(); i++)
     {
-        if (_stuff->video_codecs[i])
+        if (i < _stuff->video_codecs.size() && _stuff->video_codecs[i])
         {
             avcodec_close(_stuff->video_codec_ctxs[i]);
         }
@@ -870,7 +870,7 @@ void decoder_ffmpeg::close()
     }
     for (size_t i = 0; i < _stuff->audio_codec_ctxs.size(); i++)
     {
-        if (_stuff->audio_codecs[i])
+        if (i < _stuff->audio_codecs.size() && _stuff->audio_codecs[i])
         {
             avcodec_close(_stuff->audio_codec_ctxs[i]);
         }
