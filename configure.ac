@@ -71,6 +71,14 @@ AC_CHECK_DECLS([optreset], [#include <getopt.h>])
 AC_SEARCH_LIBS([clock_gettime], [rt])
 AC_CHECK_FUNCS([backtrace clock_gettime sigaction vasprintf])
 
+dnl pkg-config (required to detect libraries)
+PKG_PROG_PKG_CONFIG([])
+if test -z "$PKG_CONFIG"; then
+    AC_MSG_WARN([pkg-config not found])
+    AC_MSG_WARN([required libraries cannot be detected])
+    AC_MSG_WARN([please install pkg-config; Debian package: pkg-config])
+fi
+
 dnl FFmpeg
 PKG_CHECK_MODULES([libavformat], [libavformat >= 52.64.2], [HAVE_LIBAVFORMAT=1], [HAVE_LIBAVFORMAT=0])
 if test "$HAVE_LIBAVFORMAT" != "1"; then
