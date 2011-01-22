@@ -440,8 +440,9 @@ void decoder_ffmpeg::open(const std::string &filename)
     }
     for (int i = 0; i < audio_streams(); i++)
     {
-        msg::inf("    Audio stream %d: %d channels, %d Hz, sample format %s", i,
-                audio_channels(i), audio_rate(i), audio_sample_format_name(audio_sample_format(i)).c_str());
+        msg::inf("    Audio stream %d: %d channels, %d Hz, %s samples, %g seconds", i,
+                audio_channels(i), audio_rate(i), audio_sample_format_name(audio_sample_format(i)).c_str(),
+                audio_duration(i) / 1e6f);
     }
     if (video_streams() == 0 && audio_streams() == 0)
     {
@@ -526,9 +527,19 @@ int decoder_ffmpeg::video_frame_rate_denominator(int index) const throw ()
 
 int64_t decoder_ffmpeg::video_duration(int index) const throw ()
 {
+    // Try to get duration from the Codec first. If that fails, fall back to
+    // the value provided by the container.
     int64_t duration = _stuff->format_ctx->streams[_stuff->video_streams.at(index)]->duration;
-    AVRational time_base = _stuff->format_ctx->streams[_stuff->video_streams.at(index)]->time_base;
-    return duration * 1000000 * time_base.num / time_base.den;
+    if (duration > 0)
+    {
+        AVRational time_base = _stuff->format_ctx->streams[_stuff->video_streams.at(index)]->time_base;
+        return duration * 1000000 * time_base.num / time_base.den;
+    }
+    else
+    {
+        duration = _stuff->format_ctx->duration;
+        return duration * 1000000 / AV_TIME_BASE;
+    }
 }
 
 int decoder_ffmpeg::video_format(int index) const throw ()
@@ -553,9 +564,19 @@ enum decoder::audio_sample_format decoder_ffmpeg::audio_sample_format(int index)
 
 int64_t decoder_ffmpeg::audio_duration(int index) const throw ()
 {
+    // Try to get duration from the Codec first. If that fails, fall back to
+    // the value provided by the container.
     int64_t duration = _stuff->format_ctx->streams[_stuff->audio_streams.at(index)]->duration;
-    AVRational time_base = _stuff->format_ctx->streams[_stuff->audio_streams.at(index)]->time_base;
-    return duration * 1000000 * time_base.num / time_base.den;
+    if (duration > 0)
+    {
+        AVRational time_base = _stuff->format_ctx->streams[_stuff->audio_streams.at(index)]->time_base;
+        return duration * 1000000 * time_base.num / time_base.den;
+    }
+    else
+    {
+        duration = _stuff->format_ctx->duration;
+        return duration * 1000000 / AV_TIME_BASE;
+    }
 }
 
 bool decoder_ffmpeg::read()
