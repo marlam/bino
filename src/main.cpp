@@ -52,8 +52,8 @@ int main(int argc, char *argv[])
     options.push_back(&help);
     opt::info version("version", '\0', opt::optional);
     options.push_back(&version);
-    opt::flag show_gui("gui", 'g', opt::optional);
-    options.push_back(&show_gui);
+    opt::flag no_gui("no-gui", 'n', opt::optional);
+    options.push_back(&no_gui);
     std::vector<std::string> log_levels;
     log_levels.push_back("debug");
     log_levels.push_back("info");
@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
                 "Options:\n"
                 "  --help               Print help\n"
                 "  --version            Print version\n"
-                "  -g|--gui             Show the GUI (default if no files are given)\n"
+                "  -n|--no-gui          Do not use the GUI, just show a plain window.\n"
                 "  -l|--log-level=LEVEL Set log level (debug, info, warning, error, quiet)\n"
                 "  -a|--audio=STREAM    Select audio stream (1-n, depending on the input)\n"
                 "  -i|--input=TYPE      Select input type (default autodetect):\n"
@@ -344,7 +344,7 @@ int main(int argc, char *argv[])
             throw exc("This version of Bino was compiled without support for Equalizer");
 #endif
         }
-        else if (arguments.size() == 0 || show_gui.value())
+        else if (!no_gui.value())
         {
             if (log_level.value() == "")
             {
@@ -356,6 +356,10 @@ int main(int argc, char *argv[])
         }
         else
         {
+            if (arguments.size() == 0)
+            {
+                throw exc("No video to play");
+            }
             player = new class player();
         }
         player->open(init_data);

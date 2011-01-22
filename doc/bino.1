@@ -21,15 +21,13 @@ through stereopsis.
 The input streams (one or two video streams, zero or one audio streams)
 can be in one, two, or three input files. The files are decoded with the
 \fBFFmpeg\fP libraries, so URLs are supported.
-.br
-If input files are given, Bino immediately starts playing them. Otherwise, it
-starts in GUI mode.
 .IP "\-\-help"
 Print help.
 .IP "\-\-version"
 Print version.
-.IP "\-g|\-\-gui"
-Show the GUI even if input files are given on the command line.
+.IP "\-n|\-\-no\-gui"
+Do not use the GUI, just play the given input in a plain window using the
+parameters given on the command line.
 .IP "\-l|\-\-log\-level=\fILEVEL\fP"
 Select log level:
 \fIdebug\fP, \fIinfo\fP, \fIwarning\fP, \fIerror\fP, or \fIquiet\fP.

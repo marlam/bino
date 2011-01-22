@@ -85,17 +85,15 @@ techniques.
 Synopsis:
 @code{bino [@var{option}@dots{}] [@var{file-0}] [@var{file-1}] [@var{file-2}]}
 
-If input files are given on the command line, Bino immediately starts playing
-them. Otherwise, it starts in GUI mode.
-
 @table @samp
 @item --help
 Print help.
 @item --version
 Print version.
-@item -g
-@itemx --gui
-Show the GUI even if input files are given on the command line.
+@item -n
+@itemx --no-gui
+Do not use the GUI, just play the given input in a plain window using the
+parameters given on the command line.
 @item -l
 @itemx --log-level=@var{LEVEL}
 Select log level: @var{debug}, @var{info}, @var{warning}, @var{error}, or
@@ -252,8 +250,8 @@ The following file name forms are recognized:
 
 Bino reacts on a number of keyboard shortcuts during playback.
 
-In GUI mode, make sure that the video area has the keyboard focus before using
-these shortcuts.
+Make sure that the video area has the keyboard focus before using these
+shortcuts, e.g. by clicking into it.
 
 The following shortcuts are recognized:
 @table @kbd
