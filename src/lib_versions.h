@@ -26,7 +26,10 @@
 
 /* Get a vector of strings that describe the versions of all libraries used.
  * If 'html' is set, then the strings will contains HTML links to the
- * websites of the libraries. */
+ * websites of the libraries.
+ *
+ * The versions are only retrieved once; subsequent calls will return the same
+ * results. This is important to avoid OpenAL/OpenGL context trouble. */
 std::vector<std::string> lib_versions(bool html);
 
 #endif
