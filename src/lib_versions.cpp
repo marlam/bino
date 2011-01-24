@@ -44,181 +44,186 @@ extern "C"
 #include "str.h"
 
 
-static std::vector<std::string> ffmpeg_versions()
+static std::vector<std::string> ffmpeg_v;
+static std::vector<std::string> openal_v;
+static std::vector<std::string> opengl_v;
+static std::vector<std::string> glew_v;
+static std::vector<std::string> equalizer_v;
+static std::vector<std::string> qt_v;
+
+static void ffmpeg_versions()
 {
-    std::vector<std::string> v;
-    v.push_back(str::asprintf("libavformat %d.%d.%d / %d.%d.%d",
-                LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
-                avformat_version() >> 16, avformat_version() >> 8 & 0xff, avformat_version() & 0xff));
-    v.push_back(str::asprintf("libavcodec %d.%d.%d / %d.%d.%d",
-                LIBAVCODEC_VERSION_MAJOR, LIBAVCODEC_VERSION_MINOR, LIBAVCODEC_VERSION_MICRO,
-                avcodec_version() >> 16, avcodec_version() >> 8 & 0xff, avcodec_version() & 0xff));
-    v.push_back(str::asprintf("libswscale %d.%d.%d / %d.%d.%d",
-                LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO,
-                swscale_version() >> 16, swscale_version() >> 8 & 0xff, swscale_version() & 0xff));
-    return v;
+    if (ffmpeg_v.size() == 0)
+    {
+        ffmpeg_v.push_back(str::asprintf("libavformat %d.%d.%d / %d.%d.%d",
+                    LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
+                    avformat_version() >> 16, avformat_version() >> 8 & 0xff, avformat_version() & 0xff));
+        ffmpeg_v.push_back(str::asprintf("libavcodec %d.%d.%d / %d.%d.%d",
+                    LIBAVCODEC_VERSION_MAJOR, LIBAVCODEC_VERSION_MINOR, LIBAVCODEC_VERSION_MICRO,
+                    avcodec_version() >> 16, avcodec_version() >> 8 & 0xff, avcodec_version() & 0xff));
+        ffmpeg_v.push_back(str::asprintf("libswscale %d.%d.%d / %d.%d.%d",
+                    LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO,
+                    swscale_version() >> 16, swscale_version() >> 8 & 0xff, swscale_version() & 0xff));
+    }
 }
 
-static std::vector<std::string> openal_versions()
+void set_openal_versions()
 {
-    std::vector<std::string> v;
-    ALCdevice *device = alcOpenDevice(NULL);
-    if (device)
+    if (openal_v.size() == 0)
     {
-        ALCcontext *context = alcCreateContext(device, NULL);
-        if (context)
+        openal_v.push_back(std::string("version ") + static_cast<const char *>(alGetString(AL_VERSION)));
+        openal_v.push_back(std::string("renderer ") + static_cast<const char *>(alGetString(AL_RENDERER)));
+        openal_v.push_back(std::string("vendor ") + static_cast<const char *>(alGetString(AL_VENDOR)));
+    }
+}
+
+static void openal_versions()
+{
+    if (openal_v.size() == 0)
+    {
+        ALCdevice *device = alcOpenDevice(NULL);
+        if (device)
         {
-            alcMakeContextCurrent(context);
-            v.push_back(std::string("version ") + static_cast<const char *>(alGetString(AL_VERSION)));
-            v.push_back(std::string("renderer ") + static_cast<const char *>(alGetString(AL_RENDERER)));
-            v.push_back(std::string("vendor ") + static_cast<const char *>(alGetString(AL_VENDOR)));
-            alcMakeContextCurrent(NULL);
-            alcDestroyContext(context);
+            ALCcontext *context = alcCreateContext(device, NULL);
+            if (context)
+            {
+                alcMakeContextCurrent(context);
+                set_openal_versions();
+                alcMakeContextCurrent(NULL);
+                alcDestroyContext(context);
+            }
+            alcCloseDevice(device);
         }
-        alcCloseDevice(device);
+        if (openal_v.size() == 0)
+        {
+            openal_v.push_back("unknown");
+        }
     }
-    if (v.size() == 0)
-    {
-        v.push_back("unknown");
-    }
-    return v;
 }
 
-static std::vector<std::string> opengl_versions()
+void set_opengl_versions()
 {
-    std::vector<std::string> v;
+    if (opengl_v.size() == 0)
+    {
+        opengl_v.push_back(std::string("version ") + reinterpret_cast<const char *>(glGetString(GL_VERSION)));
+        opengl_v.push_back(std::string("renderer ") + reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
+        opengl_v.push_back(std::string("vendor ") + reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
+    }
+}
+
+static void opengl_versions()
+{
+    if (opengl_v.size() == 0)
+    {
 #ifdef Q_WS_X11
-    const char *display = getenv("DISPLAY");
-    bool have_display = (display && display[0] != '\0');
+        const char *display = getenv("DISPLAY");
+        bool have_display = (display && display[0] != '\0');
 #else
-    bool have_display = true;
+        bool have_display = true;
 #endif
-    if (have_display)
-    {
-        bool qt_app_owner = init_qt();
-        QGLWidget *tmpwidget = new QGLWidget();
-        tmpwidget->makeCurrent();
-        v.push_back(std::string("version ") + reinterpret_cast<const char *>(glGetString(GL_VERSION)));
-        v.push_back(std::string("renderer ") + reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
-        v.push_back(std::string("vendor ") + reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
-        delete tmpwidget;
-        if (qt_app_owner)
+        if (have_display)
         {
-            exit_qt();
+            bool qt_app_owner = init_qt();
+            QGLWidget *tmpwidget = new QGLWidget();
+            tmpwidget->makeCurrent();
+            set_opengl_versions();
+            delete tmpwidget;
+            if (qt_app_owner)
+            {
+                exit_qt();
+            }
+        }
+        if (opengl_v.size() == 0)
+        {
+            opengl_v.push_back("unknown");
         }
     }
-    if (v.size() == 0)
+}
+
+static void glew_versions()
+{
+    if (glew_v.size() == 0)
     {
-        v.push_back("unknown");
+        glew_v.push_back(reinterpret_cast<const char *>(glewGetString(GLEW_VERSION)));
     }
-    return v;
 }
 
-static std::vector<std::string> glew_versions()
+static void equalizer_versions()
 {
-    std::vector<std::string> v;
-    v.push_back(reinterpret_cast<const char *>(glewGetString(GLEW_VERSION)));
-    return v;
-}
-
-static std::vector<std::string> equalizer_versions()
-{
-    std::vector<std::string> v;
+    if (equalizer_v.size() == 0)
+    {
 #if HAVE_LIBEQUALIZER
-    v.push_back(str::asprintf("%d.%d.%d / %d.%d.%d",
-                EQ_VERSION_MAJOR, EQ_VERSION_MINOR, EQ_VERSION_PATCH,
-                static_cast<int>(eq::Version::getMajor()),
-                static_cast<int>(eq::Version::getMinor()),
-                static_cast<int>(eq::Version::getPatch())));
+        equalizer_v.push_back(str::asprintf("%d.%d.%d / %d.%d.%d",
+                    EQ_VERSION_MAJOR, EQ_VERSION_MINOR, EQ_VERSION_PATCH,
+                    static_cast<int>(eq::Version::getMajor()),
+                    static_cast<int>(eq::Version::getMinor()),
+                    static_cast<int>(eq::Version::getPatch())));
 #else
-    v.push_back("not included");
+        equalizer_v.push_back("not used");
 #endif
-    return v;
+    }
 }
 
-static std::vector<std::string> qt_versions()
+static void qt_versions()
 {
-    std::vector<std::string> v;
-    v.push_back(std::string(QT_VERSION_STR) + " / " + qVersion());
-    return v;
+    if (qt_v.size() == 0)
+    {
+        qt_v.push_back(std::string(QT_VERSION_STR) + " / " + qVersion());
+    }
 }
 
 std::vector<std::string> lib_versions(bool html)
 {
-    const char *ffmpeg_str = html
+    ffmpeg_versions();
+    openal_versions();
+    opengl_versions();
+    glew_versions();
+    equalizer_versions();
+    qt_versions();
+
+    std::string ffmpeg_str = html
         ? "<a href=\"http://ffmpeg.org/\">FFmpeg</a>"
         : "FFmpeg";
-    const char *openal_str = html
+    std::string openal_str = html
         ? "<a href=\"http://kcat.strangesoft.net/openal.html\">OpenAL</a>"
         : "OpenAL";
-    const char *opengl_str = html
+    std::string opengl_str = html
         ? "<a href=\"http://www.opengl.org/\">OpenGL</a>"
         : "OpenGL";
-    const char *glew_str = html
+    std::string glew_str = html
         ? "<a href=\"http://glew.sourceforge.net/\">GLEW</a>"
         : "GLEW";
-    const char *equalizer_str = html
+    std::string equalizer_str = html
         ? "<a href=\"http://www.equalizergraphics.com/\">Equalizer</a>"
         : "Equalizer";
-    const char *qt_str = html
-        ? "<a href=\"\">Qt</a>"
+    std::string qt_str = html
+        ? "<a href=\"http://qt.nokia.com/\">Qt</a>"
         : "Qt";
-
-    static std::vector<std::string> ffmpeg_v;
-    if (ffmpeg_v.size() == 0)
-    {
-        ffmpeg_v = ffmpeg_versions();
-    }
-    static std::vector<std::string> openal_v;
-    if (openal_v.size() == 0)
-    {
-        openal_v = openal_versions();
-    }
-    static std::vector<std::string> opengl_v;
-    if (opengl_v.size() == 0)
-    {
-        opengl_v = opengl_versions();
-    }
-    static std::vector<std::string> glew_v;
-    if (glew_v.size() == 0)
-    {
-        glew_v = glew_versions();
-    }
-    static std::vector<std::string> equalizer_v;
-    if (equalizer_v.size() == 0)
-    {
-        equalizer_v = equalizer_versions();
-    }
-    static std::vector<std::string> qt_v;
-    if (qt_v.size() == 0)
-    {
-        qt_v = qt_versions();
-    }
 
     std::vector<std::string> v;
     for (size_t i = 0; i < ffmpeg_v.size(); i++)
     {
-        v.push_back(std::string(ffmpeg_str) + " " + ffmpeg_v[i]);
+        v.push_back(ffmpeg_str + " " + ffmpeg_v[i]);
     }
     for (size_t i = 0; i < openal_v.size(); i++)
     {
-        v.push_back(std::string(openal_str) + " " + openal_v[i]);
+        v.push_back(openal_str + " " + openal_v[i]);
     }
     for (size_t i = 0; i < opengl_v.size(); i++)
     {
-        v.push_back(std::string(opengl_str) + " " + opengl_v[i]);
+        v.push_back(opengl_str + " " + opengl_v[i]);
     }
     for (size_t i = 0; i < glew_v.size(); i++)
     {
-        v.push_back(std::string(glew_str) + " " + glew_v[i]);
+        v.push_back(glew_str + " " + glew_v[i]);
     }
     for (size_t i = 0; i < equalizer_v.size(); i++)
     {
-        v.push_back(std::string(equalizer_str) + " " + equalizer_v[i]);
+        v.push_back(equalizer_str + " " + equalizer_v[i]);
     }
     for (size_t i = 0; i < qt_v.size(); i++)
     {
-        v.push_back(std::string(qt_str) + " " + qt_v[i]);
+        v.push_back(qt_str + " " + qt_v[i]);
     }
 
     return v;

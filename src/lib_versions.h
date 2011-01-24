@@ -32,4 +32,9 @@
  * results. This is important to avoid OpenAL/OpenGL context trouble. */
 std::vector<std::string> lib_versions(bool html);
 
+// Call this function to get the OpenAL version (if a suitable context is available)
+void set_openal_versions();
+// Call this function to get the OpenGL version (if a suitable context is available)
+void set_opengl_versions();
+
 #endif

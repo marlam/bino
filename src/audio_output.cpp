@@ -24,6 +24,7 @@
 #include <limits>
 
 #include "audio_output.h"
+#include "lib_versions.h"
 
 #include "exc.h"
 #include "str.h"
@@ -64,6 +65,7 @@ void audio_output::init()
             throw exc("No OpenAL context available");
         }
         alcMakeContextCurrent(_context);
+        set_openal_versions();
         _buffers.resize(_num_buffers);
         alGenBuffers(_num_buffers, &(_buffers[0]));
         if (alGetError() != AL_NO_ERROR)
