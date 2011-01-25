@@ -80,7 +80,8 @@ namespace dbg
 
     void backtrace()
     {
-#if HAVE_BACKTRACE
+#ifndef NDEBUG
+# if HAVE_BACKTRACE
         // Adapted from the example in the glibc manual
         void *array[64];
         int size;
@@ -98,7 +99,7 @@ namespace dbg
             strings = backtrace_symbols(array, size);
             for (int i = 0; i < size; i++)
             {
-# if __GNUG__
+#  if __GNUG__
                 int status;
                 char *p, *q;
                 char *realname = NULL;
@@ -125,12 +126,13 @@ namespace dbg
                     msg::err("    %s", strings[i]);
                 }
                 free(realname);
-# else
+#  else
                 msg::err("    %s", strings[i]);
-# endif
+#  endif
             }
             free(strings);
         }
+# endif
 #endif
     }
 
