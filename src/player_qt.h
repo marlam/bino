@@ -34,21 +34,20 @@
 
 #include "input.h"
 #include "controller.h"
-#include "video_output_opengl_qt.h"
+#include "video_output_qt.h"
 #include "player.h"
 
 
 class player_qt_internal : public player, public controller
 {
 private:
-    video_container_widget *_container_widget;
     bool _playing;
 
 public:
-    player_qt_internal(video_container_widget *container_widget);
+    player_qt_internal();
     virtual ~player_qt_internal();
 
-    virtual void open(const player_init_data &init_data);
+    virtual void open(const player_init_data &init_data, video_container_widget *container_widget);
     virtual void receive_cmd(const command &cmd);
 
     virtual void receive_notification(const notification &note);
@@ -76,8 +75,8 @@ private:
     QSpinBox *_ghostbust_spinbox;
     bool _lock;
 
-    void set_input(enum input::mode m);
-    void set_output(enum video_output::mode m);
+    void set_input(video_frame::stereo_layout_t stereo_layout, bool stereo_layout_swap);
+    void set_output(parameters::stereo_mode_t stereo_mode, bool stereo_mode_swap);
 
 private slots:
     void input_changed();
@@ -93,9 +92,9 @@ public:
 
     void update(const player_init_data &init_data, bool have_valid_input, bool playing);
 
-    enum input::mode input_mode();
+    void input(video_frame::stereo_layout_t &stereo_layout, bool &stereo_layout_swap);
     int audio_stream();
-    enum video_output::mode video_mode();
+    void output(parameters::stereo_mode_t &stereo_mode, bool &stereo_mode_swap);
 
     virtual void receive_notification(const notification &note);
 };
@@ -198,7 +197,7 @@ public:
         return _settings;
     }
 
-    virtual void open(const player_init_data &init_data);
+    virtual void open(const player_init_data &init_data, video_container_widget *container_widget = NULL);
     virtual void run();
     virtual void close();
 };

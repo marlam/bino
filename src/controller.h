@@ -46,7 +46,7 @@ public:
     {
         toggle_play,
         toggle_pause,
-        toggle_swap_eyes,
+        toggle_stereo_mode_swap,
         toggle_fullscreen,
         center,
         adjust_contrast,
@@ -85,7 +85,7 @@ public:
     {
         play,
         pause,
-        swap_eyes,
+        stereo_mode_swap,
         fullscreen,
         center,
         contrast,

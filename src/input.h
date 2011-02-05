@@ -92,6 +92,11 @@ public:
         return _mode;
     }
 
+    bool swap() const throw ()
+    {
+        return _swap_eyes;
+    }
+
     int video_width() const throw ()
     {
         return _video_width;
@@ -172,7 +177,7 @@ public:
     /* Get the video frame data from the internal buffer, for the given view (0=left, 1=right) and the given plane
      * (depending on the video_frame_format()), and copy it to the given buffer with guaranteed 4-byte alignment for
      * each row. */
-    void get_video_frame(int view, int plane, void *buf);
+    void get_video_frame_data(void *data[2][3], size_t line_size[2][3]);
     /* Release the video frame from the internal buffer */
     void release_video_frame();
 

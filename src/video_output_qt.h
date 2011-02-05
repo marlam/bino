@@ -18,42 +18,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef VIDEO_OUTPUT_OPENGL_QT_H
-#define VIDEO_OUTPUT_OPENGL_QT_H
-
-#include <vector>
-#include <string>
+#ifndef VIDEO_OUTPUT_QT_H
+#define VIDEO_OUTPUT_QT_H
 
 #include <GL/glew.h>
 
 #include <QWidget>
 #include <QGLWidget>
+#include <QGLFormat>
 
-#include "video_output_opengl.h"
+#include "video_output.h"
 
 
 /* Internal interface */
 
-class video_output_opengl_qt;
+class video_output_qt;
 
-class video_output_opengl_qt_widget : public QGLWidget
+class video_output_qt_widget : public QGLWidget
 {
     Q_OBJECT
 
 private:
-    video_output_opengl_qt *_vo;
+    video_output_qt *_vo;
 
 public:
-    video_output_opengl_qt_widget(video_output_opengl_qt *vo, const QGLFormat &format, QWidget *parent = NULL);
-    ~video_output_opengl_qt_widget();
-
-    virtual QSize sizeHint() const;
+    video_output_qt_widget(video_output_qt *vo, const QGLFormat &format, QWidget *parent = NULL);
+    ~video_output_qt_widget();
 
 public slots:
     void move_event();
 
 protected:
-    virtual void initializeGL();
     virtual void paintGL();
     virtual void resizeGL(int width, int height);
     virtual void moveEvent(QMoveEvent *event);
@@ -69,41 +64,48 @@ protected:
 class video_container_widget : public QWidget, public controller
 {
     Q_OBJECT
+    int _w, _h;
 public:
     video_container_widget(QWidget *parent = NULL);
+    void set_recommended_size(int w, int h);
 signals:
     void move_event();
 protected:
+    virtual QSize sizeHint() const;
     virtual void moveEvent(QMoveEvent *event);
     virtual void closeEvent(QCloseEvent *event);
 };
 
-/* Public interface. This subclasses video_output_opengl; see its documentation. */
+/* Public interface. See the video_output documentation. */
 
-class video_output_opengl_qt : public video_output_opengl
+class video_output_qt : public video_output
 {
 private:
     bool _qt_app_owner;
     video_container_widget *_container_widget;
     bool _container_is_external;
-    video_output_opengl_qt_widget *_widget;
+    video_output_qt_widget *_widget;
+    QGLFormat _format;
+    bool _fullscreen;
 
-    void center();
-    void enter_fullscreen();
-    void exit_fullscreen();
+    void create_widget();
     void mouse_set_pos(float dest);
 
 protected:
-    virtual int screen_pos_x();
-    virtual int screen_pos_y();
+    virtual void make_context_current();
+    virtual bool context_is_stereo();
+    virtual void recreate_context(bool stereo);
+    virtual void trigger_update();
+    virtual void trigger_resize(int w, int h);
 
 public:
+    /* Constructor, Destructor */
     /* If a container widget is given, then it is assumed that this widget is
      * part of another widget (e.g. a main window). In this case, you also need
      * to use the move_event() function; see below. If no container widget is
      * given, we will use our own, and it will be a top-level window. */
-    video_output_opengl_qt(video_container_widget *container_widget = NULL) throw ();
-    virtual ~video_output_opengl_qt();
+    video_output_qt(video_container_widget *container_widget = NULL);
+    virtual ~video_output_qt();
 
     /* If you give a container element to the constructor, you have to call
      * this function for every move events that the container widget or its
@@ -111,24 +113,29 @@ public:
      * (even-odd-*, checkerboard). */
     void move_event();
 
+    virtual void init();
+    virtual void deinit();
+
     virtual bool supports_stereo();
+    virtual int screen_width();
+    virtual int screen_height();
+    virtual float screen_aspect_ratio();
+    virtual int width();
+    virtual int height();
+    virtual float aspect_ratio();
+    virtual int pos_x();
+    virtual int pos_y();
 
-    virtual void open(
-            int src_format, bool src_mono,
-            int src_width, int src_height, float src_aspect_ratio,
-            int mode, const video_output_state &state, unsigned int flags,
-            int win_width, int win_height);
+    virtual void center();
+    virtual void enter_fullscreen();
+    virtual void exit_fullscreen();
+    virtual bool toggle_fullscreen();
 
-    virtual void activate();
     virtual void process_events();
-
-    virtual void close();
 
     virtual void receive_notification(const notification &note);
 
-friend class video_output_opengl_qt_widget;
+    friend class video_output_qt_widget;
 };
-
-std::vector<std::string> opengl_versions();
 
 #endif

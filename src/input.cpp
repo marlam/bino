@@ -469,114 +469,15 @@ void input::prepare_video_frame()
     }
 }
 
-static int next_multiple_of_4(int x)
+void input::get_video_frame_data(void *data[2][3], size_t line_size[2][3])
 {
-    return (x / 4 + (x % 4 == 0 ? 0 : 1)) * 4;
-}
-
-void input::get_video_frame(int view, int plane, void *buf)
-{
-    if (_swap_eyes)
+    for (int i = 0; i < 2; i++)
     {
-        view = (view == 0 ? 1 : 0);
-    }
-
-    uint8_t *dst = reinterpret_cast<uint8_t *>(buf);
-    uint8_t *src;
-    size_t src_offset;
-    size_t src_row_size;
-    size_t dst_row_width;
-    size_t dst_row_size;
-    size_t height;
-
-    switch (decoder::video_format_layout(video_format()))
-    {
-    case decoder::video_layout_bgra32:
-        dst_row_width = video_width() * 4;
-        dst_row_size = dst_row_width;
-        height = video_height();
-        break;
-
-    case decoder::video_layout_yuv444p:
-        dst_row_width = video_width();
-        dst_row_size = next_multiple_of_4(dst_row_width);
-        height = video_height();
-        break;
-
-    case decoder::video_layout_yuv422p:
-        if (plane == 0)
+        for (int j = 0; j < 3; j++)
         {
-            dst_row_width = video_width();
-            dst_row_size = next_multiple_of_4(dst_row_width);
-            height = video_height();
+            data[i][j] = _video_data[i][j];
+            line_size[i][j] = _video_data_line_size[i][j];
         }
-        else
-        {
-            dst_row_width = video_width() / 2;
-            dst_row_size = next_multiple_of_4(dst_row_width);
-            height = video_height();
-        }
-        break;
-
-    case decoder::video_layout_yuv420p:
-        if (plane == 0)
-        {
-            dst_row_width = video_width();
-            dst_row_size = next_multiple_of_4(dst_row_width);
-            height = video_height();
-        }
-        else
-        {
-            dst_row_width = video_width() / 2;
-            dst_row_size = next_multiple_of_4(dst_row_width);
-            height = video_height() / 2;
-        }
-        break;
-    }
-
-    switch (_mode)
-    {
-    case separate:
-        src = _video_data[view][plane];
-        src_row_size = _video_data_line_size[view][plane];
-        src_offset = 0;
-        break;
-    case top_bottom:
-    case top_bottom_half:
-        src = _video_data[0][plane];
-        src_row_size = _video_data_line_size[0][plane];
-        src_offset = view * height * src_row_size;
-        break;
-    case left_right:
-    case left_right_half:
-        src = _video_data[0][plane];
-        src_row_size = _video_data_line_size[0][plane];
-        src_offset = view * dst_row_width;
-        break;
-    case even_odd_rows:
-        src = _video_data[0][plane];
-        src_row_size = 2 * _video_data_line_size[0][plane];
-        src_offset = view * _video_data_line_size[0][plane];
-        break;
-    case mono:
-        src = _video_data[0][plane];
-        src_row_size = _video_data_line_size[0][plane];
-        src_offset = 0;
-        break;
-    case automatic:
-        /* cannot happen */
-        src = NULL;
-        src_row_size = 0;
-        src_offset = 0;
-        break;
-    }
-
-    size_t dst_offset = 0;
-    for (size_t y = 0; y < height; y++)
-    {
-        std::memcpy(dst + dst_offset, src + src_offset, dst_row_width);
-        dst_offset += dst_row_size;
-        src_offset += src_row_size;
     }
 }
 

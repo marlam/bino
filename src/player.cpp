@@ -32,7 +32,7 @@
 #include "input.h"
 #include "controller.h"
 #include "audio_output.h"
-#include "video_output_opengl_qt.h"
+#include "video_output_qt.h"
 #include "player.h"
 
 
@@ -41,10 +41,15 @@ player_init_data::player_init_data()
     benchmark(false),
     filenames(),
     audio_stream(0),
-    input_mode(input::automatic),
-    video_mode(video_output::stereo),
-    video_state(),
-    video_flags(0)
+    params(),
+    fullscreen(false),
+    center(false),
+    stereo_layout_override(false),
+    stereo_layout(video_frame::mono),
+    stereo_layout_swap(false),
+    stereo_mode_override(false),
+    stereo_mode(parameters::mono_left),
+    stereo_mode_swap(false)
 {
 }
 
@@ -120,7 +125,7 @@ void player::create_decoders(const std::vector<std::string> &filenames)
     }
 }
 
-void player::create_input(enum input::mode input_mode, int selected_audio_stream)
+void player::create_input(bool stereo_layout_override, video_frame::stereo_layout_t stereo_layout, bool stereo_layout_swap, int selected_audio_stream)
 {
     int video_decoder[2] = { -1, -1 };
     int video_stream[2] = { -1, -1 };
@@ -168,6 +173,7 @@ void player::create_input(enum input::mode input_mode, int selected_audio_stream
     {
         throw exc(str::asprintf("Audio stream %d not found", selected_audio_stream + 1));
     }
+    enum input::mode input_mode = stereo_layout_override ? static_cast<enum input::mode>(stereo_layout) : input::automatic;
     _input = new input();
     _input->open(_decoders,
             video_decoder[0], video_stream[0],
@@ -185,32 +191,14 @@ void player::create_audio_output()
     }
 }
 
-void player::create_video_output()
+void player::create_video_output(video_container_widget *container_widget)
 {
-    _video_output = new video_output_opengl_qt();
+    _video_output = new video_output_qt(container_widget);
 }
 
-void player::open_video_output(enum video_output::mode video_mode, unsigned int video_flags)
+void player::open_video_output()
 {
-    if (video_mode == video_output::automatic)
-    {
-        if (_input->mode() == input::mono)
-        {
-            video_mode = video_output::mono_left;
-        }
-        else if (_video_output->supports_stereo())
-        {
-            video_mode = video_output::stereo;
-        }
-        else
-        {
-            video_mode = video_output::anaglyph_red_cyan_dubois;
-        }
-    }
-    _video_output->open(
-            _input->video_format(), _input->video_is_mono(),
-            _input->video_width(), _input->video_height(), _input->video_aspect_ratio(),
-            video_mode, _video_state, video_flags, -1, -1);
+    _video_output->init();
     _video_output->process_events();
 }
 
@@ -516,15 +504,87 @@ void player::get_video_frame()
 
 void player::prepare_video_frame(video_output *vo)
 {
-    for (int i = 0; i < (_input->video_is_mono() ? 1 : 2); i++)
+    video_frame frame;
+    frame.width = _input->video_width();
+    frame.height = _input->video_height();
+    frame.aspect_ratio = _input->video_aspect_ratio();
+    switch (decoder::video_format_layout(_input->video_format()))
     {
-        for (int j = 0; j < decoder::video_format_planes(_input->video_format()); j++)
-        {
-            void *buf = vo->prepare_start(i, j);
-            _input->get_video_frame(i, j, buf);
-            vo->prepare_finish(i, j);
-        }
+    case decoder::video_layout_bgra32:
+        frame.layout = video_frame::bgra32;
+        break;
+    case decoder::video_layout_yuv444p:
+        frame.layout = video_frame::yuv444p;
+        break;
+    case decoder::video_layout_yuv422p:
+        frame.layout = video_frame::yuv422p;
+        break;
+    case decoder::video_layout_yuv420p:
+        frame.layout = video_frame::yuv420p;
+        break;
     }
+    switch (decoder::video_format_color_space(_input->video_format()))
+    {
+    case decoder::video_color_space_srgb:
+        frame.color_space = video_frame::srgb;
+        break;
+    case decoder::video_color_space_yuv601:
+        frame.color_space = video_frame::yuv601;
+        break;
+    case decoder::video_color_space_yuv709:
+        frame.color_space = video_frame::yuv709;
+        break;
+    }
+    switch (decoder::video_format_value_range(_input->video_format()))
+    {
+    case decoder::video_value_range_8bit_full:
+        frame.value_range = video_frame::u8_full;
+        break;
+    case decoder::video_value_range_8bit_mpeg:
+        frame.value_range = video_frame::u8_mpeg;
+        break;
+    }
+    switch (decoder::video_format_chroma_location(_input->video_format()))
+    {
+    case decoder::video_chroma_location_center:
+        frame.chroma_location = video_frame::center;
+        break;
+    case decoder::video_chroma_location_left:
+        frame.chroma_location = video_frame::left;
+        break;
+    case decoder::video_chroma_location_topleft:
+        frame.chroma_location = video_frame::topleft;
+        break;
+    }
+    switch (_input->mode())
+    {
+    case input::mono:
+        frame.stereo_layout = video_frame::mono;
+        break;
+    case input::separate:
+        frame.stereo_layout = video_frame::separate;
+        break;
+    case input::top_bottom:
+        frame.stereo_layout = video_frame::top_bottom;
+        break;
+    case input::top_bottom_half:
+        frame.stereo_layout = video_frame::top_bottom_half;
+        break;
+    case input::left_right:
+        frame.stereo_layout = video_frame::left_right;
+        break;
+    case input::left_right_half:
+        frame.stereo_layout = video_frame::left_right_half;
+        break;
+    case input::even_odd_rows:
+        frame.stereo_layout = video_frame::even_odd_rows;
+        break;
+    case input::automatic:
+        break;
+    }
+    frame.stereo_layout_swap = _input->swap();
+    _input->get_video_frame_data(frame.data, frame.line_size);
+    vo->prepare_next_frame(frame);
 }
 
 void player::release_video_frame()
@@ -532,27 +592,50 @@ void player::release_video_frame()
     _input->release_video_frame();
 }
 
-void player::open(const player_init_data &init_data)
+void player::open(const player_init_data &init_data, video_container_widget *container_widget)
 {
     msg::set_level(init_data.log_level);
     set_benchmark(init_data.benchmark);
     reset_playstate();
     create_decoders(init_data.filenames);
-    create_input(init_data.input_mode, init_data.audio_stream);
+    create_input(init_data.stereo_layout_override, init_data.stereo_layout, init_data.stereo_layout_swap, init_data.audio_stream);
     create_audio_output();
-    create_video_output();
-    _video_state = init_data.video_state;
-    open_video_output(init_data.video_mode, init_data.video_flags);
-}
+    create_video_output(container_widget);
+    open_video_output();
 
-enum input::mode player::input_mode() const
-{
-    return _input->mode();
-}
+    _params = init_data.params;
+    if (init_data.stereo_mode_override)
+    {
+        _params.stereo_mode = init_data.stereo_mode;
+        _params.stereo_mode_swap = init_data.stereo_mode_swap;
+    }
+    else
+    {
+        if (_input->mode() == input::mono)
+        {
+            _params.stereo_mode = parameters::mono_left;
+        }
+        else if (_video_output->supports_stereo())
+        {
+            _params.stereo_mode = parameters::stereo;
+        }
+        else
+        {
+            _params.stereo_mode = parameters::anaglyph_red_cyan_dubois;
+        }
+        _params.stereo_mode_swap = false;
+    }
+    _video_output->set_parameters(_params);
+    _video_output->set_suitable_size(_input->video_width(), _input->video_height(), _input->video_aspect_ratio(), _params.stereo_mode);
+    if (init_data.fullscreen)
+    {
+        _video_output->enter_fullscreen();
+    }
+    if (init_data.center)
+    {
+        _video_output->center();
+    }
 
-enum video_output::mode player::video_mode() const
-{
-    return _video_output->mode();
 }
 
 void player::close()
@@ -566,7 +649,7 @@ void player::close()
     }
     if (_video_output)
     {
-        try { _video_output->close(); } catch (...) {}
+        try { _video_output->deinit(); } catch (...) {}
         delete _video_output;
         _video_output = NULL;
     }
@@ -611,7 +694,7 @@ void player::run()
         }
         else if (display_frame)
         {
-            _video_output->activate();
+            _video_output->activate_next_frame();
         }
         _video_output->process_events();
     }
@@ -619,6 +702,7 @@ void player::run()
 
 void player::receive_cmd(const command &cmd)
 {
+    bool flag;
     float oldval;
 
     switch (cmd.type)
@@ -627,15 +711,17 @@ void player::receive_cmd(const command &cmd)
         _quit_request = true;
         /* notify when request is fulfilled */
         break;
-    case command::toggle_swap_eyes:
-        _video_state.swap_eyes = !_video_state.swap_eyes;
-        notify(notification::swap_eyes, !_video_state.swap_eyes, _video_state.swap_eyes);
+    case command::toggle_stereo_mode_swap:
+        _params.stereo_mode_swap = !_params.stereo_mode_swap;
+        _video_output->set_parameters(_params);
+        notify(notification::stereo_mode_swap, !_params.stereo_mode_swap, _params.stereo_mode_swap);
         break;
     case command::toggle_fullscreen:
-        _video_state.fullscreen = !_video_state.fullscreen;
-        notify(notification::fullscreen, !_video_state.fullscreen, _video_state.fullscreen);
+        flag = _video_output->toggle_fullscreen();
+        notify(notification::fullscreen, flag, !flag);
         break;
     case command::center:
+        _video_output->center();
         notify(notification::center);
         break;
     case command::toggle_pause:
@@ -643,24 +729,28 @@ void player::receive_cmd(const command &cmd)
         /* notify when request is fulfilled */
         break;
     case command::adjust_contrast:
-        oldval = _video_state.contrast;
-        _video_state.contrast = std::max(std::min(_video_state.contrast + cmd.param, 1.0f), -1.0f);
-        notify(notification::contrast, oldval, _video_state.contrast);
+        oldval = _params.contrast;
+        _params.contrast = std::max(std::min(_params.contrast + cmd.param, 1.0f), -1.0f);
+        _video_output->set_parameters(_params);
+        notify(notification::contrast, oldval, _params.contrast);
         break;
     case command::adjust_brightness:
-        oldval = _video_state.brightness;
-        _video_state.brightness = std::max(std::min(_video_state.brightness + cmd.param, 1.0f), -1.0f);
-        notify(notification::brightness, oldval, _video_state.brightness);
+        oldval = _params.brightness;
+        _params.brightness = std::max(std::min(_params.brightness + cmd.param, 1.0f), -1.0f);
+        _video_output->set_parameters(_params);
+        notify(notification::brightness, oldval, _params.brightness);
         break;
     case command::adjust_hue:
-        oldval = _video_state.hue;
-        _video_state.hue = std::max(std::min(_video_state.hue + cmd.param, 1.0f), -1.0f);
-        notify(notification::hue, oldval, _video_state.hue);
+        oldval = _params.hue;
+        _params.hue = std::max(std::min(_params.hue + cmd.param, 1.0f), -1.0f);
+        _video_output->set_parameters(_params);
+        notify(notification::hue, oldval, _params.hue);
         break;
     case command::adjust_saturation:
-        oldval = _video_state.saturation;
-        _video_state.saturation = std::max(std::min(_video_state.saturation + cmd.param, 1.0f), -1.0f);
-        notify(notification::saturation, oldval, _video_state.saturation);
+        oldval = _params.saturation;
+        _params.saturation = std::max(std::min(_params.saturation + cmd.param, 1.0f), -1.0f);
+        _video_output->set_parameters(_params);
+        notify(notification::saturation, oldval, _params.saturation);
         break;
     case command::seek:
         _seek_request = cmd.param * 1e6f;
@@ -671,24 +761,28 @@ void player::receive_cmd(const command &cmd)
         /* notify when request is fulfilled */
         break;
     case command::adjust_parallax:
-        oldval = _video_state.parallax;
-        _video_state.parallax = std::max(std::min(_video_state.parallax + cmd.param, 1.0f), -1.0f);
-        notify(notification::parallax, oldval, _video_state.parallax);
+        oldval = _params.parallax;
+        _params.parallax = std::max(std::min(_params.parallax + cmd.param, 1.0f), -1.0f);
+        _video_output->set_parameters(_params);
+        notify(notification::parallax, oldval, _params.parallax);
         break;
     case command::set_parallax:
-        oldval = _video_state.parallax;
-        _video_state.parallax = std::max(std::min(cmd.param, 1.0f), -1.0f);
-        notify(notification::parallax, oldval, _video_state.parallax);
+        oldval = _params.parallax;
+        _params.parallax = std::max(std::min(cmd.param, 1.0f), -1.0f);
+        _video_output->set_parameters(_params);
+        notify(notification::parallax, oldval, _params.parallax);
         break;
     case command::adjust_ghostbust:
-        oldval = _video_state.ghostbust;
-        _video_state.ghostbust = std::max(std::min(_video_state.ghostbust + cmd.param, 1.0f), 0.0f);
-        notify(notification::ghostbust, oldval, _video_state.ghostbust);
+        oldval = _params.ghostbust;
+        _params.ghostbust = std::max(std::min(_params.ghostbust + cmd.param, 1.0f), 0.0f);
+        _video_output->set_parameters(_params);
+        notify(notification::ghostbust, oldval, _params.ghostbust);
         break;
     case command::set_ghostbust:
-        oldval = _video_state.ghostbust;
-        _video_state.ghostbust = std::max(std::min(cmd.param, 1.0f), 0.0f);
-        notify(notification::ghostbust, oldval, _video_state.ghostbust);
+        oldval = _params.ghostbust;
+        _params.ghostbust = std::max(std::min(cmd.param, 1.0f), 0.0f);
+        _video_output->set_parameters(_params);
+        notify(notification::ghostbust, oldval, _params.ghostbust);
         break;
     }
 }

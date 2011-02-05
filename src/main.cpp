@@ -65,11 +65,17 @@ int main(int argc, char *argv[])
     std::vector<std::string> input_modes;
     input_modes.push_back("mono");
     input_modes.push_back("separate");
+    input_modes.push_back("separate-swap");
     input_modes.push_back("top-bottom");
     input_modes.push_back("top-bottom-half");
+    input_modes.push_back("bottom-top");
+    input_modes.push_back("bottom-top-half");
     input_modes.push_back("left-right");
     input_modes.push_back("left-right-half");
+    input_modes.push_back("right-left");
+    input_modes.push_back("right-left-half");
     input_modes.push_back("even-odd-rows");
+    input_modes.push_back("odd-even-rows");
     opt::val<std::string> input_mode("input", 'i', opt::optional, input_modes, "");
     options.push_back(&input_mode);
     opt::val<int> audio("audio", 'a', opt::optional, 1, 999, 1);
@@ -143,7 +149,7 @@ int main(int argc, char *argv[])
         msg::req("Platform:");
         msg::req("    %s", PLATFORM);
         msg::req("Libraries used:");
-        std::vector<std::string> v = lib_versions();
+        std::vector<std::string> v = lib_versions(false);
         for (size_t i = 0; i < v.size(); i++)
         {
             msg::req("    %s", v[i].c_str());
@@ -163,12 +169,18 @@ int main(int argc, char *argv[])
                 "  -a|--audio=STREAM    Select audio stream (1-n, depending on the input)\n"
                 "  -i|--input=TYPE      Select input type (default autodetect):\n"
                 "    mono                 Single view\n"
-                "    separate             Left/right view in separate streams\n"
+                "    separate             Left/right view in separate streams, left first\n"
+                "    separate-swap        Left/right view in separate streams, right first\n"
                 "    top-bottom           Left view top, right view bottom\n"
                 "    top-bottom-half      Left view top, right view bottom, half height\n"
+                "    bottom-top           Left view bottom, right view top\n"
+                "    bottom-top-half      Left view bottom, right view top, half height\n"
                 "    left-right           Left view left, right view right\n"
                 "    left-right-half      Left view left, right view right, half width\n"
+                "    right-left           Left view right, right view left\n"
+                "    right-left-half      Left view right, right view left, half width\n"
                 "    even-odd-rows        Left view even rows, right view odd rows\n"
+                "    odd-even-rows        Left view odd rows, right view even rows\n"
                 "  -o|--output=TYPE     Select output type (default stereo, anaglyph,\n"
                 "                         or mono-left, depending on input and display):\n"
                 "    mono-left            Only left view\n"
@@ -188,9 +200,9 @@ int main(int argc, char *argv[])
                 "    stereo               OpenGL quad-buffered stereo\n"
                 "    equalizer            Multi-display OpenGL via Equalizer (2D setup)\n"
                 "    equalizer-3d         Multi-display OpenGL via Equalizer (3D setup)\n"
+                "  -s|--swap-eyes       Swap left/right view\n"
                 "  -f|--fullscreen      Fullscreen\n"
                 "  -c|--center          Center window on screen\n"
-                "  -s|--swap-eyes       Swap left/right view\n"
                 "  -P|--parallax=VAL    Parallax adjustment (-1 to +1)\n"
                 "  -C|--crosstalk=VAL   Crosstalk leak level in %% (0 to 100). VAL may\n"
                 "                       be one value or comma-separated R,G,B values.\n"
@@ -274,63 +286,52 @@ int main(int argc, char *argv[])
     init_data.audio_stream = audio.value() - 1;
     if (input_mode.value() == "")
     {
-        init_data.input_mode = input::automatic;
+        init_data.stereo_layout_override = false;
     }
     else
     {
-        bool ok;
-        init_data.input_mode = input::mode_from_name(input_mode.value(), &ok);
-        if (!ok)
-        {
-            msg::err("Invalid input mode name");
-            dbg::crash();
-        }
+        init_data.stereo_layout_override = true;
+        video_frame::stereo_layout_from_string(input_mode.value(), init_data.stereo_layout, init_data.stereo_layout_swap);
     }
-    if (video_output_mode.value() == "equalizer")
+    if (video_output_mode.value() == "")
+    {
+        init_data.stereo_mode_override = false;
+    }
+    else if (video_output_mode.value() == "equalizer")
     {
         equalizer = true;
-        init_data.video_mode = video_output::mono_left;
+        equalizer_flat_screen = true;
+        init_data.stereo_mode_override = true;
+        init_data.stereo_mode = parameters::mono_left;
+        init_data.stereo_mode_swap = false;
     }
     else if (video_output_mode.value() == "equalizer-3d")
     {
         equalizer = true;
         equalizer_flat_screen = false;
-        init_data.video_mode = video_output::mono_left;
-    }
-    else if (video_output_mode.value() == "anaglyph")
-    {
-        init_data.video_mode = video_output::anaglyph_red_cyan_dubois;
-    }
-    else if (video_output_mode.value() == "")
-    {
-        init_data.video_mode = video_output::automatic;
+        init_data.stereo_mode_override = true;
+        init_data.stereo_mode = parameters::mono_left;
+        init_data.stereo_mode_swap = false;
     }
     else
     {
-        bool ok;
-        init_data.video_mode = video_output::mode_from_name(video_output_mode.value(), &ok);
-        if (!ok)
-        {
-            msg::err("Invalid output mode name");
-            dbg::crash();
-        }
+        init_data.stereo_mode_override = true;
+        parameters::stereo_mode_from_string(video_output_mode.value(), init_data.stereo_mode, init_data.stereo_mode_swap);
+        init_data.stereo_mode_swap = swap_eyes.value();
     }
-    init_data.video_state.parallax = parallax.value();
-    init_data.video_state.crosstalk_r = crosstalk.value()[0] / 100.0f;
-    init_data.video_state.crosstalk_g = crosstalk.value()[crosstalk.value().size() == 3 ? 1 : 0] / 100.0f;
-    init_data.video_state.crosstalk_b = crosstalk.value()[crosstalk.value().size() == 3 ? 2 : 0] / 100.0f;
-    init_data.video_state.ghostbust = ghostbust.value() / 100.0f;
-    init_data.video_state.fullscreen = fullscreen.value();
-    init_data.video_state.swap_eyes = swap_eyes.value();
-    if (center.value())
-    {
-        init_data.video_flags |= video_output::center;
-    }
+    init_data.fullscreen = fullscreen.value();
+    init_data.center = center.value();
     init_data.benchmark = benchmark.value();
     if (init_data.benchmark)
     {
         msg::inf("Benchmark mode: audio and time synchronization disabled");
     }
+    init_data.params.parallax = parallax.value();
+    init_data.params.crosstalk_r = crosstalk.value()[0] / 100.0f;
+    init_data.params.crosstalk_g = crosstalk.value()[crosstalk.value().size() == 3 ? 1 : 0] / 100.0f;
+    init_data.params.crosstalk_b = crosstalk.value()[crosstalk.value().size() == 3 ? 2 : 0] / 100.0f;
+    init_data.params.ghostbust = ghostbust.value() / 100.0f;
+    init_data.params.stereo_mode_swap = swap_eyes.value();
 
     int retval = 0;
     player *player = NULL;
@@ -350,8 +351,8 @@ int main(int argc, char *argv[])
             {
                 init_data.log_level = msg::WRN;         // Be silent by default when the GUI is used
             }
-            init_data.video_state.fullscreen = false;   // GUI overrides fullscreen setting
-            init_data.video_flags = 0;                  // GUI overrides center flag
+            init_data.fullscreen = false;               // GUI overrides fullscreen setting
+            init_data.center = false;                   // GUI overrides center flag
             player = new class player_qt();
         }
         else

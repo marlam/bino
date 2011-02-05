@@ -29,8 +29,9 @@
 
 #include "input.h"
 #include "controller.h"
+#include "media_data.h"
 #include "audio_output.h"
-#include "video_output.h"
+#include "video_output_qt.h"
 
 
 class player_init_data
@@ -40,10 +41,17 @@ public:
     bool benchmark;
     std::vector<std::string> filenames;
     int audio_stream;
-    enum input::mode input_mode;
-    enum video_output::mode video_mode;
-    video_output_state video_state;
-    unsigned int video_flags;
+    parameters params;
+    bool fullscreen;
+    bool center;
+    // Manual input layout override
+    bool stereo_layout_override;
+    video_frame::stereo_layout_t stereo_layout;
+    bool stereo_layout_swap;
+    // Manual output mode override
+    bool stereo_mode_override;
+    parameters::stereo_mode_t stereo_mode;
+    bool stereo_mode_swap;
 
 public:
     player_init_data();
@@ -64,7 +72,7 @@ private:
     std::vector<controller *> _controllers;
     audio_output *_audio_output;
     video_output *_video_output;
-    video_output_state _video_state;
+    parameters _params;
     bool _benchmark;
 
     bool _running;
@@ -105,15 +113,15 @@ protected:
     }
     void reset_playstate();
     void create_decoders(const std::vector<std::string> &filenames);
-    void create_input(enum input::mode input_mode, int audio_stream);
+    void create_input(bool stereo_layout_override, video_frame::stereo_layout_t stereo_layout, bool stereo_layout_swap, int selected_audio_stream);
     void create_audio_output();
-    void create_video_output();
+    void create_video_output(video_container_widget *container_widget);
     void set_video_output(video_output *vo)
     {
         _video_output = vo;
     }
-    video_output_state &video_state() { return _video_state; }
-    void open_video_output(enum video_output::mode video_mode, unsigned int video_flags);
+    parameters &params() { return _params; }
+    void open_video_output();
     void make_master();
     void run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
     void seek(int64_t seek_to);
@@ -135,11 +143,7 @@ public:
     virtual ~player();
 
     /* Open a player. */
-    virtual void open(const player_init_data &init_data);
-
-    /* Get modes. */
-    enum input::mode input_mode() const;
-    enum video_output::mode video_mode() const;
+    virtual void open(const player_init_data &init_data, video_container_widget *container_widget = NULL);
 
     /* Run the player. It will take care of all interaction. This function
      * returns when the user quits the player. */

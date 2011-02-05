@@ -16,9 +16,8 @@ bino_SOURCES = \
         input.h input.cpp \
 	controller.h controller.cpp \
         video_output.h video_output.cpp \
+        video_output_qt.h video_output_qt.cpp \
 	xgl.h xgl.cpp \
-        video_output_opengl.h video_output_opengl.cpp \
-        video_output_opengl_qt.h video_output_opengl_qt.cpp \
 	audio_output.h audio_output.cpp \
 	player.h player.cpp \
 	player_qt.h player_qt.cpp \
@@ -39,15 +38,15 @@ EXTRA_DIST = \
 	icons/b.ipe icons/b.png \
 	icons/bb.ipe icons/bb.png \
 	icons/bbb.ipe icons/bbb.png \
-	video_output_opengl_color.fs.glsl \
-	video_output_opengl_render.fs.glsl
+	video_output_color.fs.glsl \
+	video_output_render.fs.glsl
 
 nodist_bino_SOURCES = \
 	qt_resources-rcc.cpp \
 	player_qt-moc.cpp \
-	video_output_opengl_qt-moc.cpp \
-	video_output_opengl_color.fs.glsl.h \
-	video_output_opengl_render.fs.glsl.h
+	video_output_qt-moc.cpp \
+	video_output_color.fs.glsl.h \
+	video_output_render.fs.glsl.h
 
 BUILT_SOURCES = $(nodist_bino_SOURCES)
 
