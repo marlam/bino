@@ -100,13 +100,10 @@ bool player_qt_internal::playloop_step()
     }
     if (prep_frame)
     {
-        get_video_frame();
         prepare_video_frame(get_video_output());
-        release_video_frame();
     }
     if (drop_frame)
     {
-        get_input()->release_video_frame();
     }
     if (display_frame)
     {
@@ -141,12 +138,18 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     _input_combobox = new QComboBox(this);
     _input_combobox->setToolTip(input_label->toolTip());
     _input_combobox->addItem("2D");
-    _input_combobox->addItem("Separate streams");
+    _input_combobox->addItem("Separate streams, left first");
+    _input_combobox->addItem("Separate streams, left right");
     _input_combobox->addItem("Top/bottom");
     _input_combobox->addItem("Top/bottom, half height");
+    _input_combobox->addItem("Bottom/top");
+    _input_combobox->addItem("Bottom/top, half height");
     _input_combobox->addItem("Left/right");
     _input_combobox->addItem("Left/right, half width");
+    _input_combobox->addItem("Right/left");
+    _input_combobox->addItem("Right/left, half width");
     _input_combobox->addItem("Even/odd rows");
+    _input_combobox->addItem("Odd/even rows");
     connect(_input_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(input_changed()));
     layout0->addWidget(_input_combobox, 0, 1);
     layout0->setColumnStretch(1, 1);
@@ -261,29 +264,28 @@ void in_out_widget::set_input(video_frame::stereo_layout_t stereo_layout, bool s
 {
     switch (stereo_layout)
     {
-    case input::mono:
+    case video_frame::mono:
         _input_combobox->setCurrentIndex(0);
         break;
-    case input::separate:
-        _input_combobox->setCurrentIndex(1);
+    case video_frame::separate:
+        _input_combobox->setCurrentIndex(stereo_layout_swap ? 2 : 1);
         break;
-    case input::top_bottom:
-        _input_combobox->setCurrentIndex(2);
+    case video_frame::top_bottom:
+        _input_combobox->setCurrentIndex(stereo_layout_swap ? 5 : 3);
         break;
-    case input::top_bottom_half:
-        _input_combobox->setCurrentIndex(3);
+    case video_frame::top_bottom_half:
+        _input_combobox->setCurrentIndex(stereo_layout_swap ? 6 : 4);
         break;
-    case input::left_right:
-        _input_combobox->setCurrentIndex(4);
+    case video_frame::left_right:
+        _input_combobox->setCurrentIndex(stereo_layout_swap ? 9: 7);
         break;
-    case input::left_right_half:
-        _input_combobox->setCurrentIndex(5);
+    case video_frame::left_right_half:
+        _input_combobox->setCurrentIndex(stereo_layout_swap ? 10 : 8);
         break;
-    case input::even_odd_rows:
-        _input_combobox->setCurrentIndex(6);
+    case video_frame::even_odd_rows:
+        _input_combobox->setCurrentIndex(stereo_layout_swap ? 12 : 11);
         break;
     }
-    // TODO: set stereo_layout_swap
 }
 
 void in_out_widget::set_output(parameters::stereo_mode_t stereo_mode, bool stereo_mode_swap)

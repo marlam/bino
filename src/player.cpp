@@ -28,9 +28,9 @@
 #include "msg.h"
 #include "timer.h"
 
-#include "decoder_ffmpeg.h"
-#include "input.h"
 #include "controller.h"
+#include "media_data.h"
+#include "media_input.h"
 #include "audio_output.h"
 #include "video_output_qt.h"
 #include "player.h"
@@ -64,8 +64,8 @@ player *global_player = NULL;
 // The registered controllers
 std::vector<controller *> global_controllers;
 
-player::player(type t)
-    : _input(NULL), _audio_output(NULL), _video_output(NULL)
+player::player(type t) :
+    _media_input(NULL), _audio_output(NULL), _video_output(NULL)
 {
     if (t == master)
     {
@@ -80,12 +80,15 @@ player::~player()
     {
         global_player = NULL;
     }
+    delete _media_input;
+    delete _audio_output;
+    delete _video_output;
 }
 
 float player::normalize_pos(int64_t pos)
 {
-    double pos_min = _start_pos + _input->initial_skip();
-    double pos_max = pos_min + _input->duration();
+    double pos_min = _start_pos + _media_input->initial_skip();
+    double pos_max = pos_min + _media_input->duration();
     double npos = (pos_max > pos_min ? (static_cast<double>(pos) - pos_min) / (pos_max - pos_min) : 0.0f);
     return npos;
 }
@@ -104,87 +107,37 @@ void player::reset_playstate()
     _set_pos_request = -1.0f;
 }
 
-void player::create_decoders(const std::vector<std::string> &filenames)
+void player::create_media_input(
+        const std::vector<std::string> &filenames,
+        bool stereo_layout_override, video_frame::stereo_layout_t stereo_layout, bool stereo_layout_swap,
+        int selected_audio_stream)
 {
-    int video_streams = 0;
-    int audio_streams = 0;
-    for (size_t i = 0; i < filenames.size(); i++)
+    _media_input = new media_input();
+    _media_input->open(filenames);
+    if (_media_input->video_streams() == 0)
     {
-        _decoders.push_back(new decoder_ffmpeg);
-        _decoders[i]->open(filenames[i].c_str());
-        video_streams += _decoders[i]->video_streams();
-        audio_streams += _decoders[i]->audio_streams();
+        throw exc("No video streams found.");
     }
-    if (video_streams == 0)
+    if (_media_input->audio_streams() > 0 && _media_input->audio_streams() < selected_audio_stream + 1)
     {
-        throw exc("No video streams found");
+        throw exc(str::asprintf("Audio stream %d not found.", selected_audio_stream + 1));
     }
-    if (video_streams > 2)
+    if (_media_input->audio_streams() > 0)
     {
-        throw exc("Cannot handle more than 2 video streams");
+        _media_input->select_audio_stream(selected_audio_stream);
     }
-}
-
-void player::create_input(bool stereo_layout_override, video_frame::stereo_layout_t stereo_layout, bool stereo_layout_swap, int selected_audio_stream)
-{
-    int video_decoder[2] = { -1, -1 };
-    int video_stream[2] = { -1, -1 };
-    int audio_decoder = -1;
-    int audio_stream = -1;
-    int skip_audio_streams = selected_audio_stream;
-    for (size_t i = 0; i < _decoders.size(); i++)
+    if (stereo_layout_override)
     {
-        for (int j = 0; j < _decoders[i]->video_streams(); j++)
+        if (!_media_input->set_stereo_layout(stereo_layout, stereo_layout_swap))
         {
-            if (video_decoder[0] != -1 && video_decoder[1] != -1)
-            {
-                continue;
-            }
-            else if (video_decoder[0] != -1)
-            {
-                video_decoder[1] = i;
-                video_stream[1] = j;
-            }
-            else
-            {
-                video_decoder[0] = i;
-                video_stream[0] = j;
-            }
-        }
-        for (int j = 0; j < _decoders[i]->audio_streams(); j++)
-        {
-            if (audio_decoder != -1)
-            {
-                continue;
-            }
-            else if (skip_audio_streams > 0)
-            {
-                skip_audio_streams--;
-                continue;
-            }
-            else
-            {
-                audio_decoder = i;
-                audio_stream = j;
-            }
+            throw exc("Cannot set requested stereo layout: incompatible media.");
         }
     }
-    if (selected_audio_stream > 0 && audio_stream == -1)
-    {
-        throw exc(str::asprintf("Audio stream %d not found", selected_audio_stream + 1));
-    }
-    enum input::mode input_mode = stereo_layout_override ? static_cast<enum input::mode>(stereo_layout) : input::automatic;
-    _input = new input();
-    _input->open(_decoders,
-            video_decoder[0], video_stream[0],
-            video_decoder[1], video_stream[1],
-            audio_decoder, audio_stream,
-            input_mode);
 }
 
 void player::create_audio_output()
 {
-    if (_input->has_audio() && !_benchmark)
+    if (_media_input->audio_streams() > 0 && !_benchmark)
     {
         _audio_output = new audio_output();
         _audio_output->init();
@@ -227,29 +180,27 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
     else if (!_running)
     {
         // Read initial data and start output
-        _video_pos = _input->read_video_frame();
-        if (_video_pos == std::numeric_limits<int64_t>::min())
+        _media_input->start_video_frame_read();
+        _video_frame = _media_input->finish_video_frame_read();
+        if (!_video_frame.is_valid())
         {
             msg::dbg("Empty video input");
             notify(notification::play, true, false);
             return;
         }
+        _video_pos = _video_frame.presentation_time;
         if (_audio_output)
         {
             _audio_output->status(&_required_audio_data_size);
-            _audio_pos = _input->read_audio_data(&_audio_data, _required_audio_data_size);
-            if (_audio_pos == std::numeric_limits<int64_t>::min())
+            _media_input->start_audio_blob_read(_required_audio_data_size);
+            audio_blob blob = _media_input->finish_audio_blob_read();
+            if (!blob.is_valid())
             {
                 msg::dbg("Empty audio input");
                 notify(notification::play, true, false);
                 return;
             }
-            audio_blob blob;
-            blob.channels = _input->audio_channels();
-            blob.rate = _input->audio_rate();
-            blob.sample_format = static_cast<audio_blob::sample_format_t>(_input->audio_sample_format());
-            blob.data = _audio_data;
-            blob.size = _required_audio_data_size;
+            _audio_pos = blob.presentation_time;
             _audio_output->data(blob);
             _master_time_start = _audio_output->start();
             _master_time_pos = _audio_pos;
@@ -265,9 +216,9 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         _fps_mark_time = timer::get_microseconds(timer::monotonic);
         _frames_shown = 0;
         _running = true;
-        if (_input->initial_skip() > 0)
+        if (_media_input->initial_skip() > 0)
         {
-            _seek_request = _input->initial_skip();
+            _seek_request = _media_input->initial_skip();
         }
         else
         {
@@ -283,8 +234,8 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         int64_t old_pos = _current_pos;
         if (_set_pos_request >= 0.0f)
         {
-            int64_t dest_pos_min = _start_pos + _input->initial_skip();
-            int64_t dest_pos_max = dest_pos_min + _input->duration() - 2000000;
+            int64_t dest_pos_min = _start_pos + _media_input->initial_skip();
+            int64_t dest_pos_max = dest_pos_min + _media_input->duration() - 2000000;
             if (dest_pos_max <= dest_pos_min)
             {
                 *seek_to = _current_pos;
@@ -297,47 +248,45 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         }
         else
         {
-            if (_current_pos + _seek_request < _start_pos + _input->initial_skip())
+            if (_current_pos + _seek_request < _start_pos + _media_input->initial_skip())
             {
-                _seek_request = _start_pos + _input->initial_skip() - _current_pos;
+                _seek_request = _start_pos + _media_input->initial_skip() - _current_pos;
             }
-            if (_input->duration() > 0)
+            if (_media_input->duration() > 0)
             {
-                if (_seek_request > 0 && _current_pos + _seek_request >= std::max(_start_pos + _input->duration() - 2000000, static_cast<int64_t>(0)))
+                if (_seek_request > 0 && _current_pos + _seek_request >= std::max(_start_pos + _media_input->duration() - 2000000, static_cast<int64_t>(0)))
                 {
-                    _seek_request = std::max(_start_pos + _input->duration() - 2000000 - _current_pos, static_cast<int64_t>(0));
+                    _seek_request = std::max(_start_pos + _media_input->duration() - 2000000 - _current_pos, static_cast<int64_t>(0));
                 }
             }
             *seek_to = _current_pos + _seek_request;
         }
         _seek_request = 0;
         _set_pos_request = -1.0f;
-        _input->seek(*seek_to);
+        _media_input->seek(*seek_to);
 
-        _video_pos = _input->read_video_frame();
-        if (_video_pos == std::numeric_limits<int64_t>::min())
+        _media_input->start_video_frame_read();
+        _video_frame = _media_input->finish_video_frame_read();
+        if (!_video_frame.is_valid())
         {
             msg::wrn("Seeked to end of video?!");
             notify(notification::play, true, false);
             return;
         }
+        _video_pos = _video_frame.presentation_time;
         if (_audio_output)
         {
             _audio_output->stop();
             _audio_output->status(&_required_audio_data_size);
-            _audio_pos = _input->read_audio_data(&_audio_data, _required_audio_data_size);
-            if (_audio_pos == std::numeric_limits<int64_t>::min())
+            _media_input->start_audio_blob_read(_required_audio_data_size);
+            audio_blob blob = _media_input->finish_audio_blob_read();
+            if (!blob.is_valid())
             {
                 msg::wrn("Seeked to end of audio?!");
                 notify(notification::play, true, false);
                 return;
             }
-            audio_blob blob;
-            blob.channels = _input->audio_channels();
-            blob.rate = _input->audio_rate();
-            blob.sample_format = static_cast<audio_blob::sample_format_t>(_input->audio_sample_format());
-            blob.data = _audio_data;
-            blob.size = _required_audio_data_size;
+            _audio_pos = blob.presentation_time;
             _audio_output->data(blob);
             _master_time_start = _audio_output->start();
             _master_time_pos = _audio_pos;
@@ -376,8 +325,9 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
     }
     else if (_need_frame)
     {
-        _video_pos = _input->read_video_frame();
-        if (_video_pos == std::numeric_limits<int64_t>::min())
+        _media_input->start_video_frame_read();
+        _video_frame = _media_input->finish_video_frame_read();
+        if (!_video_frame.is_valid())
         {
             if (_first_frame)
             {
@@ -395,6 +345,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         {
             _first_frame = false;
         }
+        _video_pos = _video_frame.presentation_time;
         if (!_audio_output)
         {
             _master_time_start += (_video_pos - _master_time_pos);
@@ -438,21 +389,17 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
             // Output requested audio data
             if (_required_audio_data_size > 0)
             {
-                _audio_pos = _input->read_audio_data(&_audio_data, _required_audio_data_size);
-                if (_audio_pos == std::numeric_limits<int64_t>::min())
+                _media_input->start_audio_blob_read(_required_audio_data_size);
+                audio_blob blob = _media_input->finish_audio_blob_read();
+                if (!blob.is_valid())
                 {
                     msg::dbg("End of audio stream");
                     notify(notification::play, true, false);
                     return;
                 }
+                _audio_pos = blob.presentation_time;
                 _master_time_start += (_audio_pos - _master_time_pos);
                 _master_time_pos = _audio_pos;
-                audio_blob blob;
-                blob.channels = _input->audio_channels();
-                blob.rate = _input->audio_rate();
-                blob.sample_format = static_cast<audio_blob::sample_format_t>(_input->audio_sample_format());
-                blob.data = _audio_data;
-                blob.size = _required_audio_data_size;
                 _audio_output->data(blob);
                 _current_pos = _audio_pos;
                 notify(notification::pos, normalize_pos(_current_pos), normalize_pos(_current_pos));
@@ -469,7 +416,7 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
         {
             // Output current video frame
             _drop_next_frame = false;
-            if (_master_time_current - _video_pos > _input->video_frame_duration() * 75 / 100 && !_benchmark)
+            if (_master_time_current - _video_pos > _media_input->video_frame_duration() * 75 / 100 && !_benchmark)
             {
                 msg::wrn("Video: delay %g seconds; dropping next frame", (_master_time_current - _video_pos) / 1e6f);
                 _drop_next_frame = true;
@@ -497,99 +444,9 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
     }
 }
 
-void player::get_video_frame()
-{
-    _input->prepare_video_frame();
-}
-
 void player::prepare_video_frame(video_output *vo)
 {
-    video_frame frame;
-    frame.width = _input->video_width();
-    frame.height = _input->video_height();
-    frame.aspect_ratio = _input->video_aspect_ratio();
-    switch (decoder::video_format_layout(_input->video_format()))
-    {
-    case decoder::video_layout_bgra32:
-        frame.layout = video_frame::bgra32;
-        break;
-    case decoder::video_layout_yuv444p:
-        frame.layout = video_frame::yuv444p;
-        break;
-    case decoder::video_layout_yuv422p:
-        frame.layout = video_frame::yuv422p;
-        break;
-    case decoder::video_layout_yuv420p:
-        frame.layout = video_frame::yuv420p;
-        break;
-    }
-    switch (decoder::video_format_color_space(_input->video_format()))
-    {
-    case decoder::video_color_space_srgb:
-        frame.color_space = video_frame::srgb;
-        break;
-    case decoder::video_color_space_yuv601:
-        frame.color_space = video_frame::yuv601;
-        break;
-    case decoder::video_color_space_yuv709:
-        frame.color_space = video_frame::yuv709;
-        break;
-    }
-    switch (decoder::video_format_value_range(_input->video_format()))
-    {
-    case decoder::video_value_range_8bit_full:
-        frame.value_range = video_frame::u8_full;
-        break;
-    case decoder::video_value_range_8bit_mpeg:
-        frame.value_range = video_frame::u8_mpeg;
-        break;
-    }
-    switch (decoder::video_format_chroma_location(_input->video_format()))
-    {
-    case decoder::video_chroma_location_center:
-        frame.chroma_location = video_frame::center;
-        break;
-    case decoder::video_chroma_location_left:
-        frame.chroma_location = video_frame::left;
-        break;
-    case decoder::video_chroma_location_topleft:
-        frame.chroma_location = video_frame::topleft;
-        break;
-    }
-    switch (_input->mode())
-    {
-    case input::mono:
-        frame.stereo_layout = video_frame::mono;
-        break;
-    case input::separate:
-        frame.stereo_layout = video_frame::separate;
-        break;
-    case input::top_bottom:
-        frame.stereo_layout = video_frame::top_bottom;
-        break;
-    case input::top_bottom_half:
-        frame.stereo_layout = video_frame::top_bottom_half;
-        break;
-    case input::left_right:
-        frame.stereo_layout = video_frame::left_right;
-        break;
-    case input::left_right_half:
-        frame.stereo_layout = video_frame::left_right_half;
-        break;
-    case input::even_odd_rows:
-        frame.stereo_layout = video_frame::even_odd_rows;
-        break;
-    case input::automatic:
-        break;
-    }
-    frame.stereo_layout_swap = _input->swap();
-    _input->get_video_frame_data(frame.data, frame.line_size);
-    vo->prepare_next_frame(frame);
-}
-
-void player::release_video_frame()
-{
-    _input->release_video_frame();
+    vo->prepare_next_frame(_video_frame);
 }
 
 void player::open(const player_init_data &init_data, video_container_widget *container_widget)
@@ -597,8 +454,7 @@ void player::open(const player_init_data &init_data, video_container_widget *con
     msg::set_level(init_data.log_level);
     set_benchmark(init_data.benchmark);
     reset_playstate();
-    create_decoders(init_data.filenames);
-    create_input(init_data.stereo_layout_override, init_data.stereo_layout, init_data.stereo_layout_swap, init_data.audio_stream);
+    create_media_input(init_data.filenames, init_data.stereo_layout_override, init_data.stereo_layout, init_data.stereo_layout_swap, init_data.audio_stream);
     create_audio_output();
     create_video_output(container_widget);
     open_video_output();
@@ -611,7 +467,7 @@ void player::open(const player_init_data &init_data, video_container_widget *con
     }
     else
     {
-        if (_input->mode() == input::mono)
+        if (_media_input->video_frame_template().stereo_layout == video_frame::mono)
         {
             _params.stereo_mode = parameters::mono_left;
         }
@@ -626,7 +482,11 @@ void player::open(const player_init_data &init_data, video_container_widget *con
         _params.stereo_mode_swap = false;
     }
     _video_output->set_parameters(_params);
-    _video_output->set_suitable_size(_input->video_width(), _input->video_height(), _input->video_aspect_ratio(), _params.stereo_mode);
+    _video_output->set_suitable_size(
+            _media_input->video_frame_template().width,
+            _media_input->video_frame_template().height,
+            _media_input->video_frame_template().aspect_ratio,
+            _params.stereo_mode);
     if (init_data.fullscreen)
     {
         _video_output->enter_fullscreen();
@@ -653,18 +513,12 @@ void player::close()
         delete _video_output;
         _video_output = NULL;
     }
-    if (_input)
+    if (_media_input)
     {
-        try { _input->close(); } catch (...) {}
-        delete _input;
-        _input = NULL;
+        try { _media_input->close(); } catch (...) {}
+        delete _media_input;
+        _media_input = NULL;
     }
-    for (size_t i = 0; i < _decoders.size(); i++)
-    {
-        try { _decoders[i]->close(); } catch (...) {}
-        delete _decoders[i];
-    }
-    _decoders.resize(0);
 }
 
 void player::run()
@@ -684,13 +538,10 @@ void player::run()
         }
         if (prep_frame)
         {
-            get_video_frame();
             prepare_video_frame(_video_output);
-            release_video_frame();
         }
         else if (drop_frame)
         {
-            release_video_frame();
         }
         else if (display_frame)
         {

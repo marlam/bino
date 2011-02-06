@@ -874,11 +874,11 @@ void video_output::reshape(int w, int h)
     float dst_h = h;
     float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
     float src_ar = _frame[_active_index].aspect_ratio;
-    if (_render_last_params.stereo_mode == parameters::left_right)
+    if (_params.stereo_mode == parameters::left_right)
     {
         src_ar *= 2.0f;
     }
-    else if (_render_last_params.stereo_mode == parameters::top_bottom)
+    else if (_params.stereo_mode == parameters::top_bottom)
     {
         src_ar /= 2.0f;
     }

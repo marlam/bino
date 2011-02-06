@@ -28,7 +28,6 @@
 #include <GL/glew.h>
 
 #include "media_data.h"
-#include "decoder.h"
 #include "controller.h"
 
 

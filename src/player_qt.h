@@ -32,7 +32,6 @@
 #include <QTimer>
 #include <QSettings>
 
-#include "input.h"
 #include "controller.h"
 #include "video_output_qt.h"
 #include "player.h"

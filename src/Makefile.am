@@ -11,9 +11,8 @@ bin_PROGRAMS = bino
 
 bino_SOURCES = \
 	media_data.h media_data.cpp \
-	decoder.h decoder.cpp \
-	decoder_ffmpeg.h decoder_ffmpeg.cpp \
-        input.h input.cpp \
+	media_object.h media_object.cpp \
+	media_input.h media_input.cpp \
 	controller.h controller.cpp \
         video_output.h video_output.cpp \
         video_output_qt.h video_output_qt.cpp \

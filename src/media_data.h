@@ -74,9 +74,12 @@ public:
         even_odd_rows   // 1 video source: left view even lines, right view odd lines
     } stereo_layout_t;
 
-    int width;                          // Width in pixels
-    int height;                         // Height in pixels
-    float aspect_ratio;                 // Aspect ratio when displayed
+    int raw_width;                      // Width of the data in pixels
+    int raw_height;                     // Height of the data in pixels
+    float raw_aspect_ratio;             // Aspect ratio of the data
+    int width;                          // Width of one view in pixels
+    int height;                         // Height of one view in pixels
+    float aspect_ratio;                 // Aspect ratio of one view when displayed
     layout_t layout;                    // Data layout
     color_space_t color_space;          // Color space
     value_range_t value_range;          // Value range
@@ -93,10 +96,13 @@ public:
     // Constructor
     video_frame();
 
+    // Set width/height/ar from raw width/height/ar according to stereo layout
+    void set_view_dimensions();
+
     // Does this frame contain valid data?
     bool is_valid() const
     {
-        return (width > 0 && height > 0);
+        return (raw_width > 0 && raw_height > 0);
     }
 
     // Copy the data of the given view (0=left, 1=right) and the given plane (see layout)
@@ -104,7 +110,8 @@ public:
     void copy_plane(int view, int plane, void *dst) const;
 
     // Return a string describing the format (layout, color space, value range, chroma location)
-    std::string format_name() const;
+    std::string format_info() const;    // Human readable information
+    std::string format_name() const;    // Short code
 
     // Convert the stereo layout to and from a string representation
     static std::string stereo_layout_to_string(stereo_layout_t stereo_layout, bool stereo_layout_swap);
@@ -136,8 +143,15 @@ public:
     // Constructor
     audio_blob();
 
+    // Does this blob contain valid data?
+    bool is_valid() const
+    {
+        return (channels > 0 && rate > 0);
+    }
+
     // Return a string describing the format
-    std::string format_name() const;
+    std::string format_info() const;    // Human readable information
+    std::string format_name() const;    // Short code
 
     // Return the number of bits the sample format
     int sample_bits() const;

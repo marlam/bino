@@ -344,6 +344,7 @@ void video_output_qt::trigger_update()
 void video_output_qt::trigger_resize(int w, int h)
 {
     _container_widget->set_recommended_size(w, h);
+    _container_widget->resize(w, h);
     _container_widget->layout()->update();
 }
 

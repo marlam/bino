@@ -31,6 +31,9 @@
 
 
 video_frame::video_frame() :
+    raw_width(-1),
+    raw_height(-1),
+    raw_aspect_ratio(0.0f),
     width(-1),
     height(-1),
     aspect_ratio(0.0f),
@@ -49,6 +52,38 @@ video_frame::video_frame() :
             data[i][p] = NULL;
             line_size[i][p] = 0;
         }
+    }
+}
+
+void video_frame::set_view_dimensions()
+{
+    width = raw_width;
+    height = raw_height;
+    aspect_ratio = raw_aspect_ratio;
+    if (stereo_layout == left_right)
+    {
+        width /= 2;
+        aspect_ratio /= 2.0f;
+    }
+    else if (stereo_layout == left_right_half)
+    {
+        width /= 2;
+    }
+    else if (stereo_layout == top_bottom)
+    {
+        height /= 2;
+        aspect_ratio *= 2.0f;
+    }
+    else if (stereo_layout == top_bottom_half)
+    {
+        height /= 2;
+    }
+    else if (stereo_layout == even_odd_rows)
+    {
+        height /= 2;
+        //aspect_ratio *= 2.0f;
+        // The only video files I know of which use row-alternating format (those from stereopia.com)
+        // do not want this adjustment of aspect ratio.
     }
 }
 
@@ -159,20 +194,20 @@ void video_frame::stereo_layout_from_string(const std::string &s, stereo_layout_
 
 std::string video_frame::format_name() const
 {
-    std::string name;
+    std::string name = str::asprintf("%dx%d-%g:1-", raw_width, raw_height, raw_aspect_ratio);
     switch (layout)
     {
     case bgra32:
-        name = "bgra32";
+        name += "bgra32";
         break;
     case yuv444p:
-        name = "yuv444p";
+        name += "yuv444p";
         break;
     case yuv422p:
-        name = "yuv422p";
+        name += "yuv422p";
         break;
     case yuv420p:
-        name = "yuv420p";
+        name += "yuv420p";
         break;
     }
     switch (color_space)
@@ -214,7 +249,14 @@ std::string video_frame::format_name() const
             break;
         }
     }
+    name += "-";
+    name += stereo_layout_to_string(stereo_layout, stereo_layout_swap);
     return name;
+}
+
+std::string video_frame::format_info() const
+{
+    return str::asprintf("%dx%d, %g:1", width, height, aspect_ratio);
 }
 
 static int next_multiple_of_4(int x)
@@ -331,6 +373,11 @@ audio_blob::audio_blob() :
 {
 }
 
+std::string audio_blob::format_info() const
+{
+    return str::asprintf("%d channels, %g kHz, %d bit", channels, rate / 1e3f, sample_bits());
+}
+
 std::string audio_blob::format_name() const
 {
     const char *sample_format_name;
@@ -349,7 +396,7 @@ std::string audio_blob::format_name() const
         sample_format_name = "d64";
         break;
     }
-    return str::asprintf("%d channels, %d Hz, %s samples", channels, rate, sample_format_name);
+    return str::asprintf("%d-%d-%s", channels, rate, sample_format_name);
 }
 
 int audio_blob::sample_bits() const

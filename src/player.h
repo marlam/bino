@@ -27,9 +27,9 @@
 
 #include "msg.h"
 
-#include "input.h"
 #include "controller.h"
 #include "media_data.h"
+#include "media_input.h"
 #include "audio_output.h"
 #include "video_output_qt.h"
 
@@ -67,8 +67,7 @@ public:
     };
 
 private:
-    std::vector<decoder *> _decoders;
-    input *_input;
+    media_input *_media_input;
     std::vector<controller *> _controllers;
     audio_output *_audio_output;
     video_output *_video_output;
@@ -87,7 +86,8 @@ private:
     int64_t _seek_request;
     float _set_pos_request;
 
-    void *_audio_data;
+    video_frame _video_frame;
+
     size_t _required_audio_data_size;
     int64_t _pause_start;
     // Audio / video timing, relative to a synchronization point.
@@ -113,7 +113,7 @@ protected:
     }
     void reset_playstate();
     void create_decoders(const std::vector<std::string> &filenames);
-    void create_input(bool stereo_layout_override, video_frame::stereo_layout_t stereo_layout, bool stereo_layout_swap, int selected_audio_stream);
+    void create_media_input(const std::vector<std::string> &filenames, bool stereo_layout_override, video_frame::stereo_layout_t stereo_layout, bool stereo_layout_swap, int selected_audio_stream);
     void create_audio_output();
     void create_video_output(video_container_widget *container_widget);
     void set_video_output(video_output *vo)
@@ -125,10 +125,8 @@ protected:
     void make_master();
     void run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
     void seek(int64_t seek_to);
-    void get_video_frame();
     void prepare_video_frame(video_output *vo);
-    void release_video_frame();
-    input *get_input() { return _input; }
+    media_input *get_input() { return _media_input; }
     video_output *get_video_output() { return _video_output; }
 
     void notify(const notification &note);
