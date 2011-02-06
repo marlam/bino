@@ -400,8 +400,8 @@ void in_out_widget::ghostbust_changed()
 void in_out_widget::update(const player_init_data &init_data, bool have_valid_input, bool playing)
 {
     _lock = true;
-    set_input(init_data.stereo_layout, false);
-    set_output(init_data.params.stereo_mode, init_data.params.stereo_mode_swap);
+    set_input(init_data.stereo_layout, init_data.stereo_layout_swap);
+    set_output(init_data.stereo_mode, init_data.stereo_mode_swap);
     _audio_spinbox->setValue(init_data.audio_stream + 1);
     _parallax_spinbox->setValue(init_data.params.parallax);
     _ghostbust_spinbox->setValue(qRound(init_data.params.ghostbust * 100.0f));
@@ -431,21 +431,57 @@ void in_out_widget::input(video_frame::stereo_layout_t &stereo_layout, bool &ste
     {
     case 0:
         stereo_layout = video_frame::mono;
+        stereo_layout_swap = false;
+        break;
     case 1:
         stereo_layout = video_frame::separate;
+        stereo_layout_swap = false;
+        break;
     case 2:
-        stereo_layout = video_frame::top_bottom;
+        stereo_layout = video_frame::separate;
+        stereo_layout_swap = false;
+        break;
     case 3:
-        stereo_layout = video_frame::top_bottom_half;
+        stereo_layout = video_frame::top_bottom;
+        stereo_layout_swap = false;
+        break;
     case 4:
-        stereo_layout = video_frame::left_right;
+        stereo_layout = video_frame::top_bottom_half;
+        stereo_layout_swap = false;
+        break;
     case 5:
-        stereo_layout = video_frame::left_right_half;
+        stereo_layout = video_frame::top_bottom;
+        stereo_layout_swap = true;
+        break;
     case 6:
-    default:
+        stereo_layout = video_frame::top_bottom_half;
+        stereo_layout_swap = true;
+        break;
+    case 7:
+        stereo_layout = video_frame::left_right;
+        stereo_layout_swap = false;
+        break;
+    case 8:
+        stereo_layout = video_frame::left_right_half;
+        stereo_layout_swap = false;
+        break;
+    case 9:
+        stereo_layout = video_frame::left_right;
+        stereo_layout_swap = true;
+        break;
+    case 10:
+        stereo_layout = video_frame::left_right_half;
+        stereo_layout_swap = true;
+        break;
+    case 11:
         stereo_layout = video_frame::even_odd_rows;
+        stereo_layout_swap = false;
+        break;
+    case 12:
+        stereo_layout = video_frame::even_odd_rows;
+        stereo_layout_swap = true;
+        break;
     }
-    stereo_layout_swap = false; // FIXME
 }
 
 int in_out_widget::audio_stream()
@@ -459,33 +495,46 @@ void in_out_widget::output(parameters::stereo_mode_t &stereo_mode, bool &stereo_
     {
     case 0:
         stereo_mode = parameters::mono_left;
+        break;
     case 1:
         stereo_mode = parameters::mono_right;
+        break;
     case 2:
         stereo_mode = parameters::top_bottom;
+        break;
     case 3:
         stereo_mode = parameters::top_bottom_half;
+        break;
     case 4:
         stereo_mode = parameters::left_right;
+        break;
     case 5:
         stereo_mode = parameters::left_right_half;
+        break;
     case 6:
         stereo_mode = parameters::even_odd_rows;
+        break;
     case 7:
         stereo_mode = parameters::even_odd_columns;
+        break;
     case 8:
         stereo_mode = parameters::checkerboard;
+        break;
     case 9:
         stereo_mode = parameters::anaglyph_red_cyan_dubois;
+        break;
     case 10:
         stereo_mode = parameters::anaglyph_red_cyan_monochrome;
+        break;
     case 11:
         stereo_mode = parameters::anaglyph_red_cyan_full_color;
+        break;
     case 12:
         stereo_mode = parameters::anaglyph_red_cyan_half_color;
+        break;
     case 13:
-    default:
         stereo_mode = parameters::stereo;
+        break;
     }
     stereo_mode_swap = _swap_eyes_button->isChecked();
 }
@@ -855,8 +904,10 @@ void main_window::receive_notification(const notification &note)
             // we played it before, and it sets the input/output modes to the
             // current choice.
             _player->close();
+            _init_data.stereo_layout_override = true;
             _in_out_widget->input(_init_data.stereo_layout, _init_data.stereo_layout_swap);
             _init_data.audio_stream = _in_out_widget->audio_stream();
+            _init_data.stereo_mode_override = true;
             _in_out_widget->output(_init_data.params.stereo_mode, _init_data.params.stereo_mode_swap);
             if (!open_player())
             {
@@ -945,20 +996,13 @@ void main_window::dropEvent(QDropEvent *event)
     if (event->mimeData()->hasUrls())
     {
         QList<QUrl> url_list = event->mimeData()->urls();
-        if (url_list.size() > 3)
+        QStringList urls;
+        for (int i = 0; i < url_list.size(); i++)
         {
-            QMessageBox::critical(this, "Error", "Cannot open more than 3 files");
+            urls.append(url_list[i].toString());
         }
-        else
-        {
-            QStringList urls;
-            for (int i = 0; i < url_list.size(); i++)
-            {
-                urls.append(url_list[i].toString());
-            }
-            open(urls, true);
-            event->acceptProposedAction();
-        }
+        open(urls, true);
+        event->acceptProposedAction();
     }
 }
 
