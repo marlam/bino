@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
         argv++;
     }
 #endif
-    if (!opt::parse(argc, argv, options, 0, 3, arguments))
+    if (!opt::parse(argc, argv, options, 0, -1, arguments))
     {
         return 1;
     }
