@@ -73,6 +73,7 @@ void media_input::get_audio_stream(int stream, int &media_object, int &media_obj
     }
 }
 
+// Get the basename of an URL (just the file name, without leading paths)
 static std::string basename(const std::string &url)
 {
     size_t last_slash = url.find_last_of('/');
@@ -257,11 +258,13 @@ size_t media_input::tags() const
 
 const std::string &media_input::tag_name(size_t i) const
 {
+    assert(_tag_names.size() > i);
     return _tag_names[i];
 }
 
 const std::string &media_input::tag_value(size_t i) const
 {
+    assert(_tag_values.size() > i);
     return _tag_values[i];
 }
 
@@ -462,4 +465,20 @@ void media_input::seek(int64_t pos)
 
 void media_input::close()
 {
+    _id = "";
+    for (size_t i = 0; i < _media_objects.size(); i++)
+    {
+        _media_objects[i].close();
+    }
+    _media_objects.resize(0);
+    _tag_names.resize(0);
+    _tag_values.resize(0);
+    _video_stream_names.resize(0);
+    _audio_stream_names.resize(0);
+    _active_video_stream = -1;
+    _active_audio_stream = -1;
+    _initial_skip = 0;
+    _duration = -1;
+    _video_frame = video_frame();
+    _audio_blob = audio_blob();
 }
