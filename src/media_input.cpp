@@ -82,7 +82,14 @@ static std::string basename(const std::string &url)
     {
         i = std::max(last_slash, last_backslash);
     }
-    return url.substr(i + 1);
+    if (i == std::string::npos)
+    {
+        return url;
+    }
+    else
+    {
+        return url.substr(i + 1);
+    }
 }
 
 void media_input::open(const std::vector<std::string> &urls)
