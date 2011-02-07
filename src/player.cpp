@@ -127,7 +127,6 @@ void player::open(const player_init_data &init_data)
     msg::set_level(init_data.log_level);
     _benchmark = init_data.benchmark;
     reset_playstate();
-msg::wrn("A0");
 
     // Create media input
     _media_input = new media_input();
