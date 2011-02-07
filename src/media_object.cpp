@@ -50,8 +50,8 @@ extern "C"
 #include "media_object.h"
 
 
-/* Hide the FFmpeg stuff so that their messy header files cannot cause problems
- * in other source files. */
+// Hide the FFmpeg stuff so that their messy header files cannot cause problems
+// in other source files.
 struct ffmpeg_stuff
 {
     AVFormatContext *format_ctx;
@@ -83,16 +83,9 @@ struct ffmpeg_stuff
     std::vector<int64_t> audio_last_timestamps;
 };
 
-static std::string my_av_strerror(int err)
-{
-    blob b(1024);
-    av_strerror(err, b.ptr<char>(), b.size());
-    return std::string(b.ptr<const char>());
-}
-
+// Use one decoding thread per processor.
 static int decoding_threads()
 {
-    // Use one decoding thread per processor.
     static long n = -1;
     if (n < 0)
     {
@@ -115,6 +108,15 @@ static int decoding_threads()
     return n;
 }
 
+// Return FFmpeg error as std::string.
+static std::string my_av_strerror(int err)
+{
+    blob b(1024);
+    av_strerror(err, b.ptr<char>(), b.size());
+    return std::string(b.ptr<const char>());
+}
+
+// Convert FFmpeg log messages to our log messages.
 static void my_av_log(void *ptr, int level, const char *fmt, va_list vl)
 {
     static std::string line;

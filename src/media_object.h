@@ -30,15 +30,20 @@
 class media_object
 {
 private:
-    std::string _url;
-    struct ffmpeg_stuff *_ffmpeg;
-    std::vector<std::string> _tag_names;
-    std::vector<std::string> _tag_values;
+    std::string _url;                           // The URL of the media object (may be a file)
+    struct ffmpeg_stuff *_ffmpeg;               // FFmpeg related data
+    std::vector<std::string> _tag_names;        // Meta data: tag names
+    std::vector<std::string> _tag_values;       // Meta data: tag values
 
+    // Set video frame and audio blob templates by extracting the information
+    // from the given streams
     void set_video_frame_template(int video_stream);
     void set_audio_blob_template(int audio_stream);
 
+    // Read a packet from the container
     bool read();
+
+    // Handle presentation time stamps
     int64_t handle_timestamp(int64_t &last_timestamp, int64_t timestamp);
     int64_t handle_video_timestamp(int video_stream, int64_t timestamp);
     int64_t handle_audio_timestamp(int audio_stream, int64_t timestamp);
@@ -53,7 +58,7 @@ public:
      * Initialization
      */
 
-    /* Open a file (or URL) to decode. */
+    /* Open a media object. The URL may simply be a file name. */
     void open(const std::string &url);
 
     /* Get metadata */
@@ -71,16 +76,22 @@ public:
     void video_stream_set_active(int video_stream, bool active);
     void audio_stream_set_active(int audio_stream, bool active);
 
-    /* Get information about video streams.
-     * Note that this is only a hint; the properties of actual video frames may differ! */
+    /* Get information about video streams. */
+    // Return a video frame with all properties filled in (but without any data).
+    // Note that this is only a hint; the properties of actual video frames may differ!
     const video_frame &video_frame_template(int video_stream) const;
+    // Return frame rate. This is just informal; usually, the presentation time of each frame
+    // should be used (videos do not need to have constant frame rate).
     int video_frame_rate_numerator(int video_stream) const;
     int video_frame_rate_denominator(int video_stream) const;
+    // Video stream duration in microseconds.
     int64_t video_duration(int video_stream) const;
 
-    /* Get information about audio streams.
-     * Note that this is only a hint; the properties of actual audio blobs may differ! */
+    /* Get information about audio streams. */
+    // Return an audio blob with all properties filled in (but without any data).
+    // Note that this is only a hint; the properties of actual audio blobs may differ!
     const audio_blob &audio_blob_template(int audio_stream) const;
+    // Audio stream duration in microseconds.
     int64_t audio_duration(int video_stream) const;
 
     /*
@@ -111,7 +122,7 @@ public:
      * Cleanup
      */
 
-    /* When done, close the file (or URL) and clean up. */
+    /* When done, close the object and clean up. */
     void close();
 };
 
