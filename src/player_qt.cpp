@@ -51,8 +51,8 @@
 #include "lib_versions.h"
 
 
-player_qt_internal::player_qt_internal()
-    : player(player::master), _playing(false)
+player_qt_internal::player_qt_internal(video_container_widget *widget) :
+    player(player::master), _playing(false), _container_widget(widget)
 {
 }
 
@@ -60,9 +60,9 @@ player_qt_internal::~player_qt_internal()
 {
 }
 
-void player_qt_internal::open(const player_init_data &init_data, video_container_widget *container_widget)
+video_output *player_qt_internal::create_video_output()
 {
-    player::open(init_data, container_widget);
+    return new video_output_qt(_container_widget);
 }
 
 void player_qt_internal::receive_cmd(const command &cmd)
@@ -87,29 +87,7 @@ void player_qt_internal::receive_notification(const notification &note)
 
 bool player_qt_internal::playloop_step()
 {
-    bool more_steps;
-    int64_t seek_to;
-    bool prep_frame;
-    bool drop_frame;
-    bool display_frame;
-
-    run_step(&more_steps, &seek_to, &prep_frame, &drop_frame, &display_frame);
-    if (!more_steps)
-    {
-        return false;
-    }
-    if (prep_frame)
-    {
-        prepare_video_frame(get_video_output());
-    }
-    if (drop_frame)
-    {
-    }
-    if (display_frame)
-    {
-        get_video_output()->activate_next_frame();
-    }
-    return true;
+    return run_step();
 }
 
 void player_qt_internal::force_stop()
@@ -842,17 +820,17 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     raise();
 
     // Player and timer
-    _player = new player_qt_internal();
+    _player = new player_qt_internal(_video_container_widget);
     _timer = new QTimer(this);
     connect(_timer, SIGNAL(timeout()), this, SLOT(playloop_step()));
 
     // Open files if any
-    if (init_data.filenames.size() > 0)
+    if (init_data.urls.size() > 0)
     {
         QStringList filenames;
-        for (size_t i = 0; i < init_data.filenames.size(); i++)
+        for (size_t i = 0; i < init_data.urls.size(); i++)
         {
-            filenames.push_back(QFile::decodeName(init_data.filenames[i].c_str()));
+            filenames.push_back(QFile::decodeName(init_data.urls[i].c_str()));
         }
         open(filenames, false);
     }
@@ -874,7 +852,7 @@ main_window::~main_window()
 QString main_window::current_file_hash()
 {
     // Return SHA1 hash of the name of the current file as a hex string
-    QString name = QFileInfo(QFile::decodeName(_init_data.filenames[0].c_str())).fileName();
+    QString name = QFileInfo(QFile::decodeName(_init_data.urls[0].c_str())).fileName();
     QString hash = QCryptographicHash::hash(name.toUtf8(), QCryptographicHash::Sha1).toHex();
     return hash;
 }
@@ -883,7 +861,7 @@ bool main_window::open_player()
 {
     try
     {
-        _player->open(_init_data, _video_container_widget);
+        _player->open(_init_data);
     }
     catch (std::exception &e)
     {
@@ -915,7 +893,7 @@ void main_window::receive_notification(const notification &note)
             }
             // Remember the input settings of this video, using an SHA1 hash of its filename.
             _settings->beginGroup("Video/" + current_file_hash());
-            if (_init_data.filenames.size() == 1)
+            if (_init_data.urls.size() == 1)
             {
                 _settings->setValue("input-mode", QString(video_frame::stereo_layout_to_string(_init_data.stereo_layout, _init_data.stereo_layout_swap).c_str()));
             }
@@ -1062,10 +1040,10 @@ void main_window::open(QStringList filenames, bool automatic)
 {
     _player->force_stop();
     _player->close();
-    _init_data.filenames.clear();
+    _init_data.urls.clear();
     for (int i = 0; i < filenames.size(); i++)
     {
-        _init_data.filenames.push_back(filenames[i].toLocal8Bit().constData());
+        _init_data.urls.push_back(filenames[i].toLocal8Bit().constData());
     }
     if (automatic)
     {
@@ -1077,7 +1055,7 @@ void main_window::open(QStringList filenames, bool automatic)
         // FIXME re-enable this
 #if 0
         _settings->beginGroup("Video/" + current_file_hash());
-        if (_init_data.filenames.size() == 1)
+        if (_init_data.urls.size() == 1)
         {
             QString fallback = QString(video_frame::stereo_layout_to_input::mode_name(_player->input_mode()).c_str());
             QString mode_name = _settings->value("input-mode", fallback_mode_name).toString();
@@ -1311,7 +1289,7 @@ player_qt::~player_qt()
     delete _settings;
 }
 
-void player_qt::open(const player_init_data &init_data, video_container_widget *)
+void player_qt::open(const player_init_data &init_data)
 {
     msg::set_level(init_data.log_level);
     _main_window = new main_window(_settings, init_data);

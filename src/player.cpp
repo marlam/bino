@@ -39,7 +39,7 @@
 player_init_data::player_init_data()
     : log_level(msg::INF),
     benchmark(false),
-    filenames(),
+    urls(),
     audio_stream(0),
     params(),
     fullscreen(false),
@@ -107,52 +107,9 @@ void player::reset_playstate()
     _set_pos_request = -1.0f;
 }
 
-void player::create_media_input(
-        const std::vector<std::string> &filenames,
-        bool stereo_layout_override, video_frame::stereo_layout_t stereo_layout, bool stereo_layout_swap,
-        int selected_audio_stream)
+video_output *player::create_video_output()
 {
-    _media_input = new media_input();
-    _media_input->open(filenames);
-    if (_media_input->video_streams() == 0)
-    {
-        throw exc("No video streams found.");
-    }
-    if (_media_input->audio_streams() > 0 && _media_input->audio_streams() < selected_audio_stream + 1)
-    {
-        throw exc(str::asprintf("Audio stream %d not found.", selected_audio_stream + 1));
-    }
-    if (_media_input->audio_streams() > 0)
-    {
-        _media_input->select_audio_stream(selected_audio_stream);
-    }
-    if (stereo_layout_override)
-    {
-        if (!_media_input->set_stereo_layout(stereo_layout, stereo_layout_swap))
-        {
-            throw exc("Cannot set requested stereo layout: incompatible media.");
-        }
-    }
-}
-
-void player::create_audio_output()
-{
-    if (_media_input->audio_streams() > 0 && !_benchmark)
-    {
-        _audio_output = new audio_output();
-        _audio_output->init();
-    }
-}
-
-void player::create_video_output(video_container_widget *container_widget)
-{
-    _video_output = new video_output_qt(container_widget);
-}
-
-void player::open_video_output()
-{
-    _video_output->init();
-    _video_output->process_events();
+    return new video_output_qt();
 }
 
 void player::make_master()
@@ -164,7 +121,91 @@ void player::make_master()
     global_player = this;
 }
 
-void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
+void player::open(const player_init_data &init_data)
+{
+    // Initialize basics
+    msg::set_level(init_data.log_level);
+    _benchmark = init_data.benchmark;
+    reset_playstate();
+msg::wrn("A0");
+
+    // Create media input
+    _media_input = new media_input();
+    _media_input->open(init_data.urls);
+    if (_media_input->video_streams() == 0)
+    {
+        throw exc("No video streams found.");
+    }
+    if (_media_input->audio_streams() > 0 && _media_input->audio_streams() < init_data.audio_stream + 1)
+    {
+        throw exc(str::asprintf("Audio stream %d not found.", init_data.audio_stream + 1));
+    }
+    if (_media_input->audio_streams() > 0)
+    {
+        _media_input->select_audio_stream(init_data.audio_stream);
+    }
+    if (init_data.stereo_layout_override)
+    {
+        if (!_media_input->set_stereo_layout(init_data.stereo_layout, init_data.stereo_layout_swap))
+        {
+            throw exc("Cannot set requested stereo layout: incompatible media.");
+        }
+    }
+
+    // Create audio output
+    if (_media_input->audio_streams() > 0 && !_benchmark)
+    {
+        _audio_output = new audio_output();
+        _audio_output->init();
+    }
+
+    // Create video output
+    _video_output = create_video_output();
+    _video_output->init();
+
+    // Initialize output parameters
+    _params = init_data.params;
+    if (init_data.stereo_mode_override)
+    {
+        _params.stereo_mode = init_data.stereo_mode;
+        _params.stereo_mode_swap = init_data.stereo_mode_swap;
+    }
+    else
+    {
+        if (_media_input->video_frame_template().stereo_layout == video_frame::mono)
+        {
+            _params.stereo_mode = parameters::mono_left;
+        }
+        else if (_video_output->supports_stereo())
+        {
+            _params.stereo_mode = parameters::stereo;
+        }
+        else
+        {
+            _params.stereo_mode = parameters::anaglyph_red_cyan_dubois;
+        }
+        _params.stereo_mode_swap = false;
+    }
+
+    // Set initial parameters
+    _video_output->set_parameters(_params);
+    _video_output->set_suitable_size(
+            _media_input->video_frame_template().width,
+            _media_input->video_frame_template().height,
+            _media_input->video_frame_template().aspect_ratio,
+            _params.stereo_mode);
+    if (init_data.fullscreen)
+    {
+        _video_output->enter_fullscreen();
+    }
+    if (init_data.center)
+    {
+        _video_output->center();
+    }
+    _video_output->process_events();
+}
+
+void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
 {
     *more_steps = false;
     *seek_to = -1;
@@ -444,58 +485,37 @@ void player::run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool
     }
 }
 
-void player::prepare_video_frame(video_output *vo)
+bool player::run_step()
 {
-    vo->prepare_next_frame(_video_frame);
+    bool more_steps;
+    int64_t seek_to;
+    bool prep_frame;
+    bool drop_frame;
+    bool display_frame;
+
+    step(&more_steps, &seek_to, &prep_frame, &drop_frame, &display_frame);
+    if (!more_steps)
+    {
+        return false;
+    }
+    if (prep_frame)
+    {
+        _video_output->prepare_next_frame(_video_frame);
+    }
+    else if (drop_frame)
+    {
+    }
+    else if (display_frame)
+    {
+        _video_output->activate_next_frame();
+    }
+    _video_output->process_events();
+    return true;
 }
 
-void player::open(const player_init_data &init_data, video_container_widget *container_widget)
+void player::run()
 {
-    msg::set_level(init_data.log_level);
-    set_benchmark(init_data.benchmark);
-    reset_playstate();
-    create_media_input(init_data.filenames, init_data.stereo_layout_override, init_data.stereo_layout, init_data.stereo_layout_swap, init_data.audio_stream);
-    create_audio_output();
-    create_video_output(container_widget);
-    open_video_output();
-
-    _params = init_data.params;
-    if (init_data.stereo_mode_override)
-    {
-        _params.stereo_mode = init_data.stereo_mode;
-        _params.stereo_mode_swap = init_data.stereo_mode_swap;
-    }
-    else
-    {
-        if (_media_input->video_frame_template().stereo_layout == video_frame::mono)
-        {
-            _params.stereo_mode = parameters::mono_left;
-        }
-        else if (_video_output->supports_stereo())
-        {
-            _params.stereo_mode = parameters::stereo;
-        }
-        else
-        {
-            _params.stereo_mode = parameters::anaglyph_red_cyan_dubois;
-        }
-        _params.stereo_mode_swap = false;
-    }
-    _video_output->set_parameters(_params);
-    _video_output->set_suitable_size(
-            _media_input->video_frame_template().width,
-            _media_input->video_frame_template().height,
-            _media_input->video_frame_template().aspect_ratio,
-            _params.stereo_mode);
-    if (init_data.fullscreen)
-    {
-        _video_output->enter_fullscreen();
-    }
-    if (init_data.center)
-    {
-        _video_output->center();
-    }
-
+    while (run_step());
 }
 
 void player::close()
@@ -518,36 +538,6 @@ void player::close()
         try { _media_input->close(); } catch (...) {}
         delete _media_input;
         _media_input = NULL;
-    }
-}
-
-void player::run()
-{
-    bool more_steps;
-    int64_t seek_to;
-    bool prep_frame;
-    bool drop_frame;
-    bool display_frame;
-
-    for (;;)
-    {
-        run_step(&more_steps, &seek_to, &prep_frame, &drop_frame, &display_frame);
-        if (!more_steps)
-        {
-            break;
-        }
-        if (prep_frame)
-        {
-            prepare_video_frame(_video_output);
-        }
-        else if (drop_frame)
-        {
-        }
-        else if (display_frame)
-        {
-            _video_output->activate_next_frame();
-        }
-        _video_output->process_events();
     }
 }
 

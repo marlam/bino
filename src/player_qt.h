@@ -41,12 +41,15 @@ class player_qt_internal : public player, public controller
 {
 private:
     bool _playing;
+    video_container_widget *_container_widget;
+
+protected:
+    video_output *create_video_output();
 
 public:
-    player_qt_internal();
+    player_qt_internal(video_container_widget *widget = NULL);
     virtual ~player_qt_internal();
 
-    virtual void open(const player_init_data &init_data, video_container_widget *container_widget);
     virtual void receive_cmd(const command &cmd);
 
     virtual void receive_notification(const notification &note);
@@ -196,7 +199,7 @@ public:
         return _settings;
     }
 
-    virtual void open(const player_init_data &init_data, video_container_widget *container_widget = NULL);
+    virtual void open(const player_init_data &init_data);
     virtual void run();
     virtual void close();
 };

@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
     {
         init_data.log_level = msg::REQ;
     }
-    init_data.filenames = arguments;
+    init_data.urls = arguments;
     init_data.audio_stream = audio.value() - 1;
     if (input_mode.value() == "")
     {

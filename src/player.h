@@ -39,7 +39,7 @@ class player_init_data
 public:
     msg::level_t log_level;
     bool benchmark;
-    std::vector<std::string> filenames;
+    std::vector<std::string> urls;
     int audio_stream;
     parameters params;
     bool fullscreen;
@@ -106,28 +106,19 @@ private:
 
     float normalize_pos(int64_t pos);   // transform a position into [0,1]
 
-protected:
-    void set_benchmark(bool benchmark)
-    {
-        _benchmark = benchmark;
-    }
-    void reset_playstate();
-    void create_decoders(const std::vector<std::string> &filenames);
-    void create_media_input(const std::vector<std::string> &filenames, bool stereo_layout_override, video_frame::stereo_layout_t stereo_layout, bool stereo_layout_swap, int selected_audio_stream);
-    void create_audio_output();
-    void create_video_output(video_container_widget *container_widget);
-    void set_video_output(video_output *vo)
-    {
-        _video_output = vo;
-    }
-    parameters &params() { return _params; }
-    void open_video_output();
     void make_master();
-    void run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
-    void seek(int64_t seek_to);
-    void prepare_video_frame(video_output *vo);
-    media_input *get_input() { return _media_input; }
-    video_output *get_video_output() { return _video_output; }
+    void reset_playstate();
+    void step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
+
+protected:
+    virtual video_output *create_video_output();
+
+    bool run_step();
+
+    video_output *get_video_output()
+    {
+        return _video_output;
+    }
 
     void notify(const notification &note);
     void notify(enum notification::type t, bool p, bool c) { notify(notification(t, p, c)); }
@@ -141,7 +132,7 @@ public:
     virtual ~player();
 
     /* Open a player. */
-    virtual void open(const player_init_data &init_data, video_container_widget *container_widget = NULL);
+    virtual void open(const player_init_data &init_data);
 
     /* Run the player. It will take care of all interaction. This function
      * returns when the user quits the player. */
