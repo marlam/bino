@@ -52,7 +52,7 @@
 
 
 player_qt_internal::player_qt_internal(video_container_widget *widget) :
-    player(player::master), _playing(false), _container_widget(widget)
+    player(player::master), _playing(false), _container_widget(widget), _video_output(NULL)
 {
 }
 
@@ -62,7 +62,8 @@ player_qt_internal::~player_qt_internal()
 
 video_output *player_qt_internal::create_video_output()
 {
-    return new video_output_qt(_container_widget);
+    _video_output = new video_output_qt(_container_widget);
+    return _video_output;
 }
 
 void player_qt_internal::receive_cmd(const command &cmd)
@@ -97,10 +98,9 @@ void player_qt_internal::force_stop()
 
 void player_qt_internal::move_event()
 {
-    video_output_qt *vo = static_cast<video_output_qt *>(get_video_output());
-    if (vo)
+    if (_video_output)
     {
-        vo->move_event();
+        _video_output->move_event();
     }
 }
 

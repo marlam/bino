@@ -115,11 +115,6 @@ protected:
 
     bool run_step();
 
-    video_output *get_video_output()
-    {
-        return _video_output;
-    }
-
     void notify(const notification &note);
     void notify(enum notification::type t, bool p, bool c) { notify(notification(t, p, c)); }
     void notify(enum notification::type t, float p, float c) { notify(notification(t, p, c)); }

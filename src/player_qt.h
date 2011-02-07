@@ -42,6 +42,7 @@ class player_qt_internal : public player, public controller
 private:
     bool _playing;
     video_container_widget *_container_widget;
+    video_output_qt *_video_output;
 
 protected:
     video_output *create_video_output();
