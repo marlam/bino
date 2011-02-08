@@ -294,15 +294,23 @@ void video_output_qt::create_widget()
             || (_format.doubleBuffer() && !_widget->format().doubleBuffer())
             || (_format.stereo() && !_widget->format().stereo()))
     {
-        if (_format.stereo())
+        try
         {
-            // Common failure: display does not support quad buffered stereo
-            throw exc("The display does not support OpenGL stereo mode");
+            if (_format.stereo())
+            {
+                // Common failure: display does not support quad buffered stereo
+                throw exc("The display does not support OpenGL stereo mode");
+            }
+            else
+            {
+                // Should never happen
+                throw exc("Cannot set GL context format");
+            }
         }
-        else
+        catch (std::exception &e)
         {
-            // Should never happen
-            throw exc("Cannot set GL context format");
+            QMessageBox::critical(_widget, "Error", e.what());
+            abort();
         }
     }
     QGridLayout *container_layout = new QGridLayout();

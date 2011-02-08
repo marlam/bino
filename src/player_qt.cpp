@@ -50,6 +50,9 @@
 #include "video_output_qt.h"
 #include "lib_versions.h"
 
+#include "dbg.h"
+#include "msg.h"
+
 
 player_qt_internal::player_qt_internal(video_container_widget *widget) :
     player(player::master), _playing(false), _container_widget(widget), _video_output(NULL)
@@ -111,7 +114,7 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     QGridLayout *layout0 = new QGridLayout;
     QLabel *input_label = new QLabel("Input:");
     input_label->setToolTip(
-            "<p>Set the 3D layout type of your input file(s).</p>");
+            "<p>Set the 3D layout of your input file(s).</p>");
     layout0->addWidget(input_label, 0, 0);
     _input_combobox = new QComboBox(this);
     _input_combobox->setToolTip(input_label->toolTip());
@@ -162,6 +165,8 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     _output_combobox->addItem("Red/cyan glasses, full-color method");
     _output_combobox->addItem("Red/cyan glasses, half-color method");
     _output_combobox->addItem("OpenGL stereo");
+    // TODO: OpenGL stereo must never be activated when the display does not support it, 
+    // because that leads to an abort(). So catch this case and fall back to a safe mode.
     layout1->addWidget(_output_combobox, 1, 1);
     layout1->setColumnStretch(1, 1);
     QGridLayout *layout2 = new QGridLayout;
@@ -328,14 +333,14 @@ void in_out_widget::input_changed()
     if (stereo_layout == video_frame::mono
             && !(stereo_mode == parameters::mono_left || stereo_mode == parameters::mono_right))
     {
-        QString s = _settings->value("Session/2d-output-mode", "").toString();
+        QString s = _settings->value("Session/2d-stereo-mode", "").toString();
         parameters::stereo_mode_from_string(s.toStdString(), stereo_mode, stereo_mode_swap);
         set_output(stereo_mode, stereo_mode_swap);
     }
     else if (stereo_layout != video_frame::mono
             && (stereo_mode == parameters::mono_left || stereo_mode == parameters::mono_right))
     {
-        QString s = _settings->value("Session/3d-output-mode", "").toString();
+        QString s = _settings->value("Session/3d-stereo-mode", "").toString();
         parameters::stereo_mode_from_string(s.toStdString(), stereo_mode, stereo_mode_swap);
         set_output(stereo_mode, stereo_mode_swap);
     }
@@ -561,8 +566,7 @@ controls_widget::controls_widget(QSettings *settings, QWidget *parent)
     _seek_slider = new QSlider(Qt::Horizontal);
     _seek_slider->setToolTip(
             "<p>This slider shows the progress during video playback, "
-            "and can be used to seek in the video. Note that this may "
-            "not work with all videos.</p>");
+            "and can be used to seek in the video.</p>");
     _seek_slider->setRange(0, 2000);
     _seek_slider->setTracking(false);
     connect(_seek_slider, SIGNAL(valueChanged(int)), this, SLOT(seek_slider_changed()));
@@ -745,8 +749,12 @@ void controls_widget::receive_notification(const notification &note)
 }
 
 
-main_window::main_window(QSettings *settings, const player_init_data &init_data)
-    : _settings(settings), _player(NULL), _init_data(init_data), _stop_request(false)
+main_window::main_window(QSettings *settings, const player_init_data &init_data) :
+    _settings(settings),
+    _player(NULL),
+    _init_data(init_data),
+    _init_data_template(init_data),
+    _stop_request(false)
 {
     // Application properties
     setWindowTitle(PACKAGE_NAME);
@@ -754,10 +762,20 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
 
     // Load preferences
     _settings->beginGroup("Session");
-    _init_data.params.crosstalk_r = _settings->value("crosstalk_r", QString("0")).toFloat();
-    _init_data.params.crosstalk_g = _settings->value("crosstalk_g", QString("0")).toFloat();
-    _init_data.params.crosstalk_b = _settings->value("crosstalk_b", QString("0")).toFloat();
+    if (!(_init_data.params.crosstalk_r >= 0.0f && _init_data.params.crosstalk_r <= 1.0f))
+    {
+        _init_data.params.crosstalk_r = _settings->value("crosstalk_r", QString("0")).toFloat();
+    }
+    if (!(_init_data.params.crosstalk_g >= 0.0f && _init_data.params.crosstalk_g <= 1.0f))
+    {
+        _init_data.params.crosstalk_g = _settings->value("crosstalk_g", QString("0")).toFloat();
+    }
+    if (!(_init_data.params.crosstalk_b >= 0.0f && _init_data.params.crosstalk_b <= 1.0f))
+    {
+        _init_data.params.crosstalk_b = _settings->value("crosstalk_b", QString("0")).toFloat();
+    }
     _settings->endGroup();
+    _init_data.params.set_defaults();
 
     // Central widget
     QWidget *central_widget = new QWidget(this);
@@ -816,27 +834,28 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     // Handle Drop events
     setAcceptDrops(true);
 
-    show();     // Must happen before opening initial files!
-    raise();
-
     // Player and timer
     _player = new player_qt_internal(_video_container_widget);
     _timer = new QTimer(this);
     connect(_timer, SIGNAL(timeout()), this, SLOT(playloop_step()));
 
+    // Update widget contents
+    _in_out_widget->update(_init_data, false, false);
+    _controls_widget->update(_init_data, false, false);
+
+    // Show window. Must happen before opening initial files!
+    show();
+    raise();
+
     // Open files if any
     if (init_data.urls.size() > 0)
     {
-        QStringList filenames;
+        QStringList urls;
         for (size_t i = 0; i < init_data.urls.size(); i++)
         {
-            filenames.push_back(QFile::decodeName(init_data.urls[i].c_str()));
+            urls.push_back(QFile::decodeName(init_data.urls[i].c_str()));
         }
-        open(filenames, false);
-    }
-    else
-    {
-        adjustSize();   // Adjust size for initial dummy video widget
+        open(urls);
     }
 }
 
@@ -865,7 +884,7 @@ bool main_window::open_player()
     }
     catch (std::exception &e)
     {
-        QMessageBox::critical(this, "Error", tr("%1").arg(e.what()));
+        QMessageBox::critical(this, "Error", e.what());
         return false;
     }
     adjustSize();
@@ -886,28 +905,19 @@ void main_window::receive_notification(const notification &note)
             _in_out_widget->input(_init_data.stereo_layout, _init_data.stereo_layout_swap);
             _init_data.audio_stream = _in_out_widget->audio_stream();
             _init_data.stereo_mode_override = true;
-            _in_out_widget->output(_init_data.params.stereo_mode, _init_data.params.stereo_mode_swap);
+            _in_out_widget->output(_init_data.stereo_mode, _init_data.stereo_mode_swap);
             if (!open_player())
             {
                 _stop_request = true;
             }
             // Remember the input settings of this video, using an SHA1 hash of its filename.
             _settings->beginGroup("Video/" + current_file_hash());
-            if (_init_data.urls.size() == 1)
-            {
-                _settings->setValue("input-mode", QString(video_frame::stereo_layout_to_string(_init_data.stereo_layout, _init_data.stereo_layout_swap).c_str()));
-            }
-            _settings->setValue("audio-stream", QVariant(_init_data.audio_stream + 1).toString());
+            _settings->setValue("stereo-layout", QString(video_frame::stereo_layout_to_string(_init_data.stereo_layout, _init_data.stereo_layout_swap).c_str()));
+            _settings->setValue("audio-stream", QVariant(_init_data.audio_stream).toString());
             _settings->endGroup();
             // Remember the 2D or 3D video output mode.
-            if (_init_data.stereo_layout == video_frame::mono)
-            {
-                _settings->setValue("Session/2d-output-mode", QString(parameters::stereo_mode_to_string(_init_data.params.stereo_mode, _init_data.params.stereo_mode_swap).c_str()));
-            }
-            else
-            {
-                _settings->setValue("Session/3d-output-mode", QString(parameters::stereo_mode_to_string(_init_data.params.stereo_mode, _init_data.params.stereo_mode_swap).c_str()));
-            }
+            _settings->setValue((_init_data.stereo_layout == video_frame::mono ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode"),
+                    QString(parameters::stereo_mode_to_string(_init_data.stereo_mode, _init_data.stereo_mode_swap).c_str()));
             // Update widgets: we're now playing
             _in_out_widget->update(_init_data, true, true);
             _controls_widget->update(_init_data, true, true);
@@ -940,10 +950,7 @@ void main_window::receive_notification(const notification &note)
     }
     else if (note.type == notification::stereo_mode_swap)
     {
-        _init_data.params.stereo_mode_swap = note.current.flag;
-        _settings->beginGroup("Video/" + current_file_hash());
-        _settings->setValue("stereo-mode-swap", QVariant(_init_data.params.stereo_mode_swap).toString());
-        _settings->endGroup();
+        // TODO: save stereo mode
     }
     else if (note.type == notification::parallax)
     {
@@ -979,7 +986,7 @@ void main_window::dropEvent(QDropEvent *event)
         {
             urls.append(url_list[i].toString());
         }
-        open(urls, true);
+        open(urls);
         event->acceptProposedAction();
     }
 }
@@ -1004,7 +1011,7 @@ bool main_window::eventFilter(QObject *obj, QEvent *event)
 {
     if (event->type() == QEvent::FileOpen)
     {
-        open(QStringList(static_cast<QFileOpenEvent *>(event)->file()), true);
+        open(QStringList(static_cast<QFileOpenEvent *>(event)->file()));
         return true;
     }
     else
@@ -1030,73 +1037,63 @@ void main_window::playloop_step()
         _player->force_stop();
         _stop_request = false;
     }
-    else if (!_player->playloop_step())
+    else
     {
-        _timer->stop();
+        bool r = false;
+        try
+        {
+            r = _player->playloop_step();
+        }
+        catch (std::exception &e)
+        {
+            QMessageBox::critical(this, "Error", e.what());
+        }
+        if (!r)
+        {
+            _timer->stop();
+        }
     }
 }
 
-void main_window::open(QStringList filenames, bool automatic)
+void main_window::open(QStringList filenames)
 {
     _player->force_stop();
     _player->close();
+    _init_data = _init_data_template;
     _init_data.urls.clear();
     for (int i = 0; i < filenames.size(); i++)
     {
         _init_data.urls.push_back(filenames[i].toLocal8Bit().constData());
     }
-    if (automatic)
-    {
-        _init_data.stereo_layout_override = false;
-        _init_data.stereo_mode_override = false;
-    }
     if (open_player())
     {
-        // FIXME re-enable this
-#if 0
         _settings->beginGroup("Video/" + current_file_hash());
-        if (_init_data.urls.size() == 1)
-        {
-            QString fallback = QString(video_frame::stereo_layout_to_input::mode_name(_player->input_mode()).c_str());
-            QString mode_name = _settings->value("input-mode", fallback_mode_name).toString();
-            _init_data.input_mode = input::mode_from_name(mode_name.toStdString());
-        }
-        else
-        {
-            _init_data.input_mode = _player->input_mode();
-        }
-        _init_data.audio_stream = QVariant(_settings->value("audio-stream", QString("1")).toString()).toInt() - 1;
-        _init_data.params.swap_eyes = QVariant(_settings->value("swap-eyes", QString("false")).toString()).toBool();
-        _init_data.params.parallax = QVariant(_settings->value("parallax", QString("0")).toString()).toFloat();
-        _init_data.params.ghostbust = QVariant(_settings->value("ghostbust", QString("0")).toString()).toFloat();
+        // Get stereo layout for this video
+        QString layout_fallback = QString(video_frame::stereo_layout_to_string(
+                    _player->get_media_input().video_frame_template().stereo_layout,
+                    _player->get_media_input().video_frame_template().stereo_layout_swap).c_str());
+        QString layout_name = _settings->value("stereo-layout", layout_fallback).toString();
+        video_frame::stereo_layout_from_string(layout_name.toStdString(), _init_data.stereo_layout, _init_data.stereo_layout_swap);
+        _init_data.stereo_layout_override = true;
+        // Get output parameters for this video
+        _init_data.audio_stream = QVariant(_settings->value("audio-stream", QVariant(_init_data.audio_stream)).toString()).toInt();
+        _init_data.params.parallax = QVariant(_settings->value("parallax", QVariant(_init_data.params.parallax)).toString()).toFloat();
+        _init_data.params.ghostbust = QVariant(_settings->value("ghostbust", QVariant(_init_data.params.ghostbust)).toString()).toFloat();
+        // Get stereo mode for this video
         _settings->endGroup();
-        if (automatic)
-        {
-            if (_init_data.input_mode == input::mono)
-            {
-                QString fallback_mode_name = QString(video_output::mode_name(video_output::mono_left).c_str());
-                QString mode_name = _settings->value("Session/2d-output-mode", fallback_mode_name).toString();
-                _init_data.video_mode = video_output::mode_from_name(mode_name.toStdString());
-            }
-            else
-            {
-                QString fallback_mode_name = QString(video_output::mode_name(video_output::anaglyph_red_cyan_dubois).c_str());
-                QString mode_name = _settings->value("Session/3d-output-mode", fallback_mode_name).toString();
-                _init_data.video_mode = video_output::mode_from_name(mode_name.toStdString());
-            }
-        }
-        else
-        {
-            _init_data.video_mode = _player->video_mode();
-        }
-#endif
+        QString mode_fallback = QString(parameters::stereo_mode_to_string(
+                    _player->get_parameters().stereo_mode,
+                    _player->get_parameters().stereo_mode_swap).c_str());
+        QString mode_name = _settings->value(
+                (_init_data.stereo_layout == video_frame::mono ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode"),
+                mode_fallback).toString();
+        parameters::stereo_mode_from_string(mode_name.toStdString(), _init_data.stereo_mode, _init_data.stereo_mode_swap);
+        _init_data.stereo_mode_override = true;
+        // Fill in the rest with defaults
+        _init_data.params.set_defaults();
+        // Update the widget with the new settings
         _in_out_widget->update(_init_data, true, false);
         _controls_widget->update(_init_data, true, false);
-    }
-    else
-    {
-        _in_out_widget->update(_init_data, false, false);
-        _controls_widget->update(_init_data, false, false);
     }
 }
 
@@ -1104,7 +1101,7 @@ void main_window::file_open()
 {
     QFileDialog *file_dialog = new QFileDialog(this);
     file_dialog->setDirectory(_settings->value("Session/file-open-dir", QDir::currentPath()).toString());
-    file_dialog->setWindowTitle("Open up to three files");
+    file_dialog->setWindowTitle("Open files");
     file_dialog->setAcceptMode(QFileDialog::AcceptOpen);
     file_dialog->setFileMode(QFileDialog::ExistingFiles);
     if (!file_dialog->exec())
@@ -1116,13 +1113,8 @@ void main_window::file_open()
     {
         return;
     }
-    if (file_names.size() > 3)
-    {
-        QMessageBox::critical(this, "Error", "Cannot open more than 3 files");
-        return;
-    }
     _settings->setValue("Session/file-open-dir", file_dialog->directory().path());
-    open(file_names, true);
+    open(file_names);
 }
 
 void main_window::file_open_url()
@@ -1148,7 +1140,7 @@ void main_window::file_open_url()
             && !url_edit->text().isEmpty())
     {
         QString url = url_edit->text();
-        open(QStringList(url), true);
+        open(QStringList(url));
     }
 }
 

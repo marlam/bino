@@ -108,11 +108,11 @@ int main(int argc, char *argv[])
     options.push_back(&swap_eyes);
     opt::flag benchmark("benchmark", 'b', opt::optional);
     options.push_back(&benchmark);
-    opt::val<float> parallax("parallax", 'P', opt::optional, -1.0f, +1.0f, std::numeric_limits<float>::min());
+    opt::val<float> parallax("parallax", 'P', opt::optional, -1.0f, +1.0f, parameters().parallax);
     options.push_back(&parallax);
-    opt::tuple<float> crosstalk("crosstalk", 'C', opt::optional, 0.0f, 1.0f, std::vector<float>(3, std::numeric_limits<float>::min()), 3);
+    opt::tuple<float> crosstalk("crosstalk", 'C', opt::optional, 0.0f, 1.0f, std::vector<float>(3, parameters().crosstalk_r), 3);
     options.push_back(&crosstalk);
-    opt::val<float> ghostbust("ghostbust", 'G', opt::optional, 0.0f, 1.0f, std::numeric_limits<float>::min());
+    opt::val<float> ghostbust("ghostbust", 'G', opt::optional, 0.0f, 1.0f, parameters().ghostbust);
     options.push_back(&ghostbust);
     // Accept some Equalizer options. These are passed to Equalizer for interpretation.
     opt::val<std::string> eq_server("eq-server", '\0', opt::optional);

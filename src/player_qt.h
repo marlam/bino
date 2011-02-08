@@ -153,11 +153,12 @@ private:
     player_qt_internal *_player;
     QTimer *_timer;
     player_init_data _init_data;
+    const player_init_data _init_data_template;
     bool _stop_request;
 
     QString current_file_hash();
     bool open_player();
-    void open(QStringList filenames, bool automatic);
+    void open(QStringList urls);
 
 private slots:
     void move_event();
