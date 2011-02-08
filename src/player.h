@@ -37,12 +37,17 @@
 class player_init_data
 {
 public:
+    // Level of log messages
     msg::level_t log_level;
-    bool benchmark;
+    // Input media objects
     std::vector<std::string> urls;
+    // Selected audio stream
     int audio_stream;
-    parameters params;
+    // Benchmark mode?
+    bool benchmark;
+    // Make video fullscreen?
     bool fullscreen;
+    // Center video on screen?
     bool center;
     // Manual input layout override
     bool stereo_layout_override;
@@ -52,6 +57,8 @@ public:
     bool stereo_mode_override;
     parameters::stereo_mode_t stereo_mode;
     bool stereo_mode_swap;
+    // Initial output parameters
+    parameters params;
 
 public:
     player_init_data();
@@ -128,6 +135,16 @@ public:
 
     /* Open a player. */
     virtual void open(const player_init_data &init_data);
+
+    /* Get information about input and output parameters */
+    const media_input &get_media_input() const
+    {
+        return *_media_input;
+    }
+    const parameters &get_parameters() const
+    {
+        return _params;
+    }
 
     /* Run the player. It will take care of all interaction. This function
      * returns when the user quits the player. */

@@ -108,11 +108,11 @@ int main(int argc, char *argv[])
     options.push_back(&swap_eyes);
     opt::flag benchmark("benchmark", 'b', opt::optional);
     options.push_back(&benchmark);
-    opt::val<float> parallax("parallax", 'P', opt::optional, -1.0f, +1.0f, 0.0f);
+    opt::val<float> parallax("parallax", 'P', opt::optional, -1.0f, +1.0f, std::numeric_limits<float>::min());
     options.push_back(&parallax);
-    opt::tuple<float> crosstalk("crosstalk", 'C', opt::optional, 0.0f, 100.0f, std::vector<float>(3, 0.0f));
+    opt::tuple<float> crosstalk("crosstalk", 'C', opt::optional, 0.0f, 1.0f, std::vector<float>(3, std::numeric_limits<float>::min()), 3);
     options.push_back(&crosstalk);
-    opt::val<float> ghostbust("ghostbust", 'G', opt::optional, 0.0f, 100.0f);
+    opt::val<float> ghostbust("ghostbust", 'G', opt::optional, 0.0f, 1.0f, std::numeric_limits<float>::min());
     options.push_back(&ghostbust);
     // Accept some Equalizer options. These are passed to Equalizer for interpretation.
     opt::val<std::string> eq_server("eq-server", '\0', opt::optional);
@@ -204,9 +204,9 @@ int main(int argc, char *argv[])
                 "  -f|--fullscreen      Fullscreen\n"
                 "  -c|--center          Center window on screen\n"
                 "  -P|--parallax=VAL    Parallax adjustment (-1 to +1)\n"
-                "  -C|--crosstalk=VAL   Crosstalk leak level in %% (0 to 100). VAL may\n"
-                "                       be one value or comma-separated R,G,B values.\n"
-                "  -G|--ghostbust=VAL   Amount of ghostbusting to apply, in %% (0 to 100).\n"
+                "  -C|--crosstalk=VAL   Crosstalk leak level (0 to 1); comma-separated\n"
+                "                       values for the R,G,B channels.\n"
+                "  -G|--ghostbust=VAL   Amount of ghostbusting to apply (0 to 1).\n"
                 "  -b|--benchmark       Benchmark mode (no audio, no timesync, show fps)\n"
                 "\n"
                 "Interactive control:\n"
@@ -230,11 +230,6 @@ int main(int argc, char *argv[])
     if (version.value() || help.value())
     {
         return 0;
-    }
-    if (crosstalk.value().size() != 1 && crosstalk.value().size() != 3)
-    {
-        msg::err("Invalid crosstalk levels");
-        return 1;
     }
 
 #if HAVE_LIBEQUALIZER
@@ -327,10 +322,10 @@ int main(int argc, char *argv[])
         msg::inf("Benchmark mode: audio and time synchronization disabled");
     }
     init_data.params.parallax = parallax.value();
-    init_data.params.crosstalk_r = crosstalk.value()[0] / 100.0f;
-    init_data.params.crosstalk_g = crosstalk.value()[crosstalk.value().size() == 3 ? 1 : 0] / 100.0f;
-    init_data.params.crosstalk_b = crosstalk.value()[crosstalk.value().size() == 3 ? 2 : 0] / 100.0f;
-    init_data.params.ghostbust = ghostbust.value() / 100.0f;
+    init_data.params.crosstalk_r = crosstalk.value()[0];
+    init_data.params.crosstalk_g = crosstalk.value()[1];
+    init_data.params.crosstalk_b = crosstalk.value()[2];
+    init_data.params.ghostbust = ghostbust.value();
     init_data.params.stereo_mode_swap = swap_eyes.value();
 
     int retval = 0;

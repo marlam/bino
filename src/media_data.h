@@ -193,6 +193,9 @@ public:
 
     // Constructor
     parameters();
+
+    // Set all uninitialised values to their defaults
+    void set_defaults();
     
     // Convert the stereo mode to and from a string representation
     static std::string stereo_mode_to_string(stereo_mode_t stereo_mode, bool stereo_mode_swap);

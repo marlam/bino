@@ -38,10 +38,9 @@
 
 player_init_data::player_init_data()
     : log_level(msg::INF),
-    benchmark(false),
     urls(),
     audio_stream(0),
-    params(),
+    benchmark(false),
     fullscreen(false),
     center(false),
     stereo_layout_override(false),
@@ -49,7 +48,8 @@ player_init_data::player_init_data()
     stereo_layout_swap(false),
     stereo_mode_override(false),
     stereo_mode(parameters::mono_left),
-    stereo_mode_swap(false)
+    stereo_mode_swap(false),
+    params()
 {
 }
 
@@ -164,6 +164,7 @@ void player::open(const player_init_data &init_data)
 
     // Initialize output parameters
     _params = init_data.params;
+    _params.set_defaults();
     if (init_data.stereo_mode_override)
     {
         _params.stereo_mode = init_data.stereo_mode;

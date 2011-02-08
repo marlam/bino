@@ -421,16 +421,56 @@ int audio_blob::sample_bits() const
 parameters::parameters() :
     stereo_mode(stereo),
     stereo_mode_swap(false),
-    parallax(0.0f),
-    crosstalk_r(0.0f),
-    crosstalk_g(0.0f),
-    crosstalk_b(0.0f),
-    ghostbust(0.0f),
-    contrast(0.0f),
-    brightness(0.0f),
-    hue(0.0f),
-    saturation(0.0f)
+    parallax(std::numeric_limits<float>::min()),
+    crosstalk_r(std::numeric_limits<float>::min()),
+    crosstalk_g(std::numeric_limits<float>::min()),
+    crosstalk_b(std::numeric_limits<float>::min()),
+    ghostbust(std::numeric_limits<float>::min()),
+    contrast(std::numeric_limits<float>::min()),
+    brightness(std::numeric_limits<float>::min()),
+    hue(std::numeric_limits<float>::min()),
+    saturation(std::numeric_limits<float>::min())
 {
+}
+
+void parameters::set_defaults()
+{
+    if (parallax < -1.0f || parallax > +1.0f)
+    {
+        parallax = 0.0f;
+    }
+    if (crosstalk_r < 0.0f || crosstalk_r > +1.0f)
+    {
+        crosstalk_r = 0.0f;
+    }
+    if (crosstalk_g < 0.0f || crosstalk_g > +1.0f)
+    {
+        crosstalk_g = 0.0f;
+    }
+    if (crosstalk_b < 0.0f || crosstalk_b > +1.0f)
+    {
+        crosstalk_b = 0.0f;
+    }
+    if (ghostbust < 0.0f || ghostbust > +1.0f)
+    {
+        ghostbust = 0.0f;
+    }
+    if (contrast < -1.0f || contrast > +1.0f)
+    {
+        contrast = 0.0f;
+    }
+    if (brightness < -1.0f || brightness > +1.0f)
+    {
+        brightness = 0.0f;
+    }
+    if (hue < -1.0f || hue > +1.0f)
+    {
+        hue = 0.0f;
+    }
+    if (saturation < -1.0f || saturation > +1.0f)
+    {
+        saturation = 0.0f;
+    }
 }
 
 std::string parameters::stereo_mode_to_string(stereo_mode_t stereo_mode, bool stereo_mode_swap)
