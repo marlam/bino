@@ -364,9 +364,11 @@ void video_output::prepare_next_frame(const video_frame &frame)
             assert(reinterpret_cast<uintptr_t>(pboptr) % 4 == 0);
             // Get the plane data into the pbo
             frame.copy_plane(i, plane, pboptr);
-            // Upload the data to the texture
+            // Upload the data to the texture. We need to set GL_UNPACK_ROW_LENGTH for
+            // misbehaving OpenGL implementations that do not seem to honor
+            // GL_UNPACK_ALIGNMENT correctly in all cases (reported for Mac).
             glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-            glPixelStorei(GL_UNPACK_ROW_LENGTH, w);
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, next_multiple_of_4(w));
             glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, tex);
