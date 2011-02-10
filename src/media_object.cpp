@@ -551,7 +551,7 @@ void media_object::open(const std::string &url)
                 _ffmpeg->video_img_conv_ctxs.push_back(sws_getContext(
                             _ffmpeg->video_codec_ctxs[j]->width, _ffmpeg->video_codec_ctxs[j]->height, _ffmpeg->video_codec_ctxs[j]->pix_fmt,
                             _ffmpeg->video_codec_ctxs[j]->width, _ffmpeg->video_codec_ctxs[j]->height, PIX_FMT_BGRA,
-                            SWS_FAST_BILINEAR, NULL, NULL, NULL));
+                            SWS_POINT, NULL, NULL, NULL));
                 if (!_ffmpeg->video_img_conv_ctxs[j])
                 {
                     throw exc(_url + " stream " + str::from(i) + ": Cannot initialize conversion context");
