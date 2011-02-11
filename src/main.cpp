@@ -64,8 +64,8 @@ int main(int argc, char *argv[])
     options.push_back(&log_level);
     std::vector<std::string> input_modes;
     input_modes.push_back("mono");
-    input_modes.push_back("separate");
-    input_modes.push_back("separate-swap");
+    input_modes.push_back("separate-left-right");
+    input_modes.push_back("separate-right-left");
     input_modes.push_back("top-bottom");
     input_modes.push_back("top-bottom-half");
     input_modes.push_back("bottom-top");
@@ -169,8 +169,8 @@ int main(int argc, char *argv[])
                 "  -a|--audio=STREAM    Select audio stream (1-n, depending on the input)\n"
                 "  -i|--input=TYPE      Select input type (default autodetect):\n"
                 "    mono                 Single view\n"
-                "    separate             Left/right view in separate streams, left first\n"
-                "    separate-swap        Left/right view in separate streams, right first\n"
+                "    separate-left-right  Left/right view in separate streams, left first\n"
+                "    separate-right-left  Left/right view in separate streams, right first\n"
                 "    top-bottom           Left view top, right view bottom\n"
                 "    top-bottom-half      Left view top, right view bottom, half height\n"
                 "    bottom-top           Left view bottom, right view top\n"

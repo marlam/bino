@@ -97,7 +97,7 @@ std::string video_frame::stereo_layout_to_string(stereo_layout_t stereo_layout, 
         s = "mono";
         break;
     case separate:
-        s = stereo_layout_swap ? "separate-swap" : "separate";
+        s = stereo_layout_swap ? "separate-right-left" : "separate-left-right";
         break;
     case top_bottom:
         s = stereo_layout_swap ? "bottom-top" : "top-bottom";
@@ -125,12 +125,12 @@ void video_frame::stereo_layout_from_string(const std::string &s, stereo_layout_
         stereo_layout = mono;
         stereo_layout_swap = false;
     }
-    else if (s == "separate-swap")
+    else if (s == "separate-right-left")
     {
         stereo_layout = separate;
         stereo_layout_swap = true;
     }
-    else if (s == "separate")
+    else if (s == "separate-left-right")
     {
         stereo_layout = separate;
         stereo_layout_swap = false;
