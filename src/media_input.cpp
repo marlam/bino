@@ -356,7 +356,14 @@ void media_input::set_stereo_layout(video_frame::stereo_layout_t layout, bool sw
     _video_frame.set_view_dimensions();
     if (layout == video_frame::separate)
     {
-        _active_video_stream = 0;
+        // If we switched the layout to 'separate', then we have to seek to the
+        // position of the first video stream, or else the second video stream
+        // is out of sync.
+        int64_t pos = _media_objects[o].tell();
+        if (pos > std::numeric_limits<int64_t>::min())
+        {
+            seek(pos);
+        }
     }
 }
 
