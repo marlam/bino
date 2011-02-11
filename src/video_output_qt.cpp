@@ -374,14 +374,13 @@ void video_output_qt::move_event()
     }
 }
 
-bool video_output_qt::supports_stereo()
+bool video_output_qt::supports_stereo() const
 {
-    bool stereo_bak = _format.stereo();
-    _format.setStereo(true);
-    QGLWidget *tmpwidget = new QGLWidget(_format);
+    QGLFormat fmt = _format;
+    fmt.setStereo(true);
+    QGLWidget *tmpwidget = new QGLWidget(fmt);
     bool ret = tmpwidget->format().stereo();
     delete tmpwidget;
-    _format.setStereo(stereo_bak);
     return ret;
 }
 

@@ -116,7 +116,7 @@ public:
     virtual void init();
     virtual void deinit();
 
-    virtual bool supports_stereo();
+    virtual bool supports_stereo() const;
     virtual int screen_width();
     virtual int screen_height();
     virtual float screen_aspect_ratio();
