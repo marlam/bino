@@ -131,9 +131,10 @@ public:
     void select_video_stream(int video_stream);
     void select_audio_stream(int audio_stream);
 
-    /* Set the stereo layout. If this input is not compatible with the requested layout,
-     * 'false' is returned and no change is made. */
-    bool set_stereo_layout(video_frame::stereo_layout_t layout, bool swap);
+    /* Check whether a stereo layout is supported by this input. */
+    bool stereo_layout_is_supported(video_frame::stereo_layout_t layout, bool swap) const;
+    /* Set the stereo layout. It must be supported by the input. */
+    void set_stereo_layout(video_frame::stereo_layout_t layout, bool swap);
 
     /* Start to read a video frame from the active stream asynchronously
      * (in a separate thread). */

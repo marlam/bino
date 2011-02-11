@@ -198,14 +198,21 @@ void media_input::open(const std::vector<std::string> &urls)
         _video_frame = _media_objects[o].video_frame_template(s);
         _video_frame.stereo_layout = video_frame::separate;
     }
-    else
+    else if (video_streams() > 0)
     {
         _active_video_stream = 0;
         int o, s;
         get_video_stream(_active_video_stream, o, s);
         _video_frame = _media_objects[o].video_frame_template(s);
     }
-    select_video_stream(_active_video_stream);
+    else
+    {
+        _active_video_stream = -1;
+    }
+    if (_active_video_stream >= 0)
+    {
+        select_video_stream(_active_video_stream);
+    }
 
     // Set active audio stream
     _active_audio_stream = (audio_streams() > 0 ? 0 : -1);
@@ -214,8 +221,8 @@ void media_input::open(const std::vector<std::string> &urls)
         int o, s;
         get_audio_stream(_active_audio_stream, o, s);
         _audio_blob = _media_objects[o].audio_blob_template(s);
+        select_audio_stream(_active_audio_stream);
     }
-    select_audio_stream(_active_audio_stream);
 
     // Print summary
     msg::inf("Input:");
@@ -283,11 +290,13 @@ const std::string &media_input::tag_value(const std::string &tag_name) const
 
 const video_frame &media_input::video_frame_template() const
 {
+    assert(_active_video_stream >= 0);
     return _video_frame;
 }
 
 int media_input::video_frame_rate_numerator() const
 {
+    assert(_active_video_stream >= 0);
     int o, s;
     get_video_stream(_active_video_stream, o, s);
     return _media_objects[s].video_frame_rate_numerator(s);
@@ -295,6 +304,7 @@ int media_input::video_frame_rate_numerator() const
 
 int media_input::video_frame_rate_denominator() const
 {
+    assert(_active_video_stream >= 0);
     int o, s;
     get_video_stream(_active_video_stream, o, s);
     return _media_objects[s].video_frame_rate_denominator(s);
@@ -302,26 +312,44 @@ int media_input::video_frame_rate_denominator() const
 
 int64_t media_input::video_frame_duration() const
 {
+    assert(_active_video_stream >= 0);
     return static_cast<int64_t>(video_frame_rate_denominator()) * 1000000 / video_frame_rate_numerator();
 }
 
 const audio_blob &media_input::audio_blob_template() const
 {
+    assert(_active_audio_stream >= 0);
     return _audio_blob;
 }
 
-bool media_input::set_stereo_layout(video_frame::stereo_layout_t layout, bool swap)
+bool media_input::stereo_layout_is_supported(video_frame::stereo_layout_t layout, bool) const
 {
+    if (video_streams() < 1)
+    {
+        return false;
+    }
+    assert(_active_video_stream >= 0);
+    assert(_active_video_stream < video_streams());
     int o, s;
     get_video_stream(_active_video_stream, o, s);
     const video_frame &t = _media_objects[o].video_frame_template(s);
+    bool supported = true;
     if (((layout == video_frame::left_right || layout == video_frame::left_right_half) && t.raw_width % 2 != 0)
             || ((layout == video_frame::top_bottom || layout == video_frame::top_bottom_half) && t.raw_height % 2 != 0)
             || (layout == video_frame::even_odd_rows && t.raw_height % 2 != 0)
             || (layout == video_frame::separate && !_supports_stereo_layout_separate))
     {
-        return false;
+        supported = false;
     }
+    return supported;
+}
+
+void media_input::set_stereo_layout(video_frame::stereo_layout_t layout, bool swap)
+{
+    assert(stereo_layout_is_supported(layout, swap));
+    int o, s;
+    get_video_stream(_active_video_stream, o, s);
+    const video_frame &t = _media_objects[o].video_frame_template(s);
     _video_frame = t;
     _video_frame.stereo_layout = layout;
     _video_frame.stereo_layout_swap = swap;
@@ -330,11 +358,11 @@ bool media_input::set_stereo_layout(video_frame::stereo_layout_t layout, bool sw
     {
         _active_video_stream = 0;
     }
-    return true;
 }
 
 void media_input::select_video_stream(int video_stream)
 {
+    assert(video_stream >= 0);
     assert(video_stream < video_streams());
     if (_video_frame.stereo_layout == video_frame::separate)
     {
@@ -366,6 +394,7 @@ void media_input::select_video_stream(int video_stream)
 
 void media_input::select_audio_stream(int audio_stream)
 {
+    assert(audio_stream >= 0);
     assert(audio_stream < audio_streams());
     _active_audio_stream = audio_stream;
     int o, s;
@@ -381,6 +410,7 @@ void media_input::select_audio_stream(int audio_stream)
 
 void media_input::start_video_frame_read()
 {
+    assert(_active_video_stream >= 0);
     if (_video_frame.stereo_layout == video_frame::separate)
     {
         int o0, s0, o1, s1;
@@ -399,6 +429,7 @@ void media_input::start_video_frame_read()
 
 video_frame media_input::finish_video_frame_read()
 {
+    assert(_active_video_stream >= 0);
     if (_video_frame.stereo_layout == video_frame::separate)
     {
         int o0, s0, o1, s1;
@@ -443,6 +474,7 @@ video_frame media_input::finish_video_frame_read()
 
 void media_input::start_audio_blob_read(size_t size)
 {
+    assert(_active_audio_stream >= 0);
     int o, s;
     get_audio_stream(_active_audio_stream, o, s);
     _media_objects[o].start_audio_blob_read(s, size);
@@ -450,6 +482,7 @@ void media_input::start_audio_blob_read(size_t size)
 
 audio_blob media_input::finish_audio_blob_read()
 {
+    assert(_active_audio_stream >= 0);
     int o, s;
     get_audio_stream(_active_audio_stream, o, s);
     return _media_objects[o].finish_audio_blob_read(s);
@@ -470,11 +503,11 @@ void media_input::close()
     {
         _media_objects[i].close();
     }
-    _media_objects.resize(0);
-    _tag_names.resize(0);
-    _tag_values.resize(0);
-    _video_stream_names.resize(0);
-    _audio_stream_names.resize(0);
+    _media_objects.clear();
+    _tag_names.clear();
+    _tag_values.clear();
+    _video_stream_names.clear();
+    _audio_stream_names.clear();
     _active_video_stream = -1;
     _active_audio_stream = -1;
     _initial_skip = 0;

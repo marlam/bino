@@ -169,7 +169,7 @@ static void my_av_log(void *ptr, int level, const char *fmt, va_list vl)
             line = line.substr(n + 1);
         }
         msg::msg(l, std::string("FFmpeg: ") + p + line);
-        line.resize(0);
+        line.clear();
     }
 }
 
@@ -832,7 +832,7 @@ void media_object::start_video_frame_read(int video_stream)
         {
             av_free_packet(&_ffmpeg->video_packet_queues[video_stream][j]);
         }
-        _ffmpeg->video_packet_queues[video_stream].resize(0);
+        _ffmpeg->video_packet_queues[video_stream].clear();
         _ffmpeg->video_flush_flags[video_stream] = false;
     }
 
@@ -899,12 +899,12 @@ void media_object::start_audio_blob_read(int audio_stream, size_t size)
     if (_ffmpeg->audio_flush_flags[audio_stream])
     {
         avcodec_flush_buffers(_ffmpeg->format_ctx->streams[_ffmpeg->audio_streams[audio_stream]]->codec);
-        _ffmpeg->audio_buffers[audio_stream].resize(0);
+        _ffmpeg->audio_buffers[audio_stream].clear();
         for (size_t j = 0; j < _ffmpeg->audio_packet_queues[audio_stream].size(); j++)
         {
             av_free_packet(&_ffmpeg->audio_packet_queues[audio_stream][j]);
         }
-        _ffmpeg->audio_packet_queues[audio_stream].resize(0);
+        _ffmpeg->audio_packet_queues[audio_stream].clear();
         _ffmpeg->audio_flush_flags[audio_stream] = false;
     }
 
