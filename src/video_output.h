@@ -106,7 +106,7 @@ public:
     void set_suitable_size(int w, int h, float ar, parameters::stereo_mode_t stereo_mode);
 
     /* Get capabilities */
-    virtual bool supports_stereo() = 0;         // Is OpenGL quad buffered stereo available?
+    virtual bool supports_stereo() const = 0;   // Is OpenGL quad buffered stereo available?
 
     /* Get screen properties (fixed) */
     virtual int screen_width() = 0;             // in pixels

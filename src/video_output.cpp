@@ -114,11 +114,7 @@ void video_output::init()
 {
     if (!_initialized)
     {
-        make_context_current();
-        assert(xgl::CheckError(HERE));
-        glGenBuffers(1, &_input_pbo);
-        glGenFramebuffersEXT(1, &_color_fbo);
-        assert(xgl::CheckError(HERE));
+        /* currently nothing to do */
         _initialized = true;
     }
 }
@@ -129,8 +125,6 @@ void video_output::deinit()
     {
         make_context_current();
         assert(xgl::CheckError(HERE));
-        glDeleteBuffers(1, &_input_pbo);
-        glDeleteFramebuffersEXT(1, &_color_fbo);
         input_deinit(0);
         input_deinit(1);
         color_deinit();
@@ -199,6 +193,7 @@ void video_output::set_suitable_size(int w, int h, float ar, parameters::stereo_
 void video_output::input_init(int index, const video_frame &frame)
 {
     assert(xgl::CheckError(HERE));
+    glGenBuffers(1, &_input_pbo);
     if (frame.layout == video_frame::bgra32)
     {
         for (int i = 0; i < (frame.stereo_layout == video_frame::mono ? 1 : 2); i++)
@@ -280,6 +275,8 @@ bool video_output::input_is_compatible(int index, const video_frame &current_fra
 void video_output::input_deinit(int index)
 {
     assert(xgl::CheckError(HERE));
+    glDeleteBuffers(1, &_input_pbo);
+    _input_pbo = 0;
     for (int i = 0; i < 2; i++)
     {
         if (_input_yuv_y_tex[index][i] != 0)
@@ -382,6 +379,7 @@ void video_output::prepare_next_frame(const video_frame &frame)
 void video_output::color_init(const video_frame &frame)
 {
     assert(xgl::CheckError(HERE));
+    glGenFramebuffersEXT(1, &_color_fbo);
     std::string layout_str;
     std::string color_space_str;
     std::string value_range_str;
@@ -471,6 +469,8 @@ void video_output::color_init(const video_frame &frame)
 void video_output::color_deinit()
 {
     assert(xgl::CheckError(HERE));
+    glDeleteFramebuffersEXT(1, &_color_fbo);
+    _color_fbo = 0;
     if (_color_prg != 0)
     {
         xgl::DeleteProgram(_color_prg);
@@ -610,7 +610,8 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
     if (frame.width != _color_last_frame.width
             || frame.height != _color_last_frame.height
             || frame.aspect_ratio < _color_last_frame.aspect_ratio
-            || frame.aspect_ratio > _color_last_frame.aspect_ratio)
+            || frame.aspect_ratio > _color_last_frame.aspect_ratio
+            || _render_last_params.stereo_mode != _params.stereo_mode)
     {
         reshape(width(), height());
     }
@@ -626,7 +627,6 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
         render_init();
         _render_last_params = _params;
     }
-    clear();
 
     /* Use correct left and right view indices */
 
