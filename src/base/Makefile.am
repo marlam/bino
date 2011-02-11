@@ -14,8 +14,5 @@ libbase_a_SOURCES = \
 	intcheck.h \
 	opt.h opt.cpp \
 	timer.h timer.cpp \
+	s11n.h s11n.cpp \
 	blob.h
-
-if HAVE_LIBEQUALIZER
-libbase_a_SOURCES += s11n.h s11n.cpp
-endif

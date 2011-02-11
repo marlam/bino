@@ -22,6 +22,9 @@
 #define CONTROLLER_H
 
 #include <string>
+#include <sstream>
+
+#include "s11n.h"
 
 
 /* A controller can send commands to the player (e.g. "pause", "seek",
@@ -44,35 +47,44 @@ class command
 public:
     enum type
     {
-        toggle_play,
-        toggle_pause,
-        toggle_stereo_mode_swap,
-        toggle_fullscreen,
-        center,
-        adjust_contrast,
-        adjust_brightness,
-        adjust_hue,
-        adjust_saturation,
-        seek,
-        set_pos,
-        adjust_parallax,
-        set_parallax,
-        adjust_ghostbust,
-        set_ghostbust
+        toggle_play,                    // no parameters
+        toggle_pause,                   // no parameters
+        set_stereo_layout,              // video_frame::stereo_layout, bool
+        set_stereo_mode,                // parameters::stereo_mode, bool
+        toggle_stereo_mode_swap,        // no parameters
+        toggle_fullscreen,              // no parameters
+        center,                         // no parameters
+        adjust_contrast,                // float (relative adjustment)
+        adjust_brightness,              // float (relative adjustment)
+        adjust_hue,                     // float (relative adjustment)
+        adjust_saturation,              // float (relative adjustment)
+        seek,                           // float (relative adjustment)
+        set_pos,                        // float (absolute position)
+        adjust_parallax,                // float (relative adjustment)
+        set_parallax,                   // float (absolute value)
+        adjust_ghostbust,               // float (relative adjustment)
+        set_ghostbust                   // float (absolute value)
     };
     
     type type;
-    float param;
+    std::string param;
 
-    command(enum type t)
+    command(enum type t) :
+        type(t)
     {
-        type = t;
     }
 
-    command(enum type t, float p)
+    command(enum type t, float p) :
+        type(t)
     {
-        type = t;
-        param = p;
+        std::ostringstream oss;
+        s11n::save(oss, p);
+        param = oss.str();
+    }
+
+    command(enum type t, const std::string &p) :
+        type(t), param(p)
+    {
     }
 };
 
@@ -83,49 +95,56 @@ class notification
 public:
     enum type
     {
-        play,
-        pause,
-        stereo_mode_swap,
-        fullscreen,
-        center,
-        contrast,
-        brightness,
-        hue,
-        saturation,
-        pos,
-        parallax,
-        ghostbust
+        play,                   // bool
+        pause,                  // bool
+        stereo_layout,          // video_frame::stereo_layout, bool
+        stereo_mode,            // parameters::stereo_mode, bool
+        stereo_mode_swap,       // bool
+        fullscreen,             // bool
+        center,                 // bool
+        contrast,               // float
+        brightness,             // float
+        hue,                    // float
+        saturation,             // float
+        pos,                    // float
+        parallax,               // float
+        ghostbust               // float
     };
     
     type type;
-    union
-    {
-        bool flag;
-        float value;
-    } previous;
-    union
-    {
-        bool flag;
-        float value;
-    } current;
+    std::string previous;       // previous value of the state indicated by type
+    std::string current;        // current value of the state indicated by type
 
-    notification(enum type t)
+    notification(enum type t) :
+        type(t)
     {
-        type = t;
     }
 
-    notification(enum type t, bool p, bool c)
+    notification(enum type t, bool p, bool c) :
+        type(t)
     {
-        type = t;
-        previous.flag = p;
-        current.flag = c;
+        std::ostringstream ossp;
+        s11n::save(ossp, p);
+        previous = ossp.str();
+        std::ostringstream ossc;
+        s11n::save(ossc, c);
+        current = ossc.str();
     }
 
-    notification(enum type t, float p, float c)
+    notification(enum type t, float p, float c) :
+        type(t)
     {
-        type = t;
-        previous.value = p;
-        current.value = c;
+        std::ostringstream ossp;
+        s11n::save(ossp, p);
+        previous = ossp.str();
+        std::ostringstream ossc;
+        s11n::save(ossc, c);
+        current = ossc.str();
+    }
+
+    notification(enum type t, const std::string &p, const std::string &c) :
+        type(t), previous(p), current(c)
+    {
     }
 };
 
@@ -141,8 +160,9 @@ public:
 
     /* Send a command to the player. */
     void send_cmd(const command &cmd);
-    void send_cmd(enum command::type t) { send_cmd(command(t)); }                    // convenience wrapper
-    void send_cmd(enum command::type t, float p) { send_cmd(command(t, p)); }        // convenience wrapper
+    void send_cmd(enum command::type t) { send_cmd(command(t)); }                               // convenience wrapper
+    void send_cmd(enum command::type t, float p) { send_cmd(command(t, p)); }                   // convenience wrapper
+    void send_cmd(enum command::type t, const std::string &p) { send_cmd(command(t, p)); }      // convenience wrapper
 
     /* Receive notifications via this function. The default implementation
      * simply ignores the notification. */
