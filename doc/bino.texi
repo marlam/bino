@@ -72,9 +72,8 @@ Bino is a 3D video player with multi-display support.
 separate views for the left and right eye and thus allow depth perception
 through stereopsis.
 
-The input streams (one or two video streams, zero or one audio streams)
-can be in one, two, or three input files. The files are decoded with the
-@url{http://ffmpeg.org/,FFmpeg} libraries, so URLs are supported.
+The input streams can be in any number of input files. The files are decoded
+with the @url{http://ffmpeg.org/,FFmpeg} libraries, so URLs are supported.
 
 Bino supports a wide variety of stereoscopic input layouts and display
 techniques.
@@ -98,18 +97,21 @@ parameters given on the command line.
 @itemx --log-level=@var{LEVEL}
 Select log level: @var{debug}, @var{info}, @var{warning}, @var{error}, or
 @var{quiet}.
+@item -v
+@itemx --video=@var{STREAM}
+Select video stream (1-n, depending on the input).
 @item -a
 @itemx --audio=@var{STREAM}
 Select audio stream (1-n, depending on the input).
 @item -i
 @itemx --input=@var{TYPE}
 Select input type. @xref{Input Layouts}.
-@item -s
-@itemx --swap-eyes
-Swap left/right view.
 @item -o
 @itemx --output=@var{TYPE}
 Select output type. @xref{Output Techniques}.
+@item -s
+@itemx --swap-eyes
+Swap left/right view.
 @item -f
 @itemx --fullscreen
 Fullscreen.
@@ -121,11 +123,10 @@ Center window on screen.
 Parallax adjustment (-1 to +1).
 @item -C
 @itemx --crosstalk=@var{VAL}
-Crosstalk leak level in % (0 to 100). @var{VAL} may be one value or
-comma-separated R,G,B values.
+Crosstalk leak level (0 to 1). Comma-separated values for the R,G,B channels.
 @item -G
 @itemx --ghostbust=@var{VAL}
-Amount of ghostbusting to apply, in % (0 to 100).
+Amount of crosstalk ghostbusting to apply (0 to 1).
 @item -b
 @itemx --benchmark
 Benchmark mode: no audio, no time synchronization, output of frames-per-second
@@ -139,18 +140,30 @@ Bino supports the following stereoscopic input layouts:
 @table @var
 @item mono
 Single view (2D).
-@item separate
-Left/right view in separate streams.
+@item separate-left-right
+Left/right view in separate streams, left first.
+@item separate-right-left
+Left/right view in separate streams, right first.
 @item top-bottom
 Left view top, right view bottom.
 @item top-bottom-half
 Left view top, right view bottom, half height.
+@item bottom-top
+Left view bottom, right view top.
+@item bottom-top-half
+Left view bottom, right view top, half height.
 @item left-right
 Left view left, right view right.
 @item left-right-half
 Left view left, right view right, half width.
+@item right-left
+Left view right, right view left.
+@item right-left-half
+Left view right, right view left, half width.
 @item even-odd-rows
 Left view even rows, right view odd rows.
+@item odd-even-rows
+Left view odd rows, right view even rows.
 @end table
 
 The default is to autodetect the input type from meta data stored in the file.
@@ -267,6 +280,10 @@ Toggle fullscreen.
 Center window.
 @item s
 Swap left/right view.
+@item v
+Cycle through available video streams.
+@item a
+Cycle through available audio streams.
 @item 1
 @item 2
 Adjust contrast.
@@ -325,26 +342,26 @@ You need to have correct gamma settings before measuring crosstalk.
 determine the crosstalk levels using the included instructions.
 @end enumerate
 
-You now have three crosstalk values (for the red, green, and blue channels) or
-alternatively one combined crosstalk value. You can now tell Bino about this
-using the @option{--crosstalk} option. For example, if you have measured 8% of
-crosstalk for red, 12% for green, and 10% for blue, use
+You now have three crosstalk values for the red, green, and blue channels. You
+can now tell Bino about this using the @option{--crosstalk} option. For example,
+if you have measured 8% of crosstalk for red, 12% for green, and 10% for blue,
+use
 @example
-$ bino --crosstalk 8,12,10
+$ bino --crosstalk 0.08,0.12,0.10
 @end example
 
 Once you know the crosstalk levels of your display device, you can set the
 amount of ghostbusting that Bino should apply using the @option{--ghostbust}
 option. This will vary depending on the content you want to watch. Movies with
 very dark scenes should be viewed with at least 50% ghostbusting
-(@option{--ghostbust 50}), whereas overall bright movies, where crosstalk is
-less disturbing, could be viewed with a lower level (e.g. @option{--ghostbust}
-10).
+(@option{--ghostbust 0.5}), whereas overall bright movies, where crosstalk is
+less disturbing, could be viewed with a lower level (e.g.
+@option{--ghostbust 0.1}).
 
 To check if you crosstalk calibration is correct, display the crosstalk patterns
 with full ghostbusting, like this:
 @example
-$ bino --crosstalk 8,12,10 --ghostbust 100 crosstalk-pattern-tb.png
+$ bino --crosstalk 0.08,0.12,0.10 --ghostbust 1.0 crosstalk-pattern-tb.png
 @end example
 The remaining crosstalk should optimally be 0%.
 

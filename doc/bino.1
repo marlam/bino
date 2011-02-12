@@ -7,7 +7,7 @@
 .\" Copying and distribution of this file, with or without modification, are
 .\" permitted in any medium without royalty provided the copyright notice and this
 .\" notice are preserved. This file is offered as-is, without any warranty.
-.TH Bino 1 2011-01
+.TH Bino 1 2011-02
 .SH NAME
 Bino - a 3D video player with multi-display support.
 .SH SYNOPSIS
@@ -18,9 +18,8 @@ Bino plays stereoscopic videos, also known as 3D videos. Such videos have
 separate views for the left and right eye and thus allow depth perception
 through stereopsis.
 .br
-The input streams (one or two video streams, zero or one audio streams)
-can be in one, two, or three input files. The files are decoded with the
-\fBFFmpeg\fP libraries, so URLs are supported.
+The input streams can be in any number of input files. The files are decoded
+with the \fBFFmpeg\fP libraries, so URLs are supported.
 .IP "\-\-help"
 Print help.
 .IP "\-\-version"
@@ -31,6 +30,8 @@ parameters given on the command line.
 .IP "\-l|\-\-log\-level=\fILEVEL\fP"
 Select log level:
 \fIdebug\fP, \fIinfo\fP, \fIwarning\fP, \fIerror\fP, or \fIquiet\fP.
+.IP "\-v|\-\-video=\fISTREAM\fP"
+Select video stream (1-n, depending on the input).
 .IP "\-a|\-\-audio=\fISTREAM\fP"
 Select audio stream (1-n, depending on the input).
 .IP "\-i|\-\-input=\fITYPE\fP"
@@ -38,18 +39,30 @@ Select input type.
 .RS
 .IP "\fImono\fP"
 Single view.
-.IP "\fIseparate\fP"
-Left/right view in separate streams.
+.IP "\fIseparate\-left\-right\fP"
+Left/right view in separate streams, left first.
+.IP "\fIseparate\-right\-left\fP"
+Left/right view in separate streams, right first.
 .IP "\fItop\-bottom\fP"
 Left view top, right view bottom.
 .IP "\fItop\-bottom\-half\fP"
 Left view top, right view bottom, half height.
+.IP "\fIbottom\-top\fP"
+Left view bottom, right view top.
+.IP "\fIbottom\-top\-half\fP"
+Left view bottom, right view top, half height.
 .IP "\fIleft\-right\fP"
 Left view left, right view right.
 .IP "\fIleft\-right\-half\fP"
 Left view left, right view right, half width.
+.IP "\fIright\-left\fP"
+Left view right, right view left.
+.IP "\fIright\-left\-half\fP"
+Left view right, right view left, half width.
 .IP "\fIeven\-odd\-rows\fP"
 Left view even rows, right view odd rows.
+.IP "\fIodd\-even\-rows\fP"
+Left view odd rows, right view even rows.
 .PP
 The default is to autodetect the input type from meta data stored in the file.
 If this fails, Bino tries to autodetect the input type based on the file name,
@@ -80,8 +93,6 @@ even\-odd\-rows swapped
 .IP "*\-2d.ext"
 mono
 .RE
-.IP "\-s|\-\-swap\-eyes"
-Swap left/right view.
 .IP "\-o|\-\-output=\fITYPE\fP"
 Select output type.
 .RS
@@ -123,6 +134,8 @@ Multi-display OpenGL via Equalizer with a 3D screen setup.
 For stereo input, the default is \fIstereo\fP if the display supports it,
 otherwise \fIanaglyph\fP. The default for mono input is \fImono\-left\fP.
 .RE
+.IP "\-s|\-\-swap\-eyes"
+Swap left/right view.
 .IP "\-f|\-\-fullscreen"
 Fullscreen.
 .IP "\-c|\-\-center"
@@ -130,10 +143,9 @@ Center window on screen.
 .IP "\-P|\-\-parallax=\fIVAL\fP"
 Parallax adjustment (-1 to +1).
 .IP "\-C|\-\-crosstalk=\fIVAL\fP"
-Crosstalk leak level in % (0 to 100). \fIVAL\fP may be one value or
-comma-separated R,G,B values.
+Crosstalk leak level (0 to 1). Comma-separated values for the R,G,B channels.
 .IP "\-G|\-\-ghostbust=\fIVAL\fP"
-Amount of ghostbusting to apply, in % (0 to 100).
+Amount of crosstalk ghostbusting to apply (0 to 1).
 .IP "\-b|\-\-benchmark"
 Benchmark mode: no audio, no time synchronization, output of frames-per-second
 measurements.
@@ -148,6 +160,10 @@ Toggle fullscreen.
 Center window.
 .IP "s"
 Swap left/right view.
+.IP "v"
+Cycle through available video streams.
+.IP "a"
+Cycle through available audio streams.
 .IP "1, 2"
 Adjust contrast.
 .IP "3, 4"

@@ -1696,6 +1696,8 @@ void main_window::help_keyboard()
                 "<tr><td>f</td><td>Toggle fullscreen</td></tr>"
                 "<tr><td>c</td><td>Center window</td></tr>"
                 "<tr><td>s</td><td>Swap left/right view</td></tr>"
+                "<tr><td>v</td><td>Cycle through available video streams</td></tr>"
+                "<tr><td>a</td><td>Cycle through available audio streams</td></tr>"
                 "<tr><td>1, 2</td><td>Adjust contrast</td></tr>"
                 "<tr><td>3, 4</td><td>Adjust brightness</td></tr>"
                 "<tr><td>5, 6</td><td>Adjust hue</td></tr>"

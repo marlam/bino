@@ -218,6 +218,8 @@ int main(int argc, char *argv[])
                 "  f                    Toggle fullscreen\n"
                 "  c                    Center window\n"
                 "  s                    Swap left/right view\n"
+                "  v                    Cycle through available video streams\n"
+                "  a                    Cycle through available audio streams\n"
                 "  1, 2                 Adjust contrast\n"
                 "  3, 4                 Adjust brightness\n"
                 "  5, 6                 Adjust hue\n"
