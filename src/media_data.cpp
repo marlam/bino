@@ -195,7 +195,7 @@ void video_frame::stereo_layout_from_string(const std::string &s, stereo_layout_
 
 std::string video_frame::format_name() const
 {
-    std::string name = str::asprintf("%dx%d-%g:1-", raw_width, raw_height, raw_aspect_ratio);
+    std::string name = str::asprintf("%dx%d-%.3g:1-", raw_width, raw_height, raw_aspect_ratio);
     switch (layout)
     {
     case bgra32:
@@ -250,14 +250,12 @@ std::string video_frame::format_name() const
             break;
         }
     }
-    name += "-";
-    name += stereo_layout_to_string(stereo_layout, stereo_layout_swap);
     return name;
 }
 
 std::string video_frame::format_info() const
 {
-    return str::asprintf("%dx%d, %g:1", width, height, aspect_ratio);
+    return str::asprintf("%dx%d, %.3g:1", width, height, aspect_ratio);
 }
 
 static int next_multiple_of_4(int x)
