@@ -71,9 +71,9 @@ void set_openal_versions()
 {
     if (openal_v.size() == 0)
     {
-        openal_v.push_back(std::string("version ") + static_cast<const char *>(alGetString(AL_VERSION)));
-        openal_v.push_back(std::string("renderer ") + static_cast<const char *>(alGetString(AL_RENDERER)));
-        openal_v.push_back(std::string("vendor ") + static_cast<const char *>(alGetString(AL_VENDOR)));
+        openal_v.push_back(std::string("Version ") + static_cast<const char *>(alGetString(AL_VERSION)));
+        openal_v.push_back(std::string("Renderer ") + static_cast<const char *>(alGetString(AL_RENDERER)));
+        openal_v.push_back(std::string("Vendor ") + static_cast<const char *>(alGetString(AL_VENDOR)));
     }
 }
 
@@ -105,9 +105,9 @@ void set_opengl_versions()
 {
     if (opengl_v.size() == 0)
     {
-        opengl_v.push_back(std::string("version ") + reinterpret_cast<const char *>(glGetString(GL_VERSION)));
-        opengl_v.push_back(std::string("renderer ") + reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
-        opengl_v.push_back(std::string("vendor ") + reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
+        opengl_v.push_back(std::string("Version ") + reinterpret_cast<const char *>(glGetString(GL_VERSION)));
+        opengl_v.push_back(std::string("Renderer ") + reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
+        opengl_v.push_back(std::string("Vendor ") + reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
     }
 }
 
@@ -181,49 +181,80 @@ std::vector<std::string> lib_versions(bool html)
     equalizer_versions();
     qt_versions();
 
-    std::string ffmpeg_str = html
-        ? "<a href=\"http://ffmpeg.org/\">FFmpeg</a>"
-        : "FFmpeg";
-    std::string openal_str = html
-        ? "<a href=\"http://kcat.strangesoft.net/openal.html\">OpenAL</a>"
-        : "OpenAL";
-    std::string opengl_str = html
-        ? "<a href=\"http://www.opengl.org/\">OpenGL</a>"
-        : "OpenGL";
-    std::string glew_str = html
-        ? "<a href=\"http://glew.sourceforge.net/\">GLEW</a>"
-        : "GLEW";
-    std::string equalizer_str = html
-        ? "<a href=\"http://www.equalizergraphics.com/\">Equalizer</a>"
-        : "Equalizer";
-    std::string qt_str = html
-        ? "<a href=\"http://qt.nokia.com/\">Qt</a>"
-        : "Qt";
-
     std::vector<std::string> v;
-    for (size_t i = 0; i < ffmpeg_v.size(); i++)
+    if (html)
     {
-        v.push_back(ffmpeg_str + " " + ffmpeg_v[i]);
+        v.push_back("<ul>");
+        v.push_back("<li><a href=\"http://ffmpeg.org/\">FFmpeg</a>");
+        for (size_t i = 0; i < ffmpeg_v.size(); i++)
+        {
+            v.push_back(std::string("<br>") + ffmpeg_v[i]);
+        }
+        v.push_back("</li>");
+        v.push_back("<li><a href=\"http://kcat.strangesoft.net/openal.html\">OpenAL</a>");
+        for (size_t i = 0; i < openal_v.size(); i++)
+        {
+            v.push_back(std::string("<br>") + openal_v[i]);
+        }
+        v.push_back("</li>");
+        v.push_back("<li><a href=\"http://www.opengl.org/\">OpenGL</a>");
+        for (size_t i = 0; i < opengl_v.size(); i++)
+        {
+            v.push_back(std::string("<br>") + opengl_v[i]);
+        }
+        v.push_back("</li>");
+        v.push_back("<li><a href=\"http://glew.sourceforge.net/\">GLEW</a>");
+        for (size_t i = 0; i < glew_v.size(); i++)
+        {
+            v.push_back(std::string("<br>") + glew_v[i]);
+        }
+        v.push_back("</li>");
+        v.push_back("<li><a href=\"http://www.equalizergraphics.com/\">Equalizer</a>");
+        for (size_t i = 0; i < equalizer_v.size(); i++)
+        {
+            v.push_back(std::string("<br>") + equalizer_v[i]);
+        }
+        v.push_back("</li>");
+        v.push_back("<li><a href=\"http://qt.nokia.com/\">Qt</a>");
+        for (size_t i = 0; i < qt_v.size(); i++)
+        {
+            v.push_back(std::string("<br>") + qt_v[i]);
+        }
+        v.push_back("</li>");
+        v.push_back("</ul>");
     }
-    for (size_t i = 0; i < openal_v.size(); i++)
+    else
     {
-        v.push_back(openal_str + " " + openal_v[i]);
-    }
-    for (size_t i = 0; i < opengl_v.size(); i++)
-    {
-        v.push_back(opengl_str + " " + opengl_v[i]);
-    }
-    for (size_t i = 0; i < glew_v.size(); i++)
-    {
-        v.push_back(glew_str + " " + glew_v[i]);
-    }
-    for (size_t i = 0; i < equalizer_v.size(); i++)
-    {
-        v.push_back(equalizer_str + " " + equalizer_v[i]);
-    }
-    for (size_t i = 0; i < qt_v.size(); i++)
-    {
-        v.push_back(qt_str + " " + qt_v[i]);
+        v.push_back("FFmpeg:");
+        for (size_t i = 0; i < ffmpeg_v.size(); i++)
+        {
+            v.push_back(std::string("    ") + ffmpeg_v[i]);
+        }
+        v.push_back("OpenAL:");
+        for (size_t i = 0; i < openal_v.size(); i++)
+        {
+            v.push_back(std::string("    ") + openal_v[i]);
+        }
+        v.push_back("OpenGL:");
+        for (size_t i = 0; i < opengl_v.size(); i++)
+        {
+            v.push_back(std::string("    ") + opengl_v[i]);
+        }
+        v.push_back("GLEW:");
+        for (size_t i = 0; i < glew_v.size(); i++)
+        {
+            v.push_back(std::string("    ") + glew_v[i]);
+        }
+        v.push_back("Equalizer:");
+        for (size_t i = 0; i < equalizer_v.size(); i++)
+        {
+            v.push_back(std::string("    ") + equalizer_v[i]);
+        }
+        v.push_back("Qt:");
+        for (size_t i = 0; i < qt_v.size(); i++)
+        {
+            v.push_back(std::string("    ") + qt_v[i]);
+        }
     }
 
     return v;

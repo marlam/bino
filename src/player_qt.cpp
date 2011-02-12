@@ -1719,17 +1719,17 @@ void main_window::help_about()
             "This is free software. You may redistribute copies of it<br>"
             "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
             "GNU General Public License</a>.<br>"
-            "There is NO WARRANTY, to the extent permitted by law.</p>"
+            "There is NO WARRANTY, to the extent permitted by law.<br>"
             "See <a href=\"%3\">%3</a> for more information on this software.</p>")
         .arg(PACKAGE_NAME).arg(VERSION).arg(PACKAGE_URL);
     blurb += tr("<p>Platform:<ul><li>%1</li></ul></p>").arg(PLATFORM);
-    blurb += QString("<p>Libraries used:<ul>");
+    blurb += QString("<p>Libraries used:");
     std::vector<std::string> libs = lib_versions(true);
     for (size_t i = 0; i < libs.size(); i++)
     {
-        blurb += tr("<li>%1</li>").arg(libs[i].c_str());
+        blurb += libs[i].c_str();
     }
-    blurb += QString("</ul></p>");
+    blurb += QString("</p>");
     QMessageBox::about(this, tr("About " PACKAGE_NAME), blurb);
 }
 
