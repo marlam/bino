@@ -106,6 +106,12 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_P:
         _vo->send_cmd(command::toggle_pause);
         break;
+    case Qt::Key_V:
+        _vo->send_cmd(command::cycle_video_stream);
+        break;
+    case Qt::Key_A:
+        _vo->send_cmd(command::cycle_audio_stream);
+        break;
     case Qt::Key_1:
         _vo->send_cmd(command::adjust_contrast, -0.05f);
         break;

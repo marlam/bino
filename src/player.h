@@ -41,6 +41,8 @@ public:
     msg::level_t log_level;
     // Input media objects
     std::vector<std::string> urls;
+    // Selected video stream
+    int video_stream;
     // Selected audio stream
     int audio_stream;
     // Benchmark mode?
@@ -124,6 +126,7 @@ protected:
 
     void notify(const notification &note);
     void notify(enum notification::type t, bool p, bool c) { notify(notification(t, p, c)); }
+    void notify(enum notification::type t, int p, int c) { notify(notification(t, p, c)); }
     void notify(enum notification::type t, float p, float c) { notify(notification(t, p, c)); }
     void notify(enum notification::type t, const std::string &p, const std::string &c) { notify(notification(t, p, c)); }
 

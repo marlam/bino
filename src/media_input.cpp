@@ -21,6 +21,8 @@
 
 #include "config.h"
 
+#include <limits>
+
 #include "dbg.h"
 #include "exc.h"
 #include "msg.h"
@@ -299,7 +301,7 @@ int media_input::video_frame_rate_numerator() const
     assert(_active_video_stream >= 0);
     int o, s;
     get_video_stream(_active_video_stream, o, s);
-    return _media_objects[s].video_frame_rate_numerator(s);
+    return _media_objects[o].video_frame_rate_numerator(s);
 }
 
 int media_input::video_frame_rate_denominator() const
@@ -307,7 +309,7 @@ int media_input::video_frame_rate_denominator() const
     assert(_active_video_stream >= 0);
     int o, s;
     get_video_stream(_active_video_stream, o, s);
-    return _media_objects[s].video_frame_rate_denominator(s);
+    return _media_objects[o].video_frame_rate_denominator(s);
 }
 
 int64_t media_input::video_frame_duration() const
@@ -493,6 +495,23 @@ audio_blob media_input::finish_audio_blob_read()
     int o, s;
     get_audio_stream(_active_audio_stream, o, s);
     return _media_objects[o].finish_audio_blob_read(s);
+}
+
+int64_t media_input::tell()
+{
+    int64_t pos = std::numeric_limits<int64_t>::min();
+    int o, s;
+    if (_active_audio_stream >= 0)
+    {
+        get_audio_stream(_active_audio_stream, o, s);
+        pos = _media_objects[o].tell();
+    }
+    else if (_active_video_stream >= 0)
+    {
+        get_video_stream(_active_video_stream, o, s);
+        pos = _media_objects[o].tell();
+    }
+    return pos;
 }
 
 void media_input::seek(int64_t pos)

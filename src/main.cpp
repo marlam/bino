@@ -78,6 +78,8 @@ int main(int argc, char *argv[])
     input_modes.push_back("odd-even-rows");
     opt::val<std::string> input_mode("input", 'i', opt::optional, input_modes, "");
     options.push_back(&input_mode);
+    opt::val<int> video("video", 'v', opt::optional, 1, 999, 1);
+    options.push_back(&video);
     opt::val<int> audio("audio", 'a', opt::optional, 1, 999, 1);
     options.push_back(&audio);
     std::vector<std::string> video_output_modes;
@@ -166,6 +168,7 @@ int main(int argc, char *argv[])
                 "  --version            Print version\n"
                 "  -n|--no-gui          Do not use the GUI, just show a plain window.\n"
                 "  -l|--log-level=LEVEL Set log level (debug, info, warning, error, quiet)\n"
+                "  -v|--video=STREAM    Select video stream (1-n, depending on the input)\n"
                 "  -a|--audio=STREAM    Select audio stream (1-n, depending on the input)\n"
                 "  -i|--input=TYPE      Select input type (default autodetect):\n"
                 "    mono                 Single view\n"
@@ -278,6 +281,7 @@ int main(int argc, char *argv[])
         init_data.log_level = msg::REQ;
     }
     init_data.urls = arguments;
+    init_data.video_stream = video.value() - 1;
     init_data.audio_stream = audio.value() - 1;
     if (input_mode.value() == "")
     {

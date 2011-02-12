@@ -70,8 +70,9 @@ class in_out_widget : public QWidget, public controller
 private:
     QSettings *_settings;
     const player_qt_internal *_player;
+    QComboBox *_video_combobox;
+    QComboBox *_audio_combobox;
     QComboBox *_input_combobox;
-    QSpinBox *_audio_spinbox;
     QComboBox *_output_combobox;
     QCheckBox *_swap_checkbox;
     bool _lock;
@@ -80,6 +81,8 @@ private:
     void set_stereo_mode(parameters::stereo_mode_t stereo_mode, bool stereo_mode_swap);
 
 private slots:
+    void video_changed();
+    void audio_changed();
     void input_changed();
     void output_changed();
     void swap_changed();
@@ -90,8 +93,9 @@ public:
 
     void update(const player_init_data &init_data, bool have_valid_input, bool playing);
 
-    void get_stereo_layout(video_frame::stereo_layout_t &stereo_layout, bool &stereo_layout_swap);
+    int get_video_stream();
     int get_audio_stream();
+    void get_stereo_layout(video_frame::stereo_layout_t &stereo_layout, bool &stereo_layout_swap);
     void get_stereo_mode(parameters::stereo_mode_t &stereo_mode, bool &stereo_mode_swap);
 
     virtual void receive_notification(const notification &note);

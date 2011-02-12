@@ -128,7 +128,15 @@ public:
      */
 
     /* Set the active video and audio streams. */
+    int selected_video_stream() const
+    {
+        return _active_video_stream;
+    }
     void select_video_stream(int video_stream);
+    int selected_audio_stream() const
+    {
+        return _active_audio_stream;
+    }
     void select_audio_stream(int audio_stream);
 
     /* Check whether a stereo layout is supported by this input. */
@@ -149,6 +157,10 @@ public:
     /* Wait for the audio data reading to finish, and return the blob.
      * An invalid blob means that EOF was reached. */
     audio_blob finish_audio_blob_read();
+
+    /* Return the last position in microseconds, of the last packet that was read in an
+     * active stream. If the position is unkown, the minimum possible value is returned. */
+    int64_t tell();
 
     /* Seek to the given position in microseconds. This affects all streams.
      * Make sure that the position is not out of range!

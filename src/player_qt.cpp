@@ -118,10 +118,30 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     QWidget(parent), _settings(settings), _player(player), _lock(false)
 {
     QGridLayout *layout0 = new QGridLayout;
+    QLabel *video_label = new QLabel("Video:");
+    video_label->setToolTip(
+            "<p>Select the video stream.</p>");
+    layout0->addWidget(video_label, 0, 0);
+    _video_combobox = new QComboBox(this);
+    _video_combobox->setToolTip(video_label->toolTip());
+    connect(_video_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(video_changed()));
+    layout0->addWidget(_video_combobox, 0, 1);
+    QLabel *audio_label = new QLabel("Audio:");
+    audio_label->setToolTip(
+            "<p>Select the audio stream.</p>");
+    layout0->addWidget(audio_label, 0, 2);
+    _audio_combobox = new QComboBox(this);
+    _audio_combobox->setToolTip(audio_label->toolTip());
+    connect(_audio_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(audio_changed()));
+    layout0->addWidget(_audio_combobox, 0, 3);
+    layout0->setColumnStretch(1, 1);
+    layout0->setColumnStretch(3, 1);
+
+    QGridLayout *layout1 = new QGridLayout;
     QLabel *input_label = new QLabel("Input:");
     input_label->setToolTip(
-            "<p>Set the 3D layout of your input file(s).</p>");
-    layout0->addWidget(input_label, 0, 0);
+            "<p>Set the 3D layout of the video stream.</p>");
+    layout1->addWidget(input_label, 0, 0);
     _input_combobox = new QComboBox(this);
     _input_combobox->setToolTip(input_label->toolTip());
     _input_combobox->addItem("2D");
@@ -138,23 +158,14 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     _input_combobox->addItem("Even/odd rows");
     _input_combobox->addItem("Odd/even rows");
     connect(_input_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(input_changed()));
-    layout0->addWidget(_input_combobox, 0, 1);
-    layout0->setColumnStretch(1, 1);
-    QLabel *audio_label = new QLabel("Audio:");
-    audio_label->setToolTip(
-            "<p>Choose the audio stream, from 1 to the number of "
-            "audio streams available in your input file(s).</p>");
-    layout0->addWidget(audio_label, 0, 2);
-    _audio_spinbox = new QSpinBox();
-    _audio_spinbox->setToolTip(audio_label->toolTip());
-    _audio_spinbox->setRange(1, 999);
-    _audio_spinbox->setValue(1);
-    layout0->addWidget(_audio_spinbox, 0, 3);
+    layout1->addWidget(_input_combobox, 0, 1);
+    layout1->setColumnStretch(1, 1);
+
+    QGridLayout *layout2 = new QGridLayout;
     QLabel *output_label = new QLabel("Output:");
     output_label->setToolTip(
             "<p>Set the 3D output type for your display.</p>");
-    QGridLayout *layout1 = new QGridLayout;
-    layout1->addWidget(output_label, 0, 0);
+    layout2->addWidget(output_label, 0, 0);
     _output_combobox = new QComboBox(this);
     _output_combobox->setToolTip(output_label->toolTip());
     _output_combobox->addItem("Left view");
@@ -172,25 +183,30 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     _output_combobox->addItem("Red/cyan glasses, half-color method");
     _output_combobox->addItem("OpenGL stereo");
     connect(_output_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(output_changed()));
-    layout1->addWidget(_output_combobox, 0, 1);
-    layout1->setColumnStretch(1, 1);
+    layout2->addWidget(_output_combobox, 0, 1);
+    layout2->setColumnStretch(1, 1);
     _swap_checkbox = new QCheckBox("Swap left/right");
     _swap_checkbox->setToolTip(
             "<p>Swap the left and right view. "
             "Use this if the 3D effect seems wrong.</p>");
     connect(_swap_checkbox, SIGNAL(stateChanged(int)), this, SLOT(swap_changed()));
-    layout1->addWidget(_swap_checkbox, 0, 2);
+    layout2->addWidget(_swap_checkbox, 0, 2);
+
     QGridLayout *layout = new QGridLayout;
     layout->addLayout(layout0, 0, 0);
     layout->addLayout(layout1, 1, 0);
+    layout->addLayout(layout2, 2, 0);
     setLayout(layout);
 
     // Align the input and output labels
     output_label->setMinimumSize(output_label->minimumSizeHint());
     input_label->setMinimumSize(output_label->minimumSizeHint());
+    audio_label->setMinimumSize(output_label->minimumSizeHint());
+    video_label->setMinimumSize(output_label->minimumSizeHint());
 
+    _video_combobox->setEnabled(false);
+    _audio_combobox->setEnabled(false);
     _input_combobox->setEnabled(false);
-    _audio_spinbox->setEnabled(false);
     _output_combobox->setEnabled(false);
     _swap_checkbox->setEnabled(false);
 }
@@ -278,6 +294,34 @@ void in_out_widget::set_stereo_mode(parameters::stereo_mode_t stereo_mode, bool 
     _swap_checkbox->setChecked(stereo_mode_swap);
 }
 
+void in_out_widget::video_changed()
+{
+    if (!_lock)
+    {
+        video_frame::stereo_layout_t stereo_layout;
+        bool stereo_layout_swap;
+        get_stereo_layout(stereo_layout, stereo_layout_swap);
+        if (stereo_layout == video_frame::separate)
+        {
+            QMessageBox::critical(this, "Error",
+                    "Video streams cannot be changed in this input mode.");
+            _lock = true;
+            _video_combobox->setCurrentIndex(0);
+            _lock = false;
+            return;
+        }
+        send_cmd(command::set_video_stream, _video_combobox->currentIndex());
+    }
+}
+
+void in_out_widget::audio_changed()
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_audio_stream, _audio_combobox->currentIndex());
+    }
+}
+
 void in_out_widget::input_changed()
 {
     video_frame::stereo_layout_t stereo_layout;
@@ -289,6 +333,12 @@ void in_out_widget::input_changed()
                 "The input data does not support this 3D layout.");
         _input_combobox->setCurrentIndex(0);
         return;
+    }
+    if (stereo_layout == video_frame::separate)
+    {
+        _lock = true;
+        _video_combobox->setCurrentIndex(0);
+        _lock = false;
     }
     std::ostringstream oss;
     s11n::save(oss, static_cast<int>(stereo_layout));
@@ -342,18 +392,43 @@ void in_out_widget::swap_changed()
 void in_out_widget::update(const player_init_data &init_data, bool have_valid_input, bool playing)
 {
     _lock = true;
+    if (have_valid_input)
+    {
+        _video_combobox->clear();
+        for (int i = 0; i < _player->get_media_input().video_streams(); i++)
+        {
+            _video_combobox->addItem(_player->get_media_input().video_stream_name(i).c_str());
+        }
+        _audio_combobox->clear();
+        for (int i = 0; i < _player->get_media_input().audio_streams(); i++)
+        {
+            _audio_combobox->addItem(_player->get_media_input().audio_stream_name(i).c_str());
+        }
+    }
+    _video_combobox->setCurrentIndex(init_data.video_stream);
+    _audio_combobox->setCurrentIndex(init_data.audio_stream);
     set_stereo_layout(init_data.stereo_layout, init_data.stereo_layout_swap);
     set_stereo_mode(init_data.stereo_mode, init_data.stereo_mode_swap);
-    _audio_spinbox->setValue(init_data.audio_stream + 1);
     _lock = false;
+    _video_combobox->setEnabled(have_valid_input);
+    _audio_combobox->setEnabled(have_valid_input);
     _input_combobox->setEnabled(have_valid_input);
-    _audio_spinbox->setEnabled(have_valid_input);
     _output_combobox->setEnabled(have_valid_input);
     _swap_checkbox->setEnabled(have_valid_input);
     if (have_valid_input)
     {
         receive_notification(notification(notification::play, !playing, playing));
     }
+}
+
+int in_out_widget::get_video_stream()
+{
+    return _video_combobox->currentIndex();
+}
+
+int in_out_widget::get_audio_stream()
+{
+    return _audio_combobox->currentIndex();
 }
 
 void in_out_widget::get_stereo_layout(video_frame::stereo_layout_t &stereo_layout, bool &stereo_layout_swap)
@@ -370,7 +445,7 @@ void in_out_widget::get_stereo_layout(video_frame::stereo_layout_t &stereo_layou
         break;
     case 2:
         stereo_layout = video_frame::separate;
-        stereo_layout_swap = false;
+        stereo_layout_swap = true;
         break;
     case 3:
         stereo_layout = video_frame::top_bottom;
@@ -413,11 +488,6 @@ void in_out_widget::get_stereo_layout(video_frame::stereo_layout_t &stereo_layou
         stereo_layout_swap = true;
         break;
     }
-}
-
-int in_out_widget::get_audio_stream()
-{
-    return _audio_spinbox->value() - 1;
 }
 
 void in_out_widget::get_stereo_mode(parameters::stereo_mode_t &stereo_mode, bool &stereo_mode_swap)
@@ -473,17 +543,28 @@ void in_out_widget::get_stereo_mode(parameters::stereo_mode_t &stereo_mode, bool
 void in_out_widget::receive_notification(const notification &note)
 {
     std::istringstream current(note.current);
+    int stream;
     bool flag;
 
     switch (note.type)
     {
+    case notification::video_stream:
+        s11n::load(current, stream);
+        _lock = true;
+        _video_combobox->setCurrentIndex(stream);
+        _lock = false;
+        break;
+    case notification::audio_stream:
+        s11n::load(current, stream);
+        _lock = true;
+        _audio_combobox->setCurrentIndex(stream);
+        _lock = false;
+        break;
     case notification::stereo_mode_swap:
-        {
-            _lock = true;
-            s11n::load(current, flag);
-            _swap_checkbox->setChecked(flag);
-            _lock = false;
-        }
+        s11n::load(current, flag);
+        _lock = true;
+        _swap_checkbox->setChecked(flag);
+        _lock = false;
         break;
     default:
         break;
@@ -1269,6 +1350,7 @@ void main_window::receive_notification(const notification &note)
             _player->close();
             _init_data.stereo_layout_override = true;
             _in_out_widget->get_stereo_layout(_init_data.stereo_layout, _init_data.stereo_layout_swap);
+            _init_data.video_stream = _in_out_widget->get_video_stream();
             _init_data.audio_stream = _in_out_widget->get_audio_stream();
             _init_data.stereo_mode_override = true;
             _in_out_widget->get_stereo_mode(_init_data.stereo_mode, _init_data.stereo_mode_swap);
@@ -1279,7 +1361,6 @@ void main_window::receive_notification(const notification &note)
             // Remember the input settings of this video, using an SHA1 hash of its filename.
             _settings->beginGroup("Video/" + current_file_hash());
             _settings->setValue("stereo-layout", QString(video_frame::stereo_layout_to_string(_init_data.stereo_layout, _init_data.stereo_layout_swap).c_str()));
-            _settings->setValue("audio-stream", QVariant(_init_data.audio_stream).toString());
             _settings->endGroup();
             // Remember the 2D or 3D video output mode.
             _settings->setValue((_init_data.stereo_layout == video_frame::mono ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode"),
@@ -1296,6 +1377,20 @@ void main_window::receive_notification(const notification &note)
         {
             _timer->stop();
         }
+        break;
+
+    case notification::video_stream:
+        s11n::load(current, _init_data.video_stream);
+        _settings->beginGroup("Video/" + current_file_hash());
+        _settings->setValue("video-stream", QVariant(_init_data.video_stream).toString());
+        _settings->endGroup();
+        break;
+
+    case notification::audio_stream:
+        s11n::load(current, _init_data.audio_stream);
+        _settings->beginGroup("Video/" + current_file_hash());
+        _settings->setValue("audio-stream", QVariant(_init_data.audio_stream).toString());
+        _settings->endGroup();
         break;
 
     case notification::contrast:
@@ -1464,6 +1559,7 @@ void main_window::open(QStringList filenames)
         video_frame::stereo_layout_from_string(layout_name.toStdString(), _init_data.stereo_layout, _init_data.stereo_layout_swap);
         _init_data.stereo_layout_override = true;
         // Get output parameters for this video
+        _init_data.video_stream = QVariant(_settings->value("video-stream", QVariant(_init_data.video_stream)).toString()).toInt();
         _init_data.audio_stream = QVariant(_settings->value("audio-stream", QVariant(_init_data.audio_stream)).toString()).toInt();
         _init_data.params.parallax = QVariant(_settings->value("parallax", QVariant(_init_data.params.parallax)).toString()).toFloat();
         _init_data.params.ghostbust = QVariant(_settings->value("ghostbust", QVariant(_init_data.params.ghostbust)).toString()).toFloat();

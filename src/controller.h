@@ -49,6 +49,10 @@ public:
     {
         toggle_play,                    // no parameters
         toggle_pause,                   // no parameters
+        cycle_video_stream,             // no parameters
+        set_video_stream,               // int
+        cycle_audio_stream,             // no parameters
+        set_audio_stream,               // int
         set_stereo_layout,              // video_frame::stereo_layout, bool
         set_stereo_mode,                // parameters::stereo_mode, bool
         toggle_stereo_mode_swap,        // no parameters
@@ -79,6 +83,14 @@ public:
     {
     }
 
+    command(enum type t, int p) :
+        type(t)
+    {
+        std::ostringstream oss;
+        s11n::save(oss, p);
+        param = oss.str();
+    }
+
     command(enum type t, float p) :
         type(t)
     {
@@ -102,6 +114,8 @@ public:
     {
         play,                   // bool
         pause,                  // bool
+        video_stream,           // int
+        audio_stream,           // int
         stereo_layout,          // video_frame::stereo_layout, bool
         stereo_mode,            // parameters::stereo_mode, bool
         stereo_mode_swap,       // bool
@@ -127,6 +141,17 @@ public:
     }
 
     notification(enum type t, bool p, bool c) :
+        type(t)
+    {
+        std::ostringstream ossp;
+        s11n::save(ossp, p);
+        previous = ossp.str();
+        std::ostringstream ossc;
+        s11n::save(ossc, c);
+        current = ossc.str();
+    }
+
+    notification(enum type t, int p, int c) :
         type(t)
     {
         std::ostringstream ossp;
@@ -167,6 +192,7 @@ public:
     /* Send a command to the player. */
     void send_cmd(const command &cmd);
     void send_cmd(enum command::type t) { send_cmd(command(t)); }                               // convenience wrapper
+    void send_cmd(enum command::type t, int p) { send_cmd(command(t, p)); }                     // convenience wrapper
     void send_cmd(enum command::type t, float p) { send_cmd(command(t, p)); }                   // convenience wrapper
     void send_cmd(enum command::type t, const std::string &p) { send_cmd(command(t, p)); }      // convenience wrapper
 
