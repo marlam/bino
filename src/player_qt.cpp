@@ -85,8 +85,14 @@ void player_qt_internal::receive_notification(const notification &note)
 {
     if (note.type == notification::play)
     {
-        _playing = note.current.flag;
+        std::istringstream iss(note.current);
+        s11n::load(iss, _playing);
     }
+}
+
+const video_output_qt *player_qt_internal::get_video_output() const
+{
+    return _video_output;
 }
 
 bool player_qt_internal::playloop_step()
@@ -108,8 +114,8 @@ void player_qt_internal::move_event()
 }
 
 
-in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
-    : QWidget(parent), _settings(settings), _lock(false)
+in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *player, QWidget *parent) :
+    QWidget(parent), _settings(settings), _player(player), _lock(false)
 {
     QGridLayout *layout0 = new QGridLayout;
     QLabel *input_label = new QLabel("Input:");
@@ -120,7 +126,7 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     _input_combobox->setToolTip(input_label->toolTip());
     _input_combobox->addItem("2D");
     _input_combobox->addItem("Separate streams, left first");
-    _input_combobox->addItem("Separate streams, left right");
+    _input_combobox->addItem("Separate streams, right first");
     _input_combobox->addItem("Top/bottom");
     _input_combobox->addItem("Top/bottom, half height");
     _input_combobox->addItem("Bottom/top");
@@ -148,7 +154,7 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     output_label->setToolTip(
             "<p>Set the 3D output type for your display.</p>");
     QGridLayout *layout1 = new QGridLayout;
-    layout1->addWidget(output_label, 1, 0);
+    layout1->addWidget(output_label, 0, 0);
     _output_combobox = new QComboBox(this);
     _output_combobox->setToolTip(output_label->toolTip());
     _output_combobox->addItem("Left view");
@@ -165,62 +171,18 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     _output_combobox->addItem("Red/cyan glasses, full-color method");
     _output_combobox->addItem("Red/cyan glasses, half-color method");
     _output_combobox->addItem("OpenGL stereo");
-    // TODO: OpenGL stereo must never be activated when the display does not support it, 
-    // because that leads to an abort(). So catch this case and fall back to a safe mode.
-    layout1->addWidget(_output_combobox, 1, 1);
+    connect(_output_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(output_changed()));
+    layout1->addWidget(_output_combobox, 0, 1);
     layout1->setColumnStretch(1, 1);
-    QGridLayout *layout2 = new QGridLayout;
-    _swap_eyes_button = new QPushButton("Swap eyes");
-    _swap_eyes_button->setToolTip(
+    _swap_checkbox = new QCheckBox("Swap left/right");
+    _swap_checkbox->setToolTip(
             "<p>Swap the left and right view. "
             "Use this if the 3D effect seems wrong.</p>");
-    _swap_eyes_button->setCheckable(true);
-    connect(_swap_eyes_button, SIGNAL(toggled(bool)), this, SLOT(swap_eyes_changed()));
-    layout2->addWidget(_swap_eyes_button, 0, 0, 1, 2);
-    _fullscreen_button = new QPushButton("Fullscreen");
-    _fullscreen_button->setToolTip(
-            "<p>Switch to fullscreen mode. "
-            "You can leave fullscreen mode by pressing the f key.</p>");
-    connect(_fullscreen_button, SIGNAL(pressed()), this, SLOT(fullscreen_pressed()));
-    layout2->addWidget(_fullscreen_button, 0, 2, 1, 2);
-    _center_button = new QPushButton("Center");
-    _center_button->setToolTip(
-            "<p>Center the video area on your screen.</p>");
-    connect(_center_button, SIGNAL(pressed()), this, SLOT(center_pressed()));
-    layout2->addWidget(_center_button, 0, 4, 1, 2);
-    layout2->addWidget(new QWidget(), 0, 6, 1, 1);
-    _parallax_label = new QLabel("Parallax:");
-    _parallax_label->setToolTip(
-            "<p>Adjust parallax, from -1 to +1. This changes the separation of left and right view, "
-            "and thus moves the point where both lines of sight meet.</p>");
-    layout2->addWidget(_parallax_label, 0, 7, 1, 1);
-    _parallax_spinbox = new QDoubleSpinBox();
-    _parallax_spinbox->setToolTip(_parallax_label->toolTip());
-    _parallax_spinbox->setRange(-1.0, +1.0);
-    _parallax_spinbox->setValue(0);
-    _parallax_spinbox->setDecimals(2);
-    _parallax_spinbox->setSingleStep(0.01);
-    connect(_parallax_spinbox, SIGNAL(valueChanged(double)), this, SLOT(parallax_changed()));
-    layout2->addWidget(_parallax_spinbox, 0, 8, 1, 1);
-    _ghostbust_label = new QLabel("Ghostbusting:");
-    _ghostbust_label->setToolTip(
-            "<p>Set the amount of crosstalk ghostbusting, from 0% to 100%. "
-            "You need to set the crosstalk levels of your display in the Preferences menu first. "
-            "Note that crosstalk ghostbusting does not work with anaglyph glasses.</p>");
-    layout2->addWidget(_ghostbust_label, 0, 9, 1, 1);
-    _ghostbust_spinbox = new QSpinBox();
-    _ghostbust_spinbox->setToolTip(_ghostbust_label->toolTip());
-    _ghostbust_spinbox->setSuffix(" %");
-    _ghostbust_spinbox->setRange(0, 100);
-    _ghostbust_spinbox->setValue(0);
-    connect(_ghostbust_spinbox, SIGNAL(valueChanged(int)), this, SLOT(ghostbust_changed()));
-    layout2->addWidget(_ghostbust_spinbox, 0, 10, 1, 1);
-    layout2->setColumnStretch(6, 1);
-    layout2->setRowStretch(0, 1);
+    connect(_swap_checkbox, SIGNAL(stateChanged(int)), this, SLOT(swap_changed()));
+    layout1->addWidget(_swap_checkbox, 0, 2);
     QGridLayout *layout = new QGridLayout;
     layout->addLayout(layout0, 0, 0);
     layout->addLayout(layout1, 1, 0);
-    layout->addLayout(layout2, 2, 0);
     setLayout(layout);
 
     // Align the input and output labels
@@ -230,20 +192,14 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent)
     _input_combobox->setEnabled(false);
     _audio_spinbox->setEnabled(false);
     _output_combobox->setEnabled(false);
-    _swap_eyes_button->setEnabled(false);
-    _fullscreen_button->setEnabled(false);
-    _center_button->setEnabled(false);
-    _parallax_label->setEnabled(false);
-    _parallax_spinbox->setEnabled(false);
-    _ghostbust_label->setEnabled(false);
-    _ghostbust_spinbox->setEnabled(false);
+    _swap_checkbox->setEnabled(false);
 }
 
 in_out_widget::~in_out_widget()
 {
 }
 
-void in_out_widget::set_input(video_frame::stereo_layout_t stereo_layout, bool stereo_layout_swap)
+void in_out_widget::set_stereo_layout(video_frame::stereo_layout_t stereo_layout, bool stereo_layout_swap)
 {
     switch (stereo_layout)
     {
@@ -271,7 +227,7 @@ void in_out_widget::set_input(video_frame::stereo_layout_t stereo_layout, bool s
     }
 }
 
-void in_out_widget::set_output(parameters::stereo_mode_t stereo_mode, bool stereo_mode_swap)
+void in_out_widget::set_stereo_mode(parameters::stereo_mode_t stereo_mode, bool stereo_mode_swap)
 {
     switch (stereo_mode)
     {
@@ -319,34 +275,63 @@ void in_out_widget::set_output(parameters::stereo_mode_t stereo_mode, bool stere
         _output_combobox->setCurrentIndex(13);
         break;
     }
-    _swap_eyes_button->setChecked(stereo_mode_swap);
+    _swap_checkbox->setChecked(stereo_mode_swap);
 }
 
 void in_out_widget::input_changed()
 {
     video_frame::stereo_layout_t stereo_layout;
     bool stereo_layout_swap;
-    input(stereo_layout, stereo_layout_swap);
+    get_stereo_layout(stereo_layout, stereo_layout_swap);
+    if (!_player->get_media_input().stereo_layout_is_supported(stereo_layout, stereo_layout_swap))
+    {
+        QMessageBox::critical(this, "Error",
+                "The input data does not support this 3D layout.");
+        _input_combobox->setCurrentIndex(0);
+        return;
+    }
+    std::ostringstream oss;
+    s11n::save(oss, static_cast<int>(stereo_layout));
+    s11n::save(oss, stereo_layout_swap);
+    send_cmd(command::set_stereo_layout, oss.str());
     parameters::stereo_mode_t stereo_mode;
     bool stereo_mode_swap;
-    output(stereo_mode, stereo_mode_swap);
+    get_stereo_mode(stereo_mode, stereo_mode_swap);
     if (stereo_layout == video_frame::mono
             && !(stereo_mode == parameters::mono_left || stereo_mode == parameters::mono_right))
     {
         QString s = _settings->value("Session/2d-stereo-mode", "").toString();
         parameters::stereo_mode_from_string(s.toStdString(), stereo_mode, stereo_mode_swap);
-        set_output(stereo_mode, stereo_mode_swap);
+        set_stereo_mode(stereo_mode, stereo_mode_swap);
     }
     else if (stereo_layout != video_frame::mono
             && (stereo_mode == parameters::mono_left || stereo_mode == parameters::mono_right))
     {
         QString s = _settings->value("Session/3d-stereo-mode", "").toString();
         parameters::stereo_mode_from_string(s.toStdString(), stereo_mode, stereo_mode_swap);
-        set_output(stereo_mode, stereo_mode_swap);
+        set_stereo_mode(stereo_mode, stereo_mode_swap);
     }
 }
 
-void in_out_widget::swap_eyes_changed()
+void in_out_widget::output_changed()
+{
+    parameters::stereo_mode_t stereo_mode;
+    bool stereo_mode_swap;
+    get_stereo_mode(stereo_mode, stereo_mode_swap);
+    if (stereo_mode == parameters::stereo && !_player->get_video_output()->supports_stereo())
+    {
+        QMessageBox::critical(this, "Error",
+                "The input data does not support this 3D layout.");
+        _output_combobox->setCurrentIndex(9);
+        return;
+    }
+    std::ostringstream oss;
+    s11n::save(oss, static_cast<int>(stereo_mode));
+    s11n::save(oss, stereo_mode_swap);
+    send_cmd(command::set_stereo_mode, oss.str());
+}
+
+void in_out_widget::swap_changed()
 {
     if (!_lock)
     {
@@ -354,61 +339,24 @@ void in_out_widget::swap_eyes_changed()
     }
 }
 
-void in_out_widget::fullscreen_pressed()
-{
-    send_cmd(command::toggle_fullscreen);
-}
-
-void in_out_widget::center_pressed()
-{
-    send_cmd(command::center);
-}
-
-void in_out_widget::parallax_changed()
-{
-    if (!_lock)
-    {
-        send_cmd(command::set_parallax, _parallax_spinbox->value());
-    }
-}
-
-void in_out_widget::ghostbust_changed()
-{
-    if (!_lock)
-    {
-        send_cmd(command::set_ghostbust, _ghostbust_spinbox->value() / 100.0f);
-    }
-}
-
 void in_out_widget::update(const player_init_data &init_data, bool have_valid_input, bool playing)
 {
     _lock = true;
-    set_input(init_data.stereo_layout, init_data.stereo_layout_swap);
-    set_output(init_data.stereo_mode, init_data.stereo_mode_swap);
+    set_stereo_layout(init_data.stereo_layout, init_data.stereo_layout_swap);
+    set_stereo_mode(init_data.stereo_mode, init_data.stereo_mode_swap);
     _audio_spinbox->setValue(init_data.audio_stream + 1);
-    _parallax_spinbox->setValue(init_data.params.parallax);
-    _ghostbust_spinbox->setValue(qRound(init_data.params.ghostbust * 100.0f));
     _lock = false;
+    _input_combobox->setEnabled(have_valid_input);
+    _audio_spinbox->setEnabled(have_valid_input);
+    _output_combobox->setEnabled(have_valid_input);
+    _swap_checkbox->setEnabled(have_valid_input);
     if (have_valid_input)
     {
         receive_notification(notification(notification::play, !playing, playing));
     }
-    else
-    {
-        _input_combobox->setEnabled(false);
-        _audio_spinbox->setEnabled(false);
-        _output_combobox->setEnabled(false);
-        _swap_eyes_button->setEnabled(false);
-        _fullscreen_button->setEnabled(false);
-        _center_button->setEnabled(false);
-        _parallax_label->setEnabled(false);
-        _parallax_spinbox->setEnabled(false);
-        _ghostbust_label->setEnabled(false);
-        _ghostbust_spinbox->setEnabled(false);
-    }
 }
 
-void in_out_widget::input(video_frame::stereo_layout_t &stereo_layout, bool &stereo_layout_swap)
+void in_out_widget::get_stereo_layout(video_frame::stereo_layout_t &stereo_layout, bool &stereo_layout_swap)
 {
     switch (_input_combobox->currentIndex())
     {
@@ -467,12 +415,12 @@ void in_out_widget::input(video_frame::stereo_layout_t &stereo_layout, bool &ste
     }
 }
 
-int in_out_widget::audio_stream()
+int in_out_widget::get_audio_stream()
 {
     return _audio_spinbox->value() - 1;
 }
 
-void in_out_widget::output(parameters::stereo_mode_t &stereo_mode, bool &stereo_mode_swap)
+void in_out_widget::get_stereo_mode(parameters::stereo_mode_t &stereo_mode, bool &stereo_mode_swap)
 {
     switch (_output_combobox->currentIndex())
     {
@@ -519,39 +467,23 @@ void in_out_widget::output(parameters::stereo_mode_t &stereo_mode, bool &stereo_
         stereo_mode = parameters::stereo;
         break;
     }
-    stereo_mode_swap = _swap_eyes_button->isChecked();
+    stereo_mode_swap = _swap_checkbox->isChecked();
 }
 
 void in_out_widget::receive_notification(const notification &note)
 {
+    std::istringstream current(note.current);
+    bool flag;
+
     switch (note.type)
     {
-    case notification::play:
-        _input_combobox->setEnabled(!note.current.flag);
-        _audio_spinbox->setEnabled(!note.current.flag);
-        _output_combobox->setEnabled(!note.current.flag);
-        _swap_eyes_button->setEnabled(note.current.flag);
-        _fullscreen_button->setEnabled(note.current.flag);
-        _center_button->setEnabled(note.current.flag);
-        _parallax_label->setEnabled(note.current.flag);
-        _parallax_spinbox->setEnabled(note.current.flag);
-        _ghostbust_label->setEnabled(note.current.flag);
-        _ghostbust_spinbox->setEnabled(note.current.flag);
-        break;
     case notification::stereo_mode_swap:
-        _lock = true;
-        _swap_eyes_button->setChecked(note.current.flag);
-        _lock = false;
-        break;
-    case notification::parallax:
-        _lock = true;
-        _parallax_spinbox->setValue(note.current.value);
-        _lock = false;
-        break;
-    case notification::ghostbust:
-        _lock = true;
-        _ghostbust_spinbox->setValue(qRound(note.current.value * 100.0f));
-        _lock = false;
+        {
+            _lock = true;
+            s11n::load(current, flag);
+            _swap_checkbox->setChecked(flag);
+            _lock = false;
+        }
         break;
     default:
         break;
@@ -570,7 +502,7 @@ controls_widget::controls_widget(QSettings *settings, QWidget *parent)
     _seek_slider->setRange(0, 2000);
     _seek_slider->setTracking(false);
     connect(_seek_slider, SIGNAL(valueChanged(int)), this, SLOT(seek_slider_changed()));
-    layout->addWidget(_seek_slider, 0, 0, 1, 10);
+    layout->addWidget(_seek_slider, 0, 0, 1, 13);
     _play_button = new QPushButton(QIcon(":icons/play.png"), "");
     _play_button->setToolTip("<p>Play.</p>");
     connect(_play_button, SIGNAL(pressed()), this, SLOT(play_pressed()));
@@ -584,37 +516,52 @@ controls_widget::controls_widget(QSettings *settings, QWidget *parent)
     connect(_stop_button, SIGNAL(pressed()), this, SLOT(stop_pressed()));
     layout->addWidget(_stop_button, 1, 2);
     layout->addWidget(new QWidget, 1, 3);
+    _fullscreen_button = new QPushButton(QIcon(":icons/fullscreen.png"), "");
+    _fullscreen_button->setToolTip(
+            "<p>Switch to fullscreen mode. "
+            "You can leave fullscreen mode by pressing the f key.</p>");
+    connect(_fullscreen_button, SIGNAL(pressed()), this, SLOT(fullscreen_pressed()));
+    layout->addWidget(_fullscreen_button, 1, 4);
+    _center_button = new QPushButton(QIcon(":icons/center.png"), "");
+    _center_button->setToolTip(
+            "<p>Center the video area on your screen.</p>");
+    connect(_center_button, SIGNAL(pressed()), this, SLOT(center_pressed()));
+    layout->addWidget(_center_button, 1, 5);
+    layout->addWidget(new QWidget, 1, 6);
     _bbb_button = new QPushButton(QIcon(":icons/bbb.png"), "");
     _bbb_button->setToolTip("<p>Seek backward 10 minutes.</p>");
     connect(_bbb_button, SIGNAL(pressed()), this, SLOT(bbb_pressed()));
-    layout->addWidget(_bbb_button, 1, 4);
+    layout->addWidget(_bbb_button, 1, 7);
     _bb_button = new QPushButton(QIcon(":icons/bb.png"), "");
     _bb_button->setToolTip("<p>Seek backward 1 minute.</p>");
     connect(_bb_button, SIGNAL(pressed()), this, SLOT(bb_pressed()));
-    layout->addWidget(_bb_button, 1, 5);
+    layout->addWidget(_bb_button, 1, 8);
     _b_button = new QPushButton(QIcon(":icons/b.png"), "");
     _b_button->setToolTip("<p>Seek backward 10 seconds.</p>");
     connect(_b_button, SIGNAL(pressed()), this, SLOT(b_pressed()));
-    layout->addWidget(_b_button, 1, 6);
+    layout->addWidget(_b_button, 1, 9);
     _f_button = new QPushButton(QIcon(":icons/f.png"), "");
     _f_button->setToolTip("<p>Seek forward 10 seconds.</p>");
     connect(_f_button, SIGNAL(pressed()), this, SLOT(f_pressed()));
-    layout->addWidget(_f_button, 1, 7);
+    layout->addWidget(_f_button, 1, 10);
     _ff_button = new QPushButton(QIcon(":icons/ff.png"), "");
     _ff_button->setToolTip("<p>Seek forward 1 minute.</p>");
     connect(_ff_button, SIGNAL(pressed()), this, SLOT(ff_pressed()));
-    layout->addWidget(_ff_button, 1, 8);
+    layout->addWidget(_ff_button, 1, 11);
     _fff_button = new QPushButton(QIcon(":icons/fff.png"), "");
     _fff_button->setToolTip("<p>Seek forward 10 minutes.</p>");
     connect(_fff_button, SIGNAL(pressed()), this, SLOT(fff_pressed()));
-    layout->addWidget(_fff_button, 1, 9);
+    layout->addWidget(_fff_button, 1, 12);
     layout->setRowStretch(0, 0);
     layout->setColumnStretch(3, 1);
+    layout->setColumnStretch(6, 1);
     setLayout(layout);
 
     _play_button->setEnabled(false);
     _pause_button->setEnabled(false);
     _stop_button->setEnabled(false);
+    _fullscreen_button->setEnabled(false);
+    _center_button->setEnabled(false);
     _bbb_button->setEnabled(false);
     _bb_button->setEnabled(false);
     _b_button->setEnabled(false);
@@ -648,6 +595,16 @@ void controls_widget::pause_pressed()
 void controls_widget::stop_pressed()
 {
     send_cmd(command::toggle_play);
+}
+
+void controls_widget::fullscreen_pressed()
+{
+    send_cmd(command::toggle_fullscreen);
+}
+
+void controls_widget::center_pressed()
+{
+    send_cmd(command::center);
 }
 
 void controls_widget::bbb_pressed()
@@ -700,6 +657,8 @@ void controls_widget::update(const player_init_data &, bool have_valid_input, bo
         _play_button->setEnabled(false);
         _pause_button->setEnabled(false);
         _stop_button->setEnabled(false);
+        _fullscreen_button->setEnabled(false);
+        _center_button->setEnabled(false);
         _bbb_button->setEnabled(false);
         _bb_button->setEnabled(false);
         _b_button->setEnabled(false);
@@ -713,37 +672,415 @@ void controls_widget::update(const player_init_data &, bool have_valid_input, bo
 
 void controls_widget::receive_notification(const notification &note)
 {
+    std::istringstream current(note.current);
+    bool flag;
+    float value;
+
     switch (note.type)
     {
     case notification::play:
-        _playing = note.current.flag;
-        _play_button->setEnabled(!note.current.flag);
-        _pause_button->setEnabled(note.current.flag);
-        _stop_button->setEnabled(note.current.flag);
-        _bbb_button->setEnabled(note.current.flag);
-        _bb_button->setEnabled(note.current.flag);
-        _b_button->setEnabled(note.current.flag);
-        _f_button->setEnabled(note.current.flag);
-        _ff_button->setEnabled(note.current.flag);
-        _fff_button->setEnabled(note.current.flag);
-        _seek_slider->setEnabled(note.current.flag);
-        if (!note.current.flag)
+        s11n::load(current, flag);
+        _playing = flag;
+        _play_button->setEnabled(!flag);
+        _pause_button->setEnabled(flag);
+        _stop_button->setEnabled(flag);
+        _fullscreen_button->setEnabled(flag);
+        _center_button->setEnabled(flag);
+        _bbb_button->setEnabled(flag);
+        _bb_button->setEnabled(flag);
+        _b_button->setEnabled(flag);
+        _f_button->setEnabled(flag);
+        _ff_button->setEnabled(flag);
+        _fff_button->setEnabled(flag);
+        _seek_slider->setEnabled(flag);
+        if (!flag)
         {
             _seek_slider->setValue(0);
         }
         break;
     case notification::pause:
-        _play_button->setEnabled(note.current.flag);
-        _pause_button->setEnabled(!note.current.flag);
+        s11n::load(current, flag);
+        _play_button->setEnabled(flag);
+        _pause_button->setEnabled(!flag);
         break;
     case notification::pos:
-        _lock = true;
         if (!_seek_slider->isSliderDown())
         {
-            _seek_slider->setValue(qRound(note.current.value * 2000.0f));
+            _lock = true;
+            s11n::load(current, value);
+            _seek_slider->setValue(qRound(value * 2000.0f));
+            _lock = false;
         }
-        _lock = false;
     default:
+        break;
+    }
+}
+
+
+color_dialog::color_dialog(const parameters &params, QWidget *parent) : QDialog(parent),
+    _lock(false)
+{
+    setModal(false);
+    setWindowTitle("Display Color Adjustments");
+
+    QLabel *c_label = new QLabel("Contrast:");
+    _c_slider = new QSlider(Qt::Horizontal);
+    _c_slider->setRange(-1000, 1000);
+    _c_slider->setValue(params.contrast * 1000.0f);
+    connect(_c_slider, SIGNAL(valueChanged(int)), this, SLOT(c_slider_changed(int)));
+    _c_spinbox = new QDoubleSpinBox();
+    _c_spinbox->setRange(-1.0, +1.0);
+    _c_spinbox->setValue(params.contrast);
+    _c_spinbox->setDecimals(2);
+    _c_spinbox->setSingleStep(0.01);
+    connect(_c_spinbox, SIGNAL(valueChanged(double)), this, SLOT(c_spinbox_changed(double)));
+    QLabel *b_label = new QLabel("Brightness:");
+    _b_slider = new QSlider(Qt::Horizontal);
+    _b_slider->setRange(-1000, 1000);
+    _b_slider->setValue(params.brightness * 1000.0f);
+    connect(_b_slider, SIGNAL(valueChanged(int)), this, SLOT(b_slider_changed(int)));
+    _b_spinbox = new QDoubleSpinBox();
+    _b_spinbox->setRange(-1.0, +1.0);
+    _b_spinbox->setValue(params.brightness);
+    _b_spinbox->setDecimals(2);
+    _b_spinbox->setSingleStep(0.01);
+    connect(_b_spinbox, SIGNAL(valueChanged(double)), this, SLOT(b_spinbox_changed(double)));
+    QLabel *h_label = new QLabel("Hue:");
+    _h_slider = new QSlider(Qt::Horizontal);
+    _h_slider->setRange(-1000, 1000);
+    _h_slider->setValue(params.hue * 1000.0f);
+    connect(_h_slider, SIGNAL(valueChanged(int)), this, SLOT(h_slider_changed(int)));
+    _h_spinbox = new QDoubleSpinBox();
+    _h_spinbox->setRange(-1.0, +1.0);
+    _h_spinbox->setValue(params.hue);
+    _h_spinbox->setDecimals(2);
+    _h_spinbox->setSingleStep(0.01);
+    connect(_h_spinbox, SIGNAL(valueChanged(double)), this, SLOT(h_spinbox_changed(double)));
+    QLabel *s_label = new QLabel("Saturation:");
+    _s_slider = new QSlider(Qt::Horizontal);
+    _s_slider->setRange(-1000, 1000);
+    _s_slider->setValue(params.saturation * 1000.0f);
+    connect(_s_slider, SIGNAL(valueChanged(int)), this, SLOT(s_slider_changed(int)));
+    _s_spinbox = new QDoubleSpinBox();
+    _s_spinbox->setRange(-1.0, +1.0);
+    _s_spinbox->setValue(params.saturation);
+    _s_spinbox->setDecimals(2);
+    _s_spinbox->setSingleStep(0.01);
+    connect(_s_spinbox, SIGNAL(valueChanged(double)), this, SLOT(s_spinbox_changed(double)));
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(c_label, 0, 0);
+    layout->addWidget(_c_slider, 0, 1);
+    layout->addWidget(_c_spinbox, 0, 2);
+    layout->addWidget(b_label, 1, 0);
+    layout->addWidget(_b_slider, 1, 1);
+    layout->addWidget(_b_spinbox, 1, 2);
+    layout->addWidget(h_label, 2, 0);
+    layout->addWidget(_h_slider, 2, 1);
+    layout->addWidget(_h_spinbox, 2, 2);
+    layout->addWidget(s_label, 3, 0);
+    layout->addWidget(_s_slider, 3, 1);
+    layout->addWidget(_s_spinbox, 3, 2);
+    setLayout(layout);
+}
+
+void color_dialog::c_slider_changed(int val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_contrast, val / 1000.0f);
+    }
+}
+
+void color_dialog::c_spinbox_changed(double val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_contrast, static_cast<float>(val));
+    }
+}
+
+void color_dialog::b_slider_changed(int val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_brightness, val / 1000.0f);
+    }
+}
+
+void color_dialog::b_spinbox_changed(double val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_brightness, static_cast<float>(val));
+    }
+}
+
+void color_dialog::h_slider_changed(int val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_hue, val / 1000.0f);
+    }
+}
+
+void color_dialog::h_spinbox_changed(double val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_hue, static_cast<float>(val));
+    }
+}
+
+void color_dialog::s_slider_changed(int val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_saturation, val / 1000.0f);
+    }
+}
+
+void color_dialog::s_spinbox_changed(double val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_saturation, static_cast<float>(val));
+    }
+}
+
+void color_dialog::receive_notification(const notification &note)
+{
+    std::istringstream current(note.current);
+    float value;
+
+    switch (note.type)
+    {
+    case notification::contrast:
+        s11n::load(current, value);
+        _lock = true;
+        _c_slider->setValue(value * 1000.0f);
+        _c_spinbox->setValue(value);
+        _lock = false;
+        break;
+    case notification::brightness:
+        s11n::load(current, value);
+        _lock = true;
+        _b_slider->setValue(value * 1000.0f);
+        _b_spinbox->setValue(value);
+        _lock = false;
+        break;
+    case notification::hue:
+        s11n::load(current, value);
+        _lock = true;
+        _h_slider->setValue(value * 1000.0f);
+        _h_spinbox->setValue(value);
+        _lock = false;
+        break;
+    case notification::saturation:
+        s11n::load(current, value);
+        _lock = true;
+        _s_slider->setValue(value * 1000.0f);
+        _s_spinbox->setValue(value);
+        _lock = false;
+        break;
+    default:
+        /* not handled */
+        break;
+    }
+}
+
+
+crosstalk_dialog::crosstalk_dialog(parameters *params, QWidget *parent) : QDialog(parent),
+    _lock(false), _params(params)
+{
+    setModal(false);
+    setWindowTitle("Display Crosstalk Calibration");
+
+    QLabel *rtfm_label = new QLabel(
+            "<p>Please read the manual to find out<br>"
+            "how to measure the crosstalk levels<br>"
+            "of your display.</p>");
+
+    QLabel *r_label = new QLabel("Red:");
+    _r_spinbox = new QDoubleSpinBox();
+    _r_spinbox->setRange(0.0, +1.0);
+    _r_spinbox->setValue(params->crosstalk_r);
+    _r_spinbox->setDecimals(2);
+    _r_spinbox->setSingleStep(0.01);
+    connect(_r_spinbox, SIGNAL(valueChanged(double)), this, SLOT(spinbox_changed()));
+    QLabel *g_label = new QLabel("Green:");
+    _g_spinbox = new QDoubleSpinBox();
+    _g_spinbox->setRange(0.0, +1.0);
+    _g_spinbox->setValue(params->crosstalk_g);
+    _g_spinbox->setDecimals(2);
+    _g_spinbox->setSingleStep(0.01);
+    connect(_g_spinbox, SIGNAL(valueChanged(double)), this, SLOT(spinbox_changed()));
+    QLabel *b_label = new QLabel("Blue:");
+    _b_spinbox = new QDoubleSpinBox();
+    _b_spinbox->setRange(0.0, +1.0);
+    _b_spinbox->setValue(params->crosstalk_b);
+    _b_spinbox->setDecimals(2);
+    _b_spinbox->setSingleStep(0.01);
+    connect(_b_spinbox, SIGNAL(valueChanged(double)), this, SLOT(spinbox_changed()));
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(rtfm_label, 0, 0, 2, 3);
+    layout->addWidget(r_label, 3, 0);
+    layout->addWidget(_r_spinbox, 3, 1);
+    layout->addWidget(g_label, 4, 0);
+    layout->addWidget(_g_spinbox, 4, 1);
+    layout->addWidget(b_label, 5, 0);
+    layout->addWidget(_b_spinbox, 5, 1);
+    setLayout(layout);
+}
+
+void crosstalk_dialog::spinbox_changed()
+{
+    if (!_lock)
+    {
+        std::ostringstream v;
+        s11n::save(v, static_cast<float>(_r_spinbox->value()));
+        s11n::save(v, static_cast<float>(_g_spinbox->value()));
+        s11n::save(v, static_cast<float>(_b_spinbox->value()));
+        send_cmd(command::set_crosstalk, v.str());
+        /* Also set crosstalk levels in init data, because this must also work in
+         * the absence of a player that interpretes the above command (i.e. when
+         * no video is currently playing */
+        _params->crosstalk_r = _r_spinbox->value();
+        _params->crosstalk_g = _g_spinbox->value();
+        _params->crosstalk_b = _b_spinbox->value();
+    }
+}
+
+void crosstalk_dialog::receive_notification(const notification &note)
+{
+    std::istringstream current(note.current);
+    float r, g, b;
+
+    switch (note.type)
+    {
+    case notification::crosstalk:
+        s11n::load(current, r);
+        s11n::load(current, g);
+        s11n::load(current, b);
+        _lock = true;
+        _r_spinbox->setValue(r);
+        _g_spinbox->setValue(g);
+        _b_spinbox->setValue(b);
+        _lock = false;
+        break;
+    default:
+        /* not handled */
+        break;
+    }
+}
+
+
+stereoscopic_dialog::stereoscopic_dialog(const parameters &params, QWidget *parent) : QDialog(parent),
+    _lock(false)
+{
+    setModal(false);
+    setWindowTitle("Stereoscopic Video Settings");
+
+    QLabel *p_label = new QLabel("Parallax:");
+    p_label->setToolTip(
+            "<p>Adjust parallax, from -1 to +1. This changes the separation of left and right view, "
+            "and thus moves the point where both lines of sight meet.</p>");
+    _p_slider = new QSlider(Qt::Horizontal);
+    _p_slider->setToolTip(p_label->toolTip());
+    _p_slider->setRange(-1000, 1000);
+    _p_slider->setValue(params.parallax * 1000.0f);
+    connect(_p_slider, SIGNAL(valueChanged(int)), this, SLOT(p_slider_changed(int)));
+    _p_spinbox = new QDoubleSpinBox();
+    _p_spinbox->setToolTip(p_label->toolTip());
+    _p_spinbox->setRange(-1.0, +1.0);
+    _p_spinbox->setValue(params.parallax);
+    _p_spinbox->setDecimals(2);
+    _p_spinbox->setSingleStep(0.01);
+    connect(_p_spinbox, SIGNAL(valueChanged(double)), this, SLOT(p_spinbox_changed(double)));
+    QLabel *g_label = new QLabel("Ghostbusting:");
+    g_label->setToolTip(
+            "<p>Set the amount of crosstalk ghostbusting, from 0 to 1. "
+            "You need to set the crosstalk levels of your display first. "
+            "Note that crosstalk ghostbusting does not work with anaglyph glasses.</p>");
+    _g_slider = new QSlider(Qt::Horizontal);
+    _g_slider->setToolTip(g_label->toolTip());
+    _g_slider->setRange(0, 1000);
+    _g_slider->setValue(params.ghostbust * 1000.0f);
+    connect(_g_slider, SIGNAL(valueChanged(int)), this, SLOT(g_slider_changed(int)));
+    _g_spinbox = new QDoubleSpinBox();
+    _g_spinbox->setToolTip(g_label->toolTip());
+    _g_spinbox->setRange(0.0, +1.0);
+    _g_spinbox->setValue(params.ghostbust);
+    _g_spinbox->setDecimals(2);
+    _g_spinbox->setSingleStep(0.01);
+    connect(_g_spinbox, SIGNAL(valueChanged(double)), this, SLOT(g_spinbox_changed(double)));
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(p_label, 0, 0);
+    layout->addWidget(_p_slider, 0, 1);
+    layout->addWidget(_p_spinbox, 0, 2);
+    layout->addWidget(g_label, 1, 0);
+    layout->addWidget(_g_slider, 1, 1);
+    layout->addWidget(_g_spinbox, 1, 2);
+    setLayout(layout);
+}
+
+void stereoscopic_dialog::p_slider_changed(int val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_parallax, val / 1000.0f);
+    }
+}
+
+void stereoscopic_dialog::p_spinbox_changed(double val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_parallax, static_cast<float>(val));
+    }
+}
+
+void stereoscopic_dialog::g_slider_changed(int val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_ghostbust, val / 1000.0f);
+    }
+}
+
+void stereoscopic_dialog::g_spinbox_changed(double val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_ghostbust, static_cast<float>(val));
+    }
+}
+
+void stereoscopic_dialog::receive_notification(const notification &note)
+{
+    std::istringstream current(note.current);
+    float value;
+
+    switch (note.type)
+    {
+    case notification::parallax:
+        s11n::load(current, value);
+        _lock = true;
+        _p_slider->setValue(value * 1000.0f);
+        _p_spinbox->setValue(value);
+        _lock = false;
+        break;
+    case notification::ghostbust:
+        s11n::load(current, value);
+        _lock = true;
+        _g_slider->setValue(value * 1000.0f);
+        _g_spinbox->setValue(value);
+        _lock = false;
+        break;
+    default:
+        /* not handled */
         break;
     }
 }
@@ -751,6 +1088,9 @@ void controls_widget::receive_notification(const notification &note)
 
 main_window::main_window(QSettings *settings, const player_init_data &init_data) :
     _settings(settings),
+    _color_dialog(NULL),
+    _crosstalk_dialog(NULL),
+    _stereoscopic_dialog(NULL),
     _player(NULL),
     _init_data(init_data),
     _init_data_template(init_data),
@@ -762,6 +1102,22 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
 
     // Load preferences
     _settings->beginGroup("Session");
+    if (!(_init_data.params.contrast >= -1.0f && _init_data.params.contrast <= +1.0f))
+    {
+        _init_data.params.contrast = _settings->value("contrast", QString("0")).toFloat();
+    }
+    if (!(_init_data.params.brightness >= -1.0f && _init_data.params.brightness <= +1.0f))
+    {
+        _init_data.params.brightness = _settings->value("brightness", QString("0")).toFloat();
+    }
+    if (!(_init_data.params.hue >= -1.0f && _init_data.params.hue <= +1.0f))
+    {
+        _init_data.params.hue = _settings->value("hue", QString("0")).toFloat();
+    }
+    if (!(_init_data.params.saturation >= -1.0f && _init_data.params.saturation <= +1.0f))
+    {
+        _init_data.params.saturation = _settings->value("saturation", QString("0")).toFloat();
+    }
     if (!(_init_data.params.crosstalk_r >= 0.0f && _init_data.params.crosstalk_r <= 1.0f))
     {
         _init_data.params.crosstalk_r = _settings->value("crosstalk_r", QString("0")).toFloat();
@@ -777,13 +1133,16 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     _settings->endGroup();
     _init_data.params.set_defaults();
 
-    // Central widget
+    // Central widget, player, and timer
     QWidget *central_widget = new QWidget(this);
     QGridLayout *layout = new QGridLayout();
     _video_container_widget = new video_container_widget(central_widget);
     connect(_video_container_widget, SIGNAL(move_event()), this, SLOT(move_event()));
     layout->addWidget(_video_container_widget, 0, 0);
-    _in_out_widget = new in_out_widget(_settings, central_widget);
+    _player = new player_qt_internal(_video_container_widget);
+    _timer = new QTimer(this);
+    connect(_timer, SIGNAL(timeout()), this, SLOT(playloop_step()));
+    _in_out_widget = new in_out_widget(_settings, _player, central_widget);
     layout->addWidget(_in_out_widget, 1, 0);
     _controls_widget = new controls_widget(_settings, central_widget);
     layout->addWidget(_controls_widget, 2, 0);
@@ -811,9 +1170,16 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     connect(file_quit_act, SIGNAL(triggered()), this, SLOT(close()));
     file_menu->addAction(file_quit_act);
     QMenu *preferences_menu = menuBar()->addMenu(tr("&Preferences"));
-    QAction *preferences_crosstalk_act = new QAction(tr("&Crosstalk..."), this);
+    QAction *preferences_colors_act = new QAction(tr("Display &Color Adjustments..."), this);
+    connect(preferences_colors_act, SIGNAL(triggered()), this, SLOT(preferences_colors()));
+    preferences_menu->addAction(preferences_colors_act);
+    QAction *preferences_crosstalk_act = new QAction(tr("Display Cross&talk Calibration..."), this);
     connect(preferences_crosstalk_act, SIGNAL(triggered()), this, SLOT(preferences_crosstalk()));
     preferences_menu->addAction(preferences_crosstalk_act);
+    preferences_menu->addSeparator();
+    QAction *preferences_stereoscopic_act = new QAction(tr("Stereoscopic Video Settings..."), this);
+    connect(preferences_stereoscopic_act, SIGNAL(triggered()), this, SLOT(preferences_stereoscopic()));
+    preferences_menu->addAction(preferences_stereoscopic_act);
     QMenu *help_menu = menuBar()->addMenu(tr("&Help"));
     QAction *help_manual_act = new QAction(tr("&Manual..."), this);
     help_manual_act->setShortcut(QKeySequence::HelpContents);
@@ -833,11 +1199,6 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     QApplication::instance()->installEventFilter(this);
     // Handle Drop events
     setAcceptDrops(true);
-
-    // Player and timer
-    _player = new player_qt_internal(_video_container_widget);
-    _timer = new QTimer(this);
-    connect(_timer, SIGNAL(timeout()), this, SLOT(playloop_step()));
 
     // Update widget contents
     _in_out_widget->update(_init_data, false, false);
@@ -893,19 +1254,24 @@ bool main_window::open_player()
 
 void main_window::receive_notification(const notification &note)
 {
-    if (note.type == notification::play)
+    std::istringstream current(note.current);
+    bool flag;
+
+    switch (note.type)
     {
-        if (note.current.flag)
+    case notification::play:
+        s11n::load(current, flag);
+        if (flag)
         {
             // Close and re-open the player. This resets the video state in case
             // we played it before, and it sets the input/output modes to the
             // current choice.
             _player->close();
             _init_data.stereo_layout_override = true;
-            _in_out_widget->input(_init_data.stereo_layout, _init_data.stereo_layout_swap);
-            _init_data.audio_stream = _in_out_widget->audio_stream();
+            _in_out_widget->get_stereo_layout(_init_data.stereo_layout, _init_data.stereo_layout_swap);
+            _init_data.audio_stream = _in_out_widget->get_audio_stream();
             _init_data.stereo_mode_override = true;
-            _in_out_widget->output(_init_data.stereo_mode, _init_data.stereo_mode_swap);
+            _in_out_widget->get_stereo_mode(_init_data.stereo_mode, _init_data.stereo_mode_swap);
             if (!open_player())
             {
                 _stop_request = true;
@@ -929,42 +1295,58 @@ void main_window::receive_notification(const notification &note)
         else
         {
             _timer->stop();
-            _player->close();
         }
-    }
-    else if (note.type == notification::contrast)
-    {
-        _init_data.params.contrast = note.current.value;
-    }
-    else if (note.type == notification::brightness)
-    {
-        _init_data.params.brightness = note.current.value;
-    }
-    else if (note.type == notification::hue)
-    {
-        _init_data.params.hue = note.current.value;
-    }
-    else if (note.type == notification::saturation)
-    {
-        _init_data.params.saturation = note.current.value;
-    }
-    else if (note.type == notification::stereo_mode_swap)
-    {
-        // TODO: save stereo mode
-    }
-    else if (note.type == notification::parallax)
-    {
-        _init_data.params.parallax = note.current.value;
+        break;
+
+    case notification::contrast:
+        s11n::load(current, _init_data.params.contrast);
+        break;
+
+    case notification::brightness:
+        s11n::load(current, _init_data.params.brightness);
+        break;
+
+    case notification::hue:
+        s11n::load(current, _init_data.params.hue);
+        break;
+
+    case notification::saturation:
+        s11n::load(current, _init_data.params.saturation);
+        break;
+
+    case notification::stereo_mode_swap:
+        s11n::load(current, _init_data.params.stereo_mode_swap);
+        // TODO: save this is Session/?d-stereo-mode?
+        break;
+
+    case notification::parallax:
+        s11n::load(current, _init_data.params.parallax);
         _settings->beginGroup("Video/" + current_file_hash());
         _settings->setValue("parallax", QVariant(_init_data.params.parallax).toString());
         _settings->endGroup();
-    }
-    else if (note.type == notification::ghostbust)
-    {
-        _init_data.params.ghostbust = note.current.value;
+        break;
+
+    case notification::crosstalk:
+        s11n::load(current, _init_data.params.crosstalk_r);
+        s11n::load(current, _init_data.params.crosstalk_g);
+        s11n::load(current, _init_data.params.crosstalk_b);
+        break;
+
+    case notification::ghostbust:
+        s11n::load(current, _init_data.params.ghostbust);
         _settings->beginGroup("Video/" + current_file_hash());
         _settings->setValue("ghostbust", QVariant(_init_data.params.ghostbust).toString());
         _settings->endGroup();
+        break;
+
+    case notification::pause:
+    case notification::stereo_layout:
+    case notification::stereo_mode:
+    case notification::fullscreen:
+    case notification::center:
+    case notification::pos:
+        /* currently not handled */
+        break;
     }
 }
 
@@ -998,8 +1380,12 @@ void main_window::moveEvent(QMoveEvent *)
 
 void main_window::closeEvent(QCloseEvent *event)
 {
-    // Remember the preferences
+    // Remember the Session preferences
     _settings->beginGroup("Session");
+    _settings->setValue("contrast", QVariant(_init_data.params.contrast).toString());
+    _settings->setValue("brightness", QVariant(_init_data.params.brightness).toString());
+    _settings->setValue("hue", QVariant(_init_data.params.hue).toString());
+    _settings->setValue("saturation", QVariant(_init_data.params.saturation).toString());
     _settings->setValue("crosstalk_r", QVariant(_init_data.params.crosstalk_r).toString());
     _settings->setValue("crosstalk_g", QVariant(_init_data.params.crosstalk_g).toString());
     _settings->setValue("crosstalk_b", QVariant(_init_data.params.crosstalk_b).toString());
@@ -1059,7 +1445,9 @@ void main_window::open(QStringList filenames)
 {
     _player->force_stop();
     _player->close();
+    parameters params_bak = _init_data.params;
     _init_data = _init_data_template;
+    _init_data.params = params_bak;
     _init_data.urls.clear();
     for (int i = 0; i < filenames.size(); i++)
     {
@@ -1144,54 +1532,37 @@ void main_window::file_open_url()
     }
 }
 
+void main_window::preferences_colors()
+{
+    if (!_color_dialog)
+    {
+        _color_dialog = new color_dialog(_init_data.params, this);
+    }
+    _color_dialog->show();
+    _color_dialog->raise();
+    _color_dialog->activateWindow();
+}
+
 void main_window::preferences_crosstalk()
 {
-    QDialog *dialog = new QDialog(this);
-    dialog->setModal(true);
-    dialog->setWindowTitle("Set crosstalk levels");
-    QGridLayout *layout = new QGridLayout;
-    QLabel *rtfm_label = new QLabel(
-            "<p>Please read the manual to find out<br>"
-            "how to measure the crosstalk levels<br>"
-            "of your display.</p>");
-    layout->addWidget(rtfm_label, 0, 0, 1, 6);
-    QLabel *red_label = new QLabel("Red:");
-    layout->addWidget(red_label, 1, 0, 1, 2);
-    QSpinBox *red_spinbox = new QSpinBox();
-    red_spinbox->setRange(0, 100);
-    red_spinbox->setSuffix(" %");
-    red_spinbox->setValue(_init_data.params.crosstalk_r * 100.0f);
-    layout->addWidget(red_spinbox, 1, 2, 1, 4);
-    QLabel *green_label = new QLabel("Green:");
-    layout->addWidget(green_label, 2, 0, 1, 3);
-    QSpinBox *green_spinbox = new QSpinBox();
-    green_spinbox->setRange(0, 100);
-    green_spinbox->setSuffix(" %");
-    green_spinbox->setValue(_init_data.params.crosstalk_g * 100.0f);
-    layout->addWidget(green_spinbox, 2, 2, 1, 4);
-    QLabel *blue_label = new QLabel("Blue:");
-    layout->addWidget(blue_label, 3, 0, 1, 2);
-    QSpinBox *blue_spinbox = new QSpinBox();
-    blue_spinbox->setRange(0, 100);
-    blue_spinbox->setSuffix(" %");
-    blue_spinbox->setValue(_init_data.params.crosstalk_b * 100.0f);
-    layout->addWidget(blue_spinbox, 3, 2, 1, 4);
-    QPushButton *ok_button = new QPushButton(tr("&OK"));
-    ok_button->setDefault(true);
-    connect(ok_button, SIGNAL(clicked()), dialog, SLOT(accept()));
-    layout->addWidget(ok_button, 4, 0, 1, 3);
-    QPushButton *cancel_button = new QPushButton(tr("&Cancel"), dialog);
-    connect(cancel_button, SIGNAL(clicked()), dialog, SLOT(reject()));
-    layout->addWidget(cancel_button, 4, 3, 1, 3);
-    dialog->setLayout(layout);
-    if (dialog->exec() == QDialog::Rejected)
+    if (!_crosstalk_dialog)
     {
-        return;
+        _crosstalk_dialog = new crosstalk_dialog(&_init_data.params, this);
     }
-    _init_data.params.crosstalk_r = red_spinbox->value() / 100.0f;
-    _init_data.params.crosstalk_g = green_spinbox->value() / 100.0f;
-    _init_data.params.crosstalk_b = blue_spinbox->value() / 100.0f;
-    delete dialog;
+    _crosstalk_dialog->show();
+    _crosstalk_dialog->raise();
+    _crosstalk_dialog->activateWindow();
+}
+
+void main_window::preferences_stereoscopic()
+{
+    if (!_stereoscopic_dialog)
+    {
+        _stereoscopic_dialog = new stereoscopic_dialog(_init_data.params, this);
+    }
+    _stereoscopic_dialog->show();
+    _stereoscopic_dialog->raise();
+    _stereoscopic_dialog->activateWindow();
 }
 
 void main_window::help_manual()

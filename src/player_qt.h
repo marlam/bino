@@ -29,8 +29,10 @@
 #include <QLabel>
 #include <QDoubleSpinBox>
 #include <QSpinBox>
+#include <QCheckBox>
 #include <QTimer>
 #include <QSettings>
+#include <QDialog>
 
 #include "controller.h"
 #include "video_output_qt.h"
@@ -45,7 +47,7 @@ private:
     video_output_qt *_video_output;
 
 protected:
-    video_output *create_video_output();
+    virtual video_output *create_video_output();
 
 public:
     player_qt_internal(video_container_widget *widget = NULL);
@@ -55,6 +57,7 @@ public:
 
     virtual void receive_notification(const notification &note);
 
+    const video_output_qt *get_video_output() const;
     bool playloop_step();
     void force_stop();
     void move_event();
@@ -66,38 +69,30 @@ class in_out_widget : public QWidget, public controller
 
 private:
     QSettings *_settings;
+    const player_qt_internal *_player;
     QComboBox *_input_combobox;
     QSpinBox *_audio_spinbox;
     QComboBox *_output_combobox;
-    QPushButton *_swap_eyes_button;
-    QPushButton *_fullscreen_button;
-    QPushButton *_center_button;
-    QLabel *_parallax_label;
-    QDoubleSpinBox *_parallax_spinbox;
-    QLabel *_ghostbust_label;
-    QSpinBox *_ghostbust_spinbox;
+    QCheckBox *_swap_checkbox;
     bool _lock;
 
-    void set_input(video_frame::stereo_layout_t stereo_layout, bool stereo_layout_swap);
-    void set_output(parameters::stereo_mode_t stereo_mode, bool stereo_mode_swap);
+    void set_stereo_layout(video_frame::stereo_layout_t stereo_layout, bool stereo_layout_swap);
+    void set_stereo_mode(parameters::stereo_mode_t stereo_mode, bool stereo_mode_swap);
 
 private slots:
     void input_changed();
-    void swap_eyes_changed();
-    void fullscreen_pressed();
-    void center_pressed();
-    void parallax_changed();
-    void ghostbust_changed();
+    void output_changed();
+    void swap_changed();
 
 public:
-    in_out_widget(QSettings *settings, QWidget *parent);
+    in_out_widget(QSettings *settings, const player_qt_internal *player, QWidget *parent);
     virtual ~in_out_widget();
 
     void update(const player_init_data &init_data, bool have_valid_input, bool playing);
 
-    void input(video_frame::stereo_layout_t &stereo_layout, bool &stereo_layout_swap);
-    int audio_stream();
-    void output(parameters::stereo_mode_t &stereo_mode, bool &stereo_mode_swap);
+    void get_stereo_layout(video_frame::stereo_layout_t &stereo_layout, bool &stereo_layout_swap);
+    int get_audio_stream();
+    void get_stereo_mode(parameters::stereo_mode_t &stereo_mode, bool &stereo_mode_swap);
 
     virtual void receive_notification(const notification &note);
 };
@@ -112,6 +107,8 @@ private:
     QPushButton *_play_button;
     QPushButton *_pause_button;
     QPushButton *_stop_button;
+    QPushButton *_fullscreen_button;
+    QPushButton *_center_button;
     QPushButton *_bbb_button;
     QPushButton *_bb_button;
     QPushButton *_b_button;
@@ -125,6 +122,8 @@ private slots:
     void play_pressed();
     void pause_pressed();
     void stop_pressed();
+    void fullscreen_pressed();
+    void center_pressed();
     void bbb_pressed();
     void bb_pressed();
     void b_pressed();
@@ -141,6 +140,81 @@ public:
     virtual void receive_notification(const notification &note);
 };
 
+class color_dialog : public QDialog, public controller
+{
+    Q_OBJECT
+
+private:
+    bool _lock;
+    QDoubleSpinBox *_c_spinbox;
+    QSlider *_c_slider;
+    QDoubleSpinBox *_b_spinbox;
+    QSlider *_b_slider;
+    QDoubleSpinBox *_h_spinbox;
+    QSlider *_h_slider;
+    QDoubleSpinBox *_s_spinbox;
+    QSlider *_s_slider;
+
+private slots:
+    void c_slider_changed(int val);
+    void c_spinbox_changed(double val);
+    void b_slider_changed(int val);
+    void b_spinbox_changed(double val);
+    void h_slider_changed(int val);
+    void h_spinbox_changed(double val);
+    void s_slider_changed(int val);
+    void s_spinbox_changed(double val);
+
+public:
+    color_dialog(const parameters &params, QWidget *parent);
+
+    virtual void receive_notification(const notification &note);
+};
+
+class crosstalk_dialog : public QDialog, public controller
+{
+    Q_OBJECT
+
+private:
+    bool _lock;
+    QDoubleSpinBox *_r_spinbox;
+    QDoubleSpinBox *_g_spinbox;
+    QDoubleSpinBox *_b_spinbox;
+    parameters *_params;
+
+private slots:
+    void spinbox_changed();
+
+public:
+    crosstalk_dialog(parameters *params, QWidget *parent);
+
+    virtual void receive_notification(const notification &note);
+};
+
+class stereoscopic_dialog : public QDialog, public controller
+{
+    Q_OBJECT
+
+private:
+    bool _lock;
+    QDoubleSpinBox *_p_spinbox;
+    QSlider *_p_slider;
+    QDoubleSpinBox *_g_spinbox;
+    QSlider *_g_slider;
+
+private slots:
+    void p_slider_changed(int val);
+    void p_spinbox_changed(double val);
+    void g_slider_changed(int val);
+    void g_spinbox_changed(double val);
+
+public:
+    stereoscopic_dialog(const parameters &params, QWidget *parent);
+
+    virtual void receive_notification(const notification &note);
+};
+
+
 class main_window : public QMainWindow, public controller
 {
     Q_OBJECT
@@ -150,6 +224,9 @@ private:
     video_container_widget *_video_container_widget;
     in_out_widget *_in_out_widget;
     controls_widget *_controls_widget;
+    color_dialog *_color_dialog;
+    crosstalk_dialog *_crosstalk_dialog;
+    stereoscopic_dialog *_stereoscopic_dialog;
     player_qt_internal *_player;
     QTimer *_timer;
     player_init_data _init_data;
@@ -165,7 +242,9 @@ private slots:
     void playloop_step();
     void file_open();
     void file_open_url();
+    void preferences_colors();
     void preferences_crosstalk();
+    void preferences_stereoscopic();
     void help_manual();
     void help_website();
     void help_keyboard();

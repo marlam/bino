@@ -31,6 +31,8 @@ EXTRA_DIST = \
 	icons/play.ipe icons/play.png \
 	icons/pause.ipe icons/pause.png \
 	icons/stop.ipe icons/stop.png \
+	icons/fullscreen.ipe icons/fullscreen.png \
+	icons/center.ipe icons/center.png \
 	icons/f.ipe icons/f.png \
 	icons/ff.ipe icons/ff.png \
 	icons/fff.ipe icons/fff.png \

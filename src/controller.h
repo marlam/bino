@@ -55,13 +55,18 @@ public:
         toggle_fullscreen,              // no parameters
         center,                         // no parameters
         adjust_contrast,                // float (relative adjustment)
+        set_contrast,                   // float (absolute value)
         adjust_brightness,              // float (relative adjustment)
+        set_brightness,                 // float (absolute value)
         adjust_hue,                     // float (relative adjustment)
+        set_hue,                        // float (absolute value)
         adjust_saturation,              // float (relative adjustment)
+        set_saturation,                 // float (absolute value)
         seek,                           // float (relative adjustment)
         set_pos,                        // float (absolute position)
         adjust_parallax,                // float (relative adjustment)
         set_parallax,                   // float (absolute value)
+        set_crosstalk,                  // 3 floats (absolute values)
         adjust_ghostbust,               // float (relative adjustment)
         set_ghostbust                   // float (absolute value)
     };
@@ -108,6 +113,7 @@ public:
         saturation,             // float
         pos,                    // float
         parallax,               // float
+        crosstalk,              // 3 floats
         ghostbust               // float
     };
     

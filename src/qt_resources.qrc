@@ -4,6 +4,8 @@
     <file>icons/play.png</file>
     <file>icons/pause.png</file>
     <file>icons/stop.png</file>
+    <file>icons/fullscreen.png</file>
+    <file>icons/center.png</file>
     <file>icons/f.png</file>
     <file>icons/ff.png</file>
     <file>icons/fff.png</file>
