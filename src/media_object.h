@@ -110,6 +110,10 @@ public:
      * An invalid blob means that EOF was reached. */
     audio_blob finish_audio_blob_read(int audio_stream);
 
+    /* Return the last position in microseconds, of the last packet that was read in any
+     * stream. If the position is unkown, the minimum possible value is returned. */
+    int64_t tell();
+
     /* Seek to the given position in microseconds. This affects all streams.
      * Make sure that the position is not out of range!
      * The real position after seeking is only revealed after reading the next video frame

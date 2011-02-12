@@ -991,6 +991,11 @@ audio_blob media_object::finish_audio_blob_read(int audio_stream)
     return blob;
 }
 
+int64_t media_object::tell()
+{
+    return _ffmpeg->pos;
+}
+
 void media_object::seek(int64_t dest_pos)
 {
     msg::dbg(_url + ": Seeking from " + str::from(_ffmpeg->pos / 1e6f) + " to " + str::from(dest_pos / 1e6f));
