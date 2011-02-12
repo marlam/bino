@@ -631,11 +631,13 @@ size_t media_object::tags() const
 
 const std::string &media_object::tag_name(size_t i) const
 {
+    assert(i < tags());
     return _tag_names[i];
 }
 
 const std::string &media_object::tag_value(size_t i) const
 {
+    assert(i < tags());
     return _tag_values[i];
 }
 
@@ -664,12 +666,16 @@ int media_object::video_streams() const
 
 void media_object::video_stream_set_active(int index, bool active)
 {
+    assert(index >= 0);
+    assert(index < video_streams());
     _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->discard =
         (active ? AVDISCARD_DEFAULT : AVDISCARD_ALL);
 }
 
 void media_object::audio_stream_set_active(int index, bool active)
 {
+    assert(index >= 0);
+    assert(index < audio_streams());
     _ffmpeg->format_ctx->streams[_ffmpeg->audio_streams.at(index)]->discard =
         (active ? AVDISCARD_DEFAULT : AVDISCARD_ALL);
     _ffmpeg->have_active_audio_stream = false;
@@ -685,21 +691,29 @@ void media_object::audio_stream_set_active(int index, bool active)
 
 const video_frame &media_object::video_frame_template(int video_stream) const
 {
+    assert(video_stream >= 0);
+    assert(video_stream < video_streams());
     return _ffmpeg->video_frame_templates.at(video_stream);
 }
 
 int media_object::video_frame_rate_numerator(int index) const
 {
+    assert(index >= 0);
+    assert(index < video_streams());
     return _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->r_frame_rate.num;
 }
 
 int media_object::video_frame_rate_denominator(int index) const
 {
+    assert(index >= 0);
+    assert(index < video_streams());
     return _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->r_frame_rate.den;
 }
 
 int64_t media_object::video_duration(int index) const
 {
+    assert(index >= 0);
+    assert(index < video_streams());
     // Try to get duration from the Codec first. If that fails, fall back to
     // the value provided by the container.
     int64_t duration = _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->duration;
@@ -717,11 +731,15 @@ int64_t media_object::video_duration(int index) const
 
 const audio_blob &media_object::audio_blob_template(int audio_stream) const
 {
+    assert(audio_stream >= 0);
+    assert(audio_stream < audio_streams());
     return _ffmpeg->audio_blob_templates.at(audio_stream);
 }
 
 int64_t media_object::audio_duration(int index) const
 {
+    assert(index >= 0);
+    assert(index < audio_streams());
     // Try to get duration from the Codec first. If that fails, fall back to
     // the value provided by the container.
     int64_t duration = _ffmpeg->format_ctx->streams[_ffmpeg->audio_streams.at(index)]->duration;
@@ -825,6 +843,8 @@ int64_t media_object::handle_audio_timestamp(int audio_stream, int64_t timestamp
 
 void media_object::start_video_frame_read(int video_stream)
 {
+    assert(video_stream >= 0);
+    assert(video_stream < video_streams());
     if (_ffmpeg->video_flush_flags[video_stream])
     {
         avcodec_flush_buffers(_ffmpeg->format_ctx->streams[_ffmpeg->video_streams[video_stream]]->codec);
@@ -841,6 +861,8 @@ void media_object::start_video_frame_read(int video_stream)
 
 video_frame media_object::finish_video_frame_read(int video_stream)
 {
+    assert(video_stream >= 0);
+    assert(video_stream < video_streams());
     // TODO: wait for thread, use its results
 
     int frame_finished = 0;
@@ -895,6 +917,8 @@ video_frame media_object::finish_video_frame_read(int video_stream)
 
 void media_object::start_audio_blob_read(int audio_stream, size_t size)
 {
+    assert(audio_stream >= 0);
+    assert(audio_stream < audio_streams());
     _ffmpeg->audio_blobs[audio_stream].resize(size);
     if (_ffmpeg->audio_flush_flags[audio_stream])
     {
@@ -913,6 +937,9 @@ void media_object::start_audio_blob_read(int audio_stream, size_t size)
 
 audio_blob media_object::finish_audio_blob_read(int audio_stream)
 {
+    assert(audio_stream >= 0);
+    assert(audio_stream < audio_streams());
+
     // TODO: wait for thread, use its results
 
     size_t size = _ffmpeg->audio_blobs[audio_stream].size();
