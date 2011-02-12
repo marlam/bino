@@ -365,7 +365,7 @@ void video_output::prepare_next_frame(const video_frame &frame)
             // misbehaving OpenGL implementations that do not seem to honor
             // GL_UNPACK_ALIGNMENT correctly in all cases (reported for Mac).
             glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-            glPixelStorei(GL_UNPACK_ROW_LENGTH, next_multiple_of_4(w));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, row_size / bytes_per_pixel);
             glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, tex);
