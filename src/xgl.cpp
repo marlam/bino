@@ -194,7 +194,7 @@ bool xgl::CheckFBO(const GLenum target, const std::string &where)
                 break;
         }
         std::string pfx = (where.length() > 0 ? where + ": " : "");
-        throw exc(pfx + "OpenGL FBO error " + errstr);
+        throw exc(pfx + "OpenGL FBO error " + errstr + ".");
         return false;
     }
     return true;
@@ -211,7 +211,7 @@ bool xgl::CheckError(const std::string &where)
     if (e != GL_NO_ERROR)
     {
         std::string pfx = (where.length() > 0 ? where + ": " : "");
-        throw exc(pfx + "OpenGL error " + str::asprintf("0x%04X", static_cast<unsigned int>(e)));
+        throw exc(pfx + "OpenGL error " + str::asprintf("0x%04X.", static_cast<unsigned int>(e)));
         // Don't use gluErrorString(e) here to avoid depending on libGLU just for this
         return false;
     }
@@ -239,7 +239,7 @@ static void xglKillCrlf(char *str)
 
 GLuint xgl::CompileShader(const std::string &name, GLenum type, const std::string &src)
 {
-    msg::dbg("Compiling %s shader %s",
+    msg::dbg("Compiling %s shader %s.",
             type == GL_VERTEX_SHADER ? "vertex" : type == GL_GEOMETRY_SHADER_EXT ? "geometry" : "fragment",
             name.c_str());
 
@@ -274,7 +274,7 @@ GLuint xgl::CompileShader(const std::string &name, GLenum type, const std::strin
     }
     else if (e != GL_TRUE)
     {
-        std::string when = str::asprintf("OpenGL %s shader '%s': compilation failed",
+        std::string when = str::asprintf("OpenGL %s shader '%s': compilation failed.",
                 type == GL_VERTEX_SHADER ? "vertex" : type == GL_GEOMETRY_SHADER_EXT ? "geometry" : "fragment",
                 name.c_str());
         std::string what = str::asprintf("\n%s", log.length() > 0 ? log.c_str() : "unknown error");
@@ -315,7 +315,7 @@ GLuint xgl::CreateProgram(const std::string &name,
 
 void xgl::LinkProgram(const std::string &name, const GLuint prg)
 {
-    msg::dbg("Linking OpenGL program %s", name.c_str());
+    msg::dbg("Linking OpenGL program %s.", name.c_str());
 
     glLinkProgram(prg);
 
@@ -343,7 +343,7 @@ void xgl::LinkProgram(const std::string &name, const GLuint prg)
     }
     else if (e != GL_TRUE)
     {
-        std::string when = str::asprintf("OpenGL program '%s': linking failed", name.c_str());
+        std::string when = str::asprintf("OpenGL program '%s': linking failed.", name.c_str());
         std::string what = str::asprintf("\n%s", log.length() > 0 ? log.c_str() : "unknown error");
         throw exc(when + ": " + what);
     }

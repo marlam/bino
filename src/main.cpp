@@ -164,72 +164,72 @@ int main(int argc, char *argv[])
                 "  %s [option...] [file0] [file1] [file2]\n"
                 "\n"
                 "Options:\n"
-                "  --help               Print help\n"
-                "  --version            Print version\n"
+                "  --help               Print help.\n"
+                "  --version            Print version.\n"
                 "  -n|--no-gui          Do not use the GUI, just show a plain window.\n"
-                "  -l|--log-level=LEVEL Set log level (debug, info, warning, error, quiet)\n"
-                "  -v|--video=STREAM    Select video stream (1-n, depending on the input)\n"
-                "  -a|--audio=STREAM    Select audio stream (1-n, depending on the input)\n"
+                "  -l|--log-level=LEVEL Set log level (debug, info, warning, error, quiet).\n"
+                "  -v|--video=STREAM    Select video stream (1-n, depending on the input).\n"
+                "  -a|--audio=STREAM    Select audio stream (1-n, depending on the input).\n"
                 "  -i|--input=TYPE      Select input type (default autodetect):\n"
-                "    mono                 Single view\n"
-                "    separate-left-right  Left/right view in separate streams, left first\n"
-                "    separate-right-left  Left/right view in separate streams, right first\n"
-                "    top-bottom           Left view top, right view bottom\n"
-                "    top-bottom-half      Left view top, right view bottom, half height\n"
-                "    bottom-top           Left view bottom, right view top\n"
-                "    bottom-top-half      Left view bottom, right view top, half height\n"
-                "    left-right           Left view left, right view right\n"
-                "    left-right-half      Left view left, right view right, half width\n"
-                "    right-left           Left view right, right view left\n"
-                "    right-left-half      Left view right, right view left, half width\n"
-                "    even-odd-rows        Left view even rows, right view odd rows\n"
-                "    odd-even-rows        Left view odd rows, right view even rows\n"
+                "    mono                 Single view.\n"
+                "    separate-left-right  Left/right view in separate streams, left first.\n"
+                "    separate-right-left  Left/right view in separate streams, right first.\n"
+                "    top-bottom           Left view top, right view bottom.\n"
+                "    top-bottom-half      Left view top, right view bottom, half height.\n"
+                "    bottom-top           Left view bottom, right view top.\n"
+                "    bottom-top-half      Left view bottom, right view top, half height.\n"
+                "    left-right           Left view left, right view right.\n"
+                "    left-right-half      Left view left, right view right, half width.\n"
+                "    right-left           Left view right, right view left.\n"
+                "    right-left-half      Left view right, right view left, half width.\n"
+                "    even-odd-rows        Left view even rows, right view odd rows.\n"
+                "    odd-even-rows        Left view odd rows, right view even rows.\n"
                 "  -o|--output=TYPE     Select output type (default stereo, anaglyph,\n"
                 "                         or mono-left, depending on input and display):\n"
-                "    mono-left            Only left view\n"
-                "    mono-right           Only right view\n"
-                "    top-bottom           Left view top, right view bottom\n"
-                "    top-bottom-half      Left view top, right view bottom, half height\n"
-                "    left-right           Left view left, right view right\n"
-                "    left-right-half      Left view left, right view right, half width\n"
-                "    even-odd-rows        Left view even rows, right view odd rows\n"
-                "    even-odd-columns     Left view even columns, right view odd columns\n"
-                "    checkerboard         Left and right view in checkerboard pattern\n"
-                "    anaglyph             Red/cyan anaglyph, default method (Dubois)\n"
-                "    anaglyph-monochrome  Red/cyan anaglyph, monochrome method\n"
-                "    anaglyph-full-color  Red/cyan anaglyph, full color method\n"
-                "    anaglyph-half-color  Red/cyan anaglyph, half color method\n"
-                "    anaglyph-dubois      Red/cyan anaglyph, Dubois method\n"
-                "    stereo               OpenGL quad-buffered stereo\n"
-                "    equalizer            Multi-display OpenGL via Equalizer (2D setup)\n"
-                "    equalizer-3d         Multi-display OpenGL via Equalizer (3D setup)\n"
-                "  -s|--swap-eyes       Swap left/right view\n"
-                "  -f|--fullscreen      Fullscreen\n"
-                "  -c|--center          Center window on screen\n"
-                "  -P|--parallax=VAL    Parallax adjustment (-1 to +1)\n"
+                "    mono-left            Only left view.\n"
+                "    mono-right           Only right view.\n"
+                "    top-bottom           Left view top, right view bottom.\n"
+                "    top-bottom-half      Left view top, right view bottom, half height.\n"
+                "    left-right           Left view left, right view right.\n"
+                "    left-right-half      Left view left, right view right, half width.\n"
+                "    even-odd-rows        Left view even rows, right view odd rows.\n"
+                "    even-odd-columns     Left view even columns, right view odd columns.\n"
+                "    checkerboard         Left and right view in checkerboard pattern.\n"
+                "    anaglyph             Red/cyan anaglyph, default method (Dubois).\n"
+                "    anaglyph-monochrome  Red/cyan anaglyph, monochrome method.\n"
+                "    anaglyph-full-color  Red/cyan anaglyph, full color method.\n"
+                "    anaglyph-half-color  Red/cyan anaglyph, half color method.\n"
+                "    anaglyph-dubois      Red/cyan anaglyph, Dubois method.\n"
+                "    stereo               OpenGL quad-buffered stereo.\n"
+                "    equalizer            Multi-display OpenGL via Equalizer (2D setup).\n"
+                "    equalizer-3d         Multi-display OpenGL via Equalizer (3D setup).\n"
+                "  -s|--swap-eyes       Swap left/right view.\n"
+                "  -f|--fullscreen      Fullscreen.\n"
+                "  -c|--center          Center window on screen.\n"
+                "  -P|--parallax=VAL    Parallax adjustment (-1 to +1).\n"
                 "  -C|--crosstalk=VAL   Crosstalk leak level (0 to 1); comma-separated\n"
                 "                       values for the R,G,B channels.\n"
                 "  -G|--ghostbust=VAL   Amount of ghostbusting to apply (0 to 1).\n"
-                "  -b|--benchmark       Benchmark mode (no audio, no timesync, show fps)\n"
+                "  -b|--benchmark       Benchmark mode (no audio, no timesync, show fps).\n"
                 "\n"
                 "Interactive control:\n"
-                "  q or ESC             Quit\n"
-                "  p or SPACE           Pause / unpause\n"
-                "  f                    Toggle fullscreen\n"
-                "  c                    Center window\n"
-                "  s                    Swap left/right view\n"
-                "  v                    Cycle through available video streams\n"
-                "  a                    Cycle through available audio streams\n"
-                "  1, 2                 Adjust contrast\n"
-                "  3, 4                 Adjust brightness\n"
-                "  5, 6                 Adjust hue\n"
-                "  7, 8                 Adjust saturation\n"
-                "  <, >                 Adjust parallax\n"
-                "  (, )                 Adjust ghostbusting\n"
-                "  left, right          Seek 10 seconds backward / forward\n"
-                "  up, down             Seek 1 minute backward / forward\n"
-                "  page up, page down   Seek 10 minutes backward / forward\n"
-                "  Mouse click          Seek according to the horizontal click position",
+                "  q or ESC             Quit.\n"
+                "  p or SPACE           Pause / unpause.\n"
+                "  f                    Toggle fullscreen.\n"
+                "  c                    Center window.\n"
+                "  s                    Swap left/right view.\n"
+                "  v                    Cycle through available video streams.\n"
+                "  a                    Cycle through available audio streams.\n"
+                "  1, 2                 Adjust contrast.\n"
+                "  3, 4                 Adjust brightness.\n"
+                "  5, 6                 Adjust hue.\n"
+                "  7, 8                 Adjust saturation.\n"
+                "  <, >                 Adjust parallax.\n"
+                "  (, )                 Adjust ghostbusting.\n"
+                "  left, right          Seek 10 seconds backward / forward.\n"
+                "  up, down             Seek 1 minute backward / forward.\n"
+                "  page up, page down   Seek 10 minutes backward / forward.\n"
+                "  Mouse click          Seek according to the horizontal click position.",
                 program_name);
     }
     if (version.value() || help.value())
@@ -325,7 +325,7 @@ int main(int argc, char *argv[])
     init_data.benchmark = benchmark.value();
     if (init_data.benchmark)
     {
-        msg::inf("Benchmark mode: audio and time synchronization disabled");
+        msg::inf("Benchmark mode: audio and time synchronization disabled.");
     }
     init_data.params.parallax = parallax.value();
     init_data.params.crosstalk_r = crosstalk.value()[0];
@@ -343,7 +343,7 @@ int main(int argc, char *argv[])
 #if HAVE_LIBEQUALIZER
             player = new class player_equalizer(&argc, argv, equalizer_flat_screen);
 #else
-            throw exc("This version of Bino was compiled without support for Equalizer");
+            throw exc("This version of Bino was compiled without support for Equalizer.");
 #endif
         }
         else if (!no_gui.value())
@@ -360,7 +360,7 @@ int main(int argc, char *argv[])
         {
             if (arguments.size() == 0)
             {
-                throw exc("No video to play");
+                throw exc("No video to play.");
             }
             player = new class player();
         }

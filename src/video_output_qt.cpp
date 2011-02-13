@@ -265,7 +265,7 @@ void video_output_qt::init()
             if (!glewIsSupported("GL_VERSION_2_1 GL_EXT_framebuffer_object"))
             {
                 throw exc(std::string("This OpenGL implementation does not support "
-                            "OpenGL 2.1 and framebuffer objects"));
+                            "OpenGL 2.1 and framebuffer objects."));
             }
         }
         catch (std::exception &e)
@@ -305,12 +305,12 @@ void video_output_qt::create_widget()
             if (_format.stereo())
             {
                 // Common failure: display does not support quad buffered stereo
-                throw exc("The display does not support OpenGL stereo mode");
+                throw exc("The display does not support OpenGL stereo mode.");
             }
             else
             {
                 // Should never happen
-                throw exc("Cannot set GL context format");
+                throw exc("Cannot set GL context format.");
             }
         }
         catch (std::exception &e)

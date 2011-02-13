@@ -57,12 +57,12 @@ void audio_output::init()
     {
         if (!(_device = alcOpenDevice(NULL)))
         {
-            throw exc("No OpenAL device available");
+            throw exc("No OpenAL device available.");
         }
         if (!(_context = alcCreateContext(_device, NULL)))
         {
             alcCloseDevice(_device);
-            throw exc("No OpenAL context available");
+            throw exc("No OpenAL context available.");
         }
         alcMakeContextCurrent(_context);
         set_openal_versions();
@@ -73,7 +73,7 @@ void audio_output::init()
             alcMakeContextCurrent(NULL);
             alcDestroyContext(_context);
             alcCloseDevice(_device);
-            throw exc("Cannot create OpenAL buffers");
+            throw exc("Cannot create OpenAL buffers.");
         }
         alGenSources(1, &_source);
         if (alGetError() != AL_NO_ERROR)
@@ -82,7 +82,7 @@ void audio_output::init()
             alcMakeContextCurrent(NULL);
             alcDestroyContext(_context);
             alcCloseDevice(_device);
-            throw exc("Cannot create OpenAL source");
+            throw exc("Cannot create OpenAL source.");
         }
         /* Comment from alffmpeg.c:
          * "Set parameters so mono sources won't distance attenuate" */
@@ -95,7 +95,7 @@ void audio_output::init()
             alcMakeContextCurrent(NULL);
             alcDestroyContext(_context);
             alcCloseDevice(_device);
-            throw exc("Cannot set OpenAL source parameters");
+            throw exc("Cannot set OpenAL source parameters.");
         }
         _state = 0;
         _initialized = true;
@@ -139,14 +139,14 @@ int64_t audio_output::status(size_t *required_data)
             alGetSourcei(_source, AL_SOURCE_STATE, &_state);
             if (alGetError() != AL_NO_ERROR)
             {
-                throw exc("Cannot check OpenAL source state");
+                throw exc("Cannot check OpenAL source state.");
             }
             if (_state != AL_PLAYING)
             {
                 alSourcePlay(_source);
                 if (alGetError() != AL_NO_ERROR)
                 {
-                    throw exc("Cannot restart OpenAL source playback");
+                    throw exc("Cannot restart OpenAL source playback.");
                 }
             }
             if (required_data)
@@ -309,7 +309,7 @@ void audio_output::data(const audio_blob &blob)
 {
     assert(blob.data);
     ALenum format = get_al_format(blob);
-    msg::dbg(std::string("Buffering ") + str::from(blob.size) + " bytes of audio data");
+    msg::dbg(std::string("Buffering ") + str::from(blob.size) + " bytes of audio data.");
     if (_state == 0)
     {
         // Initial buffering
@@ -326,7 +326,7 @@ void audio_output::data(const audio_blob &blob)
         }
         if (alGetError() != AL_NO_ERROR)
         {
-            throw exc("Cannot buffer initial OpenAL data");
+            throw exc("Cannot buffer initial OpenAL data.");
         }
     }
     else if (blob.size > 0)
@@ -340,7 +340,7 @@ void audio_output::data(const audio_blob &blob)
         alSourceQueueBuffers(_source, 1, &buf);
         if (alGetError() != AL_NO_ERROR)
         {
-            throw exc("Cannot buffer OpenAL data");
+            throw exc("Cannot buffer OpenAL data.");
         }
         // Update the time spent on all past buffers
         int64_t current_buffer_samples = _buffer_size / _buffer_channels[0] * 8 / _buffer_sample_bits[0];
@@ -359,13 +359,13 @@ void audio_output::data(const audio_blob &blob)
 
 int64_t audio_output::start()
 {
-    msg::dbg("Starting audio output");
+    msg::dbg("Starting audio output.");
     assert(_state == 0);
     alSourcePlay(_source);
     alGetSourcei(_source, AL_SOURCE_STATE, &_state);
     if (alGetError() != AL_NO_ERROR)
     {
-        throw exc("Cannot start OpenAL source playback");
+        throw exc("Cannot start OpenAL source playback.");
     }
     _past_time = 0;
     _last_timestamp = 0;
@@ -379,7 +379,7 @@ void audio_output::pause()
     alSourcePause(_source);
     if (alGetError() != AL_NO_ERROR)
     {
-        throw exc("Cannot pause OpenAL source playback");
+        throw exc("Cannot pause OpenAL source playback.");
     }
 }
 
@@ -388,7 +388,7 @@ void audio_output::unpause()
     alSourcePlay(_source);
     if (alGetError() != AL_NO_ERROR)
     {
-        throw exc("Cannot unpause OpenAL source playback");
+        throw exc("Cannot unpause OpenAL source playback.");
     }
 }
 
@@ -397,7 +397,7 @@ void audio_output::stop()
     alSourceStop(_source);
     if (alGetError() != AL_NO_ERROR)
     {
-        throw exc("Cannot stop OpenAL source playback");
+        throw exc("Cannot stop OpenAL source playback.");
     }
     // flush all buffers and reset the state
     ALint processed_buffers;
@@ -408,7 +408,7 @@ void audio_output::stop()
         alSourceUnqueueBuffers(_source, 1, &buf);
         if (alGetError() != AL_NO_ERROR)
         {
-            throw exc("Cannot unqueue OpenAL source buffers");
+            throw exc("Cannot unqueue OpenAL source buffers.");
         }
         alGetSourcei(_source, AL_BUFFERS_PROCESSED, &processed_buffers);
     }

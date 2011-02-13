@@ -117,7 +117,7 @@ void player::make_master()
 {
     if (global_player)
     {
-        throw exc("Cannot create a second master player");
+        throw exc("Cannot create a second master player.");
     }
     global_player = this;
 }
@@ -232,7 +232,7 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
         _video_frame = _media_input->finish_video_frame_read();
         if (!_video_frame.is_valid())
         {
-            msg::dbg("Empty video input");
+            msg::dbg("Empty video input.");
             notify(notification::play, true, false);
             return;
         }
@@ -244,7 +244,7 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
             audio_blob blob = _media_input->finish_audio_blob_read();
             if (!blob.is_valid())
             {
-                msg::dbg("Empty audio input");
+                msg::dbg("Empty audio input.");
                 notify(notification::play, true, false);
                 return;
             }
@@ -379,12 +379,12 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
         {
             if (_first_frame)
             {
-                msg::dbg("Single-frame video input: going into pause mode");
+                msg::dbg("Single-frame video input: going into pause mode.");
                 _pause_request = true;
             }
             else
             {
-                msg::dbg("End of video stream");
+                msg::dbg("End of video stream.");
                 notify(notification::play, true, false);
                 return;
             }
@@ -441,7 +441,7 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
                 audio_blob blob = _media_input->finish_audio_blob_read();
                 if (!blob.is_valid())
                 {
-                    msg::dbg("End of audio stream");
+                    msg::dbg("End of audio stream.");
                     notify(notification::play, true, false);
                     return;
                 }
@@ -466,7 +466,7 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
             _drop_next_frame = false;
             if (_master_time_current - _video_pos > _media_input->video_frame_duration() * 75 / 100 && !_benchmark)
             {
-                msg::wrn("Video: delay %g seconds; dropping next frame", (_master_time_current - _video_pos) / 1e6f);
+                msg::wrn("Video: delay %g seconds; dropping next frame.", (_master_time_current - _video_pos) / 1e6f);
                 _drop_next_frame = true;
             }
             if (!_previous_frame_dropped)
