@@ -1461,7 +1461,14 @@ void main_window::dropEvent(QDropEvent *event)
         QStringList urls;
         for (int i = 0; i < url_list.size(); i++)
         {
-            urls.append(url_list[i].toString());
+            if (url_list[i].toString().startsWith("file://", Qt::CaseInsensitive))
+            {
+                urls.append(url_list[i].toLocalFile());
+            }
+            else
+            {
+                urls.append(url_list[i].toString());
+            }
         }
         open(urls);
         event->acceptProposedAction();
