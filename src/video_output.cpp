@@ -356,7 +356,8 @@ void video_output::prepare_next_frame(const video_frame &frame)
             void *pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
             if (!pboptr)
             {
-                dbg::oom_abort();
+                msg::err("Cannot create a PBO buffer.");
+                abort();
             }
             assert(reinterpret_cast<uintptr_t>(pboptr) % 4 == 0);
             // Get the plane data into the pbo
