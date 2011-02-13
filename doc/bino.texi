@@ -194,16 +194,24 @@ Left view even rows, right view odd rows.
 Left view even columns, right view odd columns.
 @item checkerboard
 Left and right view in checkerboard pattern.
-@item anaglyph
-Red/cyan anaglyph, default method, same as @var{anaglyph-dubois}.
-@item anaglyph-monochrome
+@item red-green-monochrome
+Red/green anaglyph, monochrome method.
+@item red-blue-monochrome
+Red/blue anaglyph, monochrome method.
+@item red-cyan-monochrome
 Red/cyan anaglyph, monochrome method.
-@item anaglyph-full-color
-Red/cyan anaglyph, full color method.
-@item anaglyph-half-color
+@item red-cyan-half-color
 Red/cyan anaglyph, half color method.
-@item anaglyph-dubois
+@item red-cyan-full-color
+Red/cyan anaglyph, full color method.
+@item red-cyan-dubois
 Red/cyan anaglyph, high-quality Dubois method.
+@item green-magenta-monochrome
+Green/magenta anaglyph, monochrome method.
+@item green-magenta-half-color
+Green/magenta anaglyph, half color method.
+@item green-magenta-full-color
+Green/magenta anaglyph, full color method.
 @item stereo
 OpenGL quad-buffer stereo.
 @item equalizer
@@ -213,7 +221,7 @@ Multi-display OpenGL via Equalizer with a 3D screen setup.
 @end table
 
 For stereo input, the default is @var{stereo} if the display supports it,
-otherwise @var{anaglyph}. The default for mono input is @var{mono-left}.
+otherwise @var{red-cyan-dubois}. The default for mono input is @var{mono-left}.
 
 @node File Name Conventions
 @chapter File Name Conventions

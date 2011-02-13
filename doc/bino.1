@@ -114,16 +114,24 @@ Left view even rows, right view odd rows.
 Left view even columns, right view odd columns.
 .IP "\fIcheckerboard\fP"
 Left and right view in checkerboard pattern.
-.IP "\fIanaglyph\fP"
-Red/cyan anaglyph, default method, same as \fIanaglyph\-dubois\fP.
-.IP "\fIanaglyph\-monochrome\fP"
+.IP "\fIred\-green\-monochrome\fP"
+Red/green anaglyph, monochrome method.
+.IP "\fIred\-blue\-monochrome\fP"
+Red/blue anaglyph, monochrome method.
+.IP "\fIred\-cyan\-monochrome\fP"
 Red/cyan anaglyph, monochrome method.
-.IP "\fIanaglyph\-full\-color\fP"
-Red/cyan anaglyph, full color method.
-.IP "\fIanaglyph\-half\-color\fP"
+.IP "\fIred\-cyan\-half\-color\fP"
 Red/cyan anaglyph, half color method.
-.IP "\fIanaglyph\-dubois\fP"
+.IP "\fIred\-cyan\-full\-color\fP"
+Red/cyan anaglyph, full color method.
+.IP "\fIred\-cyan\-dubois\fP"
 Red/cyan anaglyph, high\-quality Dubois method.
+.IP "\fIgreen\-magenta\-monochrome\fP"
+Green/magenta anaglyph, monochrome method.
+.IP "\fIgreen\-magenta\-half\-color\fP"
+Green/magenta anaglyph, half color method.
+.IP "\fIgreen\-magenta\-full\-color\fP"
+Green/magenta anaglyph, full color method.
 .IP "\fIstereo\fP"
 OpenGL quad\-buffer stereo.
 .IP "\fIequalizer\fP"
@@ -132,7 +140,8 @@ Multi-display OpenGL via Equalizer with a 2D canvas setup.
 Multi-display OpenGL via Equalizer with a 3D screen setup.
 .PP
 For stereo input, the default is \fIstereo\fP if the display supports it,
-otherwise \fIanaglyph\fP. The default for mono input is \fImono\-left\fP.
+otherwise \fIred\-cyan\-dubois\fP. The default for mono input is
+\fImono\-left\fP.
 .RE
 .IP "\-s|\-\-swap\-eyes"
 Swap left/right view.

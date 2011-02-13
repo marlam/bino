@@ -170,6 +170,7 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     _output_combobox->setToolTip(output_label->toolTip());
     _output_combobox->addItem("Left view");
     _output_combobox->addItem("Right view");
+    _output_combobox->addItem("OpenGL stereo");
     _output_combobox->addItem("Top/bottom");
     _output_combobox->addItem("Top/bottom, half height");
     _output_combobox->addItem("Left/right");
@@ -177,11 +178,15 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     _output_combobox->addItem("Even/odd rows");
     _output_combobox->addItem("Even/odd columns");
     _output_combobox->addItem("Checkerboard pattern");
-    _output_combobox->addItem("Red/cyan glasses, Dubois method");
+    _output_combobox->addItem("Red/green glasses, monochrome method");
+    _output_combobox->addItem("Red/blue glasses, monochrome method");
     _output_combobox->addItem("Red/cyan glasses, monochrome method");
-    _output_combobox->addItem("Red/cyan glasses, full-color method");
     _output_combobox->addItem("Red/cyan glasses, half-color method");
-    _output_combobox->addItem("OpenGL stereo");
+    _output_combobox->addItem("Red/cyan glasses, full-color method");
+    _output_combobox->addItem("Red/cyan glasses, Dubois method (recommended)");
+    _output_combobox->addItem("Green/magenta glasses, monochrome method");
+    _output_combobox->addItem("Green/magenta glasses, half-color method");
+    _output_combobox->addItem("Green/magenta glasses, full-color method");
     connect(_output_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(output_changed()));
     layout2->addWidget(_output_combobox, 0, 1);
     layout2->setColumnStretch(1, 1);
@@ -254,41 +259,56 @@ void in_out_widget::set_stereo_mode(parameters::stereo_mode_t stereo_mode, bool 
     case parameters::mono_right:
         _output_combobox->setCurrentIndex(1);
         break;
-    case parameters::top_bottom:
+    case parameters::stereo:
         _output_combobox->setCurrentIndex(2);
         break;
-    case parameters::top_bottom_half:
+    case parameters::top_bottom:
         _output_combobox->setCurrentIndex(3);
         break;
-    case parameters::left_right:
+    case parameters::top_bottom_half:
         _output_combobox->setCurrentIndex(4);
         break;
-    case parameters::left_right_half:
+    case parameters::left_right:
         _output_combobox->setCurrentIndex(5);
         break;
-    case parameters::even_odd_rows:
+    case parameters::left_right_half:
         _output_combobox->setCurrentIndex(6);
         break;
-    case parameters::even_odd_columns:
+    case parameters::even_odd_rows:
         _output_combobox->setCurrentIndex(7);
         break;
-    case parameters::checkerboard:
+    case parameters::even_odd_columns:
         _output_combobox->setCurrentIndex(8);
         break;
-    case parameters::anaglyph_red_cyan_dubois:
+    case parameters::checkerboard:
         _output_combobox->setCurrentIndex(9);
         break;
-    case parameters::anaglyph_red_cyan_monochrome:
+    case parameters::red_green_monochrome:
         _output_combobox->setCurrentIndex(10);
         break;
-    case parameters::anaglyph_red_cyan_full_color:
+    case parameters::red_blue_monochrome:
         _output_combobox->setCurrentIndex(11);
         break;
-    case parameters::anaglyph_red_cyan_half_color:
+    case parameters::red_cyan_monochrome:
         _output_combobox->setCurrentIndex(12);
         break;
-    case parameters::stereo:
+    case parameters::red_cyan_half_color:
         _output_combobox->setCurrentIndex(13);
+        break;
+    case parameters::red_cyan_full_color:
+        _output_combobox->setCurrentIndex(14);
+        break;
+    case parameters::red_cyan_dubois:
+        _output_combobox->setCurrentIndex(15);
+        break;
+    case parameters::green_magenta_monochrome:
+        _output_combobox->setCurrentIndex(16);
+        break;
+    case parameters::green_magenta_half_color:
+        _output_combobox->setCurrentIndex(17);
+        break;
+    case parameters::green_magenta_full_color:
+        _output_combobox->setCurrentIndex(18);
         break;
     }
     _swap_checkbox->setChecked(stereo_mode_swap);
@@ -372,7 +392,7 @@ void in_out_widget::output_changed()
     {
         QMessageBox::critical(this, "Error",
                 "The display does not support OpenGL stereo mode.");
-        _output_combobox->setCurrentIndex(9);
+        _output_combobox->setCurrentIndex(15);
         return;
     }
     std::ostringstream oss;
@@ -501,40 +521,55 @@ void in_out_widget::get_stereo_mode(parameters::stereo_mode_t &stereo_mode, bool
         stereo_mode = parameters::mono_right;
         break;
     case 2:
-        stereo_mode = parameters::top_bottom;
+        stereo_mode = parameters::stereo;
         break;
     case 3:
-        stereo_mode = parameters::top_bottom_half;
+        stereo_mode = parameters::top_bottom;
         break;
     case 4:
-        stereo_mode = parameters::left_right;
+        stereo_mode = parameters::top_bottom_half;
         break;
     case 5:
-        stereo_mode = parameters::left_right_half;
+        stereo_mode = parameters::left_right;
         break;
     case 6:
-        stereo_mode = parameters::even_odd_rows;
+        stereo_mode = parameters::left_right_half;
         break;
     case 7:
-        stereo_mode = parameters::even_odd_columns;
+        stereo_mode = parameters::even_odd_rows;
         break;
     case 8:
-        stereo_mode = parameters::checkerboard;
+        stereo_mode = parameters::even_odd_columns;
         break;
     case 9:
-        stereo_mode = parameters::anaglyph_red_cyan_dubois;
+        stereo_mode = parameters::checkerboard;
         break;
     case 10:
-        stereo_mode = parameters::anaglyph_red_cyan_monochrome;
+        stereo_mode = parameters::red_green_monochrome;
         break;
     case 11:
-        stereo_mode = parameters::anaglyph_red_cyan_full_color;
+        stereo_mode = parameters::red_blue_monochrome;
         break;
     case 12:
-        stereo_mode = parameters::anaglyph_red_cyan_half_color;
+        stereo_mode = parameters::red_cyan_monochrome;
         break;
     case 13:
-        stereo_mode = parameters::stereo;
+        stereo_mode = parameters::red_cyan_half_color;
+        break;
+    case 14:
+        stereo_mode = parameters::red_cyan_full_color;
+        break;
+    case 15:
+        stereo_mode = parameters::red_cyan_dubois;
+        break;
+    case 16:
+        stereo_mode = parameters::green_magenta_monochrome;
+        break;
+    case 17:
+        stereo_mode = parameters::green_magenta_half_color;
+        break;
+    case 18:
+        stereo_mode = parameters::green_magenta_full_color;
         break;
     }
     stereo_mode_swap = _swap_checkbox->isChecked();

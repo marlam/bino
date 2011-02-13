@@ -240,7 +240,7 @@ void player::open(const player_init_data &init_data)
         }
         else
         {
-            _params.stereo_mode = parameters::anaglyph_red_cyan_dubois;
+            _params.stereo_mode = parameters::red_cyan_dubois;
         }
         _params.stereo_mode_swap = false;
     }

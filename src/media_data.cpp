@@ -507,17 +507,32 @@ std::string parameters::stereo_mode_to_string(stereo_mode_t stereo_mode, bool st
     case checkerboard:
         s = "checkerboard";
         break;
-    case anaglyph_red_cyan_monochrome:
-        s = "anaglyph-red-cyan-monochrome";
+    case red_green_monochrome:
+        s = "red-green-monochrome";
         break;
-    case anaglyph_red_cyan_full_color:
-        s = "anaglyph-red-cyan-full-color";
+    case red_blue_monochrome:
+        s = "red-blue-monochrome";
         break;
-    case anaglyph_red_cyan_half_color:
-        s = "anaglyph-red-cyan-half-color";
+    case red_cyan_monochrome:
+        s = "red-cyan-monochrome";
         break;
-    case anaglyph_red_cyan_dubois:
-        s = "anaglyph-red-cyan-dubois";
+    case red_cyan_half_color:
+        s = "red-cyan-half-color";
+        break;
+    case red_cyan_full_color:
+        s = "red-cyan-full-color";
+        break;
+    case red_cyan_dubois:
+        s = "red-cyan-dubois";
+        break;
+    case green_magenta_monochrome:
+        s = "green-magenta-monochrome";
+        break;
+    case green_magenta_half_color:
+        s = "green-magenta-half-color";
+        break;
+    case green_magenta_full_color:
+        s = "green-magenta-full-color";
         break;
     }
     if (stereo_mode_swap)
@@ -581,21 +596,41 @@ void parameters::stereo_mode_from_string(const std::string &s, stereo_mode_t &st
     {
         stereo_mode = checkerboard;
     }
-    else if (t == "anaglyph-red-cyan-monochrome" || t == "anaglyph-monochrome")
+    else if (t == "red-green-monochrome")
     {
-        stereo_mode = anaglyph_red_cyan_monochrome;
+        stereo_mode = red_green_monochrome;
     }
-    else if (t == "anaglyph-red-cyan-full-color" || t == "anaglyph-full-color")
+    else if (t == "red-blue-monochrome")
     {
-        stereo_mode = anaglyph_red_cyan_full_color;
+        stereo_mode = red_blue_monochrome;
     }
-    else if (t == "anaglyph-red-cyan-half-color" || t == "anaglyph-half-color")
+    else if (t == "red-cyan-monochrome")
     {
-        stereo_mode = anaglyph_red_cyan_half_color;
+        stereo_mode = red_cyan_monochrome;
     }
-    else if (t == "anaglyph-red-cyan-dubois" || t == "anaglyph-dubois" || t == "anaglyph")
+    else if (t == "red-cyan-half-color")
     {
-        stereo_mode = anaglyph_red_cyan_dubois;
+        stereo_mode = red_cyan_half_color;
+    }
+    else if (t == "red-cyan-full-color")
+    {
+        stereo_mode = red_cyan_full_color;
+    }
+    else if (t == "red-cyan-dubois")
+    {
+        stereo_mode = red_cyan_dubois;
+    }
+    else if (t == "green-magenta-monochrome")
+    {
+        stereo_mode = green_magenta_monochrome;
+    }
+    else if (t == "green-magenta-half-color")
+    {
+        stereo_mode = green_magenta_half_color;
+    }
+    else if (t == "green-magenta-full-color")
+    {
+        stereo_mode = green_magenta_full_color;
     }
     else
     {
