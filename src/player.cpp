@@ -39,8 +39,8 @@
 player_init_data::player_init_data() :
     log_level(msg::INF),
     urls(),
-    video_stream(-1),
-    audio_stream(-1),
+    video_stream(0),
+    audio_stream(0),
     benchmark(false),
     fullscreen(false),
     center(false),
