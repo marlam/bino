@@ -36,8 +36,8 @@
 #include "player.h"
 
 
-player_init_data::player_init_data()
-    : log_level(msg::INF),
+player_init_data::player_init_data() :
+    log_level(msg::INF),
     urls(),
     video_stream(-1),
     audio_stream(-1),
@@ -56,6 +56,46 @@ player_init_data::player_init_data()
 
 player_init_data::~player_init_data()
 {
+}
+
+void player_init_data::save(std::ostream &os) const
+{
+    s11n::save(os, static_cast<int>(log_level));
+    s11n::save(os, urls);
+    s11n::save(os, video_stream);
+    s11n::save(os, audio_stream);
+    s11n::save(os, benchmark);
+    s11n::save(os, fullscreen);
+    s11n::save(os, center);
+    s11n::save(os, stereo_layout_override);
+    s11n::save(os, static_cast<int>(stereo_layout));
+    s11n::save(os, stereo_layout_swap);
+    s11n::save(os, stereo_mode_override);
+    s11n::save(os, static_cast<int>(stereo_mode));
+    s11n::save(os, stereo_mode_swap);
+    s11n::save(os, params);
+}
+
+void player_init_data::load(std::istream &is)
+{
+    int x;
+    s11n::load(is, x);
+    log_level = static_cast<msg::level_t>(x);
+    s11n::load(is, urls);
+    s11n::load(is, video_stream);
+    s11n::load(is, audio_stream);
+    s11n::load(is, benchmark);
+    s11n::load(is, fullscreen);
+    s11n::load(is, center);
+    s11n::load(is, stereo_layout_override);
+    s11n::load(is, x);
+    stereo_layout = static_cast<video_frame::stereo_layout_t>(x);
+    s11n::load(is, stereo_layout_swap);
+    s11n::load(is, stereo_mode_override);
+    s11n::load(is, x);
+    stereo_mode = static_cast<parameters::stereo_mode_t>(x);
+    s11n::load(is, stereo_mode_swap);
+    s11n::load(is, params);
 }
 
 
@@ -113,6 +153,11 @@ video_output *player::create_video_output()
     return new video_output_qt();
 }
 
+audio_output *player::create_audio_output()
+{
+    return new audio_output();
+}
+
 void player::make_master()
 {
     if (global_player)
@@ -161,13 +206,19 @@ void player::open(const player_init_data &init_data)
     // Create audio output
     if (_media_input->audio_streams() > 0 && !_benchmark)
     {
-        _audio_output = new audio_output();
+        _audio_output = create_audio_output();
+    }
+    if (_audio_output)
+    {
         _audio_output->init();
     }
 
     // Create video output
     _video_output = create_video_output();
-    _video_output->init();
+    if (_video_output)
+    {
+        _video_output->init();
+    }
 
     // Initialize output parameters
     _params = init_data.params;
@@ -183,7 +234,7 @@ void player::open(const player_init_data &init_data)
         {
             _params.stereo_mode = parameters::mono_left;
         }
-        else if (_video_output->supports_stereo())
+        else if (_video_output && _video_output->supports_stereo())
         {
             _params.stereo_mode = parameters::stereo;
         }
@@ -195,21 +246,24 @@ void player::open(const player_init_data &init_data)
     }
 
     // Set initial parameters
-    _video_output->set_parameters(_params);
-    _video_output->set_suitable_size(
-            _media_input->video_frame_template().width,
-            _media_input->video_frame_template().height,
-            _media_input->video_frame_template().aspect_ratio,
-            _params.stereo_mode);
-    if (init_data.fullscreen)
+    if (_video_output)
     {
-        _video_output->enter_fullscreen();
+        _video_output->set_parameters(_params);
+        _video_output->set_suitable_size(
+                _media_input->video_frame_template().width,
+                _media_input->video_frame_template().height,
+                _media_input->video_frame_template().aspect_ratio,
+                _params.stereo_mode);
+        if (init_data.fullscreen)
+        {
+            _video_output->enter_fullscreen();
+        }
+        if (init_data.center)
+        {
+            _video_output->center();
+        }
+        _video_output->process_events();
     }
-    if (init_data.center)
-    {
-        _video_output->center();
-    }
-    _video_output->process_events();
 }
 
 void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)

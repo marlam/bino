@@ -24,7 +24,7 @@
 #include <string>
 #include <stdint.h>
 
-#include "intcheck.h"
+#include "s11n.h"
 
 
 class video_frame
@@ -157,7 +157,7 @@ public:
     int sample_bits() const;
 };
 
-class parameters
+class parameters : public s11n
 {
 public:
     // Do not change these enum values without a good reason, because the GUI saves them to a file.
@@ -200,6 +200,10 @@ public:
     // Convert the stereo mode to and from a string representation
     static std::string stereo_mode_to_string(stereo_mode_t stereo_mode, bool stereo_mode_swap);
     static void stereo_mode_from_string(const std::string &s, stereo_mode_t &stereo_mode, bool &stereo_mode_swap);
+
+    // Serialization
+    void save(std::ostream &os) const;
+    void load(std::istream &is);
 };
 
 #endif

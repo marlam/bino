@@ -603,3 +603,35 @@ void parameters::stereo_mode_from_string(const std::string &s, stereo_mode_t &st
         stereo_mode = mono_left;
     }
 }
+
+void parameters::save(std::ostream &os) const
+{
+    s11n::save(os, static_cast<int>(stereo_mode));
+    s11n::save(os, stereo_mode_swap);
+    s11n::save(os, parallax);
+    s11n::save(os, crosstalk_r);
+    s11n::save(os, crosstalk_g);
+    s11n::save(os, crosstalk_b);
+    s11n::save(os, ghostbust);
+    s11n::save(os, contrast);
+    s11n::save(os, brightness);
+    s11n::save(os, hue);
+    s11n::save(os, saturation);
+}
+
+void parameters::load(std::istream &is)
+{
+    int x;
+    s11n::load(is, x);
+    stereo_mode = static_cast<stereo_mode_t>(x);
+    s11n::load(is, stereo_mode_swap);
+    s11n::load(is, parallax);
+    s11n::load(is, crosstalk_r);
+    s11n::load(is, crosstalk_g);
+    s11n::load(is, crosstalk_b);
+    s11n::load(is, ghostbust);
+    s11n::load(is, contrast);
+    s11n::load(is, brightness);
+    s11n::load(is, hue);
+    s11n::load(is, saturation);
+}

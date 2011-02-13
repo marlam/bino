@@ -30,23 +30,8 @@
 #include "msg.h"
 #include "s11n.h"
 
-#include "video_output_opengl.h"
+#include "video_output.h"
 #include "player_equalizer.h"
-
-namespace eqs11n
-{
-    static void save(std::ostream &os, const eq::uint128_t &x)
-    {
-        s11n::save(os, x.high());
-        s11n::save(os, x.low());
-    }
-
-    static void load(std::istream &is, eq::uint128_t &x)
-    {
-        s11n::load(is, x.high());
-        s11n::load(is, x.low());
-    }
-}
 
 /*
  * Every eq::Node has a special player: player_eq_node.
@@ -78,139 +63,111 @@ class player_eq_node : public player
 {
 private:
     bool _is_master;
+    video_frame _frame;
+
+protected:
+    video_output *create_video_output()
+    {
+        return NULL;
+    }
+
+    audio_output *create_audio_output()
+    {
+        return _is_master ? new audio_output() : NULL;
+    }
 
 public:
     player_eq_node() : player(player::slave), _is_master(false)
     {
     }
 
-    void eq_make_master()
+    void make_master()
     {
-        make_master();
+        player::make_master();
         _is_master = true;
     }
 
-    bool eq_init(const player_init_data &init_data,
-            int *src_width, int *src_height, float *src_aspect_ratio,
-            int *src_frame_format, bool *src_is_mono)
+    bool init(const player_init_data &init_data, video_frame &frame_template)
     {
         try
         {
-            set_benchmark(init_data.benchmark);
-            reset_playstate();
-            create_decoders(init_data.filenames);
-            create_input(init_data.input_mode, init_data.audio_stream);
-            *src_width = get_input()->video_width();
-            *src_height = get_input()->video_height();
-            *src_aspect_ratio = get_input()->video_aspect_ratio();
-            *src_frame_format = get_input()->video_format();
-            *src_is_mono = get_input()->video_is_mono();
-            if (_is_master)
-            {
-                create_audio_output();
-            }
+            player::open(init_data);
+            frame_template = get_media_input().video_frame_template();
         }
         catch (std::exception &e)
         {
             msg::err("%s", e.what());
             return false;
         }
-        video_state() = init_data.video_state;
         return true;
     }
 
-    video_output_state &eq_video_state()
+    void seek(int64_t pos)
     {
-        return video_state();
+        get_media_input_nonconst().seek(pos);
     }
 
-    void eq_seek_to(int64_t seek_to)
+    void read_frame()   // Only called on slave nodes to force reading the next frame
     {
-        get_input()->seek(seek_to);
-    }
-
-    void eq_read_frame()        // Only called on slave nodes to force reading the next frame
-    {
-        int64_t video_pos = get_input()->read_video_frame();
-        if (video_pos == std::numeric_limits<int64_t>::min())
+        get_media_input_nonconst().start_video_frame_read();
+        _frame = get_media_input_nonconst().finish_video_frame_read();
+        if (!_frame.is_valid())
         {
-            msg::err("Reading input frame failed (EOF?)");
+            msg::err("Reading input frame failed.");
             abort();
         }
     }
 
-    void eq_prep_frame(video_output *vo)
+    void prepare_next_frame(video_output *vo)
     {
-        prepare_video_frame(vo);
+        vo->prepare_next_frame(_frame);
     }
 
-    void eq_run_step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
+    void step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
     {
-        run_step(more_steps, seek_to, prep_frame, drop_frame, display_frame);
-    }
-
-    void eq_get_frame()
-    {
-        get_video_frame();
-    }
-
-    void eq_release_frame()
-    {
-        release_video_frame();
+        player::step(more_steps, seek_to, prep_frame, drop_frame, display_frame);
     }
 };
 
 /*
- * video_output_opengl_eq_window
+ * video_output_eq_window
  *
- * Implementation of video_output_opengl for eq_window
+ * Implementation of video_output for eq_window
  */
 
-class video_output_opengl_eq_window : public video_output_opengl
+class video_output_eq_window : public video_output
 {
+private:
+    eq::Window *_wnd;
+
+protected:
+    void make_context_current() { _wnd->makeCurrent(); }
+    bool context_is_stereo() { return false; }
+    void recreate_context(bool) { }
+    void trigger_update() { }
+    void trigger_resize(int, int) { }
+
 public:
-    video_output_opengl_eq_window() : video_output_opengl(false)
+    bool supports_stereo() const { return false; }
+    int screen_width() { return 0; }
+    int screen_height() { return 0; }
+    float screen_aspect_ratio() { return 0.0f; }
+    int width() { return 0; }
+    int height() { return 0; }
+    float aspect_ratio() { return 0.0f; }
+    int pos_x() { return 0; }
+    int pos_y() { return 0; }
+    void center() { }
+    void enter_fullscreen() { }
+    void exit_fullscreen() { }
+    bool toggle_fullscreen() { return false; }
+    void process_events() { }
+    void receive_notification(const notification &) { }
+
+public:
+    video_output_eq_window(eq::Window *wnd) : video_output(false), _wnd(wnd)
     {
     }
-
-    void eq_display(bool mono_right_instead_of_left, float x, float y, float w, float h, const int viewport[4])
-    {
-        video_output_opengl::display(mono_right_instead_of_left, x, y, w, h, viewport);
-    }
-
-    void eq_initialize(int src_width, int src_height, float src_aspect_ratio,
-            int src_frame_format, bool src_is_mono)
-    {
-        set_mode(mono_left);    // to display the right view, we can toggle the swap_eyes flag
-        set_source_info(src_width, src_height, src_aspect_ratio, src_frame_format, src_is_mono);
-        initialize();
-    }
-
-    void eq_deinitialize()
-    {
-        deinitialize();
-    }
-
-    void eq_swap_tex_set()
-    {
-        swap_tex_set();
-    }
-
-    void eq_set_state(const video_output_state &video_state)
-    {
-        set_state(video_state);
-    }
-
-    // The rest of the video_output_opengl interface is irrelevant for Equalizer
-    virtual int screen_pos_x() { return 0; }
-    virtual int screen_pos_y() { return 0; }
-    virtual void receive_notification(const notification &) {}
-    virtual bool supports_stereo() { return false; }
-    virtual void open(int, bool, int, int, float, int,
-            const video_output_state&, unsigned int, int, int) {}
-    virtual void activate() {}
-    virtual void process_events() {}
-    virtual void close() {}
 };
 
 /*
@@ -244,28 +201,37 @@ protected:
     {
         return co::Object::STATIC;
     }
+    // Level of log messages
+    msg::level_t log_level;
+    // Input media objects
+    std::vector<std::string> urls;
+    // Selected video stream
+    int video_stream;
+    // Selected audio stream
+    int audio_stream;
+    // Benchmark mode?
+    bool benchmark;
+    // Make video fullscreen?
+    bool fullscreen;
+    // Center video on screen?
+    bool center;
+    // Manual input layout override
+    bool stereo_layout_override;
+    video_frame::stereo_layout_t stereo_layout;
+    bool stereo_layout_swap;
+    // Manual output mode override
+    bool stereo_mode_override;
+    parameters::stereo_mode_t stereo_mode;
+    bool stereo_mode_swap;
+    // Initial output parameters
+    parameters params;
 
     virtual void getInstanceData(co::DataOStream &os)
     {
         std::ostringstream oss;
-        eqs11n::save(oss, frame_data_id);
-        s11n::save(oss, static_cast<int>(init_data.log_level));
-        s11n::save(oss, init_data.filenames);
-        s11n::save(oss, init_data.audio_stream);
-        s11n::save(oss, static_cast<int>(init_data.input_mode));
-        s11n::save(oss, static_cast<int>(init_data.video_mode));
-        s11n::save(oss, init_data.video_state.contrast);
-        s11n::save(oss, init_data.video_state.brightness);
-        s11n::save(oss, init_data.video_state.hue);
-        s11n::save(oss, init_data.video_state.saturation);
-        s11n::save(oss, init_data.video_state.parallax);
-        s11n::save(oss, init_data.video_state.crosstalk_r);
-        s11n::save(oss, init_data.video_state.crosstalk_g);
-        s11n::save(oss, init_data.video_state.crosstalk_b);
-        s11n::save(oss, init_data.video_state.ghostbust);
-        s11n::save(oss, init_data.video_state.fullscreen);
-        s11n::save(oss, init_data.video_state.swap_eyes);
-        s11n::save(oss, init_data.video_flags);
+        s11n::save(oss, frame_data_id.high());
+        s11n::save(oss, frame_data_id.low());
+        s11n::save(oss, init_data);
         s11n::save(oss, flat_screen);
         s11n::save(oss, canvas_video_area.x);
         s11n::save(oss, canvas_video_area.y);
@@ -277,31 +243,12 @@ protected:
 
     virtual void applyInstanceData(co::DataIStream &is)
     {
-        int x;
         std::string s;
         is >> s;
         std::istringstream iss(s);
-        eqs11n::load(iss, frame_data_id);
-        s11n::load(iss, x);
-        init_data.log_level = static_cast<msg::level_t>(x);
-        s11n::load(iss, init_data.filenames);
-        s11n::load(iss, init_data.audio_stream);
-        s11n::load(iss, x);
-        init_data.input_mode = static_cast<enum input::mode>(x);
-        s11n::load(iss, x);
-        init_data.video_mode = static_cast<enum video_output::mode>(x);
-        s11n::load(iss, init_data.video_state.contrast);
-        s11n::load(iss, init_data.video_state.brightness);
-        s11n::load(iss, init_data.video_state.hue);
-        s11n::load(iss, init_data.video_state.saturation);
-        s11n::load(iss, init_data.video_state.parallax);
-        s11n::load(iss, init_data.video_state.crosstalk_r);
-        s11n::load(iss, init_data.video_state.crosstalk_g);
-        s11n::load(iss, init_data.video_state.crosstalk_b);
-        s11n::load(iss, init_data.video_state.ghostbust);
-        s11n::load(iss, init_data.video_state.fullscreen);
-        s11n::load(iss, init_data.video_state.swap_eyes);
-        s11n::load(iss, init_data.video_flags);
+        s11n::load(iss, frame_data_id.high());
+        s11n::load(iss, frame_data_id.low());
+        s11n::load(iss, init_data);
         s11n::load(iss, flat_screen);
         s11n::load(iss, canvas_video_area.x);
         s11n::load(iss, canvas_video_area.y);
@@ -318,15 +265,15 @@ protected:
 class eq_frame_data : public co::Object
 {
 public:
-    video_output_state video_state;
+    parameters params;
     int64_t seek_to;
     bool prep_frame;
     bool drop_frame;
     bool display_frame;
 
 public:
-    eq_frame_data()
-        : video_state(), seek_to(-1),
+    eq_frame_data() :
+        params(), seek_to(0),
         prep_frame(false), drop_frame(false), display_frame(false)
     {
     }
@@ -340,17 +287,7 @@ protected:
     virtual void getInstanceData(co::DataOStream &os)
     {
         std::ostringstream oss;
-        s11n::save(oss, video_state.contrast);
-        s11n::save(oss, video_state.brightness);
-        s11n::save(oss, video_state.hue);
-        s11n::save(oss, video_state.saturation);
-        s11n::save(oss, video_state.parallax);
-        s11n::save(oss, video_state.crosstalk_r);
-        s11n::save(oss, video_state.crosstalk_g);
-        s11n::save(oss, video_state.crosstalk_b);
-        s11n::save(oss, video_state.ghostbust);
-        s11n::save(oss, video_state.fullscreen);
-        s11n::save(oss, video_state.swap_eyes);
+        s11n::save(oss, params);
         s11n::save(oss, seek_to);
         s11n::save(oss, prep_frame);
         s11n::save(oss, drop_frame);
@@ -363,66 +300,13 @@ protected:
         std::string s;
         is >> s;
         std::istringstream iss(s);
-        s11n::load(iss, video_state.contrast);
-        s11n::load(iss, video_state.brightness);
-        s11n::load(iss, video_state.hue);
-        s11n::load(iss, video_state.saturation);
-        s11n::load(iss, video_state.parallax);
-        s11n::load(iss, video_state.crosstalk_r);
-        s11n::load(iss, video_state.crosstalk_g);
-        s11n::load(iss, video_state.crosstalk_b);
-        s11n::load(iss, video_state.ghostbust);
-        s11n::load(iss, video_state.fullscreen);
-        s11n::load(iss, video_state.swap_eyes);
+        s11n::load(iss, params);
         s11n::load(iss, seek_to);
         s11n::load(iss, prep_frame);
         s11n::load(iss, drop_frame);
         s11n::load(iss, display_frame);
     }
 };
-
-/** Defines errors produced by player. */
-
-enum Error
-{
-    ERROR_MAP_INITDATA_FAILED = eq::ERROR_CUSTOM,
-    ERROR_MAP_FRAMEDATA_FAILED,
-    ERROR_PLAYER_INIT_FAILED,
-    ERROR_OPENGL_2_1_NEEDED
-};
-
-struct ErrorData
-{
-    const uint32_t code;
-    const std::string text;
-};
-
-ErrorData _errors[] =
-{
-    { ERROR_MAP_FRAMEDATA_FAILED, "Init data mapping failed" },
-    { ERROR_MAP_INITDATA_FAILED, "Frame data mapping failed" },
-    { ERROR_PLAYER_INIT_FAILED, "Video player initialization failed" },
-    { ERROR_OPENGL_2_1_NEEDED, "Need at least OpenGL 2.1" },
-    { 0, "" } // last!
-};
-
-static void init_errors()
-{
-    co::base::ErrorRegistry& registry = co::base::Global::getErrorRegistry();
-    for (size_t i = 0; _errors[i].code != 0; i++)
-    {
-        registry.setString(_errors[i].code, _errors[i].text);
-    }
-}
-
-static void exit_errors()
-{
-    co::base::ErrorRegistry& registry = co::base::Global::getErrorRegistry();
-    for (size_t i = 0; _errors[i].code != 0; i++)
-    {
-        registry.eraseString(_errors[i].code);
-    }
-}
 
 /*
  * eq_config
@@ -438,18 +322,17 @@ private:
     controller _controller;             // Sends commands to the player
 
 public:
-    // Source video properties:
-    int src_width, src_height;
-    float src_aspect_ratio;
-    int src_frame_format;
-    bool src_is_mono;
+    video_frame frame_template;         // Video frame properties
 
 public:
-    eq_config(eq::ServerPtr parent)
-        : eq::Config(parent), _is_master_config(false), _eq_init_data(), _eq_frame_data(),
-        _player(), _controller(false),
-        src_width(-1), src_height(-1), src_aspect_ratio(0.0f),
-        src_frame_format(0), src_is_mono(true)
+    eq_config(eq::ServerPtr parent) :
+        eq::Config(parent),
+        _is_master_config(false),
+        _eq_init_data(),
+        _eq_frame_data(),
+        _player(),
+        _controller(false),
+        frame_template()
     {
     }
 
@@ -467,18 +350,17 @@ public:
         // Initialize master init/frame data instances
         _eq_init_data.init_data = init_data;
         _eq_init_data.flat_screen = flat_screen;
-        _eq_frame_data.video_state = _eq_init_data.init_data.video_state;
+        _eq_frame_data.params = _eq_init_data.init_data.params;
         // Initialize master player
-        _player.eq_make_master();
-        if (!_player.eq_init(init_data, &src_width, &src_height, &src_aspect_ratio,
-                    &src_frame_format, &src_is_mono))
+        _player.make_master();
+        if (!_player.init(init_data, frame_template))
         {
             return false;
         }
         // Find region of canvas to use, depending on the video aspect ratio
         if (getCanvases().size() < 1)
         {
-            msg::err("No canvas in Equalizer configuration");
+            msg::err("No canvas in Equalizer configuration.");
             return false;
         }
         float canvas_w = getCanvases()[0]->getWall().getWidth();
@@ -489,15 +371,15 @@ public:
 
         if (flat_screen)
         {
-            if (src_aspect_ratio > canvas_aspect_ratio)
+            if (frame_template.aspect_ratio > canvas_aspect_ratio)
             {
                 // need black borders top and bottom
-                _eq_init_data.canvas_video_area.h = canvas_aspect_ratio / src_aspect_ratio;
+                _eq_init_data.canvas_video_area.h = canvas_aspect_ratio / frame_template.aspect_ratio;
             }
             else
             {
                 // need black borders left and right
-                _eq_init_data.canvas_video_area.w = src_aspect_ratio / canvas_aspect_ratio;
+                _eq_init_data.canvas_video_area.w = frame_template.aspect_ratio / canvas_aspect_ratio;
             }
             _eq_init_data.canvas_video_area.x = (1.0f - _eq_init_data.canvas_video_area.w) / 2.0f;
             _eq_init_data.canvas_video_area.y = (1.0f - _eq_init_data.canvas_video_area.h) / 2.0f;
@@ -506,13 +388,13 @@ public:
         {
             compute_3d_canvas(&_eq_init_data.canvas_video_area.h, &_eq_init_data.canvas_video_area.d);
             // compute width and offset for 1m high 'screen' quad in 3D space
-            _eq_init_data.canvas_video_area.w = _eq_init_data.canvas_video_area.h * src_aspect_ratio;
+            _eq_init_data.canvas_video_area.w = _eq_init_data.canvas_video_area.h * frame_template.aspect_ratio;
             _eq_init_data.canvas_video_area.x = -0.5f * _eq_init_data.canvas_video_area.w;
             _eq_init_data.canvas_video_area.y = -0.5f * _eq_init_data.canvas_video_area.h;
         }
         msg::inf("Equalizer canvas:");
         msg::inf("    %gx%g, aspect ratio %g:1", canvas_w, canvas_h, canvas_w / canvas_h);
-        msg::inf("    Area for %g:1 video: [ %g %g %g %g @ %g ]", src_aspect_ratio,
+        msg::inf("    Area for %g:1 video: [ %g %g %g %g @ %g ]", frame_template.aspect_ratio,
                 _eq_init_data.canvas_video_area.x, _eq_init_data.canvas_video_area.y,
                 _eq_init_data.canvas_video_area.w, _eq_init_data.canvas_video_area.h,
                 _eq_init_data.canvas_video_area.d);
@@ -541,14 +423,14 @@ public:
     {
         // Run one player step to find out what to do
         bool more_steps;
-        _player.eq_run_step(&more_steps, &_eq_frame_data.seek_to,
+        _player.step(&more_steps, &_eq_frame_data.seek_to,
                 &_eq_frame_data.prep_frame, &_eq_frame_data.drop_frame, &_eq_frame_data.display_frame);
         if (!more_steps)
         {
             this->exit();
         }
         // Update the video state for all (it might have changed via handleEvent())
-        _eq_frame_data.video_state = _player.eq_video_state();
+        _eq_frame_data.params = _player.get_parameters();
         // Commit the updated frame data
         const eq::uint128_t version = _eq_frame_data.commit();
         // Start this frame with the committed frame data
@@ -569,7 +451,7 @@ public:
                 _controller.send_cmd(command::toggle_play);
                 break;
             case 's':
-                _controller.send_cmd(command::toggle_swap_eyes);
+                _controller.send_cmd(command::toggle_stereo_mode_swap);
                 break;
             case 'f':
                 /* fullscreen toggling not supported with Equalizer */
@@ -580,6 +462,12 @@ public:
             case ' ':
             case 'p':
                 _controller.send_cmd(command::toggle_pause);
+                break;
+            case 'v':
+                _controller.send_cmd(command::cycle_video_stream);
+                break;
+            case 'a':
+                _controller.send_cmd(command::cycle_audio_stream);
                 break;
             case '1':
                 _controller.send_cmd(command::adjust_contrast, -0.05f);
@@ -729,16 +617,15 @@ private:
 public:
     eq_init_data init_data;
     eq_frame_data frame_data;
-    int src_width, src_height;
-    float src_aspect_ratio;
-    int src_frame_format;
-    bool src_is_mono;
+    video_frame frame_template;
 
-    eq_node(eq::Config *parent)
-        : eq::Node(parent), _is_app_node(false),
-        _player(), init_data(), frame_data(),
-        src_width(-1), src_height(-1), src_aspect_ratio(-1.0f),
-        src_frame_format(0), src_is_mono(true)
+    eq_node(eq::Config *parent) :
+        eq::Node(parent),
+        _is_app_node(false),
+        _player(),
+        init_data(),
+        frame_data(),
+        frame_template()
     {
     }
 
@@ -753,7 +640,6 @@ protected:
         eq_config *config = static_cast<eq_config *>(getConfig());
         if (!config->mapObject(&init_data, initID))
         {
-            setError(ERROR_MAP_INITDATA_FAILED);
             return false;
         }
         // Is this the application node?
@@ -764,7 +650,6 @@ protected:
         // Map our FrameData instance to the master instance
         if (!config->mapObject(&frame_data, init_data.frame_data_id))
         {
-            setError(ERROR_MAP_FRAMEDATA_FAILED);
             return false;
         }
 
@@ -773,20 +658,14 @@ protected:
         // Create decoders and input
         if (!_is_app_node)
         {
-            if (!_player.eq_init(init_data.init_data, &src_width, &src_height, &src_aspect_ratio,
-                        &src_frame_format, &src_is_mono))
+            if (!_player.init(init_data.init_data, frame_template))
             {
-                setError(ERROR_PLAYER_INIT_FAILED);
                 return false;
             }
         }
         else
         {
-            src_width = config->src_width;
-            src_height = config->src_height;
-            src_aspect_ratio = config->src_aspect_ratio;
-            src_frame_format = config->src_frame_format;
-            src_is_mono = config->src_is_mono;
+            frame_template = config->frame_template;
         }
         msg::dbg(HERE);
         return true;
@@ -813,31 +692,29 @@ protected:
         // Do as we're told
         if (_is_app_node)
         {
+#if 0
             eq_config *config = static_cast<eq_config *>(getConfig());
             if (frame_data.prep_frame)
             {
-                config->player()->eq_get_frame();
             }
             if (frame_data.drop_frame)
             {
-                config->player()->eq_release_frame();
             }
+#endif
         }
         else
         {
             if (frame_data.seek_to >= 0)
             {
-                _player.eq_seek_to(frame_data.seek_to);
+                _player.seek(frame_data.seek_to);
             }
             if (frame_data.prep_frame)
             {
-                _player.eq_read_frame();
-                _player.eq_get_frame();
+                _player.read_frame();
             }
             if (frame_data.drop_frame)
             {
-                _player.eq_read_frame();
-                _player.eq_release_frame();
+                _player.read_frame();
             }
         }
         startFrame(frameNumber);
@@ -845,36 +722,36 @@ protected:
 
     virtual void frameFinish(const eq::uint128_t&, const uint32_t frameNumber)
     {
+#if 0
         // Do as we're told
         if (_is_app_node)
         {
             eq_config *config = static_cast<eq_config *>(getConfig());
             if (frame_data.prep_frame)
             {
-                config->player()->eq_release_frame();
             }
         }
         else
         {
             if (frame_data.prep_frame)
             {
-                _player.eq_release_frame();
             }
         }
+#endif
         releaseFrame(frameNumber);
     }
 
 public:
-    void prep_frame(video_output *vo)
+    void prepare_next_frame(video_output *vo)
     {
         if (_is_app_node)
         {
             eq_config *config = static_cast<eq_config *>(getConfig());
-            config->player()->eq_prep_frame(vo);
+            config->player()->prepare_next_frame(vo);
         }
         else
         {
-            _player.eq_prep_frame(vo);
+            _player.prepare_next_frame(vo);
         }
     }
 };
@@ -898,16 +775,16 @@ public:
 class eq_window : public eq::Window
 {
 private:
-    video_output_opengl_eq_window _video_output;
+    video_output_eq_window _video_output;
 
 public:
-    eq_window(eq::Pipe *parent) : eq::Window(parent), _video_output()
+    eq_window(eq::Pipe *parent) : eq::Window(parent), _video_output(this)
     {
     }
 
     void display(bool mono_right_instead_of_left, float x, float y, float w, float h, const int viewport[4])
     {
-        _video_output.eq_display(mono_right_instead_of_left, x, y, w, h, viewport);
+        _video_output.display_current_frame(mono_right_instead_of_left, x, y, w, h, viewport);
     }
 
 protected:
@@ -921,17 +798,12 @@ protected:
         if (!glewContextIsSupported(const_cast<GLEWContext *>(glewGetContext()),
                     "GL_VERSION_2_1 GL_EXT_framebuffer_object"))
         {
-            msg::err("This OpenGL implementation does not support OpenGL 2.1 and framebuffer objects");
-            setError(ERROR_OPENGL_2_1_NEEDED);
+            msg::err("This OpenGL implementation does not support OpenGL 2.1 and framebuffer objects.");
             return false;
         }
 
         // Disable some things that Equalizer seems to enable for some reason.
         glDisable(GL_LIGHTING);
-
-        eq_node *node = static_cast<eq_node *>(getNode());
-        _video_output.eq_initialize(node->src_width, node->src_height,
-                node->src_aspect_ratio, node->src_frame_format, node->src_is_mono);
 
         msg::dbg(HERE);
         return true;
@@ -940,7 +812,7 @@ protected:
     virtual bool configExitGL()
     {
         msg::dbg(HERE);
-        _video_output.eq_deinitialize();
+        _video_output.deinit();
         msg::dbg(HERE);
         return eq::Window::configExitGL();
     }
@@ -949,17 +821,15 @@ protected:
     {
         // Get frame data via from the node
         eq_node *node = static_cast<eq_node *>(getNode());
-        _video_output.eq_set_state(node->frame_data.video_state);
+        _video_output.set_parameters(node->frame_data.params);
         // Do as we're told
         if (node->frame_data.prep_frame)
         {
-            makeCurrent();      // XXX Is this necessary?
-            node->prep_frame(&_video_output);
+            node->prepare_next_frame(&_video_output);
         }
         if (node->frame_data.display_frame)
         {
-            makeCurrent();      // XXX Is this necessary?
-            _video_output.eq_swap_tex_set();
+            _video_output.activate_next_frame();
         }
         startFrame(frameNumber);
     }
@@ -1030,17 +900,6 @@ protected:
         glGetIntegerv(GL_VIEWPORT, viewport);
         window->display(mono_right_instead_of_left, quad_x, quad_y, quad_w, quad_h, viewport);
     }
-
-#if 0
-    void frameViewFinish(const eq::uint128_t& frameID)
-    {
-        //const FrameData& frameData = _getFrameData();
-
-        applyBuffer();
-        applyViewport();
-        drawStatistics();
-    }
-#endif
 };
 
 /*
@@ -1080,15 +939,14 @@ public:
  * player_equalizer
  */
 
-player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen)
-    : player(player::slave), _flat_screen(flat_screen)
+player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen) :
+    player(player::slave), _flat_screen(flat_screen)
 {
     /* Initialize Equalizer */
-    init_errors();
     _node_factory = static_cast<void *>(new eq_node_factory);
     if (!eq::init(*argc, argv, static_cast<eq::NodeFactory *>(_node_factory)))
     {
-        throw exc("Equalizer initialization failed");
+        throw exc("Equalizer initialization failed.");
     }
     /* Get a configuration */
     _config = static_cast<void *>(eq::getConfig(*argc, argv));
@@ -1096,7 +954,7 @@ player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen)
     // eq::getConfig() does not return on other nodes.
     if (!_config)
     {
-        throw exc("Cannot get equalizer configuration");
+        throw exc("Cannot get equalizer configuration.");
     }
 }
 
@@ -1110,7 +968,7 @@ void player_equalizer::open(const player_init_data &init_data)
     eq_config *config = static_cast<eq_config *>(_config);
     if (!config->init(init_data, _flat_screen))
     {
-        throw exc("Equalizer configuration initialization failed");
+        throw exc("Equalizer configuration initialization failed.");
     }
 }
 
@@ -1125,7 +983,6 @@ void player_equalizer::run()
     config->exit();
     eq::releaseConfig(config);
     eq::exit();
-    exit_errors();
 }
 
 void player_equalizer::close()

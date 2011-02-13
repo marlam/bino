@@ -26,15 +26,16 @@
 #include <string>
 
 #include "msg.h"
+#include "s11n.h"
 
 #include "controller.h"
 #include "media_data.h"
 #include "media_input.h"
 #include "audio_output.h"
-#include "video_output_qt.h"
+#include "video_output.h"
 
 
-class player_init_data
+class player_init_data : public s11n
 {
 public:
     // Level of log messages
@@ -65,6 +66,10 @@ public:
 public:
     player_init_data();
     ~player_init_data();
+
+    // Serialization
+    void save(std::ostream &os) const;
+    void load(std::istream &is);
 };
 
 class player
@@ -115,14 +120,20 @@ private:
 
     float normalize_pos(int64_t pos);   // transform a position into [0,1]
 
-    void make_master();
     void reset_playstate();
-    void step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
 
 protected:
+    virtual audio_output *create_audio_output();
     virtual video_output *create_video_output();
 
+    void make_master();
+    void step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
     bool run_step();
+
+    media_input &get_media_input_nonconst()
+    {
+        return *_media_input;
+    }
 
     void notify(const notification &note);
     void notify(enum notification::type t, bool p, bool c) { notify(notification(t, p, c)); }
