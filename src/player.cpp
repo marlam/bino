@@ -276,6 +276,8 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
 
     if (_quit_request)
     {
+        _video_output->prepare_next_frame(video_frame());
+        _video_output->activate_next_frame();
         notify(notification::play, true, false);
         return;
     }

@@ -313,9 +313,14 @@ static int next_multiple_of_4(int x)
 
 void video_output::prepare_next_frame(const video_frame &frame)
 {
-    make_context_current();
     assert(xgl::CheckError(HERE));
     int index = (_active_index == 0 ? 1 : 0);
+    if (!frame.is_valid())
+    {
+        _frame[index] = frame;
+        return;
+    }
+    make_context_current();
     if (!input_is_compatible(index, frame))
     {
         input_deinit(index);
