@@ -371,7 +371,7 @@ void in_out_widget::output_changed()
     if (stereo_mode == parameters::stereo && !_player->get_video_output()->supports_stereo())
     {
         QMessageBox::critical(this, "Error",
-                "The input data does not support this 3D layout.");
+                "The display does not support OpenGL stereo mode.");
         _output_combobox->setCurrentIndex(9);
         return;
     }
