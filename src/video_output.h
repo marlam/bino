@@ -92,6 +92,18 @@ protected:
     void reshape(int w, int h);                 // Call this when the video area was resized
     bool need_redisplay_on_move();              // Whether we need to redisplay if the video area moved
 
+    /* Display the current frame.
+     * First version: This version is used by Equalizer, which needs to set some special properties.
+     * Second version: This version is called by the player which knows the current params.
+     * Third version: This version is used to redisplay the current frame, e.g. for repaint events.
+     * TODO: This function needs to handle interlaced frames! */
+    void display_current_frame(bool mono_right_instead_of_left,
+            float x, float y, float w, float h, const GLint viewport[4]);
+    void display_current_frame()
+    {
+        display_current_frame(false, -1.0f, -1.0f, 2.0f, 2.0f, _viewport);
+    }
+
 public:
     /* Constructor, Destructor */
     video_output(bool receive_notifications = true);
@@ -137,17 +149,6 @@ public:
     void activate_next_frame();
     /* Set display parameters. */
     void set_parameters(const parameters &params);
-    /* Display the current frame.
-     * First version: This version is used by Equalizer, which needs to set some special properties.
-     * Second version: This version is called by the player which knows the current params.
-     * Third version: This version is used to redisplay the current frame, e.g. for repaint events.
-     * TODO: This function needs to be called two times for interlaced frames! */
-    void display_current_frame(bool mono_right_instead_of_left,
-            float x, float y, float w, float h, const GLint viewport[4]);
-    void display_current_frame()
-    {
-        display_current_frame(false, -1.0f, -1.0f, 2.0f, 2.0f, _viewport);
-    }
 
     /* Receive a notification from the player. */
     virtual void receive_notification(const notification &note) = 0;

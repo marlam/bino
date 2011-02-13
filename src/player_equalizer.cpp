@@ -168,6 +168,12 @@ public:
     video_output_eq_window(eq::Window *wnd) : video_output(false), _wnd(wnd)
     {
     }
+
+    void display_current_frame(bool mono_right_instead_of_left,
+            float x, float y, float w, float h, const GLint viewport[4])
+    {
+        video_output::display_current_frame(mono_right_instead_of_left, x, y, w, h, viewport);
+    }
 };
 
 /*
