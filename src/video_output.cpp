@@ -610,10 +610,10 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
 {
     make_context_current();
     assert(xgl::CheckError(HERE));
+    clear();
     const video_frame &frame = _frame[_active_index];
     if (!frame.is_valid())
     {
-        clear();
         return;
     }
 

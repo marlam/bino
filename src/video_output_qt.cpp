@@ -287,6 +287,7 @@ void video_output_qt::deinit()
     {
         _widget->makeCurrent();
         video_output::deinit();
+        _widget->doneCurrent();
         delete _widget;
         _widget = NULL;
     }
@@ -348,6 +349,7 @@ void video_output_qt::recreate_context(bool stereo)
     deinit();
     _format.setStereo(stereo);
     init();
+    clear();
 }
 
 void video_output_qt::trigger_update()
