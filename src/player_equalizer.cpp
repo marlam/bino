@@ -44,7 +44,7 @@
  * The application node reuses the player of eq::Config, so that it does not
  * need to run two players.
  *
- * Each eq::Window has a special video_output_opengl: video_output_opengl_eq_window.
+ * Each eq::Window has a special video_output: video_output_eq_window.
  * It manages the video textures.
  *
  * Each eq::Channel than calls the window's display function to render its subset of
@@ -67,11 +67,13 @@ private:
 protected:
     video_output *create_video_output()
     {
+        // A node does not have its own video output; this is handled via eq_window.
         return NULL;
     }
 
     audio_output *create_audio_output()
     {
+        // Only the master player may have an audio output.
         return _is_master ? new audio_output() : NULL;
     }
 
@@ -131,7 +133,10 @@ public:
 /*
  * video_output_eq_window
  *
- * Implementation of video_output for eq_window
+ * Implementation of video_output for eq_window.
+ *
+ * Much of the video_output interface is not relevant for Equalizer, and thus
+ * is implemented with simple stub functions.
  */
 
 class video_output_eq_window : public video_output
@@ -206,30 +211,6 @@ protected:
     {
         return co::Object::STATIC;
     }
-    // Level of log messages
-    msg::level_t log_level;
-    // Input media objects
-    std::vector<std::string> urls;
-    // Selected video stream
-    int video_stream;
-    // Selected audio stream
-    int audio_stream;
-    // Benchmark mode?
-    bool benchmark;
-    // Make video fullscreen?
-    bool fullscreen;
-    // Center video on screen?
-    bool center;
-    // Manual input layout override
-    bool stereo_layout_override;
-    video_frame::stereo_layout_t stereo_layout;
-    bool stereo_layout_swap;
-    // Manual output mode override
-    bool stereo_mode_override;
-    parameters::stereo_mode_t stereo_mode;
-    bool stereo_mode_swap;
-    // Initial output parameters
-    parameters params;
 
     virtual void getInstanceData(co::DataOStream &os)
     {
