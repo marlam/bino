@@ -100,8 +100,6 @@ private:
     int64_t _seek_request;
     float _set_pos_request;
 
-    video_frame _video_frame;
-
     size_t _required_audio_data_size;
     int64_t _pause_start;
     // Audio / video timing, relative to a synchronization point.
@@ -123,6 +121,8 @@ private:
     void reset_playstate();
 
 protected:
+    video_frame _video_frame;
+
     virtual audio_output *create_audio_output();
     virtual video_output *create_video_output();
 

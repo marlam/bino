@@ -63,7 +63,6 @@ class player_eq_node : public player
 {
 private:
     bool _is_master;
-    video_frame _frame;
 
 protected:
     video_output *create_video_output()
@@ -110,8 +109,8 @@ public:
     void read_frame()   // Only called on slave nodes to force reading the next frame
     {
         get_media_input_nonconst().start_video_frame_read();
-        _frame = get_media_input_nonconst().finish_video_frame_read();
-        if (!_frame.is_valid())
+        _video_frame = get_media_input_nonconst().finish_video_frame_read();
+        if (!_video_frame.is_valid())
         {
             msg::err("Reading input frame failed.");
             abort();
@@ -120,7 +119,7 @@ public:
 
     void prepare_next_frame(video_output *vo)
     {
-        vo->prepare_next_frame(_frame);
+        vo->prepare_next_frame(_video_frame);
     }
 
     void step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
@@ -698,15 +697,7 @@ protected:
         // Do as we're told
         if (_is_app_node)
         {
-#if 0
-            eq_config *config = static_cast<eq_config *>(getConfig());
-            if (frame_data.prep_frame)
-            {
-            }
-            if (frame_data.drop_frame)
-            {
-            }
-#endif
+            // Nothing to do since the config's master player already did it
         }
         else
         {
@@ -724,27 +715,6 @@ protected:
             }
         }
         startFrame(frameNumber);
-    }
-
-    virtual void frameFinish(const eq::uint128_t&, const uint32_t frameNumber)
-    {
-#if 0
-        // Do as we're told
-        if (_is_app_node)
-        {
-            eq_config *config = static_cast<eq_config *>(getConfig());
-            if (frame_data.prep_frame)
-            {
-            }
-        }
-        else
-        {
-            if (frame_data.prep_frame)
-            {
-            }
-        }
-#endif
-        releaseFrame(frameNumber);
     }
 
 public:
