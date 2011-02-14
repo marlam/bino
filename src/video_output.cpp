@@ -582,6 +582,12 @@ void video_output::activate_next_frame()
 void video_output::set_parameters(const parameters &params)
 {
     _params = params;
+    bool context_needs_stereo = (_params.stereo_mode == parameters::stereo);
+    if (context_needs_stereo != context_is_stereo())
+    {
+        recreate_context(context_needs_stereo);
+        _color_last_frame = video_frame();
+    }
     trigger_update();
 }
 
@@ -611,13 +617,6 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
         return;
     }
 
-    bool need_stereo_context = (_params.stereo_mode == parameters::stereo);
-    if (need_stereo_context != context_is_stereo())
-    {
-        deinit();
-        recreate_context(need_stereo_context);
-        init();
-    }
     if (frame.width != _color_last_frame.width
             || frame.height != _color_last_frame.height
             || frame.aspect_ratio < _color_last_frame.aspect_ratio

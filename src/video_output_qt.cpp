@@ -345,9 +345,9 @@ bool video_output_qt::context_is_stereo()
 
 void video_output_qt::recreate_context(bool stereo)
 {
-    delete _widget;
+    deinit();
     _format.setStereo(stereo);
-    create_widget();
+    init();
 }
 
 void video_output_qt::trigger_update()
