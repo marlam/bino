@@ -276,8 +276,11 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
 
     if (_quit_request)
     {
-        _video_output->prepare_next_frame(video_frame());
-        _video_output->activate_next_frame();
+        if (_video_output)
+        {
+            _video_output->prepare_next_frame(video_frame());
+            _video_output->activate_next_frame();
+        }
         notify(notification::play, true, false);
         return;
     }
@@ -614,6 +617,8 @@ void player::receive_cmd(const command &cmd)
     float oldval;
     float param;
 
+    bool parameters_changed = false;
+
     switch (cmd.type)
     {
     case command::toggle_play:
@@ -622,7 +627,7 @@ void player::receive_cmd(const command &cmd)
         break;
     case command::toggle_stereo_mode_swap:
         _params.stereo_mode_swap = !_params.stereo_mode_swap;
-        _video_output->set_parameters(_params);
+        parameters_changed = true;
         notify(notification::stereo_mode_swap, !_params.stereo_mode_swap, _params.stereo_mode_swap);
         break;
     case command::cycle_video_stream:
@@ -712,15 +717,22 @@ void player::receive_cmd(const command &cmd)
             s11n::load(p, stereo_mode_swap);
             _params.stereo_mode = static_cast<parameters::stereo_mode_t>(stereo_mode);
             _params.stereo_mode_swap = stereo_mode_swap;
-            _video_output->set_parameters(_params);
+            parameters_changed = true;
         }
         break;
     case command::toggle_fullscreen:
-        flag = _video_output->toggle_fullscreen();
+        flag = false;
+        if (_video_output)
+        {
+            flag = _video_output->toggle_fullscreen();
+        }
         notify(notification::fullscreen, flag, !flag);
         break;
     case command::center:
-        _video_output->center();
+        if (_video_output)
+        {
+            _video_output->center();
+        }
         notify(notification::center);
         break;
     case command::toggle_pause:
@@ -731,56 +743,56 @@ void player::receive_cmd(const command &cmd)
         s11n::load(p, param);
         oldval = _params.contrast;
         _params.contrast = std::max(std::min(_params.contrast + param, 1.0f), -1.0f);
-        _video_output->set_parameters(_params);
+        parameters_changed = true;
         notify(notification::contrast, oldval, _params.contrast);
         break;
     case command::set_contrast:
         s11n::load(p, param);
         oldval = _params.contrast;
         _params.contrast = std::max(std::min(param, 1.0f), -1.0f);
-        _video_output->set_parameters(_params);
+        parameters_changed = true;
         notify(notification::contrast, oldval, _params.contrast);
         break;
     case command::adjust_brightness:
         s11n::load(p, param);
         oldval = _params.brightness;
         _params.brightness = std::max(std::min(_params.brightness + param, 1.0f), -1.0f);
-        _video_output->set_parameters(_params);
+        parameters_changed = true;
         notify(notification::brightness, oldval, _params.brightness);
         break;
     case command::set_brightness:
         s11n::load(p, param);
         oldval = _params.brightness;
         _params.brightness = std::max(std::min(param, 1.0f), -1.0f);
-        _video_output->set_parameters(_params);
+        parameters_changed = true;
         notify(notification::brightness, oldval, _params.brightness);
         break;
     case command::adjust_hue:
         s11n::load(p, param);
         oldval = _params.hue;
         _params.hue = std::max(std::min(_params.hue + param, 1.0f), -1.0f);
-        _video_output->set_parameters(_params);
+        parameters_changed = true;
         notify(notification::hue, oldval, _params.hue);
         break;
     case command::set_hue:
         s11n::load(p, param);
         oldval = _params.hue;
         _params.hue = std::max(std::min(param, 1.0f), -1.0f);
-        _video_output->set_parameters(_params);
+        parameters_changed = true;
         notify(notification::hue, oldval, _params.hue);
         break;
     case command::adjust_saturation:
         s11n::load(p, param);
         oldval = _params.saturation;
         _params.saturation = std::max(std::min(_params.saturation + param, 1.0f), -1.0f);
-        _video_output->set_parameters(_params);
+        parameters_changed = true;
         notify(notification::saturation, oldval, _params.saturation);
         break;
     case command::set_saturation:
         s11n::load(p, param);
         oldval = _params.saturation;
         _params.saturation = std::max(std::min(param, 1.0f), -1.0f);
-        _video_output->set_parameters(_params);
+        parameters_changed = true;
         notify(notification::saturation, oldval, _params.saturation);
         break;
     case command::seek:
@@ -797,14 +809,14 @@ void player::receive_cmd(const command &cmd)
         s11n::load(p, param);
         oldval = _params.parallax;
         _params.parallax = std::max(std::min(_params.parallax + param, 1.0f), -1.0f);
-        _video_output->set_parameters(_params);
+        parameters_changed = true;
         notify(notification::parallax, oldval, _params.parallax);
         break;
     case command::set_parallax:
         s11n::load(p, param);
         oldval = _params.parallax;
         _params.parallax = std::max(std::min(param, 1.0f), -1.0f);
-        _video_output->set_parameters(_params);
+        parameters_changed = true;
         notify(notification::parallax, oldval, _params.parallax);
         break;
     case command::set_crosstalk:
@@ -823,7 +835,7 @@ void player::receive_cmd(const command &cmd)
             s11n::save(newval, _params.crosstalk_r);
             s11n::save(newval, _params.crosstalk_g);
             s11n::save(newval, _params.crosstalk_b);
-            _video_output->set_parameters(_params);
+            parameters_changed = true;
             notify(notification::crosstalk, oldval.str(), newval.str());
         }
         break;
@@ -831,16 +843,21 @@ void player::receive_cmd(const command &cmd)
         s11n::load(p, param);
         oldval = _params.ghostbust;
         _params.ghostbust = std::max(std::min(_params.ghostbust + param, 1.0f), 0.0f);
-        _video_output->set_parameters(_params);
+        parameters_changed = true;
         notify(notification::ghostbust, oldval, _params.ghostbust);
         break;
     case command::set_ghostbust:
         s11n::load(p, param);
         oldval = _params.ghostbust;
         _params.ghostbust = std::max(std::min(param, 1.0f), 0.0f);
-        _video_output->set_parameters(_params);
+        parameters_changed = true;
         notify(notification::ghostbust, oldval, _params.ghostbust);
         break;
+    }
+
+    if (parameters_changed && _video_output)
+    {
+        _video_output->set_parameters(_params);
     }
 }
 

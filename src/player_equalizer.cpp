@@ -469,10 +469,16 @@ public:
                 _controller.send_cmd(command::toggle_pause);
                 break;
             case 'v':
-                _controller.send_cmd(command::cycle_video_stream);
+                /* TODO: cycling video streams is currently not supported with Equalizer.
+                 * We would have to cycle the streams in all node players, and thus communicate
+                 * the change via frame data. */
+                //_controller.send_cmd(command::cycle_video_stream);
                 break;
             case 'a':
-                _controller.send_cmd(command::cycle_audio_stream);
+                /* TODO: cycling audio streams is currently not supported with Equalizer.
+                 * We would have to cycle the streams in all node players, and thus communicate
+                 * the change via frame data. */
+                //_controller.send_cmd(command::cycle_audio_stream);
                 break;
             case '1':
                 _controller.send_cmd(command::adjust_contrast, -0.05f);
