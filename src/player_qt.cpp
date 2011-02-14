@@ -44,6 +44,7 @@
 #include <QDesktopServices>
 #include <QDoubleSpinBox>
 #include <QSpinBox>
+#include <QStandardItemModel>
 
 #include "player_qt.h"
 #include "qt_app.h"
@@ -171,6 +172,7 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     _output_combobox->addItem("Left view");
     _output_combobox->addItem("Right view");
     _output_combobox->addItem("OpenGL stereo");
+    _output_index_stereo = 2;   // Update this when moving the above entry!
     _output_combobox->addItem("Top/bottom");
     _output_combobox->addItem("Top/bottom, half height");
     _output_combobox->addItem("Left/right");
@@ -246,6 +248,7 @@ void in_out_widget::set_stereo_layout(video_frame::stereo_layout_t stereo_layout
         _input_combobox->setCurrentIndex(stereo_layout_swap ? 12 : 11);
         break;
     }
+    _video_combobox->setEnabled(stereo_layout != video_frame::separate);
 }
 
 void in_out_widget::set_stereo_mode(parameters::stereo_mode_t stereo_mode, bool stereo_mode_swap)
@@ -321,15 +324,6 @@ void in_out_widget::video_changed()
         video_frame::stereo_layout_t stereo_layout;
         bool stereo_layout_swap;
         get_stereo_layout(stereo_layout, stereo_layout_swap);
-        if (stereo_layout == video_frame::separate)
-        {
-            QMessageBox::critical(this, "Error",
-                    "Video streams cannot be changed in this input mode.");
-            _lock = true;
-            _video_combobox->setCurrentIndex(0);
-            _lock = false;
-            return;
-        }
         send_cmd(command::set_video_stream, _video_combobox->currentIndex());
     }
 }
@@ -347,18 +341,16 @@ void in_out_widget::input_changed()
     video_frame::stereo_layout_t stereo_layout;
     bool stereo_layout_swap;
     get_stereo_layout(stereo_layout, stereo_layout_swap);
-    if (!_player->get_media_input().stereo_layout_is_supported(stereo_layout, stereo_layout_swap))
-    {
-        QMessageBox::critical(this, "Error",
-                "The input data does not support this 3D layout.");
-        _input_combobox->setCurrentIndex(0);
-        return;
-    }
     if (stereo_layout == video_frame::separate)
     {
         _lock = true;
         _video_combobox->setCurrentIndex(0);
+        _video_combobox->setEnabled(false);
         _lock = false;
+    }
+    else
+    {
+        _video_combobox->setEnabled(true);
     }
     std::ostringstream oss;
     s11n::save(oss, static_cast<int>(stereo_layout));
@@ -388,13 +380,6 @@ void in_out_widget::output_changed()
     parameters::stereo_mode_t stereo_mode;
     bool stereo_mode_swap;
     get_stereo_mode(stereo_mode, stereo_mode_swap);
-    if (stereo_mode == parameters::stereo && !_player->get_video_output()->supports_stereo())
-    {
-        QMessageBox::critical(this, "Error",
-                "The display does not support OpenGL stereo mode.");
-        _output_combobox->setCurrentIndex(15);
-        return;
-    }
     std::ostringstream oss;
     s11n::save(oss, static_cast<int>(stereo_mode));
     s11n::save(oss, stereo_mode_swap);
@@ -412,6 +397,11 @@ void in_out_widget::swap_changed()
 void in_out_widget::update(const player_init_data &init_data, bool have_valid_input, bool playing)
 {
     _lock = true;
+    _video_combobox->setEnabled(have_valid_input);
+    _audio_combobox->setEnabled(have_valid_input);
+    _input_combobox->setEnabled(have_valid_input);
+    _output_combobox->setEnabled(have_valid_input);
+    _swap_checkbox->setEnabled(have_valid_input);
     if (have_valid_input)
     {
         _video_combobox->clear();
@@ -427,14 +417,27 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
     }
     _video_combobox->setCurrentIndex(init_data.video_stream);
     _audio_combobox->setCurrentIndex(init_data.audio_stream);
+    if (have_valid_input)
+    {
+        // Disable unsupported input modes
+        for (int i = 0; i < _input_combobox->count(); i++)
+        {
+            _input_combobox->setCurrentIndex(i);
+            video_frame::stereo_layout_t layout;
+            bool swap;
+            get_stereo_layout(layout, swap);
+            qobject_cast<QStandardItemModel *>(_input_combobox->model())->item(i)->setEnabled(
+                    _player->get_media_input().stereo_layout_is_supported(layout, swap));
+        }
+        // Disable unsupported output modes
+        if (!_player->get_video_output()->supports_stereo())
+        {
+            qobject_cast<QStandardItemModel *>(_output_combobox->model())->item(_output_index_stereo)->setEnabled(false);
+        }
+    }
     set_stereo_layout(init_data.stereo_layout, init_data.stereo_layout_swap);
     set_stereo_mode(init_data.stereo_mode, init_data.stereo_mode_swap);
     _lock = false;
-    _video_combobox->setEnabled(have_valid_input);
-    _audio_combobox->setEnabled(have_valid_input);
-    _input_combobox->setEnabled(have_valid_input);
-    _output_combobox->setEnabled(have_valid_input);
-    _swap_checkbox->setEnabled(have_valid_input);
     if (have_valid_input)
     {
         receive_notification(notification(notification::play, !playing, playing));

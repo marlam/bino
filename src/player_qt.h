@@ -74,6 +74,7 @@ private:
     QComboBox *_audio_combobox;
     QComboBox *_input_combobox;
     QComboBox *_output_combobox;
+    int _output_index_stereo;
     QCheckBox *_swap_checkbox;
     bool _lock;
 
