@@ -521,6 +521,9 @@ void video_output::render_init()
             : _params.stereo_mode == parameters::green_magenta_monochrome ? "mode_green_magenta_monochrome"
             : _params.stereo_mode == parameters::green_magenta_half_color ? "mode_green_magenta_half_color"
             : _params.stereo_mode == parameters::green_magenta_full_color ? "mode_green_magenta_full_color"
+            : _params.stereo_mode == parameters::amber_blue_monochrome ? "mode_amber_blue_monochrome"
+            : _params.stereo_mode == parameters::amber_blue_half_color ? "mode_amber_blue_half_color"
+            : _params.stereo_mode == parameters::amber_blue_full_color ? "mode_amber_blue_full_color"
             : "mode_onechannel");
     std::string srgb_broken_str = (_srgb_textures_are_broken ? "1" : "0");
     std::string render_fs_src(VIDEO_OUTPUT_RENDER_FS_GLSL_STR);
@@ -767,7 +770,10 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
             && _params.stereo_mode != parameters::red_cyan_dubois
             && _params.stereo_mode != parameters::green_magenta_monochrome
             && _params.stereo_mode != parameters::green_magenta_half_color
-            && _params.stereo_mode != parameters::green_magenta_full_color)
+            && _params.stereo_mode != parameters::green_magenta_full_color
+            && _params.stereo_mode != parameters::amber_blue_monochrome
+            && _params.stereo_mode != parameters::amber_blue_half_color
+            && _params.stereo_mode != parameters::amber_blue_full_color)
     {
         glUniform3f(glGetUniformLocation(_render_prg, "crosstalk"),
                 _params.crosstalk_r * _params.ghostbust,
@@ -823,7 +829,10 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
             || _params.stereo_mode == parameters::red_cyan_dubois
             || _params.stereo_mode == parameters::green_magenta_monochrome
             || _params.stereo_mode == parameters::green_magenta_half_color
-            || _params.stereo_mode == parameters::green_magenta_full_color)
+            || _params.stereo_mode == parameters::green_magenta_full_color
+            || _params.stereo_mode == parameters::amber_blue_monochrome
+            || _params.stereo_mode == parameters::amber_blue_half_color
+            || _params.stereo_mode == parameters::amber_blue_full_color)
     {
         draw_quad(x, y, w, h);
     }

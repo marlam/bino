@@ -182,6 +182,9 @@ public:
         green_magenta_monochrome,       // Green/magenta anaglyph, monochrome method
         green_magenta_half_color,       // Green/magenta anaglyph, half color method
         green_magenta_full_color,       // Green/magenta anaglyph, full color method
+        amber_blue_monochrome,          // Amber/blue anaglyph, monochrome method
+        amber_blue_half_color,          // Amber/blue anaglyph, half color method
+        amber_blue_full_color,          // Amber/blue anaglyph, full color method
     } stereo_mode_t;
 
     stereo_mode_t stereo_mode;          // Stereo mode

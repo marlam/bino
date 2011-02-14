@@ -212,6 +212,12 @@ Green/magenta anaglyph, monochrome method.
 Green/magenta anaglyph, half color method.
 @item green-magenta-full-color
 Green/magenta anaglyph, full color method.
+@item amber-blue-monochrome
+Amber/blue anaglyph, monochrome method.
+@item amber-blue-half-color
+Amber/blue anaglyph, half color method.
+@item amber-blue-full-color
+Amber/blue anaglyph, full color method.
 @item stereo
 OpenGL quad-buffer stereo.
 @item equalizer

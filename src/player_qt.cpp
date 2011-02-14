@@ -189,6 +189,9 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     _output_combobox->addItem("Green/magenta glasses, monochrome method");
     _output_combobox->addItem("Green/magenta glasses, half-color method");
     _output_combobox->addItem("Green/magenta glasses, full-color method");
+    _output_combobox->addItem("Amber/blue glasses, monochrome method");
+    _output_combobox->addItem("Amber/blue glasses, half-color method");
+    _output_combobox->addItem("Amber/blue glasses, full-color method");
     connect(_output_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(output_changed()));
     layout2->addWidget(_output_combobox, 0, 1);
     layout2->setColumnStretch(1, 1);
@@ -312,6 +315,15 @@ void in_out_widget::set_stereo_mode(parameters::stereo_mode_t stereo_mode, bool 
         break;
     case parameters::green_magenta_full_color:
         _output_combobox->setCurrentIndex(18);
+        break;
+    case parameters::amber_blue_monochrome:
+        _output_combobox->setCurrentIndex(19);
+        break;
+    case parameters::amber_blue_half_color:
+        _output_combobox->setCurrentIndex(20);
+        break;
+    case parameters::amber_blue_full_color:
+        _output_combobox->setCurrentIndex(21);
         break;
     }
     _swap_checkbox->setChecked(stereo_mode_swap);
@@ -573,6 +585,15 @@ void in_out_widget::get_stereo_mode(parameters::stereo_mode_t &stereo_mode, bool
         break;
     case 18:
         stereo_mode = parameters::green_magenta_full_color;
+        break;
+    case 19:
+        stereo_mode = parameters::amber_blue_monochrome;
+        break;
+    case 20:
+        stereo_mode = parameters::amber_blue_half_color;
+        break;
+    case 21:
+        stereo_mode = parameters::amber_blue_full_color;
         break;
     }
     stereo_mode_swap = _swap_checkbox->isChecked();

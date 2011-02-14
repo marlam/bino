@@ -101,6 +101,9 @@ int main(int argc, char *argv[])
     video_output_modes.push_back("green-magenta-monochrome");
     video_output_modes.push_back("green-magenta-half-color");
     video_output_modes.push_back("green-magenta-full-color");
+    video_output_modes.push_back("amber-blue-monochrome");
+    video_output_modes.push_back("amber-blue-half-color");
+    video_output_modes.push_back("amber-blue-full-color");
     video_output_modes.push_back("stereo");
     video_output_modes.push_back("equalizer");
     video_output_modes.push_back("equalizer-3d");
@@ -207,6 +210,9 @@ int main(int argc, char *argv[])
                 "    green-magenta-monochrome Green/magenta anaglyph, monochrome method.\n"
                 "    green-magenta-half-color Green/magenta anaglyph, half color method.\n"
                 "    green-magenta-full-color Green/magenta anaglyph, full color method.\n"
+                "    amber-blue-monochrome    Amber/blue anaglyph, monochrome method.\n"
+                "    amber-blue-half-color    Amber/blue anaglyph, half color method.\n"
+                "    amber-blue-full-color    Amber/blue anaglyph, full color method.\n"
                 "    stereo                   OpenGL quad-buffered stereo.\n"
                 "    equalizer                Multi-display via Equalizer (2D setup).\n"
                 "    equalizer-3d             Multi-display via Equalizer (3D setup).\n"

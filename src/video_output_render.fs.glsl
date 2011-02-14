@@ -31,6 +31,9 @@
 // mode_green_magenta_monochrome
 // mode_green_magenta_half_color
 // mode_green_magenta_full_color
+// mode_amber_blue_monochrome
+// mode_amber_blue_half_color
+// mode_amber_blue_full_color
 // mode_even_odd_rows
 // mode_even_odd_columns
 // mode_checkerboard
@@ -54,7 +57,14 @@ uniform float step_y;
 uniform vec3 crosstalk;
 #endif
 
-#if defined(mode_red_green_monochrome) || defined(mode_red_blue_monochrome) || defined(mode_red_cyan_monochrome) || defined(mode_red_cyan_half_color) || defined(mode_green_magenta_monochrome) || defined(mode_green_magenta_half_color)
+#if defined(mode_red_green_monochrome) \
+    || defined(mode_red_blue_monochrome) \
+    || defined(mode_red_cyan_monochrome) \
+    || defined(mode_red_cyan_half_color) \
+    || defined(mode_green_magenta_monochrome) \
+    || defined(mode_green_magenta_half_color) \
+    || defined(mode_amber_blue_monochrome) \
+    || defined(mode_amber_blue_half_color)
 float srgb_to_lum(vec3 srgb)
 {
     // Values taken from http://www.fourcc.org/fccyvrgb.php
@@ -206,6 +216,12 @@ void main()
     srgb = vec3(r.r, srgb_to_lum(l), r.b);
 # elif defined(mode_green_magenta_full_color)
     srgb = vec3(r.r, l.g, r.b);
+# elif defined(mode_amber_blue_monochrome)
+    srgb = vec3(srgb_to_lum(l), srgb_to_lum(l), srgb_to_lum(r));
+# elif defined(mode_amber_blue_half_color)
+    srgb = vec3(srgb_to_lum(l), srgb_to_lum(l), r.b);
+# elif defined(mode_amber_blue_full_color)
+    srgb = vec3(l.r, l.g, r.b);
 # endif
 
 #endif

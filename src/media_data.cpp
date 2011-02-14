@@ -534,6 +534,15 @@ std::string parameters::stereo_mode_to_string(stereo_mode_t stereo_mode, bool st
     case green_magenta_full_color:
         s = "green-magenta-full-color";
         break;
+    case amber_blue_monochrome:
+        s = "amber-blue-monochrome";
+        break;
+    case amber_blue_half_color:
+        s = "amber-blue-half-color";
+        break;
+    case amber_blue_full_color:
+        s = "amber-blue-full-color";
+        break;
     }
     if (stereo_mode_swap)
     {
@@ -631,6 +640,18 @@ void parameters::stereo_mode_from_string(const std::string &s, stereo_mode_t &st
     else if (t == "green-magenta-full-color")
     {
         stereo_mode = green_magenta_full_color;
+    }
+    else if (t == "amber-blue-monochrome")
+    {
+        stereo_mode = amber_blue_monochrome;
+    }
+    else if (t == "amber-blue-half-color")
+    {
+        stereo_mode = amber_blue_half_color;
+    }
+    else if (t == "amber-blue-full-color")
+    {
+        stereo_mode = amber_blue_full_color;
     }
     else
     {
