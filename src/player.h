@@ -35,33 +35,25 @@
 #include "video_output.h"
 
 
+/* The player_init_data contains everything that a player needs to start. */
+
 class player_init_data : public s11n
 {
 public:
-    // Level of log messages
-    msg::level_t log_level;
-    // Input media objects
-    std::vector<std::string> urls;
-    // Selected video stream
-    int video_stream;
-    // Selected audio stream
-    int audio_stream;
-    // Benchmark mode?
-    bool benchmark;
-    // Make video fullscreen?
-    bool fullscreen;
-    // Center video on screen?
-    bool center;
-    // Manual input layout override
-    bool stereo_layout_override;
-    video_frame::stereo_layout_t stereo_layout;
-    bool stereo_layout_swap;
-    // Manual output mode override
-    bool stereo_mode_override;
-    parameters::stereo_mode_t stereo_mode;
-    bool stereo_mode_swap;
-    // Initial output parameters
-    parameters params;
+    msg::level_t log_level;                     // Level of log messages
+    std::vector<std::string> urls;              // Input media objects
+    int video_stream;                           // Selected video stream
+    int audio_stream;                           // Selected audio stream
+    bool benchmark;                             // Benchmark mode?
+    bool fullscreen;                            // Make video fullscreen?
+    bool center;                                // Center video on screen?
+    bool stereo_layout_override;                // Manual input layout override?
+    video_frame::stereo_layout_t stereo_layout; //   Override layout
+    bool stereo_layout_swap;                    //   Override layout swap
+    bool stereo_mode_override;                  // Manual output mode override?
+    parameters::stereo_mode_t stereo_mode;      //   Override mode
+    bool stereo_mode_swap;                      //   Override mode swap
+    parameters params;                          // Initial output parameters
 
 public:
     player_init_data();
@@ -72,69 +64,100 @@ public:
     void load(std::istream &is);
 };
 
+/*
+ * The player class.
+ *
+ * A player handles the input and determines the next actions.
+ * It receives commands from a controller, reacts on them, and then sends
+ * notifications to the controllers to inform them about any state changes.
+ */
+
 class player
 {
 public:
     enum type
     {
-        master, slave
+        master,         // Only the master player receives commands from controllers
+        slave           // Slave players do not receive commands
     };
 
 private:
-    media_input *_media_input;
-    std::vector<controller *> _controllers;
-    audio_output *_audio_output;
-    video_output *_video_output;
+
+    /* Input and output objects */
+
+    media_input *_media_input;                  // The media input
+    audio_output *_audio_output;                // Audio output
+    video_output *_video_output;                // Video output
+
+    /* Current state */
+
+    // The current output parameters
     parameters _params;
-    bool _benchmark;
 
-    bool _running;
-    bool _first_frame;
-    bool _need_frame;
-    bool _drop_next_frame;
-    bool _previous_frame_dropped;
-    bool _in_pause;
+    // Benchmark mode
+    bool _benchmark;                            // Is benchmark mode active?
+    int _frames_shown;                          // Frames shown since last reset
+    int64_t _fps_mark_time;                     // Time when _frames_shown was reset to zero
 
-    bool _quit_request;
-    bool _pause_request;
-    int64_t _seek_request;
-    float _set_pos_request;
+    // The play state
+    bool _running;                              // Are we running?
+    bool _first_frame;                          // Did we already process the first video frame?
+    bool _need_frame;                           // Do we need another video frame?
+    bool _drop_next_frame;                      // Do we need to drop the next video frame (to catch up)?
+    bool _previous_frame_dropped;               // Did we drop the previous video frame?
+    bool _in_pause;                             // Are we in pause mode?
 
-    size_t _required_audio_data_size;
-    int64_t _pause_start;
-    // Audio / video timing, relative to a synchronization point.
-    // The master time is the audio time, or external time if there is no audio.
-    // All times are in microseconds.
-    int64_t _start_pos;                 // initial input position
-    int64_t _current_pos;               // current input position
-    int64_t _video_pos;                 // presentation time of current video frame
-    int64_t _audio_pos;                 // presentation time of current audio data block
-    int64_t _master_time_start;         // master time offset
-    int64_t _master_time_current;       // current master time
-    int64_t _master_time_pos;           // input position at master time start
+    // Requests made by controller commands
+    bool _quit_request;                         // Request to quit
+    bool _pause_request;                        // Request to go into pause mode
+    int64_t _seek_request;                      // Request to seek relative to the current position
+    float _set_pos_request;                     // Request to seek to the absolute position (normalized 0..1)
 
-    int _frames_shown;                   // frames shown since last _sync_point_time update
-    int64_t _fps_mark_time;              // time when _frames_shown was reset to zero
+    /* Timing information. All times are in microseconds.
+     * The master time is the audio time if audio output is available,
+     * or external system time if there is no audio. */
 
-    float normalize_pos(int64_t pos);   // transform a position into [0,1]
+    int64_t _pause_start;                       // Start of the pause mode (if active)
+    int64_t _start_pos;                         // Initial input position
+    int64_t _current_pos;                       // Current input position
+    int64_t _video_pos;                         // Presentation time of current video frame
+    int64_t _audio_pos;                         // Presentation time of current audio blob
+    int64_t _master_time_start;                 // Master time offset
+    int64_t _master_time_current;               // Current master time
+    int64_t _master_time_pos;                   // Input position at master time start
 
+    /* Helper functions */
+
+    // Normalize an input position to [0,1]
+    float normalize_pos(int64_t pos);
+
+    // Reset the play state
     void reset_playstate();
 
 protected:
+    // The current video frame
     video_frame _video_frame;
 
-    virtual audio_output *create_audio_output();
+    // Create video and audio output (overridable by subclasses)
     virtual video_output *create_video_output();
+    virtual audio_output *create_audio_output();
 
+    // Make this player the master player
     void make_master();
+
+    // Execute one step and indicate required actions
     void step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
+
+    // Execute one step and immediately take required actions. Return true if more steps are required.
     bool run_step();
 
+    // Get the media input for potential changes
     media_input &get_media_input_nonconst()
     {
         return *_media_input;
     }
 
+    // Send a notification to the controllers (with some convenience wrappers)
     void notify(const notification &note);
     void notify(enum notification::type t, bool p, bool c) { notify(notification(t, p, c)); }
     void notify(enum notification::type t, int p, int c) { notify(notification(t, p, c)); }

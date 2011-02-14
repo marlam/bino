@@ -295,8 +295,9 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
         _video_pos = _video_frame.presentation_time;
         if (_audio_output)
         {
-            _audio_output->status(&_required_audio_data_size);
-            _media_input->start_audio_blob_read(_required_audio_data_size);
+            size_t required_audio_data_size;
+            _audio_output->status(&required_audio_data_size);
+            _media_input->start_audio_blob_read(required_audio_data_size);
             audio_blob blob = _media_input->finish_audio_blob_read();
             if (!blob.is_valid())
             {
@@ -381,8 +382,9 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
         if (_audio_output)
         {
             _audio_output->stop();
-            _audio_output->status(&_required_audio_data_size);
-            _media_input->start_audio_blob_read(_required_audio_data_size);
+            size_t required_audio_data_size;
+            _audio_output->status(&required_audio_data_size);
+            _media_input->start_audio_blob_read(required_audio_data_size);
             audio_blob blob = _media_input->finish_audio_blob_read();
             if (!blob.is_valid())
             {
@@ -488,12 +490,13 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
         if (_audio_output)
         {
             // Check if audio needs more data, and get audio time
-            _master_time_current = _audio_output->status(&_required_audio_data_size) - _master_time_start
+            size_t required_audio_data_size;
+            _master_time_current = _audio_output->status(&required_audio_data_size) - _master_time_start
                 + _master_time_pos;
             // Output requested audio data
-            if (_required_audio_data_size > 0)
+            if (required_audio_data_size > 0)
             {
-                _media_input->start_audio_blob_read(_required_audio_data_size);
+                _media_input->start_audio_blob_read(required_audio_data_size);
                 audio_blob blob = _media_input->finish_audio_blob_read();
                 if (!blob.is_valid())
                 {
