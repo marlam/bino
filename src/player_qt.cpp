@@ -1598,6 +1598,8 @@ void main_window::playloop_step()
     {
         _timer->stop();
         _player->force_stop();
+        _in_out_widget->update(_init_data, false, false);
+        _controls_widget->update(_init_data, false, false);
         _stop_request = false;
     }
     else
@@ -1660,6 +1662,11 @@ void main_window::open(QStringList filenames)
         // Update the widget with the new settings
         _in_out_widget->update(_init_data, true, false);
         _controls_widget->update(_init_data, true, false);
+    }
+    else
+    {
+        _in_out_widget->update(_init_data, false, false);
+        _controls_widget->update(_init_data, false, false);
     }
 }
 
