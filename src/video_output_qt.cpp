@@ -72,7 +72,18 @@ void video_output_qt_widget::move_event()
 
 void video_output_qt_widget::paintGL()
 {
-    _vo->display_current_frame();
+    try
+    {
+        _vo->display_current_frame();
+    }
+    catch (std::exception &e)
+    {
+        QMessageBox::critical(this, "Error", e.what());
+        // Disable further output and stop the player
+        _vo->prepare_next_frame(video_frame());
+        _vo->activate_next_frame();
+        _vo->send_cmd(command::toggle_play);
+    }
 }
 
 void video_output_qt_widget::resizeGL(int w, int h)
