@@ -194,10 +194,6 @@ Left view even rows, right view odd rows.
 Left view even columns, right view odd columns.
 @item checkerboard
 Left and right view in checkerboard pattern.
-@item red-green-monochrome
-Red/green anaglyph, monochrome method.
-@item red-blue-monochrome
-Red/blue anaglyph, monochrome method.
 @item red-cyan-monochrome
 Red/cyan anaglyph, monochrome method.
 @item red-cyan-half-color
@@ -212,12 +208,20 @@ Green/magenta anaglyph, monochrome method.
 Green/magenta anaglyph, half color method.
 @item green-magenta-full-color
 Green/magenta anaglyph, full color method.
+@item green-magenta-dubois
+Green/magenta anaglyph, high-quality Dubois method.
 @item amber-blue-monochrome
 Amber/blue anaglyph, monochrome method.
 @item amber-blue-half-color
 Amber/blue anaglyph, half color method.
 @item amber-blue-full-color
 Amber/blue anaglyph, full color method.
+@item amber-blue-dubois
+Amber/blue anaglyph, high-quality Dubois method.
+@item red-green-monochrome
+Red/green anaglyph, monochrome method.
+@item red-blue-monochrome
+Red/blue anaglyph, monochrome method.
 @item stereo
 OpenGL quad-buffer stereo.
 @item equalizer

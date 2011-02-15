@@ -180,18 +180,20 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     _output_combobox->addItem("Even/odd rows");
     _output_combobox->addItem("Even/odd columns");
     _output_combobox->addItem("Checkerboard pattern");
-    _output_combobox->addItem("Red/green glasses, monochrome method");
-    _output_combobox->addItem("Red/blue glasses, monochrome method");
     _output_combobox->addItem("Red/cyan glasses, monochrome method");
     _output_combobox->addItem("Red/cyan glasses, half-color method");
     _output_combobox->addItem("Red/cyan glasses, full-color method");
-    _output_combobox->addItem("Red/cyan glasses, Dubois method (recommended)");
+    _output_combobox->addItem("Red/cyan glasses, high-quality Dubois method");
     _output_combobox->addItem("Green/magenta glasses, monochrome method");
     _output_combobox->addItem("Green/magenta glasses, half-color method");
     _output_combobox->addItem("Green/magenta glasses, full-color method");
+    _output_combobox->addItem("Green/magenta glasses, high-quality Dubois method");
     _output_combobox->addItem("Amber/blue glasses, monochrome method");
     _output_combobox->addItem("Amber/blue glasses, half-color method");
     _output_combobox->addItem("Amber/blue glasses, full-color method");
+    _output_combobox->addItem("Amber/blue glasses, high-quality Dubois method");
+    _output_combobox->addItem("Red/green glasses, monochrome method");
+    _output_combobox->addItem("Red/blue glasses, monochrome method");
     connect(_output_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(output_changed()));
     layout2->addWidget(_output_combobox, 0, 1);
     layout2->setColumnStretch(1, 1);
@@ -289,41 +291,47 @@ void in_out_widget::set_stereo_mode(parameters::stereo_mode_t stereo_mode, bool 
     case parameters::checkerboard:
         _output_combobox->setCurrentIndex(9);
         break;
-    case parameters::red_green_monochrome:
+    case parameters::red_cyan_monochrome:
         _output_combobox->setCurrentIndex(10);
         break;
-    case parameters::red_blue_monochrome:
+    case parameters::red_cyan_half_color:
         _output_combobox->setCurrentIndex(11);
         break;
-    case parameters::red_cyan_monochrome:
+    case parameters::red_cyan_full_color:
         _output_combobox->setCurrentIndex(12);
         break;
-    case parameters::red_cyan_half_color:
+    case parameters::red_cyan_dubois:
         _output_combobox->setCurrentIndex(13);
         break;
-    case parameters::red_cyan_full_color:
+    case parameters::green_magenta_monochrome:
         _output_combobox->setCurrentIndex(14);
         break;
-    case parameters::red_cyan_dubois:
+    case parameters::green_magenta_half_color:
         _output_combobox->setCurrentIndex(15);
         break;
-    case parameters::green_magenta_monochrome:
+    case parameters::green_magenta_full_color:
         _output_combobox->setCurrentIndex(16);
         break;
-    case parameters::green_magenta_half_color:
+    case parameters::green_magenta_dubois:
         _output_combobox->setCurrentIndex(17);
         break;
-    case parameters::green_magenta_full_color:
+    case parameters::amber_blue_monochrome:
         _output_combobox->setCurrentIndex(18);
         break;
-    case parameters::amber_blue_monochrome:
+    case parameters::amber_blue_half_color:
         _output_combobox->setCurrentIndex(19);
         break;
-    case parameters::amber_blue_half_color:
+    case parameters::amber_blue_full_color:
         _output_combobox->setCurrentIndex(20);
         break;
-    case parameters::amber_blue_full_color:
+    case parameters::amber_blue_dubois:
         _output_combobox->setCurrentIndex(21);
+        break;
+    case parameters::red_green_monochrome:
+        _output_combobox->setCurrentIndex(22);
+        break;
+    case parameters::red_blue_monochrome:
+        _output_combobox->setCurrentIndex(23);
         break;
     }
     _swap_checkbox->setChecked(stereo_mode_swap);
@@ -560,40 +568,46 @@ void in_out_widget::get_stereo_mode(parameters::stereo_mode_t &stereo_mode, bool
         stereo_mode = parameters::checkerboard;
         break;
     case 10:
-        stereo_mode = parameters::red_green_monochrome;
-        break;
-    case 11:
-        stereo_mode = parameters::red_blue_monochrome;
-        break;
-    case 12:
         stereo_mode = parameters::red_cyan_monochrome;
         break;
-    case 13:
+    case 11:
         stereo_mode = parameters::red_cyan_half_color;
         break;
-    case 14:
+    case 12:
         stereo_mode = parameters::red_cyan_full_color;
         break;
-    case 15:
+    case 13:
         stereo_mode = parameters::red_cyan_dubois;
         break;
-    case 16:
+    case 14:
         stereo_mode = parameters::green_magenta_monochrome;
         break;
-    case 17:
+    case 15:
         stereo_mode = parameters::green_magenta_half_color;
         break;
-    case 18:
+    case 16:
         stereo_mode = parameters::green_magenta_full_color;
         break;
-    case 19:
+    case 17:
+        stereo_mode = parameters::green_magenta_dubois;
+        break;
+    case 18:
         stereo_mode = parameters::amber_blue_monochrome;
         break;
-    case 20:
+    case 19:
         stereo_mode = parameters::amber_blue_half_color;
         break;
-    case 21:
+    case 20:
         stereo_mode = parameters::amber_blue_full_color;
+        break;
+    case 21:
+        stereo_mode = parameters::amber_blue_dubois;
+        break;
+    case 22:
+        stereo_mode = parameters::red_green_monochrome;
+        break;
+    case 23:
+        stereo_mode = parameters::red_blue_monochrome;
         break;
     }
     stereo_mode_swap = _swap_checkbox->isChecked();

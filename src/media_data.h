@@ -173,8 +173,6 @@ public:
         even_odd_rows,                  // Left view even rows, right view odd rows
         even_odd_columns,               // Left view even columns, right view odd columns
         checkerboard,                   // Checkerboard pattern
-        red_green_monochrome,           // Red/green anaglyph, monochrome method
-        red_blue_monochrome,            // Red/blue anaglyph, monochrome method
         red_cyan_monochrome,            // Red/cyan anaglyph, monochrome method
         red_cyan_half_color,            // Red/cyan anaglyph, half color method
         red_cyan_full_color,            // Red/cyan anaglyph, full color method
@@ -182,9 +180,13 @@ public:
         green_magenta_monochrome,       // Green/magenta anaglyph, monochrome method
         green_magenta_half_color,       // Green/magenta anaglyph, half color method
         green_magenta_full_color,       // Green/magenta anaglyph, full color method
+        green_magenta_dubois,           // Green/magenta anaglyph, high quality Dubois method
         amber_blue_monochrome,          // Amber/blue anaglyph, monochrome method
         amber_blue_half_color,          // Amber/blue anaglyph, half color method
         amber_blue_full_color,          // Amber/blue anaglyph, full color method
+        amber_blue_dubois,              // Amber/blue anaglyph, high quality Dubois method
+        red_green_monochrome,           // Red/green anaglyph, monochrome method
+        red_blue_monochrome,            // Red/blue anaglyph, monochrome method
     } stereo_mode_t;
 
     stereo_mode_t stereo_mode;          // Stereo mode

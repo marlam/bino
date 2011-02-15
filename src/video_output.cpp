@@ -512,8 +512,6 @@ void video_output::render_init()
             _params.stereo_mode == parameters::even_odd_rows ? "mode_even_odd_rows"
             : _params.stereo_mode == parameters::even_odd_columns ? "mode_even_odd_columns"
             : _params.stereo_mode == parameters::checkerboard ? "mode_checkerboard"
-            : _params.stereo_mode == parameters::red_green_monochrome ? "mode_red_green_monochrome"
-            : _params.stereo_mode == parameters::red_blue_monochrome ? "mode_red_blue_monochrome"
             : _params.stereo_mode == parameters::red_cyan_monochrome ? "mode_red_cyan_monochrome"
             : _params.stereo_mode == parameters::red_cyan_half_color ? "mode_red_cyan_half_color"
             : _params.stereo_mode == parameters::red_cyan_full_color ? "mode_red_cyan_full_color"
@@ -521,9 +519,13 @@ void video_output::render_init()
             : _params.stereo_mode == parameters::green_magenta_monochrome ? "mode_green_magenta_monochrome"
             : _params.stereo_mode == parameters::green_magenta_half_color ? "mode_green_magenta_half_color"
             : _params.stereo_mode == parameters::green_magenta_full_color ? "mode_green_magenta_full_color"
+            : _params.stereo_mode == parameters::green_magenta_dubois ? "mode_green_magenta_dubois"
             : _params.stereo_mode == parameters::amber_blue_monochrome ? "mode_amber_blue_monochrome"
             : _params.stereo_mode == parameters::amber_blue_half_color ? "mode_amber_blue_half_color"
             : _params.stereo_mode == parameters::amber_blue_full_color ? "mode_amber_blue_full_color"
+            : _params.stereo_mode == parameters::amber_blue_dubois ? "mode_amber_blue_dubois"
+            : _params.stereo_mode == parameters::red_green_monochrome ? "mode_red_green_monochrome"
+            : _params.stereo_mode == parameters::red_blue_monochrome ? "mode_red_blue_monochrome"
             : "mode_onechannel");
     std::string srgb_broken_str = (_srgb_textures_are_broken ? "1" : "0");
     std::string render_fs_src(VIDEO_OUTPUT_RENDER_FS_GLSL_STR);
@@ -763,17 +765,19 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_r"), right);
     glUniform1f(glGetUniformLocation(_render_prg, "parallax"), _params.parallax * 0.05f);
     if (_params.stereo_mode != parameters::red_green_monochrome
-            && _params.stereo_mode != parameters::red_blue_monochrome
-            && _params.stereo_mode != parameters::red_cyan_monochrome
             && _params.stereo_mode != parameters::red_cyan_half_color
             && _params.stereo_mode != parameters::red_cyan_full_color
             && _params.stereo_mode != parameters::red_cyan_dubois
             && _params.stereo_mode != parameters::green_magenta_monochrome
             && _params.stereo_mode != parameters::green_magenta_half_color
             && _params.stereo_mode != parameters::green_magenta_full_color
+            && _params.stereo_mode != parameters::green_magenta_dubois
             && _params.stereo_mode != parameters::amber_blue_monochrome
             && _params.stereo_mode != parameters::amber_blue_half_color
-            && _params.stereo_mode != parameters::amber_blue_full_color)
+            && _params.stereo_mode != parameters::amber_blue_full_color
+            && _params.stereo_mode != parameters::amber_blue_dubois
+            && _params.stereo_mode != parameters::red_blue_monochrome
+            && _params.stereo_mode != parameters::red_cyan_monochrome)
     {
         glUniform3f(glGetUniformLocation(_render_prg, "crosstalk"),
                 _params.crosstalk_r * _params.ghostbust,
@@ -821,18 +825,20 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
         glVertex2f(x, y + h);
         glEnd();
     }
-    else if (_params.stereo_mode == parameters::red_green_monochrome
-            || _params.stereo_mode == parameters::red_blue_monochrome
-            || _params.stereo_mode == parameters::red_cyan_monochrome
+    else if (_params.stereo_mode == parameters::red_cyan_monochrome
             || _params.stereo_mode == parameters::red_cyan_half_color
             || _params.stereo_mode == parameters::red_cyan_full_color
             || _params.stereo_mode == parameters::red_cyan_dubois
             || _params.stereo_mode == parameters::green_magenta_monochrome
             || _params.stereo_mode == parameters::green_magenta_half_color
             || _params.stereo_mode == parameters::green_magenta_full_color
+            || _params.stereo_mode == parameters::green_magenta_dubois
             || _params.stereo_mode == parameters::amber_blue_monochrome
             || _params.stereo_mode == parameters::amber_blue_half_color
-            || _params.stereo_mode == parameters::amber_blue_full_color)
+            || _params.stereo_mode == parameters::amber_blue_full_color
+            || _params.stereo_mode == parameters::amber_blue_dubois
+            || _params.stereo_mode == parameters::red_green_monochrome
+            || _params.stereo_mode == parameters::red_blue_monochrome)
     {
         draw_quad(x, y, w, h);
     }
