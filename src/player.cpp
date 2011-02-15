@@ -150,7 +150,7 @@ void player::reset_playstate()
 
 video_output *player::create_video_output()
 {
-    return new video_output_qt();
+    return new video_output_qt(_benchmark);
 }
 
 audio_output *player::create_audio_output()

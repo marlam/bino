@@ -55,8 +55,8 @@
 #include "msg.h"
 
 
-player_qt_internal::player_qt_internal(video_container_widget *widget) :
-    player(player::master), _playing(false), _container_widget(widget), _video_output(NULL)
+player_qt_internal::player_qt_internal(bool benchmark, video_container_widget *widget) :
+    player(player::master), _benchmark(benchmark), _playing(false), _container_widget(widget), _video_output(NULL)
 {
 }
 
@@ -66,7 +66,7 @@ player_qt_internal::~player_qt_internal()
 
 video_output *player_qt_internal::create_video_output()
 {
-    _video_output = new video_output_qt(_container_widget);
+    _video_output = new video_output_qt(_benchmark, _container_widget);
     return _video_output;
 }
 
@@ -1293,7 +1293,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     _video_container_widget = new video_container_widget(central_widget);
     connect(_video_container_widget, SIGNAL(move_event()), this, SLOT(move_event()));
     layout->addWidget(_video_container_widget, 0, 0);
-    _player = new player_qt_internal(_video_container_widget);
+    _player = new player_qt_internal(_init_data.benchmark, _video_container_widget);
     _timer = new QTimer(this);
     connect(_timer, SIGNAL(timeout()), this, SLOT(playloop_step()));
     _in_out_widget = new in_out_widget(_settings, _player, central_widget);

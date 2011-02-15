@@ -104,7 +104,7 @@ public:
      * part of another widget (e.g. a main window). In this case, you also need
      * to use the move_event() function; see below. If no container widget is
      * given, we will use our own, and it will be a top-level window. */
-    video_output_qt(video_container_widget *container_widget = NULL);
+    video_output_qt(bool benchmark, video_container_widget *container_widget = NULL);
     virtual ~video_output_qt();
 
     /* If you give a container element to the constructor, you have to call

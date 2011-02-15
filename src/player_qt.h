@@ -42,6 +42,7 @@
 class player_qt_internal : public player, public controller
 {
 private:
+    bool _benchmark;
     bool _playing;
     video_container_widget *_container_widget;
     video_output_qt *_video_output;
@@ -50,7 +51,7 @@ protected:
     virtual video_output *create_video_output();
 
 public:
-    player_qt_internal(video_container_widget *widget = NULL);
+    player_qt_internal(bool benchmark, video_container_widget *widget);
     virtual ~player_qt_internal();
 
     virtual void receive_cmd(const command &cmd);
