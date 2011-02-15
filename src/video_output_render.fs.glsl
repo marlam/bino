@@ -171,7 +171,7 @@ void main()
 # endif
     srgb = rgb_to_srgb(ghostbust(mix(rgbc_r, rgbc_l, m), mix(rgbc_l, rgbc_r, m)));
 
-#elif defined(mode_red_cyan_dubois) || defined (mode_green_magenta_dubois) || defined(mode_amber_blue_dubois)
+#elif defined(mode_red_cyan_dubois) || defined(mode_green_magenta_dubois) || defined(mode_amber_blue_dubois)
 
     // The Dubois anaglyph method is generally the highest quality anaglyph method.
     // Authors page: http://www.site.uottawa.ca/~edubois/anaglyph/
