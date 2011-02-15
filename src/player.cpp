@@ -148,6 +148,17 @@ void player::reset_playstate()
     _set_pos_request = -1.0f;
 }
 
+void player::stop_playback()
+{
+    if (_video_output)
+    {
+        _video_output->exit_fullscreen();
+        _video_output->prepare_next_frame(video_frame());
+        _video_output->activate_next_frame();
+    }
+    notify(notification::play, true, false);
+}
+
 video_output *player::create_video_output()
 {
     return new video_output_qt(_benchmark);
@@ -276,12 +287,7 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
 
     if (_quit_request)
     {
-        if (_video_output)
-        {
-            _video_output->prepare_next_frame(video_frame());
-            _video_output->activate_next_frame();
-        }
-        notify(notification::play, true, false);
+        stop_playback();
         return;
     }
     else if (!_running)
@@ -292,7 +298,7 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
         if (!_video_frame.is_valid())
         {
             msg::dbg("Empty video input.");
-            notify(notification::play, true, false);
+            stop_playback();
             return;
         }
         _video_pos = _video_frame.presentation_time;
@@ -305,7 +311,7 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
             if (!blob.is_valid())
             {
                 msg::dbg("Empty audio input.");
-                notify(notification::play, true, false);
+                stop_playback();
                 return;
             }
             _audio_pos = blob.presentation_time;
@@ -378,12 +384,7 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
         if (!_video_frame.is_valid())
         {
             msg::wrn("Seeked to end of video?!");
-            if (_video_output)
-            {
-                _video_output->prepare_next_frame(video_frame());
-                _video_output->activate_next_frame();
-            }
-            notify(notification::play, true, false);
+            stop_playback();
             return;
         }
         _video_pos = _video_frame.presentation_time;
@@ -397,12 +398,7 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
             if (!blob.is_valid())
             {
                 msg::wrn("Seeked to end of audio?!");
-                if (_video_output)
-                {
-                    _video_output->prepare_next_frame(video_frame());
-                    _video_output->activate_next_frame();
-                }
-                notify(notification::play, true, false);
+                stop_playback();
                 return;
             }
             _audio_pos = blob.presentation_time;
@@ -456,12 +452,7 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
             else
             {
                 msg::dbg("End of video stream.");
-                if (_video_output)
-                {
-                    _video_output->prepare_next_frame(video_frame());
-                    _video_output->activate_next_frame();
-                }
-                notify(notification::play, true, false);
+                stop_playback();
                 return;
             }
         }
@@ -519,12 +510,7 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
                 if (!blob.is_valid())
                 {
                     msg::dbg("End of audio stream.");
-                    if (_video_output)
-                    {
-                        _video_output->prepare_next_frame(video_frame());
-                        _video_output->activate_next_frame();
-                    }
-                    notify(notification::play, true, false);
+                    stop_playback();
                     return;
                 }
                 _audio_pos = blob.presentation_time;

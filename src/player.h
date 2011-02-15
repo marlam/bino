@@ -134,6 +134,9 @@ private:
     // Reset the play state
     void reset_playstate();
 
+    // Stop playback
+    void stop_playback();
+
 protected:
     // The current video frame
     video_frame _video_frame;
