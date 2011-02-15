@@ -378,6 +378,11 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
         if (!_video_frame.is_valid())
         {
             msg::wrn("Seeked to end of video?!");
+            if (_video_output)
+            {
+                _video_output->prepare_next_frame(video_frame());
+                _video_output->activate_next_frame();
+            }
             notify(notification::play, true, false);
             return;
         }
@@ -392,6 +397,11 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
             if (!blob.is_valid())
             {
                 msg::wrn("Seeked to end of audio?!");
+                if (_video_output)
+                {
+                    _video_output->prepare_next_frame(video_frame());
+                    _video_output->activate_next_frame();
+                }
                 notify(notification::play, true, false);
                 return;
             }
@@ -446,6 +456,11 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
             else
             {
                 msg::dbg("End of video stream.");
+                if (_video_output)
+                {
+                    _video_output->prepare_next_frame(video_frame());
+                    _video_output->activate_next_frame();
+                }
                 notify(notification::play, true, false);
                 return;
             }
@@ -504,6 +519,11 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
                 if (!blob.is_valid())
                 {
                     msg::dbg("End of audio stream.");
+                    if (_video_output)
+                    {
+                        _video_output->prepare_next_frame(video_frame());
+                        _video_output->activate_next_frame();
+                    }
                     notify(notification::play, true, false);
                     return;
                 }
