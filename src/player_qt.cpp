@@ -45,6 +45,8 @@
 #include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QStandardItemModel>
+#include <QTextBrowser>
+#include <QTabWidget>
 
 #include "player_qt.h"
 #include "qt_app.h"
@@ -1793,24 +1795,61 @@ void main_window::help_keyboard()
 
 void main_window::help_about()
 {
-    QString blurb = tr(
-            "<p>%1 version %2</p>"
-            "<p>Copyright (C) 2011 the Bino developers.<br>"
-            "This is free software. You may redistribute copies of it<br>"
-            "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
-            "GNU General Public License</a>.<br>"
-            "There is NO WARRANTY, to the extent permitted by law.<br>"
-            "See <a href=\"%3\">%3</a> for more information on this software.</p>")
-        .arg(PACKAGE_NAME).arg(VERSION).arg(PACKAGE_URL);
-    blurb += tr("<p>Platform:<ul><li>%1</li></ul></p>").arg(PLATFORM);
-    blurb += QString("<p>Libraries used:");
+    QDialog *dialog = new QDialog(this);
+    dialog->setModal(true);
+    dialog->setWindowTitle("About " PACKAGE_NAME);
+
+    QLabel *logo = new QLabel();
+    logo->setPixmap(QPixmap(":icons/appicon.png").scaledToHeight(32, Qt::SmoothTransformation));
+    QLabel *spacer = new QLabel();
+    spacer->setMinimumWidth(16);
+    QLabel *title = new QLabel("The " PACKAGE_NAME " 3D video player");
+
+    QTextBrowser *about_text = new QTextBrowser(this);
+    about_text->setOpenExternalLinks(true);
+    about_text->setText(tr(
+                "<p>%1 version %2.</p>"
+                "<p>Copyright (C) 2011 the Bino developers.</p>"
+                "<p>This is free software. You may redistribute copies of it "
+                "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
+                "GNU General Public License</a>. "
+                "There is NO WARRANTY, to the extent permitted by law.</p>"
+                "<p>See <a href=\"%3\">%3</a> for more information on this software.</p>")
+            .arg(PACKAGE_NAME).arg(VERSION).arg(PACKAGE_URL));
+
+    QTextBrowser *libs_text = new QTextBrowser(this);
+    libs_text->setOpenExternalLinks(true);
+    QString libs_blurb = tr("<p>Platform:<ul><li>%1</li></ul></p>").arg(PLATFORM);
+    libs_blurb += QString("<p>Libraries used:");
     std::vector<std::string> libs = lib_versions(true);
     for (size_t i = 0; i < libs.size(); i++)
     {
-        blurb += libs[i].c_str();
+        libs_blurb += libs[i].c_str();
     }
-    blurb += QString("</p>");
-    QMessageBox::about(this, tr("About " PACKAGE_NAME), blurb);
+    libs_blurb += QString("</p>");
+    libs_text->setText(libs_blurb);
+
+    QTabWidget *tab_widget = new QTabWidget();
+    tab_widget->addTab(about_text, "About");
+    tab_widget->addTab(libs_text, "Libraries");
+
+    QPushButton *ok_btn = new QPushButton("OK");
+    connect(ok_btn, SIGNAL(pressed()), dialog, SLOT(accept()));
+
+    QGridLayout *layout = new QGridLayout();
+    layout->addWidget(logo, 0, 0);
+    layout->addWidget(spacer, 0, 1);
+    layout->addWidget(title, 0, 2, 1, 2);
+    layout->addWidget(spacer, 0, 4);
+    layout->addWidget(tab_widget, 1, 0, 1, 5);
+    layout->addWidget(ok_btn, 2, 3, 1, 2);
+    layout->setColumnStretch(1, 1);
+    layout->setColumnStretch(4, 1);
+    layout->setRowStretch(1, 1);
+    dialog->setLayout(layout);
+    about_text->setMinimumWidth(384);
+
+    dialog->exec();
 }
 
 player_qt::player_qt() : player(player::slave)
