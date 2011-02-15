@@ -172,7 +172,6 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     _output_combobox->addItem("Left view");
     _output_combobox->addItem("Right view");
     _output_combobox->addItem("OpenGL stereo");
-    _output_index_stereo = 2;   // Update this when moving the above entry!
     _output_combobox->addItem("Top/bottom");
     _output_combobox->addItem("Top/bottom, half height");
     _output_combobox->addItem("Left/right");
@@ -452,7 +451,8 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
         // Disable unsupported output modes
         if (!_player->get_video_output()->supports_stereo())
         {
-            qobject_cast<QStandardItemModel *>(_output_combobox->model())->item(_output_index_stereo)->setEnabled(false);
+            set_stereo_mode(parameters::stereo, false);
+            qobject_cast<QStandardItemModel *>(_output_combobox->model())->item(_output_combobox->currentIndex())->setEnabled(false);
         }
     }
     set_stereo_layout(init_data.stereo_layout, init_data.stereo_layout_swap);
