@@ -59,14 +59,7 @@ uniform float step_y;
 uniform vec3 crosstalk;
 #endif
 
-#if defined(mode_red_cyan_monochrome) \
-    || defined(mode_red_cyan_half_color) \
-    || defined(mode_green_magenta_monochrome) \
-    || defined(mode_green_magenta_half_color) \
-    || defined(mode_amber_blue_monochrome) \
-    || defined(mode_amber_blue_half_color) \
-    || defined(mode_red_green_monochrome) \
-    || defined(mode_red_blue_monochrome)
+#if defined(mode_red_cyan_monochrome) || defined(mode_red_cyan_half_color) || defined(mode_green_magenta_monochrome) || defined(mode_green_magenta_half_color) || defined(mode_amber_blue_monochrome) || defined(mode_amber_blue_half_color) || defined(mode_red_green_monochrome) || defined(mode_red_blue_monochrome)
 float srgb_to_lum(vec3 srgb)
 {
     // Values taken from http://www.fourcc.org/fccyvrgb.php
