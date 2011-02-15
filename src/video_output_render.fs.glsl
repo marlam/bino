@@ -171,39 +171,27 @@ void main()
 # endif
     srgb = rgb_to_srgb(ghostbust(mix(rgbc_r, rgbc_l, m), mix(rgbc_l, rgbc_r, m)));
 
-#else // anaglyph modes
-    // The Dubois anaglyph method is generally the highest quality.
+#elif defined(mode_red_cyan_dubois) || defined (mode_green_magenta_dubois) || defined(mode_amber_blue_dubois)
+
+    // The Dubois anaglyph method is generally the highest quality anaglyph method.
     // Authors page: http://www.site.uottawa.ca/~edubois/anaglyph/
-    // This method depends on the characteristics of the display device
-    // and the anaglyph glasses. The matrices below are those published by the
-    // author in these Flickr images:
-    // http://www.flickr.com/photos/e_dubois/5132528166/
-    // http://www.flickr.com/photos/e_dubois/5230654930/
-    vec3 l = rgb_to_srgb(tex_l(gl_TexCoord[0].xy));
-    vec3 r = rgb_to_srgb(tex_r(gl_TexCoord[0].xy));
-# if defined(mode_red_cyan_monochrome)
-    srgb = vec3(srgb_to_lum(l), srgb_to_lum(r), srgb_to_lum(r));
-# elif defined(mode_red_cyan_half_color)
-    srgb = vec3(srgb_to_lum(l), r.g, r.b);
-# elif defined(mode_red_cyan_full_color)
-    srgb = vec3(l.r, r.g, r.b);
-# elif defined(mode_red_cyan_dubois)
+    // This method depends on the characteristics of the display device and the anaglyph glasses.
+    // According to the author, the matrices below are intended to be applied to linear RGB values,
+    // and are designed for CRT displays.
+    vec3 l = tex_l(gl_TexCoord[0].xy);
+    vec3 r = tex_r(gl_TexCoord[0].xy);
+# if defined(mode_red_cyan_dubois)
+    // Source of this matrix: http://www.site.uottawa.ca/~edubois/anaglyph/LeastSquaresHowToPhotoshop.pdf
     mat3 m0 = mat3(
-             0.456, -0.040, -0.015,
-             0.500, -0.038, -0.021,
-             0.176, -0.016, -0.005);
+             0.437, -0.062, -0.048,
+             0.449, -0.062, -0.050,
+             0.164, -0.024, -0.017);
     mat3 m1 = mat3(
-            -0.043,  0.378, -0.072,
-            -0.088,  0.734, -0.113,
-            -0.002, -0.018,  1.226);
-    srgb = m0 * l + m1 * r;
-# elif defined(mode_green_magenta_monochrome)
-    srgb = vec3(srgb_to_lum(r), srgb_to_lum(l), srgb_to_lum(r));
-# elif defined(mode_green_magenta_half_color)
-    srgb = vec3(r.r, srgb_to_lum(l), r.b);
-# elif defined(mode_green_magenta_full_color)
-    srgb = vec3(r.r, l.g, r.b);
+            -0.011,  0.377, -0.026,
+            -0.032,  0.761, -0.093,
+            -0.007,  0.009,  1.234);
 # elif defined(mode_green_magenta_dubois)
+    // Source of this matrix: http://www.flickr.com/photos/e_dubois/5132528166/
     mat3 m0 = mat3(
             -0.062,  0.284, -0.015,
             -0.158,  0.668, -0.027,
@@ -212,14 +200,8 @@ void main()
              0.529, -0.016,  0.009,
              0.705, -0.015,  0.075,
              0.024, -0.065,  0.937);
-    srgb = vec3(r.r, l.g, r.b);
-# elif defined(mode_amber_blue_monochrome)
-    srgb = vec3(srgb_to_lum(l), srgb_to_lum(l), srgb_to_lum(r));
-# elif defined(mode_amber_blue_half_color)
-    srgb = vec3(srgb_to_lum(l), srgb_to_lum(l), r.b);
-# elif defined(mode_amber_blue_full_color)
-    srgb = vec3(l.r, l.g, r.b);
 # elif defined(mode_amber_blue_dubois)
+    // Source of this matrix: http://www.flickr.com/photos/e_dubois/5230654930/
     mat3 m0 = mat3(
              1.062, -0.026, -0.038,
             -0.205,  0.908, -0.173,
@@ -228,7 +210,31 @@ void main()
             -0.016,  0.006,  0.094,
             -0.123,  0.062,  0.185,
             -0.017, -0.017,  0.911);
-    srgb = m0 * l + m1 * r;
+# endif
+    srgb = rgb_to_srgb(m0 * l + m1 * r);
+
+#else // lower quality anaglyph methods
+
+    vec3 l = rgb_to_srgb(tex_l(gl_TexCoord[0].xy));
+    vec3 r = rgb_to_srgb(tex_r(gl_TexCoord[0].xy));
+# if defined(mode_red_cyan_monochrome)
+    srgb = vec3(srgb_to_lum(l), srgb_to_lum(r), srgb_to_lum(r));
+# elif defined(mode_red_cyan_half_color)
+    srgb = vec3(srgb_to_lum(l), r.g, r.b);
+# elif defined(mode_red_cyan_full_color)
+    srgb = vec3(l.r, r.g, r.b);
+# elif defined(mode_green_magenta_monochrome)
+    srgb = vec3(srgb_to_lum(r), srgb_to_lum(l), srgb_to_lum(r));
+# elif defined(mode_green_magenta_half_color)
+    srgb = vec3(r.r, srgb_to_lum(l), r.b);
+# elif defined(mode_green_magenta_full_color)
+    srgb = vec3(r.r, l.g, r.b);
+# elif defined(mode_amber_blue_monochrome)
+    srgb = vec3(srgb_to_lum(l), srgb_to_lum(l), srgb_to_lum(r));
+# elif defined(mode_amber_blue_half_color)
+    srgb = vec3(srgb_to_lum(l), srgb_to_lum(l), r.b);
+# elif defined(mode_amber_blue_full_color)
+    srgb = vec3(l.r, l.g, r.b);
 # elif defined(mode_red_green_monochrome)
     srgb = vec3(srgb_to_lum(l), srgb_to_lum(r), 0.0);
 # elif defined(mode_red_blue_monochrome)
