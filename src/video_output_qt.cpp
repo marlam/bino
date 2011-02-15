@@ -98,6 +98,11 @@ void video_output_qt_widget::moveEvent(QMoveEvent *)
 
 void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
 {
+    if (!_vo->_playing)
+    {
+        QGLWidget::keyPressEvent(event);
+        return;
+    }
     switch (event->key())
     {
     case Qt::Key_Escape:
@@ -228,12 +233,13 @@ void video_container_widget::closeEvent(QCloseEvent *)
 /* The video_output_qt class */
 
 video_output_qt::video_output_qt(bool benchmark, video_container_widget *container_widget) :
-    video_output(),
+    video_output(true),
     _qt_app_owner(false),
     _container_widget(container_widget),
     _container_is_external(container_widget != NULL),
     _widget(NULL),
-    _fullscreen(false)
+    _fullscreen(false),
+    _playing(false)
 {
     _qt_app_owner = init_qt();
     if (!_container_widget)
@@ -386,7 +392,10 @@ void video_output_qt::mouse_set_pos(float dest)
         // Disabled in fullscreen and GUI mode
         return;
     }
-    send_cmd(command::set_pos, dest);
+    if (_playing)
+    {
+        send_cmd(command::set_pos, dest);
+    }
 }
 
 void video_output_qt::move_event()
@@ -518,8 +527,13 @@ void video_output_qt::process_events()
     QCoreApplication::sendPostedEvents();
 }
 
-void video_output_qt::receive_notification(const notification &)
+void video_output_qt::receive_notification(const notification &note)
 {
-    /* Currently not implemented.
+    if (note.type == notification::play)
+    {
+        std::istringstream current(note.current);
+        s11n::load(current, _playing);
+    }
+    /* More is currently not implemented.
      * In the future, an on-screen display might show hints about what happened. */
 }

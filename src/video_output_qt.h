@@ -87,6 +87,7 @@ private:
     video_output_qt_widget *_widget;
     QGLFormat _format;
     bool _fullscreen;
+    bool _playing;
 
     void create_widget();
     void mouse_set_pos(float dest);
