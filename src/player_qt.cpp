@@ -1426,7 +1426,7 @@ void main_window::receive_notification(const notification &note)
             _init_data.stereo_layout_override = true;
             _in_out_widget->get_stereo_layout(_init_data.stereo_layout, _init_data.stereo_layout_swap);
             _init_data.video_stream = _in_out_widget->get_video_stream();
-            _init_data.audio_stream = _in_out_widget->get_audio_stream();
+            _init_data.audio_stream = std::max(0, _in_out_widget->get_audio_stream());
             _init_data.stereo_mode_override = true;
             _in_out_widget->get_stereo_mode(_init_data.stereo_mode, _init_data.stereo_mode_swap);
             if (!open_player())
@@ -1644,7 +1644,9 @@ void main_window::open(QStringList filenames)
         _init_data.stereo_layout_override = true;
         // Get output parameters for this video
         _init_data.video_stream = QVariant(_settings->value("video-stream", QVariant(_init_data.video_stream)).toString()).toInt();
+        _init_data.video_stream = std::max(0, std::min(_init_data.video_stream, _player->get_media_input().video_streams() - 1));
         _init_data.audio_stream = QVariant(_settings->value("audio-stream", QVariant(_init_data.audio_stream)).toString()).toInt();
+        _init_data.audio_stream = std::max(0, std::min(_init_data.audio_stream, _player->get_media_input().audio_streams() - 1));
         _init_data.params.parallax = QVariant(_settings->value("parallax", QVariant(_init_data.params.parallax)).toString()).toFloat();
         _init_data.params.ghostbust = QVariant(_settings->value("ghostbust", QVariant(_init_data.params.ghostbust)).toString()).toFloat();
         // Get stereo mode for this video
