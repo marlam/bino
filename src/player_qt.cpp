@@ -423,23 +423,20 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
     _input_combobox->setEnabled(have_valid_input);
     _output_combobox->setEnabled(have_valid_input);
     _swap_checkbox->setEnabled(have_valid_input);
+    _video_combobox->clear();
+    _audio_combobox->clear();
     if (have_valid_input)
     {
-        _video_combobox->clear();
         for (int i = 0; i < _player->get_media_input().video_streams(); i++)
         {
             _video_combobox->addItem(_player->get_media_input().video_stream_name(i).c_str());
         }
-        _audio_combobox->clear();
         for (int i = 0; i < _player->get_media_input().audio_streams(); i++)
         {
             _audio_combobox->addItem(_player->get_media_input().audio_stream_name(i).c_str());
         }
-    }
-    _video_combobox->setCurrentIndex(init_data.video_stream);
-    _audio_combobox->setCurrentIndex(init_data.audio_stream);
-    if (have_valid_input)
-    {
+        _video_combobox->setCurrentIndex(init_data.video_stream);
+        _audio_combobox->setCurrentIndex(init_data.audio_stream);
         // Disable unsupported input modes
         for (int i = 0; i < _input_combobox->count(); i++)
         {
@@ -456,9 +453,9 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
             set_stereo_mode(parameters::stereo, false);
             qobject_cast<QStandardItemModel *>(_output_combobox->model())->item(_output_combobox->currentIndex())->setEnabled(false);
         }
+        set_stereo_layout(init_data.stereo_layout, init_data.stereo_layout_swap);
+        set_stereo_mode(init_data.stereo_mode, init_data.stereo_mode_swap);
     }
-    set_stereo_layout(init_data.stereo_layout, init_data.stereo_layout_swap);
-    set_stereo_mode(init_data.stereo_mode, init_data.stereo_mode_swap);
     _lock = false;
     if (have_valid_input)
     {
