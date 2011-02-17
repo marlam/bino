@@ -98,7 +98,7 @@ void video_output_qt_widget::moveEvent(QMoveEvent *)
 
 void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
 {
-    if (!_vo->_playing)
+    if (_vo->_container_is_external && !_vo->_playing)
     {
         QGLWidget::keyPressEvent(event);
         return;
