@@ -123,6 +123,7 @@ void video_output::deinit()
 {
     if (_initialized)
     {
+        make_context_current();
         assert(xgl::CheckError(HERE));
         input_deinit(0);
         input_deinit(1);
@@ -319,6 +320,7 @@ void video_output::prepare_next_frame(const video_frame &frame)
         _frame[index] = frame;
         return;
     }
+    make_context_current();
     if (!input_is_compatible(index, frame))
     {
         input_deinit(index);
@@ -611,6 +613,7 @@ static void draw_quad(float x, float y, float w, float h)
 void video_output::display_current_frame(bool mono_right_instead_of_left,
             float x, float y, float w, float h, const GLint viewport[4])
 {
+    make_context_current();
     assert(xgl::CheckError(HERE));
     clear();
     const video_frame &frame = _frame[_active_index];
@@ -872,6 +875,7 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
 
 void video_output::clear()
 {
+    make_context_current();
     assert(xgl::CheckError(HERE));
     if (context_is_stereo())
     {
@@ -889,6 +893,7 @@ void video_output::clear()
 
 void video_output::reshape(int w, int h)
 {
+    make_context_current();
     // Clear
     _viewport[0] = 0;
     _viewport[1] = 0;

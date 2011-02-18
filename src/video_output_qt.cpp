@@ -48,61 +48,18 @@ static GLEWContext* glewGetContext() { return &_glewContext; }
 #include "lib_versions.h"
 
 
-/* The display thread */
-
-display_thread::display_thread(video_output_qt_widget *vw, video_output_qt *vo) :
-    QThread(), _vw(vw), _vo(vo), _enabled(false)
-{
-}
-
-void display_thread::enable()
-{
-    _enabled = true;
-}
-
-void display_thread::run()
-{
-    if (!_enabled)
-    {
-        return;
-    }
-    _e = exc();         // Reset exception
-    _vw->makeCurrent(); // Get context. A context can only be current in one thread at a time!
-    try
-    {
-        _vo->display_current_frame();
-    }
-    catch (exc &e)
-    {
-        _e = e;
-    }
-    _vw->swapBuffers(); // The potentially blocking swap buffers operation.
-    _vw->doneCurrent(); // Yield the context for other work.
-}
-
 /* The GL widget */
 
 video_output_qt_widget::video_output_qt_widget(
         video_output_qt *vo, const QGLFormat &format, QWidget *parent) :
-    QGLWidget(format, parent), _display_thread(this, vo), _vo(vo)
+    QGLWidget(format, parent), _vo(vo)
 {
-    setAutoBufferSwap(false);           // Buffer swap is done in the display thread.
     setFocusPolicy(Qt::StrongFocus);
     setWindowIcon(QIcon(":icons/appicon.png"));
 }
 
 video_output_qt_widget::~video_output_qt_widget()
 {
-}
-
-void video_output_qt_widget::enable_display_thread()
-{
-    _display_thread.enable();
-}
-
-void video_output_qt_widget::wait_for_display_thread()
-{
-    _display_thread.wait();
 }
 
 void video_output_qt_widget::move_event()
@@ -113,34 +70,20 @@ void video_output_qt_widget::move_event()
     }
 }
 
-void video_output_qt_widget::resizeEvent(QResizeEvent *event)
+void video_output_qt_widget::paintGL()
 {
-    // Qt wants the GL context before resizeGL(), so make sure the display
-    // thread does not use the context anymore.
-    _display_thread.wait();
-    QGLWidget::resizeEvent(event);
-}
-
-void video_output_qt_widget::paintEvent(QPaintEvent *)
-{
-    if (_display_thread.isRunning())
+    try
     {
-        return;
+        _vo->display_current_frame();
     }
-    if (!_display_thread.get_exc().empty())
+    catch (std::exception &e)
     {
-        QMessageBox::critical(this, "Error", _display_thread.get_exc().what());
+        QMessageBox::critical(this, "Error", e.what());
         // Disable further output and stop the player
         _vo->prepare_next_frame(video_frame());
         _vo->activate_next_frame();
         _vo->send_cmd(command::toggle_play);
     }
-    doneCurrent();
-    _display_thread.start();
-}
-
-void video_output_qt_widget::paintGL()
-{
 }
 
 void video_output_qt_widget::resizeGL(int w, int h)
@@ -250,13 +193,6 @@ void video_output_qt_widget::mouseReleaseEvent(QMouseEvent *event)
     _vo->mouse_set_pos(std::max(std::min(static_cast<float>(event->posF().x()) / this->width(), 1.0f), 0.0f));
 }
 
-void video_output_qt_widget::closeEvent(QCloseEvent *event)
-{
-    // Make sure the display thread does not use the context anymore.
-    _display_thread.wait();
-    QGLWidget::closeEvent(event);
-}
-
 
 /* Our own video container widget, used in case that the video_output_qt
  * constructor is called without an external container widget. */
@@ -363,9 +299,6 @@ void video_output_qt::init()
         // Initialize GL things
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        // Now that GL is initialized, enable the display thread
-        _widget->doneCurrent();
-        _widget->enable_display_thread();
     }
 }
 
@@ -420,6 +353,11 @@ void video_output_qt::create_widget()
     _container_widget->show();
     _container_widget->raise();
     process_events();
+}
+
+void video_output_qt::make_context_current()
+{
+    _widget->makeCurrent();
 }
 
 bool video_output_qt::context_is_stereo()
@@ -587,14 +525,6 @@ void video_output_qt::process_events()
 {
     QApplication::processEvents();
     QCoreApplication::sendPostedEvents();
-}
-
-void video_output_qt::prepare_next_frame(const video_frame &frame)
-{
-    // Make sure the display thread does not use the GL context anymore.
-    _widget->wait_for_display_thread();
-    _widget->makeCurrent();
-    video_output::prepare_next_frame(frame);
 }
 
 void video_output_qt::receive_notification(const notification &note)
