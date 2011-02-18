@@ -555,6 +555,10 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
             _need_frame = true;
             _previous_frame_dropped = _drop_next_frame;
         }
+        else if (_video_pos - _master_time_current > 1500)
+        {
+            usleep(1000);
+        }
         *more_steps = true;
         return;
     }
