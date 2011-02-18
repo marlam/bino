@@ -26,24 +26,54 @@
 #include <QWidget>
 #include <QGLWidget>
 #include <QGLFormat>
+#include <QThread>
+
+#include "exc.h"
 
 #include "video_output.h"
 
 
-/* Internal interface */
+/* Internal interface. The display function is called from a separate thread.
+ * This avoids the buffer swap operation blocking the main thread in case
+ * sync-to-vblank is active. */
 
 class video_output_qt;
+class video_output_qt_widget;
+
+class display_thread : public QThread
+{
+    Q_OBJECT
+
+private:
+    video_output_qt_widget *_vw;        // The video output widget. It owns the GL context.
+    video_output_qt *_vo;               // The video output. We need its display function.
+    bool _enabled;                      // Whether this display thread is enabled
+    exc _e;                             // An exception in case displaying failed.
+
+public:
+    display_thread(video_output_qt_widget *vw, video_output_qt *vo);
+    void enable();                      // Enable displaying via this thread.
+    void run();                         // The worker function.
+    const exc &get_exc() const          // Get the exception.
+    {
+        return _e;
+    }
+};
 
 class video_output_qt_widget : public QGLWidget
 {
     Q_OBJECT
 
 private:
+    display_thread _display_thread;
     video_output_qt *_vo;
 
 public:
     video_output_qt_widget(video_output_qt *vo, const QGLFormat &format, QWidget *parent = NULL);
     ~video_output_qt_widget();
+
+    void wait_for_display_thread();
+    void enable_display_thread();
 
 public slots:
     void move_event();
@@ -51,9 +81,12 @@ public slots:
 protected:
     virtual void paintGL();
     virtual void resizeGL(int width, int height);
+    virtual void resizeEvent(QResizeEvent *event);
+    virtual void paintEvent(QPaintEvent *event);
     virtual void moveEvent(QMoveEvent *event);
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
+    virtual void closeEvent(QCloseEvent *event);
 };
 
 /* Public interface. You can use this as a video container widget, to
@@ -93,7 +126,6 @@ private:
     void mouse_set_pos(float dest);
 
 protected:
-    virtual void make_context_current();
     virtual bool context_is_stereo();
     virtual void recreate_context(bool stereo);
     virtual void trigger_update();
@@ -134,8 +166,11 @@ public:
 
     virtual void process_events();
 
+    virtual void prepare_next_frame(const video_frame &frame);
+
     virtual void receive_notification(const notification &note);
 
+    friend class display_thread;
     friend class video_output_qt_widget;
 };
 

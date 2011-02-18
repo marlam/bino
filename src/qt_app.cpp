@@ -23,6 +23,10 @@
 #include <QCoreApplication>
 #include <QApplication>
 
+#ifdef Q_WS_X11
+# include <X11/Xlib.h>
+#endif
+
 #include "qt_app.h"
 
 #include "msg.h"
@@ -36,6 +40,9 @@ bool init_qt()
 {
     if (!qt_app)
     {
+#ifdef Q_WS_X11
+        XInitThreads(); // Make X11 thread safe, because we use a separate render thread.
+#endif
         qt_app = new QApplication(qt_argc, const_cast<char **>(qt_argv));
         QCoreApplication::setOrganizationName("Bino");
         QCoreApplication::setOrganizationDomain("bino.nongnu.org");
