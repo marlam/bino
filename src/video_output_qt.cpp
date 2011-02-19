@@ -392,7 +392,7 @@ void video_output_qt::mouse_set_pos(float dest)
         // Disabled in fullscreen and GUI mode
         return;
     }
-    if (_playing)
+    if (_playing || !_container_is_external)
     {
         send_cmd(command::set_pos, dest);
     }
