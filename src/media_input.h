@@ -41,6 +41,9 @@ private:
     bool _supports_stereo_layout_separate;      // Does this input support the stereo layout 'separate_streams'?
     int _active_video_stream;                   // The video stream that is currently active.
     int _active_audio_stream;                   // The audio stream that is currently active.
+    bool _have_active_video_read;               // Whether a video frame read was started.
+    bool _have_active_audio_read;               // Whether a audio blob read was started.
+    size_t _last_audio_data_size;               // Size of last audio blob read
 
     int64_t _initial_skip;                      // Initial portion of input to skip, in microseconds.
     int64_t _duration;                          // Total combined duration of input.

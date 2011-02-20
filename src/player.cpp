@@ -22,6 +22,7 @@
 #include "config.h"
 
 #include <vector>
+#include <unistd.h>
 
 #include "exc.h"
 #include "str.h"
@@ -138,7 +139,8 @@ void player::reset_playstate()
 {
     _running = false;
     _first_frame = false;
-    _need_frame = false;
+    _need_frame_now = false;
+    _need_frame_soon = false;
     _drop_next_frame = false;
     _previous_frame_dropped = false;
     _in_pause = false;
@@ -277,7 +279,7 @@ void player::open(const player_init_data &init_data)
     }
 }
 
-void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
+int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
 {
     *more_steps = false;
     *seek_to = -1;
@@ -288,7 +290,7 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
     if (_quit_request)
     {
         stop_playback();
-        return;
+        return 0;
     }
     else if (!_running)
     {
@@ -299,23 +301,22 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
         {
             msg::dbg("Empty video input.");
             stop_playback();
-            return;
+            return 0;
         }
         _video_pos = _video_frame.presentation_time;
         if (_audio_output)
         {
-            size_t required_audio_data_size;
-            _audio_output->status(&required_audio_data_size);
-            _media_input->start_audio_blob_read(required_audio_data_size);
+            _media_input->start_audio_blob_read(_audio_output->required_initial_data_size());
             audio_blob blob = _media_input->finish_audio_blob_read();
             if (!blob.is_valid())
             {
                 msg::dbg("Empty audio input.");
                 stop_playback();
-                return;
+                return 0;
             }
             _audio_pos = blob.presentation_time;
             _audio_output->data(blob);
+            _media_input->start_audio_blob_read(_audio_output->required_update_data_size());
             _master_time_start = _audio_output->start();
             _master_time_pos = _audio_pos;
             _current_pos = _audio_pos;
@@ -336,11 +337,12 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
         }
         else
         {
-            _need_frame = false;
+            _need_frame_now = false;
+            _need_frame_soon = true;
             _first_frame = true;
             *more_steps = true;
             *prep_frame = true;
-            return;
+            return 0;
         }
     }
     if (_seek_request != 0 || _set_pos_request >= 0.0f)
@@ -385,24 +387,23 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
         {
             msg::wrn("Seeked to end of video?!");
             stop_playback();
-            return;
+            return 0;
         }
         _video_pos = _video_frame.presentation_time;
         if (_audio_output)
         {
             _audio_output->stop();
-            size_t required_audio_data_size;
-            _audio_output->status(&required_audio_data_size);
-            _media_input->start_audio_blob_read(required_audio_data_size);
+            _media_input->start_audio_blob_read(_audio_output->required_initial_data_size());
             audio_blob blob = _media_input->finish_audio_blob_read();
             if (!blob.is_valid())
             {
                 msg::wrn("Seeked to end of audio?!");
                 stop_playback();
-                return;
+                return 0;
             }
             _audio_pos = blob.presentation_time;
             _audio_output->data(blob);
+            _media_input->start_audio_blob_read(_audio_output->required_update_data_size());
             _master_time_start = _audio_output->start();
             _master_time_pos = _audio_pos;
             _current_pos = _audio_pos;
@@ -414,11 +415,12 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
             _current_pos = _video_pos;
         }
         notify(notification::pos, normalize_pos(old_pos), normalize_pos(_current_pos));
-        _need_frame = false;
+        _need_frame_now = false;
+        _need_frame_soon = true;
         _previous_frame_dropped = false;
         *more_steps = true;
         *prep_frame = true;
-        return;
+        return 0;
     }
     else if (_pause_request)
     {
@@ -436,11 +438,10 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
             notify(notification::pause, false, true);
         }
         *more_steps = true;
-        return;
+        return 0;
     }
-    else if (_need_frame)
+    else if (_need_frame_now)
     {
-        _media_input->start_video_frame_read();
         _video_frame = _media_input->finish_video_frame_read();
         if (!_video_frame.is_valid())
         {
@@ -453,7 +454,7 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
             {
                 msg::dbg("End of video stream.");
                 stop_playback();
-                return;
+                return 0;
             }
         }
         else
@@ -468,7 +469,8 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
             _current_pos = _video_pos;
             notify(notification::pos, normalize_pos(_current_pos), normalize_pos(_current_pos));
         }
-        _need_frame = false;
+        _need_frame_now = false;
+        _need_frame_soon = true;
         if (_drop_next_frame)
         {
             *drop_frame = true;
@@ -478,7 +480,14 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
             *prep_frame = true;
         }
         *more_steps = true;
-        return;
+        return 0;
+    }
+    else if (_need_frame_soon)
+    {
+        _media_input->start_video_frame_read();
+        _need_frame_soon = false;
+        *more_steps = true;
+        return 0;
     }
     else
     {
@@ -499,24 +508,23 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
         if (_audio_output)
         {
             // Check if audio needs more data, and get audio time
-            size_t required_audio_data_size;
-            _master_time_current = _audio_output->status(&required_audio_data_size) - _master_time_start
-                + _master_time_pos;
+            bool need_audio_data;
+            _master_time_current = _audio_output->status(&need_audio_data) - _master_time_start + _master_time_pos;
             // Output requested audio data
-            if (required_audio_data_size > 0)
+            if (need_audio_data)
             {
-                _media_input->start_audio_blob_read(required_audio_data_size);
                 audio_blob blob = _media_input->finish_audio_blob_read();
                 if (!blob.is_valid())
                 {
                     msg::dbg("End of audio stream.");
                     stop_playback();
-                    return;
+                    return 0;
                 }
                 _audio_pos = blob.presentation_time;
                 _master_time_start += (_audio_pos - _master_time_pos);
                 _master_time_pos = _audio_pos;
                 _audio_output->data(blob);
+                _media_input->start_audio_blob_read(_audio_output->required_update_data_size());
                 _current_pos = _audio_pos;
                 notify(notification::pos, normalize_pos(_current_pos), normalize_pos(_current_pos));
             }
@@ -528,6 +536,7 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
                 + _master_time_pos;
         }
 
+        int64_t allowable_sleep = 0;
         if (_master_time_current >= _video_pos || _benchmark)
         {
             // Output current video frame
@@ -552,11 +561,25 @@ void player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *dr
                     }
                 }
             }
-            _need_frame = true;
+            _need_frame_now = true;
+            _need_frame_soon = false;
             _previous_frame_dropped = _drop_next_frame;
         }
+        else
+        {
+            allowable_sleep = _video_pos - _master_time_current;
+            if (allowable_sleep < 100)
+            {
+                allowable_sleep = 0;
+            }
+            else if (allowable_sleep > 1100)
+            {
+                allowable_sleep = 1100;
+            }
+            allowable_sleep -= 100;
+        }
         *more_steps = true;
-        return;
+        return allowable_sleep;
     }
 }
 
@@ -567,8 +590,10 @@ bool player::run_step()
     bool prep_frame;
     bool drop_frame;
     bool display_frame;
+    int64_t allowed_sleep;
 
-    step(&more_steps, &seek_to, &prep_frame, &drop_frame, &display_frame);
+    allowed_sleep = step(&more_steps, &seek_to, &prep_frame, &drop_frame, &display_frame);
+
     if (!more_steps)
     {
         return false;
@@ -584,7 +609,13 @@ bool player::run_step()
     {
         _video_output->activate_next_frame();
     }
+
     _video_output->process_events();
+    if (allowed_sleep > 0)
+    {
+        usleep(allowed_sleep);
+    }
+
     return true;
 }
 

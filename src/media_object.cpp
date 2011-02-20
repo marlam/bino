@@ -46,8 +46,72 @@ extern "C"
 #include "exc.h"
 #include "msg.h"
 #include "str.h"
+#include "thread.h"
 
 #include "media_object.h"
+
+
+// The read thread.
+// This thread reads packets from the AVFormatContext and stores them in the
+// appropriate packet queues.
+class read_thread : public thread
+{
+private:
+    const std::string _url;
+    struct ffmpeg_stuff *_ffmpeg;
+    bool _eof;
+
+public:
+    read_thread(const std::string &url, struct ffmpeg_stuff *ffmpeg);
+    void run();
+    void reset();
+    bool eof() const
+    {
+        return _eof;
+    }
+};
+
+// The video decode thread.
+// This thread reads packets from its packet queue and decodes them to video frames.
+class video_decode_thread : public thread
+{
+private:
+    std::string _url;
+    struct ffmpeg_stuff *_ffmpeg;
+    int _video_stream;
+    video_frame _frame;
+
+    int64_t handle_timestamp(int64_t timestamp);
+
+public:
+    video_decode_thread(const std::string &url, struct ffmpeg_stuff *ffmpeg, int video_stream);
+    void run();
+    const video_frame &frame()
+    {
+        return _frame;
+    }
+};
+
+// The audio decode thread.
+// This thread reads packets from its packet queue and decodes them to audio blobs.
+class audio_decode_thread : public thread
+{
+private:
+    std::string _url;
+    struct ffmpeg_stuff *_ffmpeg;
+    int _audio_stream;
+    audio_blob _blob;
+
+    int64_t handle_timestamp(int64_t timestamp);
+
+public:
+    audio_decode_thread(const std::string &url, struct ffmpeg_stuff *ffmpeg, int audio_stream);
+    void run();
+    const audio_blob &blob()
+    {
+        return _blob;
+    }
+};
 
 
 // Hide the FFmpeg stuff so that their messy header files cannot cause problems
@@ -59,14 +123,16 @@ struct ffmpeg_stuff
     bool have_active_audio_stream;
     int64_t pos;
 
+    read_thread *reader;
+
     std::vector<int> video_streams;
     std::vector<AVCodecContext *> video_codec_ctxs;
     std::vector<video_frame> video_frame_templates;
     std::vector<struct SwsContext *> video_img_conv_ctxs;
     std::vector<AVCodec *> video_codecs;
     std::vector<std::deque<AVPacket> > video_packet_queues;
-    std::vector<AVPacket> video_packets;
-    std::vector<bool> video_flush_flags;
+    std::vector<mutex> video_packet_queue_mutexes;
+    std::vector<video_decode_thread> video_decode_threads;
     std::vector<AVFrame *> video_frames;
     std::vector<AVFrame *> video_out_frames;
     std::vector<uint8_t *> video_buffers;
@@ -77,14 +143,15 @@ struct ffmpeg_stuff
     std::vector<audio_blob> audio_blob_templates;
     std::vector<AVCodec *> audio_codecs;
     std::vector<std::deque<AVPacket> > audio_packet_queues;
+    std::vector<mutex> audio_packet_queue_mutexes;
+    std::vector<audio_decode_thread> audio_decode_threads;
     std::vector<blob> audio_blobs;
-    std::vector<bool> audio_flush_flags;
     std::vector<std::vector<unsigned char> > audio_buffers;
     std::vector<int64_t> audio_last_timestamps;
 };
 
-// Use one decoding thread per processor.
-static int decoding_threads()
+// Use one decoding thread per processor for video decoding.
+static int video_decoding_threads()
 {
     static long n = -1;
     if (n < 0)
@@ -119,12 +186,14 @@ static std::string my_av_strerror(int err)
 // Convert FFmpeg log messages to our log messages.
 static void my_av_log(void *ptr, int level, const char *fmt, va_list vl)
 {
+    static mutex line_mutex;
     static std::string line;
     if (level > av_log_get_level())
     {
         return;
     }
 
+    line_mutex.lock();
     std::string p;
     AVClass* avc = ptr ? *reinterpret_cast<AVClass**>(ptr) : NULL;
     if (avc)
@@ -171,6 +240,18 @@ static void my_av_log(void *ptr, int level, const char *fmt, va_list vl)
         msg::msg(l, std::string("FFmpeg: ") + p + line);
         line.clear();
     }
+    line_mutex.unlock();
+}
+
+// Handle timestamps
+static int64_t timestamp_helper(int64_t &last_timestamp, int64_t timestamp)
+{
+    if (timestamp == std::numeric_limits<int64_t>::min())
+    {
+        timestamp = last_timestamp;
+    }
+    last_timestamp = timestamp;
+    return timestamp;
 }
 
 media_object::media_object() : _ffmpeg(NULL)
@@ -470,8 +551,11 @@ void media_object::set_audio_blob_template(int index)
 
 void media_object::open(const std::string &url)
 {
+    assert(!_ffmpeg);
+
     _url = url;
     _ffmpeg = new struct ffmpeg_stuff;
+    _ffmpeg->reader = new read_thread(_url, _ffmpeg);
     int e;
 
     if ((e = av_open_input_file(&_ffmpeg->format_ctx, _url.c_str(), NULL, 0, NULL)) != 0)
@@ -509,7 +593,7 @@ void media_object::open(const std::string &url)
             {
                 throw exc(_url + " stream " + str::from(i) + ": Invalid frame size.");
             }
-            _ffmpeg->video_codec_ctxs[j]->thread_count = decoding_threads();
+            _ffmpeg->video_codec_ctxs[j]->thread_count = video_decoding_threads();
             if (avcodec_thread_init(_ffmpeg->video_codec_ctxs[j], _ffmpeg->video_codec_ctxs[j]->thread_count) != 0)
             {
                 _ffmpeg->video_codec_ctxs[j]->thread_count = 1;
@@ -527,9 +611,8 @@ void media_object::open(const std::string &url)
             // Determine frame template.
             _ffmpeg->video_frame_templates.push_back(video_frame());
             set_video_frame_template(j);
-            // Allocate packets and frames
-            _ffmpeg->video_packets.push_back(AVPacket());
-            _ffmpeg->video_flush_flags.push_back(false);
+            // Allocate things required for decoding
+            _ffmpeg->video_decode_threads.push_back(video_decode_thread(_url, _ffmpeg, j));
             _ffmpeg->video_frames.push_back(avcodec_alloc_frame());
             if (!_ffmpeg->video_frames[j])
             {
@@ -583,8 +666,8 @@ void media_object::open(const std::string &url)
             }
             _ffmpeg->audio_blob_templates.push_back(audio_blob());
             set_audio_blob_template(j);
+            _ffmpeg->audio_decode_threads.push_back(audio_decode_thread(_url, _ffmpeg, j));
             _ffmpeg->audio_blobs.push_back(blob());
-            _ffmpeg->audio_flush_flags.push_back(false);
             _ffmpeg->audio_buffers.push_back(std::vector<unsigned char>());
             _ffmpeg->audio_last_timestamps.push_back(std::numeric_limits<int64_t>::min());
         }
@@ -595,6 +678,8 @@ void media_object::open(const std::string &url)
     }
     _ffmpeg->video_packet_queues.resize(video_streams());
     _ffmpeg->audio_packet_queues.resize(audio_streams());
+    _ffmpeg->video_packet_queue_mutexes.resize(video_streams());
+    _ffmpeg->audio_packet_queue_mutexes.resize(audio_streams());
 
     msg::inf(_url + ":");
     for (int i = 0; i < video_streams(); i++)
@@ -668,14 +753,40 @@ void media_object::video_stream_set_active(int index, bool active)
 {
     assert(index >= 0);
     assert(index < video_streams());
+    // Stop decoder threads
+    for (size_t i = 0; i < _ffmpeg->video_streams.size(); i++)
+    {
+        _ffmpeg->video_decode_threads[i].finish();
+    }
+    for (size_t i = 0; i < _ffmpeg->audio_streams.size(); i++)
+    {
+        _ffmpeg->audio_decode_threads[i].finish();
+    }
+    // Stop reading packets
+    _ffmpeg->reader->finish();
+    // Set status
     _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->discard =
         (active ? AVDISCARD_DEFAULT : AVDISCARD_ALL);
+    // Restart reader
+    _ffmpeg->reader->start();
 }
 
 void media_object::audio_stream_set_active(int index, bool active)
 {
     assert(index >= 0);
     assert(index < audio_streams());
+    // Stop decoder threads
+    for (size_t i = 0; i < _ffmpeg->video_streams.size(); i++)
+    {
+        _ffmpeg->video_decode_threads[i].finish();
+    }
+    for (size_t i = 0; i < _ffmpeg->audio_streams.size(); i++)
+    {
+        _ffmpeg->audio_decode_threads[i].finish();
+    }
+    // Stop reading packets
+    _ffmpeg->reader->finish();
+    // Set status
     _ffmpeg->format_ctx->streams[_ffmpeg->audio_streams.at(index)]->discard =
         (active ? AVDISCARD_DEFAULT : AVDISCARD_ALL);
     _ffmpeg->have_active_audio_stream = false;
@@ -687,6 +798,8 @@ void media_object::audio_stream_set_active(int index, bool active)
             break;
         }
     }
+    // Restart reader
+    _ffmpeg->reader->start();
 }
 
 const video_frame &media_object::video_frame_template(int video_stream) const
@@ -755,78 +868,114 @@ int64_t media_object::audio_duration(int index) const
     }
 }
 
-bool media_object::read()
+read_thread::read_thread(const std::string &url, struct ffmpeg_stuff *ffmpeg) :
+    _url(url), _ffmpeg(ffmpeg), _eof(false)
 {
-    msg::dbg(_url + ": Reading a packet.");
-
-    AVPacket packet;
-    int e;
-    if ((e = av_read_frame(_ffmpeg->format_ctx, &packet)) < 0)
-    {
-        if (e == AVERROR_EOF)
-        {
-            msg::dbg(_url + ": EOF.");
-            return false;
-        }
-        else
-        {
-            throw exc(_url + ": " + my_av_strerror(e));
-        }
-    }
-    bool packet_queued = false;
-    for (size_t i = 0; i < _ffmpeg->video_streams.size() && !packet_queued; i++)
-    {
-        if (packet.stream_index == _ffmpeg->video_streams[i])
-        {
-            if (av_dup_packet(&packet) < 0)
-            {
-                msg::dbg(_url + ": Cannot duplicate packet.");
-                return false;
-            }
-            _ffmpeg->video_packet_queues[i].push_back(packet);
-            msg::dbg(_url + ": "
-                    + str::from(_ffmpeg->video_packet_queues[i].size())
-                    + " packets queued in video stream " + str::from(i) + ".");
-            packet_queued = true;
-        }
-    }
-    for (size_t i = 0; i < _ffmpeg->audio_streams.size() && !packet_queued; i++)
-    {
-        if (packet.stream_index == _ffmpeg->audio_streams[i])
-        {
-            if (av_dup_packet(&packet) < 0)
-            {
-                msg::dbg(_url + ": Cannot duplicate packet.");
-                return false;
-            }
-            _ffmpeg->audio_packet_queues[i].push_back(packet);
-            msg::dbg(_url + ": "
-                    + str::from(_ffmpeg->audio_packet_queues[i].size())
-                    + " packets queued in audio stream " + str::from(i) + ".");
-            packet_queued = true;
-        }
-    }
-    if (!packet_queued)
-    {
-        av_free_packet(&packet);
-    }
-
-    return true;
 }
 
-int64_t media_object::handle_timestamp(int64_t &last_timestamp, int64_t timestamp)
+void read_thread::run()
 {
-    if (timestamp == std::numeric_limits<int64_t>::min())
+    while (!_eof)
     {
-        timestamp = last_timestamp;
+        // We need another packet if an active stream has an empty packet queue.
+        bool need_another_packet = false;
+        for (size_t i = 0; !need_another_packet && i < _ffmpeg->video_streams.size(); i++)
+        {
+            if (_ffmpeg->format_ctx->streams[_ffmpeg->video_streams[i]]->discard == AVDISCARD_DEFAULT)
+            {
+                _ffmpeg->video_packet_queue_mutexes[i].lock();
+                need_another_packet = _ffmpeg->video_packet_queues[i].empty();
+                _ffmpeg->video_packet_queue_mutexes[i].unlock();
+            }
+        }
+        for (size_t i = 0; !need_another_packet && i < _ffmpeg->audio_streams.size(); i++)
+        {
+            if (_ffmpeg->format_ctx->streams[_ffmpeg->audio_streams[i]]->discard == AVDISCARD_DEFAULT)
+            {
+                _ffmpeg->audio_packet_queue_mutexes[i].lock();
+                need_another_packet = _ffmpeg->audio_packet_queues[i].empty();
+                _ffmpeg->audio_packet_queue_mutexes[i].unlock();
+            }
+        }
+        if (!need_another_packet)
+        {
+            msg::dbg(_url + ": No need to read more packets.");
+            break;
+        }
+        // Read a packet.
+        msg::dbg(_url + ": Reading a packet.");
+        AVPacket packet;
+        int e = av_read_frame(_ffmpeg->format_ctx, &packet);
+        if (e < 0)
+        {
+            if (e == AVERROR_EOF)
+            {
+                msg::dbg(_url + ": EOF.");
+                _eof = true;
+                return;
+            }
+            else
+            {
+                throw exc(_url + ": " + my_av_strerror(e));
+            }
+        }
+        // Put the packet in the right queue.
+        bool packet_queued = false;
+        for (size_t i = 0; i < _ffmpeg->video_streams.size() && !packet_queued; i++)
+        {
+            if (packet.stream_index == _ffmpeg->video_streams[i])
+            {
+                if (av_dup_packet(&packet) < 0)
+                {
+                    throw exc(_url + ": Cannot duplicate packet.");
+                }
+                _ffmpeg->video_packet_queue_mutexes[i].lock();
+                _ffmpeg->video_packet_queues[i].push_back(packet);
+                msg::dbg(_url + ": "
+                        + str::from(_ffmpeg->video_packet_queues[i].size())
+                        + " packets queued in video stream " + str::from(i) + ".");
+                _ffmpeg->video_packet_queue_mutexes[i].unlock();
+                packet_queued = true;
+            }
+        }
+        for (size_t i = 0; i < _ffmpeg->audio_streams.size() && !packet_queued; i++)
+        {
+            if (packet.stream_index == _ffmpeg->audio_streams[i])
+            {
+                if (av_dup_packet(&packet) < 0)
+                {
+                    throw exc(_url + ": Cannot duplicate packet.");
+                }
+                _ffmpeg->audio_packet_queue_mutexes[i].lock();
+                _ffmpeg->audio_packet_queues[i].push_back(packet);
+                msg::dbg(_url + ": "
+                        + str::from(_ffmpeg->audio_packet_queues[i].size())
+                        + " packets queued in audio stream " + str::from(i) + ".");
+                _ffmpeg->audio_packet_queue_mutexes[i].unlock();
+                packet_queued = true;
+            }
+        }
+        if (!packet_queued)
+        {
+            av_free_packet(&packet);
+        }
     }
-    last_timestamp = timestamp;
-    return timestamp;
 }
 
-int64_t media_object::handle_video_timestamp(int video_stream, int64_t timestamp)
+void read_thread::reset()
 {
-    int64_t ts = handle_timestamp(_ffmpeg->video_last_timestamps[video_stream], timestamp);
+    exception() = exc();
+    _eof = false;
+}
+
+video_decode_thread::video_decode_thread(const std::string &url, struct ffmpeg_stuff *ffmpeg, int video_stream) :
+    _url(url), _ffmpeg(ffmpeg), _video_stream(video_stream), _frame()
+{
+}
+
+int64_t video_decode_thread::handle_timestamp(int64_t timestamp)
+{
+    int64_t ts = timestamp_helper(_ffmpeg->video_last_timestamps[_video_stream], timestamp);
     if (!_ffmpeg->have_active_audio_stream || _ffmpeg->pos == std::numeric_limits<int64_t>::min())
     {
         _ffmpeg->pos = ts;
@@ -834,149 +983,145 @@ int64_t media_object::handle_video_timestamp(int video_stream, int64_t timestamp
     return ts;
 }
 
-int64_t media_object::handle_audio_timestamp(int audio_stream, int64_t timestamp)
+void video_decode_thread::run()
 {
-    int64_t ts = handle_timestamp(_ffmpeg->audio_last_timestamps[audio_stream], timestamp);
-    _ffmpeg->pos = ts;
-    return ts;
+    AVPacket pkt;
+    int frame_finished = 0;
+    do
+    {
+        _ffmpeg->video_packet_queue_mutexes[_video_stream].lock();
+        bool empty = _ffmpeg->video_packet_queues[_video_stream].empty();
+        _ffmpeg->video_packet_queue_mutexes[_video_stream].unlock();
+        while (empty)
+        {
+            msg::dbg(_url + ": Need to wait for video data...");
+            _ffmpeg->reader->start();
+            _ffmpeg->reader->finish();
+            _ffmpeg->video_packet_queue_mutexes[_video_stream].lock();
+            empty = _ffmpeg->video_packet_queues[_video_stream].empty();
+            _ffmpeg->video_packet_queue_mutexes[_video_stream].unlock();
+            if (empty && _ffmpeg->reader->eof())
+            {
+                _frame = video_frame();
+                return;
+            }
+        }
+        _ffmpeg->video_packet_queue_mutexes[_video_stream].lock();
+        pkt = _ffmpeg->video_packet_queues[_video_stream].front();
+        _ffmpeg->video_packet_queues[_video_stream].pop_front();
+        _ffmpeg->video_packet_queue_mutexes[_video_stream].unlock();
+        _ffmpeg->reader->start();       // Refill the packet queue
+        avcodec_decode_video2(_ffmpeg->video_codec_ctxs[_video_stream],
+                _ffmpeg->video_frames[_video_stream], &frame_finished, &pkt);
+        av_free_packet(&pkt);
+    }
+    while (!frame_finished);
+
+    _frame = _ffmpeg->video_frame_templates[_video_stream];
+    if (_frame.layout == video_frame::bgra32)
+    {
+        sws_scale(_ffmpeg->video_img_conv_ctxs[_video_stream],
+                _ffmpeg->video_frames[_video_stream]->data,
+                _ffmpeg->video_frames[_video_stream]->linesize,
+                0, _frame.raw_height,
+                _ffmpeg->video_out_frames[_video_stream]->data,
+                _ffmpeg->video_out_frames[_video_stream]->linesize);
+        // TODO: Handle sws_scale errors. How?
+        _frame.data[0][0] = _ffmpeg->video_out_frames[_video_stream]->data[0];
+        _frame.line_size[0][0] = _ffmpeg->video_out_frames[_video_stream]->linesize[0];
+    }
+    else
+    {
+        _frame.data[0][0] = _ffmpeg->video_frames[_video_stream]->data[0];
+        _frame.data[0][1] = _ffmpeg->video_frames[_video_stream]->data[1];
+        _frame.data[0][2] = _ffmpeg->video_frames[_video_stream]->data[2];
+        _frame.line_size[0][0] = _ffmpeg->video_frames[_video_stream]->linesize[0];
+        _frame.line_size[0][1] = _ffmpeg->video_frames[_video_stream]->linesize[1];
+        _frame.line_size[0][2] = _ffmpeg->video_frames[_video_stream]->linesize[2];
+    }
+
+    _frame.presentation_time = handle_timestamp(pkt.dts * 1000000
+            * _ffmpeg->format_ctx->streams[_ffmpeg->video_streams[_video_stream]]->time_base.num
+            / _ffmpeg->format_ctx->streams[_ffmpeg->video_streams[_video_stream]]->time_base.den);
 }
 
 void media_object::start_video_frame_read(int video_stream)
 {
     assert(video_stream >= 0);
     assert(video_stream < video_streams());
-    if (_ffmpeg->video_flush_flags[video_stream])
-    {
-        avcodec_flush_buffers(_ffmpeg->format_ctx->streams[_ffmpeg->video_streams[video_stream]]->codec);
-        for (size_t j = 0; j < _ffmpeg->video_packet_queues[video_stream].size(); j++)
-        {
-            av_free_packet(&_ffmpeg->video_packet_queues[video_stream][j]);
-        }
-        _ffmpeg->video_packet_queues[video_stream].clear();
-        _ffmpeg->video_flush_flags[video_stream] = false;
-    }
-
-    // TODO: start thread that reads a frame
+    _ffmpeg->video_decode_threads[video_stream].start();
 }
 
 video_frame media_object::finish_video_frame_read(int video_stream)
 {
     assert(video_stream >= 0);
     assert(video_stream < video_streams());
-    // TODO: wait for thread, use its results
-
-    int frame_finished = 0;
-    do
-    {
-        while (_ffmpeg->video_packet_queues[video_stream].empty())
-        {
-            if (!read())
-            {
-                return video_frame();
-            }
-        }
-        _ffmpeg->video_packets[video_stream] = _ffmpeg->video_packet_queues[video_stream].front();
-        _ffmpeg->video_packet_queues[video_stream].pop_front();
-        avcodec_decode_video2(_ffmpeg->video_codec_ctxs[video_stream],
-                _ffmpeg->video_frames[video_stream], &frame_finished,
-                &(_ffmpeg->video_packets[video_stream]));
-        av_free_packet(&(_ffmpeg->video_packets[video_stream]));
-    }
-    while (!frame_finished);
-
-    video_frame frame = _ffmpeg->video_frame_templates[video_stream];
-    if (frame.layout == video_frame::bgra32)
-    {
-        sws_scale(_ffmpeg->video_img_conv_ctxs[video_stream],
-                _ffmpeg->video_frames[video_stream]->data,
-                _ffmpeg->video_frames[video_stream]->linesize,
-                0, frame.raw_height,
-                _ffmpeg->video_out_frames[video_stream]->data,
-                _ffmpeg->video_out_frames[video_stream]->linesize);
-        // TODO: Handle sws_scale errors. How?
-        frame.data[0][0] = _ffmpeg->video_out_frames[video_stream]->data[0];
-        frame.line_size[0][0] = _ffmpeg->video_out_frames[video_stream]->linesize[0];
-    }
-    else
-    {
-        frame.data[0][0] = _ffmpeg->video_frames[video_stream]->data[0];
-        frame.data[0][1] = _ffmpeg->video_frames[video_stream]->data[1];
-        frame.data[0][2] = _ffmpeg->video_frames[video_stream]->data[2];
-        frame.line_size[0][0] = _ffmpeg->video_frames[video_stream]->linesize[0];
-        frame.line_size[0][1] = _ffmpeg->video_frames[video_stream]->linesize[1];
-        frame.line_size[0][2] = _ffmpeg->video_frames[video_stream]->linesize[2];
-    }
-
-    frame.presentation_time = handle_video_timestamp(video_stream,
-            _ffmpeg->video_packets[video_stream].dts * 1000000
-            * _ffmpeg->format_ctx->streams[_ffmpeg->video_streams[video_stream]]->time_base.num 
-            / _ffmpeg->format_ctx->streams[_ffmpeg->video_streams[video_stream]]->time_base.den);
-
-    return frame;
+    _ffmpeg->video_decode_threads[video_stream].finish();
+    return _ffmpeg->video_decode_threads[video_stream].frame();
 }
 
-void media_object::start_audio_blob_read(int audio_stream, size_t size)
+audio_decode_thread::audio_decode_thread(const std::string &url, struct ffmpeg_stuff *ffmpeg, int audio_stream) :
+    _url(url), _ffmpeg(ffmpeg), _audio_stream(audio_stream), _blob()
 {
-    assert(audio_stream >= 0);
-    assert(audio_stream < audio_streams());
-    _ffmpeg->audio_blobs[audio_stream].resize(size);
-    if (_ffmpeg->audio_flush_flags[audio_stream])
-    {
-        avcodec_flush_buffers(_ffmpeg->format_ctx->streams[_ffmpeg->audio_streams[audio_stream]]->codec);
-        _ffmpeg->audio_buffers[audio_stream].clear();
-        for (size_t j = 0; j < _ffmpeg->audio_packet_queues[audio_stream].size(); j++)
-        {
-            av_free_packet(&_ffmpeg->audio_packet_queues[audio_stream][j]);
-        }
-        _ffmpeg->audio_packet_queues[audio_stream].clear();
-        _ffmpeg->audio_flush_flags[audio_stream] = false;
-    }
-
-    // TODO: start thread that reads a blob
 }
 
-audio_blob media_object::finish_audio_blob_read(int audio_stream)
+int64_t audio_decode_thread::handle_timestamp(int64_t timestamp)
 {
-    assert(audio_stream >= 0);
-    assert(audio_stream < audio_streams());
+    int64_t ts = timestamp_helper(_ffmpeg->audio_last_timestamps[_audio_stream], timestamp);
+    _ffmpeg->pos = ts;
+    return ts;
+}
 
-    // TODO: wait for thread, use its results
-
-    size_t size = _ffmpeg->audio_blobs[audio_stream].size();
-    void *buffer = _ffmpeg->audio_blobs[audio_stream].ptr();
+void audio_decode_thread::run()
+{
+    size_t size = _ffmpeg->audio_blobs[_audio_stream].size();
+    void *buffer = _ffmpeg->audio_blobs[_audio_stream].ptr();
     int64_t timestamp = std::numeric_limits<int64_t>::min();
     size_t i = 0;
     while (i < size)
     {
-        if (_ffmpeg->audio_buffers[audio_stream].size() > 0)
+        if (_ffmpeg->audio_buffers[_audio_stream].size() > 0)
         {
             // Use available decoded audio data
-            size_t remaining = std::min(size - i, _ffmpeg->audio_buffers[audio_stream].size());
-            memcpy(buffer, &(_ffmpeg->audio_buffers[audio_stream][0]), remaining);
-            _ffmpeg->audio_buffers[audio_stream].erase(
-                    _ffmpeg->audio_buffers[audio_stream].begin(),
-                    _ffmpeg->audio_buffers[audio_stream].begin() + remaining);
+            size_t remaining = std::min(size - i, _ffmpeg->audio_buffers[_audio_stream].size());
+            memcpy(buffer, &(_ffmpeg->audio_buffers[_audio_stream][0]), remaining);
+            _ffmpeg->audio_buffers[_audio_stream].erase(
+                    _ffmpeg->audio_buffers[_audio_stream].begin(),
+                    _ffmpeg->audio_buffers[_audio_stream].begin() + remaining);
             buffer = reinterpret_cast<unsigned char *>(buffer) + remaining;
             i += remaining;
         }
-        if (_ffmpeg->audio_buffers[audio_stream].size() == 0)
+        if (_ffmpeg->audio_buffers[_audio_stream].size() == 0)
         {
             // Read more audio data
             AVPacket packet, tmppacket;
-            while (_ffmpeg->audio_packet_queues[audio_stream].empty())
+            _ffmpeg->audio_packet_queue_mutexes[_audio_stream].lock();
+            bool empty = _ffmpeg->audio_packet_queues[_audio_stream].empty();
+            _ffmpeg->audio_packet_queue_mutexes[_audio_stream].unlock();
+            while (empty)
             {
-                if (!read())
+                msg::dbg(_url + ": Need to wait for audio data.");
+                _ffmpeg->reader->start();
+                _ffmpeg->reader->finish();
+                _ffmpeg->audio_packet_queue_mutexes[_audio_stream].lock();
+                empty = _ffmpeg->audio_packet_queues[_audio_stream].empty();
+                _ffmpeg->audio_packet_queue_mutexes[_audio_stream].unlock();
+                if (empty && _ffmpeg->reader->eof())
                 {
-                    return audio_blob();
+                    _blob = audio_blob();
+                    return;
                 }
             }
-            packet = _ffmpeg->audio_packet_queues[audio_stream].front();
-            _ffmpeg->audio_packet_queues[audio_stream].pop_front();
+            _ffmpeg->audio_packet_queue_mutexes[_audio_stream].lock();
+            packet = _ffmpeg->audio_packet_queues[_audio_stream].front();
+            _ffmpeg->audio_packet_queues[_audio_stream].pop_front();
+            _ffmpeg->audio_packet_queue_mutexes[_audio_stream].unlock();
+            _ffmpeg->reader->start();   // Refill the packet queue
             if (timestamp == std::numeric_limits<int64_t>::min())
             {
                 timestamp = packet.dts * 1000000
-                    * _ffmpeg->format_ctx->streams[_ffmpeg->audio_streams[audio_stream]]->time_base.num 
-                    / _ffmpeg->format_ctx->streams[_ffmpeg->audio_streams[audio_stream]]->time_base.den;
+                    * _ffmpeg->format_ctx->streams[_ffmpeg->audio_streams[_audio_stream]]->time_base.num
+                    / _ffmpeg->format_ctx->streams[_ffmpeg->audio_streams[_audio_stream]]->time_base.den;
             }
 
             // Decode audio data
@@ -987,7 +1132,7 @@ audio_blob media_object::finish_audio_blob_read(int audio_stream)
                 // Not doing this results in hard to debug crashes on some systems.
                 int tmpbuf_size = (AVCODEC_MAX_AUDIO_FRAME_SIZE * 3) / 2;
                 unsigned char *tmpbuf = static_cast<unsigned char *>(av_malloc(tmpbuf_size));
-                int len = avcodec_decode_audio3(_ffmpeg->audio_codec_ctxs[audio_stream],
+                int len = avcodec_decode_audio3(_ffmpeg->audio_codec_ctxs[_audio_stream],
                         reinterpret_cast<int16_t *>(&(tmpbuf[0])), &tmpbuf_size, &tmppacket);
                 if (len < 0)
                 {
@@ -1001,9 +1146,9 @@ audio_blob media_object::finish_audio_blob_read(int audio_stream)
                     continue;
                 }
                 // Put it in the decoded audio data buffer
-                size_t old_size = _ffmpeg->audio_buffers[audio_stream].size();
-                _ffmpeg->audio_buffers[audio_stream].resize(old_size + tmpbuf_size);
-                memcpy(&(_ffmpeg->audio_buffers[audio_stream][old_size]), tmpbuf, tmpbuf_size);
+                size_t old_size = _ffmpeg->audio_buffers[_audio_stream].size();
+                _ffmpeg->audio_buffers[_audio_stream].resize(old_size + tmpbuf_size);
+                memcpy(&(_ffmpeg->audio_buffers[_audio_stream][old_size]), tmpbuf, tmpbuf_size);
                 av_free(tmpbuf);
             }
             
@@ -1011,11 +1156,26 @@ audio_blob media_object::finish_audio_blob_read(int audio_stream)
         }
     }
 
-    audio_blob blob = _ffmpeg->audio_blob_templates[audio_stream];
-    blob.data = _ffmpeg->audio_blobs[audio_stream].ptr();
-    blob.size = _ffmpeg->audio_blobs[audio_stream].size();
-    blob.presentation_time = handle_audio_timestamp(audio_stream, timestamp);
-    return blob;
+    _blob = _ffmpeg->audio_blob_templates[_audio_stream];
+    _blob.data = _ffmpeg->audio_blobs[_audio_stream].ptr();
+    _blob.size = _ffmpeg->audio_blobs[_audio_stream].size();
+    _blob.presentation_time = handle_timestamp(timestamp);
+}
+
+void media_object::start_audio_blob_read(int audio_stream, size_t size)
+{
+    assert(audio_stream >= 0);
+    assert(audio_stream < audio_streams());
+    _ffmpeg->audio_blobs[audio_stream].resize(size);
+    _ffmpeg->audio_decode_threads[audio_stream].start();
+}
+
+audio_blob media_object::finish_audio_blob_read(int audio_stream)
+{
+    assert(audio_stream >= 0);
+    assert(audio_stream < audio_streams());
+    _ffmpeg->audio_decode_threads[audio_stream].finish();
+    return _ffmpeg->audio_decode_threads[audio_stream].blob();
 }
 
 int64_t media_object::tell()
@@ -1027,6 +1187,18 @@ void media_object::seek(int64_t dest_pos)
 {
     msg::dbg(_url + ": Seeking from " + str::from(_ffmpeg->pos / 1e6f) + " to " + str::from(dest_pos / 1e6f) + ".");
 
+    // Stop decoder threads
+    for (size_t i = 0; i < _ffmpeg->video_streams.size(); i++)
+    {
+        _ffmpeg->video_decode_threads[i].finish();
+    }
+    for (size_t i = 0; i < _ffmpeg->audio_streams.size(); i++)
+    {
+        _ffmpeg->audio_decode_threads[i].finish();
+    }
+    // Stop reading packets
+    _ffmpeg->reader->finish();
+    // Seek
     int e = av_seek_frame(_ffmpeg->format_ctx, -1,
             dest_pos * AV_TIME_BASE / 1000000,
             dest_pos < _ffmpeg->pos ?  AVSEEK_FLAG_BACKWARD : 0);
@@ -1034,24 +1206,36 @@ void media_object::seek(int64_t dest_pos)
     {
         msg::err(_url + ": Seeking failed.");
     }
-    else
+    // Throw away all queued packets
+    for (size_t i = 0; i < _ffmpeg->video_streams.size(); i++)
     {
-        /* Set a flag to throw away all queued packets */
-        for (size_t i = 0; i < _ffmpeg->video_packet_queues.size(); i++)
+        avcodec_flush_buffers(_ffmpeg->format_ctx->streams[_ffmpeg->video_streams[i]]->codec);
+        for (size_t j = 0; j < _ffmpeg->video_packet_queues[i].size(); j++)
         {
-            _ffmpeg->video_flush_flags[i] = true;
+            av_free_packet(&_ffmpeg->video_packet_queues[i][j]);
         }
-        for (size_t i = 0; i < _ffmpeg->audio_packet_queues.size(); i++)
-        {
-            _ffmpeg->audio_flush_flags[i] = true;
-        }
-        /* The next read request must update the position */
-        _ffmpeg->pos = std::numeric_limits<int64_t>::min();
+        _ffmpeg->video_packet_queues[i].clear();
     }
+    for (size_t i = 0; i < _ffmpeg->audio_streams.size(); i++)
+    {
+        avcodec_flush_buffers(_ffmpeg->format_ctx->streams[_ffmpeg->audio_streams[i]]->codec);
+        _ffmpeg->audio_buffers[i].clear();
+        for (size_t j = 0; j < _ffmpeg->audio_packet_queues[i].size(); j++)
+        {
+            av_free_packet(&_ffmpeg->audio_packet_queues[i][j]);
+        }
+        _ffmpeg->audio_packet_queues[i].clear();
+    }
+    // The next read request must update the position
+    _ffmpeg->pos = std::numeric_limits<int64_t>::min();
+    // Restart packet reading
+    _ffmpeg->reader->reset();
+    _ffmpeg->reader->start();
 }
 
 void media_object::close()
 {
+    _ffmpeg->reader->finish();
     for (size_t i = 0; i < _ffmpeg->video_frames.size(); i++)
     {
         av_free(_ffmpeg->video_frames[i]);
@@ -1110,6 +1294,7 @@ void media_object::close()
     {
         av_close_input_file(_ffmpeg->format_ctx);
     }
+    delete _ffmpeg->reader;
     delete _ffmpeg;
     _ffmpeg = NULL;
 }

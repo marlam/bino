@@ -33,6 +33,7 @@
 
 media_input::media_input() :
     _active_video_stream(-1), _active_audio_stream(-1),
+    _have_active_video_read(false), _have_active_audio_read(false), _last_audio_data_size(0),
     _initial_skip(0), _duration(-1)
 {
 }
@@ -349,6 +350,14 @@ bool media_input::stereo_layout_is_supported(video_frame::stereo_layout_t layout
 void media_input::set_stereo_layout(video_frame::stereo_layout_t layout, bool swap)
 {
     assert(stereo_layout_is_supported(layout, swap));
+    if (_have_active_video_read)
+    {
+        (void)finish_video_frame_read();
+    }
+    if (_have_active_audio_read)
+    {
+        (void)finish_audio_blob_read();
+    }
     int o, s;
     get_video_stream(_active_video_stream, o, s);
     const video_frame &t = _media_objects[o].video_frame_template(s);
@@ -356,6 +365,8 @@ void media_input::set_stereo_layout(video_frame::stereo_layout_t layout, bool sw
     _video_frame.stereo_layout = layout;
     _video_frame.stereo_layout_swap = swap;
     _video_frame.set_view_dimensions();
+    // Reset active stream in case we switched to or from 'separate'.
+    select_video_stream(_active_video_stream);
     if (layout == video_frame::separate)
     {
         // If we switched the layout to 'separate', then we have to seek to the
@@ -371,6 +382,14 @@ void media_input::set_stereo_layout(video_frame::stereo_layout_t layout, bool sw
 
 void media_input::select_video_stream(int video_stream)
 {
+    if (_have_active_video_read)
+    {
+        (void)finish_video_frame_read();
+    }
+    if (_have_active_audio_read)
+    {
+        (void)finish_audio_blob_read();
+    }
     assert(video_stream >= 0);
     assert(video_stream < video_streams());
     if (_video_frame.stereo_layout == video_frame::separate)
@@ -385,10 +404,6 @@ void media_input::select_video_stream(int video_stream)
     }
     else
     {
-        video_frame::stereo_layout_t layout = _video_frame.stereo_layout;
-        bool swap = _video_frame.stereo_layout_swap;
-        _active_video_stream = video_stream;
-        set_stereo_layout(layout, swap);
         int o, s;
         get_video_stream(_active_video_stream, o, s);
         for (size_t i = 0; i < _media_objects.size(); i++)
@@ -403,6 +418,14 @@ void media_input::select_video_stream(int video_stream)
 
 void media_input::select_audio_stream(int audio_stream)
 {
+    if (_have_active_video_read)
+    {
+        (void)finish_video_frame_read();
+    }
+    if (_have_active_audio_read)
+    {
+        (void)finish_audio_blob_read();
+    }
     assert(audio_stream >= 0);
     assert(audio_stream < audio_streams());
     _active_audio_stream = audio_stream;
@@ -420,6 +443,10 @@ void media_input::select_audio_stream(int audio_stream)
 void media_input::start_video_frame_read()
 {
     assert(_active_video_stream >= 0);
+    if (_have_active_video_read)
+    {
+        return;
+    }
     if (_video_frame.stereo_layout == video_frame::separate)
     {
         int o0, s0, o1, s1;
@@ -434,11 +461,17 @@ void media_input::start_video_frame_read()
         get_video_stream(_active_video_stream, o, s);
         _media_objects[o].start_video_frame_read(s);
     }
+    _have_active_video_read = true;
 }
 
 video_frame media_input::finish_video_frame_read()
 {
     assert(_active_video_stream >= 0);
+    if (!_have_active_video_read)
+    {
+        start_video_frame_read();
+    }
+    video_frame frame;
     if (_video_frame.stereo_layout == video_frame::separate)
     {
         int o0, s0, o1, s1;
@@ -446,47 +479,51 @@ video_frame media_input::finish_video_frame_read()
         get_video_stream(1, o1, s1);
         video_frame f0 = _media_objects[o0].finish_video_frame_read(s0);
         video_frame f1 = _media_objects[o1].finish_video_frame_read(s1);
-        if (!f0.is_valid() || !f1.is_valid())
+        if (f0.is_valid() && f1.is_valid())
         {
-            return video_frame();
+            frame = _video_frame;
+            for (int p = 0; p < 3; p++)
+            {
+                frame.data[0][p] = f0.data[0][p];
+                frame.data[1][p] = f1.data[0][p];
+                frame.line_size[0][p] = f0.line_size[0][p];
+                frame.line_size[1][p] = f1.line_size[0][p];
+            }
+            frame.presentation_time = f0.presentation_time;
         }
-        video_frame frame = _video_frame;
-        for (int p = 0; p < 3; p++)
-        {
-            frame.data[0][p] = f0.data[0][p];
-            frame.data[1][p] = f1.data[0][p];
-            frame.line_size[0][p] = f0.line_size[0][p];
-            frame.line_size[1][p] = f1.line_size[0][p];
-        }
-        frame.presentation_time = f0.presentation_time;
-        return frame;
     }
     else
     {
         int o, s;
         get_video_stream(_active_video_stream, o, s);
         video_frame f = _media_objects[o].finish_video_frame_read(s);
-        if (!f.is_valid())
+        if (f.is_valid())
         {
-            return video_frame();
+            frame = _video_frame;
+            for (int p = 0; p < 3; p++)
+            {
+                frame.data[0][p] = f.data[0][p];
+                frame.line_size[0][p] = f.line_size[0][p];
+            }
+            frame.presentation_time = f.presentation_time;
         }
-        video_frame frame = _video_frame;
-        for (int p = 0; p < 3; p++)
-        {
-            frame.data[0][p] = f.data[0][p];
-            frame.line_size[0][p] = f.line_size[0][p];
-        }
-        frame.presentation_time = f.presentation_time;
-        return frame;
     }
+    _have_active_video_read = false;
+    return frame;
 }
 
 void media_input::start_audio_blob_read(size_t size)
 {
     assert(_active_audio_stream >= 0);
+    if (_have_active_audio_read)
+    {
+        return;
+    }
     int o, s;
     get_audio_stream(_active_audio_stream, o, s);
     _media_objects[o].start_audio_blob_read(s, size);
+    _last_audio_data_size = size;
+    _have_active_audio_read = true;
 }
 
 audio_blob media_input::finish_audio_blob_read()
@@ -494,6 +531,11 @@ audio_blob media_input::finish_audio_blob_read()
     assert(_active_audio_stream >= 0);
     int o, s;
     get_audio_stream(_active_audio_stream, o, s);
+    if (!_have_active_audio_read)
+    {
+        start_audio_blob_read(_last_audio_data_size);
+    }
+    _have_active_audio_read = false;
     return _media_objects[o].finish_audio_blob_read(s);
 }
 
@@ -516,6 +558,14 @@ int64_t media_input::tell()
 
 void media_input::seek(int64_t pos)
 {
+    if (_have_active_video_read)
+    {
+        (void)finish_video_frame_read();
+    }
+    if (_have_active_audio_read)
+    {
+        (void)finish_audio_blob_read();
+    }
     for (size_t i = 0; i < _media_objects.size(); i++)
     {
         _media_objects[i].seek(pos);
@@ -524,6 +574,14 @@ void media_input::seek(int64_t pos)
 
 void media_input::close()
 {
+    if (_have_active_video_read)
+    {
+        (void)finish_video_frame_read();
+    }
+    if (_have_active_audio_read)
+    {
+        (void)finish_audio_blob_read();
+    }
     _id = "";
     for (size_t i = 0; i < _media_objects.size(); i++)
     {

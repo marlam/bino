@@ -15,4 +15,5 @@ libbase_a_SOURCES = \
 	opt.h opt.cpp \
 	timer.h timer.cpp \
 	s11n.h s11n.cpp \
-	blob.h
+	blob.h \
+	thread.h thread.cpp

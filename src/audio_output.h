@@ -71,18 +71,20 @@ public:
     void deinit();
 
     /* To play audio, do the following:
-     * - First, call status() to find out the initial amount of audio data that
-     *   is required. The returned time stamp is meaningless on this first call.
-     * - Then provide exactly the requested amount of data using the data() function.
-     * - Then start audio playback using start(). This function returns the audio start
-     *   time, in microseconds.
-     * - Regularly call status() to get the current audio time and to be notified when
-     *   more data is needed (required_data > 0). Provide the requested data using the
-     *   data() function. The time position in the audio stream is the time returned by
-     *   status() minus the start time that the start() function returned. You can also
-     *   just query the time without asking if more data is needed by passing NULL as
-     *   required_data. */
-    int64_t status(size_t *required_data);
+     * - First, call required_initial_data_size() to find out the initial amount
+     *   of audio data that is required.
+     * - Then provide exactly this amount of data using the data() function.
+     * - Then start audio playback using start(). This function returns the audio
+     *   start time, in microseconds.
+     * - Regularly call status() to get the current audio time and to be notified
+     *   when more data is needed. Provide the amount of data given by
+     *   required_update_data_size() using the data() function. The time position
+     *   in the audio stream is the time returned by status() minus the start time
+     *   that the start() function returned. You can also just query the time
+     *   without asking if more data is needed by passing NULL as need_data. */
+    size_t required_initial_data_size() const;
+    size_t required_update_data_size() const;
+    int64_t status(bool *need_data);
     void data(const audio_blob &blob);
     int64_t start();
 

@@ -40,13 +40,10 @@ private:
     void set_video_frame_template(int video_stream);
     void set_audio_blob_template(int audio_stream);
 
-    // Read a packet from the container
-    bool read();
-
-    // Handle presentation time stamps
-    int64_t handle_timestamp(int64_t &last_timestamp, int64_t timestamp);
-    int64_t handle_video_timestamp(int video_stream, int64_t timestamp);
-    int64_t handle_audio_timestamp(int audio_stream, int64_t timestamp);
+    // The threaded implementation can access private members
+    friend class read_thread;
+    friend class video_decode_thread;
+    friend class audio_decode_thread;
 
 public:
 

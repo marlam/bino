@@ -102,7 +102,8 @@ private:
     // The play state
     bool _running;                              // Are we running?
     bool _first_frame;                          // Did we already process the first video frame?
-    bool _need_frame;                           // Do we need another video frame?
+    bool _need_frame_now;                       // Do we need another video frame right now?
+    bool _need_frame_soon;                      // Do we need another video frame soon?
     bool _drop_next_frame;                      // Do we need to drop the next video frame (to catch up)?
     bool _previous_frame_dropped;               // Did we drop the previous video frame?
     bool _in_pause;                             // Are we in pause mode?
@@ -148,8 +149,9 @@ protected:
     // Make this player the master player
     void make_master();
 
-    // Execute one step and indicate required actions
-    void step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
+    // Execute one step and indicate required actions. Returns the number of microseconds
+    // that the caller may sleep before starting the next step.
+    int64_t step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
 
     // Execute one step and immediately take required actions. Return true if more steps are required.
     bool run_step();

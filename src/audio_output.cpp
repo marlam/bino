@@ -120,13 +120,23 @@ void audio_output::deinit()
     }
 }
 
-int64_t audio_output::status(size_t *required_data)
+size_t audio_output::required_initial_data_size() const
+{
+    return _num_buffers * _buffer_size;
+}
+
+size_t audio_output::required_update_data_size() const
+{
+    return _buffer_size;
+}
+
+int64_t audio_output::status(bool *need_data)
 {
     if (_state == 0)
     {
-        if (required_data)
+        if (need_data)
         {
-            *required_data = _num_buffers * _buffer_size;
+            *need_data = true;
         }
         return std::numeric_limits<int64_t>::min();
     }
@@ -149,16 +159,16 @@ int64_t audio_output::status(size_t *required_data)
                     throw exc("Cannot restart OpenAL source playback.");
                 }
             }
-            if (required_data)
+            if (need_data)
             {
-                *required_data = 0;
+                *need_data = false;
             }
         }
         else
         {
-            if (required_data)
+            if (need_data)
             {
-                *required_data = _buffer_size;
+                *need_data = true;
             }
         }
         ALint offset;
