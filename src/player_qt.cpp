@@ -1601,18 +1601,19 @@ void main_window::playloop_step()
     }
     else
     {
-        bool r = false;
         try
         {
-            r = _player->playloop_step();
+            if (!_player->playloop_step())
+            {
+                _timer->stop();
+            }
         }
         catch (std::exception &e)
         {
-            QMessageBox::critical(this, "Error", e.what());
-        }
-        if (!r)
-        {
             _timer->stop();
+            send_cmd(command::toggle_play);
+            _player->playloop_step();   // react on command
+            QMessageBox::critical(this, "Error", e.what());
         }
     }
 }
