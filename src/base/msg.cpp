@@ -21,6 +21,7 @@
 #include "config.h"
 
 #include <cstdlib>
+#include <cstdio>
 
 #include "str.h"
 #include "msg.h"
@@ -44,7 +45,7 @@ namespace msg
     void set_file(FILE *f)
     {
         _file = f;
-        ::setvbuf(f, NULL, _IOLBF, 0);
+        std::setvbuf(f, NULL, _IOLBF, 0);
     }
 
     level_t level()
@@ -131,10 +132,8 @@ namespace msg
             return;
         }
 
-        std::string pfx = prefix(level);
-        ::fputs(pfx.c_str(), _file);
-        ::fputs(s.c_str(), _file);
-        ::fputc('\n', _file);
+        std::string out = prefix(level) + s.c_str() + '\n';
+        std::fputs(out.c_str(), _file);
     }
 
     void msg(level_t level, const char *format, ...)
@@ -163,6 +162,7 @@ namespace msg
         int pfx_len = pfx.length();
         std::string text(s);
 
+        std::string out;
         int line_len = 0;
         int first_unprinted = 0;
         int last_blank = -1;
@@ -177,8 +177,8 @@ namespace msg
             if (text[text_index] == '\n')
             {
                 // output from first_unprinted to text_index
-                ::fputs(pfx.c_str(), _file);
-                ::fwrite(text.c_str() + first_unprinted, sizeof(char), text_index - first_unprinted + 1, _file);
+                out += pfx;
+                out += std::string(text.c_str() + first_unprinted, text_index - first_unprinted + 1);
                 first_unprinted = text_index + 1;
                 last_blank = -1;
                 line_len = 0;
@@ -211,8 +211,8 @@ namespace msg
                         last_blank = text_index;
                     }
                     text[last_blank] = '\n';
-                    ::fputs(pfx.c_str(), _file);
-                    ::fwrite(text.c_str() + first_unprinted, sizeof(char), last_blank - first_unprinted + 1, _file);
+                    out += pfx;
+                    out += std::string(text.c_str() + first_unprinted, last_blank - first_unprinted + 1);
                     first_unprinted = last_blank + 1;
                     last_blank = -1;
                     line_len = text_index - first_unprinted + 1;
@@ -223,6 +223,7 @@ namespace msg
                 }
             }
         }
+        std::fputs(out.c_str(), _file);
     }
 
     void msg_txt(level_t level, const char *format, ...)
