@@ -1235,7 +1235,23 @@ void media_object::seek(int64_t dest_pos)
 
 void media_object::close()
 {
-    _ffmpeg->reader->finish();
+    try
+    {
+        // Stop decoder threads
+        for (size_t i = 0; i < _ffmpeg->video_streams.size(); i++)
+        {
+            _ffmpeg->video_decode_threads[i].finish();
+        }
+        for (size_t i = 0; i < _ffmpeg->audio_streams.size(); i++)
+        {
+            _ffmpeg->audio_decode_threads[i].finish();
+        }
+        // Stop reading packets
+        _ffmpeg->reader->finish();
+    }
+    catch (...)
+    {
+    }
     for (size_t i = 0; i < _ffmpeg->video_frames.size(); i++)
     {
         av_free(_ffmpeg->video_frames[i]);

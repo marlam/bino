@@ -574,19 +574,25 @@ void media_input::seek(int64_t pos)
 
 void media_input::close()
 {
-    if (_have_active_video_read)
+    try
     {
-        (void)finish_video_frame_read();
+        if (_have_active_video_read)
+        {
+            (void)finish_video_frame_read();
+        }
+        if (_have_active_audio_read)
+        {
+            (void)finish_audio_blob_read();
+        }
+        for (size_t i = 0; i < _media_objects.size(); i++)
+        {
+            _media_objects[i].close();
+        }
     }
-    if (_have_active_audio_read)
+    catch (...)
     {
-        (void)finish_audio_blob_read();
     }
     _id = "";
-    for (size_t i = 0; i < _media_objects.size(); i++)
-    {
-        _media_objects[i].close();
-    }
     _media_objects.clear();
     _tag_names.clear();
     _tag_values.clear();
