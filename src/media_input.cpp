@@ -229,9 +229,6 @@ void media_input::open(const std::vector<std::string> &urls)
 
     // Print summary
     msg::inf("Input:");
-    msg::inf("    Duration: %g seconds", duration() / 1e6f);
-    msg::inf("    Stereo layout: %s", video_frame::stereo_layout_to_string(
-                video_frame_template().stereo_layout, video_frame_template().stereo_layout_swap).c_str());
     for (int i = 0; i < video_streams(); i++)
     {
         int o, s;
@@ -253,6 +250,12 @@ void media_input::open(const std::vector<std::string> &urls)
     if (audio_streams() == 0)
     {
         msg::inf("    No audio.");
+    }
+    msg::inf("    Duration: %g seconds", duration() / 1e6f);
+    if (video_streams() > 0)
+    {
+        msg::inf("    Stereo layout: %s", video_frame::stereo_layout_to_string(
+                    video_frame_template().stereo_layout, video_frame_template().stereo_layout_swap).c_str());
     }
 }
 
