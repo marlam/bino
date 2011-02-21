@@ -27,79 +27,6 @@
 #include "thread.h"
 
 
-thread::thread() : _thread_id(pthread_self()), _joinable(false), _running(false), _exception()
-{
-}
-
-thread::~thread()
-{
-    if (_joinable)
-    {
-        (void)pthread_detach(_thread_id);
-    }
-}
-
-void *thread::_run(void *p)
-{
-    thread *t = static_cast<thread *>(p);
-    try
-    {
-        t->run();
-    }
-    catch (exc &e)
-    {
-        t->_exception = e;
-    }
-    catch (std::exception &e)
-    {
-        t->_exception = e;
-    }
-    catch (...)
-    {
-        t->_exception = exc("Unknown exception");
-    }
-    t->_running = false;
-    return NULL;
-}
-
-void thread::start()
-{
-    if (atomic::bool_compare_and_swap(&_running, false, true))
-    {
-        wait();
-        int e = pthread_create(&_thread_id, NULL, _run, this);
-        if (e != 0)
-        {
-            throw exc(std::string("Cannot create thread: ") + std::strerror(e), e);
-        }
-        _joinable = true;
-    }
-}
-
-void thread::wait()
-{
-    _wait_mutex.lock();
-    if (atomic::bool_compare_and_swap(&_joinable, true, false))
-    {
-        int e = pthread_join(_thread_id, NULL);
-        if (e != 0)
-        {
-            _wait_mutex.unlock();
-            throw exc(std::string("Cannot join with thread: ") + std::strerror(e), e);
-        }
-    }
-    _wait_mutex.unlock();
-}
-
-void thread::finish()
-{
-    wait();
-    if (!exception().empty())
-    {
-        throw exception();
-    }
-}
-
 const pthread_mutex_t mutex::_mutex_initializer = PTHREAD_MUTEX_INITIALIZER;
 
 mutex::mutex() : _mutex(_mutex_initializer)
@@ -147,5 +74,94 @@ void mutex::unlock()
     if (e != 0)
     {
         throw exc(std::string("Cannot unlock mutex: ") + std::strerror(e), e);
+    }
+}
+
+
+thread::thread() :
+    __thread_id(pthread_self()),
+    __joinable(false),
+    __running(false),
+    __wait_mutex(),
+    __exception()
+{
+}
+
+thread::thread(const thread &) :
+    __thread_id(pthread_self()),
+    __joinable(false),
+    __running(false),
+    __wait_mutex(),
+    __exception()
+{
+    // The thread state cannot be copied; a new state is created instead.
+}
+
+thread::~thread()
+{
+    if (__joinable)
+    {
+        (void)pthread_detach(__thread_id);
+    }
+}
+
+void *thread::__run(void *p)
+{
+    thread *t = static_cast<thread *>(p);
+    try
+    {
+        t->run();
+    }
+    catch (exc &e)
+    {
+        t->__exception = e;
+    }
+    catch (std::exception &e)
+    {
+        t->__exception = e;
+    }
+    catch (...)
+    {
+        t->__exception = exc("Unknown exception");
+    }
+    t->__running = false;
+    return NULL;
+}
+
+void thread::start()
+{
+    if (atomic::bool_compare_and_swap(&__running, false, true))
+    {
+        wait();
+        int e = pthread_create(&__thread_id, NULL, __run, this);
+        if (e != 0)
+        {
+            throw exc(std::string("Cannot create thread: ") + std::strerror(e), e);
+        }
+        __joinable = true;
+    }
+}
+
+void thread::wait()
+{
+    __wait_mutex.lock();
+    if (atomic::bool_compare_and_swap(&__joinable, true, false))
+    {
+        int e = pthread_join(__thread_id, NULL);
+        if (e != 0)
+        {
+            __wait_mutex.unlock();
+            throw exc(std::string("Cannot join with thread: ") + std::strerror(e), e);
+        }
+    }
+    __wait_mutex.unlock();
+}
+
+void thread::finish()
+{
+    wait();
+    if (!exception().empty())
+    {
+        throw exception();
     }
 }

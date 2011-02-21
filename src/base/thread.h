@@ -109,17 +109,18 @@ public:
 class thread
 {
 private:
-    pthread_t _thread_id;
-    bool _joinable;
-    bool _running;
-    mutex _wait_mutex;
-    exc _exception;
+    pthread_t __thread_id;
+    bool __joinable;
+    bool __running;
+    mutex __wait_mutex;
+    exc __exception;
 
-    static void *_run(void *p);
+    static void *__run(void *p);
 
 public:
     // Constructor / Destructor
     thread();
+    thread(const thread &t);
     virtual ~thread();
 
     // Implement this in a subclass; it will be executed from the thread via start()
@@ -140,12 +141,12 @@ public:
     // Get an exception that the run() function might have thrown.
     const exc &exception() const
     {
-        return _exception;
+        return __exception;
     }
     // Modify the stored exception
     exc &exception()
     {
-        return _exception;
+        return __exception;
     }
 };
 
