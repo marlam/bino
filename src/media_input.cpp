@@ -394,6 +394,7 @@ void media_input::select_video_stream(int video_stream)
     assert(video_stream < video_streams());
     if (_video_frame.stereo_layout == video_frame::separate)
     {
+        _active_video_stream = 0;
         for (size_t i = 0; i < _media_objects.size(); i++)
         {
             for (int j = 0; j < _media_objects[i].video_streams(); j++)
@@ -404,6 +405,7 @@ void media_input::select_video_stream(int video_stream)
     }
     else
     {
+        _active_video_stream = video_stream;
         int o, s;
         get_video_stream(_active_video_stream, o, s);
         for (size_t i = 0; i < _media_objects.size(); i++)
