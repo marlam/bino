@@ -116,6 +116,9 @@ public:
 
 // Hide the FFmpeg stuff so that their messy header files cannot cause problems
 // in other source files.
+
+static const size_t audio_tmpbuf_size = (AVCODEC_MAX_AUDIO_FRAME_SIZE * 3) / 2;
+
 struct ffmpeg_stuff
 {
     AVFormatContext *format_ctx;
@@ -145,6 +148,7 @@ struct ffmpeg_stuff
     std::vector<std::deque<AVPacket> > audio_packet_queues;
     std::vector<mutex> audio_packet_queue_mutexes;
     std::vector<audio_decode_thread> audio_decode_threads;
+    std::vector<unsigned char *> audio_tmpbufs;
     std::vector<blob> audio_blobs;
     std::vector<std::vector<unsigned char> > audio_buffers;
     std::vector<int64_t> audio_last_timestamps;
@@ -667,6 +671,13 @@ void media_object::open(const std::string &url)
             _ffmpeg->audio_blob_templates.push_back(audio_blob());
             set_audio_blob_template(j);
             _ffmpeg->audio_decode_threads.push_back(audio_decode_thread(_url, _ffmpeg, j));
+            // Manage audio_tmpbufs with av_malloc/av_free, to guarantee correct alignment.
+            // Not doing this results in hard to debug crashes on some systems.
+            _ffmpeg->audio_tmpbufs.push_back(static_cast<unsigned char*>(av_malloc(audio_tmpbuf_size)));
+            if (!_ffmpeg->audio_tmpbufs[j])
+            {
+                throw exc(HERE + ": " + strerror(ENOMEM));
+            }
             _ffmpeg->audio_blobs.push_back(blob());
             _ffmpeg->audio_buffers.push_back(std::vector<unsigned char>());
             _ffmpeg->audio_last_timestamps.push_back(std::numeric_limits<int64_t>::min());
@@ -1134,12 +1145,9 @@ void audio_decode_thread::run()
             tmppacket = packet;
             while (tmppacket.size > 0)
             {
-                // Manage tmpbuf with av_malloc/av_free, to guarantee correct alignment.
-                // Not doing this results in hard to debug crashes on some systems.
-                int tmpbuf_size = (AVCODEC_MAX_AUDIO_FRAME_SIZE * 3) / 2;
-                unsigned char *tmpbuf = static_cast<unsigned char *>(av_malloc(tmpbuf_size));
+                int tmpbuf_size = audio_tmpbuf_size;
                 int len = avcodec_decode_audio3(_ffmpeg->audio_codec_ctxs[_audio_stream],
-                        reinterpret_cast<int16_t *>(&(tmpbuf[0])), &tmpbuf_size, &tmppacket);
+                        reinterpret_cast<int16_t *>(&(_ffmpeg->audio_tmpbufs[_audio_stream][0])), &tmpbuf_size, &tmppacket);
                 if (len < 0)
                 {
                     tmppacket.size = 0;
@@ -1154,8 +1162,7 @@ void audio_decode_thread::run()
                 // Put it in the decoded audio data buffer
                 size_t old_size = _ffmpeg->audio_buffers[_audio_stream].size();
                 _ffmpeg->audio_buffers[_audio_stream].resize(old_size + tmpbuf_size);
-                memcpy(&(_ffmpeg->audio_buffers[_audio_stream][old_size]), tmpbuf, tmpbuf_size);
-                av_free(tmpbuf);
+                memcpy(&(_ffmpeg->audio_buffers[_audio_stream][old_size]), _ffmpeg->audio_tmpbufs[_audio_stream], tmpbuf_size);
             }
             
             av_free_packet(&packet);
@@ -1311,6 +1318,10 @@ void media_object::close()
         {
             av_free_packet(&_ffmpeg->audio_packet_queues[i][j]);
         }
+    }
+    for (size_t i = 0; i < _ffmpeg->audio_tmpbufs.size(); i++)
+    {
+        av_free(_ffmpeg->audio_tmpbufs[i]);
     }
     if (_ffmpeg->format_ctx)
     {
