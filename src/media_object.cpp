@@ -877,14 +877,16 @@ void read_thread::run()
 {
     while (!_eof)
     {
-        // We need another packet if an active stream has an empty packet queue.
+        // We need another packet if the number of queued packets for an active stream is below a threshold.
+        const size_t video_stream_low_threshold = 2;    // Often, 1 packet results in one video frame
+        const size_t audio_stream_low_threshold = 5;    // Often, 3-4 packets are needed for one buffer fill
         bool need_another_packet = false;
         for (size_t i = 0; !need_another_packet && i < _ffmpeg->video_streams.size(); i++)
         {
             if (_ffmpeg->format_ctx->streams[_ffmpeg->video_streams[i]]->discard == AVDISCARD_DEFAULT)
             {
                 _ffmpeg->video_packet_queue_mutexes[i].lock();
-                need_another_packet = _ffmpeg->video_packet_queues[i].empty();
+                need_another_packet = _ffmpeg->video_packet_queues[i].size() < video_stream_low_threshold;
                 _ffmpeg->video_packet_queue_mutexes[i].unlock();
             }
         }
@@ -893,7 +895,7 @@ void read_thread::run()
             if (_ffmpeg->format_ctx->streams[_ffmpeg->audio_streams[i]]->discard == AVDISCARD_DEFAULT)
             {
                 _ffmpeg->audio_packet_queue_mutexes[i].lock();
-                need_another_packet = _ffmpeg->audio_packet_queues[i].empty();
+                need_another_packet = _ffmpeg->audio_packet_queues[i].size() < audio_stream_low_threshold;
                 _ffmpeg->audio_packet_queue_mutexes[i].unlock();
             }
         }
@@ -989,23 +991,25 @@ void video_decode_thread::run()
     int frame_finished = 0;
     do
     {
-        _ffmpeg->video_packet_queue_mutexes[_video_stream].lock();
-        bool empty = _ffmpeg->video_packet_queues[_video_stream].empty();
-        _ffmpeg->video_packet_queue_mutexes[_video_stream].unlock();
-        while (empty)
+        bool empty;
+        do
         {
-            msg::dbg(_url + ": Need to wait for video data...");
-            _ffmpeg->reader->start();
-            _ffmpeg->reader->finish();
             _ffmpeg->video_packet_queue_mutexes[_video_stream].lock();
             empty = _ffmpeg->video_packet_queues[_video_stream].empty();
             _ffmpeg->video_packet_queue_mutexes[_video_stream].unlock();
-            if (empty && _ffmpeg->reader->eof())
+            if (empty)
             {
-                _frame = video_frame();
-                return;
+                if (_ffmpeg->reader->eof())
+                {
+                    _frame = video_frame();
+                    return;
+                }
+                msg::dbg(_url + ": video stream " + str::from(_video_stream) + ": need to wait for packets...");
+                _ffmpeg->reader->start();
+                _ffmpeg->reader->finish();
             }
         }
+        while (empty);
         _ffmpeg->video_packet_queue_mutexes[_video_stream].lock();
         pkt = _ffmpeg->video_packet_queues[_video_stream].front();
         _ffmpeg->video_packet_queues[_video_stream].pop_front();
@@ -1095,23 +1099,25 @@ void audio_decode_thread::run()
         {
             // Read more audio data
             AVPacket packet, tmppacket;
-            _ffmpeg->audio_packet_queue_mutexes[_audio_stream].lock();
-            bool empty = _ffmpeg->audio_packet_queues[_audio_stream].empty();
-            _ffmpeg->audio_packet_queue_mutexes[_audio_stream].unlock();
-            while (empty)
+            bool empty;
+            do
             {
-                msg::dbg(_url + ": Need to wait for audio data.");
-                _ffmpeg->reader->start();
-                _ffmpeg->reader->finish();
                 _ffmpeg->audio_packet_queue_mutexes[_audio_stream].lock();
                 empty = _ffmpeg->audio_packet_queues[_audio_stream].empty();
                 _ffmpeg->audio_packet_queue_mutexes[_audio_stream].unlock();
-                if (empty && _ffmpeg->reader->eof())
+                if (empty)
                 {
-                    _blob = audio_blob();
-                    return;
+                    if (_ffmpeg->reader->eof())
+                    {
+                        _blob = audio_blob();
+                        return;
+                    }
+                    msg::dbg(_url + ": audio stream " + str::from(_audio_stream) + ": need to wait for packets...");
+                    _ffmpeg->reader->start();
+                    _ffmpeg->reader->finish();
                 }
             }
+            while (empty);
             _ffmpeg->audio_packet_queue_mutexes[_audio_stream].lock();
             packet = _ffmpeg->audio_packet_queues[_audio_stream].front();
             _ffmpeg->audio_packet_queues[_audio_stream].pop_front();
