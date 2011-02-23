@@ -108,9 +108,13 @@ public:
         get_media_input_nonconst().seek(pos);
     }
 
-    void read_frame()   // Only called on slave nodes to force reading the next frame
+    void start_frame_read()     // Only called on slave nodes
     {
         get_media_input_nonconst().start_video_frame_read();
+    }
+
+    void finish_frame_read()    // Only called on slave nodes
+    {
         _video_frame = get_media_input_nonconst().finish_video_frame_read();
         if (!_video_frame.is_valid())
         {
@@ -739,17 +743,37 @@ protected:
             if (frame_data.seek_to >= 0)
             {
                 _player.seek(frame_data.seek_to);
+                _player.start_frame_read();
             }
             if (frame_data.prep_frame)
             {
-                _player.read_frame();
+                _player.finish_frame_read();
             }
             if (frame_data.drop_frame)
             {
-                _player.read_frame();
+                _player.finish_frame_read();
+                _player.start_frame_read();
             }
         }
         startFrame(frameNumber);
+    }
+
+    virtual void frameFinish(const eq::uint128_t&, const uint32_t frameNumber)
+    {
+        if (_is_app_node)
+        {
+            // Nothing to do since the config's master player already did it
+        }
+        else
+        {
+            if (frame_data.prep_frame)
+            {
+                // The frame was uploaded to texture memory.
+                // Start reading the next one asynchronously.
+                _player.start_frame_read();
+            }
+        }
+        releaseFrame(frameNumber);
     }
 
 public:
