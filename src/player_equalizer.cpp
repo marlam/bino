@@ -671,15 +671,15 @@ public:
     }
 
 protected:
-    virtual bool configInit(const eq::uint128_t& initID)
+    virtual bool configInit(const eq::uint128_t &init_id)
     {
-        if (!eq::Node::configInit(initID))
+        if (!eq::Node::configInit(init_id))
         {
             return false;
         }
         // Map our InitData instance to the master instance
         eq_config *config = static_cast<eq_config *>(getConfig());
-        if (!config->mapObject(&init_data, initID))
+        if (!config->mapObject(&init_data, init_id))
         {
             setError(ERROR_MAP_INITDATA_FAILED);
             return false;
@@ -729,10 +729,10 @@ protected:
         return eq::Node::configExit();
     }
 
-    virtual void frameStart(const eq::uint128_t& frameID, const uint32_t frameNumber)
+    virtual void frameStart(const eq::uint128_t &frame_id, const uint32_t frame_number)
     {
         // Update our frame data
-        frame_data.sync(frameID);
+        frame_data.sync(frame_id);
         // Do as we're told
         if (_is_app_node)
         {
@@ -755,10 +755,10 @@ protected:
                 _player.start_frame_read();
             }
         }
-        startFrame(frameNumber);
+        startFrame(frame_number);
     }
 
-    virtual void frameFinish(const eq::uint128_t&, const uint32_t frameNumber)
+    virtual void frameFinish(const eq::uint128_t &, const uint32_t frame_number)
     {
         if (_is_app_node)
         {
@@ -773,7 +773,7 @@ protected:
                 _player.start_frame_read();
             }
         }
-        releaseFrame(frameNumber);
+        releaseFrame(frame_number);
     }
 
 public:
@@ -823,10 +823,10 @@ public:
     }
 
 protected:
-    virtual bool configInitGL(const eq::uint128_t& initID)
+    virtual bool configInitGL(const eq::uint128_t &init_id)
     {
         msg::dbg(HERE);
-        if (!eq::Window::configInitGL(initID))
+        if (!eq::Window::configInitGL(init_id))
         {
             return false;
         }
@@ -853,7 +853,7 @@ protected:
         return eq::Window::configExitGL();
     }
 
-    virtual void frameStart(const eq::uint128_t&, const uint32_t frameNumber)
+    virtual void frameStart(const eq::uint128_t &, const uint32_t frame_number)
     {
         // Get frame data via from the node
         eq_node *node = static_cast<eq_node *>(getNode());
@@ -867,12 +867,12 @@ protected:
         {
             _video_output.activate_next_frame();
         }
-        startFrame(frameNumber);
+        startFrame(frame_number);
     }
 
-    virtual void frameFinish(const eq::uint128_t&, const uint32_t frameNumber)
+    virtual void frameFinish(const eq::uint128_t &, const uint32_t frame_number)
     {
-        releaseFrame(frameNumber);
+        releaseFrame(frame_number);
     }
 };
 
@@ -890,10 +890,10 @@ public:
     }
 
 protected:
-    virtual void frameDraw(const eq::uint128_t& frameID)
+    virtual void frameDraw(const eq::uint128_t &frame_id)
     {
         // Let Equalizer initialize some stuff
-        eq::Channel::frameDraw(frameID);
+        eq::Channel::frameDraw(frame_id);
 
         // Get the canvas video area and the canvas channel area
         eq_node *node = static_cast<eq_node *>(getNode());
