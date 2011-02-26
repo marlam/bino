@@ -20,8 +20,11 @@
 
 #include "config.h"
 
+#include <cstdlib>
+
 #include <QCoreApplication>
 #include <QApplication>
+#include <QtGlobal>
 
 #include "qt_app.h"
 
@@ -38,10 +41,30 @@ void set_qt_argv(int argc, char *argv[])
     qt_argv = argv;
 }
 
+static void qt_msg_handler(QtMsgType type, const char *msg)
+{
+    switch (type)
+    {
+    case QtDebugMsg:
+        msg::dbg("%s", msg);
+        break;
+    case QtWarningMsg:
+        msg::wrn("%s", msg);
+        break;
+    case QtCriticalMsg:
+        msg::err("%s", msg);
+        break;
+    case QtFatalMsg:
+        msg::err("%s", msg);
+        std::abort();
+    }
+}
+
 bool init_qt()
 {
     if (!qt_app)
     {
+        qInstallMsgHandler(qt_msg_handler);
         qt_app = new QApplication(qt_argc, const_cast<char **>(qt_argv));
         QCoreApplication::setOrganizationName("Bino");
         QCoreApplication::setOrganizationDomain("bino.nongnu.org");
