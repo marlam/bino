@@ -15,7 +15,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48+devel r10069"
-   sodipodi:docname="bino_3d_player.svg"
+   sodipodi:docname="bino_logo.svg"
    inkscape:export-filename="/tmp/bino_logo_web.png"
    inkscape:export-xdpi="38.268589"
    inkscape:export-ydpi="38.268589">
@@ -27,7 +27,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.7"
-     inkscape:cx="342.71627"
+     inkscape:cx="88.430556"
      inkscape:cy="91.43607"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -1063,7 +1063,7 @@
        inkscape:export-ydpi="90.349998" />
     <text
        xml:space="preserve"
-       style="font-size:42.78503417999999670px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#00cd00;fill-opacity:1;stroke:none;filter:url(#filter25648);font-family:TitilliumMaps29L;-inkscape-font-specification:TitilliumMaps29L"
+       style="font-size:42.78503417999999670px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#e30000;fill-opacity:1;stroke:none;filter:url(#filter25648);font-family:TitilliumMaps29L;-inkscape-font-specification:TitilliumMaps29L"
        x="62.936035"
        y="-134.17923"
        id="text25280"
@@ -1076,6 +1076,6 @@
          id="tspan25282"
          x="62.936035"
          y="-134.17923"
-         style="font-size:42.78503417999999670px;font-style:normal;font-variant:normal;font-weight:800;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:TitilliumMaps29L;-inkscape-font-specification:TitilliumMaps29L Ultra-Bold;fill:#00cd00;fill-opacity:1">free 3d video player</tspan></text>
+         style="font-size:42.78503417999999670px;font-style:normal;font-variant:normal;font-weight:800;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:TitilliumMaps29L;-inkscape-font-specification:TitilliumMaps29L Ultra-Bold;fill:#e30000;fill-opacity:1">free 3d video player</tspan></text>
   </g>
 </svg>
