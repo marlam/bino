@@ -63,6 +63,7 @@ class player_eq_node : public player
 {
 private:
     bool _is_master;
+    bool _first_step;
 
 protected:
     video_output *create_video_output()
@@ -78,7 +79,7 @@ protected:
     }
 
 public:
-    player_eq_node() : player(player::slave), _is_master(false)
+    player_eq_node() : player(player::slave), _is_master(false), _first_step(true)
     {
     }
 
@@ -106,8 +107,8 @@ public:
     void seek(int64_t pos)
     {
         get_media_input_nonconst().seek(pos);
+        // The master player read a video frame; do the same to keep sync
         start_frame_read();
-        finish_frame_read();
     }
 
     void start_frame_read()     // Only called on slave nodes
@@ -132,6 +133,12 @@ public:
 
     void step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
     {
+        if (!_is_master && _first_step)
+        {
+            // The master player reads a video frame; do the same on slave players to keep sync
+            start_frame_read();
+            _first_step = false;
+        }
         player::step(more_steps, seek_to, prep_frame, drop_frame, display_frame);
     }
 };
@@ -745,7 +752,6 @@ protected:
             if (frame_data.seek_to >= 0)
             {
                 _player.seek(frame_data.seek_to);
-                _player.start_frame_read();
             }
             if (frame_data.prep_frame)
             {
