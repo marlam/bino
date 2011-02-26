@@ -250,7 +250,8 @@ static void my_av_log(void *ptr, int level, const char *fmt, va_list vl)
 // Handle timestamps
 static int64_t timestamp_helper(int64_t &last_timestamp, int64_t timestamp)
 {
-    if (timestamp == std::numeric_limits<int64_t>::min())
+    if (timestamp == std::numeric_limits<int64_t>::min()
+            || timestamp < last_timestamp)
     {
         timestamp = last_timestamp;
     }
@@ -1240,6 +1241,14 @@ void media_object::seek(int64_t dest_pos)
         _ffmpeg->audio_packet_queues[i].clear();
     }
     // The next read request must update the position
+    for (size_t i = 0; i < _ffmpeg->video_streams.size(); i++)
+    {
+        _ffmpeg->video_last_timestamps[i] = std::numeric_limits<int64_t>::min();
+    }
+    for (size_t i = 0; i < _ffmpeg->audio_streams.size(); i++)
+    {
+        _ffmpeg->audio_last_timestamps[i] = std::numeric_limits<int64_t>::min();
+    }
     _ffmpeg->pos = std::numeric_limits<int64_t>::min();
     // Restart packet reading
     _ffmpeg->reader->reset();
