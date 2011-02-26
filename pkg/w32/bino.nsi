@@ -28,7 +28,7 @@ Var STARTMENU_FOLDER
 ;Interface Settings
 
   !define MUI_ABORTWARNING
-  !define MUI_ICON appicon.ico
+  !define MUI_ICON bino_logo.ico
   ;!define MUI_UNICON appicon.ico
  
 ; Pages

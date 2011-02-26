@@ -31,7 +31,7 @@ package-w32:
 	cp $(top_srcdir)/pkg/w32/bino.nsi "$$TMPDIR" && \
 	cp $(top_srcdir)/pkg/w32/notes.txt "$$TMPDIR" && \
 	cp $(top_srcdir)/COPYING "$$TMPDIR" && \
-	cp $(top_srcdir)/src/icons/appicon.ico "$$TMPDIR" && \
+	cp $(top_srcdir)/src/logo/bino_logo.ico "$$TMPDIR" && \
 	$(MAKENSIS) -DPACKAGE_VERSION="$(PACKAGE_VERSION)" "$$TMPDIR/bino.nsi" && \
 	cp "$$TMPDIR/bino-$(PACKAGE_VERSION)-w32.exe" . && \
 	chmod 644 bino-$(PACKAGE_VERSION)-w32.exe && \

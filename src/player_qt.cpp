@@ -1251,7 +1251,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
 {
     // Application properties
     setWindowTitle(PACKAGE_NAME);
-    setWindowIcon(QIcon(":icons/appicon.png"));
+    setWindowIcon(QIcon(":logo/bino_logo_small_64x64.png"));
 
     // Load preferences
     _settings->beginGroup("Session");
@@ -1807,7 +1807,7 @@ void main_window::help_about()
     dialog->setWindowTitle("About " PACKAGE_NAME);
 
     QLabel *logo = new QLabel();
-    logo->setPixmap(QPixmap(":icons/appicon.png").scaledToHeight(32, Qt::SmoothTransformation));
+    logo->setPixmap(QPixmap(":logo/bino_logo.png").scaledToHeight(128, Qt::SmoothTransformation));
     QLabel *spacer = new QLabel();
     spacer->setMinimumWidth(16);
     QLabel *title = new QLabel("The " PACKAGE_NAME " 3D video player");

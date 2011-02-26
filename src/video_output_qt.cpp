@@ -198,7 +198,7 @@ void video_output_qt_widget::mouseReleaseEvent(QMouseEvent *event)
 
 video_container_widget::video_container_widget(QWidget *parent) : QWidget(parent), _w(64), _h(64)
 {
-    setWindowIcon(QIcon(":icons/appicon.png"));
+    setWindowIcon(QIcon(":logo/bino_logo_small_64x64.png"));
     // Set minimum size > 0 so that the container is always visible
     setMinimumSize(_w, _h);
     // Always paint the complete widget black

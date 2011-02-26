@@ -26,7 +26,15 @@ bino_SOURCES = \
 
 EXTRA_DIST = \
 	qt_resources.qrc \
-	icons/appicon.png \
+	logo/README \
+	logo/bino_logo.ico \
+	logo/bino_logo.png \
+	logo/bino_logo.svg \
+	logo/bino_logo_small.svg \
+	logo/bino_logo_small_16x16.png \
+	logo/bino_logo_small_32x32.png \
+	logo/bino_logo_small_48x48.png \
+	logo/bino_logo_small_64x64.png \
 	icons/README \
 	icons/play.ipe icons/play.png \
 	icons/pause.ipe icons/pause.png \
@@ -73,7 +81,7 @@ bino_LDADD += $(libglew_LIBS)
 endif
 
 if W32
-bino_SOURCES += icons/appicon.ico
+bino_SOURCES += logo/bino_logo.ico
 .ico.o:
 	$(AM_V_GEN)echo "IDI_ICON1 ICON DISCARDABLE \"$<\"" | $(WINDRES) -o $@
 endif
