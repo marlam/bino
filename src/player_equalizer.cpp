@@ -106,6 +106,8 @@ public:
     void seek(int64_t pos)
     {
         get_media_input_nonconst().seek(pos);
+        start_frame_read();
+        finish_frame_read();
     }
 
     void start_frame_read()     // Only called on slave nodes
