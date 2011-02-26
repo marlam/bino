@@ -1826,6 +1826,7 @@ void main_window::help_about()
 
     QTextBrowser *libs_text = new QTextBrowser(this);
     libs_text->setOpenExternalLinks(true);
+    libs_text->setWordWrapMode(QTextOption::NoWrap);
     QString libs_blurb = tr("<p>Platform:<ul><li>%1</li></ul></p>").arg(PLATFORM);
     libs_blurb += QString("<p>Libraries used:");
     std::vector<std::string> libs = lib_versions(true);
@@ -1838,14 +1839,23 @@ void main_window::help_about()
 
     QTextBrowser *team_text = new QTextBrowser(this);
     team_text->setOpenExternalLinks(false);
+    team_text->setWordWrapMode(QTextOption::NoWrap);
     QFile team_file(":AUTHORS");
     team_file.open(QIODevice::ReadOnly | QIODevice::Text);
     team_text->setText(team_file.readAll());
+
+    QTextBrowser *license_text = new QTextBrowser(this);
+    license_text->setOpenExternalLinks(false);
+    license_text->setWordWrapMode(QTextOption::NoWrap);
+    QFile license_file(":LICENSE");
+    license_file.open(QIODevice::ReadOnly | QIODevice::Text);
+    license_text->setText(license_file.readAll());
 
     QTabWidget *tab_widget = new QTabWidget();
     tab_widget->addTab(about_text, "About");
     tab_widget->addTab(libs_text, "Libraries");
     tab_widget->addTab(team_text, "Team");
+    tab_widget->addTab(license_text, "License");
 
     QPushButton *ok_btn = new QPushButton("OK");
     connect(ok_btn, SIGNAL(pressed()), dialog, SLOT(accept()));
