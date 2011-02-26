@@ -1838,25 +1838,9 @@ void main_window::help_about()
 
     QTextBrowser *team_text = new QTextBrowser(this);
     team_text->setOpenExternalLinks(false);
-    QString team_blurb = tr(
-            "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>"
-            "<p>Bino is maintained by Martin Lambers.</p>"
-            "<p>The following people have contributed to "
-            "Bino up to version %1:</p><p>").arg(VERSION);
-    // List of contributors, as reported by git log --format='%aN' | sort -k2 -u
-    // (plus manual corrections).
-    // In the future, we should start a new list with each major release:
-    // ... up to <current_version>: ...
-    // ... up 1.2.0: ...
-    // ... up 1.0.0: ...
-    team_blurb += QString("Frédéric Devernay") + QString("<br>");
-    team_blurb += QString("Stefan Eilemann") + QString("<br>");
-    team_blurb += QString("Gabriele Greco") + QString("<br>");
-    team_blurb += QString("Martin Lambers") + QString("<br>");
-    team_blurb += QString("Tobias Lange") + QString("<br>");
-    team_blurb += QString("Alexey Osipov") + QString("<br>");
-    team_blurb += QString("</p>");
-    team_text->setText(team_blurb);
+    QFile team_file(":AUTHORS");
+    team_file.open(QIODevice::ReadOnly | QIODevice::Text);
+    team_text->setText(team_file.readAll());
 
     QTabWidget *tab_widget = new QTabWidget();
     tab_widget->addTab(about_text, "About");

@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
+    <file alias="AUTHORS">../AUTHORS</file>
     <file>logo/bino_logo.png</file>
     <file>logo/bino_logo_small_64x64.png</file>
     <file>icons/play.png</file>
