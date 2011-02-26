@@ -28,9 +28,15 @@
 #include "msg.h"
 
 
-static int qt_argc = 1;
-static const char *qt_argv[2] = { PACKAGE_NAME, NULL };
+static int qt_argc = 0;
+static char **qt_argv = NULL;
 static QApplication *qt_app = NULL;
+
+void set_qt_argv(int argc, char *argv[])
+{
+    qt_argc = argc;
+    qt_argv = argv;
+}
 
 bool init_qt()
 {

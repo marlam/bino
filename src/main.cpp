@@ -33,6 +33,7 @@
 #if HAVE_LIBEQUALIZER
 # include "player_equalizer.h"
 #endif
+#include "qt_app.h"
 #include "lib_versions.h"
 
 
@@ -150,6 +151,7 @@ int main(int argc, char *argv[])
     {
         return 1;
     }
+    set_qt_argv(argc, argv);
     if (version.value())
     {
         msg::req("%s version %s", PACKAGE_NAME, VERSION);

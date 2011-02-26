@@ -21,11 +21,20 @@
 #ifndef QT_APP_H
 #define QT_APP_H
 
+/* Set the command line to pass to Qt.
+ * This is necessary only because of Mac OS X. This system 'helpfully'
+ * generates FileOpen events for command line arguments, but we want to
+ * handle command line arguments ourselves. If Qt knows the command line
+ * arguments, it filters out these FileOpen events for us. See
+ * http://doc.qt.nokia.com/4.7/qfileopenevent.html */
+void set_qt_argv(int argc, char *argv[]);
+
 /* Initialize Qt. If init_qt() returns true, then the caller is responsible for
  * calling exit_qt() later. If it returns false, then Qt was already
  * initialized elsewhere and the caller must not call exit_qt(). */
 bool init_qt();
 void exit_qt();
+
 /* Run the Qt application */
 int exec_qt();
 
