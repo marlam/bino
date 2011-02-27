@@ -251,8 +251,7 @@ static void my_av_log(void *ptr, int level, const char *fmt, va_list vl)
 // Handle timestamps
 static int64_t timestamp_helper(int64_t &last_timestamp, int64_t timestamp)
 {
-    if (timestamp == std::numeric_limits<int64_t>::min()
-            || timestamp < last_timestamp)
+    if (timestamp == std::numeric_limits<int64_t>::min())
     {
         timestamp = last_timestamp;
     }
@@ -1138,7 +1137,7 @@ void audio_decode_thread::run()
             _ffmpeg->audio_packet_queues[_audio_stream].pop_front();
             _ffmpeg->audio_packet_queue_mutexes[_audio_stream].unlock();
             _ffmpeg->reader->start();   // Refill the packet queue
-            if (timestamp == std::numeric_limits<int64_t>::min())
+            if (timestamp == std::numeric_limits<int64_t>::min() && packet.dts != AV_NOPTS_VALUE)
             {
                 timestamp = packet.dts * 1000000
                     * _ffmpeg->format_ctx->streams[_ffmpeg->audio_streams[_audio_stream]]->time_base.num
@@ -1171,6 +1170,10 @@ void audio_decode_thread::run()
             
             av_free_packet(&packet);
         }
+    }
+    if (timestamp == std::numeric_limits<int64_t>::min())
+    {
+        timestamp = _ffmpeg->audio_last_timestamps[_audio_stream];
     }
 
     _blob = _ffmpeg->audio_blob_templates[_audio_stream];
