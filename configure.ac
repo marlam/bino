@@ -81,7 +81,7 @@ if test -z "$PKG_CONFIG"; then
 fi
 
 dnl FFmpeg
-PKG_CHECK_MODULES([libavformat], [libavformat >= 52.64.2], [HAVE_LIBAVFORMAT=1], [HAVE_LIBAVFORMAT=0])
+PKG_CHECK_MODULES([libavformat], [libavformat >= 52.64.2 libavcodec libavutil], [HAVE_LIBAVFORMAT=1], [HAVE_LIBAVFORMAT=0])
 if test "$HAVE_LIBAVFORMAT" != "1"; then
     AC_MSG_WARN([library libavformat >= 52.64.2 not found:])
     AC_MSG_WARN([$libavformat_PKG_ERRORS])
