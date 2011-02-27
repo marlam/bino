@@ -1137,7 +1137,7 @@ void audio_decode_thread::run()
             _ffmpeg->audio_packet_queues[_audio_stream].pop_front();
             _ffmpeg->audio_packet_queue_mutexes[_audio_stream].unlock();
             _ffmpeg->reader->start();   // Refill the packet queue
-            if (timestamp == std::numeric_limits<int64_t>::min() && packet.dts != AV_NOPTS_VALUE)
+            if (timestamp == std::numeric_limits<int64_t>::min() && packet.dts != static_cast<int64_t>(AV_NOPTS_VALUE))
             {
                 timestamp = packet.dts * 1000000
                     * _ffmpeg->format_ctx->streams[_ffmpeg->audio_streams[_audio_stream]]->time_base.num
