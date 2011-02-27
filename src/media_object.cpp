@@ -135,6 +135,7 @@ struct ffmpeg_stuff
     std::vector<AVCodec *> video_codecs;
     std::vector<std::deque<AVPacket> > video_packet_queues;
     std::vector<mutex> video_packet_queue_mutexes;
+    std::vector<AVPacket> video_packets;
     std::vector<video_decode_thread> video_decode_threads;
     std::vector<AVFrame *> video_frames;
     std::vector<AVFrame *> video_out_frames;
@@ -617,6 +618,8 @@ void media_object::open(const std::string &url)
             _ffmpeg->video_frame_templates.push_back(video_frame());
             set_video_frame_template(j);
             // Allocate things required for decoding
+            _ffmpeg->video_packets.push_back(AVPacket());
+            av_init_packet(&(_ffmpeg->video_packets[j]));
             _ffmpeg->video_decode_threads.push_back(video_decode_thread(_url, _ffmpeg, j));
             _ffmpeg->video_frames.push_back(avcodec_alloc_frame());
             if (!_ffmpeg->video_frames[j])
@@ -999,7 +1002,6 @@ int64_t video_decode_thread::handle_timestamp(int64_t timestamp)
 
 void video_decode_thread::run()
 {
-    AVPacket pkt;
     int frame_finished = 0;
     do
     {
@@ -1022,14 +1024,15 @@ void video_decode_thread::run()
             }
         }
         while (empty);
+        av_free_packet(&(_ffmpeg->video_packets[_video_stream]));
         _ffmpeg->video_packet_queue_mutexes[_video_stream].lock();
-        pkt = _ffmpeg->video_packet_queues[_video_stream].front();
+        _ffmpeg->video_packets[_video_stream] = _ffmpeg->video_packet_queues[_video_stream].front();
         _ffmpeg->video_packet_queues[_video_stream].pop_front();
         _ffmpeg->video_packet_queue_mutexes[_video_stream].unlock();
         _ffmpeg->reader->start();       // Refill the packet queue
         avcodec_decode_video2(_ffmpeg->video_codec_ctxs[_video_stream],
-                _ffmpeg->video_frames[_video_stream], &frame_finished, &pkt);
-        av_free_packet(&pkt);
+                _ffmpeg->video_frames[_video_stream], &frame_finished,
+                &(_ffmpeg->video_packets[_video_stream]));
     }
     while (!frame_finished);
 
@@ -1056,7 +1059,7 @@ void video_decode_thread::run()
         _frame.line_size[0][2] = _ffmpeg->video_frames[_video_stream]->linesize[2];
     }
 
-    _frame.presentation_time = handle_timestamp(pkt.dts * 1000000
+    _frame.presentation_time = handle_timestamp(_ffmpeg->video_packets[_video_stream].dts * 1000000
             * _ffmpeg->format_ctx->streams[_ffmpeg->video_streams[_video_stream]]->time_base.num
             / _ffmpeg->format_ctx->streams[_ffmpeg->video_streams[_video_stream]]->time_base.den);
 }
@@ -1308,6 +1311,10 @@ void media_object::close()
         {
             av_free_packet(&_ffmpeg->video_packet_queues[i][j]);
         }
+    }
+    for (size_t i = 0; i < _ffmpeg->video_packets.size(); i++)
+    {
+        av_free_packet(&(_ffmpeg->video_packets[i]));
     }
     for (size_t i = 0; i < _ffmpeg->audio_codec_ctxs.size(); i++)
     {
