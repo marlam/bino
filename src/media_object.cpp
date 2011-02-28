@@ -1084,9 +1084,24 @@ void video_decode_thread::run()
         _frame.line_size[0][2] = _ffmpeg->video_frames[_video_stream]->linesize[2];
     }
 
-    _frame.presentation_time = handle_timestamp(_ffmpeg->video_packets[_video_stream].dts * 1000000
-            * _ffmpeg->format_ctx->streams[_ffmpeg->video_streams[_video_stream]]->time_base.num
-            / _ffmpeg->format_ctx->streams[_ffmpeg->video_streams[_video_stream]]->time_base.den);
+    if (_ffmpeg->video_packets[_video_stream].dts != static_cast<int64_t>(AV_NOPTS_VALUE))
+    {
+        _frame.presentation_time = handle_timestamp(_ffmpeg->video_packets[_video_stream].dts * 1000000
+                * _ffmpeg->format_ctx->streams[_ffmpeg->video_streams[_video_stream]]->time_base.num
+                / _ffmpeg->format_ctx->streams[_ffmpeg->video_streams[_video_stream]]->time_base.den);
+    }
+    else if (_ffmpeg->video_last_timestamps[_video_stream] != std::numeric_limits<int64_t>::min())
+    {
+        msg::wrn(_url + ": video stream " + str::from(_video_stream)
+                + ": no timestamp available, using a questionable guess");
+        _frame.presentation_time = _ffmpeg->video_last_timestamps[_video_stream];
+    }
+    else
+    {
+        msg::wrn(_url + ": video stream " + str::from(_video_stream)
+                + ": no timestamp available, using a bad guess");
+        _frame.presentation_time = _ffmpeg->pos;
+    }
 }
 
 void media_object::start_video_frame_read(int video_stream)
@@ -1204,7 +1219,7 @@ void audio_decode_thread::run()
     if (timestamp == std::numeric_limits<int64_t>::min())
     {
         msg::wrn(_url + ": audio stream " + str::from(_audio_stream)
-                + ": no audio timestamp available, using a bad guess");
+                + ": no timestamp available, using a bad guess");
         timestamp = _ffmpeg->pos;
     }
 
