@@ -1175,6 +1175,12 @@ void audio_decode_thread::run()
     {
         timestamp = _ffmpeg->audio_last_timestamps[_audio_stream];
     }
+    if (timestamp == std::numeric_limits<int64_t>::min())
+    {
+        msg::wrn(_url + ": audio stream " + str::from(_audio_stream)
+                + ": no audio timestamp available, using a bad guess");
+        timestamp = _ffmpeg->pos;
+    }
 
     _blob = _ffmpeg->audio_blob_templates[_audio_stream];
     _blob.data = _ffmpeg->audio_blobs[_audio_stream].ptr();
