@@ -941,34 +941,60 @@ void read_thread::run()
         {
             if (packet.stream_index == _ffmpeg->video_streams[i])
             {
-                if (av_dup_packet(&packet) < 0)
-                {
-                    throw exc(_url + ": Cannot duplicate packet.");
-                }
                 _ffmpeg->video_packet_queue_mutexes[i].lock();
-                _ffmpeg->video_packet_queues[i].push_back(packet);
-                msg::dbg(_url + ": "
-                        + str::from(_ffmpeg->video_packet_queues[i].size())
-                        + " packets queued in video stream " + str::from(i) + ".");
+                if (_ffmpeg->video_packet_queues[i].empty()
+                        && _ffmpeg->video_last_timestamps[i] == std::numeric_limits<int64_t>::min()
+                        && packet.dts == static_cast<int64_t>(AV_NOPTS_VALUE))
+                {
+                    // We have no packet in the queue and no last timestamp, probably
+                    // because we just seeked. We *need* a packet with a timestamp.
+                    msg::dbg(_url + ": video stream " + str::from(i)
+                            + ": dropping packet because it has no timestamp");
+                }
+                else
+                {
+                    if (av_dup_packet(&packet) < 0)
+                    {
+                        _ffmpeg->video_packet_queue_mutexes[i].unlock();
+                        throw exc(_url + ": Cannot duplicate packet.");
+                    }
+                    _ffmpeg->video_packet_queues[i].push_back(packet);
+                    packet_queued = true;
+                    msg::dbg(_url + ": "
+                            + str::from(_ffmpeg->video_packet_queues[i].size())
+                            + " packets queued in video stream " + str::from(i) + ".");
+                }
                 _ffmpeg->video_packet_queue_mutexes[i].unlock();
-                packet_queued = true;
             }
         }
         for (size_t i = 0; i < _ffmpeg->audio_streams.size() && !packet_queued; i++)
         {
             if (packet.stream_index == _ffmpeg->audio_streams[i])
             {
-                if (av_dup_packet(&packet) < 0)
-                {
-                    throw exc(_url + ": Cannot duplicate packet.");
-                }
                 _ffmpeg->audio_packet_queue_mutexes[i].lock();
-                _ffmpeg->audio_packet_queues[i].push_back(packet);
-                msg::dbg(_url + ": "
-                        + str::from(_ffmpeg->audio_packet_queues[i].size())
-                        + " packets queued in audio stream " + str::from(i) + ".");
+                if (_ffmpeg->audio_packet_queues[i].empty()
+                        && _ffmpeg->audio_last_timestamps[i] == std::numeric_limits<int64_t>::min()
+                        && packet.dts == static_cast<int64_t>(AV_NOPTS_VALUE))
+                {
+                    // We have no packet in the queue and no last timestamp, probably
+                    // because we just seeked. We *need* a packet with a timestamp.
+                    msg::dbg(_url + ": audio stream " + str::from(i)
+                            + ": dropping packet because it has no timestamp");
+                }
+                else
+                {
+                    if (av_dup_packet(&packet) < 0)
+                    {
+                        _ffmpeg->audio_packet_queue_mutexes[i].unlock();
+                        throw exc(_url + ": Cannot duplicate packet.");
+                    }
+                    _ffmpeg->audio_packet_queues[i].push_back(packet);
+                    packet_queued = true;
+                    msg::dbg(_url + ": "
+                            + str::from(_ffmpeg->audio_packet_queues[i].size())
+                            + " packets queued in audio stream " + str::from(i) + ".");
+                }
                 _ffmpeg->audio_packet_queue_mutexes[i].unlock();
-                packet_queued = true;
             }
         }
         if (!packet_queued)
