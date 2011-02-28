@@ -1,5 +1,6 @@
 Bino uses the following libraries:
 
+- PThreads for multithreading: http://sourceware.org/pthreads-win32/
 - FFmpeg for video and audio decoding: http://ffmpeg.org/
 - OpenAL Soft for audio output: http://kcat.strangesoft.net/openal.html
 - OpenGL for video output: http://www.opengl.org/

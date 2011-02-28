@@ -7,17 +7,17 @@
 !include "MUI.nsh"
 
 ; The name of the installer
-Name "bino ${PACKAGE_VERSION}"
+Name "Bino ${PACKAGE_VERSION}"
 
 ; The file to write
 OutFile "bino-${PACKAGE_VERSION}-w32.exe"
 
 ; The default installation directory
-InstallDir "$PROGRAMFILES\bino-${PACKAGE_VERSION}"
+InstallDir "$PROGRAMFILES\Bino ${PACKAGE_VERSION}"
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\bino-${PACKAGE_VERSION}" "Install_Dir"
+InstallDirRegKey HKLM "Software\Bino ${PACKAGE_VERSION}" "Install_Dir"
 
 ;SetCompressor lzma
 ShowInstDetails show
@@ -39,7 +39,7 @@ Var STARTMENU_FOLDER
   !insertmacro MUI_PAGE_DIRECTORY
   ;Start Menu Folder Page Configuration
   !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU" 
-  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\bino-${PACKAGE_VERSION}"
+  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Bino ${PACKAGE_VERSION}"
   !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
   !insertmacro MUI_PAGE_STARTMENU Application $STARTMENU_FOLDER
   !insertmacro MUI_PAGE_INSTFILES
@@ -71,11 +71,11 @@ Section
   WriteUninstaller "$INSTDIR\uninstall.exe"
 
   ; Write the installation path into the registry
-  WriteRegStr HKLM "Software\bino-${PACKAGE_VERSION}" "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM "Software\Bino ${PACKAGE_VERSION}" "Install_Dir" "$INSTDIR"
 
   # Windows Add/Remove Programs support
-  StrCpy $MYTMP "Software\Microsoft\Windows\CurrentVersion\Uninstall\bino-${PACKAGE_VERSION}"
-  WriteRegStr       HKLM $MYTMP "DisplayName"     "bino ${PACKAGE_VERSION}"
+  StrCpy $MYTMP "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bino ${PACKAGE_VERSION}"
+  WriteRegStr       HKLM $MYTMP "DisplayName"     "Bino ${PACKAGE_VERSION}"
   WriteRegExpandStr HKLM $MYTMP "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegExpandStr HKLM $MYTMP "InstallLocation" "$INSTDIR"
   WriteRegStr       HKLM $MYTMP "DisplayVersion"  "${PACKAGE_VERSION}"
@@ -113,8 +113,8 @@ SectionEnd
 Section "Uninstall"
   
   ; Remove registry keys
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\bino-${PACKAGE_VERSION}"
-  DeleteRegKey HKLM "Software\bino-${PACKAGE_VERSION}"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bino ${PACKAGE_VERSION}"
+  DeleteRegKey HKLM "Software\Bino ${PACKAGE_VERSION}"
   ; Remove files
   Delete $INSTDIR\bin\bino.exe
   RMDir $INSTDIR\bin
@@ -141,7 +141,7 @@ Section "Uninstall"
     IfErrors startMenuDeleteLoopDone
     StrCmp $MUI_TEMP $SMPROGRAMS startMenuDeleteLoopDone startMenuDeleteLoop
   startMenuDeleteLoopDone:
-  DeleteRegKey /ifempty HKCU "Software\bino-${PACKAGE_VERSION}"
+  DeleteRegKey /ifempty HKCU "Software\Bino ${PACKAGE_VERSION}"
   ; Remove directories used
   RMDir "$INSTDIR"
 
