@@ -400,21 +400,23 @@ std::string audio_blob::format_name() const
 
 int audio_blob::sample_bits() const
 {
+    int bits = 0;
     switch (sample_format)
     {
     case u8:
-        return 8;
+        bits = 8;
         break;
     case s16:
-        return 16;
+        bits = 16;
         break;
     case f32:
-        return 32;
+        bits = 32;
         break;
     case d64:
-        return 64;
+        bits = 64;
         break;
     }
+    return bits;
 }
 
 parameters::parameters() :
