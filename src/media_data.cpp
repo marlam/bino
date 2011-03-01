@@ -255,7 +255,7 @@ std::string video_frame::format_name() const
 
 std::string video_frame::format_info() const
 {
-    return str::asprintf("%dx%d, %.3g:1", width, height, aspect_ratio);
+    return str::asprintf("%dx%d, %.3g:1", raw_width, raw_height, aspect_ratio);
 }
 
 static int next_multiple_of_4(int x)
