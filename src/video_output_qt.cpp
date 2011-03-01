@@ -201,6 +201,8 @@ video_container_widget::video_container_widget(QWidget *parent) : QWidget(parent
     setWindowIcon(QIcon(":logo/bino_logo_small_64x64.png"));
     // Set minimum size > 0 so that the container is always visible
     setMinimumSize(_w, _h);
+    // Set suitable size policy
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     // Always paint the complete widget black
     QPalette p(palette());
     p.setColor(QPalette::Background, Qt::black);
@@ -348,7 +350,7 @@ void video_output_qt::create_widget()
     container_layout->setColumnStretch(0, 1);
     delete _container_widget->layout();
     _container_widget->setLayout(container_layout);
-    _container_widget->adjustSize();
+    _container_widget->updateGeometry();
     _widget->show();
     _container_widget->show();
     _container_widget->raise();
@@ -381,8 +383,8 @@ void video_output_qt::trigger_update()
 void video_output_qt::trigger_resize(int w, int h)
 {
     _container_widget->set_recommended_size(w, h);
-    _container_widget->resize(w, h);
-    _container_widget->layout()->update();
+    _container_widget->updateGeometry();
+    _container_widget->window()->adjustSize();
 }
 
 void video_output_qt::mouse_set_pos(float dest)
@@ -515,7 +517,6 @@ void video_output_qt::exit_fullscreen()
         }
         _container_widget->setWindowState(_widget->windowState() & ~Qt::WindowFullScreen);
         _container_widget->setCursor(Qt::ArrowCursor);
-        _widget->resize(width(), height());
         _container_widget->show();
         _widget->setFocus(Qt::OtherFocusReason);
     }
