@@ -941,30 +941,23 @@ void read_thread::run()
         {
             if (packet.stream_index == _ffmpeg->video_streams[i])
             {
+                // We do not check for missing timestamps here, as we do with audio
+                // packets, for the following reasons:
+                // 1. The video decoder might fill in a timestamp for us
+                // 2. We cannot drop video packets anyway, because of their
+                //    interdependencies. We would mess up decoding.
+                if (av_dup_packet(&packet) < 0)
+                {
+                    _ffmpeg->video_packet_queue_mutexes[i].unlock();
+                    throw exc(_url + ": Cannot duplicate packet.");
+                }
                 _ffmpeg->video_packet_queue_mutexes[i].lock();
-                if (_ffmpeg->video_packet_queues[i].empty()
-                        && _ffmpeg->video_last_timestamps[i] == std::numeric_limits<int64_t>::min()
-                        && packet.dts == static_cast<int64_t>(AV_NOPTS_VALUE))
-                {
-                    // We have no packet in the queue and no last timestamp, probably
-                    // because we just seeked. We *need* a packet with a timestamp.
-                    msg::dbg(_url + ": video stream " + str::from(i)
-                            + ": dropping packet because it has no timestamp");
-                }
-                else
-                {
-                    if (av_dup_packet(&packet) < 0)
-                    {
-                        _ffmpeg->video_packet_queue_mutexes[i].unlock();
-                        throw exc(_url + ": Cannot duplicate packet.");
-                    }
-                    _ffmpeg->video_packet_queues[i].push_back(packet);
-                    packet_queued = true;
-                    msg::dbg(_url + ": "
-                            + str::from(_ffmpeg->video_packet_queues[i].size())
-                            + " packets queued in video stream " + str::from(i) + ".");
-                }
+                _ffmpeg->video_packet_queues[i].push_back(packet);
                 _ffmpeg->video_packet_queue_mutexes[i].unlock();
+                packet_queued = true;
+                msg::dbg(_url + ": "
+                        + str::from(_ffmpeg->video_packet_queues[i].size())
+                        + " packets queued in video stream " + str::from(i) + ".");
             }
         }
         for (size_t i = 0; i < _ffmpeg->audio_streams.size() && !packet_queued; i++)
