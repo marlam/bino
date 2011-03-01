@@ -948,7 +948,6 @@ void read_thread::run()
                 //    interdependencies. We would mess up decoding.
                 if (av_dup_packet(&packet) < 0)
                 {
-                    _ffmpeg->video_packet_queue_mutexes[i].unlock();
                     throw exc(_url + ": Cannot duplicate packet.");
                 }
                 _ffmpeg->video_packet_queue_mutexes[i].lock();
