@@ -353,12 +353,19 @@ void video_frame::copy_plane(int view, int plane, void *buf) const
         break;
     }
 
-    size_t dst_offset = 0;
-    for (size_t y = 0; y < lines; y++)
+    if (src_row_size == dst_row_size)
     {
-        std::memcpy(dst + dst_offset, src + src_offset, dst_row_width);
-        dst_offset += dst_row_size;
-        src_offset += src_row_size;
+        std::memcpy(dst, src + src_offset, lines * src_row_size);
+    }
+    else
+    {
+        size_t dst_offset = 0;
+        for (size_t y = 0; y < lines; y++)
+        {
+            std::memcpy(dst + dst_offset, src + src_offset, dst_row_width);
+            dst_offset += dst_row_size;
+            src_offset += src_row_size;
+        }
     }
 }
 
