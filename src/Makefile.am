@@ -50,6 +50,8 @@ EXTRA_DIST = \
 	video_output_color.fs.glsl \
 	video_output_render.fs.glsl
 
+qt_resources-rcc.cpp: $(filter %.png,$(EXTRA_DIST)) ../AUTHORS ../COPYING
+
 nodist_bino_SOURCES = \
 	qt_resources-rcc.cpp \
 	player_qt-moc.cpp \
