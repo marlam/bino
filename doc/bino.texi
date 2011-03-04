@@ -248,10 +248,10 @@ The following file name forms are recognized:
 @itemx *-lrq.ext
 @var{left-right-half}
 @item *-rl.ext
-@var{left-right swapped}
+@var{right-left}
 @item *-rlh.ext
 @itemx *-rlq.ext
-@var{left-right-half swapped}
+@var{right-left-half}
 @item *-tb.ext
 @itemx *-ab.ext
 @var{top-bottom}
@@ -260,10 +260,10 @@ The following file name forms are recognized:
 @var{top-bottom-half}
 @item *-bt.ext
 @itemx *-ba.ext
-@var{top-bottom swapped}
+@var{bottom-top}
 @item *-bth.ext
 @itemx *-baq.ext
-@var{top-bottom-half swapped}
+@var{bottom-top-half}
 @item *-eo.ext
 @itemx *-eoq.ext
 @itemx *-3dir.ext
@@ -271,7 +271,7 @@ The following file name forms are recognized:
 @item *-oe.ext
 @itemx *-oeq.ext
 @itemx *-3di.ext
-@var{even-odd-rows swapped}
+@var{odd-even-rows}
 @item *-2d.ext
 @var{mono}
 @end table
