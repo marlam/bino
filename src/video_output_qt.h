@@ -132,6 +132,7 @@ public:
     virtual void exit_fullscreen();
     virtual bool toggle_fullscreen();
 
+    virtual bool has_events();
     virtual void process_events();
 
     virtual void receive_notification(const notification &note);

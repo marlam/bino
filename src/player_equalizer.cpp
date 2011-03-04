@@ -178,6 +178,7 @@ public:
     void enter_fullscreen() { }
     void exit_fullscreen() { }
     bool toggle_fullscreen() { return false; }
+    bool has_events() { return false; }
     void process_events() { }
     void receive_notification(const notification &) { }
 

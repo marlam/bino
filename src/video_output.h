@@ -141,6 +141,7 @@ public:
     virtual bool toggle_fullscreen() = 0;
 
     /* Process window system events (if applicable) */
+    virtual bool has_events() = 0;
     virtual void process_events() = 0;
     
     /* Prepare a new frame for display. */
