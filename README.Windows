@@ -16,13 +16,10 @@ release) installed in /path/to/mce:
    If you want to build a Bino installer later, you need to build nsis, too:
    $ make nsis
 
-2. Set path variables:
+   Add Mingw-cross-env to your PATH:
+   $ export PATH="/path/to/mce/usr/bin:$PATH"
 
-   $ MCE=/path/to/mce
-   $ MCEPFX="$MCE/usr/i686-pc-mingw32"
-   $ export PATH="$MCE/usr/bin:$PATH"
-
-3. Build Bino
+2. Build Bino
 
    $ cd /path/to/bino
    $ ./configure --host=i686-pc-mingw32
