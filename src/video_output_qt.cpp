@@ -248,7 +248,11 @@ video_output_qt::video_output_qt(bool benchmark, video_container_widget *contain
     {
         _container_widget = new video_container_widget(NULL);
     }
-    _format.setAlpha(true);
+    // Alpha is disabled for now, because we do not use it yet and some OpenGL
+    // implementations do not support Alpha with a quad-buffer context according to
+    // <http://lists.nongnu.org/archive/html/bino-list/2011-03/msg00011.html>.
+    // However, we may need to re-enable it for subtitle or OSD support.
+    //_format.setAlpha(true);
     _format.setDoubleBuffer(true);
     if (!benchmark)
     {
