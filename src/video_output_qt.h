@@ -120,10 +120,9 @@ public:
     virtual bool supports_stereo() const;
     virtual int screen_width();
     virtual int screen_height();
-    virtual float screen_aspect_ratio();
+    virtual float screen_pixel_aspect_ratio();
     virtual int width();
     virtual int height();
-    virtual float aspect_ratio();
     virtual int pos_x();
     virtual int pos_y();
 

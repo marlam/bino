@@ -134,20 +134,6 @@ void video_output::deinit()
     }
 }
 
-float video_output::screen_pixel_aspect_ratio()
-{
-    float screen_pixel_ar = screen_aspect_ratio()
-        * static_cast<float>(screen_height()) / static_cast<float>(screen_width());
-    if (std::fabs(screen_pixel_ar - 1.0f) < 0.03f)
-    {
-        // This screen most probably has square pixels, and the difference to 1.0
-        // is only due to slightly inaccurate measurements and rounding. Force
-        // 1.0 so that the user gets expected results.
-        screen_pixel_ar = 1.0f;
-    }
-    return screen_pixel_ar;
-}
-
 void video_output::set_suitable_size(int w, int h, float ar, parameters::stereo_mode_t stereo_mode)
 {
     int width = w;

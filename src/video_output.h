@@ -78,8 +78,6 @@ private:
     void render_init();
     void render_deinit();
     bool render_is_compatible();
-    // Compute screen pixel aspect ratio
-    float screen_pixel_aspect_ratio();
 
 protected:
     virtual void make_context_current() = 0;    // Make sure our OpenGL context is current
@@ -123,12 +121,11 @@ public:
     /* Get screen properties (fixed) */
     virtual int screen_width() = 0;             // in pixels
     virtual int screen_height() = 0;            // in pixels
-    virtual float screen_aspect_ratio() = 0;    // refers to actual ar (pixels may be non-square)
+    virtual float screen_pixel_aspect_ratio() = 0;      // the aspect ratio of a pixel on screen
 
     /* Get current video area properties */
     virtual int width() = 0;                    // in pixels
     virtual int height() = 0;                   // in pixels
-    virtual float aspect_ratio() = 0;           // refers to actual ar (pixels may be non-square)
     virtual int pos_x() = 0;                    // in pixels
     virtual int pos_y() = 0;                    // in pixels
 

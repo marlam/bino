@@ -168,10 +168,9 @@ public:
     bool supports_stereo() const { return false; }
     int screen_width() { return 0; }
     int screen_height() { return 0; }
-    float screen_aspect_ratio() { return 0.0f; }
+    float screen_pixel_aspect_ratio() { return 0.0f; }
     int width() { return 0; }
     int height() { return 0; }
-    float aspect_ratio() { return 0.0f; }
     int pos_x() { return 0; }
     int pos_y() { return 0; }
     void center() { }

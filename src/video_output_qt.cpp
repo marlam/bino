@@ -432,10 +432,19 @@ int video_output_qt::screen_height()
     return QApplication::desktop()->screenGeometry().height();
 }
 
-float video_output_qt::screen_aspect_ratio()
+float video_output_qt::screen_pixel_aspect_ratio()
 {
-    return static_cast<float>(QApplication::desktop()->widthMM())
-        / static_cast<float>(QApplication::desktop()->heightMM());
+    float screen_pixel_ar =
+        static_cast<float>(QApplication::desktop()->logicalDpiY())
+        / static_cast<float>(QApplication::desktop()->logicalDpiX());
+    if (std::fabs(screen_pixel_ar - 1.0f) < 0.03f)
+    {
+        // This screen most probably has square pixels, and the difference to 1.0
+        // is only due to slightly inaccurate measurements and rounding. Force
+        // 1.0 so that the user gets expected results.
+        screen_pixel_ar = 1.0f;
+    }
+    return screen_pixel_ar;
 }
 
 int video_output_qt::width()
@@ -446,12 +455,6 @@ int video_output_qt::width()
 int video_output_qt::height()
 {
     return _widget->height();
-}
-
-float video_output_qt::aspect_ratio()
-{
-    return static_cast<float>(_widget->widthMM())
-        / static_cast<float>(_widget->heightMM());
 }
 
 int video_output_qt::pos_x()
