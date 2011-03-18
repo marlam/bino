@@ -194,6 +194,10 @@ Left view even rows, right view odd rows.
 Left view even columns, right view odd columns.
 @item checkerboard
 Left and right view in checkerboard pattern.
+@item hdmi-frame-pack
+HDMI frame packing mode (left top, right bottom, plus extra blank lines
+separating the two views). This mode is only necessary if you are forcing your
+display into the corresponding HDMI 3D mode.
 @item red-cyan-monochrome
 Red/cyan anaglyph, monochrome method.
 @item red-cyan-half-color

@@ -142,7 +142,8 @@ void video_output::set_suitable_size(int w, int h, float ar, parameters::stereo_
     {
         w *= 2;
     }
-    else if (stereo_mode == parameters::top_bottom)
+    else if (stereo_mode == parameters::top_bottom
+            || stereo_mode == parameters::hdmi_frame_pack)
     {
         h *= 2;
     }
@@ -151,7 +152,8 @@ void video_output::set_suitable_size(int w, int h, float ar, parameters::stereo_
     {
         aspect_ratio /= 2.0f;
     }
-    else if (stereo_mode == parameters::top_bottom)
+    else if (stereo_mode == parameters::top_bottom
+            || stereo_mode == parameters::hdmi_frame_pack)
     {
         aspect_ratio *= 2.0f;
     }
@@ -856,6 +858,20 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
         draw_quad(-1.0f, -1.0f, 2.0f, 1.0f);
     }
+    else if (_params.stereo_mode == parameters::hdmi_frame_pack)
+    {
+        // HDMI frame packing mode has left view top, right view bottom, plus a
+        // blank area separating the two. 720p uses 30 blank lines (total: 720
+        // + 30 + 720 = 1470), 1080p uses 45 (total: 10280 + 45 + 1080 = 2205).
+        // In both cases, the blank area is 30/1470 = 45/2205 = 1/49 of the
+        // total height. See the document "High-Definition Multimedia Interface
+        // Specification Version 1.4a Extraction of 3D Signaling Portion" from
+        // hdmi.org.
+        glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
+        draw_quad(-1.0f, 0.0f + 1.0f / 49.0f, 2.0f, 1.0f - 1.0f / 49.0f);
+        glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
+        draw_quad(-1.0f, -1.0f, 2.0f, 1.0f - 1.0f / 49.0f);
+    }
     assert(xgl::CheckError(HERE));
 }
 
@@ -895,13 +911,20 @@ void video_output::reshape(int w, int h)
     // Compute viewport with the right aspect ratio
     float dst_w = w;
     float dst_h = h;
+    if (_params.stereo_mode == parameters::hdmi_frame_pack)
+    {
+        // Account for the blank space between left and right view. See
+        // comments for this mode in the display_current_frame() function.
+        dst_h -= dst_h / 49.0f;
+    }
     float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
     float src_ar = _frame[_active_index].aspect_ratio;
     if (_params.stereo_mode == parameters::left_right)
     {
         src_ar *= 2.0f;
     }
-    else if (_params.stereo_mode == parameters::top_bottom)
+    else if (_params.stereo_mode == parameters::top_bottom
+            || _params.stereo_mode == parameters::hdmi_frame_pack)
     {
         src_ar /= 2.0f;
     }

@@ -516,6 +516,9 @@ std::string parameters::stereo_mode_to_string(stereo_mode_t stereo_mode, bool st
     case checkerboard:
         s = "checkerboard";
         break;
+    case hdmi_frame_pack:
+        s = "hdmi-frame-pack";
+        break;
     case red_cyan_monochrome:
         s = "red-cyan-monochrome";
         break;
@@ -619,6 +622,10 @@ void parameters::stereo_mode_from_string(const std::string &s, stereo_mode_t &st
     else if (t == "checkerboard")
     {
         stereo_mode = checkerboard;
+    }
+    else if (t == "hdmi-frame-pack")
+    {
+        stereo_mode = hdmi_frame_pack;
     }
     else if (t == "red-cyan-monochrome")
     {

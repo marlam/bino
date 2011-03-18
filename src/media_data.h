@@ -173,6 +173,7 @@ public:
         even_odd_rows,                  // Left view even rows, right view odd rows
         even_odd_columns,               // Left view even columns, right view odd columns
         checkerboard,                   // Checkerboard pattern
+        hdmi_frame_pack,                // HDMI Frame packing (top-bottom separated by 1/49 height)
         red_cyan_monochrome,            // Red/cyan anaglyph, monochrome method
         red_cyan_half_color,            // Red/cyan anaglyph, half color method
         red_cyan_full_color,            // Red/cyan anaglyph, full color method

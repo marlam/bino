@@ -181,6 +181,7 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     _output_combobox->addItem("Even/odd rows");
     _output_combobox->addItem("Even/odd columns");
     _output_combobox->addItem("Checkerboard pattern");
+    _output_combobox->addItem("HDMI frame packing mode");
     _output_combobox->addItem("Red/cyan glasses, monochrome method");
     _output_combobox->addItem("Red/cyan glasses, half-color method");
     _output_combobox->addItem("Red/cyan glasses, full-color method");
@@ -292,47 +293,50 @@ void in_out_widget::set_stereo_mode(parameters::stereo_mode_t stereo_mode, bool 
     case parameters::checkerboard:
         _output_combobox->setCurrentIndex(9);
         break;
-    case parameters::red_cyan_monochrome:
+    case parameters::hdmi_frame_pack:
         _output_combobox->setCurrentIndex(10);
         break;
-    case parameters::red_cyan_half_color:
+    case parameters::red_cyan_monochrome:
         _output_combobox->setCurrentIndex(11);
         break;
-    case parameters::red_cyan_full_color:
+    case parameters::red_cyan_half_color:
         _output_combobox->setCurrentIndex(12);
         break;
-    case parameters::red_cyan_dubois:
+    case parameters::red_cyan_full_color:
         _output_combobox->setCurrentIndex(13);
         break;
-    case parameters::green_magenta_monochrome:
+    case parameters::red_cyan_dubois:
         _output_combobox->setCurrentIndex(14);
         break;
-    case parameters::green_magenta_half_color:
+    case parameters::green_magenta_monochrome:
         _output_combobox->setCurrentIndex(15);
         break;
-    case parameters::green_magenta_full_color:
+    case parameters::green_magenta_half_color:
         _output_combobox->setCurrentIndex(16);
         break;
-    case parameters::green_magenta_dubois:
+    case parameters::green_magenta_full_color:
         _output_combobox->setCurrentIndex(17);
         break;
-    case parameters::amber_blue_monochrome:
+    case parameters::green_magenta_dubois:
         _output_combobox->setCurrentIndex(18);
         break;
-    case parameters::amber_blue_half_color:
+    case parameters::amber_blue_monochrome:
         _output_combobox->setCurrentIndex(19);
         break;
-    case parameters::amber_blue_full_color:
+    case parameters::amber_blue_half_color:
         _output_combobox->setCurrentIndex(20);
         break;
-    case parameters::amber_blue_dubois:
+    case parameters::amber_blue_full_color:
         _output_combobox->setCurrentIndex(21);
         break;
-    case parameters::red_green_monochrome:
+    case parameters::amber_blue_dubois:
         _output_combobox->setCurrentIndex(22);
         break;
-    case parameters::red_blue_monochrome:
+    case parameters::red_green_monochrome:
         _output_combobox->setCurrentIndex(23);
+        break;
+    case parameters::red_blue_monochrome:
+        _output_combobox->setCurrentIndex(24);
         break;
     }
     _swap_checkbox->setChecked(stereo_mode_swap);
@@ -567,45 +571,48 @@ void in_out_widget::get_stereo_mode(parameters::stereo_mode_t &stereo_mode, bool
         stereo_mode = parameters::checkerboard;
         break;
     case 10:
-        stereo_mode = parameters::red_cyan_monochrome;
+        stereo_mode = parameters::hdmi_frame_pack;
         break;
     case 11:
-        stereo_mode = parameters::red_cyan_half_color;
+        stereo_mode = parameters::red_cyan_monochrome;
         break;
     case 12:
-        stereo_mode = parameters::red_cyan_full_color;
+        stereo_mode = parameters::red_cyan_half_color;
         break;
     case 13:
-        stereo_mode = parameters::red_cyan_dubois;
+        stereo_mode = parameters::red_cyan_full_color;
         break;
     case 14:
-        stereo_mode = parameters::green_magenta_monochrome;
+        stereo_mode = parameters::red_cyan_dubois;
         break;
     case 15:
-        stereo_mode = parameters::green_magenta_half_color;
+        stereo_mode = parameters::green_magenta_monochrome;
         break;
     case 16:
-        stereo_mode = parameters::green_magenta_full_color;
+        stereo_mode = parameters::green_magenta_half_color;
         break;
     case 17:
-        stereo_mode = parameters::green_magenta_dubois;
+        stereo_mode = parameters::green_magenta_full_color;
         break;
     case 18:
-        stereo_mode = parameters::amber_blue_monochrome;
+        stereo_mode = parameters::green_magenta_dubois;
         break;
     case 19:
-        stereo_mode = parameters::amber_blue_half_color;
+        stereo_mode = parameters::amber_blue_monochrome;
         break;
     case 20:
-        stereo_mode = parameters::amber_blue_full_color;
+        stereo_mode = parameters::amber_blue_half_color;
         break;
     case 21:
-        stereo_mode = parameters::amber_blue_dubois;
+        stereo_mode = parameters::amber_blue_full_color;
         break;
     case 22:
-        stereo_mode = parameters::red_green_monochrome;
+        stereo_mode = parameters::amber_blue_dubois;
         break;
     case 23:
+        stereo_mode = parameters::red_green_monochrome;
+        break;
+    case 24:
         stereo_mode = parameters::red_blue_monochrome;
         break;
     }

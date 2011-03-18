@@ -93,6 +93,7 @@ int main(int argc, char *argv[])
     video_output_modes.push_back("even-odd-rows");
     video_output_modes.push_back("even-odd-columns");
     video_output_modes.push_back("checkerboard");
+    video_output_modes.push_back("hdmi-frame-pack");
     video_output_modes.push_back("red-cyan-monochrome");
     video_output_modes.push_back("red-cyan-half-color");
     video_output_modes.push_back("red-cyan-full-color");
@@ -205,6 +206,7 @@ int main(int argc, char *argv[])
                 "    even-odd-rows            Left even rows, right odd rows.\n"
                 "    even-odd-columns         Left even columns, right odd columns.\n"
                 "    checkerboard             Left and right in checkerboard pattern.\n"
+                "    hdmi-frame-pack          HDMI frame packing mode.\n"
                 "    red-cyan-monochrome      Red/cyan anaglyph, monochrome method.\n"
                 "    red-cyan-half-color      Red/cyan anaglyph, half color method.\n"
                 "    red-cyan-full-color      Red/cyan anaglyph, full color method.\n"
