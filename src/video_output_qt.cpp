@@ -388,7 +388,10 @@ void video_output_qt::trigger_resize(int w, int h)
 {
     _container_widget->set_recommended_size(w, h);
     _container_widget->updateGeometry();
-    _container_widget->window()->adjustSize();
+    if (!_container_is_external)
+    {
+        _container_widget->adjustSize();
+    }
 }
 
 void video_output_qt::mouse_set_pos(float dest)
