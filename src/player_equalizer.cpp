@@ -23,6 +23,7 @@
 
 #include <sstream>
 #include <cmath>
+#include <cstdlib>
 
 #include <eq/eq.h>
 
@@ -189,7 +190,10 @@ public:
     void display_current_frame(bool mono_right_instead_of_left,
             float x, float y, float w, float h, const GLint viewport[4])
     {
-        video_output::display_current_frame(mono_right_instead_of_left, x, y, w, h, viewport);
+        GLint vp[2][4];
+        std::memcpy(vp[0], viewport, 4 * sizeof(int));
+        std::memcpy(vp[1], viewport, 4 * sizeof(int));
+        video_output::display_current_frame(mono_right_instead_of_left, x, y, w, h, vp);
     }
 };
 

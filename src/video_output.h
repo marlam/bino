@@ -62,8 +62,8 @@ private:
     parameters _render_last_params;     // last params for this step; used for reinitialization check
     GLuint _render_prg;                 // reads sRGB texture, renders according to _params[_active_index]
     GLuint _render_mask_tex;            // for the masking modes even-odd-{rows,columns}, checkerboard
-    // OpenGL Viewport for drawing the video frame
-    GLint _viewport[4];
+    // OpenGL viewports for drawing the two views of the video frame
+    GLint _viewport[2][4];
 
 private:
     // Step 1: initialize/deinitialize, and check if reinitialization is necessary
@@ -96,7 +96,7 @@ protected:
      * Third version: This version is used to redisplay the current frame, e.g. for repaint events.
      * TODO: This function needs to handle interlaced frames! */
     void display_current_frame(bool mono_right_instead_of_left,
-            float x, float y, float w, float h, const GLint viewport[4]);
+            float x, float y, float w, float h, const GLint viewport[2][4]);
     void display_current_frame()
     {
         display_current_frame(false, -1.0f, -1.0f, 2.0f, 2.0f, _viewport);

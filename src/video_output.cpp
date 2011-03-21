@@ -599,7 +599,7 @@ static void draw_quad(float x, float y, float w, float h)
 }
 
 void video_output::display_current_frame(bool mono_right_instead_of_left,
-            float x, float y, float w, float h, const GLint viewport[4])
+            float x, float y, float w, float h, const GLint viewport[2][4])
 {
     make_context_current();
     assert(xgl::CheckError(HERE));
@@ -641,13 +641,13 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
     }
     if ((_params.stereo_mode == parameters::even_odd_rows
                 || _params.stereo_mode == parameters::checkerboard)
-            && (pos_y() + viewport[1]) % 2 == 0)
+            && (pos_y() + viewport[0][1]) % 2 == 0)
     {
         std::swap(left, right);
     }
     if ((_params.stereo_mode == parameters::even_odd_columns
                 || _params.stereo_mode == parameters::checkerboard)
-            && (pos_x() + viewport[0]) % 2 == 1)
+            && (pos_x() + viewport[0][0]) % 2 == 1)
     {
         std::swap(left, right);
     }
@@ -725,7 +725,7 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
         draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
     }
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-    glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    glViewport(viewport[0][0], viewport[0][1], viewport[0][2], viewport[0][3]);
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
@@ -777,8 +777,8 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
             || _params.stereo_mode == parameters::checkerboard)
     {
         glUniform1i(glGetUniformLocation(_render_prg, "mask_tex"), 2);
-        glUniform1f(glGetUniformLocation(_render_prg, "step_x"), 1.0f / static_cast<float>(viewport[2]));
-        glUniform1f(glGetUniformLocation(_render_prg, "step_y"), 1.0f / static_cast<float>(viewport[3]));
+        glUniform1f(glGetUniformLocation(_render_prg, "step_x"), 1.0f / static_cast<float>(viewport[0][2]));
+        glUniform1f(glGetUniformLocation(_render_prg, "step_y"), 1.0f / static_cast<float>(viewport[0][3]));
     }
 
     if (_params.stereo_mode == parameters::stereo)
@@ -794,8 +794,8 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
             || _params.stereo_mode == parameters::even_odd_columns
             || _params.stereo_mode == parameters::checkerboard)
     {
-        float vpw = static_cast<float>(viewport[2]);
-        float vph = static_cast<float>(viewport[3]);
+        float vpw = static_cast<float>(viewport[0][2]);
+        float vph = static_cast<float>(viewport[0][3]);
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, _render_mask_tex);
         glBegin(GL_QUADS);
@@ -843,34 +843,16 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
         draw_quad(x, y, w, h);
     }
     else if (_params.stereo_mode == parameters::left_right
-            || _params.stereo_mode == parameters::left_right_half)
+            || _params.stereo_mode == parameters::left_right_half
+            || _params.stereo_mode == parameters::top_bottom
+            || _params.stereo_mode == parameters::top_bottom_half
+            || _params.stereo_mode == parameters::hdmi_frame_pack)
     {
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
-        draw_quad(-1.0f, -1.0f, 1.0f, 2.0f);
+        draw_quad(x, y, w, h);
+        glViewport(viewport[1][0], viewport[1][1], viewport[1][2], viewport[1][3]);
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
-        draw_quad(0.0f, -1.0f, 1.0f, 2.0f);
-    }
-    else if (_params.stereo_mode == parameters::top_bottom
-            || _params.stereo_mode == parameters::top_bottom_half)
-    {
-        glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
-        draw_quad(-1.0f, 0.0f, 2.0f, 1.0f);
-        glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
-        draw_quad(-1.0f, -1.0f, 2.0f, 1.0f);
-    }
-    else if (_params.stereo_mode == parameters::hdmi_frame_pack)
-    {
-        // HDMI frame packing mode has left view top, right view bottom, plus a
-        // blank area separating the two. 720p uses 30 blank lines (total: 720
-        // + 30 + 720 = 1470), 1080p uses 45 (total: 10280 + 45 + 1080 = 2205).
-        // In both cases, the blank area is 30/1470 = 45/2205 = 1/49 of the
-        // total height. See the document "High-Definition Multimedia Interface
-        // Specification Version 1.4a Extraction of 3D Signaling Portion" from
-        // hdmi.org.
-        glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
-        draw_quad(-1.0f, 0.0f + 1.0f / 49.0f, 2.0f, 1.0f - 1.0f / 49.0f);
-        glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
-        draw_quad(-1.0f, -1.0f, 2.0f, 1.0f - 1.0f / 49.0f);
+        draw_quad(x, y, w, h);
     }
     assert(xgl::CheckError(HERE));
 }
@@ -893,14 +875,36 @@ void video_output::clear()
     assert(xgl::CheckError(HERE));
 }
 
+static void compute_viewport(int vp[4], int w, int h, float dst_w, float dst_h, float dst_ar, float src_ar)
+{
+    vp[2] = dst_w;
+    vp[3] = dst_h;
+    if (src_ar >= dst_ar)
+    {
+        // need black borders top and bottom
+        vp[3] = dst_ar / src_ar * dst_h;
+    }
+    else
+    {
+        // need black borders left and right
+        vp[2] = src_ar / dst_ar * dst_w;
+    }
+    vp[0] = (w - vp[2]) / 2;
+    vp[1] = (h - vp[3]) / 2;
+}
+
 void video_output::reshape(int w, int h)
 {
     make_context_current();
     // Clear
-    _viewport[0] = 0;
-    _viewport[1] = 0;
-    _viewport[2] = w;
-    _viewport[3] = h;
+    _viewport[0][0] = 0;
+    _viewport[0][1] = 0;
+    _viewport[0][2] = w;
+    _viewport[0][3] = h;
+    _viewport[1][0] = 0;
+    _viewport[1][1] = 0;
+    _viewport[1][2] = w;
+    _viewport[1][3] = h;
     glViewport(0, 0, w, h);
     clear();
     if (!_frame[_active_index].is_valid())
@@ -909,45 +913,73 @@ void video_output::reshape(int w, int h)
     }
 
     // Compute viewport with the right aspect ratio
-    float dst_w = w;
-    float dst_h = h;
-    if (_params.stereo_mode == parameters::hdmi_frame_pack)
+    if (_params.stereo_mode == parameters::left_right
+            || _params.stereo_mode == parameters::left_right_half)
     {
-        // Account for the blank space between left and right view. See
-        // comments for this mode in the display_current_frame() function.
-        dst_h -= dst_h / 49.0f;
-    }
-    float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
-    float src_ar = _frame[_active_index].aspect_ratio;
-    if (_params.stereo_mode == parameters::left_right)
-    {
-        src_ar *= 2.0f;
+        float dst_w = w / 2;
+        float dst_h = h;
+        float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
+        float src_ar = _frame[_active_index].aspect_ratio;
+        if (_params.stereo_mode == parameters::left_right_half)
+        {
+            src_ar /= 2.0f;
+        }
+        compute_viewport(_viewport[0], w / 2, h, dst_w, dst_h, dst_ar, src_ar);
+        _viewport[1][0] = _viewport[0][0] + w / 2;
+        _viewport[1][1] = _viewport[0][1];
+        _viewport[1][2] = _viewport[0][2];
+        _viewport[1][3] = _viewport[0][3];
     }
     else if (_params.stereo_mode == parameters::top_bottom
-            || _params.stereo_mode == parameters::hdmi_frame_pack)
+            || _params.stereo_mode == parameters::top_bottom_half)
     {
-        src_ar /= 2.0f;
+        float dst_w = w;
+        float dst_h = h / 2;
+        float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
+        float src_ar = _frame[_active_index].aspect_ratio;
+        if (_params.stereo_mode == parameters::top_bottom_half)
+        {
+            src_ar *= 2.0f;
+        }
+        compute_viewport(_viewport[0], w, h / 2, dst_w, dst_h, dst_ar, src_ar);
+        _viewport[1][0] = _viewport[0][0];
+        _viewport[1][1] = _viewport[0][1] + h / 2;
+        _viewport[1][2] = _viewport[0][2];
+        _viewport[1][3] = _viewport[0][3];
     }
-    int vp_w = w;
-    int vp_h = h;
-    if (src_ar >= dst_ar)
+    else if (_params.stereo_mode == parameters::hdmi_frame_pack)
     {
-        // need black borders top and bottom
-        vp_h = dst_ar / src_ar * dst_h;
+        // HDMI frame packing mode has left view top, right view bottom, plus a
+        // blank area separating the two. 720p uses 30 blank lines (total: 720
+        // + 30 + 720 = 1470), 1080p uses 45 (total: 10280 + 45 + 1080 = 2205).
+        // In both cases, the blank area is 30/1470 = 45/2205 = 1/49 of the
+        // total height. See the document "High-Definition Multimedia Interface
+        // Specification Version 1.4a Extraction of 3D Signaling Portion" from
+        // hdmi.org.
+        int blank_lines = h / 49;
+        float dst_w = w;
+        float dst_h = (h - blank_lines) / 2;
+        float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
+        float src_ar = _frame[_active_index].aspect_ratio;
+        src_ar *= 2.0f;
+        compute_viewport(_viewport[0], w, (h - blank_lines) / 2, dst_w, dst_h, dst_ar, src_ar);
+        _viewport[1][0] = _viewport[0][0];
+        _viewport[1][1] = _viewport[0][1] + (h - blank_lines) / 2 + blank_lines;
+        _viewport[1][2] = _viewport[0][2];
+        _viewport[1][3] = _viewport[0][3];
     }
     else
     {
-        // need black borders left and right
-        vp_w = src_ar / dst_ar * dst_w;
+        float dst_w = w;
+        float dst_h = h;
+        float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
+        float src_ar = _frame[_active_index].aspect_ratio;
+        compute_viewport(_viewport[0], w, h, dst_w, dst_h, dst_ar, src_ar);
+        _viewport[1][0] = _viewport[0][0];
+        _viewport[1][1] = _viewport[0][1];
+        _viewport[1][2] = _viewport[0][2];
+        _viewport[1][3] = _viewport[0][3];
     }
-    int vp_x = (w - vp_w) / 2;
-    int vp_y = (h - vp_h) / 2;
-
-    // Save new size
-    _viewport[0] = vp_x;
-    _viewport[1] = vp_y;
-    _viewport[2] = vp_w;
-    _viewport[3] = vp_h;
 }
 
 bool video_output::need_redisplay_on_move()
