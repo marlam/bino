@@ -598,8 +598,9 @@ static void draw_quad(float x, float y, float w, float h)
     glEnd();
 }
 
-void video_output::display_current_frame(bool mono_right_instead_of_left,
-            float x, float y, float w, float h, const GLint viewport[2][4])
+void video_output::display_current_frame(
+        bool keep_viewport, bool mono_right_instead_of_left,
+        float x, float y, float w, float h, const GLint viewport[2][4])
 {
     make_context_current();
     assert(xgl::CheckError(HERE));
@@ -610,11 +611,12 @@ void video_output::display_current_frame(bool mono_right_instead_of_left,
         return;
     }
 
-    if (frame.width != _color_last_frame.width
-            || frame.height != _color_last_frame.height
-            || frame.aspect_ratio < _color_last_frame.aspect_ratio
-            || frame.aspect_ratio > _color_last_frame.aspect_ratio
-            || _render_last_params.stereo_mode != _params.stereo_mode)
+    if (!keep_viewport
+            && (frame.width != _color_last_frame.width
+                || frame.height != _color_last_frame.height
+                || frame.aspect_ratio < _color_last_frame.aspect_ratio
+                || frame.aspect_ratio > _color_last_frame.aspect_ratio
+                || _render_last_params.stereo_mode != _params.stereo_mode))
     {
         reshape(width(), height());
     }

@@ -91,15 +91,14 @@ protected:
     bool need_redisplay_on_move();              // Whether we need to redisplay if the video area moved
 
     /* Display the current frame.
-     * First version: This version is used by Equalizer, which needs to set some special properties.
-     * Second version: This version is called by the player which knows the current params.
-     * Third version: This version is used to redisplay the current frame, e.g. for repaint events.
+     * The first version is used by Equalizer, which needs to set some special properties.
+     * The second version is for everyone else.
      * TODO: This function needs to handle interlaced frames! */
-    void display_current_frame(bool mono_right_instead_of_left,
+    void display_current_frame(bool keep_viewport, bool mono_right_instead_of_left,
             float x, float y, float w, float h, const GLint viewport[2][4]);
     void display_current_frame()
     {
-        display_current_frame(false, -1.0f, -1.0f, 2.0f, 2.0f, _viewport);
+        display_current_frame(false, false, -1.0f, -1.0f, 2.0f, 2.0f, _viewport);
     }
 
 public:

@@ -193,7 +193,7 @@ public:
         GLint vp[2][4];
         std::memcpy(vp[0], viewport, 4 * sizeof(int));
         std::memcpy(vp[1], viewport, 4 * sizeof(int));
-        video_output::display_current_frame(mono_right_instead_of_left, x, y, w, h, vp);
+        video_output::display_current_frame(true, mono_right_instead_of_left, x, y, w, h, vp);
     }
 };
 
