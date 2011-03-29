@@ -579,6 +579,16 @@ public:
                 break;
             }
         }
+        else if (event->data.type == eq::Event::CHANNEL_POINTER_BUTTON_RELEASE)
+        {
+            float event_px = event->data.pointerButtonRelease.x;        // Event position in pixels
+            float channel_pw = event->data.context.pvp.w;               // Channel width in pixels
+            float event_x = event_px / channel_pw;                      // Event position relative to channel
+            // Event position relative to destination view (which seems to be the same as the canvas?)
+            float dest = event->data.context.vp.x + event_x * event->data.context.vp.w;
+            dest = std::min(std::max(dest, 0.0f), 1.0f);                // Clamp to [0,1] - just to be sure
+            _controller.send_cmd(command::set_pos, dest);               // Seek to this position
+        }
         return true;
     }
 
