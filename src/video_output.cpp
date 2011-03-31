@@ -963,7 +963,6 @@ void video_output::reshape(int w, int h)
         float dst_h = (h - blank_lines) / 2;
         float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
         float src_ar = _frame[_active_index].aspect_ratio;
-        src_ar *= 2.0f;
         compute_viewport(_viewport[0], w, (h - blank_lines) / 2, dst_w, dst_h, dst_ar, src_ar);
         _viewport[1][0] = _viewport[0][0];
         _viewport[1][1] = _viewport[0][1] + (h - blank_lines) / 2 + blank_lines;
