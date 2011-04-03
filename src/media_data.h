@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
+ * Joe <joe@wpj.cz>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -157,6 +158,55 @@ public:
     int sample_bits() const;
 };
 
+class subtitle_box
+{
+public:
+    // Format
+    typedef enum
+    {
+        ass,            // Advanced SubStation Alpha (ASS) format
+        text,           // UTF-8 text
+        /* The following are not yet supported:
+        image,          // Image in BGRA32 format, with box coordinates
+        */
+    } format_t;
+
+    format_t format;                    // Subtitle data format
+    std::string language;               // Language information (empty if unknown)
+
+    // Data
+    std::string style;                  // Style info
+    std::string str;                    // Dialogue text
+
+    int64_t presentation_start_time;    // Presentation timestamp
+    int64_t presentation_stop_time;     // End of presentation timestamp
+
+    // Constructor
+    subtitle_box();
+
+    // Comparison. This assumes that two subtitle boxes are identical when they
+    // have the same presentation times.
+    bool operator==(const subtitle_box &box) const
+    {
+        return (presentation_start_time == box.presentation_start_time
+                && presentation_stop_time == box.presentation_stop_time);
+    }
+    bool operator!=(const subtitle_box &box) const
+    {
+        return !operator==(box);
+    }
+
+    // Does this box contain valid data?
+    bool is_valid() const
+    {
+        return (!str.empty());
+    }
+
+    // Return a string describing the format
+    std::string format_info() const;    // Human readable information
+    std::string format_name() const;    // Short code
+};
+
 class parameters : public s11n
 {
 public:
@@ -207,7 +257,7 @@ public:
 
     // Set all uninitialised values to their defaults
     void set_defaults();
-    
+
     // Convert the stereo mode to and from a string representation
     static std::string stereo_mode_to_string(stereo_mode_t stereo_mode, bool stereo_mode_swap);
     static void stereo_mode_from_string(const std::string &s, stereo_mode_t &stereo_mode, bool &stereo_mode_swap);
