@@ -745,20 +745,9 @@ void video_output::display_current_frame(
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
             GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_srgb_tex[0], 0);
     draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
-    if (_input_subtitle_box.is_valid())
-    {
-        glUseProgram(0);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
-        draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
-        glDisable(GL_BLEND);
-    }
     // right view: render into _color_srgb_tex[1]
     if (left != right)
     {
-        glUseProgram(_color_prg);
         if (frame.layout == video_frame::bgra32)
         {
             glActiveTexture(GL_TEXTURE0);
@@ -776,16 +765,25 @@ void video_output::display_current_frame(
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
                 GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_srgb_tex[1], 0);
         draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
-        if (_input_subtitle_box.is_valid())
+    }
+    // render subtitles into color textures
+    if (_input_subtitle_box.is_valid())
+    {
+        glUseProgram(0);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
+        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
+                GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_srgb_tex[0], 0);
+        draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
+        if (left != right)
         {
-            glUseProgram(0);
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
+            glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
+                    GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_srgb_tex[1], 0);
             draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
-            glDisable(GL_BLEND);
         }
+        glDisable(GL_BLEND);
     }
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
     glViewport(viewport[0][0], viewport[0][1], viewport[0][2], viewport[0][3]);
