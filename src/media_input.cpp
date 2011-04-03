@@ -196,14 +196,7 @@ void media_input::open(const std::vector<std::string> &urls)
                 _duration = d;
             }
         }
-        for (int j = 0; j < _media_objects[i].subtitle_streams(); j++)
-        {
-            int64_t d = _media_objects[i].subtitle_duration(j);
-            if (d < _duration)
-            {
-                _duration = d;
-            }
-        }
+        // Ignore subtitle stream duration; it seems unreliable and is not important anyway.
     }
  
     // Skip advertisement in 3dtv.at movies. Only works for single media objects.
