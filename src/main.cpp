@@ -83,6 +83,8 @@ int main(int argc, char *argv[])
     options.push_back(&video);
     opt::val<int> audio("audio", 'a', opt::optional, 1, 999, 1);
     options.push_back(&audio);
+    opt::val<int> subtitle("subtitle", 's', opt::optional, 1, 999, 0);
+    options.push_back(&subtitle);
     std::vector<std::string> video_output_modes;
     video_output_modes.push_back("mono-left");
     video_output_modes.push_back("mono-right");
@@ -117,7 +119,7 @@ int main(int argc, char *argv[])
     options.push_back(&fullscreen);
     opt::flag center("center", 'c', opt::optional);
     options.push_back(&center);
-    opt::flag swap_eyes("swap-eyes", 's', opt::optional);
+    opt::flag swap_eyes("swap-eyes", 'S', opt::optional);
     options.push_back(&swap_eyes);
     opt::flag benchmark("benchmark", 'b', opt::optional);
     options.push_back(&benchmark);
@@ -182,6 +184,7 @@ int main(int argc, char *argv[])
                 "  -l|--log-level=LEVEL     Set log level (debug/info/warning/error/quiet).\n"
                 "  -v|--video=STREAM        Select video stream (1-n, depending on input).\n"
                 "  -a|--audio=STREAM        Select audio stream (1-n, depending on input).\n"
+                "  -s|--subtitle=STREAM     Select subtitle stream (1-n, depending on input).\n"
                 "  -i|--input=TYPE          Select input type (default autodetect):\n"
                 "    mono                     Single view.\n"
                 "    separate-left-right      Left/right separate streams, left first.\n"
@@ -224,7 +227,7 @@ int main(int argc, char *argv[])
                 "    stereo                   OpenGL quad-buffered stereo.\n"
                 "    equalizer                Multi-display via Equalizer (2D setup).\n"
                 "    equalizer-3d             Multi-display via Equalizer (3D setup).\n"
-                "  -s|--swap-eyes           Swap left/right view.\n"
+                "  -S|--swap-eyes           Swap left/right view.\n"
                 "  -f|--fullscreen          Fullscreen.\n"
                 "  -c|--center              Center window on screen.\n"
                 "  -P|--parallax=VAL        Parallax adjustment (-1 to +1).\n"
@@ -306,6 +309,7 @@ int main(int argc, char *argv[])
     init_data.urls = arguments;
     init_data.video_stream = video.value() - 1;
     init_data.audio_stream = audio.value() - 1;
+    init_data.subtitle_stream = subtitle.value() - 1;
     if (input_mode.value() == "")
     {
         init_data.stereo_layout_override = false;

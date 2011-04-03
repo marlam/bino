@@ -7,7 +7,7 @@
 .\" Copying and distribution of this file, with or without modification, are
 .\" permitted in any medium without royalty provided the copyright notice and this
 .\" notice are preserved. This file is offered as-is, without any warranty.
-.TH Bino 1 2011-02
+.TH Bino 1 2011-04
 .SH NAME
 Bino - a 3D video player with multi-display support.
 .SH SYNOPSIS
@@ -34,6 +34,8 @@ Select log level:
 Select video stream (1-n, depending on the input).
 .IP "\-a|\-\-audio=\fISTREAM\fP"
 Select audio stream (1-n, depending on the input).
+.IP "\-s|\-\-subtitle=\fISTREAM\fP"
+Select subtitle stream (1-n, depending on the input).
 .IP "\-i|\-\-input=\fITYPE\fP"
 Select input type.
 .RS
@@ -157,7 +159,7 @@ For stereo input, the default is \fIstereo\fP if the display supports it,
 otherwise \fIred\-cyan\-dubois\fP. The default for mono input is
 \fImono\-left\fP.
 .RE
-.IP "\-s|\-\-swap\-eyes"
+.IP "\-S|\-\-swap\-eyes"
 Swap left/right view.
 .IP "\-f|\-\-fullscreen"
 Fullscreen.

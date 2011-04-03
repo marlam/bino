@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
+ * Joe <joe@wpj.cz>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,12 +38,15 @@ private:
 
     std::vector<std::string> _video_stream_names;       // Descriptions of available video streams
     std::vector<std::string> _audio_stream_names;       // Descriptions of available audio streams
+    std::vector<std::string> _subtitle_stream_names;    // Descriptions of available subtitle streams
 
     bool _supports_stereo_layout_separate;      // Does this input support the stereo layout 'separate_streams'?
     int _active_video_stream;                   // The video stream that is currently active.
     int _active_audio_stream;                   // The audio stream that is currently active.
+    int _active_subtitle_stream;                // The subtitle stream that is currently active.
     bool _have_active_video_read;               // Whether a video frame read was started.
     bool _have_active_audio_read;               // Whether a audio blob read was started.
+    bool _have_active_subtitle_read;            // Whether a subtitle box read was started.
     size_t _last_audio_data_size;               // Size of last audio blob read
 
     int64_t _initial_skip;                      // Initial portion of input to skip, in microseconds.
@@ -50,10 +54,12 @@ private:
 
     video_frame _video_frame;                   // Video frame template for currently active video stream.
     audio_blob _audio_blob;                     // Audio blob template for currently active audio stream.
+    subtitle_box _subtitle_box;                 // Subtitle box template for currently active subtitle stream.
 
     // Find the media object and its stream index for a given video or audio stream number.
     void get_video_stream(int stream, int &media_object, int &media_object_video_stream) const;
     void get_audio_stream(int stream, int &media_object, int &media_object_audio_stream) const;
+    void get_subtitle_stream(int stream, int &media_object, int &media_object_subtitle_stream) const;
 
 public:
 
@@ -89,6 +95,12 @@ public:
         return _audio_stream_names.size();
     }
 
+    // Number of subtitle streams in this input.
+    int subtitle_streams() const
+    {
+        return _subtitle_stream_names.size();
+    }
+
     // Name of the given video stream.
     const std::string &video_stream_name(int video_stream) const
     {
@@ -99,6 +111,12 @@ public:
     const std::string &audio_stream_name(int audio_stream) const
     {
         return _audio_stream_names[audio_stream];
+    }
+
+    // Name of the given subtitle stream.
+    const std::string &subtitle_stream_name(int subtitle_stream) const
+    {
+        return _subtitle_stream_names[subtitle_stream];
     }
 
     // Initial portion of the input to skip.
@@ -126,11 +144,15 @@ public:
     // that contains all properties but no actual data.
     const audio_blob &audio_blob_template() const;
 
+    // Information about the active subtitle stream, in the form of a subtitle box
+    // that contains all properties but no actual data.
+    const subtitle_box &subtitle_box_template() const;
+
     /*
-     * Access video and audio data
+     * Access media data
      */
 
-    /* Set the active video and audio streams. */
+    /* Set the active media streams. */
     int selected_video_stream() const
     {
         return _active_video_stream;
@@ -141,6 +163,11 @@ public:
         return _active_audio_stream;
     }
     void select_audio_stream(int audio_stream);
+    int selected_subtitle_stream() const
+    {
+        return _active_subtitle_stream;
+    }
+    void select_subtitle_stream(int subtitle_stream);
 
     /* Check whether a stereo layout is supported by this input. */
     bool stereo_layout_is_supported(video_frame::stereo_layout_t layout, bool swap) const;
@@ -160,6 +187,13 @@ public:
     /* Wait for the audio data reading to finish, and return the blob.
      * An invalid blob means that EOF was reached. */
     audio_blob finish_audio_blob_read();
+
+    /* Start to read a subtitle box from the active stream asynchronously
+     * (in a separate thread). */
+    void start_subtitle_box_read();
+    /* Wait for the subtitle data reading to finish, and return the box.
+     * An invalid box means that EOF was reached. */
+    subtitle_box finish_subtitle_box_read();
 
     /* Return the last position in microseconds, of the last packet that was read in an
      * active stream. If the position is unkown, the minimum possible value is returned. */

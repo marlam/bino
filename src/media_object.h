@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
+ * Joe <joe@wpj.cz>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,11 +40,13 @@ private:
     // from the given streams
     void set_video_frame_template(int video_stream);
     void set_audio_blob_template(int audio_stream);
+    void set_subtitle_box_template(int subtitle_stream);
 
     // The threaded implementation can access private members
     friend class read_thread;
     friend class video_decode_thread;
     friend class audio_decode_thread;
+    friend class subtitle_decode_thread;
 
 public:
 
@@ -65,13 +68,15 @@ public:
     const std::string &tag_value(size_t i) const;
     const std::string &tag_value(const std::string &tag_name) const;
 
-    /* Get the number of video and audio streams in the file. */
+    /* Get the number of media streams in the file. */
     int video_streams() const;
     int audio_streams() const;
+    int subtitle_streams() const;
 
-    /* Activate a video or audio stream for usage. Inactive streams will not be accessible. */
+    /* Activate a media stream for usage. Inactive streams will not be accessible. */
     void video_stream_set_active(int video_stream, bool active);
     void audio_stream_set_active(int audio_stream, bool active);
+    void subtitle_stream_set_active(int subtitle_stream, bool active);
 
     /* Get information about video streams. */
     // Return a video frame with all properties filled in (but without any data).
@@ -89,10 +94,17 @@ public:
     // Note that this is only a hint; the properties of actual audio blobs may differ!
     const audio_blob &audio_blob_template(int audio_stream) const;
     // Audio stream duration in microseconds.
-    int64_t audio_duration(int video_stream) const;
+    int64_t audio_duration(int audio_stream) const;
+
+    /* Get information about subtitle streams. */
+    // Return a subtitle box with all properties filled in (but without any data).
+    // Note that this is only a hint; the properties of actual subtitle boxes may differ!
+    const subtitle_box &subtitle_box_template(int subtitle_stream) const;
+    // Subtitle stream duration in microseconds.
+    int64_t subtitle_duration(int subtitle_stream) const;
 
     /*
-     * Access video and audio data
+     * Access media data
      */
 
     /* Start to read a video frame asynchronously (in a separate thread). */
@@ -107,16 +119,22 @@ public:
      * An invalid blob means that EOF was reached. */
     audio_blob finish_audio_blob_read(int audio_stream);
 
+    /* Start to read a subtitle box asynchronously (in a separate thread). */
+    void start_subtitle_box_read(int subtitle_stream);
+    /* Wait for the subtitle box reading to finish, and return the box.
+     * An invalid box means that EOF was reached. */
+    subtitle_box finish_subtitle_box_read(int subtitle_stream);
+
     /* Return the last position in microseconds, of the last packet that was read in any
      * stream. If the position is unkown, the minimum possible value is returned. */
     int64_t tell();
 
     /* Seek to the given position in microseconds. This affects all streams.
      * Make sure that the position is not out of range!
-     * The real position after seeking is only revealed after reading the next video frame
-     * or audio blob. This position may differ from the requested position for various
-     * reasons (seeking is only possible to keyframes, seeking is not supported by the
-     * stream, ...) */
+     * The real position after seeking is only revealed after reading the next video frame,
+     * audio blob, or subtitle box. This position may differ from the requested position
+     * for various reasons (seeking is only possible to keyframes, seeking is not supported
+     * by the stream, ...) */
     void seek(int64_t pos);
 
     /*

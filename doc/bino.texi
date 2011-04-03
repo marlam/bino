@@ -103,13 +103,16 @@ Select video stream (1-n, depending on the input).
 @item -a
 @itemx --audio=@var{STREAM}
 Select audio stream (1-n, depending on the input).
+@item -s
+@itemx --subtitle=@var{STREAM}
+Select subtitle stream (1-n, depending on the input).
 @item -i
 @itemx --input=@var{TYPE}
 Select input type. @xref{Input Layouts}.
 @item -o
 @itemx --output=@var{TYPE}
 Select output type. @xref{Output Techniques}.
-@item -s
+@item -S
 @itemx --swap-eyes
 Swap left/right view.
 @item -f
