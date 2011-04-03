@@ -40,16 +40,16 @@ private:
 
     void init_ass();
 
-    void render_ass(const video_frame &frame, const subtitle_box &box, uint32_t *rgba32_buffer);
+    void render_ass(const video_frame &frame, const subtitle_box &box, uint32_t *bgra32_buffer);
     void blend_ass_image(const ASS_Image *img, int frame_width, int frame_height, uint32_t *buf);
 
 public:
     subtitle_renderer();
     ~subtitle_renderer();
 
-    // Render the subtitle box that belongs to the video frame into a buffer in RGBA32 format.
+    // Render the subtitle box that belongs to the video frame into a buffer in BGRA32 format.
     // The buffer must have the correct size for frame.height * frame.width pixels of type uint32_t.
-    void render(const video_frame &frame, const subtitle_box &box, uint32_t *rgba32_buffer);
+    void render(const video_frame &frame, const subtitle_box &box, uint32_t *bgra32_buffer);
 };
 
 #endif

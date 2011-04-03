@@ -404,7 +404,7 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, frame.width, frame.height,
-                GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, NULL);
+                GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
         _input_subtitle_box = subtitle;
     }

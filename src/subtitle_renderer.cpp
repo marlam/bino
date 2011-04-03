@@ -119,7 +119,7 @@ void subtitle_renderer::init_ass()
     }
 }
 
-void subtitle_renderer::render(const video_frame &frame, const subtitle_box &box, uint32_t *rgba32_buffer)
+void subtitle_renderer::render(const video_frame &frame, const subtitle_box &box, uint32_t *bgra32_buffer)
 {
     init_ass();
 
@@ -127,12 +127,12 @@ void subtitle_renderer::render(const video_frame &frame, const subtitle_box &box
     {
     case subtitle_box::text:
     case subtitle_box::ass:
-        render_ass(frame, box, rgba32_buffer);
+        render_ass(frame, box, bgra32_buffer);
         break;
     }
 }
 
-void subtitle_renderer::render_ass(const video_frame &frame, const subtitle_box &box, uint32_t *rgba32_buffer)
+void subtitle_renderer::render_ass(const video_frame &frame, const subtitle_box &box, uint32_t *bgra32_buffer)
 {
     // Set ASS parameters
     ass_set_frame_size(_ass_renderer, frame.width, frame.height);
@@ -171,10 +171,10 @@ void subtitle_renderer::render_ass(const video_frame &frame, const subtitle_box 
     ASS_Image *img = ass_render_frame(_ass_renderer, ass_track, box.presentation_start_time / 1000, NULL);
 
     // Render into buffer
-    std::memset(rgba32_buffer, 0, frame.width * frame.height * sizeof(uint32_t));
+    std::memset(bgra32_buffer, 0, frame.width * frame.height * sizeof(uint32_t));
     while (img && img->w > 0 && img->h > 0)
     {
-        blend_ass_image(img, frame.width, frame.height, rgba32_buffer);
+        blend_ass_image(img, frame.width, frame.height, bgra32_buffer);
         img = img->next;
     }
 
@@ -199,20 +199,21 @@ void subtitle_renderer::blend_ass_image(const ASS_Image *img, int frame_width, i
         }
         for (int src_x = 0; src_x < img->w; src_x++)
         {
-            unsigned int k = src[src_x] * A / 255;
+            unsigned int a = src[src_x] * A / 255;
             int dst_x = img->dst_x + src_x;
             if (dst_x >= frame_width)
             {
                 break;
             }
             uint32_t *dst = buf + (dst_y * frame_width + dst_x);
-            unsigned int old_r = (*dst >> 24);
-            unsigned int old_g = (*dst >> 16) & 0xff;
-            unsigned int old_b = (*dst >> 8) & 0xff;
-            unsigned int r = (k * R + (255 - k) * old_r) / 255;
-            unsigned int g = (k * G + (255 - k) * old_g) / 255;
-            unsigned int b = (k * B + (255 - k) * old_b) / 255;
-            *dst = (r << 24) | (g << 16) | (b << 8) | k;
+            // XXX: The BGRA layout used here may be wrong on big endian system
+            unsigned int old_r = (*dst >> 16) & 0xff;
+            unsigned int old_g = (*dst >> 8) & 0xff;
+            unsigned int old_b = (*dst) & 0xff;
+            unsigned int r = (a * R + (255 - a) * old_r) / 255;
+            unsigned int g = (a * G + (255 - a) * old_g) / 255;
+            unsigned int b = (a * B + (255 - a) * old_b) / 255;
+            *dst = (a << 24) | (r << 16) | (g << 8) | b;
         }
         src += img->stride;
     }
