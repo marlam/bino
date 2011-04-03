@@ -28,12 +28,14 @@
 #include <GL/glew.h>
 
 #include "media_data.h"
+#include "subtitle_renderer.h"
 #include "controller.h"
 
 
 class video_output : public controller
 {
 private:
+    subtitle_renderer _subtitle_renderer;
     bool _initialized;
     bool _srgb_textures_are_broken;     // XXX: Hack: work around broken SRGB texture implementations
 
@@ -51,9 +53,11 @@ private:
     GLuint _input_yuv_u_tex[2][2];      // for yuv formats: u component
     GLuint _input_yuv_v_tex[2][2];      // for yuv formats: v component
     GLuint _input_bgra32_tex[2][2];     // for bgra32 format
+    GLuint _input_subtitle_tex;         // for subtitles; same dimension as the video frame
+    subtitle_box _input_subtitle_box;   // the subtitle box currently stored in the texture
     int _input_yuv_chroma_width_divisor[2];     // for yuv formats: chroma subsampling
     int _input_yuv_chroma_height_divisor[2];    // for yuv formats: chroma subsampling
-    // Step 2: rendering
+    // Step 2: color space conversion and color correction
     video_frame _color_last_frame;      // last frame for this step; used for reinitialization check
     GLuint _color_prg;                  // color space transformation, color adjustment
     GLuint _color_fbo;                  // framebuffer object to render into the sRGB texture
@@ -141,7 +145,7 @@ public:
     virtual void process_events() = 0;
     
     /* Prepare a new frame for display. */
-    void prepare_next_frame(const video_frame &frame);
+    void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
     /* Switch to the next frame (make it the current one) */
     void activate_next_frame();
     /* Set display parameters. */

@@ -79,7 +79,7 @@ void video_output_qt_widget::paintGL()
     {
         QMessageBox::critical(this, "Error", e.what());
         // Disable further output and stop the player
-        _vo->prepare_next_frame(video_frame());
+        _vo->prepare_next_frame(video_frame(), subtitle_box());
         _vo->activate_next_frame();
         _vo->send_cmd(command::toggle_play);
     }

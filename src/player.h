@@ -44,6 +44,7 @@ public:
     std::vector<std::string> urls;              // Input media objects
     int video_stream;                           // Selected video stream
     int audio_stream;                           // Selected audio stream
+    int subtitle_stream;                        // Selected subtitle stream
     bool benchmark;                             // Benchmark mode?
     bool fullscreen;                            // Make video fullscreen?
     bool center;                                // Center video on screen?
@@ -132,6 +133,9 @@ private:
     // Normalize an input position to [0,1]
     float normalize_pos(int64_t pos);
 
+    // Set the current subtitle from the next subtitle
+    void set_current_subtitle_box();
+
     // Reset the play state
     void reset_playstate();
 
@@ -139,8 +143,10 @@ private:
     void stop_playback();
 
 protected:
-    // The current video frame
+    // The current video frame and subtitle
     video_frame _video_frame;
+    subtitle_box _current_subtitle_box;
+    subtitle_box _next_subtitle_box;
 
     // Create video and audio output (overridable by subclasses)
     virtual video_output *create_video_output();

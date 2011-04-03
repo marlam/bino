@@ -42,6 +42,7 @@ player_init_data::player_init_data() :
     urls(),
     video_stream(0),
     audio_stream(0),
+    subtitle_stream(-1),
     benchmark(false),
     fullscreen(false),
     center(false),
@@ -65,6 +66,7 @@ void player_init_data::save(std::ostream &os) const
     s11n::save(os, urls);
     s11n::save(os, video_stream);
     s11n::save(os, audio_stream);
+    s11n::save(os, subtitle_stream);
     s11n::save(os, benchmark);
     s11n::save(os, fullscreen);
     s11n::save(os, center);
@@ -85,6 +87,7 @@ void player_init_data::load(std::istream &is)
     s11n::load(is, urls);
     s11n::load(is, video_stream);
     s11n::load(is, audio_stream);
+    s11n::load(is, subtitle_stream);
     s11n::load(is, benchmark);
     s11n::load(is, fullscreen);
     s11n::load(is, center);
@@ -155,7 +158,7 @@ void player::stop_playback()
     if (_video_output)
     {
         _video_output->exit_fullscreen();
-        _video_output->prepare_next_frame(video_frame());
+        _video_output->prepare_next_frame(video_frame(), subtitle_box());
         _video_output->activate_next_frame();
     }
     notify(notification::play, true, false);
@@ -214,6 +217,14 @@ void player::open(const player_init_data &init_data)
     if (_media_input->audio_streams() > 0)
     {
         _media_input->select_audio_stream(init_data.audio_stream);
+    }
+    if (_media_input->subtitle_streams() > 0 && _media_input->subtitle_streams() < init_data.subtitle_stream + 1)
+    {
+        throw exc(str::asprintf("Subtitle stream %d not found.", init_data.subtitle_stream + 1));
+    }
+    if (_media_input->subtitle_streams() > 0 && init_data.subtitle_stream >= 0)
+    {
+        _media_input->select_subtitle_stream(init_data.subtitle_stream);
     }
 
     // Create audio output
@@ -279,6 +290,16 @@ void player::open(const player_init_data &init_data)
     }
 }
 
+void player::set_current_subtitle_box()
+{
+    _current_subtitle_box = subtitle_box();
+    if (_next_subtitle_box.is_valid()
+            && _next_subtitle_box.presentation_start_time < _video_pos + _media_input->video_frame_duration())
+    {
+        _current_subtitle_box = _next_subtitle_box;
+    }
+}
+
 int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
 {
     *more_steps = false;
@@ -304,6 +325,21 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
             return 0;
         }
         _video_pos = _video_frame.presentation_time;
+        if (_media_input->selected_subtitle_stream() >= 0)
+        {
+            do
+            {
+                _media_input->start_subtitle_box_read();
+                _next_subtitle_box = _media_input->finish_subtitle_box_read();
+                if (!_next_subtitle_box.is_valid())
+                {
+                    msg::dbg("Empty subtitle stream.");
+                    stop_playback();
+                    return 0;
+                }
+            }
+            while (_next_subtitle_box.presentation_stop_time < _video_pos);
+        }
         if (_audio_output)
         {
             _media_input->start_audio_blob_read(_audio_output->required_initial_data_size());
@@ -342,6 +378,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
             _first_frame = true;
             *more_steps = true;
             *prep_frame = true;
+            set_current_subtitle_box();
             return 0;
         }
     }
@@ -390,6 +427,21 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
             return 0;
         }
         _video_pos = _video_frame.presentation_time;
+        if (_media_input->selected_subtitle_stream() >= 0)
+        {
+            do
+            {
+                _media_input->start_subtitle_box_read();
+                _next_subtitle_box = _media_input->finish_subtitle_box_read();
+                if (!_next_subtitle_box.is_valid())
+                {
+                    msg::dbg("Seeked to end of subtitle?!");
+                    stop_playback();
+                    return 0;
+                }
+            }
+            while (_next_subtitle_box.presentation_stop_time < _video_pos);
+        }
         if (_audio_output)
         {
             _audio_output->stop();
@@ -420,6 +472,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
         _previous_frame_dropped = false;
         *more_steps = true;
         *prep_frame = true;
+        set_current_subtitle_box();
         return 0;
     }
     else if (_pause_request)
@@ -462,6 +515,18 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
             _first_frame = false;
         }
         _video_pos = _video_frame.presentation_time;
+        if (_media_input->selected_subtitle_stream() >= 0)
+        {
+            // TODO: start subtitle reading asynchronously to use benefits of multithreading
+            while (_next_subtitle_box.is_valid()
+                    && _next_subtitle_box.presentation_stop_time < _video_pos)
+            {
+                _media_input->start_subtitle_box_read();
+                _next_subtitle_box = _media_input->finish_subtitle_box_read();
+                // If the box is invalid, we reached the end of the subtitle stream.
+                // Ignore this and let audio/video continue.
+            }
+        }
         if (!_audio_output)
         {
             _master_time_start += (_video_pos - _master_time_pos);
@@ -478,6 +543,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
         else if (!_pause_request)
         {
             *prep_frame = true;
+            set_current_subtitle_box();
         }
         *more_steps = true;
         return 0;
@@ -600,7 +666,7 @@ bool player::run_step()
     }
     if (prep_frame)
     {
-        _video_output->prepare_next_frame(_video_frame);
+        _video_output->prepare_next_frame(_video_frame, _current_subtitle_box);
     }
     else if (drop_frame)
     {

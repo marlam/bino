@@ -129,7 +129,8 @@ public:
 
     void prepare_next_frame(video_output *vo)
     {
-        vo->prepare_next_frame(_video_frame);
+        // TODO: Add support for subtitles
+        vo->prepare_next_frame(_video_frame, subtitle_box());
     }
 
     void step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
