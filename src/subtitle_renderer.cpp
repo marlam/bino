@@ -146,8 +146,26 @@ void subtitle_renderer::render_ass(const video_frame &frame, const subtitle_box 
     if (box.format == subtitle_box::ass)
     {
         ass_process_codec_private(ass_track, const_cast<char *>(box.style.c_str()), box.style.length());
+        ass_process_data(ass_track, const_cast<char *>(box.str.c_str()), box.str.length());
     }
-    ass_process_data(ass_track, const_cast<char *>(box.str.c_str()), box.str.length());
+    else
+    {
+        std::string style =
+            "ScriptType: v4.00+\n"
+            "\n"
+            "[V4+ Styles]\n"
+            "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, "
+            "OutlineColour, BackColour, Bold, Italic, Underline, BorderStyle, "
+            "Outline, Shadow, Alignment, MarginL, MarginR, MarginV, AlphaLevel, Encoding\n"
+            "Style: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,1,1,0,2,10,10,10,0,0\n"
+            "\n"
+            "[Events]\n"
+            "Format: Layer, Start, End, Text\n"
+            "\n";
+        std::string str = "Dialogue: 0,0:00:00.00,9:00:00.00," + box.str;
+        ass_process_codec_private(ass_track, const_cast<char *>(style.c_str()), style.length());
+        ass_process_data(ass_track, const_cast<char *>(str.c_str()), str.length());
+    }
 
     // Render subtitle
     ASS_Image *img = ass_render_frame(_ass_renderer, ass_track, box.presentation_start_time / 1000, NULL);
