@@ -1631,15 +1631,15 @@ void media_object::close()
     try
     {
         // Stop decoder threads
-        for (size_t i = 0; i < _ffmpeg->video_streams.size(); i++)
+        for (size_t i = 0; i < _ffmpeg->video_decode_threads.size(); i++)
         {
             _ffmpeg->video_decode_threads[i].finish();
         }
-        for (size_t i = 0; i < _ffmpeg->audio_streams.size(); i++)
+        for (size_t i = 0; i < _ffmpeg->audio_decode_threads.size(); i++)
         {
             _ffmpeg->audio_decode_threads[i].finish();
         }
-        for (size_t i = 0; i < _ffmpeg->subtitle_streams.size(); i++)
+        for (size_t i = 0; i < _ffmpeg->subtitle_decode_threads.size(); i++)
         {
             _ffmpeg->subtitle_decode_threads[i].finish();
         }
