@@ -17,6 +17,7 @@ bino_SOURCES = \
         video_output.h video_output.cpp \
         video_output_qt.h video_output_qt.cpp \
 	xgl.h xgl.cpp \
+        subtitle_renderer.h subtitle_renderer.cpp \
 	audio_output.h audio_output.cpp \
 	player.h player.cpp \
 	player_qt.h player_qt.cpp \
@@ -66,11 +67,11 @@ CLEANFILES = $(BUILT_SOURCES)
 DEFS += -DDOCDIR=\"$(docdir)\"
 
 AM_CPPFLAGS = -I$(top_srcdir)/src/base \
-	$(libavformat_CFLAGS) $(libswscale_CFLAGS) \
+	$(libavformat_CFLAGS) $(libswscale_CFLAGS) $(libass_CFLAGS) \
 	$(libopenal_CFLAGS) $(libglew_CFLAGS) $(libqtopengl_CFLAGS)
 
 bino_LDADD = $(top_builddir)/src/base/libbase.a \
-	$(libavformat_LIBS) $(libswscale_LIBS) \
+	$(libavformat_LIBS) $(libswscale_LIBS) $(libass_LIBS) \
 	$(libopenal_LIBS) $(libglew_LIBS) $(libqtopengl_LIBS)
 
 if HAVE_LIBEQUALIZER

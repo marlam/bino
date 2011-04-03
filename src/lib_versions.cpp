@@ -28,6 +28,8 @@ extern "C"
 #include <libswscale/swscale.h>
 }
 
+#include <ass/ass.h>
+
 #ifdef __APPLE__
 #  include <OpenAL/al.h>
 #  include <OpenAL/alc.h>
@@ -50,6 +52,7 @@ extern "C"
 
 
 static std::vector<std::string> ffmpeg_v;
+static std::vector<std::string> libass_v;
 static std::vector<std::string> openal_v;
 static std::vector<std::string> opengl_v;
 static std::vector<std::string> glew_v;
@@ -69,6 +72,15 @@ static void ffmpeg_versions()
         ffmpeg_v.push_back(str::asprintf("libswscale %d.%d.%d / %d.%d.%d",
                     LIBSWSCALE_VERSION_MAJOR, LIBSWSCALE_VERSION_MINOR, LIBSWSCALE_VERSION_MICRO,
                     swscale_version() >> 16, swscale_version() >> 8 & 0xff, swscale_version() & 0xff));
+    }
+}
+
+static void libass_versions()
+{
+    if (libass_v.size() == 0)
+    {
+        libass_v.push_back(str::asprintf("%d.%d.%d",
+                    LIBASS_VERSION >> 28, LIBASS_VERSION >> 20 & 0xff, LIBASS_VERSION >> 12 & 0xff));
     }
 }
 
@@ -180,6 +192,7 @@ static void qt_versions()
 std::vector<std::string> lib_versions(bool html)
 {
     ffmpeg_versions();
+    libass_versions();
     openal_versions();
     opengl_versions();
     glew_versions();
@@ -194,6 +207,12 @@ std::vector<std::string> lib_versions(bool html)
         for (size_t i = 0; i < ffmpeg_v.size(); i++)
         {
             v.push_back(std::string("<br>") + ffmpeg_v[i]);
+        }
+        v.push_back("</li>");
+        v.push_back("<li><a href=\"http://code.google.com/p/libass/\">LibASS</a>");
+        for (size_t i = 0; i < libass_v.size(); i++)
+        {
+            v.push_back(std::string("<br>") + libass_v[i]);
         }
         v.push_back("</li>");
         v.push_back("<li><a href=\"http://kcat.strangesoft.net/openal.html\">OpenAL</a>");
@@ -234,6 +253,11 @@ std::vector<std::string> lib_versions(bool html)
         for (size_t i = 0; i < ffmpeg_v.size(); i++)
         {
             v.push_back(std::string("    ") + ffmpeg_v[i]);
+        }
+        v.push_back("LibASS:");
+        for (size_t i = 0; i < libass_v.size(); i++)
+        {
+            v.push_back(std::string("    ") + libass_v[i]);
         }
         v.push_back("OpenAL:");
         for (size_t i = 0; i < openal_v.size(); i++)

@@ -96,6 +96,14 @@ if test "$HAVE_LIBSWSCALE" != "1"; then
 fi
 AC_CHECK_FUNCS([sysconf])
 
+dnl libass
+PKG_CHECK_MODULES([libass], [libass >= 0.9.9], [HAVE_LIBASS=1], [HAVE_LIBASS=0])
+if test "$HAVE_LIBASS" != "1"; then
+    AC_MSG_WARN([library libass not found:])
+    AC_MSG_WARN([$libopenal_PKG_ERRORS])
+    AC_MSG_WARN([libass is provided by LibASS; Debian package: libass-dev])
+fi
+
 dnl OpenAL
 PKG_CHECK_MODULES([libopenal], [openal >= 0.0], [HAVE_LIBOPENAL=1], [HAVE_LIBOPENAL=0])
 if test "$HAVE_LIBOPENAL" != "1"; then
@@ -146,6 +154,7 @@ AM_CONDITIONAL([HAVE_LIBEQUALIZER], [test "$HAVE_LIBEQUALIZER" = "1"])
 dnl Check if all libraries were found
 if test "$HAVE_LIBAVFORMAT" != "1" \
     -o "$HAVE_LIBSWSCALE" != "1" \
+    -o "$HAVE_LIBASS" != "1" \
     -o "$HAVE_LIBOPENAL" != "1" \
     -o "$HAVE_LIBQTOPENGL" != "1" \
     -o \( "$equalizer" = "yes" -a "$HAVE_LIBEQUALIZER" != "1" \) \
