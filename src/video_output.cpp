@@ -256,7 +256,7 @@ void video_output::input_init(int index, const video_frame &frame)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, frame.width, frame.height,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, frame.width, frame.height,
             0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
     _input_subtitle_box = subtitle_box();
     assert(xgl::CheckError(HERE));
@@ -784,7 +784,7 @@ void video_output::display_current_frame(
         glUseProgram(_subtitle_prg);
         glUniform1i(glGetUniformLocation(_subtitle_prg, "subtitle_tex"), 0);
         glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
