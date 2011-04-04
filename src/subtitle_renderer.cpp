@@ -150,6 +150,7 @@ void subtitle_renderer::render_ass(const video_frame &frame, const subtitle_box 
     else
     {
         std::string style =
+            "[Script Info]\n"
             "ScriptType: v4.00+\n"
             "\n"
             "[V4+ Styles]\n"
