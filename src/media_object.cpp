@@ -599,9 +599,7 @@ void media_object::set_audio_blob_template(int index)
     {
         throw exc(_url + " audio stream " + str::from(audio_stream)
                 + ": Cannot handle audio with sample format "
-                + str::from(static_cast<int>(audio_codec_ctx->sample_fmt)) + ".");
-        // XXX: Once widely available, use av_get_sample_fmt_name(audio_codec_ctx->sample_fmt)
-        // in this error message.
+                + av_get_sample_fmt_name(audio_codec_ctx->sample_fmt) + ".");
     }
 }
 
@@ -636,7 +634,7 @@ void media_object::open(const std::string &url)
     {
         throw exc(_url + ": Cannot read stream info: " + my_av_strerror(e));
     }
-    dump_format(_ffmpeg->format_ctx, 0, _url.c_str(), 0);
+    av_dump_format(_ffmpeg->format_ctx, 0, _url.c_str(), 0);
 
     /* Metadata */
     AVMetadataTag *tag = NULL;
@@ -663,16 +661,12 @@ void media_object::open(const std::string &url)
             {
                 throw exc(_url + " stream " + str::from(i) + ": Invalid frame size.");
             }
-            _ffmpeg->video_codec_ctxs[j]->thread_count = video_decoding_threads();
-            if (avcodec_thread_init(_ffmpeg->video_codec_ctxs[j], _ffmpeg->video_codec_ctxs[j]->thread_count) != 0)
-            {
-                _ffmpeg->video_codec_ctxs[j]->thread_count = 1;
-            }
             _ffmpeg->video_codecs.push_back(avcodec_find_decoder(_ffmpeg->video_codec_ctxs[j]->codec_id));
             if (!_ffmpeg->video_codecs[j])
             {
                 throw exc(_url + " stream " + str::from(i) + ": Unsupported video codec.");
             }
+            _ffmpeg->video_codec_ctxs[j]->thread_count = video_decoding_threads();
             if ((e = avcodec_open(_ffmpeg->video_codec_ctxs[j], _ffmpeg->video_codecs[j])) < 0)
             {
                 _ffmpeg->video_codecs[j] = NULL;
@@ -703,7 +697,8 @@ void media_object::open(const std::string &url)
                 }
                 avpicture_fill(reinterpret_cast<AVPicture *>(_ffmpeg->video_out_frames[j]), _ffmpeg->video_buffers[j],
                         PIX_FMT_BGRA, _ffmpeg->video_codec_ctxs[j]->width, _ffmpeg->video_codec_ctxs[j]->height);
-                _ffmpeg->video_img_conv_ctxs.push_back(sws_getContext(
+                // Call sws_getCachedContext(NULL, ...) instead of sws_getContext(...) just to avoid a deprecation warning.
+                _ffmpeg->video_img_conv_ctxs.push_back(sws_getCachedContext(NULL,
                             _ffmpeg->video_codec_ctxs[j]->width, _ffmpeg->video_codec_ctxs[j]->height, _ffmpeg->video_codec_ctxs[j]->pix_fmt,
                             _ffmpeg->video_codec_ctxs[j]->width, _ffmpeg->video_codec_ctxs[j]->height, PIX_FMT_BGRA,
                             SWS_POINT, NULL, NULL, NULL));
