@@ -49,6 +49,7 @@ EXTRA_DIST = \
 	icons/bb.ipe icons/bb.png \
 	icons/bbb.ipe icons/bbb.png \
 	video_output_color.fs.glsl \
+	video_output_subtitle.fs.glsl \
 	video_output_render.fs.glsl
 
 qt_resources-rcc.cpp: $(filter %.png,$(EXTRA_DIST)) ../AUTHORS ../COPYING
@@ -58,6 +59,7 @@ nodist_bino_SOURCES = \
 	player_qt-moc.cpp \
 	video_output_qt-moc.cpp \
 	video_output_color.fs.glsl.h \
+	video_output_subtitle.fs.glsl.h \
 	video_output_render.fs.glsl.h
 
 BUILT_SOURCES = $(nodist_bino_SOURCES)

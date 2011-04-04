@@ -35,6 +35,7 @@
 
 #include "video_output.h"
 #include "video_output_color.fs.glsl.h"
+#include "video_output_subtitle.fs.glsl.h"
 #include "video_output_render.fs.glsl.h"
 #include "xgl.h"
 
@@ -103,6 +104,7 @@ video_output::video_output(bool receive_notifications) :
     }
     _input_subtitle_tex = 0;
     _color_prg = 0;
+    _subtitle_prg = 0;
     _color_fbo = 0;
     _render_prg = 0;
     _render_mask_tex = 0;
@@ -486,6 +488,10 @@ void video_output::color_init(const video_frame &frame)
     str::replace(color_fs_src, "$chroma_offset_y", chroma_offset_y_str);
     _color_prg = xgl::CreateProgram("video_output_color", "", "", color_fs_src);
     xgl::LinkProgram("video_output_color", _color_prg);
+    std::string subtitle_fs_src(VIDEO_OUTPUT_SUBTITLE_FS_GLSL_STR);
+    str::replace(subtitle_fs_src, "$srgb_broken", (_srgb_textures_are_broken ? "1" : "0"));
+    _subtitle_prg = xgl::CreateProgram("video_output_subtitle", "", "", subtitle_fs_src);
+    xgl::LinkProgram("video_output_subtitle", _subtitle_prg);
     for (int i = 0; i < (frame.stereo_layout == video_frame::mono ? 1 : 2); i++)
     {
         glGenTextures(1, &(_color_srgb_tex[i]));
@@ -510,6 +516,11 @@ void video_output::color_deinit()
     {
         xgl::DeleteProgram(_color_prg);
         _color_prg = 0;
+    }
+    if (_subtitle_prg != 0)
+    {
+        xgl::DeleteProgram(_subtitle_prg);
+        _subtitle_prg = 0;
     }
     for (int i = 0; i < 2; i++)
     {
@@ -661,7 +672,7 @@ void video_output::display_current_frame(
     {
         reshape(width(), height());
     }
-    if (!_color_prg || !color_is_compatible(frame))
+    if (!_color_prg || !_subtitle_prg || !color_is_compatible(frame))
     {
         color_deinit();
         color_init(frame);
@@ -770,18 +781,21 @@ void video_output::display_current_frame(
     // render subtitles into color textures
     if (_input_subtitle_box.is_valid())
     {
-        glUseProgram(0);
+        glUseProgram(_subtitle_prg);
+        glUniform1i(glGetUniformLocation(_subtitle_prg, "subtitle_tex"), 0);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
                 GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_srgb_tex[0], 0);
+        glUniform1f(glGetUniformLocation(_subtitle_prg, "parallax"), 0.0f);     // TODO: make this adjustable
         draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
         if (left != right)
         {
             glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
                     GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_srgb_tex[1], 0);
+            glUniform1f(glGetUniformLocation(_subtitle_prg, "parallax"), 0.0f);     // TODO: make this adjustable
             draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
         }
         glDisable(GL_BLEND);

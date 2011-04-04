@@ -61,6 +61,7 @@ private:
     // Step 2: color space conversion and color correction
     video_frame _color_last_frame;      // last frame for this step; used for reinitialization check
     GLuint _color_prg;                  // color space transformation, color adjustment
+    GLuint _subtitle_prg;               // rendering a subtitle onto the sRGB texture
     GLuint _color_fbo;                  // framebuffer object to render into the sRGB texture
     GLuint _color_srgb_tex[2];          // output: sRGB texture
     // Step 3: rendering
