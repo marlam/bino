@@ -110,6 +110,8 @@ void subtitle_renderer::init_ass()
         {
             throw exc("Cannot initialize LibASS renderer");
         }
+        ass_set_hinting(_ass_renderer, ASS_HINTING_LIGHT);
+        ass_set_fonts(_ass_renderer, NULL, "Sans", 1, NULL, 1);
         _ass_initialized = true;
     }
 }
@@ -131,12 +133,8 @@ void subtitle_renderer::render_ass(const video_frame &frame, const subtitle_box 
 {
     // Set ASS parameters
     ass_set_frame_size(_ass_renderer, frame.width, frame.height);
-    ass_set_margins(_ass_renderer, 0, 0, 0, 0);
-    ass_set_use_margins(_ass_renderer, 1);
     ass_set_aspect_ratio(_ass_renderer, 1.0, frame.aspect_ratio);
     ass_set_font_scale(_ass_renderer, 1.0);
-    ass_set_hinting(_ass_renderer, ASS_HINTING_LIGHT);
-    ass_set_fonts(_ass_renderer, NULL, "Sans", 1, NULL, 1);
 
     // Put subtitle data into ASS track
     ASS_Track *ass_track = ass_new_track(_ass_library);
