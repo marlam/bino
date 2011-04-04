@@ -5,6 +5,7 @@
  * Martin Lambers <marlam@marlam.de>
  * Stefan Eilemann <eile@eyescale.ch>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
+ * Joe <cuchac@email.cz>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
