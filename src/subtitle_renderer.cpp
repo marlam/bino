@@ -133,7 +133,7 @@ void subtitle_renderer::render_ass(const video_frame &frame, const subtitle_box 
 {
     // Set ASS parameters
     ass_set_frame_size(_ass_renderer, frame.width, frame.height);
-    ass_set_aspect_ratio(_ass_renderer, 1.0, frame.aspect_ratio);
+    ass_set_aspect_ratio(_ass_renderer, static_cast<float>(frame.width) / static_cast<float>(frame.height), frame.aspect_ratio);
     ass_set_font_scale(_ass_renderer, 1.0);
 
     // Put subtitle data into ASS track
