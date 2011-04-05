@@ -110,7 +110,7 @@ void subtitle_renderer::init_ass()
         {
             throw exc("Cannot initialize LibASS renderer");
         }
-        ass_set_hinting(_ass_renderer, ASS_HINTING_LIGHT);
+        ass_set_hinting(_ass_renderer, ASS_HINTING_NATIVE);
         ass_set_fonts(_ass_renderer, NULL, "Sans", 1, NULL, 1);
         _ass_initialized = true;
     }
