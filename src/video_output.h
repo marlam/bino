@@ -56,17 +56,19 @@ private:
     GLuint _input_bgra32_tex[2][2];     // for bgra32 format
     GLuint _input_subtitle_tex;         // for subtitles; same dimension as the video frame
     subtitle_box _input_subtitle_box;   // the subtitle box currently stored in the texture
+    int _input_subtitle_width;          // the width of the current subtitle texture
+    int _input_subtitle_height;         // the height of the current subtitle texture
     int _input_yuv_chroma_width_divisor[2];     // for yuv formats: chroma subsampling
     int _input_yuv_chroma_height_divisor[2];    // for yuv formats: chroma subsampling
     // Step 2: color space conversion and color correction
     video_frame _color_last_frame;      // last frame for this step; used for reinitialization check
     GLuint _color_prg;                  // color space transformation, color adjustment
-    GLuint _subtitle_prg;               // rendering a subtitle onto the sRGB texture
     GLuint _color_fbo;                  // framebuffer object to render into the sRGB texture
     GLuint _color_srgb_tex[2];          // output: sRGB texture
     // Step 3: rendering
     parameters _render_last_params;     // last params for this step; used for reinitialization check
     GLuint _render_prg;                 // reads sRGB texture, renders according to _params[_active_index]
+    GLuint _render_dummy_tex;           // an empty subtitle texture
     GLuint _render_mask_tex;            // for the masking modes even-odd-{rows,columns}, checkerboard
     // OpenGL viewports for drawing the two views of the video frame
     GLint _viewport[2][4];
@@ -84,6 +86,16 @@ private:
     void render_init();
     void render_deinit();
     bool render_is_compatible();
+
+    // Get total size of the video display area. For single window output, this
+    // is the same as the current viewport. The Equalizer video output can override
+    // this function.
+    virtual int video_display_width() const;
+    virtual int video_display_height() const;
+
+    // Update the subtitle texture with the given subtitle and according to the
+    // current video display width and height.
+    void update_subtitle_tex(const subtitle_box &subtitle);
 
 protected:
     virtual void make_context_current() = 0;    // Make sure our OpenGL context is current

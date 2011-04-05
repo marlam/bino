@@ -116,7 +116,7 @@ void subtitle_renderer::init_ass()
     }
 }
 
-void subtitle_renderer::render(const video_frame &frame, const subtitle_box &box, uint32_t *bgra32_buffer)
+void subtitle_renderer::render(const subtitle_box &box, int width, int height, float pixel_aspect_ratio, uint32_t *bgra32_buffer)
 {
     init_ass();
 
@@ -124,16 +124,16 @@ void subtitle_renderer::render(const video_frame &frame, const subtitle_box &box
     {
     case subtitle_box::text:
     case subtitle_box::ass:
-        render_ass(frame, box, bgra32_buffer);
+        render_ass(box, width, height, pixel_aspect_ratio, bgra32_buffer);
         break;
     }
 }
 
-void subtitle_renderer::render_ass(const video_frame &frame, const subtitle_box &box, uint32_t *bgra32_buffer)
+void subtitle_renderer::render_ass(const subtitle_box &box, int width, int height, float pixel_aspect_ratio, uint32_t *bgra32_buffer)
 {
     // Set ASS parameters
-    ass_set_frame_size(_ass_renderer, frame.width, frame.height);
-    ass_set_aspect_ratio(_ass_renderer, static_cast<float>(frame.width) / static_cast<float>(frame.height), frame.aspect_ratio);
+    ass_set_frame_size(_ass_renderer, width, height);
+    ass_set_aspect_ratio(_ass_renderer, 1.0, pixel_aspect_ratio);
     ass_set_font_scale(_ass_renderer, 1.0);
 
     // Put subtitle data into ASS track
@@ -171,10 +171,10 @@ void subtitle_renderer::render_ass(const video_frame &frame, const subtitle_box 
     ASS_Image *img = ass_render_frame(_ass_renderer, ass_track, box.presentation_start_time / 1000, NULL);
 
     // Render into buffer
-    std::memset(bgra32_buffer, 0, frame.width * frame.height * sizeof(uint32_t));
+    std::memset(bgra32_buffer, 0, width * height * sizeof(uint32_t));
     while (img && img->w > 0 && img->h > 0)
     {
-        blend_ass_image(img, frame.width, frame.height, bgra32_buffer);
+        blend_ass_image(img, width, height, bgra32_buffer);
         img = img->next;
     }
 
@@ -182,38 +182,36 @@ void subtitle_renderer::render_ass(const video_frame &frame, const subtitle_box 
     ass_free_track(ass_track);
 }
 
-void subtitle_renderer::blend_ass_image(const ASS_Image *img, int frame_width, int frame_height, uint32_t *buf)
+void subtitle_renderer::blend_ass_image(const ASS_Image *img, int width, int height, uint32_t *buf)
 {
-    const unsigned int R = (img->color >> 24);
-    const unsigned int G = (img->color >> 16) & 0xff;
-    const unsigned int B = (img->color >> 8) & 0xff;
-    const unsigned int A = 255 - (img->color & 0xff);
+    const unsigned int R = (img->color >> 24u) & 0xffu;
+    const unsigned int G = (img->color >> 16u) & 0xffu;
+    const unsigned int B = (img->color >>  8u) & 0xffu;
+    const unsigned int A = 255u - (img->color & 0xffu);
 
     unsigned char *src = img->bitmap;
     for (int src_y = 0; src_y < img->h; src_y++)
     {
         int dst_y = img->dst_y + src_y;
-        if (dst_y >= frame_height)
+        if (dst_y >= height)
         {
             break;
         }
         for (int src_x = 0; src_x < img->w; src_x++)
         {
-            unsigned int a = src[src_x] * A / 255;
+            unsigned int a = src[src_x] * A / 255u;
             int dst_x = img->dst_x + src_x;
-            if (dst_x >= frame_width)
+            if (dst_x >= width)
             {
                 break;
             }
-            uint32_t *dst = buf + (dst_y * frame_width + dst_x);
+            uint32_t oldval = buf[dst_y * width + dst_x];
             // XXX: The BGRA layout used here may be wrong on big endian system
-            unsigned int old_r = (*dst >> 16) & 0xff;
-            unsigned int old_g = (*dst >> 8) & 0xff;
-            unsigned int old_b = (*dst) & 0xff;
-            unsigned int r = (a * R + (255 - a) * old_r) / 255;
-            unsigned int g = (a * G + (255 - a) * old_g) / 255;
-            unsigned int b = (a * B + (255 - a) * old_b) / 255;
-            *dst = (a << 24) | (r << 16) | (g << 8) | b;
+            uint32_t newval = std::min(a + (oldval >> 24u), 255u) << 24u
+                | ((a * R + (255u - a) * ((oldval >> 16u) & 0xffu)) / 255u) << 16u
+                | ((a * G + (255u - a) * ((oldval >>  8u) & 0xffu)) / 255u) << 8u
+                | ((a * B + (255u - a) * ((oldval       ) & 0xffu)) / 255u);
+            buf[dst_y * width + dst_x] = newval;
         }
         src += img->stride;
     }

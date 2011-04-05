@@ -35,7 +35,6 @@
 
 #include "video_output.h"
 #include "video_output_color.fs.glsl.h"
-#include "video_output_subtitle.fs.glsl.h"
 #include "video_output_render.fs.glsl.h"
 #include "xgl.h"
 
@@ -103,10 +102,12 @@ video_output::video_output(bool receive_notifications) :
         _color_srgb_tex[i] = 0;
     }
     _input_subtitle_tex = 0;
+    _input_subtitle_width = -1;
+    _input_subtitle_height = -1;
     _color_prg = 0;
-    _subtitle_prg = 0;
     _color_fbo = 0;
     _render_prg = 0;
+    _render_dummy_tex = 0;
     _render_mask_tex = 0;
 }
 
@@ -250,15 +251,6 @@ void video_output::input_init(int index, const video_frame &frame)
                     0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
         }
     }
-    glGenTextures(1, &(_input_subtitle_tex));
-    glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, frame.width, frame.height,
-            0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
-    _input_subtitle_box = subtitle_box();
     assert(xgl::CheckError(HERE));
 }
 
@@ -303,8 +295,11 @@ void video_output::input_deinit(int index)
     }
     _input_yuv_chroma_width_divisor[index] = 0;
     _input_yuv_chroma_height_divisor[index] = 0;
-    glDeleteTextures(1, &(_input_subtitle_tex));
-    _input_subtitle_tex = 0;
+    if (_input_subtitle_tex != 0)
+    {
+        glDeleteTextures(1, &(_input_subtitle_tex));
+        _input_subtitle_tex = 0;
+    }
     _input_subtitle_box = subtitle_box();
     _frame[index] = video_frame();
     assert(xgl::CheckError(HERE));
@@ -384,11 +379,60 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
         }
     }
     assert(xgl::CheckError(HERE));
-    if (subtitle != _input_subtitle_box)
+    // In the common case, the video display width and height do not change
+    // between preparing a frame and rendering it, so it is benefical to update
+    // to subtitle texture in this function (because other threads can do other
+    // work in parallel).
+    update_subtitle_tex(subtitle);
+}
+
+int video_output::video_display_width() const
+{
+    assert(_viewport[0][2] > 0);
+    return _viewport[0][2];
+}
+
+int video_output::video_display_height() const
+{
+    assert(_viewport[0][3] > 0);
+    return _viewport[0][3];
+}
+
+void video_output::update_subtitle_tex(const subtitle_box &subtitle)
+{
+    assert(xgl::CheckError(HERE));
+    int width = video_display_width();
+    int height = video_display_height();
+    if (subtitle.is_valid()
+            && (subtitle != _input_subtitle_box
+                || width != _input_subtitle_width
+                || height != _input_subtitle_height))
     {
-        // We have a new subtitle and need to render it into _input_subtitle_tex.
-        // First, get a PBO buffer of appropriate size.
-        size_t size = frame.width * frame.height * sizeof(uint32_t);
+        // We have a new subtitle or a new video display size, therefore we need
+        // to render the subtitle into _input_subtitle_tex.
+        // First, regenerate an appropriate subtitle texture if necessary.
+        if (_input_subtitle_tex == 0
+                || width != _input_subtitle_width
+                || height != _input_subtitle_height)
+        {
+            if (_input_subtitle_tex != 0)
+            {
+                glDeleteTextures(1, &(_input_subtitle_tex));
+            }
+            glGenTextures(1, &(_input_subtitle_tex));
+            glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
+                    width, height, 0,
+                    GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
+            _input_subtitle_width = width;
+            _input_subtitle_height = height;
+        }
+        // Then get a PBO buffer of appropriate size.
+        size_t size = width * height * sizeof(uint32_t);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, _input_pbo);
         glBufferData(GL_PIXEL_UNPACK_BUFFER, size, NULL, GL_STREAM_DRAW);
         void *pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
@@ -399,18 +443,21 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
         }
         assert(reinterpret_cast<uintptr_t>(pboptr) % 4 == 0);
         // Then render the subtitle into it.
-        _subtitle_renderer.render(frame, subtitle, static_cast<uint32_t *>(pboptr));
+        _subtitle_renderer.render(subtitle,
+                width, height, screen_pixel_aspect_ratio(),
+                static_cast<uint32_t *>(pboptr));
         // Then upload it to the texture.
         glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.width);
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, width);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, frame.width, frame.height,
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height,
                 GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-        _input_subtitle_box = subtitle;
     }
+    _input_subtitle_box = subtitle;
+    assert(xgl::CheckError(HERE));
 }
 
 void video_output::color_init(const video_frame &frame)
@@ -488,10 +535,6 @@ void video_output::color_init(const video_frame &frame)
     str::replace(color_fs_src, "$chroma_offset_y", chroma_offset_y_str);
     _color_prg = xgl::CreateProgram("video_output_color", "", "", color_fs_src);
     xgl::LinkProgram("video_output_color", _color_prg);
-    std::string subtitle_fs_src(VIDEO_OUTPUT_SUBTITLE_FS_GLSL_STR);
-    str::replace(subtitle_fs_src, "$srgb_broken", (_srgb_textures_are_broken ? "1" : "0"));
-    _subtitle_prg = xgl::CreateProgram("video_output_subtitle", "", "", subtitle_fs_src);
-    xgl::LinkProgram("video_output_subtitle", _subtitle_prg);
     for (int i = 0; i < (frame.stereo_layout == video_frame::mono ? 1 : 2); i++)
     {
         glGenTextures(1, &(_color_srgb_tex[i]));
@@ -516,11 +559,6 @@ void video_output::color_deinit()
     {
         xgl::DeleteProgram(_color_prg);
         _color_prg = 0;
-    }
-    if (_subtitle_prg != 0)
-    {
-        xgl::DeleteProgram(_subtitle_prg);
-        _subtitle_prg = 0;
     }
     for (int i = 0; i < 2; i++)
     {
@@ -573,6 +611,17 @@ void video_output::render_init()
     str::replace(render_fs_src, "$srgb_broken", srgb_broken_str);
     _render_prg = xgl::CreateProgram("video_output_render", "", "", render_fs_src);
     xgl::LinkProgram("video_output_render", _render_prg);
+    uint32_t dummy_texture = 0;
+    glGenTextures(1, &_render_dummy_tex);
+    glBindTexture(GL_TEXTURE_2D, _render_dummy_tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0,
+            GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, &dummy_texture);
     if (_params.stereo_mode == parameters::even_odd_rows
             || _params.stereo_mode == parameters::even_odd_columns
             || _params.stereo_mode == parameters::checkerboard)
@@ -603,6 +652,11 @@ void video_output::render_deinit()
     {
         xgl::DeleteProgram(_render_prg);
         _render_prg = 0;
+    }
+    if (_render_dummy_tex != 0)
+    {
+        glDeleteTextures(1, &_render_dummy_tex);
+        _render_dummy_tex = 0;
     }
     if (_render_mask_tex != 0)
     {
@@ -672,7 +726,7 @@ void video_output::display_current_frame(
     {
         reshape(width(), height());
     }
-    if (!_color_prg || !_subtitle_prg || !color_is_compatible(frame))
+    if (!_color_prg || !color_is_compatible(frame))
     {
         color_deinit();
         color_init(frame);
@@ -778,28 +832,6 @@ void video_output::display_current_frame(
                 GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_srgb_tex[1], 0);
         draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
     }
-    // render subtitles into color textures
-    if (_input_subtitle_box.is_valid())
-    {
-        glUseProgram(_subtitle_prg);
-        glUniform1i(glGetUniformLocation(_subtitle_prg, "subtitle_tex"), 0);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
-                GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_srgb_tex[0], 0);
-        glUniform1f(glGetUniformLocation(_subtitle_prg, "parallax"), 0.0f);     // TODO: make this adjustable
-        draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
-        if (left != right)
-        {
-            glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
-                    GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_srgb_tex[1], 0);
-            glUniform1f(glGetUniformLocation(_subtitle_prg, "parallax"), 0.0f);     // TODO: make this adjustable
-            draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
-        }
-        glDisable(GL_BLEND);
-    }
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
     glViewport(viewport[0][0], viewport[0][1], viewport[0][2], viewport[0][3]);
     glMatrixMode(GL_PROJECTION);
@@ -816,7 +848,14 @@ void video_output::display_current_frame(
     right = (left != right ? 1 : 0);
     left = 0;
 
-    // Step 3: rendering
+    /* Step 3: rendering */
+
+    // Update the subtitle texture. This only re-renders the subtitle in the
+    // unlikely case that the video display area was resized between the call
+    // to prepare_next_frame and now (e.g. when resizing the window in pause
+    // mode while subtitles are displayed).
+    update_subtitle_tex(_input_subtitle_box);
+
     glUseProgram(_render_prg);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _color_srgb_tex[left]);
@@ -825,9 +864,13 @@ void video_output::display_current_frame(
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, _color_srgb_tex[right]);
     }
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, (_input_subtitle_box.is_valid() ? _input_subtitle_tex : _render_dummy_tex));
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_l"), left);
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_r"), right);
     glUniform1f(glGetUniformLocation(_render_prg, "parallax"), _params.parallax * 0.05f);
+    glUniform1i(glGetUniformLocation(_render_prg, "subtitle"), 2);
+    glUniform1f(glGetUniformLocation(_render_prg, "subtitle_parallax"), 0.0f);  // TODO: make this adjustable
     if (_params.stereo_mode != parameters::red_green_monochrome
             && _params.stereo_mode != parameters::red_cyan_half_color
             && _params.stereo_mode != parameters::red_cyan_full_color
@@ -852,7 +895,7 @@ void video_output::display_current_frame(
             || _params.stereo_mode == parameters::even_odd_columns
             || _params.stereo_mode == parameters::checkerboard)
     {
-        glUniform1i(glGetUniformLocation(_render_prg, "mask_tex"), 2);
+        glUniform1i(glGetUniformLocation(_render_prg, "mask_tex"), 3);
         glUniform1f(glGetUniformLocation(_render_prg, "step_x"), 1.0f / static_cast<float>(viewport[0][2]));
         glUniform1f(glGetUniformLocation(_render_prg, "step_y"), 1.0f / static_cast<float>(viewport[0][3]));
     }
@@ -872,7 +915,7 @@ void video_output::display_current_frame(
     {
         float vpw = static_cast<float>(viewport[0][2]);
         float vph = static_cast<float>(viewport[0][3]);
-        glActiveTexture(GL_TEXTURE2);
+        glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, _render_mask_tex);
         glBegin(GL_QUADS);
         glTexCoord2f(0.0f, 0.0f);

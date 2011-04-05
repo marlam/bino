@@ -45,6 +45,9 @@ uniform sampler2D rgb_l;
 uniform sampler2D rgb_r;
 uniform float parallax;
 
+uniform sampler2D subtitle;
+uniform float subtitle_parallax;
+
 #if defined(mode_onechannel)
 uniform float channel;  // 0.0 for left, 1.0 for right
 #endif
@@ -112,15 +115,30 @@ vec3 tex_r(vec2 texcoord)
     return texture2D(rgb_r, texcoord + vec2(parallax, 0.0)).rgb;
 }
 
+vec4 sub_l(vec2 texcoord)
+{
+    return texture2D(subtitle, vec2(texcoord.x - subtitle_parallax, 1.0 - texcoord.y));
+}
+
+vec4 sub_r(vec2 texcoord)
+{
+    return texture2D(subtitle, vec2(texcoord.x + subtitle_parallax, 1.0 - texcoord.y));
+}
+
+vec3 blend_subtitle(vec3 rgb, vec4 sub)
+{
+    return mix(rgb, sub.rgb, sub.a);
+}
+
 void main()
 {
     vec3 srgb;
 
 #if defined(mode_onechannel)
 
-    vec3 rgbc_l = tex_l(gl_TexCoord[0].xy);
-    vec3 rgbc_r = tex_r(gl_TexCoord[0].xy);
-    srgb = rgb_to_srgb(ghostbust(mix(rgbc_l, rgbc_r, channel), mix(rgbc_r, rgbc_l, channel)));
+    vec3 l = blend_subtitle(tex_l(gl_TexCoord[0].xy), sub_l(gl_TexCoord[0].xy));
+    vec3 r = blend_subtitle(tex_r(gl_TexCoord[0].xy), sub_r(gl_TexCoord[0].xy));
+    srgb = rgb_to_srgb(ghostbust(mix(l, r, channel), mix(r, l, channel)));
 
 #elif defined(mode_even_odd_rows) || defined(mode_even_odd_columns) || defined(mode_checkerboard)
 
@@ -169,7 +187,9 @@ void main()
     vec3 rgb4_r = tex_r(gl_TexCoord[0].xy + vec2(0.0, step_y));
     vec3 rgbc_r = (rgb0_r + rgb1_r + 4.0 * rgb2_r + rgb3_r + rgb4_r) / 8.0;
 # endif
-    srgb = rgb_to_srgb(ghostbust(mix(rgbc_r, rgbc_l, m), mix(rgbc_l, rgbc_r, m)));
+    vec3 rgbcs_l = blend_subtitle(rgbc_l, sub_l(gl_TexCoord[0].xy));
+    vec3 rgbcs_r = blend_subtitle(rgbc_r, sub_r(gl_TexCoord[0].xy));
+    srgb = rgb_to_srgb(ghostbust(mix(rgbcs_r, rgbcs_l, m), mix(rgbcs_l, rgbcs_r, m)));
 
 #elif defined(mode_red_cyan_dubois) || defined(mode_green_magenta_dubois) || defined(mode_amber_blue_dubois)
 
@@ -178,8 +198,8 @@ void main()
     // This method depends on the characteristics of the display device and the anaglyph glasses.
     // According to the author, the matrices below are intended to be applied to linear RGB values,
     // and are designed for CRT displays.
-    vec3 l = tex_l(gl_TexCoord[0].xy);
-    vec3 r = tex_r(gl_TexCoord[0].xy);
+    vec3 l = blend_subtitle(tex_l(gl_TexCoord[0].xy), sub_l(gl_TexCoord[0].xy));
+    vec3 r = blend_subtitle(tex_r(gl_TexCoord[0].xy), sub_r(gl_TexCoord[0].xy));
 # if defined(mode_red_cyan_dubois)
     // Source of this matrix: http://www.site.uottawa.ca/~edubois/anaglyph/LeastSquaresHowToPhotoshop.pdf
     mat3 m0 = mat3(
@@ -215,8 +235,8 @@ void main()
 
 #else // lower quality anaglyph methods
 
-    vec3 l = rgb_to_srgb(tex_l(gl_TexCoord[0].xy));
-    vec3 r = rgb_to_srgb(tex_r(gl_TexCoord[0].xy));
+    vec3 l = rgb_to_srgb(blend_subtitle(tex_l(gl_TexCoord[0].xy), sub_l(gl_TexCoord[0].xy)));
+    vec3 r = rgb_to_srgb(blend_subtitle(tex_r(gl_TexCoord[0].xy), sub_r(gl_TexCoord[0].xy)));
 # if defined(mode_red_cyan_monochrome)
     srgb = vec3(srgb_to_lum(l), srgb_to_lum(r), srgb_to_lum(r));
 # elif defined(mode_red_cyan_half_color)
