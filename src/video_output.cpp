@@ -460,7 +460,6 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
         _subtitle_renderer.prerender(subtitle, frame.presentation_time,
                 width, height, screen_pixel_aspect_ratio(),
                 bb_x, bb_y, bb_w, bb_h);
-        msg::wrn("SUBTITLE BB: %d %d %d %d", bb_x, bb_y, bb_w, bb_h);
         if (bb_w > 0 && bb_h > 0)
         {
             // Get a PBO buffer of appropriate size for the bounding box.
