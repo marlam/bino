@@ -22,6 +22,7 @@
 
 #include "config.h"
 
+#include <limits>
 #include <cstdlib>
 #include <cmath>
 
@@ -101,10 +102,11 @@ video_output::video_output(bool receive_notifications) :
             _input_bgra32_tex[i][j] = 0;
         }
         _color_srgb_tex[i] = 0;
+        _input_subtitle_tex[i] = 0;
+        _input_subtitle_width[i] = -1;
+        _input_subtitle_height[i] = -1;
+        _input_subtitle_time[i] = std::numeric_limits<int64_t>::min();
     }
-    _input_subtitle_tex = 0;
-    _input_subtitle_width = -1;
-    _input_subtitle_height = -1;
     _color_prg = 0;
     _color_fbo = 0;
     _render_prg = 0;
@@ -296,15 +298,18 @@ void video_output::input_deinit(int index)
             glDeleteTextures(1, &(_input_bgra32_tex[index][i]));
             _input_bgra32_tex[index][i] = 0;
         }
+        if (_input_subtitle_tex[i] != 0)
+        {
+            glDeleteTextures(1, &(_input_subtitle_tex[i]));
+            _input_subtitle_tex[i] = 0;
+        }
+        _input_subtitle_box[i] = subtitle_box();
+        _input_subtitle_width[i] = -1;
+        _input_subtitle_height[i] = -1;
+        _input_subtitle_time[i] = std::numeric_limits<int64_t>::min();
     }
     _input_yuv_chroma_width_divisor[index] = 0;
     _input_yuv_chroma_height_divisor[index] = 0;
-    if (_input_subtitle_tex != 0)
-    {
-        glDeleteTextures(1, &(_input_subtitle_tex));
-        _input_subtitle_tex = 0;
-    }
-    _input_subtitle_box = subtitle_box();
     _frame[index] = video_frame();
     assert(xgl::CheckError(HERE));
 }
@@ -328,8 +333,8 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
     {
         input_deinit(index);
         input_init(index, frame);
-        _frame[index] = frame;
     }
+    _frame[index] = frame;
     int bytes_per_pixel = (frame.layout == video_frame::bgra32 ? 4 : 1);
     GLenum format = (frame.layout == video_frame::bgra32 ? GL_BGRA : GL_LUMINANCE);
     GLenum type = (frame.layout == video_frame::bgra32 ? GL_UNSIGNED_INT_8_8_8_8_REV : GL_UNSIGNED_BYTE);
@@ -387,7 +392,7 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
     // between preparing a frame and rendering it, so it is benefical to update
     // to subtitle texture in this function (because other threads can do other
     // work in parallel).
-    update_subtitle_tex(frame, subtitle);
+    update_subtitle_tex(index, frame, subtitle);
 }
 
 int video_output::video_display_width() const
@@ -402,7 +407,7 @@ int video_output::video_display_height() const
     return _viewport[0][3];
 }
 
-void video_output::update_subtitle_tex(const video_frame &frame, const subtitle_box &subtitle)
+void video_output::update_subtitle_tex(int index, const video_frame &frame, const subtitle_box &subtitle)
 {
     assert(xgl::CheckError(HERE));
     int width, height;
@@ -417,24 +422,25 @@ void video_output::update_subtitle_tex(const video_frame &frame, const subtitle_
         height = frame.height;
     }
     if (subtitle.is_valid()
-            && (subtitle != _input_subtitle_box
-                || width != _input_subtitle_width
-                || height != _input_subtitle_height))
+            && (subtitle != _input_subtitle_box[index]
+                || (!subtitle.is_constant() && frame.presentation_time != _input_subtitle_time[index])
+                || width != _input_subtitle_width[index]
+                || height != _input_subtitle_height[index]))
     {
         // We have a new subtitle or a new video display size, therefore we need
         // to render the subtitle into _input_subtitle_tex.
 
         // Regenerate an appropriate subtitle texture if necessary.
-        if (_input_subtitle_tex == 0
-                || width != _input_subtitle_width
-                || height != _input_subtitle_height)
+        if (_input_subtitle_tex[index] == 0
+                || width != _input_subtitle_width[index]
+                || height != _input_subtitle_height[index])
         {
-            if (_input_subtitle_tex != 0)
+            if (_input_subtitle_tex[index] != 0)
             {
-                glDeleteTextures(1, &(_input_subtitle_tex));
+                glDeleteTextures(1, &(_input_subtitle_tex[index]));
             }
-            glGenTextures(1, &(_input_subtitle_tex));
-            glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
+            glGenTextures(1, &(_input_subtitle_tex[index]));
+            glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex[index]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -442,13 +448,11 @@ void video_output::update_subtitle_tex(const video_frame &frame, const subtitle_
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
                     width, height, 0,
                     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
-            _input_subtitle_width = width;
-            _input_subtitle_height = height;
         }
         // Clear the texture
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _input_fbo);
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
-                GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _input_subtitle_tex, 0);
+                GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _input_subtitle_tex[index], 0);
         glClear(GL_COLOR_BUFFER_BIT);
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
         // Prerender the subtitle to get a bounding box
@@ -477,13 +481,16 @@ void video_output::update_subtitle_tex(const video_frame &frame, const subtitle_
             glPixelStorei(GL_UNPACK_ROW_LENGTH, bb_w);
             glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
+            glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex[index]);
             glTexSubImage2D(GL_TEXTURE_2D, 0, bb_x, bb_y, bb_w, bb_h,
                     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
             glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
         }
     }
-    _input_subtitle_box = subtitle;
+    _input_subtitle_box[index] = subtitle;
+    _input_subtitle_width[index] = width;
+    _input_subtitle_height[index] = height;
+    _input_subtitle_time[index] = frame.presentation_time;
     assert(xgl::CheckError(HERE));
 }
 
@@ -881,7 +888,7 @@ void video_output::display_current_frame(
     // unlikely case that the video display area was resized between the call
     // to prepare_next_frame and now (e.g. when resizing the window in pause
     // mode while subtitles are displayed).
-    update_subtitle_tex(frame, _input_subtitle_box);
+    update_subtitle_tex(_active_index, frame, _input_subtitle_box[_active_index]);
 
     glUseProgram(_render_prg);
     glActiveTexture(GL_TEXTURE0);
@@ -892,7 +899,8 @@ void video_output::display_current_frame(
         glBindTexture(GL_TEXTURE_2D, _color_srgb_tex[right]);
     }
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, (_input_subtitle_box.is_valid() ? _input_subtitle_tex : _render_dummy_tex));
+    glBindTexture(GL_TEXTURE_2D, (_input_subtitle_box[_active_index].is_valid()
+                ? _input_subtitle_tex[_active_index] : _render_dummy_tex));
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_l"), left);
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_r"), right);
     glUniform1f(glGetUniformLocation(_render_prg, "parallax"), _params.parallax * 0.05f);

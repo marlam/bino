@@ -214,6 +214,13 @@ public:
                 || (format == image && !images.empty()));
     }
 
+    // Does this box stay constant during its complete presentation time?
+    // (ASS subtitles may be animated and thus need to be rerendered when the clock changes)
+    bool is_constant() const
+    {
+        return (format != ass);
+    }
+
     // Return a string describing the format
     std::string format_info() const;    // Human readable information
     std::string format_name() const;    // Short code

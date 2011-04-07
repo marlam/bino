@@ -55,10 +55,11 @@ private:
     GLuint _input_yuv_u_tex[2][2];      // for yuv formats: u component
     GLuint _input_yuv_v_tex[2][2];      // for yuv formats: v component
     GLuint _input_bgra32_tex[2][2];     // for bgra32 format
-    GLuint _input_subtitle_tex;         // for subtitles; same dimension as the video frame
-    subtitle_box _input_subtitle_box;   // the subtitle box currently stored in the texture
-    int _input_subtitle_width;          // the width of the current subtitle texture
-    int _input_subtitle_height;         // the height of the current subtitle texture
+    GLuint _input_subtitle_tex[2];      // for subtitles
+    subtitle_box _input_subtitle_box[2];// the subtitle box currently stored in the texture
+    int _input_subtitle_width[2];       // the width of the current subtitle texture
+    int _input_subtitle_height[2];      // the height of the current subtitle texture
+    int64_t _input_subtitle_time[2];    // the timestamp of the current subtitle texture
     int _input_yuv_chroma_width_divisor[2];     // for yuv formats: chroma subsampling
     int _input_yuv_chroma_height_divisor[2];    // for yuv formats: chroma subsampling
     // Step 2: color space conversion and color correction
@@ -96,7 +97,7 @@ private:
 
     // Update the subtitle texture with the given subtitle and according to the
     // current video display width and height.
-    void update_subtitle_tex(const video_frame &frame, const subtitle_box &subtitle);
+    void update_subtitle_tex(int index, const video_frame &frame, const subtitle_box &subtitle);
 
 protected:
     virtual void make_context_current() = 0;    // Make sure our OpenGL context is current
