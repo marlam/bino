@@ -89,6 +89,7 @@ video_output::video_output(bool receive_notifications) :
     _srgb_textures_are_broken = std::getenv("SRGB_TEXTURES_ARE_BROKEN");
 
     _input_pbo = 0;
+    _input_fbo = 0;
     _active_index = 1;
     for (int i = 0; i < 2; i++)
     {
@@ -187,6 +188,7 @@ void video_output::input_init(int index, const video_frame &frame)
 {
     assert(xgl::CheckError(HERE));
     glGenBuffers(1, &_input_pbo);
+    glGenFramebuffersEXT(1, &_input_fbo);
     if (frame.layout == video_frame::bgra32)
     {
         for (int i = 0; i < (frame.stereo_layout == video_frame::mono ? 1 : 2); i++)
@@ -270,6 +272,8 @@ void video_output::input_deinit(int index)
     assert(xgl::CheckError(HERE));
     glDeleteBuffers(1, &_input_pbo);
     _input_pbo = 0;
+    glDeleteFramebuffersEXT(1, &_input_fbo);
+    _input_fbo = 0;
     for (int i = 0; i < 2; i++)
     {
         if (_input_yuv_y_tex[index][i] != 0)
@@ -419,7 +423,8 @@ void video_output::update_subtitle_tex(const video_frame &frame, const subtitle_
     {
         // We have a new subtitle or a new video display size, therefore we need
         // to render the subtitle into _input_subtitle_tex.
-        // First, regenerate an appropriate subtitle texture if necessary.
+
+        // Regenerate an appropriate subtitle texture if necessary.
         if (_input_subtitle_tex == 0
                 || width != _input_subtitle_width
                 || height != _input_subtitle_height)
@@ -440,30 +445,43 @@ void video_output::update_subtitle_tex(const video_frame &frame, const subtitle_
             _input_subtitle_width = width;
             _input_subtitle_height = height;
         }
-        // Then get a PBO buffer of appropriate size.
-        size_t size = width * height * sizeof(uint32_t);
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, _input_pbo);
-        glBufferData(GL_PIXEL_UNPACK_BUFFER, size, NULL, GL_STREAM_DRAW);
-        void *pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-        if (!pboptr)
-        {
-            msg::err("Cannot create a PBO buffer.");
-            abort();
-        }
-        assert(reinterpret_cast<uintptr_t>(pboptr) % 4 == 0);
-        // Then render the subtitle into it.
-        _subtitle_renderer.render(subtitle, frame.presentation_time,
+        // Clear the texture
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _input_fbo);
+        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
+                GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _input_subtitle_tex, 0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+        // Prerender the subtitle to get a bounding box
+        int bb_x, bb_y, bb_w, bb_h;
+        _subtitle_renderer.prerender(subtitle, frame.presentation_time,
                 width, height, screen_pixel_aspect_ratio(),
-                static_cast<uint32_t *>(pboptr));
-        // Then upload it to the texture.
-        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, width);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height,
-                GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+                bb_x, bb_y, bb_w, bb_h);
+        msg::wrn("SUBTITLE BB: %d %d %d %d", bb_x, bb_y, bb_w, bb_h);
+        if (bb_w > 0 && bb_h > 0)
+        {
+            // Get a PBO buffer of appropriate size for the bounding box.
+            size_t size = bb_w * bb_h * sizeof(uint32_t);
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, _input_pbo);
+            glBufferData(GL_PIXEL_UNPACK_BUFFER, size, NULL, GL_STREAM_DRAW);
+            void *pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+            if (!pboptr)
+            {
+                msg::err("Cannot create a PBO buffer.");
+                abort();
+            }
+            assert(reinterpret_cast<uintptr_t>(pboptr) % 4 == 0);
+            // Render the subtitle into the buffer.
+            _subtitle_renderer.render(static_cast<uint32_t *>(pboptr));
+            // Update the appropriate part of the texture.
+            glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, bb_w);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
+            glTexSubImage2D(GL_TEXTURE_2D, 0, bb_x, bb_y, bb_w, bb_h,
+                    GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+        }
     }
     _input_subtitle_box = subtitle;
     assert(xgl::CheckError(HERE));

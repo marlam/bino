@@ -50,6 +50,7 @@ private:
     parameters _params;                 // current parameters for display
     // Step 1: input of video data
     GLuint _input_pbo;                  // pixel-buffer object for texture uploading
+    GLuint _input_fbo;                  // frame-buffer object for texture clearing
     GLuint _input_yuv_y_tex[2][2];      // for yuv formats: y component
     GLuint _input_yuv_u_tex[2][2];      // for yuv formats: u component
     GLuint _input_yuv_v_tex[2][2];      // for yuv formats: v component

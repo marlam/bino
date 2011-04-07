@@ -34,28 +34,59 @@ extern "C"
 class subtitle_renderer
 {
 private:
+    // Static ASS data
     bool _ass_initialized;
     ASS_Library *_ass_library;
     ASS_Renderer *_ass_renderer;
 
-    void init_ass();
-    void render_ass(const subtitle_box &box, int64_t timestamp, int width, int height, float pixel_aspect_ratio, uint32_t *bgra32_buffer);
-    void blend_ass_image(const ASS_Image *img, int width, int height, uint32_t *buf);
+    // Dynamic data (changes with each subtitle)
+    subtitle_box::format_t _fmt;
+    ASS_Track *_ass_track;
+    ASS_Image *_ass_img;
+    const subtitle_box *_img_box;
+    int _bb_x, _bb_y, _bb_w, _bb_h;
 
-    void render_img(const subtitle_box &box, int width, int height, uint32_t *bgra32_buffer);
+    // ASS helper functions
+    void init_ass();
+    void blend_ass_image(const ASS_Image *img, uint32_t *buf);
+
+    // Rendering ASS and text subtitles
+    void prerender_ass(const subtitle_box &box, int64_t timestamp, int width, int height, float pixel_aspect_ratio);
+    void render_ass(uint32_t *bgra32_buffer);
+
+    // Rendering bitmap subtitles
+    void prerender_img(const subtitle_box &box);
+    void render_img(uint32_t *bgra32_buffer);
 
 public:
     subtitle_renderer();
     ~subtitle_renderer();
 
+    /*
+     * To render a subtitle, the following steps are necessary:
+     * 1. Call render_to_display_size() to determine if the subtitle
+     *    overlay image should have display size or video frame size.
+     * 2. Call prerender() to determine the bounding box inside the
+     *    overlay image that the subtitle will occupy.
+     * 3. Clear the overlay image, and allocate a BGRA32 buffer for
+     *    the bounding box.
+     * 4. Call render() to draw the subtitle into the buffer.
+     * 5. Update the overlay image with the subtitle bounding box
+     *    image from the buffer.
+     */
+
     // Return true if the subtitle should be rendered in display resolution.
     // Return false if the subtitle should be rendered in video frame resolution.
     bool render_to_display_size(const subtitle_box &box) const;
 
-    // Render the subtitle box into a buffer in BGRA32 format. The buffer must have the correct
-    // size for width * height pixels of type uint32_t. Pixels are assumed to have the given aspect ratio.
-    // The timestamp should be of the current video frame, so that animated subtitles work.
-    void render(const subtitle_box &box, int64_t timestamp, int width, int height, float pixel_aspect_ratio, uint32_t *bgra32_buffer);
+    // Prerender the subtitle, to determine the bounding box it will occupy.
+    // The bounding box is relative to the given subtitle overlay size (width and height).
+    void prerender(const subtitle_box &box, int64_t timestamp, int width, int height, float pixel_aspect_ratio,
+            int &bb_x, int &bb_y, int &bb_w, int &bb_h);
+
+    // Render the prerendered subtitle into the given BGRA32 buffer, which must
+    // have the dimensions of the bounding box that was previously computed.
+    void render(uint32_t *bgra32_buffer);
 };
 
 #endif
