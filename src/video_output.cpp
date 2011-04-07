@@ -383,7 +383,7 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
     // between preparing a frame and rendering it, so it is benefical to update
     // to subtitle texture in this function (because other threads can do other
     // work in parallel).
-    update_subtitle_tex(subtitle);
+    update_subtitle_tex(frame, subtitle);
 }
 
 int video_output::video_display_width() const
@@ -398,11 +398,20 @@ int video_output::video_display_height() const
     return _viewport[0][3];
 }
 
-void video_output::update_subtitle_tex(const subtitle_box &subtitle)
+void video_output::update_subtitle_tex(const video_frame &frame, const subtitle_box &subtitle)
 {
     assert(xgl::CheckError(HERE));
-    int width = video_display_width();
-    int height = video_display_height();
+    int width, height;
+    if (_subtitle_renderer.render_to_display_size(subtitle))
+    {
+        width = video_display_width();
+        height = video_display_height();
+    }
+    else
+    {
+        width = frame.width;
+        height = frame.height;
+    }
     if (subtitle.is_valid()
             && (subtitle != _input_subtitle_box
                 || width != _input_subtitle_width
@@ -854,7 +863,7 @@ void video_output::display_current_frame(
     // unlikely case that the video display area was resized between the call
     // to prepare_next_frame and now (e.g. when resizing the window in pause
     // mode while subtitles are displayed).
-    update_subtitle_tex(_input_subtitle_box);
+    update_subtitle_tex(frame, _input_subtitle_box);
 
     glUseProgram(_render_prg);
     glActiveTexture(GL_TEXTURE0);

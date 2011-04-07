@@ -38,6 +38,46 @@ extern "C"
 #include "subtitle_renderer.h"
 
 
+subtitle_renderer::subtitle_renderer() :
+    _ass_initialized(false),
+    _ass_library(NULL),
+    _ass_renderer(NULL)
+{
+}
+
+subtitle_renderer::~subtitle_renderer()
+{
+    if (_ass_renderer)
+    {
+        ass_renderer_done(_ass_renderer);
+    }
+    if (_ass_library)
+    {
+        ass_library_done(_ass_library);
+    }
+}
+
+bool subtitle_renderer::render_to_display_size(const subtitle_box &box) const
+{
+    return (box.format != subtitle_box::image);
+}
+
+void subtitle_renderer::render(const subtitle_box &box, int width, int height, float pixel_aspect_ratio, uint32_t *bgra32_buffer)
+{
+    init_ass();
+
+    switch (box.format)
+    {
+    case subtitle_box::text:
+    case subtitle_box::ass:
+        render_ass(box, width, height, pixel_aspect_ratio, bgra32_buffer);
+        break;
+    case subtitle_box::image:
+        render_img(box, width, height, bgra32_buffer);
+        break;
+    }
+}
+
 static void libass_msg_callback(int level, const char *fmt, va_list args, void *)
 {
     msg::level_t l;
@@ -73,25 +113,6 @@ static void libass_msg_callback(int level, const char *fmt, va_list args, void *
     msg::msg(l, std::string("LibASS: ") + s);
 }
 
-subtitle_renderer::subtitle_renderer() :
-    _ass_initialized(false),
-    _ass_library(NULL),
-    _ass_renderer(NULL)
-{
-}
-
-subtitle_renderer::~subtitle_renderer()
-{
-    if (_ass_renderer)
-    {
-        ass_renderer_done(_ass_renderer);
-    }
-    if (_ass_library)
-    {
-        ass_library_done(_ass_library);
-    }
-}
-
 void subtitle_renderer::init_ass()
 {
     if (!_ass_initialized)
@@ -113,19 +134,6 @@ void subtitle_renderer::init_ass()
         ass_set_hinting(_ass_renderer, ASS_HINTING_NATIVE);
         ass_set_fonts(_ass_renderer, NULL, "Sans", 1, NULL, 1);
         _ass_initialized = true;
-    }
-}
-
-void subtitle_renderer::render(const subtitle_box &box, int width, int height, float pixel_aspect_ratio, uint32_t *bgra32_buffer)
-{
-    init_ass();
-
-    switch (box.format)
-    {
-    case subtitle_box::text:
-    case subtitle_box::ass:
-        render_ass(box, width, height, pixel_aspect_ratio, bgra32_buffer);
-        break;
     }
 }
 
@@ -214,5 +222,45 @@ void subtitle_renderer::blend_ass_image(const ASS_Image *img, int width, int hei
             buf[dst_y * width + dst_x] = newval;
         }
         src += img->stride;
+    }
+}
+
+void subtitle_renderer::render_img(const subtitle_box &box, int width, int height, uint32_t *bgra32_buffer)
+{
+    std::memset(bgra32_buffer, 0, width * height * sizeof(uint32_t));
+    for (size_t i = 0; i < box.images.size(); i++)
+    {
+        const subtitle_box::image_t &img = box.images[i];
+        const uint8_t *src = &(img.data[0]);
+        for (int src_y = 0; src_y < img.h; src_y++)
+        {
+            int dst_y = img.y + src_y;
+            if (dst_y >= height)
+            {
+                break;
+            }
+            for (int src_x = 0; src_x < img.w; src_x++)
+            {
+                int dst_x = img.x + src_x;
+                if (dst_x >= width)
+                {
+                    break;
+                }
+                int palette_index = src[src_x];
+                uint32_t palette_entry = reinterpret_cast<const uint32_t *>(&(img.palette[0]))[palette_index];
+                unsigned int A = (palette_entry >> 24u);
+                unsigned int R = (palette_entry >> 16u) & 0xffu;
+                unsigned int G = (palette_entry >> 8u) & 0xffu;
+                unsigned int B = palette_entry & 0xffu;
+                uint32_t oldval = bgra32_buffer[dst_y * width + dst_x];
+                // XXX: The BGRA layout used here may be wrong on big endian system
+                uint32_t newval = std::min(A + (oldval >> 24u), 255u) << 24u
+                    | ((A * R + (255u - A) * ((oldval >> 16u) & 0xffu)) / 255u) << 16u
+                    | ((A * G + (255u - A) * ((oldval >>  8u) & 0xffu)) / 255u) << 8u
+                    | ((A * B + (255u - A) * ((oldval       ) & 0xffu)) / 255u);
+                bgra32_buffer[dst_y * width + dst_x] = newval;
+            }
+            src += img.linesize;
+        }
     }
 }

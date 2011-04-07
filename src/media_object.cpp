@@ -1478,11 +1478,19 @@ void subtitle_decode_thread::run()
                 switch (rect->type)
                 {
                 case SUBTITLE_BITMAP:
-                    // TODO
-                    msg::wrn(_url + ": subtitle stream " + str::from(_subtitle_stream)
-                            + ": bitmap subtitles are not yet supported");
-                    box.format = subtitle_box::text;
-                    box.str = "???";
+                    box.format = subtitle_box::image;
+                    box.images.push_back(subtitle_box::image_t());
+                    box.images.back().w = rect->w;
+                    box.images.back().h = rect->h;
+                    box.images.back().x = rect->x;
+                    box.images.back().y = rect->y;
+                    box.images.back().palette.resize(4 * rect->nb_colors);
+                    std::memcpy(&(box.images.back().palette[0]), rect->pict.data[1],
+                            box.images.back().palette.size());
+                    box.images.back().linesize = rect->pict.linesize[0];
+                    box.images.back().data.resize(box.images.back().h * box.images.back().linesize);
+                    std::memcpy(&(box.images.back().data[0]), rect->pict.data[0],
+                            box.images.back().data.size() * sizeof(uint8_t));
                     break;
                 case SUBTITLE_TEXT:
                     box.format = subtitle_box::text;
@@ -1504,8 +1512,8 @@ void subtitle_decode_thread::run()
                     box.str += rect->ass;
                     break;
                 case SUBTITLE_NONE:
-                    box.format = subtitle_box::text;
                     // Should never happen, but make sure we have a valid subtitle box anyway.
+                    box.format = subtitle_box::text;
                     box.str = ' ';
                     break;
                 }

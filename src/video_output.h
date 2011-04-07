@@ -95,7 +95,7 @@ private:
 
     // Update the subtitle texture with the given subtitle and according to the
     // current video display width and height.
-    void update_subtitle_tex(const subtitle_box &subtitle);
+    void update_subtitle_tex(const video_frame &frame, const subtitle_box &subtitle);
 
 protected:
     virtual void make_context_current() = 0;    // Make sure our OpenGL context is current

@@ -166,22 +166,33 @@ public:
     {
         ass,            // Advanced SubStation Alpha (ASS) format
         text,           // UTF-8 text
-        /* The following are not yet supported:
-        image,          // Image in BGRA32 format, with box coordinates
-        */
+        image           // Image in BGRA32 format, with box coordinates
     } format_t;
 
+    // Image data
+    typedef struct
+    {
+        int w, h;                       // Dimensions
+        int x, y;                       // Position w.r.t. the video frame
+        std::vector<uint8_t> palette;   // Palette, with R,G,B,A components for each palette entry.
+        std::vector<uint8_t> data;      // Bitmap using the palette
+        size_t linesize;                // Size of one bitmap line (may differ from width)
+    } image_t;
+
+    // Description of the content
     format_t format;                    // Subtitle data format
     std::string language;               // Language information (empty if unknown)
 
     // Data
-    std::string style;                  // Style info
-    std::string str;                    // Dialogue text
+    std::string style;                  // Style info (only if format is ass)
+    std::string str;                    // Event text (only if format ass or text)
+    std::vector<image_t> images;        // Images. These need to be alpha-blended.
 
+    // Presentation time information
     int64_t presentation_start_time;    // Presentation timestamp
     int64_t presentation_stop_time;     // End of presentation timestamp
 
-    // Constructor
+    // Constructor, Destructor
     subtitle_box();
 
     // Comparison. This assumes that two subtitle boxes are identical when they
@@ -199,7 +210,8 @@ public:
     // Does this box contain valid data?
     bool is_valid() const
     {
-        return (!str.empty());
+        return (((format == ass || format == text) && !str.empty())
+                || (format == image && !images.empty()));
     }
 
     // Return a string describing the format

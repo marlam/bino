@@ -432,6 +432,7 @@ subtitle_box::subtitle_box() :
     language(),
     style(),
     str(),
+    images(),
     presentation_start_time(std::numeric_limits<int64_t>::min()),
     presentation_stop_time(std::numeric_limits<int64_t>::min())
 {
@@ -456,6 +457,9 @@ std::string subtitle_box::format_info() const
     case text:
         s += "(text format)";
         break;
+    case image:
+        s += "(image format)";
+        break;
     }
     return s;
 }
@@ -477,7 +481,10 @@ std::string subtitle_box::format_name() const
         s += "ass";
         break;
     case text:
-        s += "text";
+        s += "txt";
+        break;
+    case image:
+        s += "img";
         break;
     }
     return s;

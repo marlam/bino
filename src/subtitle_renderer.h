@@ -39,13 +39,18 @@ private:
     ASS_Renderer *_ass_renderer;
 
     void init_ass();
-
     void render_ass(const subtitle_box &box, int width, int height, float pixel_aspect_ratio, uint32_t *bgra32_buffer);
     void blend_ass_image(const ASS_Image *img, int width, int height, uint32_t *buf);
+
+    void render_img(const subtitle_box &box, int width, int height, uint32_t *bgra32_buffer);
 
 public:
     subtitle_renderer();
     ~subtitle_renderer();
+
+    // Return true if the subtitle should be rendered in display resolution.
+    // Return false if the subtitle should be rendered in video frame resolution.
+    bool render_to_display_size(const subtitle_box &box) const;
 
     // Render the subtitle box into a buffer in BGRA32 format. The buffer must have the correct
     // size for width * height pixels of type uint32_t. Pixels are assumed to have the given aspect ratio.
