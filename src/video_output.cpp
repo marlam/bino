@@ -452,7 +452,7 @@ void video_output::update_subtitle_tex(const video_frame &frame, const subtitle_
         }
         assert(reinterpret_cast<uintptr_t>(pboptr) % 4 == 0);
         // Then render the subtitle into it.
-        _subtitle_renderer.render(subtitle,
+        _subtitle_renderer.render(subtitle, frame.presentation_time,
                 width, height, screen_pixel_aspect_ratio(),
                 static_cast<uint32_t *>(pboptr));
         // Then upload it to the texture.

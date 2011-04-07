@@ -62,7 +62,7 @@ bool subtitle_renderer::render_to_display_size(const subtitle_box &box) const
     return (box.format != subtitle_box::image);
 }
 
-void subtitle_renderer::render(const subtitle_box &box, int width, int height, float pixel_aspect_ratio, uint32_t *bgra32_buffer)
+void subtitle_renderer::render(const subtitle_box &box, int64_t timestamp, int width, int height, float pixel_aspect_ratio, uint32_t *bgra32_buffer)
 {
     init_ass();
 
@@ -70,7 +70,7 @@ void subtitle_renderer::render(const subtitle_box &box, int width, int height, f
     {
     case subtitle_box::text:
     case subtitle_box::ass:
-        render_ass(box, width, height, pixel_aspect_ratio, bgra32_buffer);
+        render_ass(box, timestamp, width, height, pixel_aspect_ratio, bgra32_buffer);
         break;
     case subtitle_box::image:
         render_img(box, width, height, bgra32_buffer);
@@ -137,7 +137,7 @@ void subtitle_renderer::init_ass()
     }
 }
 
-void subtitle_renderer::render_ass(const subtitle_box &box, int width, int height, float pixel_aspect_ratio, uint32_t *bgra32_buffer)
+void subtitle_renderer::render_ass(const subtitle_box &box, int64_t timestamp, int width, int height, float pixel_aspect_ratio, uint32_t *bgra32_buffer)
 {
     // Set ASS parameters
     ass_set_frame_size(_ass_renderer, width, height);
@@ -176,7 +176,7 @@ void subtitle_renderer::render_ass(const subtitle_box &box, int width, int heigh
     }
 
     // Render subtitle
-    ASS_Image *img = ass_render_frame(_ass_renderer, ass_track, box.presentation_start_time / 1000, NULL);
+    ASS_Image *img = ass_render_frame(_ass_renderer, ass_track, timestamp / 1000, NULL);
 
     // Render into buffer
     std::memset(bgra32_buffer, 0, width * height * sizeof(uint32_t));

@@ -39,7 +39,7 @@ private:
     ASS_Renderer *_ass_renderer;
 
     void init_ass();
-    void render_ass(const subtitle_box &box, int width, int height, float pixel_aspect_ratio, uint32_t *bgra32_buffer);
+    void render_ass(const subtitle_box &box, int64_t timestamp, int width, int height, float pixel_aspect_ratio, uint32_t *bgra32_buffer);
     void blend_ass_image(const ASS_Image *img, int width, int height, uint32_t *buf);
 
     void render_img(const subtitle_box &box, int width, int height, uint32_t *bgra32_buffer);
@@ -54,7 +54,8 @@ public:
 
     // Render the subtitle box into a buffer in BGRA32 format. The buffer must have the correct
     // size for width * height pixels of type uint32_t. Pixels are assumed to have the given aspect ratio.
-    void render(const subtitle_box &box, int width, int height, float pixel_aspect_ratio, uint32_t *bgra32_buffer);
+    // The timestamp should be of the current video frame, so that animated subtitles work.
+    void render(const subtitle_box &box, int64_t timestamp, int width, int height, float pixel_aspect_ratio, uint32_t *bgra32_buffer);
 };
 
 #endif
