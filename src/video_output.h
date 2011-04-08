@@ -89,17 +89,17 @@ private:
     void render_deinit();
     bool render_is_compatible();
 
-    // Get total size of the video display area. For single window output, this
-    // is the same as the current viewport. The Equalizer video output can override
-    // this function.
-    virtual int video_display_width() const;
-    virtual int video_display_height() const;
-
     // Update the subtitle texture with the given subtitle and according to the
     // current video display width and height.
     void update_subtitle_tex(int index, const video_frame &frame, const subtitle_box &subtitle);
 
 protected:
+    // Get total size of the video display area. For single window output, this
+    // is the same as the current viewport. The Equalizer video output can override
+    // this function.
+    virtual int video_display_width();
+    virtual int video_display_height();
+
     virtual void make_context_current() = 0;    // Make sure our OpenGL context is current
     virtual bool context_is_stereo() = 0;       // Is our current OpenGL context a stereo context?
     virtual void recreate_context(bool stereo) = 0;     // Recreate an OpenGL context and make it current

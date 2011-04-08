@@ -395,13 +395,13 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
     update_subtitle_tex(index, frame, subtitle);
 }
 
-int video_output::video_display_width() const
+int video_output::video_display_width()
 {
     assert(_viewport[0][2] > 0);
     return _viewport[0][2];
 }
 
-int video_output::video_display_height() const
+int video_output::video_display_height()
 {
     assert(_viewport[0][3] > 0);
     return _viewport[0][3];

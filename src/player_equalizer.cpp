@@ -139,21 +139,25 @@ public:
 };
 
 /*
- * video_output_eq_window
+ * video_output_eq_channel
  *
- * Implementation of video_output for eq_window.
+ * Implementation of video_output for eq_channel.
  *
  * Much of the video_output interface is not relevant for Equalizer, and thus
  * is implemented with simple stub functions.
  */
 
-class video_output_eq_window : public video_output
+class video_output_eq_channel : public video_output
 {
 private:
-    eq::Window *_wnd;
+    eq::Channel *_channel;
+    const float _canvas_video_area_w;
+    const float _canvas_video_area_h;
 
 protected:
-    void make_context_current() { _wnd->makeCurrent(); }
+    int video_display_width() { return screen_width() * _canvas_video_area_w; }
+    int video_display_height() { return screen_height() * _canvas_video_area_h; }
+    void make_context_current() { _channel->getWindow()->makeCurrent(); }
     bool context_is_stereo() { return false; }
     void recreate_context(bool) { }
     void trigger_update() { }
@@ -161,11 +165,17 @@ protected:
 
 public:
     bool supports_stereo() const { return false; }
-    int screen_width() { return 0; }
-    int screen_height() { return 0; }
-    float screen_pixel_aspect_ratio() { return 0.0f; }
-    int width() { return 0; }
-    int height() { return 0; }
+    int screen_width() { return _channel->getPixelViewport().w / _channel->getViewport().w; }
+    int screen_height() { return _channel->getPixelViewport().h / _channel->getViewport().h; }
+    float screen_pixel_aspect_ratio()
+    {
+        const eq::Wall &wall = _channel->getConfig()->getCanvases()[0]->getWall();
+        float pixels_per_unit_x = _channel->getPixelViewport().w / (wall.getWidth() * _channel->getViewport().w);
+        float pixels_per_unit_y = _channel->getPixelViewport().h / (wall.getHeight() * _channel->getViewport().h);
+        return pixels_per_unit_y / pixels_per_unit_x;
+    }
+    int width() { return _channel->getPixelViewport().w; }
+    int height() { return _channel->getPixelViewport().h; }
     int pos_x() { return 0; }
     int pos_y() { return 0; }
     void center() { }
@@ -177,7 +187,11 @@ public:
     void receive_notification(const notification &) { }
 
 public:
-    video_output_eq_window(eq::Window *wnd) : video_output(false), _wnd(wnd)
+    video_output_eq_channel(eq::Channel *channel, float canvas_video_area_w, float canvas_video_area_h) :
+        video_output(false),
+        _channel(channel),
+        _canvas_video_area_w(canvas_video_area_w),
+        _canvas_video_area_h(canvas_video_area_h)
     {
     }
 
@@ -825,17 +839,9 @@ public:
 
 class eq_window : public eq::Window
 {
-private:
-    video_output_eq_window _video_output;
-
 public:
-    eq_window(eq::Pipe *parent) : eq::Window(parent), _video_output(this)
+    eq_window(eq::Pipe *parent) : eq::Window(parent)
     {
-    }
-
-    void display(bool mono_right_instead_of_left, float x, float y, float w, float h, const int viewport[4])
-    {
-        _video_output.display_current_frame(mono_right_instead_of_left, x, y, w, h, viewport);
     }
 
 protected:
@@ -864,31 +870,7 @@ protected:
     virtual bool configExitGL()
     {
         msg::dbg(HERE);
-        _video_output.deinit();
-        msg::dbg(HERE);
         return eq::Window::configExitGL();
-    }
-
-    virtual void frameStart(const eq::uint128_t &, const uint32_t frame_number)
-    {
-        // Get frame data via from the node
-        eq_node *node = static_cast<eq_node *>(getNode());
-        _video_output.set_parameters(node->frame_data.params);
-        // Do as we're told
-        if (node->frame_data.prep_frame)
-        {
-            node->prepare_next_frame(&_video_output);
-        }
-        if (node->frame_data.display_frame)
-        {
-            _video_output.activate_next_frame();
-        }
-        startFrame(frame_number);
-    }
-
-    virtual void frameFinish(const eq::uint128_t &, const uint32_t frame_number)
-    {
-        releaseFrame(frame_number);
     }
 };
 
@@ -899,13 +881,28 @@ protected:
 class eq_channel : public eq::Channel
 {
 private:
+    video_output_eq_channel _video_output;
 
 public:
-    eq_channel(eq::Window *parent) : eq::Channel(parent)
+    eq_channel(eq::Window *parent) :
+        eq::Channel(parent),
+        _video_output(this,
+                static_cast<eq_node *>(getNode())->init_data.canvas_video_area.w,
+                static_cast<eq_node *>(getNode())->init_data.canvas_video_area.h)
     {
     }
 
 protected:
+
+    virtual bool configExit()
+    {
+        msg::dbg(HERE);
+        getWindow()->makeCurrent();
+        _video_output.deinit();
+        msg::dbg(HERE);
+        return eq::Channel::configExit();
+    }
+
     virtual void frameDraw(const eq::uint128_t &frame_id)
     {
         // Let Equalizer initialize some stuff
@@ -946,11 +943,32 @@ protected:
         // Display
         glEnable(GL_TEXTURE_2D);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-        eq_window *window = static_cast<eq_window *>(getWindow());
         bool mono_right_instead_of_left = (getEye() == eq::EYE_RIGHT);
         GLint viewport[4];
         glGetIntegerv(GL_VIEWPORT, viewport);
-        window->display(mono_right_instead_of_left, quad_x, quad_y, quad_w, quad_h, viewport);
+        _video_output.display_current_frame(mono_right_instead_of_left, quad_x, quad_y, quad_w, quad_h, viewport);
+    }
+
+    virtual void frameStart(const eq::uint128_t &, const uint32_t frame_number)
+    {
+        // Get frame data via from the node
+        eq_node *node = static_cast<eq_node *>(getNode());
+        _video_output.set_parameters(node->frame_data.params);
+        // Do as we're told
+        if (node->frame_data.prep_frame)
+        {
+            node->prepare_next_frame(&_video_output);
+        }
+        if (node->frame_data.display_frame)
+        {
+            _video_output.activate_next_frame();
+        }
+        startFrame(frame_number);
+    }
+
+    virtual void frameFinish(const eq::uint128_t &, const uint32_t frame_number)
+    {
+        releaseFrame(frame_number);
     }
 };
 
