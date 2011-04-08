@@ -249,11 +249,6 @@ video_output_qt::video_output_qt(bool benchmark, video_container_widget *contain
     {
         _container_widget = new video_container_widget(NULL);
     }
-    // Alpha is disabled for now, because we do not use it yet and some OpenGL
-    // implementations do not support Alpha with a quad-buffer context according to
-    // <http://lists.nongnu.org/archive/html/bino-list/2011-03/msg00011.html>.
-    // However, we may need to re-enable it for subtitle or OSD support.
-    //_format.setAlpha(true);
     _format.setDoubleBuffer(true);
     if (!benchmark)
     {
@@ -325,8 +320,7 @@ void video_output_qt::create_widget()
 {
     _widget = new video_output_qt_widget(this, _format, _container_widget);
     QObject::connect(_container_widget, SIGNAL(move_event()), _widget, SLOT(move_event()));
-    if ((_format.alpha() && !_widget->format().alpha())
-            || (_format.doubleBuffer() && !_widget->format().doubleBuffer())
+    if ((_format.doubleBuffer() && !_widget->format().doubleBuffer())
             || (_format.stereo() && !_widget->format().stereo()))
     {
         try
