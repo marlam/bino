@@ -959,11 +959,13 @@ protected:
         // Do as we're told
         if (node->frame_data.prep_frame)
         {
+            getWindow()->makeCurrent();
             // TODO: Add support for subtitles
             _video_output.prepare_next_frame(node->get_video_frame(), subtitle_box());
         }
         if (node->frame_data.display_frame)
         {
+            getWindow()->makeCurrent();
             _video_output.activate_next_frame();
         }
         startFrame(frame_number);
