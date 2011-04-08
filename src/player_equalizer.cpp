@@ -64,7 +64,6 @@ class player_eq_node : public player
 {
 private:
     bool _is_master;
-    bool _first_step;
 
 protected:
     video_output *create_video_output()
@@ -80,7 +79,7 @@ protected:
     }
 
 public:
-    player_eq_node() : player(player::slave), _is_master(false), _first_step(true)
+    player_eq_node() : player(player::slave), _is_master(false)
     {
     }
 
@@ -135,12 +134,6 @@ public:
 
     void step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
     {
-        if (!_is_master && _first_step)
-        {
-            // The master player reads a video frame; do the same on slave players to keep sync
-            start_frame_read();
-            _first_step = false;
-        }
         player::step(more_steps, seek_to, prep_frame, drop_frame, display_frame);
     }
 };
