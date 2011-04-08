@@ -111,13 +111,15 @@ public:
         start_frame_read();
     }
 
-    void start_frame_read()     // Only called on slave nodes
+    void start_frame_read()
     {
+        // Only called on slave nodes
         get_media_input_nonconst().start_video_frame_read();
     }
 
-    void finish_frame_read()    // Only called on slave nodes
+    void finish_frame_read()
     {
+        // Only called on slave nodes
         _video_frame = get_media_input_nonconst().finish_video_frame_read();
         if (!_video_frame.is_valid())
         {
@@ -128,6 +130,7 @@ public:
 
     void step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
     {
+        // Only called on the master node
         player::step(more_steps, seek_to, prep_frame, drop_frame, display_frame);
     }
 
