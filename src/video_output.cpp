@@ -410,16 +410,20 @@ int video_output::video_display_height() const
 void video_output::update_subtitle_tex(int index, const video_frame &frame, const subtitle_box &subtitle)
 {
     assert(xgl::CheckError(HERE));
-    int width, height;
-    if (_subtitle_renderer.render_to_display_size(subtitle))
+    int width = 0;
+    int height = 0;
+    if (subtitle.is_valid())
     {
-        width = video_display_width();
-        height = video_display_height();
-    }
-    else
-    {
-        width = frame.width;
-        height = frame.height;
+        if (_subtitle_renderer.render_to_display_size(subtitle))
+        {
+            width = video_display_width();
+            height = video_display_height();
+        }
+        else
+        {
+            width = frame.width;
+            height = frame.height;
+        }
     }
     if (subtitle.is_valid()
             && (subtitle != _input_subtitle_box[index]
