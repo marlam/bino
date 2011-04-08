@@ -109,7 +109,7 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Q:
         _vo->send_cmd(command::toggle_play);
         break;
-    case Qt::Key_S:
+    case Qt::Key_E:
         _vo->send_cmd(command::toggle_stereo_mode_swap);
         break;
     case Qt::Key_F:
@@ -127,6 +127,9 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_A:
         _vo->send_cmd(command::cycle_audio_stream);
+        break;
+    case Qt::Key_S:
+        _vo->send_cmd(command::cycle_subtitle_stream);
         break;
     case Qt::Key_1:
         _vo->send_cmd(command::adjust_contrast, -0.05f);

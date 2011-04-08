@@ -520,11 +520,14 @@ void media_input::select_subtitle_stream(int subtitle_stream)
     {
         (void)finish_subtitle_box_read();
     }
-    assert(subtitle_stream >= 0);
+    assert(subtitle_stream >= -1);
     assert(subtitle_stream < subtitle_streams());
     _active_subtitle_stream = subtitle_stream;
-    int o, s;
-    get_subtitle_stream(_active_subtitle_stream, o, s);
+    int o = -1, s = -1;
+    if (_active_subtitle_stream >= 0)
+    {
+        get_subtitle_stream(_active_subtitle_stream, o, s);
+    }
     for (size_t i = 0; i < _media_objects.size(); i++)
     {
         for (int j = 0; j < _media_objects[i].subtitle_streams(); j++)

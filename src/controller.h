@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
+ * Joe <cuchac@email.cz>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,6 +54,8 @@ public:
         set_video_stream,               // int
         cycle_audio_stream,             // no parameters
         set_audio_stream,               // int
+        cycle_subtitle_stream,          // no parameters
+        set_subtitle_stream,            // int
         set_stereo_layout,              // video_frame::stereo_layout, bool
         set_stereo_mode,                // parameters::stereo_mode, bool
         toggle_stereo_mode_swap,        // no parameters
@@ -116,6 +119,7 @@ public:
         pause,                  // bool
         video_stream,           // int
         audio_stream,           // int
+        subtitle_stream,        // int
         stereo_layout,          // video_frame::stereo_layout, bool
         stereo_mode,            // parameters::stereo_mode, bool
         stereo_mode_swap,       // bool

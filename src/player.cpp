@@ -418,6 +418,8 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
         _seek_request = 0;
         _set_pos_request = -1.0f;
         _media_input->seek(*seek_to);
+        _next_subtitle_box = subtitle_box();
+        _current_subtitle_box = subtitle_box();
 
         _media_input->start_video_frame_read();
         _video_frame = _media_input->finish_video_frame_read();
@@ -799,6 +801,38 @@ void player::receive_cmd(const command &cmd)
             {
                 _media_input->select_audio_stream(newstream);
                 notify(notification::audio_stream, oldstream, newstream);
+                _seek_request = -1;     // Get position right
+            }
+        }
+        break;
+    case command::cycle_subtitle_stream:
+        if (_media_input->subtitle_streams() > 1)
+        {
+            int oldstream = _media_input->selected_subtitle_stream();
+            int newstream = oldstream + 1;
+            if (newstream >= _media_input->subtitle_streams())
+            {
+                newstream = -1;
+            }
+            _media_input->select_subtitle_stream(newstream);
+            notify(notification::subtitle_stream, oldstream, newstream);
+            _seek_request = -1;         // Get position right
+        }
+        break;
+    case command::set_subtitle_stream:
+        if (_media_input->subtitle_streams() > 1)
+        {
+            int oldstream = _media_input->selected_subtitle_stream();
+            int newstream;
+            s11n::load(p, newstream);
+            if (newstream < -1 || newstream >= _media_input->subtitle_streams())
+            {
+                newstream = -1;
+            }
+            if (newstream != oldstream)
+            {
+                _media_input->select_subtitle_stream(newstream);
+                notify(notification::subtitle_stream, oldstream, newstream);
                 _seek_request = -1;     // Get position right
             }
         }

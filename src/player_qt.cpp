@@ -4,6 +4,7 @@
  * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
+ * Joe <cuchac@email.cz>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -137,8 +138,17 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     _audio_combobox->setToolTip(audio_label->toolTip());
     connect(_audio_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(audio_changed()));
     layout0->addWidget(_audio_combobox, 0, 3);
+    QLabel *subtitle_label = new QLabel("Subtitle:");
+    subtitle_label->setToolTip(
+            "<p>Select the subtitle stream.</p>");
+    layout0->addWidget(subtitle_label, 0, 4);
+    _subtitle_combobox = new QComboBox(this);
+    _subtitle_combobox->setToolTip(subtitle_label->toolTip());
+    connect(_subtitle_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(subtitle_changed()));
+    layout0->addWidget(_subtitle_combobox, 0, 5);
     layout0->setColumnStretch(1, 1);
     layout0->setColumnStretch(3, 1);
+    layout0->setColumnStretch(5, 1);
 
     QGridLayout *layout1 = new QGridLayout;
     QLabel *input_label = new QLabel("Input:");
@@ -215,11 +225,13 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     // Align the input and output labels
     output_label->setMinimumSize(output_label->minimumSizeHint());
     input_label->setMinimumSize(output_label->minimumSizeHint());
-    audio_label->setMinimumSize(output_label->minimumSizeHint());
     video_label->setMinimumSize(output_label->minimumSizeHint());
+    audio_label->setMinimumSize(output_label->minimumSizeHint());
+    subtitle_label->setMinimumSize(output_label->minimumSizeHint());
 
     _video_combobox->setEnabled(false);
     _audio_combobox->setEnabled(false);
+    _subtitle_combobox->setEnabled(false);
     _input_combobox->setEnabled(false);
     _output_combobox->setEnabled(false);
     _swap_checkbox->setEnabled(false);
@@ -361,6 +373,14 @@ void in_out_widget::audio_changed()
     }
 }
 
+void in_out_widget::subtitle_changed()
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_subtitle_stream, _subtitle_combobox->currentIndex() - 1);
+    }
+}
+
 void in_out_widget::input_changed()
 {
     video_frame::stereo_layout_t stereo_layout;
@@ -424,11 +444,13 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
     _lock = true;
     _video_combobox->setEnabled(have_valid_input);
     _audio_combobox->setEnabled(have_valid_input);
+    _subtitle_combobox->setEnabled(have_valid_input);
     _input_combobox->setEnabled(have_valid_input);
     _output_combobox->setEnabled(have_valid_input);
     _swap_checkbox->setEnabled(have_valid_input);
     _video_combobox->clear();
     _audio_combobox->clear();
+    _subtitle_combobox->clear();
     if (have_valid_input)
     {
         for (int i = 0; i < _player->get_media_input().video_streams(); i++)
@@ -439,8 +461,14 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
         {
             _audio_combobox->addItem(_player->get_media_input().audio_stream_name(i).c_str());
         }
+        _subtitle_combobox->addItem("Off");
+        for (int i = 0; i < _player->get_media_input().subtitle_streams(); i++)
+        {
+            _subtitle_combobox->addItem(_player->get_media_input().subtitle_stream_name(i).c_str());
+        }
         _video_combobox->setCurrentIndex(init_data.video_stream);
         _audio_combobox->setCurrentIndex(init_data.audio_stream);
+        _subtitle_combobox->setCurrentIndex(init_data.subtitle_stream + 1);
         // Disable unsupported input modes
         for (int i = 0; i < _input_combobox->count(); i++)
         {
@@ -475,6 +503,11 @@ int in_out_widget::get_video_stream()
 int in_out_widget::get_audio_stream()
 {
     return _audio_combobox->currentIndex();
+}
+
+int in_out_widget::get_subtitle_stream()
+{
+    return _subtitle_combobox->currentIndex() - 1;
 }
 
 void in_out_widget::get_stereo_layout(video_frame::stereo_layout_t &stereo_layout, bool &stereo_layout_swap)
@@ -637,6 +670,12 @@ void in_out_widget::receive_notification(const notification &note)
         s11n::load(current, stream);
         _lock = true;
         _audio_combobox->setCurrentIndex(stream);
+        _lock = false;
+        break;
+    case notification::subtitle_stream:
+        s11n::load(current, stream);
+        _lock = true;
+        _subtitle_combobox->setCurrentIndex(stream + 1);
         _lock = false;
         break;
     case notification::stereo_mode_swap:
@@ -1431,6 +1470,7 @@ void main_window::receive_notification(const notification &note)
             _in_out_widget->get_stereo_layout(_init_data.stereo_layout, _init_data.stereo_layout_swap);
             _init_data.video_stream = _in_out_widget->get_video_stream();
             _init_data.audio_stream = std::max(0, _in_out_widget->get_audio_stream());
+            _init_data.subtitle_stream = std::max(-1, _in_out_widget->get_subtitle_stream());
             _init_data.stereo_mode_override = true;
             _in_out_widget->get_stereo_mode(_init_data.stereo_mode, _init_data.stereo_mode_swap);
             if (!open_player())
@@ -1469,6 +1509,13 @@ void main_window::receive_notification(const notification &note)
         s11n::load(current, _init_data.audio_stream);
         _settings->beginGroup("Video/" + current_file_hash());
         _settings->setValue("audio-stream", QVariant(_init_data.audio_stream).toString());
+        _settings->endGroup();
+        break;
+
+    case notification::subtitle_stream:
+        s11n::load(current, _init_data.subtitle_stream);
+        _settings->beginGroup("Video/" + current_file_hash());
+        _settings->setValue("subtitle-stream", QVariant(_init_data.subtitle_stream).toString());
         _settings->endGroup();
         break;
 
@@ -1652,6 +1699,8 @@ void main_window::open(QStringList filenames)
         _init_data.video_stream = std::max(0, std::min(_init_data.video_stream, _player->get_media_input().video_streams() - 1));
         _init_data.audio_stream = QVariant(_settings->value("audio-stream", QVariant(_init_data.audio_stream)).toString()).toInt();
         _init_data.audio_stream = std::max(0, std::min(_init_data.audio_stream, _player->get_media_input().audio_streams() - 1));
+        _init_data.subtitle_stream = QVariant(_settings->value("subtitle-stream", QVariant(_init_data.subtitle_stream)).toString()).toInt();
+        _init_data.subtitle_stream = std::max(-1, std::min(_init_data.subtitle_stream, _player->get_media_input().subtitle_streams() - 1));
         _init_data.params.parallax = QVariant(_settings->value("parallax", QVariant(_init_data.params.parallax)).toString()).toFloat();
         _init_data.params.ghostbust = QVariant(_settings->value("ghostbust", QVariant(_init_data.params.ghostbust)).toString()).toFloat();
         // Get stereo mode for this video
@@ -1791,9 +1840,10 @@ void main_window::help_keyboard()
                 "<tr><td>p or SPACE</td><td>Pause / unpause</td></tr>"
                 "<tr><td>f</td><td>Toggle fullscreen</td></tr>"
                 "<tr><td>c</td><td>Center window</td></tr>"
-                "<tr><td>s</td><td>Swap left/right view</td></tr>"
+                "<tr><td>e</td><td>Swap left/right eye</td></tr>"
                 "<tr><td>v</td><td>Cycle through available video streams</td></tr>"
                 "<tr><td>a</td><td>Cycle through available audio streams</td></tr>"
+                "<tr><td>s</td><td>Cycle through available subtitle streams</td></tr>"
                 "<tr><td>1, 2</td><td>Adjust contrast</td></tr>"
                 "<tr><td>3, 4</td><td>Adjust brightness</td></tr>"
                 "<tr><td>5, 6</td><td>Adjust hue</td></tr>"

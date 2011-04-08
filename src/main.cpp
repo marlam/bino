@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
     options.push_back(&video);
     opt::val<int> audio("audio", 'a', opt::optional, 1, 999, 1);
     options.push_back(&audio);
-    opt::val<int> subtitle("subtitle", 's', opt::optional, 1, 999, 0);
+    opt::val<int> subtitle("subtitle", 's', opt::optional, 0, 999, 0);
     options.push_back(&subtitle);
     std::vector<std::string> video_output_modes;
     video_output_modes.push_back("mono-left");
@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
                 "  -l|--log-level=LEVEL     Set log level (debug/info/warning/error/quiet).\n"
                 "  -v|--video=STREAM        Select video stream (1-n, depending on input).\n"
                 "  -a|--audio=STREAM        Select audio stream (1-n, depending on input).\n"
-                "  -s|--subtitle=STREAM     Select subtitle stream (1-n, depending on input).\n"
+                "  -s|--subtitle=STREAM     Select subtitle stream (0-n, depending on input).\n"
                 "  -i|--input=TYPE          Select input type (default autodetect):\n"
                 "    mono                     Single view.\n"
                 "    separate-left-right      Left/right separate streams, left first.\n"
@@ -242,9 +242,10 @@ int main(int argc, char *argv[])
                 "  p or SPACE               Pause / unpause.\n"
                 "  f                        Toggle fullscreen.\n"
                 "  c                        Center window.\n"
-                "  s                        Swap left/right view.\n"
+                "  e                        Swap left/right eye.\n"
                 "  v                        Cycle through available video streams.\n"
                 "  a                        Cycle through available audio streams.\n"
+                "  s                        Cycle through available subtitle streams.\n"
                 "  1, 2                     Adjust contrast.\n"
                 "  3, 4                     Adjust brightness.\n"
                 "  5, 6                     Adjust hue.\n"

@@ -4,6 +4,7 @@
  * Copyright (C) 2010-2011
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
+ * Joe <cuchac@email.cz>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,6 +74,7 @@ private:
     const player_qt_internal *_player;
     QComboBox *_video_combobox;
     QComboBox *_audio_combobox;
+    QComboBox *_subtitle_combobox;
     QComboBox *_input_combobox;
     QComboBox *_output_combobox;
     QCheckBox *_swap_checkbox;
@@ -84,6 +86,7 @@ private:
 private slots:
     void video_changed();
     void audio_changed();
+    void subtitle_changed();
     void input_changed();
     void output_changed();
     void swap_changed();
@@ -96,6 +99,7 @@ public:
 
     int get_video_stream();
     int get_audio_stream();
+    int get_subtitle_stream();
     void get_stereo_layout(video_frame::stereo_layout_t &stereo_layout, bool &stereo_layout_swap);
     void get_stereo_mode(parameters::stereo_mode_t &stereo_mode, bool &stereo_mode_swap);
 

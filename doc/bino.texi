@@ -305,12 +305,14 @@ Pause / unpause.
 Toggle fullscreen.
 @item c
 Center window.
-@item s
-Swap left/right view.
+@item e
+Swap left/right eye.
 @item v
 Cycle through available video streams.
 @item a
 Cycle through available audio streams.
+@item a
+Cycle through available subtitle streams.
 @item 1
 @item 2
 Adjust contrast.

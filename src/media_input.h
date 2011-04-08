@@ -152,7 +152,8 @@ public:
      * Access media data
      */
 
-    /* Set the active media streams. */
+    /* Set the active media streams.
+     * For subtitle streams, -1 selects no subtitle stream. */
     int selected_video_stream() const
     {
         return _active_video_stream;
