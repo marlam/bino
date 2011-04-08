@@ -490,6 +490,71 @@ std::string subtitle_box::format_name() const
     return s;
 }
 
+void subtitle_box::image_t::save(std::ostream &os) const
+{
+    s11n::save(os, w);
+    s11n::save(os, h);
+    s11n::save(os, x);
+    s11n::save(os, y);
+    s11n::save(os, palette.size());
+    if (palette.size() > 0)
+    {
+        s11n::save(os, static_cast<const void *>(&(palette[0])), palette.size() * sizeof(uint8_t));
+    }
+    s11n::save(os, data.size());
+    if (data.size() > 0)
+    {
+        s11n::save(os, static_cast<const void *>(&(data[0])), data.size() * sizeof(uint8_t));
+    }
+    s11n::save(os, linesize);
+}
+
+void subtitle_box::image_t::load(std::istream &is)
+{
+    size_t s;
+    s11n::load(is, w);
+    s11n::load(is, h);
+    s11n::load(is, x);
+    s11n::load(is, y);
+    s11n::load(is, s);
+    palette.resize(s);
+    if (palette.size() > 0)
+    {
+        s11n::load(is, static_cast<void *>(&(palette[0])), palette.size() * sizeof(uint8_t));
+    }
+    s11n::load(is, s);
+    data.resize(s);
+    if (data.size() > 0)
+    {
+        s11n::load(is, static_cast<void *>(&(data[0])), data.size() * sizeof(uint8_t));
+    }
+    s11n::load(is, linesize);
+}
+
+void subtitle_box::save(std::ostream &os) const
+{
+    s11n::save(os, static_cast<int>(format));
+    s11n::save(os, language);
+    s11n::save(os, style);
+    s11n::save(os, str);
+    s11n::save(os, images);
+    s11n::save(os, presentation_start_time);
+    s11n::save(os, presentation_stop_time);
+}
+
+void subtitle_box::load(std::istream &is)
+{
+    int x;
+    s11n::load(is, x);
+    format = static_cast<format_t>(x);
+    s11n::load(is, language);
+    s11n::load(is, style);
+    s11n::load(is, str);
+    s11n::load(is, images);
+    s11n::load(is, presentation_start_time);
+    s11n::load(is, presentation_stop_time);
+}
+
 parameters::parameters() :
     stereo_mode(stereo),
     stereo_mode_swap(false),

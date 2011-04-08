@@ -138,6 +138,11 @@ public:
     {
         return _video_frame;
     }
+
+    const subtitle_box &get_subtitle()
+    {
+        return _current_subtitle_box;
+    }
 };
 
 /*
@@ -153,6 +158,8 @@ class video_output_eq_channel : public video_output
 {
 private:
     eq::Channel *_channel;
+    const float _canvas_width;
+    const float _canvas_height;
     const float _canvas_video_area_w;
     const float _canvas_video_area_h;
 
@@ -171,9 +178,8 @@ public:
     int screen_height() { return _channel->getPixelViewport().h / _channel->getViewport().h; }
     float screen_pixel_aspect_ratio()
     {
-        const eq::Wall &wall = _channel->getConfig()->getCanvases()[0]->getWall();
-        float pixels_per_unit_x = _channel->getPixelViewport().w / (wall.getWidth() * _channel->getViewport().w);
-        float pixels_per_unit_y = _channel->getPixelViewport().h / (wall.getHeight() * _channel->getViewport().h);
+        float pixels_per_unit_x = _channel->getPixelViewport().w / (_canvas_width * _channel->getViewport().w);
+        float pixels_per_unit_y = _channel->getPixelViewport().h / (_canvas_height * _channel->getViewport().h);
         return pixels_per_unit_y / pixels_per_unit_x;
     }
     int width() { return _channel->getPixelViewport().w; }
@@ -189,9 +195,13 @@ public:
     void receive_notification(const notification &) { }
 
 public:
-    video_output_eq_channel(eq::Channel *channel, float canvas_video_area_w, float canvas_video_area_h) :
+    video_output_eq_channel(eq::Channel *channel,
+            float canvas_width, float canvas_height,
+            float canvas_video_area_w, float canvas_video_area_h) :
         video_output(false),
         _channel(channel),
+        _canvas_width(canvas_width),
+        _canvas_height(canvas_height),
         _canvas_video_area_w(canvas_video_area_w),
         _canvas_video_area_h(canvas_video_area_h)
     {
@@ -262,6 +272,8 @@ public:
     eq::uint128_t frame_data_id;
     player_init_data init_data;
     bool flat_screen;
+    float canvas_width;
+    float canvas_height;
     struct { float x, y, w, h, d; } canvas_video_area;
 
     eq_init_data() : init_data()
@@ -291,6 +303,8 @@ protected:
         s11n::save(oss, frame_data_id.low());
         s11n::save(oss, init_data);
         s11n::save(oss, flat_screen);
+        s11n::save(oss, canvas_width);
+        s11n::save(oss, canvas_height);
         s11n::save(oss, canvas_video_area.x);
         s11n::save(oss, canvas_video_area.y);
         s11n::save(oss, canvas_video_area.w);
@@ -308,6 +322,8 @@ protected:
         s11n::load(iss, frame_data_id.low());
         s11n::load(iss, init_data);
         s11n::load(iss, flat_screen);
+        s11n::load(iss, canvas_width);
+        s11n::load(iss, canvas_height);
         s11n::load(iss, canvas_video_area.x);
         s11n::load(iss, canvas_video_area.y);
         s11n::load(iss, canvas_video_area.w);
@@ -323,6 +339,7 @@ protected:
 class eq_frame_data : public co::Object
 {
 public:
+    subtitle_box subtitle;
     parameters params;
     int64_t seek_to;
     bool prep_frame;
@@ -331,8 +348,12 @@ public:
 
 public:
     eq_frame_data() :
-        params(), seek_to(0),
-        prep_frame(false), drop_frame(false), display_frame(false)
+        subtitle(),
+        params(),
+        seek_to(0),
+        prep_frame(false),
+        drop_frame(false),
+        display_frame(false)
     {
     }
 
@@ -345,6 +366,7 @@ protected:
     virtual void getInstanceData(co::DataOStream &os)
     {
         std::ostringstream oss;
+        s11n::save(oss, subtitle);
         s11n::save(oss, params);
         s11n::save(oss, seek_to);
         s11n::save(oss, prep_frame);
@@ -358,6 +380,7 @@ protected:
         std::string s;
         is >> s;
         std::istringstream iss(s);
+        s11n::load(iss, subtitle);
         s11n::load(iss, params);
         s11n::load(iss, seek_to);
         s11n::load(iss, prep_frame);
@@ -424,6 +447,8 @@ public:
         float canvas_w = getCanvases()[0]->getWall().getWidth();
         float canvas_h = getCanvases()[0]->getWall().getHeight();
         float canvas_aspect_ratio = canvas_w / canvas_h;
+        _eq_init_data.canvas_width = canvas_w;
+        _eq_init_data.canvas_height = canvas_h;
         _eq_init_data.canvas_video_area.w = 1.0f;
         _eq_init_data.canvas_video_area.h = 1.0f;
 
@@ -488,6 +513,7 @@ public:
             this->exit();
         }
         // Update the video state for all (it might have changed via handleEvent())
+        _eq_frame_data.subtitle = _player.get_subtitle();
         _eq_frame_data.params = _player.get_parameters();
         // Commit the updated frame data
         const eq::uint128_t version = _eq_frame_data.commit();
@@ -889,6 +915,8 @@ public:
     eq_channel(eq::Window *parent) :
         eq::Channel(parent),
         _video_output(this,
+                static_cast<eq_node *>(getNode())->init_data.canvas_width,
+                static_cast<eq_node *>(getNode())->init_data.canvas_height,
                 static_cast<eq_node *>(getNode())->init_data.canvas_video_area.w,
                 static_cast<eq_node *>(getNode())->init_data.canvas_video_area.h)
     {
@@ -960,8 +988,7 @@ protected:
         if (node->frame_data.prep_frame)
         {
             getWindow()->makeCurrent();
-            // TODO: Add support for subtitles
-            _video_output.prepare_next_frame(node->get_video_frame(), subtitle_box());
+            _video_output.prepare_next_frame(node->get_video_frame(), node->frame_data.subtitle);
         }
         if (node->frame_data.display_frame)
         {

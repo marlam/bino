@@ -158,7 +158,7 @@ public:
     int sample_bits() const;
 };
 
-class subtitle_box
+class subtitle_box : public s11n
 {
 public:
     // Format
@@ -170,14 +170,18 @@ public:
     } format_t;
 
     // Image data
-    typedef struct
+    class image_t : public s11n
     {
+    public:
         int w, h;                       // Dimensions
         int x, y;                       // Position w.r.t. the video frame
         std::vector<uint8_t> palette;   // Palette, with R,G,B,A components for each palette entry.
         std::vector<uint8_t> data;      // Bitmap using the palette
         size_t linesize;                // Size of one bitmap line (may differ from width)
-    } image_t;
+
+        void save(std::ostream &os) const;
+        void load(std::istream &is);
+    };
 
     // Description of the content
     format_t format;                    // Subtitle data format
@@ -224,6 +228,10 @@ public:
     // Return a string describing the format
     std::string format_info() const;    // Human readable information
     std::string format_name() const;    // Short code
+
+    // Serialization
+    void save(std::ostream &os) const;
+    void load(std::istream &is);
 };
 
 class parameters : public s11n
