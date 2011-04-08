@@ -126,15 +126,14 @@ public:
         }
     }
 
-    void prepare_next_frame(video_output *vo)
-    {
-        // TODO: Add support for subtitles
-        vo->prepare_next_frame(_video_frame, subtitle_box());
-    }
-
     void step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
     {
         player::step(more_steps, seek_to, prep_frame, drop_frame, display_frame);
+    }
+
+    const video_frame &get_video_frame()
+    {
+        return _video_frame;
     }
 };
 
@@ -807,16 +806,16 @@ protected:
     }
 
 public:
-    void prepare_next_frame(video_output *vo)
+    const video_frame &get_video_frame()
     {
         if (_is_app_node)
         {
             eq_config *config = static_cast<eq_config *>(getConfig());
-            config->player()->prepare_next_frame(vo);
+            return config->player()->get_video_frame();
         }
         else
         {
-            _player.prepare_next_frame(vo);
+            return _player.get_video_frame();
         }
     }
 };
@@ -957,7 +956,8 @@ protected:
         // Do as we're told
         if (node->frame_data.prep_frame)
         {
-            node->prepare_next_frame(&_video_output);
+            // TODO: Add support for subtitles
+            _video_output.prepare_next_frame(node->get_video_frame(), subtitle_box());
         }
         if (node->frame_data.display_frame)
         {
