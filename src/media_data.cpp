@@ -566,7 +566,12 @@ parameters::parameters() :
     contrast(std::numeric_limits<float>::quiet_NaN()),
     brightness(std::numeric_limits<float>::quiet_NaN()),
     hue(std::numeric_limits<float>::quiet_NaN()),
-    saturation(std::numeric_limits<float>::quiet_NaN())
+    saturation(std::numeric_limits<float>::quiet_NaN()),
+    subtitle_font(1, '\0'),
+    subtitle_size(std::numeric_limits<int>::min()),
+    subtitle_scale(-1.0f),
+    subtitle_color(std::numeric_limits<uint64_t>::max()),
+    subtitle_parallax(std::numeric_limits<float>::quiet_NaN())
 {
 }
 
@@ -607,6 +612,26 @@ void parameters::set_defaults()
     if (!std::isfinite(saturation) || saturation < -1.0f || saturation > +1.0f)
     {
         saturation = 0.0f;
+    }
+    if (subtitle_font.length() == 1 && subtitle_font[0] == '\0')
+    {
+        subtitle_font = "";
+    }
+    if (subtitle_size < -1)
+    {
+        subtitle_size = -1;
+    }
+    if (!std::isfinite(subtitle_scale) || subtitle_scale < 0.0f)
+    {
+        subtitle_scale = -1.0f;
+    }
+    if (subtitle_color > std::numeric_limits<uint32_t>::max())
+    {
+        subtitle_color = std::numeric_limits<uint64_t>::max();
+    }
+    if (!std::isfinite(subtitle_parallax) || subtitle_parallax < -1.0f || subtitle_parallax > +1.0f)
+    {
+        subtitle_parallax = 0.0f;
     }
 }
 
@@ -832,6 +857,11 @@ void parameters::save(std::ostream &os) const
     s11n::save(os, brightness);
     s11n::save(os, hue);
     s11n::save(os, saturation);
+    s11n::save(os, subtitle_font);
+    s11n::save(os, subtitle_size);
+    s11n::save(os, subtitle_scale);
+    s11n::save(os, subtitle_color);
+    s11n::save(os, subtitle_parallax);
 }
 
 void parameters::load(std::istream &is)
@@ -849,4 +879,9 @@ void parameters::load(std::istream &is)
     s11n::load(is, brightness);
     s11n::load(is, hue);
     s11n::load(is, saturation);
+    s11n::load(is, subtitle_font);
+    s11n::load(is, subtitle_size);
+    s11n::load(is, subtitle_scale);
+    s11n::load(is, subtitle_color);
+    s11n::load(is, subtitle_parallax);
 }

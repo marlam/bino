@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2011
  * Martin Lambers <marlam@marlam.de>
+ * Joe <cuchac@email.cz>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +21,8 @@
 
 #ifndef SUBTITLE_RENDERER_H
 #define SUBTITLE_RENDERER_H
+
+#include <vector>
 
 #include <GL/glew.h>
 
@@ -49,9 +52,12 @@ private:
     // ASS helper functions
     void init_ass();
     void blend_ass_image(const ASS_Image *img, uint32_t *buf);
+    void set_ass_parameters(const parameters &params);
 
     // Rendering ASS and text subtitles
-    void prerender_ass(const subtitle_box &box, int64_t timestamp, int width, int height, float pixel_aspect_ratio);
+    void prerender_ass(const subtitle_box &box, int64_t timestamp,
+            const parameters &params,
+            int width, int height, float pixel_aspect_ratio);
     void render_ass(uint32_t *bgra32_buffer);
 
     // Rendering bitmap subtitles
@@ -81,7 +87,9 @@ public:
 
     // Prerender the subtitle, to determine the bounding box it will occupy.
     // The bounding box is relative to the given subtitle overlay size (width and height).
-    void prerender(const subtitle_box &box, int64_t timestamp, int width, int height, float pixel_aspect_ratio,
+    void prerender(const subtitle_box &box, int64_t timestamp,
+            const parameters &params,
+            int width, int height, float pixel_aspect_ratio,
             int &bb_x, int &bb_y, int &bb_w, int &bb_h);
 
     // Render the prerendered subtitle into the given BGRA32 buffer, which must

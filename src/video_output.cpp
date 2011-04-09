@@ -392,7 +392,7 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
     // between preparing a frame and rendering it, so it is benefical to update
     // to subtitle texture in this function (because other threads can do other
     // work in parallel).
-    update_subtitle_tex(index, frame, subtitle);
+    update_subtitle_tex(index, frame, subtitle, _params);
 }
 
 int video_output::video_display_width()
@@ -407,7 +407,7 @@ int video_output::video_display_height()
     return _viewport[0][3];
 }
 
-void video_output::update_subtitle_tex(int index, const video_frame &frame, const subtitle_box &subtitle)
+void video_output::update_subtitle_tex(int index, const video_frame &frame, const subtitle_box &subtitle, const parameters &params)
 {
     assert(xgl::CheckError(HERE));
     int width = 0;
@@ -429,10 +429,15 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
             && (subtitle != _input_subtitle_box[index]
                 || (!subtitle.is_constant() && frame.presentation_time != _input_subtitle_time[index])
                 || width != _input_subtitle_width[index]
-                || height != _input_subtitle_height[index]))
+                || height != _input_subtitle_height[index]
+                || params.subtitle_font != _input_subtitle_params.subtitle_font
+                || params.subtitle_size != _input_subtitle_params.subtitle_size
+                || (params.subtitle_scale < _input_subtitle_params.subtitle_scale
+                    || params.subtitle_scale > _input_subtitle_params.subtitle_scale)
+                || params.subtitle_color != _input_subtitle_params.subtitle_color))
     {
-        // We have a new subtitle or a new video display size, therefore we need
-        // to render the subtitle into _input_subtitle_tex.
+        // We have a new subtitle or a new video display size or new parameters,
+        // therefore we need to render the subtitle into _input_subtitle_tex.
 
         // Regenerate an appropriate subtitle texture if necessary.
         if (_input_subtitle_tex[index] == 0
@@ -461,7 +466,7 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
         // Prerender the subtitle to get a bounding box
         int bb_x, bb_y, bb_w, bb_h;
-        _subtitle_renderer.prerender(subtitle, frame.presentation_time,
+        _subtitle_renderer.prerender(subtitle, frame.presentation_time, params,
                 width, height, screen_pixel_aspect_ratio(),
                 bb_x, bb_y, bb_w, bb_h);
         if (bb_w > 0 && bb_h > 0)
@@ -494,6 +499,7 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
     _input_subtitle_width[index] = width;
     _input_subtitle_height[index] = height;
     _input_subtitle_time[index] = frame.presentation_time;
+    _input_subtitle_params = params;
     assert(xgl::CheckError(HERE));
 }
 
@@ -891,7 +897,7 @@ void video_output::display_current_frame(
     // unlikely case that the video display area was resized between the call
     // to prepare_next_frame and now (e.g. when resizing the window in pause
     // mode while subtitles are displayed).
-    update_subtitle_tex(_active_index, frame, _input_subtitle_box[_active_index]);
+    update_subtitle_tex(_active_index, frame, _input_subtitle_box[_active_index], _params);
 
     glUseProgram(_render_prg);
     glActiveTexture(GL_TEXTURE0);
@@ -908,7 +914,7 @@ void video_output::display_current_frame(
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_r"), right);
     glUniform1f(glGetUniformLocation(_render_prg, "parallax"), _params.parallax * 0.05f);
     glUniform1i(glGetUniformLocation(_render_prg, "subtitle"), 2);
-    glUniform1f(glGetUniformLocation(_render_prg, "subtitle_parallax"), 0.0f);  // TODO: make this adjustable
+    glUniform1f(glGetUniformLocation(_render_prg, "subtitle_parallax"), _params.subtitle_parallax * 0.05f);
     if (_params.stereo_mode != parameters::red_green_monochrome
             && _params.stereo_mode != parameters::red_cyan_half_color
             && _params.stereo_mode != parameters::red_cyan_full_color

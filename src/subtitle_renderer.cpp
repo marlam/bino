@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2011
  * Martin Lambers <marlam@marlam.de>
+ * Joe <cuchac@email.cz>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +21,7 @@
 
 #include "config.h"
 
+#include <vector>
 #include <limits>
 #include <cstring>
 #include <stdint.h>
@@ -68,8 +70,10 @@ bool subtitle_renderer::render_to_display_size(const subtitle_box &box) const
     return (box.format != subtitle_box::image);
 }
 
-void subtitle_renderer::prerender(const subtitle_box &box, int64_t timestamp, int width, int height, float pixel_aspect_ratio,
-            int &bb_x, int &bb_y, int &bb_w, int &bb_h)
+void subtitle_renderer::prerender(const subtitle_box &box, int64_t timestamp,
+        const parameters &params,
+        int width, int height, float pixel_aspect_ratio,
+        int &bb_x, int &bb_y, int &bb_w, int &bb_h)
 {
     _fmt = box.format;
     switch (_fmt)
@@ -77,7 +81,7 @@ void subtitle_renderer::prerender(const subtitle_box &box, int64_t timestamp, in
     case subtitle_box::text:
     case subtitle_box::ass:
         init_ass();
-        prerender_ass(box, timestamp, width, height, pixel_aspect_ratio);
+        prerender_ass(box, timestamp, params, width, height, pixel_aspect_ratio);
         break;
     case subtitle_box::image:
         prerender_img(box);
@@ -150,7 +154,6 @@ void subtitle_renderer::init_ass()
         ass_set_message_cb(_ass_library, libass_msg_callback, NULL);
         ass_set_fonts_dir(_ass_library, "");
         ass_set_extract_fonts(_ass_library, 1);
-        ass_set_style_overrides(_ass_library, NULL);
         _ass_renderer = ass_renderer_init(_ass_library);
         if (!_ass_renderer)
         {
@@ -197,12 +200,46 @@ void subtitle_renderer::blend_ass_image(const ASS_Image *img, uint32_t *buf)
     }
 }
 
-void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp, int width, int height, float pixel_aspect_ratio)
+void subtitle_renderer::set_ass_parameters(const parameters &params)
 {
-    // Set ASS parameters
+    std::vector<std::string> overrides;
+    overrides.clear();
+    if (params.subtitle_font != "")
+    {
+        overrides.push_back(std::string("Default.Fontname=") + params.subtitle_font);
+    }
+    if (params.subtitle_size > 0)
+    {
+        overrides.push_back(std::string("Default.Fontsize=") + str::from(params.subtitle_size));
+    }
+    if (params.subtitle_color <= std::numeric_limits<uint32_t>::max())
+    {
+        unsigned int color = params.subtitle_color;
+        unsigned int a = 255u - ((color >> 24u) & 0xffu);
+        unsigned int r = (color >> 16u) & 0xffu;
+        unsigned int g = (color >> 8u) & 0xffu;
+        unsigned int b = color & 0xffu;
+        std::string color_str = str::asprintf("&H%02x%02x%02x%02x", a, b, g, r);
+        overrides.push_back(std::string("Default.PrimaryColour=") + color_str);
+        overrides.push_back(std::string("Default.SecondaryColour=") + color_str);
+    }
+    const char *ass_overrides[overrides.size() + 1];
+    for (size_t i = 0; i < overrides.size(); i++)
+    {
+        ass_overrides[i] = ::strdup(overrides[i].c_str());
+    }
+    ass_overrides[overrides.size()] = NULL;
+    ass_set_style_overrides(_ass_library, const_cast<char **>(ass_overrides));
+    ass_set_font_scale(_ass_renderer, (params.subtitle_scale >= 0.0f ? params.subtitle_scale : 1.0));
+    ass_process_force_style(_ass_track);
+}
+
+void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp,
+        const parameters &params, int width, int height, float pixel_aspect_ratio)
+{
+    // Set basic parameters
     ass_set_frame_size(_ass_renderer, width, height);
     ass_set_aspect_ratio(_ass_renderer, 1.0, pixel_aspect_ratio);
-    ass_set_font_scale(_ass_renderer, 1.0);
 
     // Put subtitle data into ASS track
     if (_ass_track)
@@ -238,6 +275,7 @@ void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp
         ass_process_codec_private(_ass_track, const_cast<char *>(style.c_str()), style.length());
         ass_process_data(_ass_track, const_cast<char *>(str.c_str()), str.length());
     }
+    set_ass_parameters(params);
 
     // Render subtitle
     _ass_img = ass_render_frame(_ass_renderer, _ass_track, timestamp / 1000, NULL);

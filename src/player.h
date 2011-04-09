@@ -174,6 +174,7 @@ protected:
     void notify(enum notification::type t, bool p, bool c) { notify(notification(t, p, c)); }
     void notify(enum notification::type t, int p, int c) { notify(notification(t, p, c)); }
     void notify(enum notification::type t, float p, float c) { notify(notification(t, p, c)); }
+    void notify(enum notification::type t, uint64_t p, uint64_t c) { notify(notification(t, p, c)); }
     void notify(enum notification::type t, const std::string &p, const std::string &c) { notify(notification(t, p, c)); }
 
 public:

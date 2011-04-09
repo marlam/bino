@@ -278,6 +278,11 @@ public:
     float brightness;                   // Brightness adjustment, -1 .. +1
     float hue;                          // Hue adjustment, -1 .. +1
     float saturation;                   // Saturation adjustment, -1 .. +1
+    std::string subtitle_font;          // Subtitle font name, empty means keep default
+    int subtitle_size;                  // Subtitle point size, -1 means keep default
+    float subtitle_scale;               // Scale factor
+    uint64_t subtitle_color;            // Subtitle color in uint32_t bgra32 format, > UINT32_MAX means keep default
+    float subtitle_parallax;            // Subtitle parallax adjustment, -1 .. +1
 
     // Constructor
     parameters();

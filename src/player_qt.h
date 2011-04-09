@@ -31,6 +31,7 @@
 #include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QCheckBox>
+#include <QFontComboBox>
 #include <QTimer>
 #include <QSettings>
 #include <QDialog>
@@ -200,6 +201,37 @@ public:
     virtual void receive_notification(const notification &note);
 };
 
+class subtitle_dialog: public QDialog, public controller
+{
+    Q_OBJECT
+
+private:
+    parameters *_params;
+    bool _lock;
+    QCheckBox *_font_checkbox;
+    QFontComboBox *_font_combobox;
+    QCheckBox *_size_checkbox;
+    QSpinBox *_size_spinbox;
+    QCheckBox *_scale_checkbox;
+    QDoubleSpinBox *_scale_spinbox;
+    QCheckBox *_color_checkbox;
+    QPushButton *_color_button;
+    QColor _color;
+    void set_color_button(uint32_t c);
+
+private slots:
+    void color_button_pressed();
+    void font_changed();
+    void size_changed();
+    void scale_changed();
+    void color_changed();
+
+public:
+    subtitle_dialog(parameters *params, QWidget *parent);
+
+    virtual void receive_notification(const notification &note);
+};
+
 class stereoscopic_dialog : public QDialog, public controller
 {
     Q_OBJECT
@@ -208,12 +240,16 @@ private:
     bool _lock;
     QDoubleSpinBox *_p_spinbox;
     QSlider *_p_slider;
+    QDoubleSpinBox *_sp_spinbox;
+    QSlider *_sp_slider;
     QDoubleSpinBox *_g_spinbox;
     QSlider *_g_slider;
 
 private slots:
     void p_slider_changed(int val);
     void p_spinbox_changed(double val);
+    void sp_slider_changed(int val);
+    void sp_spinbox_changed(double val);
     void g_slider_changed(int val);
     void g_spinbox_changed(double val);
 
@@ -235,6 +271,7 @@ private:
     controls_widget *_controls_widget;
     color_dialog *_color_dialog;
     crosstalk_dialog *_crosstalk_dialog;
+    subtitle_dialog *_subtitle_dialog;
     stereoscopic_dialog *_stereoscopic_dialog;
     player_qt_internal *_player;
     QTimer *_timer;
@@ -253,6 +290,7 @@ private slots:
     void file_open_url();
     void preferences_colors();
     void preferences_crosstalk();
+    void preferences_subtitle();
     void preferences_stereoscopic();
     void help_manual();
     void help_website();

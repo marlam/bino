@@ -936,16 +936,6 @@ void player::receive_cmd(const command &cmd)
         parameters_changed = true;
         notify(notification::saturation, oldval, _params.saturation);
         break;
-    case command::seek:
-        s11n::load(p, param);
-        _seek_request = param * 1e6f;
-        /* notify when request is fulfilled */
-        break;
-    case command::set_pos:
-        s11n::load(p, param);
-        _set_pos_request = param;
-        /* notify when request is fulfilled */
-        break;
     case command::adjust_parallax:
         s11n::load(p, param);
         oldval = _params.parallax;
@@ -993,6 +983,61 @@ void player::receive_cmd(const command &cmd)
         _params.ghostbust = std::max(std::min(param, 1.0f), 0.0f);
         parameters_changed = true;
         notify(notification::ghostbust, oldval, _params.ghostbust);
+        break;
+    case command::set_subtitle_font:
+        {
+            std::string oldfont = _params.subtitle_font;
+            s11n::load(p, _params.subtitle_font);
+            parameters_changed = true;
+            notify(notification::subtitle_font, oldfont, _params.subtitle_font);
+            break;
+        }
+    case command::set_subtitle_size:
+        {
+            int oldval = _params.subtitle_size;
+            s11n::load(p, _params.subtitle_size);
+            parameters_changed = true;
+            notify(notification::subtitle_size, oldval, _params.subtitle_size);
+            break;
+        }
+    case command::set_subtitle_scale:
+        s11n::load(p, param);
+        oldval = _params.subtitle_scale;
+        _params.subtitle_scale = std::max(param, 0.0f);
+        parameters_changed = true;
+        notify(notification::subtitle_scale, oldval, _params.subtitle_scale);
+        break;
+    case command::set_subtitle_color:
+        {
+            uint64_t oldval = _params.subtitle_color;
+            s11n::load(p, _params.subtitle_color);
+            parameters_changed = true;
+            notify(notification::subtitle_color, oldval, _params.subtitle_color);
+            break;
+        }
+    case command::adjust_subtitle_parallax:
+        s11n::load(p, param);
+        oldval = _params.subtitle_parallax;
+        _params.subtitle_parallax = std::max(std::min(_params.subtitle_parallax + param, 1.0f), -1.0f);
+        parameters_changed = true;
+        notify(notification::parallax, oldval, _params.subtitle_parallax);
+        break;
+    case command::set_subtitle_parallax:
+        s11n::load(p, param);
+        oldval = _params.subtitle_parallax;
+        _params.subtitle_parallax = std::max(std::min(param, 1.0f), -1.0f);
+        parameters_changed = true;
+        notify(notification::subtitle_parallax, oldval, _params.subtitle_parallax);
+        break;
+    case command::seek:
+        s11n::load(p, param);
+        _seek_request = param * 1e6f;
+        /* notify when request is fulfilled */
+        break;
+    case command::set_pos:
+        s11n::load(p, param);
+        _set_pos_request = param;
+        /* notify when request is fulfilled */
         break;
     }
 

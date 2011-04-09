@@ -24,6 +24,7 @@
 
 #include <string>
 #include <sstream>
+#include <stdint.h>
 
 #include "s11n.h"
 
@@ -69,13 +70,19 @@ public:
         set_hue,                        // float (absolute value)
         adjust_saturation,              // float (relative adjustment)
         set_saturation,                 // float (absolute value)
-        seek,                           // float (relative adjustment)
-        set_pos,                        // float (absolute position)
         adjust_parallax,                // float (relative adjustment)
         set_parallax,                   // float (absolute value)
         set_crosstalk,                  // 3 floats (absolute values)
         adjust_ghostbust,               // float (relative adjustment)
-        set_ghostbust                   // float (absolute value)
+        set_ghostbust,                  // float (absolute value)
+        set_subtitle_font,              // string (font name)
+        set_subtitle_size,              // int
+        set_subtitle_scale,             // float
+        set_subtitle_color,             // uint64_t
+        adjust_subtitle_parallax,       // float (relative adjustment)
+        set_subtitle_parallax,          // float (absolute value)
+        seek,                           // float (relative adjustment)
+        set_pos                         // float (absolute position)
     };
     
     type type;
@@ -129,10 +136,15 @@ public:
         brightness,             // float
         hue,                    // float
         saturation,             // float
-        pos,                    // float
         parallax,               // float
         crosstalk,              // 3 floats
-        ghostbust               // float
+        ghostbust,              // float
+        subtitle_font,          // string
+        subtitle_size,          // int
+        subtitle_scale,         // float
+        subtitle_color,         // uint64_t
+        subtitle_parallax,      // float
+        pos                     // float
     };
     
     type type;
@@ -177,9 +189,26 @@ public:
         current = ossc.str();
     }
 
-    notification(enum type t, const std::string &p, const std::string &c) :
-        type(t), previous(p), current(c)
+    notification(enum type t, uint64_t p, uint64_t c) :
+        type(t)
     {
+        std::ostringstream ossp;
+        s11n::save(ossp, p);
+        previous = ossp.str();
+        std::ostringstream ossc;
+        s11n::save(ossc, c);
+        current = ossc.str();
+    }
+
+    notification(enum type t, const std::string &p, const std::string &c) :
+        type(t)
+    {
+        std::ostringstream ossp;
+        s11n::save(ossp, p);
+        previous = ossp.str();
+        std::ostringstream ossc;
+        s11n::save(ossc, c);
+        current = ossc.str();
     }
 };
 

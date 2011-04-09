@@ -60,6 +60,7 @@ private:
     int _input_subtitle_width[2];       // the width of the current subtitle texture
     int _input_subtitle_height[2];      // the height of the current subtitle texture
     int64_t _input_subtitle_time[2];    // the timestamp of the current subtitle texture
+    parameters _input_subtitle_params;  // the parameters of the current subtitle texture
     int _input_yuv_chroma_width_divisor[2];     // for yuv formats: chroma subsampling
     int _input_yuv_chroma_height_divisor[2];    // for yuv formats: chroma subsampling
     // Step 2: color space conversion and color correction
@@ -91,7 +92,7 @@ private:
 
     // Update the subtitle texture with the given subtitle and according to the
     // current video display width and height.
-    void update_subtitle_tex(int index, const video_frame &frame, const subtitle_box &subtitle);
+    void update_subtitle_tex(int index, const video_frame &frame, const subtitle_box &subtitle, const parameters &params);
 
 protected:
     // Get total size of the video display area. For single window output, this

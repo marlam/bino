@@ -22,6 +22,8 @@
 
 #include "config.h"
 
+#include <limits>
+
 #include <QCoreApplication>
 #include <QApplication>
 #include <QMainWindow>
@@ -48,6 +50,7 @@
 #include <QStandardItemModel>
 #include <QTextBrowser>
 #include <QTabWidget>
+#include <QColorDialog>
 
 #include "player_qt.h"
 #include "qt_app.h"
@@ -1175,6 +1178,218 @@ void crosstalk_dialog::receive_notification(const notification &note)
 }
 
 
+subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(parent),
+    _params(params), _lock(false)
+{
+    setModal(false);
+    setWindowTitle("Subtitle Settings");
+
+    _font_checkbox = new QCheckBox("Override font:");
+    _font_checkbox->setToolTip("<p>Override the subtitle font family.</p>");
+    _font_checkbox->setChecked(params->subtitle_font != "");
+    connect(_font_checkbox, SIGNAL(stateChanged(int)), this, SLOT(font_changed()));
+    _font_combobox = new QFontComboBox();
+    _font_combobox->setToolTip(_font_checkbox->toolTip());
+    _font_combobox->setCurrentFont(QFont(QString(params->subtitle_font == "" ? "Sans" : params->subtitle_font.c_str())));
+    connect(_font_combobox, SIGNAL(currentFontChanged(const QFont &)), this, SLOT(font_changed()));
+
+    _size_checkbox = new QCheckBox("Override font size:");
+    _size_checkbox->setToolTip("<p>Override the subtitle font size.</p>");
+    _size_checkbox->setChecked(params->subtitle_size > 0);
+    connect(_size_checkbox, SIGNAL(stateChanged(int)), this, SLOT(size_changed()));
+    _size_spinbox = new QSpinBox();
+    _size_spinbox->setToolTip(_size_checkbox->toolTip());
+    _size_spinbox->setRange(1, 999);
+    _size_spinbox->setValue(params->subtitle_size <= 0 ? 12 : params->subtitle_size);
+    connect(_size_spinbox, SIGNAL(valueChanged(int)), this, SLOT(size_changed()));
+
+    _scale_checkbox = new QCheckBox("Override scale factor:");
+    _scale_checkbox->setToolTip("<p>Override the subtitle scale factor.</p>");
+    _scale_checkbox->setChecked(params->subtitle_scale >= 0.0f);
+    connect(_scale_checkbox, SIGNAL(stateChanged(int)), this, SLOT(scale_changed()));
+    _scale_spinbox = new QDoubleSpinBox();
+    _scale_spinbox->setToolTip(_scale_checkbox->toolTip());
+    _scale_spinbox->setRange(0.01, 100.0);
+    _scale_spinbox->setSingleStep(0.1);
+    _scale_spinbox->setValue(params->subtitle_scale < 0.0f ? 1.0f : params->subtitle_scale);
+    connect(_scale_spinbox, SIGNAL(valueChanged(double)), this, SLOT(scale_changed()));
+
+    _color_checkbox = new QCheckBox("Override color:");
+    _color_checkbox->setToolTip("<p>Override the subtitle color.</p>");
+    _color_checkbox->setChecked(params->subtitle_color <= std::numeric_limits<uint32_t>::max());
+    connect(_color_checkbox, SIGNAL(stateChanged(int)), this, SLOT(color_changed()));
+    _color_button = new QPushButton();
+    _color_button->setToolTip(_color_checkbox->toolTip());
+    set_color_button(params->subtitle_color > std::numeric_limits<uint32_t>::max() ? 0xffffffu : params->subtitle_color);
+    connect(_color_button, SIGNAL(pressed()), this, SLOT(color_button_pressed()));
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(_font_checkbox, 0, 0);
+    layout->addWidget(_font_combobox, 0, 1);
+    layout->addWidget(_size_checkbox, 1, 0);
+    layout->addWidget(_size_spinbox, 1, 1);
+    layout->addWidget(_scale_checkbox, 2, 0);
+    layout->addWidget(_scale_spinbox, 2, 1);
+    layout->addWidget(_color_checkbox, 3, 0);
+    layout->addWidget(_color_button, 3, 1);
+    setLayout(layout);
+}
+
+void subtitle_dialog::set_color_button(uint32_t c)
+{
+    int r = (c >> 16u) & 0xffu;
+    int g = (c >> 8u) & 0xffu;
+    int b = c & 0xffu;
+    _color = QColor(r, g, b);
+    QPixmap pm(64, 64);
+    pm.fill(_color);
+    _color_button->setIcon(QIcon(pm));
+}
+
+void subtitle_dialog::color_button_pressed()
+{
+    _color = QColorDialog::getColor(_color, this);
+    QPixmap pm(64, 64);
+    pm.fill(_color);
+    _color_button->setIcon(QIcon(pm));
+    color_changed();
+}
+
+void subtitle_dialog::font_changed()
+{
+    if (!_lock)
+    {
+        std::string font = _font_checkbox->isChecked()
+            ? _font_combobox->currentFont().family().toLocal8Bit().constData()
+            : "";
+        std::ostringstream v;
+        s11n::save(v, font);
+        send_cmd(command::set_subtitle_font, v.str());
+        /* Also set in init data, because this must also work in the absence of a player
+         * that interpretes the above command (i.e. when no video is currently playing). */
+        _params->subtitle_font = font;
+    }
+}
+
+void subtitle_dialog::size_changed()
+{
+    if (!_lock)
+    {
+        int size = _size_checkbox->isChecked() ? _size_spinbox->value() : -1;
+        std::ostringstream v;
+        s11n::save(v, size);
+        send_cmd(command::set_subtitle_size, v.str());
+        /* Also set in init data, because this must also work in the absence of a player
+         * that interpretes the above command (i.e. when no video is currently playing). */
+        _params->subtitle_size = size;
+    }
+}
+
+void subtitle_dialog::scale_changed()
+{
+    if (!_lock)
+    {
+        float scale = _scale_checkbox->isChecked() ? _scale_spinbox->value() : -1.0f;
+        std::ostringstream v;
+        s11n::save(v, scale);
+        send_cmd(command::set_subtitle_scale, v.str());
+        /* Also set in init data, because this must also work in the absence of a player
+         * that interpretes the above command (i.e. when no video is currently playing). */
+        _params->subtitle_scale = scale;
+    }
+}
+
+void subtitle_dialog::color_changed()
+{
+    if (!_lock)
+    {
+        uint64_t color;
+        if (_color_checkbox->isChecked())
+        {
+            unsigned int a = _color.alpha();
+            unsigned int r = _color.red();
+            unsigned int g = _color.green();
+            unsigned int b = _color.blue();
+            color = (a << 24u) | (r << 16u) | (g << 8u) | b;
+        }
+        else
+        {
+            color = std::numeric_limits<uint64_t>::max();
+        }
+        std::ostringstream v;
+        s11n::save(v, color);
+        send_cmd(command::set_subtitle_color, v.str());
+        /* Also set in init data, because this must also work in the absence of a player
+         * that interpretes the above command (i.e. when no video is currently playing). */
+        _params->subtitle_color = color;
+    }
+}
+
+void subtitle_dialog::receive_notification(const notification &note)
+{
+    std::istringstream current(note.current);
+
+    switch (note.type)
+    {
+    case notification::subtitle_font:
+        {
+            std::string font;
+            s11n::load(current, font);
+            _lock = true;
+            _font_checkbox->setChecked(font != "");
+            if (font != "")
+            {
+                _font_combobox->setCurrentFont(QFont(QString(font.c_str())));
+            }
+            _lock = false;
+        }
+        break;
+    case notification::subtitle_size:
+        {
+            int size;
+            s11n::load(current, size);
+            _lock = true;
+            _size_checkbox->setChecked(size > 0);
+            if (size > 0)
+            {
+                _size_spinbox->setValue(size);
+            }
+            _lock = false;
+        }
+        break;
+    case notification::subtitle_scale:
+        {
+            float scale;
+            s11n::load(current, scale);
+            _lock = true;
+            _scale_checkbox->setChecked(scale >= 0.0f);
+            if (scale >= 0.0f)
+            {
+                _scale_spinbox->setValue(scale);
+            }
+            _lock = false;
+        }
+        break;
+    case notification::subtitle_color:
+        {
+            uint64_t color;
+            s11n::load(current, color);
+            _lock = true;
+            _color_checkbox->setChecked(color <= std::numeric_limits<uint32_t>::max());
+            if (color <= std::numeric_limits<uint32_t>::max())
+            {
+                set_color_button(color);
+            }
+            _lock = false;
+        }
+        break;
+    default:
+        /* not handled */
+        break;
+    }
+}
+
+
 stereoscopic_dialog::stereoscopic_dialog(const parameters &params, QWidget *parent) : QDialog(parent),
     _lock(false)
 {
@@ -1197,6 +1412,24 @@ stereoscopic_dialog::stereoscopic_dialog(const parameters &params, QWidget *pare
     _p_spinbox->setDecimals(2);
     _p_spinbox->setSingleStep(0.01);
     connect(_p_spinbox, SIGNAL(valueChanged(double)), this, SLOT(p_spinbox_changed(double)));
+
+    QLabel *sp_label = new QLabel("Subtitle parallax:");
+    sp_label->setToolTip(
+            "<p>Adjust subtitle parallax, from -1 to +1. This changes the perceived distance "
+            "of the subtitles.</p>");
+    _sp_slider = new QSlider(Qt::Horizontal);
+    _sp_slider->setToolTip(sp_label->toolTip());
+    _sp_slider->setRange(-1000, 1000);
+    _sp_slider->setValue(params.subtitle_parallax * 1000.0f);
+    connect(_sp_slider, SIGNAL(valueChanged(int)), this, SLOT(sp_slider_changed(int)));
+    _sp_spinbox = new QDoubleSpinBox();
+    _sp_spinbox->setToolTip(sp_label->toolTip());
+    _sp_spinbox->setRange(-1.0, +1.0);
+    _sp_spinbox->setValue(params.subtitle_parallax);
+    _sp_spinbox->setDecimals(2);
+    _sp_spinbox->setSingleStep(0.01);
+    connect(_sp_spinbox, SIGNAL(valueChanged(double)), this, SLOT(sp_spinbox_changed(double)));
+
     QLabel *g_label = new QLabel("Ghostbusting:");
     g_label->setToolTip(
             "<p>Set the amount of crosstalk ghostbusting, from 0 to 1. "
@@ -1219,9 +1452,12 @@ stereoscopic_dialog::stereoscopic_dialog(const parameters &params, QWidget *pare
     layout->addWidget(p_label, 0, 0);
     layout->addWidget(_p_slider, 0, 1);
     layout->addWidget(_p_spinbox, 0, 2);
-    layout->addWidget(g_label, 1, 0);
-    layout->addWidget(_g_slider, 1, 1);
-    layout->addWidget(_g_spinbox, 1, 2);
+    layout->addWidget(sp_label, 1, 0);
+    layout->addWidget(_sp_slider, 1, 1);
+    layout->addWidget(_sp_spinbox, 1, 2);
+    layout->addWidget(g_label, 2, 0);
+    layout->addWidget(_g_slider, 2, 1);
+    layout->addWidget(_g_spinbox, 2, 2);
     setLayout(layout);
 }
 
@@ -1238,6 +1474,22 @@ void stereoscopic_dialog::p_spinbox_changed(double val)
     if (!_lock)
     {
         send_cmd(command::set_parallax, static_cast<float>(val));
+    }
+}
+
+void stereoscopic_dialog::sp_slider_changed(int val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_subtitle_parallax, val / 1000.0f);
+    }
+}
+
+void stereoscopic_dialog::sp_spinbox_changed(double val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_subtitle_parallax, static_cast<float>(val));
     }
 }
 
@@ -1271,6 +1523,13 @@ void stereoscopic_dialog::receive_notification(const notification &note)
         _p_spinbox->setValue(value);
         _lock = false;
         break;
+    case notification::subtitle_parallax:
+        s11n::load(current, value);
+        _lock = true;
+        _sp_slider->setValue(value * 1000.0f);
+        _sp_spinbox->setValue(value);
+        _lock = false;
+        break;
     case notification::ghostbust:
         s11n::load(current, value);
         _lock = true;
@@ -1289,6 +1548,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     _settings(settings),
     _color_dialog(NULL),
     _crosstalk_dialog(NULL),
+    _subtitle_dialog(NULL),
     _stereoscopic_dialog(NULL),
     _player(NULL),
     _init_data(init_data),
@@ -1328,6 +1588,23 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     if (!(_init_data.params.crosstalk_b >= 0.0f && _init_data.params.crosstalk_b <= 1.0f))
     {
         _init_data.params.crosstalk_b = _settings->value("crosstalk_b", QString("0")).toFloat();
+    }
+    if (_init_data.params.subtitle_font.length() == 1 && _init_data.params.subtitle_font[0] == '\0')
+    {
+        _init_data.params.subtitle_font = _settings->value("subtitle-font", QString(1, '\0')).toString().toLocal8Bit().constData();
+    }
+    if (_init_data.params.subtitle_size < 0)
+    {
+        _init_data.params.subtitle_size = _settings->value("subtitle-size", QString("-1")).toInt();
+    }
+    if (_init_data.params.subtitle_scale < 0.0f)
+    {
+        _init_data.params.subtitle_scale = _settings->value("subtitle-scale", QString("-1")).toFloat();
+    }
+    if (_init_data.params.subtitle_color > std::numeric_limits<uint32_t>::max())
+    {
+        _init_data.params.subtitle_color = _settings->value("subtitle-color",
+                QString(str::from(std::numeric_limits<uint64_t>::max()).c_str())).toULongLong();
     }
     _settings->endGroup();
     _init_data.params.set_defaults();
@@ -1375,6 +1652,10 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     QAction *preferences_crosstalk_act = new QAction(tr("Display Cross&talk Calibration..."), this);
     connect(preferences_crosstalk_act, SIGNAL(triggered()), this, SLOT(preferences_crosstalk()));
     preferences_menu->addAction(preferences_crosstalk_act);
+    preferences_menu->addSeparator();
+    QAction *preferences_subtitle_act = new QAction(tr("&Subtitle Settings..."), this);
+    connect(preferences_subtitle_act, SIGNAL(triggered()), this, SLOT(preferences_subtitle()));
+    preferences_menu->addAction(preferences_subtitle_act);
     preferences_menu->addSeparator();
     QAction *preferences_stereoscopic_act = new QAction(tr("Stereoscopic Video Settings..."), this);
     connect(preferences_stereoscopic_act, SIGNAL(triggered()), this, SLOT(preferences_stereoscopic()));
@@ -1560,6 +1841,29 @@ void main_window::receive_notification(const notification &note)
         _settings->endGroup();
         break;
 
+    case notification::subtitle_font:
+        s11n::load(current, _init_data.params.subtitle_font);
+        break;
+
+    case notification::subtitle_size:
+        s11n::load(current, _init_data.params.subtitle_size);
+        break;
+
+    case notification::subtitle_scale:
+        s11n::load(current, _init_data.params.subtitle_scale);
+        break;
+
+    case notification::subtitle_color:
+        s11n::load(current, _init_data.params.subtitle_color);
+        break;
+
+    case notification::subtitle_parallax:
+        s11n::load(current, _init_data.params.subtitle_parallax);
+        _settings->beginGroup("Video/" + current_file_hash());
+        _settings->setValue("subtitle-parallax", QVariant(_init_data.params.subtitle_parallax).toString());
+        _settings->endGroup();
+        break;
+
     case notification::pause:
     case notification::stereo_layout:
     case notification::stereo_mode:
@@ -1617,6 +1921,10 @@ void main_window::closeEvent(QCloseEvent *event)
     _settings->setValue("crosstalk_r", QVariant(_init_data.params.crosstalk_r).toString());
     _settings->setValue("crosstalk_g", QVariant(_init_data.params.crosstalk_g).toString());
     _settings->setValue("crosstalk_b", QVariant(_init_data.params.crosstalk_b).toString());
+    _settings->setValue("subtitle-font", QVariant(_init_data.params.subtitle_font.c_str()).toString());
+    _settings->setValue("subtitle-size", QVariant(_init_data.params.subtitle_size).toString());
+    _settings->setValue("subtitle-scale", QVariant(_init_data.params.subtitle_scale).toString());
+    _settings->setValue("subtitle-color", QVariant(static_cast<qulonglong>(_init_data.params.subtitle_color)).toString());
     _settings->endGroup();
     event->accept();
 }
@@ -1703,6 +2011,7 @@ void main_window::open(QStringList filenames)
         _init_data.subtitle_stream = std::max(-1, std::min(_init_data.subtitle_stream, _player->get_media_input().subtitle_streams() - 1));
         _init_data.params.parallax = QVariant(_settings->value("parallax", QVariant(_init_data.params.parallax)).toString()).toFloat();
         _init_data.params.ghostbust = QVariant(_settings->value("ghostbust", QVariant(_init_data.params.ghostbust)).toString()).toFloat();
+        _init_data.params.subtitle_parallax = QVariant(_settings->value("subtitle-parallax", QVariant(_init_data.params.parallax)).toString()).toFloat();
         // Get stereo mode for this video
         _settings->endGroup();
         QString mode_fallback = QString(parameters::stereo_mode_to_string(
@@ -1793,6 +2102,17 @@ void main_window::preferences_crosstalk()
     _crosstalk_dialog->show();
     _crosstalk_dialog->raise();
     _crosstalk_dialog->activateWindow();
+}
+
+void main_window::preferences_subtitle()
+{
+    if (!_subtitle_dialog)
+    {
+        _subtitle_dialog = new subtitle_dialog(&_init_data.params, this);
+    }
+    _subtitle_dialog->show();
+    _subtitle_dialog->raise();
+    _subtitle_dialog->activateWindow();
 }
 
 void main_window::preferences_stereoscopic()
