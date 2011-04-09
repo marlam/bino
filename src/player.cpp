@@ -820,7 +820,7 @@ void player::receive_cmd(const command &cmd)
         }
         break;
     case command::set_subtitle_stream:
-        if (_media_input->subtitle_streams() > 1)
+        if (_media_input->subtitle_streams() > 0)
         {
             int oldstream = _media_input->selected_subtitle_stream();
             int newstream;
