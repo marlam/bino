@@ -24,9 +24,14 @@
 #include <vector>
 #include <limits>
 #include <cstring>
+#include <cstdio>
 #include <stdint.h>
 
 #include <GL/glew.h>
+
+#if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
+# include <windows.h>
+#endif
 
 extern "C"
 {
@@ -43,6 +48,7 @@ extern "C"
 
 subtitle_renderer::subtitle_renderer() :
     _ass_initialized(false),
+    _fontconfig_conffile(NULL),
     _ass_library(NULL),
     _ass_renderer(NULL),
     _ass_track(NULL)
@@ -62,6 +68,10 @@ subtitle_renderer::~subtitle_renderer()
     if (_ass_library)
     {
         ass_library_done(_ass_library);
+    }
+    if (_fontconfig_conffile)
+    {
+        (void)std::remove(_fontconfig_conffile);
     }
 }
 
@@ -105,6 +115,58 @@ void subtitle_renderer::render(uint32_t *bgra32_buffer)
         render_img(bgra32_buffer);
         break;
     }
+}
+
+const char *subtitle_renderer::get_fontconfig_conffile()
+{
+#if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
+    /* Fontconfig annoyingly requires a configuration file, but there is no
+     * default location for it on Windows. So we just create a temporary one.
+     * Note that due to lack of mkstemp() on Windows, this code has race
+     * conditions. Note also that if something goes wrong and we return NULL
+     * here, the application will likely crash when we try to render a subtitle. */
+    char tmppathname[MAX_PATH];
+    static char tmpfilename[MAX_PATH];
+    FILE *f;
+    DWORD ret;
+    ret = GetTempPath(MAX_PATH, tmppathname);
+    if (ret > MAX_PATH || ret == 0)
+        return NULL;
+    if (GetTempFileName(tmppathname, "fonts_conf", 0, tmpfilename) == 0)
+        return NULL;
+    if (!(f = fopen(tmpfilename, "w")))
+        return NULL;
+    fprintf(f,
+            "<?xml version=\"1.0\"?>\n"
+            "<!DOCTYPE fontconfig SYSTEM \"fonts.dtd\">\n"
+            "<fontconfig>\n"
+            "<dir>WINDOWSFONTDIR</dir>\n"
+            "<dir>~/.fonts</dir>\n"
+            "<cachedir>WINDOWSTEMPDIR_FONTCONFIG_CACHE</cachedir>\n"
+            "<cachedir>~/.fontconfig</cachedir>\n"
+            "<config>\n"
+            "<blank>\n"
+            "<int>0x0020</int> <int>0x00A0</int> <int>0x00AD</int> <int>0x034F</int> <int>0x0600</int>\n"
+            "<int>0x0601</int> <int>0x0602</int> <int>0x0603</int> <int>0x06DD</int> <int>0x070F</int>\n"
+            "<int>0x115F</int> <int>0x1160</int> <int>0x1680</int> <int>0x17B4</int> <int>0x17B5</int>\n"
+            "<int>0x180E</int> <int>0x2000</int> <int>0x2001</int> <int>0x2002</int> <int>0x2003</int>\n"
+            "<int>0x2004</int> <int>0x2005</int> <int>0x2006</int> <int>0x2007</int> <int>0x2008</int>\n"
+            "<int>0x2009</int> <int>0x200A</int> <int>0x200B</int> <int>0x200C</int> <int>0x200D</int>\n"
+            "<int>0x200E</int> <int>0x200F</int> <int>0x2028</int> <int>0x2029</int> <int>0x202A</int>\n"
+            "<int>0x202B</int> <int>0x202C</int> <int>0x202D</int> <int>0x202E</int> <int>0x202F</int>\n"
+            "<int>0x205F</int> <int>0x2060</int> <int>0x2061</int> <int>0x2062</int> <int>0x2063</int>\n"
+            "<int>0x206A</int> <int>0x206B</int> <int>0x206C</int> <int>0x206D</int> <int>0x206E</int>\n"
+            "<int>0x206F</int> <int>0x2800</int> <int>0x3000</int> <int>0x3164</int> <int>0xFEFF</int>\n"
+            "<int>0xFFA0</int> <int>0xFFF9</int> <int>0xFFFA</int> <int>0xFFFB</int>\n"
+            "</blank>\n"
+            "<rescan><int>30</int></rescan>\n"
+            "</config>\n"
+            "</fontconfig>\n");
+    fclose(f);
+    return tmpfilename;
+#else
+    return NULL;
+#endif
 }
 
 static void libass_msg_callback(int level, const char *fmt, va_list args, void *)
@@ -152,7 +214,6 @@ void subtitle_renderer::init_ass()
             throw exc("Cannot initialize LibASS");
         }
         ass_set_message_cb(_ass_library, libass_msg_callback, NULL);
-        ass_set_fonts_dir(_ass_library, "");
         ass_set_extract_fonts(_ass_library, 1);
         _ass_renderer = ass_renderer_init(_ass_library);
         if (!_ass_renderer)
@@ -160,7 +221,8 @@ void subtitle_renderer::init_ass()
             throw exc("Cannot initialize LibASS renderer");
         }
         ass_set_hinting(_ass_renderer, ASS_HINTING_NATIVE);
-        ass_set_fonts(_ass_renderer, NULL, "Sans", 1, NULL, 1);
+        _fontconfig_conffile = get_fontconfig_conffile();
+        ass_set_fonts(_ass_renderer, NULL, "sans-serif", 1, _fontconfig_conffile, 1);
         _ass_initialized = true;
     }
 }
