@@ -136,43 +136,34 @@ void media_input::open(const std::vector<std::string> &urls)
     // Gather metadata
     for (size_t i = 0; i < _media_objects.size(); i++)
     {
-        std::string pfx = (_media_objects.size() == 1 ? "" : str::from(i + 1) + " - ");
+        // Note that we may have multiple identical tag names in our metadata
         for (size_t j = 0; j < _media_objects[i].tags(); j++)
         {
-            _tag_names.push_back(pfx + _media_objects[i].tag_name(j));
-            _tag_values.push_back(pfx + _media_objects[i].tag_value(j));
+            _tag_names.push_back(_media_objects[i].tag_name(j));
+            _tag_values.push_back(_media_objects[i].tag_value(j));
         }
     }
 
     // Gather streams and stream names
     for (size_t i = 0; i < _media_objects.size(); i++)
     {
-        std::string pfx = (_media_objects.size() == 1 ? "" : str::from(i + 1) + " - ");
         for (int j = 0; j < _media_objects[i].video_streams(); j++)
         {
-            std::string pfx2 = (_media_objects[i].video_streams() == 1 ? "" : str::from(j + 1) + " - ");
-            _video_stream_names.push_back(pfx + pfx2
-                    + _media_objects[i].video_frame_template(j).format_info());
+            _video_stream_names.push_back(_media_objects[i].video_frame_template(j).format_info());
         }
     }
     for (size_t i = 0; i < _media_objects.size(); i++)
     {
-        std::string pfx = (_media_objects.size() == 1 ? "" : str::from(i + 1) + " - ");
         for (int j = 0; j < _media_objects[i].audio_streams(); j++)
         {
-            std::string pfx2 = (_media_objects[i].audio_streams() == 1 ? "" : str::from(j + 1) + " - ");
-            _audio_stream_names.push_back(pfx + pfx2
-                    + _media_objects[i].audio_blob_template(j).format_info());
+            _audio_stream_names.push_back(_media_objects[i].audio_blob_template(j).format_info());
         }
     }
     for (size_t i = 0; i < _media_objects.size(); i++)
     {
-        std::string pfx = (_media_objects.size() == 1 ? "" : str::from(i + 1) + " - ");
         for (int j = 0; j < _media_objects[i].subtitle_streams(); j++)
         {
-            std::string pfx2 = (_media_objects[i].subtitle_streams() == 1 ? "" : str::from(j + 1) + " - ");
-            _subtitle_stream_names.push_back(pfx + pfx2
-                    + _media_objects[i].subtitle_box_template(j).format_info());
+            _subtitle_stream_names.push_back(_media_objects[i].subtitle_box_template(j).format_info());
         }
     }
 
