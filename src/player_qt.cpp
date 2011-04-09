@@ -1184,6 +1184,8 @@ subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(
     setModal(false);
     setWindowTitle("Subtitle Settings");
 
+    QLabel *info_label = new QLabel("<p>These settings apply to soft subtitles, but not to bitmaps.</p>");
+
     _font_checkbox = new QCheckBox("Override font:");
     _font_checkbox->setToolTip("<p>Override the subtitle font family.</p>");
     _font_checkbox->setChecked(params->subtitle_font != "");
@@ -1224,14 +1226,15 @@ subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(
     connect(_color_button, SIGNAL(pressed()), this, SLOT(color_button_pressed()));
 
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(_font_checkbox, 0, 0);
-    layout->addWidget(_font_combobox, 0, 1);
-    layout->addWidget(_size_checkbox, 1, 0);
-    layout->addWidget(_size_spinbox, 1, 1);
-    layout->addWidget(_scale_checkbox, 2, 0);
-    layout->addWidget(_scale_spinbox, 2, 1);
-    layout->addWidget(_color_checkbox, 3, 0);
-    layout->addWidget(_color_button, 3, 1);
+    layout->addWidget(info_label, 0, 0, 1, 2);
+    layout->addWidget(_font_checkbox, 1, 0);
+    layout->addWidget(_font_combobox, 1, 1);
+    layout->addWidget(_size_checkbox, 2, 0);
+    layout->addWidget(_size_spinbox, 2, 1);
+    layout->addWidget(_scale_checkbox, 3, 0);
+    layout->addWidget(_scale_spinbox, 3, 1);
+    layout->addWidget(_color_checkbox, 4, 0);
+    layout->addWidget(_color_button, 4, 1);
     setLayout(layout);
 }
 
