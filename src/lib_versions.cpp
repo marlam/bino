@@ -79,8 +79,7 @@ static void libass_versions()
 {
     if (libass_v.size() == 0)
     {
-        libass_v.push_back(str::asprintf("%d.%d.%d",
-                    LIBASS_VERSION >> 28, LIBASS_VERSION >> 20 & 0xff, LIBASS_VERSION >> 12 & 0xff));
+        libass_v.push_back("unknown");
     }
 }
 
