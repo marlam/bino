@@ -152,6 +152,13 @@ void media_input::open(const std::vector<std::string> &urls)
             _video_stream_names.push_back(_media_objects[i].video_frame_template(j).format_info());
         }
     }
+    if (_video_stream_names.size() > 1)
+    {
+        for (size_t i = 0; i < _video_stream_names.size(); i++)
+        {
+            _video_stream_names[i].insert(0, std::string(1, '#') + str::from(i + 1) + ": ");
+        }
+    }
     for (size_t i = 0; i < _media_objects.size(); i++)
     {
         for (int j = 0; j < _media_objects[i].audio_streams(); j++)
@@ -159,11 +166,25 @@ void media_input::open(const std::vector<std::string> &urls)
             _audio_stream_names.push_back(_media_objects[i].audio_blob_template(j).format_info());
         }
     }
+    if (_audio_stream_names.size() > 1)
+    {
+        for (size_t i = 0; i < _audio_stream_names.size(); i++)
+        {
+            _audio_stream_names[i].insert(0, std::string(1, '#') + str::from(i + 1) + ": ");
+        }
+    }
     for (size_t i = 0; i < _media_objects.size(); i++)
     {
         for (int j = 0; j < _media_objects[i].subtitle_streams(); j++)
         {
             _subtitle_stream_names.push_back(_media_objects[i].subtitle_box_template(j).format_info());
+        }
+    }
+    if (_subtitle_stream_names.size() > 1)
+    {
+        for (size_t i = 0; i < _subtitle_stream_names.size(); i++)
+        {
+            _subtitle_stream_names[i].insert(0, std::string(1, '#') + str::from(i + 1) + ": ");
         }
     }
 
