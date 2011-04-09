@@ -1472,6 +1472,28 @@ void subtitle_decode_thread::run()
             subtitle_box box = _ffmpeg->subtitle_box_templates[_subtitle_stream];
             box.presentation_start_time = timestamp + subtitle.start_display_time * 1000;
             box.presentation_stop_time = box.presentation_start_time + subtitle.end_display_time * 1000;
+            if (subtitle.num_rects > 0 && subtitle.rects[0]->type == SUBTITLE_ASS
+                    && subtitle.start_display_time == subtitle.end_display_time)
+            {
+                // XXX As of 20110409, FFmpeg does not properly set the duration of ASS subtitles.
+                // This is a temporary workaround that can be removed once a fixed version of
+                // FFmpeg can be assumed. See http://thread.gmane.org/gmane.comp.video.ffmpeg.devel/130619
+                int start_hour, start_min, start_sec, start_hsec;
+                int end_hour, end_min, end_sec, end_hsec;
+                if (sscanf(subtitle.rects[0]->ass, "%*[^,],%d:%d:%d%*c%d,%d:%d:%d%*c%d",
+                            &start_hour, &start_min, &start_sec, &start_hsec,
+                            &end_hour, &end_min, &end_sec, &end_hsec) == 8)
+                {
+                    start_min += 60 * start_hour;
+                    start_sec += 60 * start_min;
+                    start_hsec += start_sec * 100;
+                    end_min += 60 * end_hour;
+                    end_sec += 60 * end_min;
+                    end_hsec += end_sec * 100;
+                    int64_t duration_ms = (end_hsec - start_hsec) * 10;
+                    box.presentation_stop_time = box.presentation_start_time + duration_ms * 1000;
+                }
+            }
             for (unsigned int i = 0; i < subtitle.num_rects; i++)
             {
                 AVSubtitleRect *rect = subtitle.rects[i];
