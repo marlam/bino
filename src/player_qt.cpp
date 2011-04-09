@@ -1856,9 +1856,15 @@ void main_window::receive_notification(const notification &note)
             {
                 _stop_request = true;
             }
-            // Remember the input settings of this video, using an SHA1 hash of its filename.
+            // Remember the settings of this video
             _settings->beginGroup("Video/" + current_file_hash());
             _settings->setValue("stereo-layout", QString(video_frame::stereo_layout_to_string(_init_data.stereo_layout, _init_data.stereo_layout_swap).c_str()));
+            _settings->setValue("video-stream", QVariant(_init_data.video_stream).toString());
+            _settings->setValue("audio-stream", QVariant(_init_data.audio_stream).toString());
+            _settings->setValue("subtitle-stream", QVariant(_init_data.subtitle_stream).toString());
+            _settings->setValue("parallax", QVariant(_init_data.params.parallax).toString());
+            _settings->setValue("ghostbust", QVariant(_init_data.params.ghostbust).toString());
+            _settings->setValue("subtitle-parallax", QVariant(_init_data.params.subtitle_parallax).toString());
             _settings->endGroup();
             // Remember the 2D or 3D video output mode.
             _settings->setValue((_init_data.stereo_layout == video_frame::mono ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode"),
@@ -2097,15 +2103,14 @@ void main_window::open(QStringList filenames)
     }
     if (open_player())
     {
+        // Get the settings for this video
         _settings->beginGroup("Video/" + current_file_hash());
-        // Get stereo layout for this video
         QString layout_fallback = QString(video_frame::stereo_layout_to_string(
                     _player->get_media_input().video_frame_template().stereo_layout,
                     _player->get_media_input().video_frame_template().stereo_layout_swap).c_str());
         QString layout_name = _settings->value("stereo-layout", layout_fallback).toString();
         video_frame::stereo_layout_from_string(layout_name.toStdString(), _init_data.stereo_layout, _init_data.stereo_layout_swap);
         _init_data.stereo_layout_override = true;
-        // Get output parameters for this video
         _init_data.video_stream = QVariant(_settings->value("video-stream", QVariant(_init_data.video_stream)).toString()).toInt();
         _init_data.video_stream = std::max(0, std::min(_init_data.video_stream, _player->get_media_input().video_streams() - 1));
         _init_data.audio_stream = QVariant(_settings->value("audio-stream", QVariant(_init_data.audio_stream)).toString()).toInt();
@@ -2115,8 +2120,8 @@ void main_window::open(QStringList filenames)
         _init_data.params.parallax = QVariant(_settings->value("parallax", QVariant(_init_data.params.parallax)).toString()).toFloat();
         _init_data.params.ghostbust = QVariant(_settings->value("ghostbust", QVariant(_init_data.params.ghostbust)).toString()).toFloat();
         _init_data.params.subtitle_parallax = QVariant(_settings->value("subtitle-parallax", QVariant(_init_data.params.parallax)).toString()).toFloat();
-        // Get stereo mode for this video
         _settings->endGroup();
+        // Get stereo mode
         QString mode_fallback = QString(parameters::stereo_mode_to_string(
                     _player->get_parameters().stereo_mode,
                     _player->get_parameters().stereo_mode_swap).c_str());
