@@ -382,7 +382,8 @@ audio_blob::audio_blob() :
 
 std::string audio_blob::format_info() const
 {
-    return str::asprintf("%d channels, %g kHz, %d bit", channels, rate / 1e3f, sample_bits());
+    return str::asprintf("%d %s, %g kHz, %d bit",
+            channels, channels == 1 ? "channel" : "channels", rate / 1e3f, sample_bits());
 }
 
 std::string audio_blob::format_name() const
