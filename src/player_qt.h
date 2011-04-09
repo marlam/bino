@@ -208,6 +208,8 @@ class subtitle_dialog: public QDialog, public controller
 private:
     parameters *_params;
     bool _lock;
+    QCheckBox *_encoding_checkbox;
+    QComboBox *_encoding_combobox;
     QCheckBox *_font_checkbox;
     QFontComboBox *_font_combobox;
     QCheckBox *_size_checkbox;
@@ -217,10 +219,13 @@ private:
     QCheckBox *_color_checkbox;
     QPushButton *_color_button;
     QColor _color;
+
+    QList<QTextCodec *> find_codecs();
     void set_color_button(uint32_t c);
 
 private slots:
     void color_button_pressed();
+    void encoding_changed();
     void font_changed();
     void size_changed();
     void scale_changed();

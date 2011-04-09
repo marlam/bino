@@ -75,6 +75,7 @@ public:
         set_crosstalk,                  // 3 floats (absolute values)
         adjust_ghostbust,               // float (relative adjustment)
         set_ghostbust,                  // float (absolute value)
+        set_subtitle_encoding,          // string (encoding name)
         set_subtitle_font,              // string (font name)
         set_subtitle_size,              // int
         set_subtitle_scale,             // float
@@ -139,6 +140,7 @@ public:
         parallax,               // float
         crosstalk,              // 3 floats
         ghostbust,              // float
+        subtitle_encoding,      // string
         subtitle_font,          // string
         subtitle_size,          // int
         subtitle_scale,         // float

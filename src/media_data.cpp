@@ -567,6 +567,7 @@ parameters::parameters() :
     brightness(std::numeric_limits<float>::quiet_NaN()),
     hue(std::numeric_limits<float>::quiet_NaN()),
     saturation(std::numeric_limits<float>::quiet_NaN()),
+    subtitle_encoding(1, '\0'),
     subtitle_font(1, '\0'),
     subtitle_size(std::numeric_limits<int>::min()),
     subtitle_scale(-1.0f),
@@ -612,6 +613,10 @@ void parameters::set_defaults()
     if (!std::isfinite(saturation) || saturation < -1.0f || saturation > +1.0f)
     {
         saturation = 0.0f;
+    }
+    if (subtitle_encoding.length() == 1 && subtitle_encoding[0] == '\0')
+    {
+        subtitle_encoding = "";
     }
     if (subtitle_font.length() == 1 && subtitle_font[0] == '\0')
     {
@@ -857,6 +862,7 @@ void parameters::save(std::ostream &os) const
     s11n::save(os, brightness);
     s11n::save(os, hue);
     s11n::save(os, saturation);
+    s11n::save(os, subtitle_encoding);
     s11n::save(os, subtitle_font);
     s11n::save(os, subtitle_size);
     s11n::save(os, subtitle_scale);
@@ -879,6 +885,7 @@ void parameters::load(std::istream &is)
     s11n::load(is, brightness);
     s11n::load(is, hue);
     s11n::load(is, saturation);
+    s11n::load(is, subtitle_encoding);
     s11n::load(is, subtitle_font);
     s11n::load(is, subtitle_size);
     s11n::load(is, subtitle_scale);

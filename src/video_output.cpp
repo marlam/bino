@@ -430,6 +430,7 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
                 || (!subtitle.is_constant() && frame.presentation_time != _input_subtitle_time[index])
                 || width != _input_subtitle_width[index]
                 || height != _input_subtitle_height[index]
+                || params.subtitle_encoding != _input_subtitle_params.subtitle_encoding
                 || params.subtitle_font != _input_subtitle_params.subtitle_font
                 || params.subtitle_size != _input_subtitle_params.subtitle_size
                 || (params.subtitle_scale < _input_subtitle_params.subtitle_scale

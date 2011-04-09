@@ -251,10 +251,23 @@ void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp
     {
         throw exc("Cannot initialize LibASS track");
     }
+    std::string conv_str = box.str;
+    if (params.subtitle_encoding != "")
+    {
+        try
+        {
+            conv_str = str::convert(box.str, params.subtitle_encoding, "UTF-8");
+        }
+        catch (std::exception &e)
+        {
+            msg::err("Subtitle character set conversion failed: %s", e.what());
+            conv_str = std::string("Dialogue: 0,0:00:00.00,9:59:59.99,") + e.what();
+        }
+    }
     if (box.format == subtitle_box::ass)
     {
         ass_process_codec_private(_ass_track, const_cast<char *>(box.style.c_str()), box.style.length());
-        ass_process_data(_ass_track, const_cast<char *>(box.str.c_str()), box.str.length());
+        ass_process_data(_ass_track, const_cast<char *>(conv_str.c_str()), conv_str.length());
     }
     else
     {
@@ -271,7 +284,7 @@ void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp
             "[Events]\n"
             "Format: Layer, Start, End, Text\n"
             "\n";
-        std::string str = "Dialogue: 0,0:00:00.00,9:00:00.00," + box.str;
+        std::string str = "Dialogue: 0,0:00:00.00,9:59:59.99," + conv_str;
         ass_process_codec_private(_ass_track, const_cast<char *>(style.c_str()), style.length());
         ass_process_data(_ass_track, const_cast<char *>(str.c_str()), str.length());
     }

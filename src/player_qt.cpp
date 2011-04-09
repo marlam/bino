@@ -50,6 +50,10 @@
 #include <QStandardItemModel>
 #include <QTextBrowser>
 #include <QTabWidget>
+#include <QList>
+#include <QTextCodec>
+#include <QRegExp>
+#include <QMap>
 #include <QColorDialog>
 
 #include "player_qt.h"
@@ -1186,6 +1190,21 @@ subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(
 
     QLabel *info_label = new QLabel("<p>These settings apply to soft subtitles, but not to bitmaps.</p>");
 
+    _encoding_checkbox = new QCheckBox("Encoding:");
+    _encoding_checkbox->setToolTip("<p>Set the subtitle character set encoding.</p>");
+    _encoding_checkbox->setChecked(params->subtitle_encoding != "");
+    connect(_encoding_checkbox, SIGNAL(stateChanged(int)), this, SLOT(encoding_changed()));
+    _encoding_combobox = new QComboBox();
+    _encoding_combobox->setToolTip(_encoding_checkbox->toolTip());
+    QList<QTextCodec *> codecs = find_codecs();
+    foreach (QTextCodec *codec, codecs)
+    {
+        _encoding_combobox->addItem(codec->name(), codec->mibEnum());
+    }
+    _encoding_combobox->setCurrentIndex(_encoding_combobox->findText(
+                params->subtitle_encoding == "" ? "UTF-8" : params->subtitle_encoding.c_str()));
+    connect(_encoding_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(encoding_changed()));
+
     _font_checkbox = new QCheckBox("Override font:");
     _font_checkbox->setToolTip("<p>Override the subtitle font family.</p>");
     _font_checkbox->setChecked(params->subtitle_font != "");
@@ -1227,15 +1246,59 @@ subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(
 
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(info_label, 0, 0, 1, 2);
-    layout->addWidget(_font_checkbox, 1, 0);
-    layout->addWidget(_font_combobox, 1, 1);
-    layout->addWidget(_size_checkbox, 2, 0);
-    layout->addWidget(_size_spinbox, 2, 1);
-    layout->addWidget(_scale_checkbox, 3, 0);
-    layout->addWidget(_scale_spinbox, 3, 1);
-    layout->addWidget(_color_checkbox, 4, 0);
-    layout->addWidget(_color_button, 4, 1);
+    layout->addWidget(_encoding_checkbox, 1, 0);
+    layout->addWidget(_encoding_combobox, 1, 1);
+    layout->addWidget(_font_checkbox, 2, 0);
+    layout->addWidget(_font_combobox, 2, 1);
+    layout->addWidget(_size_checkbox, 3, 0);
+    layout->addWidget(_size_spinbox, 3, 1);
+    layout->addWidget(_scale_checkbox, 4, 0);
+    layout->addWidget(_scale_spinbox, 4, 1);
+    layout->addWidget(_color_checkbox, 5, 0);
+    layout->addWidget(_color_button, 5, 1);
     setLayout(layout);
+}
+
+QList<QTextCodec *> subtitle_dialog::find_codecs()
+{
+    QMap<QString, QTextCodec *> codec_map;
+    QRegExp iso8859_regexp("ISO[- ]8859-([0-9]+).*");
+
+    foreach (int mib, QTextCodec::availableMibs())
+    {
+        QTextCodec *codec = QTextCodec::codecForMib(mib);
+
+        QString sort_key = codec->name().toUpper();
+        int rank;
+
+        if (sort_key.startsWith("UTF-8"))
+        {
+            rank = 1;
+        }
+        else if (sort_key.startsWith("UTF-16"))
+        {
+            rank = 2;
+        }
+        else if (iso8859_regexp.exactMatch(sort_key))
+        {
+            if (iso8859_regexp.cap(1).size() == 1)
+            {
+                rank = 3;
+            }
+            else
+            {
+                rank = 4;
+            }
+        }
+        else
+        {
+            rank = 5;
+        }
+        sort_key.prepend(QChar('0' + rank));
+
+        codec_map.insert(sort_key, codec);
+    }
+    return codec_map.values();
 }
 
 void subtitle_dialog::set_color_button(uint32_t c)
@@ -1256,6 +1319,21 @@ void subtitle_dialog::color_button_pressed()
     pm.fill(_color);
     _color_button->setIcon(QIcon(pm));
     color_changed();
+}
+
+void subtitle_dialog::encoding_changed()
+{
+    if (!_lock)
+    {
+        std::string encoding = _encoding_checkbox->isChecked()
+            ? _encoding_combobox->currentText().toStdString() : "";
+        std::ostringstream v;
+        s11n::save(v, encoding);
+        send_cmd(command::set_subtitle_encoding, v.str());
+        /* Also set in init data, because this must also work in the absence of a player
+         * that interpretes the above command (i.e. when no video is currently playing). */
+        _params->subtitle_encoding = encoding;
+    }
 }
 
 void subtitle_dialog::font_changed()
@@ -1334,6 +1412,19 @@ void subtitle_dialog::receive_notification(const notification &note)
 
     switch (note.type)
     {
+    case notification::subtitle_encoding:
+        {
+            std::string encoding;
+            s11n::load(current, encoding);
+            _lock = true;
+            _encoding_checkbox->setChecked(encoding != "");
+            if (encoding != "")
+            {
+                _encoding_combobox->setCurrentIndex(_encoding_combobox->findText(encoding.c_str()));
+            }
+            _lock = false;
+        }
+        break;
     case notification::subtitle_font:
         {
             std::string font;
@@ -1592,6 +1683,10 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     {
         _init_data.params.crosstalk_b = _settings->value("crosstalk_b", QString("0")).toFloat();
     }
+    if (_init_data.params.subtitle_encoding.length() == 1 && _init_data.params.subtitle_encoding[0] == '\0')
+    {
+        _init_data.params.subtitle_encoding = _settings->value("subtitle-encoding", QString(1, '\0')).toString().toLocal8Bit().constData();
+    }
     if (_init_data.params.subtitle_font.length() == 1 && _init_data.params.subtitle_font[0] == '\0')
     {
         _init_data.params.subtitle_font = _settings->value("subtitle-font", QString(1, '\0')).toString().toLocal8Bit().constData();
@@ -1844,6 +1939,10 @@ void main_window::receive_notification(const notification &note)
         _settings->endGroup();
         break;
 
+    case notification::subtitle_encoding:
+        s11n::load(current, _init_data.params.subtitle_encoding);
+        break;
+
     case notification::subtitle_font:
         s11n::load(current, _init_data.params.subtitle_font);
         break;
@@ -1924,6 +2023,7 @@ void main_window::closeEvent(QCloseEvent *event)
     _settings->setValue("crosstalk_r", QVariant(_init_data.params.crosstalk_r).toString());
     _settings->setValue("crosstalk_g", QVariant(_init_data.params.crosstalk_g).toString());
     _settings->setValue("crosstalk_b", QVariant(_init_data.params.crosstalk_b).toString());
+    _settings->setValue("subtitle-encoding", QVariant(_init_data.params.subtitle_encoding.c_str()).toString());
     _settings->setValue("subtitle-font", QVariant(_init_data.params.subtitle_font.c_str()).toString());
     _settings->setValue("subtitle-size", QVariant(_init_data.params.subtitle_size).toString());
     _settings->setValue("subtitle-scale", QVariant(_init_data.params.subtitle_scale).toString());

@@ -984,6 +984,14 @@ void player::receive_cmd(const command &cmd)
         parameters_changed = true;
         notify(notification::ghostbust, oldval, _params.ghostbust);
         break;
+    case command::set_subtitle_encoding:
+        {
+            std::string oldenc = _params.subtitle_encoding;
+            s11n::load(p, _params.subtitle_encoding);
+            parameters_changed = true;
+            notify(notification::subtitle_encoding, oldenc, _params.subtitle_encoding);
+            break;
+        }
     case command::set_subtitle_font:
         {
             std::string oldfont = _params.subtitle_font;
