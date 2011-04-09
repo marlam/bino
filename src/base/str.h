@@ -92,6 +92,9 @@ namespace str
     /* Convert various values to human readable strings */
     std::string human_readable_memsize(const uintmax_t size);
     std::string human_readable_length(const double length);
+
+    /* Convert a string from one character set to another */
+    std::string convert(const std::string &src, const std::string &from_charset, const std::string &to_charset);
 }
 
 #endif
