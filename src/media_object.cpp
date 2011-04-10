@@ -751,15 +751,23 @@ void media_object::open(const std::string &url)
             int j = _ffmpeg->subtitle_streams.size() - 1;
             msg::dbg(_url + " stream " + str::from(i) + " is subtitle stream " + str::from(j) + ".");
             _ffmpeg->subtitle_codec_ctxs.push_back(_ffmpeg->format_ctx->streams[i]->codec);
-            _ffmpeg->subtitle_codecs.push_back(avcodec_find_decoder(_ffmpeg->subtitle_codec_ctxs[j]->codec_id));
-            if (!_ffmpeg->subtitle_codecs[j])
+            if (_ffmpeg->subtitle_codec_ctxs[j]->codec_id == CODEC_ID_TEXT)
             {
-                throw exc(_url + " stream " + str::from(i) + ": Unsupported subtitle codec.");
+                // CODEC_ID_TEXT does not have any decoder; it is just UTF-8 text in the packet data.
+                _ffmpeg->subtitle_codecs.push_back(NULL);
             }
-            if ((e = avcodec_open(_ffmpeg->subtitle_codec_ctxs[j], _ffmpeg->subtitle_codecs[j])) < 0)
+            else
             {
-                _ffmpeg->subtitle_codecs[j] = NULL;
-                throw exc(_url + " stream " + str::from(i) + ": Cannot open subtitle codec: " + my_av_strerror(e));
+                _ffmpeg->subtitle_codecs.push_back(avcodec_find_decoder(_ffmpeg->subtitle_codec_ctxs[j]->codec_id));
+                if (!_ffmpeg->subtitle_codecs[j])
+                {
+                    throw exc(_url + " stream " + str::from(i) + ": Unsupported subtitle codec.");
+                }
+                if ((e = avcodec_open(_ffmpeg->subtitle_codec_ctxs[j], _ffmpeg->subtitle_codecs[j])) < 0)
+                {
+                    _ffmpeg->subtitle_codecs[j] = NULL;
+                    throw exc(_url + " stream " + str::from(i) + ": Cannot open subtitle codec: " + my_av_strerror(e));
+                }
             }
             _ffmpeg->subtitle_box_templates.push_back(subtitle_box());
             set_subtitle_box_template(j);
@@ -1366,7 +1374,7 @@ void audio_decode_thread::run()
                 _ffmpeg->audio_buffers[_audio_stream].resize(old_size + tmpbuf_size);
                 memcpy(&(_ffmpeg->audio_buffers[_audio_stream][old_size]), _ffmpeg->audio_tmpbufs[_audio_stream], tmpbuf_size);
             }
-            
+
             av_free_packet(&packet);
         }
     }
@@ -1453,6 +1461,27 @@ void subtitle_decode_thread::run()
         AVSubtitle subtitle;
         int got_subtitle;
         tmppacket = packet;
+
+        // CODEC_ID_TEXT does not have any decoder; it is just UTF-8 text in the packet data.
+        if (_ffmpeg->subtitle_codec_ctxs[_subtitle_stream]->codec_id == CODEC_ID_TEXT)
+        {
+            int64_t duration = packet.convergence_duration * 1000000
+                * _ffmpeg->format_ctx->streams[_ffmpeg->subtitle_streams[_subtitle_stream]]->time_base.num
+                / _ffmpeg->format_ctx->streams[_ffmpeg->subtitle_streams[_subtitle_stream]]->time_base.den;
+
+            // Put it in the subtitle buffer
+            subtitle_box box = _ffmpeg->subtitle_box_templates[_subtitle_stream];
+            box.presentation_start_time = timestamp;
+            box.presentation_stop_time = timestamp + duration;
+
+            box.format = subtitle_box::text;
+            box.str = reinterpret_cast<const char *>(packet.data);
+
+            _ffmpeg->subtitle_box_buffers[_subtitle_stream].push_back(box);
+
+            tmppacket.size = 0;
+        }
+
         while (tmppacket.size > 0)
         {
             int len = avcodec_decode_subtitle2(_ffmpeg->subtitle_codec_ctxs[_subtitle_stream],
@@ -1624,7 +1653,11 @@ void media_object::seek(int64_t dest_pos)
     }
     for (size_t i = 0; i < _ffmpeg->subtitle_streams.size(); i++)
     {
-        avcodec_flush_buffers(_ffmpeg->format_ctx->streams[_ffmpeg->subtitle_streams[i]]->codec);
+        if (_ffmpeg->format_ctx->streams[_ffmpeg->subtitle_streams[i]]->codec->codec_id != CODEC_ID_TEXT)
+        {
+            // CODEC_ID_TEXT has no decoder, so we cannot flush its buffers
+            avcodec_flush_buffers(_ffmpeg->format_ctx->streams[_ffmpeg->subtitle_streams[i]]->codec);
+        }
         _ffmpeg->subtitle_box_buffers[i].clear();
         for (size_t j = 0; j < _ffmpeg->subtitle_packet_queues[i].size(); j++)
         {
