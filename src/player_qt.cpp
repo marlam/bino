@@ -974,6 +974,9 @@ color_dialog::color_dialog(const parameters &params, QWidget *parent) : QDialog(
     _s_spinbox->setSingleStep(0.01);
     connect(_s_spinbox, SIGNAL(valueChanged(double)), this, SLOT(s_spinbox_changed(double)));
 
+    QPushButton *ok_button = new QPushButton("OK");
+    connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
+
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(c_label, 0, 0);
     layout->addWidget(_c_slider, 0, 1);
@@ -987,6 +990,7 @@ color_dialog::color_dialog(const parameters &params, QWidget *parent) : QDialog(
     layout->addWidget(s_label, 3, 0);
     layout->addWidget(_s_slider, 3, 1);
     layout->addWidget(_s_spinbox, 3, 2);
+    layout->addWidget(ok_button, 4, 0, 1, 3);
     setLayout(layout);
 }
 
@@ -1129,14 +1133,18 @@ crosstalk_dialog::crosstalk_dialog(parameters *params, QWidget *parent) : QDialo
     _b_spinbox->setSingleStep(0.01);
     connect(_b_spinbox, SIGNAL(valueChanged(double)), this, SLOT(spinbox_changed()));
 
+    QPushButton *ok_button = new QPushButton("OK");
+    connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
+
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(rtfm_label, 0, 0, 2, 3);
-    layout->addWidget(r_label, 3, 0);
-    layout->addWidget(_r_spinbox, 3, 1);
-    layout->addWidget(g_label, 4, 0);
-    layout->addWidget(_g_spinbox, 4, 1);
-    layout->addWidget(b_label, 5, 0);
-    layout->addWidget(_b_spinbox, 5, 1);
+    layout->addWidget(rtfm_label, 0, 0, 1, 2);
+    layout->addWidget(r_label, 2, 0);
+    layout->addWidget(_r_spinbox, 2, 1);
+    layout->addWidget(g_label, 3, 0);
+    layout->addWidget(_g_spinbox, 3, 1);
+    layout->addWidget(b_label, 4, 0);
+    layout->addWidget(_b_spinbox, 4, 1);
+    layout->addWidget(ok_button, 5, 0, 1, 2);
     setLayout(layout);
 }
 
@@ -1244,6 +1252,9 @@ subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(
     set_color_button(params->subtitle_color > std::numeric_limits<uint32_t>::max() ? 0xffffffu : params->subtitle_color);
     connect(_color_button, SIGNAL(pressed()), this, SLOT(color_button_pressed()));
 
+    QPushButton *ok_button = new QPushButton("OK");
+    connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
+
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(info_label, 0, 0, 1, 2);
     layout->addWidget(_encoding_checkbox, 1, 0);
@@ -1256,6 +1267,7 @@ subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(
     layout->addWidget(_scale_spinbox, 4, 1);
     layout->addWidget(_color_checkbox, 5, 0);
     layout->addWidget(_color_button, 5, 1);
+    layout->addWidget(ok_button, 6, 0, 1, 2);
     setLayout(layout);
 }
 
@@ -1542,6 +1554,9 @@ stereoscopic_dialog::stereoscopic_dialog(const parameters &params, QWidget *pare
     _g_spinbox->setSingleStep(0.01);
     connect(_g_spinbox, SIGNAL(valueChanged(double)), this, SLOT(g_spinbox_changed(double)));
 
+    QPushButton *ok_button = new QPushButton("OK");
+    connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
+
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(p_label, 0, 0);
     layout->addWidget(_p_slider, 0, 1);
@@ -1552,6 +1567,7 @@ stereoscopic_dialog::stereoscopic_dialog(const parameters &params, QWidget *pare
     layout->addWidget(g_label, 2, 0);
     layout->addWidget(_g_slider, 2, 1);
     layout->addWidget(_g_spinbox, 2, 2);
+    layout->addWidget(ok_button, 3, 0, 1, 3);
     setLayout(layout);
 }
 
