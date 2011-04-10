@@ -131,9 +131,12 @@ public:
         d64             // double
     } sample_format_t;
 
+    // Description of the content
+    std::string language;               // Language information (empty if unknown)
     int channels;                       // 1 (mono), 2 (stereo), 4 (quad), 6 (5:1), 7 (6:1), or 8 (7:1)
     int rate;                           // Samples per second
     sample_format_t sample_format;      // Sample format
+
     // The data. Note that an audio blob does not own the data stored in these pointers,
     // so it does not free them on destruction.
     void *data;                         // Pointer to the data

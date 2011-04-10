@@ -568,6 +568,11 @@ void media_object::set_audio_blob_template(int index)
     AVCodecContext *audio_codec_ctx = _ffmpeg->audio_codec_ctxs[index];
     audio_blob &audio_blob_template = _ffmpeg->audio_blob_templates[index];
 
+    AVMetadataTag *tag = av_metadata_get(audio_stream->metadata, "language", NULL, AV_METADATA_IGNORE_SUFFIX);
+    if (tag)
+    {
+        audio_blob_template.language = tag->value;
+    }
     if (audio_codec_ctx->channels < 1
             || audio_codec_ctx->channels > 8
             || audio_codec_ctx->channels == 3

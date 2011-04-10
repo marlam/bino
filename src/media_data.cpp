@@ -371,6 +371,7 @@ void video_frame::copy_plane(int view, int plane, void *buf) const
 }
 
 audio_blob::audio_blob() :
+    language(),
     channels(-1),
     rate(-1),
     sample_format(u8),
@@ -382,8 +383,9 @@ audio_blob::audio_blob() :
 
 std::string audio_blob::format_info() const
 {
-    return str::asprintf("%d %s, %g kHz, %d bit",
-            channels, channels == 1 ? "channel" : "channels", rate / 1e3f, sample_bits());
+    return str::asprintf("%s, %d ch., %g kHz, %d bit",
+            language.empty() ? "unknown" : language.c_str(),
+            channels, rate / 1e3f, sample_bits());
 }
 
 std::string audio_blob::format_name() const
@@ -404,7 +406,9 @@ std::string audio_blob::format_name() const
         sample_format_name = "d64";
         break;
     }
-    return str::asprintf("%d-%d-%s", channels, rate, sample_format_name);
+    return str::asprintf("%s-%d-%d-%s",
+            language.empty() ? "unknown" : language.c_str(),
+            channels, rate, sample_format_name);
 }
 
 int audio_blob::sample_bits() const
