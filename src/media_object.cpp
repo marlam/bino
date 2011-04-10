@@ -614,7 +614,6 @@ void media_object::set_subtitle_box_template(int index)
     {
         subtitle_box_template.language = tag->value;
     }
-    subtitle_box_template.format = subtitle_box::text;
 }
 
 void media_object::open(const std::string &url)

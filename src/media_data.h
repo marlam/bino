@@ -184,10 +184,10 @@ public:
     };
 
     // Description of the content
-    format_t format;                    // Subtitle data format
     std::string language;               // Language information (empty if unknown)
 
     // Data
+    format_t format;                    // Subtitle data format
     std::string style;                  // Style info (only if format is ass)
     std::string str;                    // Event text (only if format ass or text)
     std::vector<image_t> images;        // Images. These need to be alpha-blended.

@@ -429,8 +429,8 @@ int audio_blob::sample_bits() const
 }
 
 subtitle_box::subtitle_box() :
-    format(text),
     language(),
+    format(text),
     style(),
     str(),
     images(),
@@ -441,54 +441,12 @@ subtitle_box::subtitle_box() :
 
 std::string subtitle_box::format_info() const
 {
-    std::string s;
-    if (language.empty())
-    {
-        s += "Unknown ";
-    }
-    else
-    {
-        s += language + " ";
-    }
-    switch (format)
-    {
-    case ass:
-        s += "(ASS format)";
-        break;
-    case text:
-        s += "(text format)";
-        break;
-    case image:
-        s += "(image format)";
-        break;
-    }
-    return s;
+    return (language.empty() ? "unknown" : language);
 }
 
 std::string subtitle_box::format_name() const
 {
-    std::string s;
-    if (language.empty())
-    {
-        s += "unknown-";
-    }
-    else
-    {
-        s += language + "-";
-    }
-    switch (format)
-    {
-    case ass:
-        s += "ass";
-        break;
-    case text:
-        s += "txt";
-        break;
-    case image:
-        s += "img";
-        break;
-    }
-    return s;
+    return (language.empty() ? "unknown" : language);
 }
 
 void subtitle_box::image_t::save(std::ostream &os) const
@@ -534,8 +492,8 @@ void subtitle_box::image_t::load(std::istream &is)
 
 void subtitle_box::save(std::ostream &os) const
 {
-    s11n::save(os, static_cast<int>(format));
     s11n::save(os, language);
+    s11n::save(os, static_cast<int>(format));
     s11n::save(os, style);
     s11n::save(os, str);
     s11n::save(os, images);
@@ -545,10 +503,10 @@ void subtitle_box::save(std::ostream &os) const
 
 void subtitle_box::load(std::istream &is)
 {
+    s11n::load(is, language);
     int x;
     s11n::load(is, x);
     format = static_cast<format_t>(x);
-    s11n::load(is, language);
     s11n::load(is, style);
     s11n::load(is, str);
     s11n::load(is, images);
