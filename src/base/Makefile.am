@@ -16,4 +16,5 @@ libbase_a_SOURCES = \
 	timer.h timer.cpp \
 	s11n.h s11n.cpp \
 	blob.h \
-	thread.h thread.cpp
+	thread.h thread.cpp \
+	gettext.h

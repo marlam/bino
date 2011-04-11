@@ -23,8 +23,7 @@ bino_SOURCES = \
 	player_qt.h player_qt.cpp \
 	qt_app.h qt_app.cpp \
 	lib_versions.h lib_versions.cpp \
-	main.cpp \
-	gettext.h
+	main.cpp
 
 EXTRA_DIST = \
 	qt_resources.qrc \
