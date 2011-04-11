@@ -56,6 +56,9 @@
 #include <QMap>
 #include <QColorDialog>
 
+#include "gettext.h"
+#define _(string) gettext(string)
+
 #include "player_qt.h"
 #include "qt_app.h"
 #include "video_output_qt.h"
@@ -129,25 +132,22 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     QWidget(parent), _settings(settings), _player(player), _lock(false)
 {
     QGridLayout *layout0 = new QGridLayout;
-    QLabel *video_label = new QLabel("Video:");
-    video_label->setToolTip(
-            "<p>Select the video stream.</p>");
+    QLabel *video_label = new QLabel(_("Video:"));
+    video_label->setToolTip(_("<p>Select the video stream.</p>"));
     layout0->addWidget(video_label, 0, 0);
     _video_combobox = new QComboBox(this);
     _video_combobox->setToolTip(video_label->toolTip());
     connect(_video_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(video_changed()));
     layout0->addWidget(_video_combobox, 0, 1);
-    QLabel *audio_label = new QLabel("Audio:");
-    audio_label->setToolTip(
-            "<p>Select the audio stream.</p>");
+    QLabel *audio_label = new QLabel(_("Audio:"));
+    audio_label->setToolTip(_("<p>Select the audio stream.</p>"));
     layout0->addWidget(audio_label, 0, 2);
     _audio_combobox = new QComboBox(this);
     _audio_combobox->setToolTip(audio_label->toolTip());
     connect(_audio_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(audio_changed()));
     layout0->addWidget(_audio_combobox, 0, 3);
-    QLabel *subtitle_label = new QLabel("Subtitle:");
-    subtitle_label->setToolTip(
-            "<p>Select the subtitle stream.</p>");
+    QLabel *subtitle_label = new QLabel(_("Subtitle:"));
+    subtitle_label->setToolTip(_("<p>Select the subtitle stream.</p>"));
     layout0->addWidget(subtitle_label, 0, 4);
     _subtitle_combobox = new QComboBox(this);
     _subtitle_combobox->setToolTip(subtitle_label->toolTip());
@@ -158,68 +158,65 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     layout0->setColumnStretch(5, 1);
 
     QGridLayout *layout1 = new QGridLayout;
-    QLabel *input_label = new QLabel("Input:");
-    input_label->setToolTip(
-            "<p>Set the 3D layout of the video stream.</p>");
+    QLabel *input_label = new QLabel(_("Input:"));
+    input_label->setToolTip(_("<p>Set the 3D layout of the video stream.</p>"));
     layout1->addWidget(input_label, 0, 0);
     _input_combobox = new QComboBox(this);
     _input_combobox->setToolTip(input_label->toolTip());
-    _input_combobox->addItem("2D");
-    _input_combobox->addItem("Separate streams, left first");
-    _input_combobox->addItem("Separate streams, right first");
-    _input_combobox->addItem("Top/bottom");
-    _input_combobox->addItem("Top/bottom, half height");
-    _input_combobox->addItem("Bottom/top");
-    _input_combobox->addItem("Bottom/top, half height");
-    _input_combobox->addItem("Left/right");
-    _input_combobox->addItem("Left/right, half width");
-    _input_combobox->addItem("Right/left");
-    _input_combobox->addItem("Right/left, half width");
-    _input_combobox->addItem("Even/odd rows");
-    _input_combobox->addItem("Odd/even rows");
+    _input_combobox->addItem(_("2D"));
+    _input_combobox->addItem(_("Separate streams, left first"));
+    _input_combobox->addItem(_("Separate streams, right first"));
+    _input_combobox->addItem(_("Top/bottom"));
+    _input_combobox->addItem(_("Top/bottom, half height"));
+    _input_combobox->addItem(_("Bottom/top"));
+    _input_combobox->addItem(_("Bottom/top, half height"));
+    _input_combobox->addItem(_("Left/right"));
+    _input_combobox->addItem(_("Left/right, half width"));
+    _input_combobox->addItem(_("Right/left"));
+    _input_combobox->addItem(_("Right/left, half width"));
+    _input_combobox->addItem(_("Even/odd rows"));
+    _input_combobox->addItem(_("Odd/even rows"));
     connect(_input_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(input_changed()));
     layout1->addWidget(_input_combobox, 0, 1);
     layout1->setColumnStretch(1, 1);
 
     QGridLayout *layout2 = new QGridLayout;
-    QLabel *output_label = new QLabel("Output:");
-    output_label->setToolTip(
-            "<p>Set the 3D output type for your display.</p>");
+    QLabel *output_label = new QLabel(_("Output:"));
+    output_label->setToolTip(_("<p>Set the 3D output type for your display.</p>"));
     layout2->addWidget(output_label, 0, 0);
     _output_combobox = new QComboBox(this);
     _output_combobox->setToolTip(output_label->toolTip());
-    _output_combobox->addItem("Left view");
-    _output_combobox->addItem("Right view");
-    _output_combobox->addItem("OpenGL stereo");
-    _output_combobox->addItem("Top/bottom");
-    _output_combobox->addItem("Top/bottom, half height");
-    _output_combobox->addItem("Left/right");
-    _output_combobox->addItem("Left/right, half width");
-    _output_combobox->addItem("Even/odd rows");
-    _output_combobox->addItem("Even/odd columns");
-    _output_combobox->addItem("Checkerboard pattern");
-    _output_combobox->addItem("HDMI frame packing mode");
-    _output_combobox->addItem("Red/cyan glasses, monochrome method");
-    _output_combobox->addItem("Red/cyan glasses, half-color method");
-    _output_combobox->addItem("Red/cyan glasses, full-color method");
-    _output_combobox->addItem("Red/cyan glasses, high-quality Dubois method");
-    _output_combobox->addItem("Green/magenta glasses, monochrome method");
-    _output_combobox->addItem("Green/magenta glasses, half-color method");
-    _output_combobox->addItem("Green/magenta glasses, full-color method");
-    _output_combobox->addItem("Green/magenta glasses, high-quality Dubois method");
-    _output_combobox->addItem("Amber/blue glasses, monochrome method");
-    _output_combobox->addItem("Amber/blue glasses, half-color method");
-    _output_combobox->addItem("Amber/blue glasses, full-color method");
-    _output_combobox->addItem("Amber/blue glasses, high-quality Dubois method");
-    _output_combobox->addItem("Red/green glasses, monochrome method");
-    _output_combobox->addItem("Red/blue glasses, monochrome method");
+    _output_combobox->addItem(_("Left view"));
+    _output_combobox->addItem(_("Right view"));
+    _output_combobox->addItem(_("OpenGL stereo"));
+    _output_combobox->addItem(_("Top/bottom"));
+    _output_combobox->addItem(_("Top/bottom, half height"));
+    _output_combobox->addItem(_("Left/right"));
+    _output_combobox->addItem(_("Left/right, half width"));
+    _output_combobox->addItem(_("Even/odd rows"));
+    _output_combobox->addItem(_("Even/odd columns"));
+    _output_combobox->addItem(_("Checkerboard pattern"));
+    _output_combobox->addItem(_("HDMI frame packing mode"));
+    _output_combobox->addItem(_("Red/cyan glasses, monochrome method"));
+    _output_combobox->addItem(_("Red/cyan glasses, half-color method"));
+    _output_combobox->addItem(_("Red/cyan glasses, full-color method"));
+    _output_combobox->addItem(_("Red/cyan glasses, high-quality Dubois method"));
+    _output_combobox->addItem(_("Green/magenta glasses, monochrome method"));
+    _output_combobox->addItem(_("Green/magenta glasses, half-color method"));
+    _output_combobox->addItem(_("Green/magenta glasses, full-color method"));
+    _output_combobox->addItem(_("Green/magenta glasses, high-quality Dubois method"));
+    _output_combobox->addItem(_("Amber/blue glasses, monochrome method"));
+    _output_combobox->addItem(_("Amber/blue glasses, half-color method"));
+    _output_combobox->addItem(_("Amber/blue glasses, full-color method"));
+    _output_combobox->addItem(_("Amber/blue glasses, high-quality Dubois method"));
+    _output_combobox->addItem(_("Red/green glasses, monochrome method"));
+    _output_combobox->addItem(_("Red/blue glasses, monochrome method"));
     connect(_output_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(output_changed()));
     layout2->addWidget(_output_combobox, 0, 1);
     layout2->setColumnStretch(1, 1);
-    _swap_checkbox = new QCheckBox("Swap left/right");
-    _swap_checkbox->setToolTip(
-            "<p>Swap the left and right view. "
-            "Use this if the 3D effect seems wrong.</p>");
+    _swap_checkbox = new QCheckBox(_("Swap left/right"));
+    _swap_checkbox->setToolTip(_("<p>Swap the left and right view. "
+                "Use this if the 3D effect seems wrong.</p>"));
     connect(_swap_checkbox, SIGNAL(stateChanged(int)), this, SLOT(swap_changed()));
     layout2->addWidget(_swap_checkbox, 0, 2);
 
@@ -229,12 +226,29 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     layout->addLayout(layout2, 2, 0);
     setLayout(layout);
 
-    // Align the input and output labels
-    output_label->setMinimumSize(output_label->minimumSizeHint());
-    input_label->setMinimumSize(output_label->minimumSizeHint());
-    video_label->setMinimumSize(output_label->minimumSizeHint());
-    audio_label->setMinimumSize(output_label->minimumSizeHint());
-    subtitle_label->setMinimumSize(output_label->minimumSizeHint());
+    // Align the labels
+    int minw = input_label->minimumSizeHint().width();
+    if (output_label->minimumSizeHint().width() > minw)
+    {
+        minw = output_label->minimumSizeHint().width();
+    }
+    if (video_label->minimumSizeHint().width() > minw)
+    {
+        minw = video_label->minimumSizeHint().width();
+    }
+    if (audio_label->minimumSizeHint().width() > minw)
+    {
+        minw = audio_label->minimumSizeHint().width();
+    }
+    if (subtitle_label->minimumSizeHint().width() > minw)
+    {
+        minw = subtitle_label->minimumSizeHint().width();
+    }
+    input_label->setMinimumSize(QSize(minw, input_label->minimumSizeHint().height()));
+    output_label->setMinimumSize(QSize(minw, output_label->minimumSizeHint().height()));
+    video_label->setMinimumSize(QSize(minw, video_label->minimumSizeHint().height()));
+    audio_label->setMinimumSize(QSize(minw, audio_label->minimumSizeHint().height()));
+    subtitle_label->setMinimumSize(QSize(minw, subtitle_label->minimumSizeHint().height()));
 
     _video_combobox->setEnabled(false);
     _audio_combobox->setEnabled(false);
@@ -468,7 +482,7 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
         {
             _audio_combobox->addItem(_player->get_media_input().audio_stream_name(i).c_str());
         }
-        _subtitle_combobox->addItem("Off");
+        _subtitle_combobox->addItem(_("Off"));
         for (int i = 0; i < _player->get_media_input().subtitle_streams(); i++)
         {
             _subtitle_combobox->addItem(_player->get_media_input().subtitle_stream_name(i).c_str());
@@ -702,60 +716,57 @@ controls_widget::controls_widget(QSettings *settings, QWidget *parent)
 {
     QGridLayout *layout = new QGridLayout;
     _seek_slider = new QSlider(Qt::Horizontal);
-    _seek_slider->setToolTip(
-            "<p>This slider shows the progress during video playback, "
-            "and can be used to seek in the video.</p>");
+    _seek_slider->setToolTip(_("<p>This slider shows the progress during video playback, "
+                "and can be used to seek in the video.</p>"));
     _seek_slider->setRange(0, 2000);
     _seek_slider->setTracking(false);
     connect(_seek_slider, SIGNAL(valueChanged(int)), this, SLOT(seek_slider_changed()));
     layout->addWidget(_seek_slider, 0, 0, 1, 13);
     _play_button = new QPushButton(QIcon(":icons/play.png"), "");
-    _play_button->setToolTip("<p>Play.</p>");
+    _play_button->setToolTip(_("<p>Play.</p>"));
     connect(_play_button, SIGNAL(pressed()), this, SLOT(play_pressed()));
     layout->addWidget(_play_button, 1, 0);
     _pause_button = new QPushButton(QIcon(":icons/pause.png"), "");
-    _pause_button->setToolTip("<p>Pause.</p>");
+    _pause_button->setToolTip(_("<p>Pause.</p>"));
     connect(_pause_button, SIGNAL(pressed()), this, SLOT(pause_pressed()));
     layout->addWidget(_pause_button, 1, 1);
     _stop_button = new QPushButton(QIcon(":icons/stop.png"), "");
-    _stop_button->setToolTip("<p>Stop.</p>");
+    _stop_button->setToolTip(_("<p>Stop.</p>"));
     connect(_stop_button, SIGNAL(pressed()), this, SLOT(stop_pressed()));
     layout->addWidget(_stop_button, 1, 2);
     layout->addWidget(new QWidget, 1, 3);
     _fullscreen_button = new QPushButton(QIcon(":icons/fullscreen.png"), "");
-    _fullscreen_button->setToolTip(
-            "<p>Switch to fullscreen mode. "
-            "You can leave fullscreen mode by pressing the f key.</p>");
+    _fullscreen_button->setToolTip(_("<p>Switch to fullscreen mode. "
+                "You can leave fullscreen mode by pressing the f key.</p>"));
     connect(_fullscreen_button, SIGNAL(pressed()), this, SLOT(fullscreen_pressed()));
     layout->addWidget(_fullscreen_button, 1, 4);
     _center_button = new QPushButton(QIcon(":icons/center.png"), "");
-    _center_button->setToolTip(
-            "<p>Center the video area on your screen.</p>");
+    _center_button->setToolTip(_("<p>Center the video area on your screen.</p>"));
     connect(_center_button, SIGNAL(pressed()), this, SLOT(center_pressed()));
     layout->addWidget(_center_button, 1, 5);
     layout->addWidget(new QWidget, 1, 6);
     _bbb_button = new QPushButton(QIcon(":icons/bbb.png"), "");
-    _bbb_button->setToolTip("<p>Seek backward 10 minutes.</p>");
+    _bbb_button->setToolTip(_("<p>Seek backward 10 minutes.</p>"));
     connect(_bbb_button, SIGNAL(pressed()), this, SLOT(bbb_pressed()));
     layout->addWidget(_bbb_button, 1, 7);
     _bb_button = new QPushButton(QIcon(":icons/bb.png"), "");
-    _bb_button->setToolTip("<p>Seek backward 1 minute.</p>");
+    _bb_button->setToolTip(_("<p>Seek backward 1 minute.</p>"));
     connect(_bb_button, SIGNAL(pressed()), this, SLOT(bb_pressed()));
     layout->addWidget(_bb_button, 1, 8);
     _b_button = new QPushButton(QIcon(":icons/b.png"), "");
-    _b_button->setToolTip("<p>Seek backward 10 seconds.</p>");
+    _b_button->setToolTip(_("<p>Seek backward 10 seconds.</p>"));
     connect(_b_button, SIGNAL(pressed()), this, SLOT(b_pressed()));
     layout->addWidget(_b_button, 1, 9);
     _f_button = new QPushButton(QIcon(":icons/f.png"), "");
-    _f_button->setToolTip("<p>Seek forward 10 seconds.</p>");
+    _f_button->setToolTip(_("<p>Seek forward 10 seconds.</p>"));
     connect(_f_button, SIGNAL(pressed()), this, SLOT(f_pressed()));
     layout->addWidget(_f_button, 1, 10);
     _ff_button = new QPushButton(QIcon(":icons/ff.png"), "");
-    _ff_button->setToolTip("<p>Seek forward 1 minute.</p>");
+    _ff_button->setToolTip(_("<p>Seek forward 1 minute.</p>"));
     connect(_ff_button, SIGNAL(pressed()), this, SLOT(ff_pressed()));
     layout->addWidget(_ff_button, 1, 11);
     _fff_button = new QPushButton(QIcon(":icons/fff.png"), "");
-    _fff_button->setToolTip("<p>Seek forward 10 minutes.</p>");
+    _fff_button->setToolTip(_("<p>Seek forward 10 minutes.</p>"));
     connect(_fff_button, SIGNAL(pressed()), this, SLOT(fff_pressed()));
     layout->addWidget(_fff_button, 1, 12);
     layout->setRowStretch(0, 0);
@@ -927,9 +938,9 @@ color_dialog::color_dialog(const parameters &params, QWidget *parent) : QDialog(
     _lock(false)
 {
     setModal(false);
-    setWindowTitle("Display Color Adjustments");
+    setWindowTitle(_("Display Color Adjustments"));
 
-    QLabel *c_label = new QLabel("Contrast:");
+    QLabel *c_label = new QLabel(_("Contrast:"));
     _c_slider = new QSlider(Qt::Horizontal);
     _c_slider->setRange(-1000, 1000);
     _c_slider->setValue(params.contrast * 1000.0f);
@@ -940,7 +951,7 @@ color_dialog::color_dialog(const parameters &params, QWidget *parent) : QDialog(
     _c_spinbox->setDecimals(2);
     _c_spinbox->setSingleStep(0.01);
     connect(_c_spinbox, SIGNAL(valueChanged(double)), this, SLOT(c_spinbox_changed(double)));
-    QLabel *b_label = new QLabel("Brightness:");
+    QLabel *b_label = new QLabel(_("Brightness:"));
     _b_slider = new QSlider(Qt::Horizontal);
     _b_slider->setRange(-1000, 1000);
     _b_slider->setValue(params.brightness * 1000.0f);
@@ -951,7 +962,7 @@ color_dialog::color_dialog(const parameters &params, QWidget *parent) : QDialog(
     _b_spinbox->setDecimals(2);
     _b_spinbox->setSingleStep(0.01);
     connect(_b_spinbox, SIGNAL(valueChanged(double)), this, SLOT(b_spinbox_changed(double)));
-    QLabel *h_label = new QLabel("Hue:");
+    QLabel *h_label = new QLabel(_("Hue:"));
     _h_slider = new QSlider(Qt::Horizontal);
     _h_slider->setRange(-1000, 1000);
     _h_slider->setValue(params.hue * 1000.0f);
@@ -962,7 +973,7 @@ color_dialog::color_dialog(const parameters &params, QWidget *parent) : QDialog(
     _h_spinbox->setDecimals(2);
     _h_spinbox->setSingleStep(0.01);
     connect(_h_spinbox, SIGNAL(valueChanged(double)), this, SLOT(h_spinbox_changed(double)));
-    QLabel *s_label = new QLabel("Saturation:");
+    QLabel *s_label = new QLabel(_("Saturation:"));
     _s_slider = new QSlider(Qt::Horizontal);
     _s_slider->setRange(-1000, 1000);
     _s_slider->setValue(params.saturation * 1000.0f);
@@ -974,7 +985,7 @@ color_dialog::color_dialog(const parameters &params, QWidget *parent) : QDialog(
     _s_spinbox->setSingleStep(0.01);
     connect(_s_spinbox, SIGNAL(valueChanged(double)), this, SLOT(s_spinbox_changed(double)));
 
-    QPushButton *ok_button = new QPushButton("OK");
+    QPushButton *ok_button = new QPushButton(_("OK"));
     connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
 
     QGridLayout *layout = new QGridLayout;
@@ -1104,28 +1115,27 @@ crosstalk_dialog::crosstalk_dialog(parameters *params, QWidget *parent) : QDialo
     _lock(false), _params(params)
 {
     setModal(false);
-    setWindowTitle("Display Crosstalk Calibration");
+    setWindowTitle(_("Display Crosstalk Calibration"));
 
-    QLabel *rtfm_label = new QLabel(
-            "<p>Please read the manual to find out<br>"
-            "how to measure the crosstalk levels<br>"
-            "of your display.</p>");
+    QLabel *rtfm_label = new QLabel(_("<p>Please read the manual to find out<br>"
+                "how to measure the crosstalk levels<br>"
+                "of your display.</p>"));
 
-    QLabel *r_label = new QLabel("Red:");
+    QLabel *r_label = new QLabel(_("Red:"));
     _r_spinbox = new QDoubleSpinBox();
     _r_spinbox->setRange(0.0, +1.0);
     _r_spinbox->setValue(params->crosstalk_r);
     _r_spinbox->setDecimals(2);
     _r_spinbox->setSingleStep(0.01);
     connect(_r_spinbox, SIGNAL(valueChanged(double)), this, SLOT(spinbox_changed()));
-    QLabel *g_label = new QLabel("Green:");
+    QLabel *g_label = new QLabel(_("Green:"));
     _g_spinbox = new QDoubleSpinBox();
     _g_spinbox->setRange(0.0, +1.0);
     _g_spinbox->setValue(params->crosstalk_g);
     _g_spinbox->setDecimals(2);
     _g_spinbox->setSingleStep(0.01);
     connect(_g_spinbox, SIGNAL(valueChanged(double)), this, SLOT(spinbox_changed()));
-    QLabel *b_label = new QLabel("Blue:");
+    QLabel *b_label = new QLabel(_("Blue:"));
     _b_spinbox = new QDoubleSpinBox();
     _b_spinbox->setRange(0.0, +1.0);
     _b_spinbox->setValue(params->crosstalk_b);
@@ -1133,7 +1143,7 @@ crosstalk_dialog::crosstalk_dialog(parameters *params, QWidget *parent) : QDialo
     _b_spinbox->setSingleStep(0.01);
     connect(_b_spinbox, SIGNAL(valueChanged(double)), this, SLOT(spinbox_changed()));
 
-    QPushButton *ok_button = new QPushButton("OK");
+    QPushButton *ok_button = new QPushButton(_("OK"));
     connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
 
     QGridLayout *layout = new QGridLayout;
@@ -1194,12 +1204,12 @@ subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(
     _params(params), _lock(false)
 {
     setModal(false);
-    setWindowTitle("Subtitle Settings");
+    setWindowTitle(_("Subtitle Settings"));
 
-    QLabel *info_label = new QLabel("<p>These settings apply to soft subtitles, but not to bitmaps.</p>");
+    QLabel *info_label = new QLabel(_("<p>These settings apply to soft subtitles, but not to bitmaps.</p>"));
 
-    _encoding_checkbox = new QCheckBox("Encoding:");
-    _encoding_checkbox->setToolTip("<p>Set the subtitle character set encoding.</p>");
+    _encoding_checkbox = new QCheckBox(_("Encoding:"));
+    _encoding_checkbox->setToolTip(_("<p>Set the subtitle character set encoding.</p>"));
     _encoding_checkbox->setChecked(params->subtitle_encoding != "");
     connect(_encoding_checkbox, SIGNAL(stateChanged(int)), this, SLOT(encoding_changed()));
     _encoding_combobox = new QComboBox();
@@ -1213,17 +1223,17 @@ subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(
                 params->subtitle_encoding == "" ? "UTF-8" : params->subtitle_encoding.c_str()));
     connect(_encoding_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(encoding_changed()));
 
-    _font_checkbox = new QCheckBox("Override font:");
-    _font_checkbox->setToolTip("<p>Override the subtitle font family.</p>");
+    _font_checkbox = new QCheckBox(_("Override font:"));
+    _font_checkbox->setToolTip(_("<p>Override the subtitle font family.</p>"));
     _font_checkbox->setChecked(params->subtitle_font != "");
     connect(_font_checkbox, SIGNAL(stateChanged(int)), this, SLOT(font_changed()));
     _font_combobox = new QFontComboBox();
     _font_combobox->setToolTip(_font_checkbox->toolTip());
-    _font_combobox->setCurrentFont(QFont(QString(params->subtitle_font == "" ? "Sans" : params->subtitle_font.c_str())));
+    _font_combobox->setCurrentFont(QFont(QString(params->subtitle_font == "" ? "sans-serif" : params->subtitle_font.c_str())));
     connect(_font_combobox, SIGNAL(currentFontChanged(const QFont &)), this, SLOT(font_changed()));
 
-    _size_checkbox = new QCheckBox("Override font size:");
-    _size_checkbox->setToolTip("<p>Override the subtitle font size.</p>");
+    _size_checkbox = new QCheckBox(_("Override font size:"));
+    _size_checkbox->setToolTip(_("<p>Override the subtitle font size.</p>"));
     _size_checkbox->setChecked(params->subtitle_size > 0);
     connect(_size_checkbox, SIGNAL(stateChanged(int)), this, SLOT(size_changed()));
     _size_spinbox = new QSpinBox();
@@ -1232,8 +1242,8 @@ subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(
     _size_spinbox->setValue(params->subtitle_size <= 0 ? 12 : params->subtitle_size);
     connect(_size_spinbox, SIGNAL(valueChanged(int)), this, SLOT(size_changed()));
 
-    _scale_checkbox = new QCheckBox("Override scale factor:");
-    _scale_checkbox->setToolTip("<p>Override the subtitle scale factor.</p>");
+    _scale_checkbox = new QCheckBox(_("Override scale factor:"));
+    _scale_checkbox->setToolTip(_("<p>Override the subtitle scale factor.</p>"));
     _scale_checkbox->setChecked(params->subtitle_scale >= 0.0f);
     connect(_scale_checkbox, SIGNAL(stateChanged(int)), this, SLOT(scale_changed()));
     _scale_spinbox = new QDoubleSpinBox();
@@ -1243,8 +1253,8 @@ subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(
     _scale_spinbox->setValue(params->subtitle_scale < 0.0f ? 1.0f : params->subtitle_scale);
     connect(_scale_spinbox, SIGNAL(valueChanged(double)), this, SLOT(scale_changed()));
 
-    _color_checkbox = new QCheckBox("Override color:");
-    _color_checkbox->setToolTip("<p>Override the subtitle color.</p>");
+    _color_checkbox = new QCheckBox(_("Override color:"));
+    _color_checkbox->setToolTip(_("<p>Override the subtitle color.</p>"));
     _color_checkbox->setChecked(params->subtitle_color <= std::numeric_limits<uint32_t>::max());
     connect(_color_checkbox, SIGNAL(stateChanged(int)), this, SLOT(color_changed()));
     _color_button = new QPushButton();
@@ -1252,7 +1262,7 @@ subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(
     set_color_button(params->subtitle_color > std::numeric_limits<uint32_t>::max() ? 0xffffffu : params->subtitle_color);
     connect(_color_button, SIGNAL(pressed()), this, SLOT(color_button_pressed()));
 
-    QPushButton *ok_button = new QPushButton("OK");
+    QPushButton *ok_button = new QPushButton(_("OK"));
     connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
 
     QGridLayout *layout = new QGridLayout;
@@ -1500,12 +1510,11 @@ stereoscopic_dialog::stereoscopic_dialog(const parameters &params, QWidget *pare
     _lock(false)
 {
     setModal(false);
-    setWindowTitle("Stereoscopic Video Settings");
+    setWindowTitle(_("Stereoscopic Video Settings"));
 
-    QLabel *p_label = new QLabel("Parallax:");
-    p_label->setToolTip(
-            "<p>Adjust parallax, from -1 to +1. This changes the separation of left and right view, "
-            "and thus moves the point where both lines of sight meet.</p>");
+    QLabel *p_label = new QLabel(_("Parallax:"));
+    p_label->setToolTip(_("<p>Adjust parallax, from -1 to +1. This changes the separation of left and right view, "
+                "and thus the perceived distance of the scene.</p>"));
     _p_slider = new QSlider(Qt::Horizontal);
     _p_slider->setToolTip(p_label->toolTip());
     _p_slider->setRange(-1000, 1000);
@@ -1519,10 +1528,9 @@ stereoscopic_dialog::stereoscopic_dialog(const parameters &params, QWidget *pare
     _p_spinbox->setSingleStep(0.01);
     connect(_p_spinbox, SIGNAL(valueChanged(double)), this, SLOT(p_spinbox_changed(double)));
 
-    QLabel *sp_label = new QLabel("Subtitle parallax:");
-    sp_label->setToolTip(
-            "<p>Adjust subtitle parallax, from -1 to +1. This changes the perceived distance "
-            "of the subtitles.</p>");
+    QLabel *sp_label = new QLabel(_("Subtitle parallax:"));
+    sp_label->setToolTip(_("<p>Adjust subtitle parallax, from -1 to +1. This changes the perceived distance "
+                "of the subtitles.</p>"));
     _sp_slider = new QSlider(Qt::Horizontal);
     _sp_slider->setToolTip(sp_label->toolTip());
     _sp_slider->setRange(-1000, 1000);
@@ -1536,11 +1544,10 @@ stereoscopic_dialog::stereoscopic_dialog(const parameters &params, QWidget *pare
     _sp_spinbox->setSingleStep(0.01);
     connect(_sp_spinbox, SIGNAL(valueChanged(double)), this, SLOT(sp_spinbox_changed(double)));
 
-    QLabel *g_label = new QLabel("Ghostbusting:");
-    g_label->setToolTip(
-            "<p>Set the amount of crosstalk ghostbusting, from 0 to 1. "
-            "You need to set the crosstalk levels of your display first. "
-            "Note that crosstalk ghostbusting does not work with anaglyph glasses.</p>");
+    QLabel *g_label = new QLabel(_("Ghostbusting:"));
+    g_label->setToolTip(_("<p>Set the amount of crosstalk ghostbusting, from 0 to 1. "
+                "You need to set the crosstalk levels of your display first. "
+                "Note that crosstalk ghostbusting does not work with anaglyph glasses.</p>"));
     _g_slider = new QSlider(Qt::Horizontal);
     _g_slider->setToolTip(g_label->toolTip());
     _g_slider->setRange(0, 1000);
@@ -1554,7 +1561,7 @@ stereoscopic_dialog::stereoscopic_dialog(const parameters &params, QWidget *pare
     _g_spinbox->setSingleStep(0.01);
     connect(_g_spinbox, SIGNAL(valueChanged(double)), this, SLOT(g_spinbox_changed(double)));
 
-    QPushButton *ok_button = new QPushButton("OK");
+    QPushButton *ok_button = new QPushButton(_("OK"));
     connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
 
     QGridLayout *layout = new QGridLayout;
@@ -1742,50 +1749,46 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     setCentralWidget(central_widget);
 
     // Menus
-    QMenu *file_menu = menuBar()->addMenu(tr("&File"));
-    QAction *file_open_act = new QAction(tr("&Open..."), this);
+    QMenu *file_menu = menuBar()->addMenu(_("&File"));
+    QAction *file_open_act = new QAction(_("&Open..."), this);
     file_open_act->setShortcut(QKeySequence::Open);
     connect(file_open_act, SIGNAL(triggered()), this, SLOT(file_open()));
     file_menu->addAction(file_open_act);
-    QAction *file_open_url_act = new QAction(tr("Open &URL..."), this);
+    QAction *file_open_url_act = new QAction(_("Open &URL..."), this);
     connect(file_open_url_act, SIGNAL(triggered()), this, SLOT(file_open_url()));
     file_menu->addAction(file_open_url_act);
     file_menu->addSeparator();
-    QAction *file_quit_act = new QAction(tr("&Quit..."), this);
-#if QT_VERSION >= 0x040600
+    QAction *file_quit_act = new QAction(_("&Quit..."), this);
     file_quit_act->setShortcut(QKeySequence::Quit);
-#else
-    file_quit_act->setShortcut(tr("Ctrl+Q"));
-#endif
     connect(file_quit_act, SIGNAL(triggered()), this, SLOT(close()));
     file_menu->addAction(file_quit_act);
-    QMenu *preferences_menu = menuBar()->addMenu(tr("&Preferences"));
-    QAction *preferences_colors_act = new QAction(tr("Display &Color Adjustments..."), this);
+    QMenu *preferences_menu = menuBar()->addMenu(_("&Preferences"));
+    QAction *preferences_colors_act = new QAction(_("Display &Color Adjustments..."), this);
     connect(preferences_colors_act, SIGNAL(triggered()), this, SLOT(preferences_colors()));
     preferences_menu->addAction(preferences_colors_act);
-    QAction *preferences_crosstalk_act = new QAction(tr("Display Cross&talk Calibration..."), this);
+    QAction *preferences_crosstalk_act = new QAction(_("Display Cross&talk Calibration..."), this);
     connect(preferences_crosstalk_act, SIGNAL(triggered()), this, SLOT(preferences_crosstalk()));
     preferences_menu->addAction(preferences_crosstalk_act);
     preferences_menu->addSeparator();
-    QAction *preferences_subtitle_act = new QAction(tr("&Subtitle Settings..."), this);
+    QAction *preferences_subtitle_act = new QAction(_("&Subtitle Settings..."), this);
     connect(preferences_subtitle_act, SIGNAL(triggered()), this, SLOT(preferences_subtitle()));
     preferences_menu->addAction(preferences_subtitle_act);
     preferences_menu->addSeparator();
-    QAction *preferences_stereoscopic_act = new QAction(tr("Stereoscopic Video Settings..."), this);
+    QAction *preferences_stereoscopic_act = new QAction(_("Stereoscopic Video Settings..."), this);
     connect(preferences_stereoscopic_act, SIGNAL(triggered()), this, SLOT(preferences_stereoscopic()));
     preferences_menu->addAction(preferences_stereoscopic_act);
-    QMenu *help_menu = menuBar()->addMenu(tr("&Help"));
-    QAction *help_manual_act = new QAction(tr("&Manual..."), this);
+    QMenu *help_menu = menuBar()->addMenu(_("&Help"));
+    QAction *help_manual_act = new QAction(_("&Manual..."), this);
     help_manual_act->setShortcut(QKeySequence::HelpContents);
     connect(help_manual_act, SIGNAL(triggered()), this, SLOT(help_manual()));
     help_menu->addAction(help_manual_act);
-    QAction *help_website_act = new QAction(tr("&Website..."), this);
+    QAction *help_website_act = new QAction(_("&Website..."), this);
     connect(help_website_act, SIGNAL(triggered()), this, SLOT(help_website()));
     help_menu->addAction(help_website_act);
-    QAction *help_keyboard_act = new QAction(tr("&Keyboard Shortcuts"), this);
+    QAction *help_keyboard_act = new QAction(_("&Keyboard Shortcuts"), this);
     connect(help_keyboard_act, SIGNAL(triggered()), this, SLOT(help_keyboard()));
     help_menu->addAction(help_keyboard_act);
-    QAction *help_about_act = new QAction(tr("&About"), this);
+    QAction *help_about_act = new QAction(_("&About"), this);
     connect(help_about_act, SIGNAL(triggered()), this, SLOT(help_about()));
     help_menu->addAction(help_about_act);
 
@@ -1839,7 +1842,7 @@ bool main_window::open_player()
     }
     catch (std::exception &e)
     {
-        QMessageBox::critical(this, "Error", e.what());
+        QMessageBox::critical(this, _("Error"), e.what());
         return false;
     }
     adjustSize();
@@ -2163,7 +2166,7 @@ void main_window::file_open()
 {
     QFileDialog *file_dialog = new QFileDialog(this);
     file_dialog->setDirectory(_settings->value("Session/file-open-dir", QDir::currentPath()).toString());
-    file_dialog->setWindowTitle("Open files");
+    file_dialog->setWindowTitle(_("Open files"));
     file_dialog->setAcceptMode(QFileDialog::AcceptOpen);
     file_dialog->setFileMode(QFileDialog::ExistingFiles);
     if (!file_dialog->exec())
@@ -2182,12 +2185,12 @@ void main_window::file_open()
 void main_window::file_open_url()
 {
     QDialog *url_dialog = new QDialog(this);
-    url_dialog->setWindowTitle("Open URL");
-    QLabel *url_label = new QLabel("URL:");
+    url_dialog->setWindowTitle(_("Open URL"));
+    QLabel *url_label = new QLabel(_("URL:"));
     QLineEdit *url_edit = new QLineEdit("");
     url_edit->setMinimumWidth(256);
-    QPushButton *ok_btn = new QPushButton("OK");
-    QPushButton *cancel_btn = new QPushButton("Cancel");
+    QPushButton *ok_btn = new QPushButton(_("OK"));
+    QPushButton *cancel_btn = new QPushButton(_("Cancel"));
     connect(ok_btn, SIGNAL(pressed()), url_dialog, SLOT(accept()));
     connect(cancel_btn, SIGNAL(pressed()), url_dialog, SLOT(reject()));
     QGridLayout *layout = new QGridLayout();
@@ -2262,7 +2265,7 @@ void main_window::help_manual()
 #endif
     if (!QDesktopServices::openUrl(manual_url))
     {
-        QMessageBox::critical(this, "Error", "Cannot open manual");
+        QMessageBox::critical(this, _("Error"), _("Cannot open manual."));
     }
 }
 
@@ -2270,13 +2273,13 @@ void main_window::help_website()
 {
     if (!QDesktopServices::openUrl(QUrl(PACKAGE_URL)))
     {
-        QMessageBox::critical(this, "Error", "Cannot open website");
+        QMessageBox::critical(this, _("Error"), _("Cannot open website."));
     }
 }
 
 void main_window::help_keyboard()
 {
-    QMessageBox::information(this, tr("Keyboard Shortcuts"), tr(
+    QMessageBox::information(this, _("Keyboard Shortcuts"), _(
                 "<p>Keyboard control:<br>"
                 "(Click into the video area to give it the keyboard focus if necessary.)"
                 "<table>"
@@ -2305,31 +2308,31 @@ void main_window::help_about()
 {
     QDialog *dialog = new QDialog(this);
     dialog->setModal(true);
-    dialog->setWindowTitle("About " PACKAGE_NAME);
+    dialog->setWindowTitle(str::asprintf(_("About %s"), PACKAGE_NAME).c_str());
 
     QLabel *logo = new QLabel();
     logo->setPixmap(QPixmap(":logo/bino_logo.png").scaledToHeight(128, Qt::SmoothTransformation));
     QLabel *spacer = new QLabel();
     spacer->setMinimumWidth(16);
-    QLabel *title = new QLabel("The " PACKAGE_NAME " 3D video player");
+    QLabel *title = new QLabel(str::asprintf(_("The %s 3D video player"), PACKAGE_NAME).c_str());
 
     QTextBrowser *about_text = new QTextBrowser(this);
     about_text->setOpenExternalLinks(true);
-    about_text->setText(tr(
-                "<p>%1 version %2.</p>"
-                "<p>Copyright (C) 2011 the Bino developers.</p>"
-                "<p>This is free software. You may redistribute copies of it "
-                "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
-                "GNU General Public License</a>. "
-                "There is NO WARRANTY, to the extent permitted by law.</p>"
-                "<p>See <a href=\"%3\">%3</a> for more information on this software.</p>")
-            .arg(PACKAGE_NAME).arg(VERSION).arg(PACKAGE_URL));
+    about_text->setText(str::asprintf(_(
+                    "<p>%s version %s.</p>"
+                    "<p>Copyright (C) 2011 the Bino developers.</p>"
+                    "<p>This is free software. You may redistribute copies of it "
+                    "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
+                    "GNU General Public License</a>. "
+                    "There is NO WARRANTY, to the extent permitted by law.</p>"
+                    "<p>See <a href=\"%s\">%s</a> for more information on this software.</p>"),
+                PACKAGE_NAME, VERSION, PACKAGE_URL, PACKAGE_URL).c_str());
 
     QTextBrowser *libs_text = new QTextBrowser(this);
     libs_text->setOpenExternalLinks(true);
     libs_text->setWordWrapMode(QTextOption::NoWrap);
-    QString libs_blurb = tr("<p>Platform:<ul><li>%1</li></ul></p>").arg(PLATFORM);
-    libs_blurb += QString("<p>Libraries used:");
+    QString libs_blurb = QString(str::asprintf("<p>%s<ul><li>%s</li></ul></p>", _("Platform:"), PLATFORM).c_str());
+    libs_blurb += QString(_("<p>Libraries used:"));
     std::vector<std::string> libs = lib_versions(true);
     for (size_t i = 0; i < libs.size(); i++)
     {
@@ -2353,12 +2356,12 @@ void main_window::help_about()
     license_text->setText(license_file.readAll());
 
     QTabWidget *tab_widget = new QTabWidget();
-    tab_widget->addTab(about_text, "About");
-    tab_widget->addTab(libs_text, "Libraries");
-    tab_widget->addTab(team_text, "Team");
-    tab_widget->addTab(license_text, "License");
+    tab_widget->addTab(about_text, _("About"));
+    tab_widget->addTab(libs_text, _("Libraries"));
+    tab_widget->addTab(team_text, _("Team"));
+    tab_widget->addTab(license_text, _("License"));
 
-    QPushButton *ok_btn = new QPushButton("OK");
+    QPushButton *ok_btn = new QPushButton(_("OK"));
     connect(ok_btn, SIGNAL(pressed()), dialog, SLOT(accept()));
 
     QGridLayout *layout = new QGridLayout();

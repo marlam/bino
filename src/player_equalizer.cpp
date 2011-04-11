@@ -27,6 +27,9 @@
 
 #include <eq/eq.h>
 
+#include "gettext.h"
+#define _(string) gettext(string)
+
 #include "dbg.h"
 #include "msg.h"
 #include "s11n.h"
@@ -123,7 +126,7 @@ public:
         _video_frame = get_media_input_nonconst().finish_video_frame_read();
         if (!_video_frame.is_valid())
         {
-            msg::err("Reading input frame failed.");
+            msg::err(_("Reading input frame failed."));
             abort();
         }
     }
@@ -237,10 +240,10 @@ struct ErrorData
 
 static ErrorData errors[] =
 {
-    { ERROR_MAP_FRAMEDATA_FAILED, "Init data mapping failed" },
-    { ERROR_MAP_INITDATA_FAILED, "Frame data mapping failed" },
-    { ERROR_PLAYER_INIT_FAILED, "Video player initialization failed" },
-    { ERROR_OPENGL_2_1_NEEDED, "Need at least OpenGL 2.1" },
+    { ERROR_MAP_FRAMEDATA_FAILED, _("Init data mapping failed.") },
+    { ERROR_MAP_INITDATA_FAILED, _("Frame data mapping failed.") },
+    { ERROR_PLAYER_INIT_FAILED, _("Video player initialization failed.") },
+    { ERROR_OPENGL_2_1_NEEDED, _("Need at least OpenGL 2.1.") },
     { 0, "" } // last!
 };
 
@@ -441,7 +444,7 @@ public:
         // Find region of canvas to use, depending on the video aspect ratio
         if (getCanvases().size() < 1)
         {
-            msg::err("No canvas in Equalizer configuration.");
+            msg::err(_("No canvas in Equalizer configuration."));
             return false;
         }
         float canvas_w = getCanvases()[0]->getWall().getWidth();
@@ -475,9 +478,11 @@ public:
             _eq_init_data.canvas_video_area.x = -0.5f * _eq_init_data.canvas_video_area.w;
             _eq_init_data.canvas_video_area.y = -0.5f * _eq_init_data.canvas_video_area.h;
         }
-        msg::inf("Equalizer canvas:");
-        msg::inf("    %gx%g, aspect ratio %g:1", canvas_w, canvas_h, canvas_w / canvas_h);
-        msg::inf("    Area for %g:1 video: [ %g %g %g %g @ %g ]", frame_template.aspect_ratio,
+        msg::inf(_("Equalizer canvas:\n"
+                    "    %gx%g, aspect ratio %g:1\n"
+                    "    Area for %g:1 video: [ %g %g %g %g @ %g ]"),
+                canvas_w, canvas_h, canvas_w / canvas_h,        
+                frame_template.aspect_ratio,
                 _eq_init_data.canvas_video_area.x, _eq_init_data.canvas_video_area.y,
                 _eq_init_data.canvas_video_area.w, _eq_init_data.canvas_video_area.h,
                 _eq_init_data.canvas_video_area.d);
@@ -889,7 +894,7 @@ protected:
         if (!glewContextIsSupported(const_cast<GLEWContext *>(glewGetContext()),
                     "GL_VERSION_2_1 GL_EXT_framebuffer_object"))
         {
-            msg::err("This OpenGL implementation does not support OpenGL 2.1 and framebuffer objects.");
+            msg::err(_("This OpenGL implementation does not support OpenGL 2.1 and framebuffer objects."));
             setError(ERROR_OPENGL_2_1_NEEDED);
             return false;
         }
@@ -1055,7 +1060,7 @@ player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen) :
     _node_factory = static_cast<void *>(new eq_node_factory);
     if (!eq::init(*argc, argv, static_cast<eq::NodeFactory *>(_node_factory)))
     {
-        throw exc("Equalizer initialization failed.");
+        throw exc(_("Equalizer initialization failed."));
     }
     /* Get a configuration */
     _config = static_cast<void *>(eq::getConfig(*argc, argv));
@@ -1063,7 +1068,7 @@ player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen) :
     // eq::getConfig() does not return on other nodes.
     if (!_config)
     {
-        throw exc("Cannot get equalizer configuration.");
+        throw exc(_("Cannot get equalizer configuration."));
     }
 }
 
@@ -1077,7 +1082,7 @@ void player_equalizer::open(const player_init_data &init_data)
     eq_config *config = static_cast<eq_config *>(_config);
     if (!config->init(init_data, _flat_screen))
     {
-        throw exc("Equalizer configuration initialization failed.");
+        throw exc(_("Equalizer configuration initialization failed."));
     }
 }
 

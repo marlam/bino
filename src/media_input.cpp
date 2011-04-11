@@ -24,6 +24,9 @@
 
 #include <limits>
 
+#include "gettext.h"
+#define _(string) gettext(string)
+
 #include "dbg.h"
 #include "exc.h"
 #include "msg.h"
@@ -278,44 +281,44 @@ void media_input::open(const std::vector<std::string> &urls)
     _active_subtitle_stream = -1;       // no subtitles by default
 
     // Print summary
-    msg::inf("Input:");
+    msg::inf(_("Input:"));
     for (int i = 0; i < video_streams(); i++)
     {
         int o, s;
         get_video_stream(i, o, s);
-        msg::inf("    Video %s: %s", video_stream_name(i).c_str(),
+        msg::inf(_("    Video %s: %s"), video_stream_name(i).c_str(),
                 _media_objects[o].video_frame_template(s).format_name().c_str());
     }
     if (video_streams() == 0)
     {
-        msg::inf("    No video.");
+        msg::inf(_("    No video."));
     }
     for (int i = 0; i < audio_streams(); i++)
     {
         int o, s;
         get_audio_stream(i, o, s);
-        msg::inf("    Audio %s: %s", audio_stream_name(i).c_str(), 
+        msg::inf(_("    Audio %s: %s"), audio_stream_name(i).c_str(), 
                 _media_objects[o].audio_blob_template(s).format_name().c_str());
     }
     if (audio_streams() == 0)
     {
-        msg::inf("    No audio.");
+        msg::inf(_("    No audio."));
     }
     for (int i = 0; i < subtitle_streams(); i++)
     {
         int o, s;
         get_subtitle_stream(i, o, s);
-        msg::inf("    Subtitle %s: %s", subtitle_stream_name(i).c_str(), 
+        msg::inf(_("    Subtitle %s: %s"), subtitle_stream_name(i).c_str(), 
                 _media_objects[o].subtitle_box_template(s).format_name().c_str());
     }
     if (subtitle_streams() == 0)
     {
-        msg::inf("    No subtitles.");
+        msg::inf(_("    No subtitle."));
     }
-    msg::inf("    Duration: %g seconds", duration() / 1e6f);
+    msg::inf(_("    Duration: %g seconds"), duration() / 1e6f);
     if (video_streams() > 0)
     {
-        msg::inf("    Stereo layout: %s", video_frame::stereo_layout_to_string(
+        msg::inf(_("    Stereo layout: %s"), video_frame::stereo_layout_to_string(
                     video_frame_template().stereo_layout, video_frame_template().stereo_layout_swap).c_str());
     }
 }

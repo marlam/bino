@@ -6,7 +6,9 @@
 # permitted in any medium without royalty provided the copyright notice and this
 # notice are preserved. This file is offered as-is, without any warranty.
 
-SUBDIRS = src doc
+SUBDIRS = po src doc
+
+ACLOCAL_AMFLAGS = -I m4
 
 EXTRA_DIST = README.MacOSX README.Windows
 

@@ -35,6 +35,9 @@
 # include <signal.h>
 #endif
 
+#include "gettext.h"
+#define _(string) gettext(string)
+
 #include "msg.h"
 #include "dbg.h"
 
@@ -44,7 +47,7 @@ namespace dbg
 #if HAVE_SIGACTION
     static void signal_crash(int signum)
     {
-        msg::err("Caught signal %d (%s). Aborting.", signum,
+        msg::err(_("Caught signal %d (%s). Aborting."), signum,
                 (signum == SIGILL ? "SIGILL" : (signum == SIGFPE ? "SIGFPE" : "SIGSEGV")));
         crash();
     }
@@ -52,7 +55,7 @@ namespace dbg
 
     static void exception_crash()
     {
-        msg::err("Unexpected exception.");
+        msg::err(_("Unexpected exception."));
         crash();
     }
 
@@ -139,7 +142,7 @@ namespace dbg
     void crash()
     {
         backtrace();
-        msg::err("Report bugs to <%s>.", PACKAGE_BUGREPORT);
+        msg::err(_("Report bugs to <%s>."), PACKAGE_BUGREPORT);
         abort();
     }
 }

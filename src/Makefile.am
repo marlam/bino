@@ -23,7 +23,8 @@ bino_SOURCES = \
 	player_qt.h player_qt.cpp \
 	qt_app.h qt_app.cpp \
 	lib_versions.h lib_versions.cpp \
-	main.cpp
+	main.cpp \
+	gettext.h
 
 EXTRA_DIST = \
 	qt_resources.qrc \
@@ -64,13 +65,13 @@ BUILT_SOURCES = $(nodist_bino_SOURCES)
 
 CLEANFILES = $(BUILT_SOURCES)
 
-DEFS += -DDOCDIR=\"$(docdir)\"
+DEFS += -DDOCDIR=\"$(docdir)\" -DLOCALEDIR=\"$(localedir)\"
 
 AM_CPPFLAGS = -I$(top_srcdir)/src/base \
 	$(libavformat_CFLAGS) $(libswscale_CFLAGS) $(libass_CFLAGS) \
 	$(libopenal_CFLAGS) $(libglew_CFLAGS) $(libqtopengl_CFLAGS)
 
-bino_LDADD = $(top_builddir)/src/base/libbase.a \
+bino_LDADD = $(top_builddir)/src/base/libbase.a $(LIBINTL) \
 	$(libavformat_LIBS) $(libswscale_LIBS) $(libass_LIBS) \
 	$(libopenal_LIBS) $(libglew_LIBS) $(libqtopengl_LIBS)
 

@@ -28,6 +28,9 @@
 
 #include <GL/glew.h>
 
+#include "gettext.h"
+#define _(string) gettext(string)
+
 #include "exc.h"
 #include "msg.h"
 #include "str.h"
@@ -369,7 +372,7 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
             void *pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
             if (!pboptr)
             {
-                msg::err("Cannot create a PBO buffer.");
+                msg::err(_("Cannot create a PBO buffer."));
                 abort();
             }
             assert(reinterpret_cast<uintptr_t>(pboptr) % 4 == 0);
@@ -479,7 +482,7 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
             void *pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
             if (!pboptr)
             {
-                msg::err("Cannot create a PBO buffer.");
+                msg::err(_("Cannot create a PBO buffer."));
                 abort();
             }
             assert(reinterpret_cast<uintptr_t>(pboptr) % 4 == 0);

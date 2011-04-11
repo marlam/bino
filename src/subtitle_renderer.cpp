@@ -38,6 +38,9 @@ extern "C"
 #include <ass/ass.h>
 }
 
+#include "gettext.h"
+#define _(string) gettext(string)
+
 #include "exc.h"
 #include "str.h"
 #include "blob.h"
@@ -211,14 +214,14 @@ void subtitle_renderer::init_ass()
         _ass_library = ass_library_init();
         if (!_ass_library)
         {
-            throw exc("Cannot initialize LibASS");
+            throw exc(_("Cannot initialize LibASS."));
         }
         ass_set_message_cb(_ass_library, libass_msg_callback, NULL);
         ass_set_extract_fonts(_ass_library, 1);
         _ass_renderer = ass_renderer_init(_ass_library);
         if (!_ass_renderer)
         {
-            throw exc("Cannot initialize LibASS renderer");
+            throw exc(_("Cannot initialize LibASS renderer."));
         }
         ass_set_hinting(_ass_renderer, ASS_HINTING_NATIVE);
         _fontconfig_conffile = get_fontconfig_conffile();
@@ -311,7 +314,7 @@ void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp
     _ass_track = ass_new_track(_ass_library);
     if (!_ass_track)
     {
-        throw exc("Cannot initialize LibASS track");
+        throw exc(_("Cannot initialize LibASS track."));
     }
     std::string conv_str = box.str;
     if (params.subtitle_encoding != "")
@@ -322,7 +325,7 @@ void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp
         }
         catch (std::exception &e)
         {
-            msg::err("Subtitle character set conversion failed: %s", e.what());
+            msg::err(_("Subtitle character set conversion failed: %s"), e.what());
             conv_str = std::string("Dialogue: 0,0:00:00.00,9:59:59.99,") + e.what();
         }
     }

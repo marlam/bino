@@ -42,6 +42,9 @@ extern "C"
 #  include <windows.h>
 #endif
 
+#include "gettext.h"
+#define _(string) gettext(string)
+
 #include "dbg.h"
 #include "blob.h"
 #include "exc.h"
@@ -578,9 +581,8 @@ void media_object::set_audio_blob_template(int index)
             || audio_codec_ctx->channels == 3
             || audio_codec_ctx->channels == 5)
     {
-        throw exc(_url + " audio stream " + str::from(audio_stream)
-                + ": Cannot handle audio with "
-                + str::from(audio_codec_ctx->channels) + " channels.");
+        throw exc(str::asprintf(_("%s audio stream %d: Cannot handle audio with %d channels."),
+                    _url.c_str(), index + 1, audio_codec_ctx->channels));
     }
     audio_blob_template.channels = audio_codec_ctx->channels;
     audio_blob_template.rate = audio_codec_ctx->sample_rate;
@@ -602,9 +604,8 @@ void media_object::set_audio_blob_template(int index)
     }
     else
     {
-        throw exc(_url + " audio stream " + str::from(audio_stream)
-                + ": Cannot handle audio with sample format "
-                + av_get_sample_fmt_name(audio_codec_ctx->sample_fmt) + ".");
+        throw exc(str::asprintf(_("%s audio stream %d: Cannot handle audio with sample format %s."),
+                    _url.c_str(), index + 1, av_get_sample_fmt_name(audio_codec_ctx->sample_fmt)));
     }
 }
 
@@ -632,11 +633,13 @@ void media_object::open(const std::string &url)
 
     if ((e = av_open_input_file(&_ffmpeg->format_ctx, _url.c_str(), NULL, 0, NULL)) != 0)
     {
-        throw exc(_url + ": " + my_av_strerror(e));
+        throw exc(str::asprintf(_("%s: %s"),
+                    _url.c_str(), my_av_strerror(e).c_str()));
     }
     if ((e = av_find_stream_info(_ffmpeg->format_ctx)) < 0)
     {
-        throw exc(_url + ": Cannot read stream info: " + my_av_strerror(e));
+        throw exc(str::asprintf(_("%s: Cannot read stream info: %s"),
+                    _url.c_str(), my_av_strerror(e).c_str()));
     }
     av_dump_format(_ffmpeg->format_ctx, 0, _url.c_str(), 0);
 
@@ -663,18 +666,21 @@ void media_object::open(const std::string &url)
             _ffmpeg->video_codec_ctxs.push_back(_ffmpeg->format_ctx->streams[i]->codec);
             if (_ffmpeg->video_codec_ctxs[j]->width < 1 || _ffmpeg->video_codec_ctxs[j]->height < 1)
             {
-                throw exc(_url + " stream " + str::from(i) + ": Invalid frame size.");
+                throw exc(str::asprintf(_("%s video stream %d: Invalid frame size."),
+                            _url.c_str(), j + 1));
             }
             _ffmpeg->video_codecs.push_back(avcodec_find_decoder(_ffmpeg->video_codec_ctxs[j]->codec_id));
             if (!_ffmpeg->video_codecs[j])
             {
-                throw exc(_url + " stream " + str::from(i) + ": Unsupported video codec.");
+                throw exc(str::asprintf(_("%s video stream %d: Unsupported video codec."),
+                            _url.c_str(), j + 1));
             }
             _ffmpeg->video_codec_ctxs[j]->thread_count = video_decoding_threads();
             if ((e = avcodec_open(_ffmpeg->video_codec_ctxs[j], _ffmpeg->video_codecs[j])) < 0)
             {
                 _ffmpeg->video_codecs[j] = NULL;
-                throw exc(_url + " stream " + str::from(i) + ": Cannot open video codec: " + my_av_strerror(e));
+                throw exc(str::asprintf(_("%s video stream %d: Cannot open video codec: %s"),
+                            _url.c_str(), j + 1, my_av_strerror(e).c_str()));
             }
             // Determine frame template.
             _ffmpeg->video_frame_templates.push_back(video_frame());
@@ -708,7 +714,8 @@ void media_object::open(const std::string &url)
                             SWS_POINT, NULL, NULL, NULL));
                 if (!_ffmpeg->video_img_conv_ctxs[j])
                 {
-                    throw exc(_url + " stream " + str::from(i) + ": Cannot initialize conversion context.");
+                    throw exc(str::asprintf(_("%s video stream %d: Cannot initialize conversion context."),
+                                _url.c_str(), j + 1));
                 }
             }
             else
@@ -728,12 +735,14 @@ void media_object::open(const std::string &url)
             _ffmpeg->audio_codecs.push_back(avcodec_find_decoder(_ffmpeg->audio_codec_ctxs[j]->codec_id));
             if (!_ffmpeg->audio_codecs[j])
             {
-                throw exc(_url + " stream " + str::from(i) + ": Unsupported audio codec.");
+                throw exc(str::asprintf(_("%s audio stream %d: Unsupported audio codec."),
+                            _url.c_str(), j + 1));
             }
             if ((e = avcodec_open(_ffmpeg->audio_codec_ctxs[j], _ffmpeg->audio_codecs[j])) < 0)
             {
                 _ffmpeg->audio_codecs[j] = NULL;
-                throw exc(_url + " stream " + str::from(i) + ": Cannot open audio codec: " + my_av_strerror(e));
+                throw exc(str::asprintf(_("%s audio stream %d: Cannot open audio codec: %s"),
+                            _url.c_str(), j + 1, my_av_strerror(e).c_str()));
             }
             _ffmpeg->audio_blob_templates.push_back(audio_blob());
             set_audio_blob_template(j);
@@ -765,12 +774,14 @@ void media_object::open(const std::string &url)
                 _ffmpeg->subtitle_codecs.push_back(avcodec_find_decoder(_ffmpeg->subtitle_codec_ctxs[j]->codec_id));
                 if (!_ffmpeg->subtitle_codecs[j])
                 {
-                    throw exc(_url + " stream " + str::from(i) + ": Unsupported subtitle codec.");
+                    throw exc(str::asprintf(_("%s subtitle stream %d: Unsupported subtitle codec."),
+                                _url.c_str(), j + 1));
                 }
                 if ((e = avcodec_open(_ffmpeg->subtitle_codec_ctxs[j], _ffmpeg->subtitle_codecs[j])) < 0)
                 {
                     _ffmpeg->subtitle_codecs[j] = NULL;
-                    throw exc(_url + " stream " + str::from(i) + ": Cannot open subtitle codec: " + my_av_strerror(e));
+                    throw exc(str::asprintf(_("%s subtitle stream %d: Cannot open subtitle codec: %s"),
+                                _url.c_str(), j + 1, my_av_strerror(e).c_str()));
                 }
             }
             _ffmpeg->subtitle_box_templates.push_back(subtitle_box());
@@ -794,30 +805,30 @@ void media_object::open(const std::string &url)
     msg::inf(_url + ":");
     for (int i = 0; i < video_streams(); i++)
     {
-        msg::inf("    Video stream %d: %s / %s, %g seconds", i,
+        msg::inf(_("    Video stream %d: %s / %s, %g seconds"), i,
                 video_frame_template(i).format_info().c_str(),
                 video_frame_template(i).format_name().c_str(),
                 video_duration(i) / 1e6f);
-        msg::inf("        Using up to %d threads for decoding.",
+        msg::inf(_("        Using up to %d threads for decoding."),
                 _ffmpeg->video_codec_ctxs.at(i)->thread_count);
     }
     for (int i = 0; i < audio_streams(); i++)
     {
-        msg::inf("    Audio stream %d: %s / %s, %g seconds", i,
+        msg::inf(_("    Audio stream %d: %s / %s, %g seconds"), i,
                 audio_blob_template(i).format_info().c_str(),
                 audio_blob_template(i).format_name().c_str(),
                 audio_duration(i) / 1e6f);
     }
     for (int i = 0; i < subtitle_streams(); i++)
     {
-        msg::inf("    Subtitle stream %d: %s / %s, %g seconds", i,
+        msg::inf(_("    Subtitle stream %d: %s / %s, %g seconds"), i,
                 subtitle_box_template(i).format_info().c_str(),
                 subtitle_box_template(i).format_name().c_str(),
                 subtitle_duration(i) / 1e6f);
     }
     if (video_streams() == 0 && audio_streams() == 0 && subtitle_streams() == 0)
     {
-        msg::inf("    No usable streams.");
+        msg::inf(_("    No usable streams."));
     }
 }
 
@@ -1080,7 +1091,7 @@ void read_thread::run()
             }
             else
             {
-                throw exc(_url + ": " + my_av_strerror(e));
+                throw exc(str::asprintf(_("%s: %s"), _url.c_str(), my_av_strerror(e).c_str()));
             }
         }
         // Put the packet in the right queue.
@@ -1096,7 +1107,7 @@ void read_thread::run()
                 //    interdependencies. We would mess up decoding.
                 if (av_dup_packet(&packet) < 0)
                 {
-                    throw exc(_url + ": Cannot duplicate packet.");
+                    throw exc(str::asprintf(_("%s: Cannot duplicate packet."), _url.c_str()));
                 }
                 _ffmpeg->video_packet_queue_mutexes[i].lock();
                 _ffmpeg->video_packet_queues[i].push_back(packet);
@@ -1126,7 +1137,7 @@ void read_thread::run()
                     if (av_dup_packet(&packet) < 0)
                     {
                         _ffmpeg->audio_packet_queue_mutexes[i].unlock();
-                        throw exc(_url + ": Cannot duplicate packet.");
+                        throw exc(str::asprintf(_("%s: Cannot duplicate packet."), _url.c_str()));
                     }
                     _ffmpeg->audio_packet_queues[i].push_back(packet);
                     packet_queued = true;
@@ -1156,7 +1167,7 @@ void read_thread::run()
                     if (av_dup_packet(&packet) < 0)
                     {
                         _ffmpeg->subtitle_packet_queue_mutexes[i].unlock();
-                        throw exc(_url + ": Cannot duplicate packet.");
+                        throw exc(str::asprintf(_("%s: Cannot duplicate packet."), _url.c_str()));
                     }
                     _ffmpeg->subtitle_packet_queues[i].push_back(packet);
                     packet_queued = true;
@@ -1262,13 +1273,13 @@ void video_decode_thread::run()
     }
     else if (_ffmpeg->video_last_timestamps[_video_stream] != std::numeric_limits<int64_t>::min())
     {
-        msg::wrn(_url + ": video stream " + str::from(_video_stream)
+        msg::dbg(_url + ": video stream " + str::from(_video_stream)
                 + ": no timestamp available, using a questionable guess");
         _frame.presentation_time = _ffmpeg->video_last_timestamps[_video_stream];
     }
     else
     {
-        msg::wrn(_url + ": video stream " + str::from(_video_stream)
+        msg::dbg(_url + ": video stream " + str::from(_video_stream)
                 + ": no timestamp available, using a bad guess");
         _frame.presentation_time = _ffmpeg->pos;
     }
@@ -1388,7 +1399,7 @@ void audio_decode_thread::run()
     }
     if (timestamp == std::numeric_limits<int64_t>::min())
     {
-        msg::wrn(_url + ": audio stream " + str::from(_audio_stream)
+        msg::dbg(_url + ": audio stream " + str::from(_audio_stream)
                 + ": no timestamp available, using a bad guess");
         timestamp = _ffmpeg->pos;
     }
@@ -1633,7 +1644,7 @@ void media_object::seek(int64_t dest_pos)
             dest_pos < _ffmpeg->pos ?  AVSEEK_FLAG_BACKWARD : 0);
     if (e < 0)
     {
-        msg::err(_url + ": Seeking failed.");
+        msg::err(_("%s: Seeking failed."), _url.c_str());
     }
     // Throw away all queued packets
     for (size_t i = 0; i < _ffmpeg->video_streams.size(); i++)

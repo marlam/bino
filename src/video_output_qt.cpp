@@ -39,6 +39,9 @@ static GLEWContext* glewGetContext() { return &_glewContext; }
 #include <QMessageBox>
 #include <QPalette>
 
+#include "gettext.h"
+#define _(string) gettext(string)
+
 #include "exc.h"
 #include "msg.h"
 #include "str.h"
@@ -78,7 +81,7 @@ void video_output_qt_widget::paintGL()
     }
     catch (std::exception &e)
     {
-        QMessageBox::critical(this, "Error", e.what());
+        QMessageBox::critical(this, _("Error"), e.what());
         // Disable further output and stop the player
         _vo->prepare_next_frame(video_frame(), subtitle_box());
         _vo->activate_next_frame();
@@ -285,18 +288,18 @@ void video_output_qt::init()
             GLenum err = glewInit();
             if (err != GLEW_OK)
             {
-                throw exc(std::string("Cannot initialize GLEW: ")
-                        + reinterpret_cast<const char *>(glewGetErrorString(err)));
+                throw exc(str::asprintf(_("Cannot initialize GLEW: %s"),
+                            reinterpret_cast<const char *>(glewGetErrorString(err))));
             }
             if (!glewIsSupported("GL_VERSION_2_1 GL_EXT_framebuffer_object"))
             {
-                throw exc(std::string("This OpenGL implementation does not support "
-                            "OpenGL 2.1 and framebuffer objects."));
+                throw exc(std::string(_("This OpenGL implementation does not support "
+                                "OpenGL 2.1 and framebuffer objects.")));
             }
         }
         catch (std::exception &e)
         {
-            QMessageBox::critical(_widget, "Error", e.what());
+            QMessageBox::critical(_widget, _("Error"), e.what());
             abort();
         }
         video_output::init();
@@ -331,17 +334,17 @@ void video_output_qt::create_widget()
             if (_format.stereo())
             {
                 // Common failure: display does not support quad buffered stereo
-                throw exc("The display does not support OpenGL stereo mode.");
+                throw exc(_("The display does not support OpenGL stereo mode."));
             }
             else
             {
                 // Should never happen
-                throw exc("Cannot set GL context format.");
+                throw exc(_("Cannot set OpenGL context format."));
             }
         }
         catch (std::exception &e)
         {
-            QMessageBox::critical(_widget, "Error", e.what());
+            QMessageBox::critical(_widget, _("Error"), e.what());
             abort();
         }
     }

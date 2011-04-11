@@ -8,3 +8,5 @@ configure
 doc/*.info
 doc/version.texi
 doc/stamp-vti
+po/*.pot
+po/*.gmo

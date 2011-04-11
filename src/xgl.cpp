@@ -24,6 +24,9 @@
 
 #include <GL/glew.h>
 
+#include "gettext.h"
+#define _(string) gettext(string)
+
 #include "dbg.h"
 #include "exc.h"
 #include "str.h"
@@ -194,7 +197,7 @@ bool xgl::CheckFBO(const GLenum target, const std::string &where)
                 break;
         }
         std::string pfx = (where.length() > 0 ? where + ": " : "");
-        throw exc(pfx + "OpenGL FBO error " + errstr + ".");
+        throw exc(pfx + str::asprintf(_("OpenGL FBO error %s."), errstr.c_str()));
         return false;
     }
     return true;
@@ -211,7 +214,7 @@ bool xgl::CheckError(const std::string &where)
     if (e != GL_NO_ERROR)
     {
         std::string pfx = (where.length() > 0 ? where + ": " : "");
-        throw exc(pfx + "OpenGL error " + str::asprintf("0x%04X.", static_cast<unsigned int>(e)));
+        throw exc(pfx + str::asprintf(_("OpenGL error 0x%04X."), static_cast<unsigned int>(e)));
         // Don't use gluErrorString(e) here to avoid depending on libGLU just for this
         return false;
     }
@@ -243,10 +246,19 @@ GLuint xgl::CompileShader(const std::string &name, GLenum type, const std::strin
             type == GL_VERTEX_SHADER ? "vertex" : type == GL_GEOMETRY_SHADER_EXT ? "geometry" : "fragment",
             name.c_str());
 
+    // XXX: Work around a bad bad bug in the free OpenGL drivers for ATI cards on Ubuntu
+    // 10.10: the compilation of shader source depends on the locale, and gives wrong
+    // results e.g. in de_DE.UTF-8. So we backup the locale, set it to "C", and restore
+    // the backup after compilation.
+    std::string locale_backup = setlocale(LC_ALL, NULL);
+    setlocale(LC_ALL, "C");
+
     GLuint shader = glCreateShader(type);
     const GLchar *glsrc = src.c_str();
     glShaderSource(shader, 1, &glsrc, NULL);
     glCompileShader(shader);
+
+    setlocale(LC_ALL, locale_backup.c_str());
 
     std::string log;
     GLint e, l;
@@ -267,18 +279,22 @@ GLuint xgl::CompileShader(const std::string &name, GLenum type, const std::strin
 
     if (e == GL_TRUE && log.length() > 0)
     {
-        msg::wrn("OpenGL %s shader '%s': compiler warning:",
-                type == GL_VERTEX_SHADER ? "vertex" : type == GL_GEOMETRY_SHADER_EXT ? "geometry" : "fragment",
+        msg::wrn(_("OpenGL %s '%s': compiler warning:"),
+                type == GL_VERTEX_SHADER ? _("vertex shader")
+                : type == GL_GEOMETRY_SHADER_EXT ? _("geometry shader")
+                : _("fragment shader"),
                 name.c_str());
         msg::wrn_txt("%s", log.c_str());
     }
     else if (e != GL_TRUE)
     {
-        std::string when = str::asprintf("OpenGL %s shader '%s': compilation failed.",
-                type == GL_VERTEX_SHADER ? "vertex" : type == GL_GEOMETRY_SHADER_EXT ? "geometry" : "fragment",
+        std::string when = str::asprintf(_("OpenGL %s '%s': compilation failed."),
+                type == GL_VERTEX_SHADER ? _("vertex shader")
+                : type == GL_GEOMETRY_SHADER_EXT ? _("geometry shader")
+                : _("fragment shader"),
                 name.c_str());
-        std::string what = str::asprintf("\n%s", log.length() > 0 ? log.c_str() : "unknown error");
-        throw exc(when + ": " + what);
+        std::string what = str::asprintf("\n%s", log.length() > 0 ? log.c_str() : _("unknown error"));
+        throw exc(str::asprintf(_("%s: %s"), when.c_str(), what.c_str()));
     }
     return shader;
 }
@@ -338,13 +354,13 @@ void xgl::LinkProgram(const std::string &name, const GLuint prg)
 
     if (e == GL_TRUE && log.length() > 0)
     {
-        msg::wrn("OpenGL program '%s': linker warning:", name.c_str());
+        msg::wrn(_("OpenGL program '%s': linker warning:"), name.c_str());
         msg::wrn_txt("%s", log.c_str());
     }
     else if (e != GL_TRUE)
     {
-        std::string when = str::asprintf("OpenGL program '%s': linking failed.", name.c_str());
-        std::string what = str::asprintf("\n%s", log.length() > 0 ? log.c_str() : "unknown error");
+        std::string when = str::asprintf(_("OpenGL program '%s': linking failed."), name.c_str());
+        std::string what = str::asprintf("\n%s", log.length() > 0 ? log.c_str() : _("unknown error"));
         throw exc(when + ": " + what);
     }
 }

@@ -1,0 +1,24 @@
+# List of source files which contain translatable strings.
+src/base/dbg.cpp
+src/base/exc.cpp
+src/base/msg.cpp
+src/base/opt.cpp
+src/base/s11n.cpp
+src/base/str.cpp
+src/base/thread.cpp
+src/base/timer.cpp
+src/audio_output.cpp
+src/controller.cpp
+src/lib_versions.cpp
+src/main.cpp
+src/media_data.cpp
+src/media_input.cpp
+src/media_object.cpp
+src/player.cpp
+src/player_equalizer.cpp
+src/player_qt.cpp
+src/qt_app.cpp
+src/subtitle_renderer.cpp
+src/video_output.cpp
+src/video_output_qt.cpp
+src/xgl.cpp

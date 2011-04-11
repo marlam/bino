@@ -25,6 +25,9 @@
 # include <sys/time.h>
 #endif
 
+#include "gettext.h"
+#define _(string) gettext(string)
+
 #include "exc.h"
 #include "timer.h"
 
@@ -46,13 +49,7 @@ int64_t timer::get_microseconds(timer::type t)
             : CLOCK_THREAD_CPUTIME_ID, &time);
     if (r != 0)
     {
-        throw exc(std::string("Cannot get ")
-                + std::string(
-                      t == realtime ? "real"
-                    : t == monotonic ? "monotonic"
-                    : t == process_cpu ? "process CPU"
-                    : "thread CPU")
-                + std::string(" time"), errno);
+        throw exc(_("Cannot get time."), errno);
     }
     return static_cast<int64_t>(time.tv_sec) * 1000000 + time.tv_nsec / 1000;
 
@@ -64,9 +61,7 @@ int64_t timer::get_microseconds(timer::type t)
         int r = gettimeofday(&tv, NULL);
         if (r != 0)
         {
-            throw exc(std::string("Cannot get ")
-                    + std::string(t == realtime ? "real" : "monotonic")
-                    + std::string(" time"), errno);
+            throw exc(_("Cannot get time."), errno);
         }
         return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
     }
@@ -80,9 +75,7 @@ int64_t timer::get_microseconds(timer::type t)
     }
     else
     {
-        throw exc(std::string("Cannot get ")
-                + std::string("thread CPU")
-                + std::string(" time"), ENOSYS);
+        throw exc(_("Cannot get time."), ENOSYS);
     }
 
 #endif

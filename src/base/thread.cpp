@@ -23,6 +23,9 @@
 #include <cstring>
 #include <pthread.h>
 
+#include "gettext.h"
+#define _(string) gettext(string)
+
 #include "dbg.h"
 #include "thread.h"
 
@@ -34,7 +37,7 @@ mutex::mutex() : _mutex(_mutex_initializer)
     int e = pthread_mutex_init(&_mutex, NULL);
     if (e != 0)
     {
-        throw exc(std::string("Cannot initialize mutex: ") + std::strerror(e), e);
+        throw exc(str::asprintf(_("Cannot initialize mutex: %s"), std::strerror(e)), e);
     }
 }
 
@@ -45,7 +48,7 @@ mutex::mutex(const mutex &) : _mutex(_mutex_initializer)
     int e = pthread_mutex_init(&_mutex, NULL);
     if (e != 0)
     {
-        throw exc(std::string("Cannot initialize mutex: ") + std::strerror(e), e);
+        throw exc(str::asprintf(_("Cannot initialize mutex: %s"), std::strerror(e)), e);
     }
 }
 
@@ -59,7 +62,7 @@ void mutex::lock()
     int e = pthread_mutex_lock(&_mutex);
     if (e != 0)
     {
-        throw exc(std::string("Cannot lock mutex: ") + std::strerror(e), e);
+        throw exc(str::asprintf(_("Cannot lock mutex: %s"), std::strerror(e)), e);
     }
 }
 
@@ -73,7 +76,7 @@ void mutex::unlock()
     int e = pthread_mutex_unlock(&_mutex);
     if (e != 0)
     {
-        throw exc(std::string("Cannot unlock mutex: ") + std::strerror(e), e);
+        throw exc(str::asprintf(_("Cannot unlock mutex: %s"), std::strerror(e)), e);
     }
 }
 
@@ -122,7 +125,7 @@ void *thread::__run(void *p)
     }
     catch (...)
     {
-        t->__exception = exc("Unknown exception");
+        t->__exception = exc(_("Unknown exception"));
     }
     t->__running = false;
     return NULL;
@@ -136,7 +139,7 @@ void thread::start()
         int e = pthread_create(&__thread_id, NULL, __run, this);
         if (e != 0)
         {
-            throw exc(std::string("Cannot create thread: ") + std::strerror(e), e);
+            throw exc(str::asprintf(_("Cannot create thread: %s"), std::strerror(e)), e);
         }
         __joinable = true;
     }
@@ -151,7 +154,7 @@ void thread::wait()
         if (e != 0)
         {
             __wait_mutex.unlock();
-            throw exc(std::string("Cannot join with thread: ") + std::strerror(e), e);
+            throw exc(str::asprintf(_("Cannot join with thread: %s"), std::strerror(e)), e);
         }
     }
     __wait_mutex.unlock();

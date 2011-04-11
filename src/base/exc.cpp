@@ -23,6 +23,9 @@
 #include <cstring>
 #include <cerrno>
 
+#include "gettext.h"
+#define _(string) gettext(string)
+
 #include "msg.h"
 #include "exc.h"
 
@@ -48,7 +51,7 @@ exc::exc(const std::string &what, int sys_errno) throw ()
     }
     if (!empty())
     {
-        msg::dbg("Exception: %s", _str.c_str());
+        msg::dbg(_("Exception: %s"), _str.c_str());
     }
 }
 
@@ -66,7 +69,7 @@ exc::exc(int sys_errno) throw ()
     }
     if (!empty())
     {
-        msg::dbg("Exception: %s", _str.c_str());
+        msg::dbg(_("Exception: %s"), _str.c_str());
     }
 }
 
@@ -100,7 +103,7 @@ exc::exc(const std::exception &e) throw ()
     }
     if (!empty())
     {
-        msg::dbg("Exception: %s", _str.c_str());
+        msg::dbg(_("Exception: %s"), _str.c_str());
     }
 }
 

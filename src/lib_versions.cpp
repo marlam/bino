@@ -46,6 +46,9 @@ extern "C"
 #include <eq/eq.h>
 #endif
 
+#include "gettext.h"
+#define _(string) gettext(string)
+
 #include "qt_app.h"
 
 #include "str.h"
@@ -79,7 +82,7 @@ static void libass_versions()
 {
     if (libass_v.size() == 0)
     {
-        libass_v.push_back("unknown");
+        libass_v.push_back(_("unknown"));
     }
 }
 
@@ -112,7 +115,7 @@ static void openal_versions()
         }
         if (openal_v.size() == 0)
         {
-            openal_v.push_back("unknown");
+            openal_v.push_back(_("unknown"));
         }
     }
 }
@@ -151,7 +154,7 @@ static void opengl_versions()
         }
         if (opengl_v.size() == 0)
         {
-            opengl_v.push_back("unknown");
+            opengl_v.push_back(_("unknown"));
         }
     }
 }
@@ -175,7 +178,7 @@ static void equalizer_versions()
                     static_cast<int>(eq::Version::getMinor()),
                     static_cast<int>(eq::Version::getPatch())));
 #else
-        equalizer_v.push_back("not used");
+        equalizer_v.push_back(_("not used"));
 #endif
     }
 }

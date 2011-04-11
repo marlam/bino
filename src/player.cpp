@@ -25,6 +25,9 @@
 #include <vector>
 #include <unistd.h>
 
+#include "gettext.h"
+#define _(string) gettext(string)
+
 #include "exc.h"
 #include "str.h"
 #include "msg.h"
@@ -179,7 +182,7 @@ void player::make_master()
 {
     if (global_player)
     {
-        throw exc("Cannot create a second master player.");
+        throw exc(_("Cannot create a second master player."));
     }
     global_player = this;
 }
@@ -196,24 +199,24 @@ void player::open(const player_init_data &init_data)
     _media_input->open(init_data.urls);
     if (_media_input->video_streams() == 0)
     {
-        throw exc("No video streams found.");
+        throw exc(_("No video streams found."));
     }
     if (init_data.stereo_layout_override)
     {
         if (!_media_input->stereo_layout_is_supported(init_data.stereo_layout, init_data.stereo_layout_swap))
         {
-            throw exc("Cannot set requested stereo layout: incompatible media.");
+            throw exc(_("Cannot set requested stereo layout: incompatible media."));
         }
         _media_input->set_stereo_layout(init_data.stereo_layout, init_data.stereo_layout_swap);
     }
     if (_media_input->video_streams() < init_data.video_stream + 1)
     {
-        throw exc(str::asprintf("Video stream %d not found.", init_data.video_stream + 1));
+        throw exc(str::asprintf(_("Video stream %d not found."), init_data.video_stream + 1));
     }
     _media_input->select_video_stream(init_data.video_stream);
     if (_media_input->audio_streams() > 0 && _media_input->audio_streams() < init_data.audio_stream + 1)
     {
-        throw exc(str::asprintf("Audio stream %d not found.", init_data.audio_stream + 1));
+        throw exc(str::asprintf(_("Audio stream %d not found."), init_data.audio_stream + 1));
     }
     if (_media_input->audio_streams() > 0)
     {
@@ -221,7 +224,7 @@ void player::open(const player_init_data &init_data)
     }
     if (_media_input->subtitle_streams() > 0 && _media_input->subtitle_streams() < init_data.subtitle_stream + 1)
     {
-        throw exc(str::asprintf("Subtitle stream %d not found.", init_data.subtitle_stream + 1));
+        throw exc(str::asprintf(_("Subtitle stream %d not found."), init_data.subtitle_stream + 1));
     }
     if (_media_input->subtitle_streams() > 0 && init_data.subtitle_stream >= 0)
     {
@@ -425,7 +428,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
         _video_frame = _media_input->finish_video_frame_read();
         if (!_video_frame.is_valid())
         {
-            msg::wrn("Seeked to end of video?!");
+            msg::dbg("Seeked to end of video?!");
             stop_playback();
             return 0;
         }
@@ -452,7 +455,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
             audio_blob blob = _media_input->finish_audio_blob_read();
             if (!blob.is_valid())
             {
-                msg::wrn("Seeked to end of audio?!");
+                msg::dbg("Seeked to end of audio?!");
                 stop_playback();
                 return 0;
             }
@@ -612,7 +615,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
             _drop_next_frame = false;
             if (_master_time_current - _video_pos > _media_input->video_frame_duration() * 75 / 100 && !_benchmark)
             {
-                msg::wrn("Video: delay %g seconds; dropping next frame.", (_master_time_current - _video_pos) / 1e6f);
+                msg::wrn(_("Video: delay %g seconds; dropping next frame."), (_master_time_current - _video_pos) / 1e6f);
                 _drop_next_frame = true;
             }
             if (!_previous_frame_dropped)
@@ -624,7 +627,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
                     if (_frames_shown == 100)   //show fps each 100 frames
                     {
                         int64_t now = timer::get_microseconds(timer::monotonic);
-                        msg::inf("FPS: %.2f", static_cast<float>(_frames_shown) / ((now - _fps_mark_time) / 1e6f));
+                        msg::inf(_("FPS: %.2f"), static_cast<float>(_frames_shown) / ((now - _fps_mark_time) / 1e6f));
                         _fps_mark_time = now;
                         _frames_shown = 0;
                     }

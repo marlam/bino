@@ -24,6 +24,9 @@
 #include <limits>
 #include <cstring>
 
+#include "gettext.h"
+#define _(string) gettext(string)
+
 #include <getopt.h>
 #undef no_argument
 #undef required_argument
@@ -145,16 +148,16 @@ namespace opt
             {
                 if (optopt == 0)
                 {
-                    msg::err("Invalid option %s", argv[optind - 1]);
+                    msg::err(_("Invalid option %s."), argv[optind - 1]);
                 }
                 else if (optopt >= optval_base)
                 {
-                    msg::err("Option --%s does not take an argument",
+                    msg::err(_("Option --%s does not take an argument."),
                             options[optopt - optval_base]->longname().c_str());
                 }
                 else
                 {
-                    msg::err("Invalid option -%c", optopt);
+                    msg::err(_("Invalid option -%c."), optopt);
                 }
                 error = true;
                 break;
@@ -163,12 +166,12 @@ namespace opt
             {
                 if (optopt >= optval_base)
                 {
-                    msg::err("Option --%s requires an argument",
+                    msg::err(_("Option --%s requires an argument."),
                             options[optopt - optval_base]->longname().c_str());
                 }
                 else
                 {
-                    msg::err("Option -%c requires an argument", optopt);
+                    msg::err(_("Option -%c requires an argument."), optopt);
                 }
                 error = true;
                 break;
@@ -189,11 +192,11 @@ namespace opt
             {
                 if (option_shortname)
                 {
-                    msg::err("Invalid argument for -%c", options[optval]->shortname());
+                    msg::err(_("Invalid argument for -%c."), options[optval]->shortname());
                 }
                 else
                 {
-                    msg::err("Invalid argument for --%s", options[optval]->longname().c_str());
+                    msg::err(_("Invalid argument for --%s."), options[optval]->longname().c_str());
                 }
                 error = true;
             }
@@ -212,11 +215,11 @@ namespace opt
                 {
                     if (options[i]->shortname() != '\0')
                     {
-                        msg::err("Option --%s (-%c) is mandatory", options[i]->longname().c_str(), options[i]->shortname());
+                        msg::err(_("Option --%s (-%c) is mandatory."), options[i]->longname().c_str(), options[i]->shortname());
                     }
                     else
                     {
-                        msg::err("Option --%s is mandatory", options[i]->longname().c_str());
+                        msg::err(_("Option --%s is mandatory."), options[i]->longname().c_str());
                     }
                     error = true;
                     /* Do not break the loop. Print an error message for every missing option. */
@@ -230,12 +233,12 @@ namespace opt
         {
             if (args < min_arguments)
             {
-                msg::err("Too few arguments");
+                msg::err(_("Too few arguments."));
                 error = true;
             }
             else if (max_arguments >= 0 && args > max_arguments)
             {
-                msg::err("Too many arguments");
+                msg::err(_("Too many arguments."));
                 error = true;
             }
         }

@@ -69,13 +69,12 @@ fi
 
 dnl Feature checks needed by the base module
 AC_CHECK_DECLS([optreset], [#include <getopt.h>])
-AC_SEARCH_LIBS([iconv_open], [iconv])
-if test "$ac_cv_search_iconv_open" = "no"; then
-    AC_SEARCH_LIBS([libiconv_open], [iconv])
-fi
 AC_SEARCH_LIBS([clock_gettime], [rt])
 AC_SEARCH_LIBS([pthread_create], [pthread])
 AC_CHECK_FUNCS([backtrace clock_gettime sigaction vasprintf])
+
+dnl Gettext
+AM_GNU_GETTEXT([external])
 
 dnl pkg-config (required to detect libraries)
 PKG_PROG_PKG_CONFIG([])
@@ -168,6 +167,7 @@ fi
 
 dnl Output
 AC_CONFIG_FILES([Makefile	\
+	po/Makefile.in		\
 	src/base/Makefile	\
 	src/Makefile		\
 	doc/Makefile		\
