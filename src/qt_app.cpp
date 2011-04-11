@@ -67,7 +67,8 @@ bool init_qt()
     {
         qInstallMsgHandler(qt_msg_handler);
         qt_app = new QApplication(qt_argc, const_cast<char **>(qt_argv));
-        QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+        // Disabled because it breaks i18n with gettext on non-utf8 locales:
+        //QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
         QCoreApplication::setOrganizationName("Bino");
         QCoreApplication::setOrganizationDomain("bino.nongnu.org");
         QCoreApplication::setApplicationName(PACKAGE_NAME);

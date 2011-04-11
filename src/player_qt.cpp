@@ -2346,7 +2346,7 @@ void main_window::help_about()
     team_text->setWordWrapMode(QTextOption::NoWrap);
     QFile team_file(":AUTHORS");
     team_file.open(QIODevice::ReadOnly | QIODevice::Text);
-    team_text->setText(team_file.readAll());
+    team_text->setText(QTextCodec::codecForName("UTF-8")->toUnicode(team_file.readAll()));
 
     QTextBrowser *license_text = new QTextBrowser(this);
     license_text->setOpenExternalLinks(false);
