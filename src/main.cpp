@@ -26,6 +26,10 @@
 #include <cstring>
 #include <locale.h>
 
+#if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
+# include <windows.h>
+#endif
+
 #include "gettext.h"
 #define _(string) gettext(string)
 
@@ -42,11 +46,38 @@
 #include "lib_versions.h"
 
 
+static const char *localedir()
+{
+#if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
+    static char buffer[MAX_PATH + 10];  // leave space to append "..\\locale"
+    DWORD v = GetModuleFileName(NULL, buffer, MAX_PATH);
+    if (v == 0 || v >= MAX_PATH)
+    {
+        return NULL;
+    }
+    else
+    {
+        char *backslash = strrchr(buffer, '\\');
+        if (!backslash)
+        {
+            return NULL;
+        }
+        else
+        {
+            strcpy(backslash + 1, "..\\locale");
+        }
+        return buffer;
+    }
+#else
+    return LOCALEDIR;
+#endif
+}
+
 int main(int argc, char *argv[])
 {
     /* Initialization: gettext */
     setlocale(LC_ALL, "");
-    bindtextdomain(PACKAGE, LOCALEDIR);
+    bindtextdomain(PACKAGE, localedir());
     textdomain(PACKAGE);
 
     /* Initialization: messages */

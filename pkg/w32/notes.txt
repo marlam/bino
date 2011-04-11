@@ -1,6 +1,6 @@
 Bino uses the following libraries:
 
-- Libiconv for character set conversion: http://www.gnu.org/software/libiconv/
+- GNU Gettext for internationalization: http://www.gnu.org/software/gettext/
 - PThreads for multithreading: http://sourceware.org/pthreads-win32/
 - FFmpeg for video and audio decoding: http://ffmpeg.org/
 - LibASS for subtitle rendering: http://code.google.com/p/libass/

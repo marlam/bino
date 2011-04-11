@@ -17,7 +17,7 @@ The following is known to work with Mingw-cross-env 2.20 installed in
 1. Build the required libraries in Mingw-cross-env:
 
    $ cd /path/to/mce
-   $ make libiconv pthreads ffmpeg libass openal glew qt
+   $ make gettext pthreads ffmpeg libass openal glew qt
 
    If you want to build a Bino installer later, you need to build nsis, too:
    $ make nsis
