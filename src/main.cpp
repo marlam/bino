@@ -46,29 +46,29 @@
 #include "lib_versions.h"
 
 
+/* Return the directory containing our locale data (translated messages). */
 static const char *localedir()
 {
 #if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
-    static char buffer[MAX_PATH + 10];  // leave space to append "..\\locale"
+    /* Windows: D/../locale, where D contains the program binary. If something
+     * goes wrong, we fall back to "..\\locale", which at least works if the
+     * current directory contains the program binary. */
+    static const char *rel_locale = "..\\locale";
+    static char buffer[MAX_PATH + 10];  // leave space to append rel_locale
     DWORD v = GetModuleFileName(NULL, buffer, MAX_PATH);
     if (v == 0 || v >= MAX_PATH)
     {
-        return NULL;
+        return rel_locale;
     }
-    else
+    char *backslash = strrchr(buffer, '\\');
+    if (!backslash)
     {
-        char *backslash = strrchr(buffer, '\\');
-        if (!backslash)
-        {
-            return NULL;
-        }
-        else
-        {
-            strcpy(backslash + 1, "..\\locale");
-        }
-        return buffer;
+        return rel_locale;
     }
+    strcpy(backslash + 1, "..\\locale");
+    return buffer;
 #else
+    /* GNU/Linux and others: fixed directory defined by LOCALEDIR */
     return LOCALEDIR;
 #endif
 }
