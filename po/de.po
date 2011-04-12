@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bino 0.9.2\n"
 "Report-Msgid-Bugs-To: bino-list@nongnu.org\n"
-"POT-Creation-Date: 2011-04-11 06:46+0200\n"
+"POT-Creation-Date: 2011-04-12 21:12+0200\n"
 "PO-Revision-Date: 2011-04-10 17:23+0200\n"
 "Last-Translator: Martin Lambers <marlam@marlam.de>\n"
 "Language-Team: none\n"
@@ -24,7 +24,8 @@ msgstr "Signal %d (%s) erhalten. Breche ab."
 msgid "Unexpected exception."
 msgstr "Unerwartete Ausnahme."
 
-#: src/base/dbg.cpp:145
+#. TRANSLATORS: %s will be a mail address.
+#: src/base/dbg.cpp:146
 #, c-format
 msgid "Report bugs to <%s>."
 msgstr "Melde Fehler an <%s>."
@@ -114,8 +115,8 @@ msgid "Cannot unlock mutex: %s"
 msgstr "Kann Mutex nicht entsichern: %s"
 
 #: src/base/thread.cpp:128
-msgid "Unknown exception"
-msgstr "Unbekannte Ausnahme"
+msgid "Unknown exception."
+msgstr "Unbekannte Ausnahme."
 
 #: src/base/thread.cpp:142
 #, c-format
@@ -193,8 +194,8 @@ msgid "Cannot unqueue OpenAL source buffers."
 msgstr "Kann OpenAL Quellenpuffer nicht aus Warteschlange entfernen."
 
 #: src/lib_versions.cpp:85 src/lib_versions.cpp:118 src/lib_versions.cpp:157
-#: src/media_data.cpp:390 src/media_data.cpp:413 src/media_data.cpp:451
-#: src/media_data.cpp:456
+#: src/media_data.cpp:392 src/media_data.cpp:415 src/media_data.cpp:453
+#: src/media_data.cpp:458
 msgid "unknown"
 msgstr "unbekannt"
 
@@ -202,32 +203,36 @@ msgstr "unbekannt"
 msgid "not used"
 msgstr "nicht benutzt"
 
-#: src/main.cpp:170
+#: src/main.cpp:201
 #, c-format
 msgid "%s version %s"
 msgstr "%s Version %s"
 
-#: src/main.cpp:171
-msgid ""
-"    Copyright (C) 2011 the Bino developers.\n"
-"    This is free software. You may redistribute copies of it\n"
-"    under the terms of the GNU General Public License.\n"
-"    There is NO WARRANTY, to the extent permitted by law."
-msgstr ""
-"    Copyright (C) 2011 Die Bino Entwickler.\n"
-"    Dies ist freie Software. Du kannst Kopien davon verteilen\n"
-"    unter den Bedingungen der GNU General Public License.\n"
-"    Es gibt keine Garantie."
+#: src/main.cpp:202
+msgid "Copyright (C) 2011 the Bino developers."
+msgstr "Copyright (C) 2011 Bino Entwickler."
 
-#: src/main.cpp:175 src/player_qt.cpp:2334
+#: src/main.cpp:203
+msgid ""
+"This is free software. You may redistribute copies of it under the terms of "
+"the GNU General Public License. There is NO WARRANTY, to the extent "
+"permitted by law."
+msgstr ""
+"Dies ist freie Software. Du kannst Kopien davon verteilen unter den "
+"Bedingungen der GNU General Public License. Es gibt keine Garantie."
+
+#: src/main.cpp:206 src/player_qt.cpp:2337
 msgid "Platform:"
 msgstr "Plattform:"
 
-#: src/main.cpp:177
+#: src/main.cpp:208 src/player_qt.cpp:2338
 msgid "Libraries used:"
 msgstr "Benutzte Bibliotheken:"
 
-#: src/main.cpp:187
+#. TRANSLATORS: This is the --help text. Translate only the description,
+#. not the option names. Please keep a proper indentation with spaces, and
+#. keep the line length limited.
+#: src/main.cpp:220
 #, c-format
 msgid ""
 "Usage:\n"
@@ -395,18 +400,30 @@ msgstr ""
 "  Seite rauf, Seite runter Spule 10 Minuten zurück / vor.\n"
 "  Mausklick                Spule zur Stelle der horizontalen Klickposition."
 
-#: src/main.cpp:364
+#: src/main.cpp:397
 msgid "Benchmark mode: audio and time synchronization disabled."
 msgstr "Benchmark Modus: Audio und Videosynchronisation deaktiviert."
 
-#: src/main.cpp:382
+#: src/main.cpp:415
 msgid "This version of Bino was compiled without support for Equalizer."
 msgstr ""
 "Diese Version von Bino wurde ohne Unterstützung für Equalizer erstellt."
 
-#: src/main.cpp:399
+#: src/main.cpp:432
 msgid "No video to play."
 msgstr "Kein Video abzuspielen."
+
+#. TRANSLATORS: This is a very short string describing the video size and aspect ratio.
+#: src/media_data.cpp:263
+#, c-format
+msgid "%dx%d, %.3g:1"
+msgstr "%dx%d, %.3g:1"
+
+#. TRANSLATORS: This is a very short string describing the audio language, channels, frequency, and bits.
+#: src/media_data.cpp:391
+#, c-format
+msgid "%s, %d ch., %g kHz, %d bit"
+msgstr "%s, %d Kan., %g kHz, %d bit"
 
 #: src/media_input.cpp:284 src/player_qt.cpp:161
 msgid "Input:"
@@ -414,40 +431,40 @@ msgstr "Eingabe:"
 
 #: src/media_input.cpp:289
 #, c-format
-msgid "    Video %s: %s"
-msgstr "    Video %s: %s"
+msgid "Video %s: %s"
+msgstr "Video %s: %s"
 
 #: src/media_input.cpp:294
-msgid "    No video."
-msgstr "    Kein Video."
+msgid "No video."
+msgstr "Kein Video."
 
 #: src/media_input.cpp:300
 #, c-format
-msgid "    Audio %s: %s"
-msgstr "    Audio %s: %s"
+msgid "Audio %s: %s"
+msgstr "Audio %s: %s"
 
 #: src/media_input.cpp:305
-msgid "    No audio."
-msgstr "    Kein Audio."
+msgid "No audio."
+msgstr "Kein Audio."
 
 #: src/media_input.cpp:311
 #, c-format
-msgid "    Subtitle %s: %s"
-msgstr "    Untertitel %s: %s"
+msgid "Subtitle %s: %s"
+msgstr "Untertitel %s: %s"
 
 #: src/media_input.cpp:316
-msgid "    No subtitle."
-msgstr "    Kein Untertitel."
+msgid "No subtitle."
+msgstr "Kein Untertitel."
 
 #: src/media_input.cpp:318
 #, c-format
-msgid "    Duration: %g seconds"
-msgstr "    Dauer: %g Sekunden"
+msgid "Duration: %g seconds"
+msgstr "Dauer: %g Sekunden"
 
 #: src/media_input.cpp:321
 #, c-format
-msgid "    Stereo layout: %s"
-msgstr "    Stereolayout: %s"
+msgid "Stereo layout: %s"
+msgstr "Stereolayout: %s"
 
 #: src/media_object.cpp:584
 #, c-format
@@ -511,27 +528,27 @@ msgstr "%s Untertitelkanal %d: Kann Untertitelcodec nicht öffnen: %s"
 
 #: src/media_object.cpp:808
 #, c-format
-msgid "    Video stream %d: %s / %s, %g seconds"
-msgstr "    Videokanal %d: %s / %s, %g Sekunden"
+msgid "Video stream %d: %s / %s, %g seconds"
+msgstr "Videokanal %d: %s / %s, %g Sekunden"
 
 #: src/media_object.cpp:812
 #, c-format
-msgid "        Using up to %d threads for decoding."
-msgstr "        Benutze bis zu %d Threads zum dekodieren."
+msgid "Using up to %d threads for decoding."
+msgstr "Benutze bis zu %d Threads zum dekodieren."
 
 #: src/media_object.cpp:817
 #, c-format
-msgid "    Audio stream %d: %s / %s, %g seconds"
-msgstr "    Audiokanal %d: %s / %s, %g Sekunden"
+msgid "Audio stream %d: %s / %s, %g seconds"
+msgstr "Audiokanal %d: %s / %s, %g Sekunden"
 
 #: src/media_object.cpp:824
 #, c-format
-msgid "    Subtitle stream %d: %s / %s, %g seconds"
-msgstr "    Untertitelkanal %d: %s / %s, %g Sekunden"
+msgid "Subtitle stream %d: %s / %s, %g seconds"
+msgstr "Untertitelkanal %d: %s / %s, %g Sekunden"
 
 #: src/media_object.cpp:831
-msgid "    No usable streams."
-msgstr "    Keine nutzbaren Kanäle."
+msgid "No usable streams."
+msgstr "Keine nutzbaren Kanäle."
 
 #: src/media_object.cpp:1110 src/media_object.cpp:1140
 #: src/media_object.cpp:1170
@@ -606,17 +623,20 @@ msgid "No canvas in Equalizer configuration."
 msgstr "Kein canvas in Equalizer Konfiguration."
 
 #: src/player_equalizer.cpp:481
-#, c-format
-msgid ""
-"Equalizer canvas:\n"
-"    %gx%g, aspect ratio %g:1\n"
-"    Area for %g:1 video: [ %g %g %g %g @ %g ]"
-msgstr ""
-"Equalizer canvas:\n"
-"    %gx%g, Seitenverhältnis %g:1\n"
-"    Bereich für %g:1 Video: [ %g %g %g %g @ %g ]"
+msgid "Equalizer canvas:"
+msgstr "Equalizer canvas:"
 
-#: src/player_equalizer.cpp:897 src/video_output_qt.cpp:296
+#: src/player_equalizer.cpp:482
+#, c-format
+msgid "%gx%g, aspect ratio %g:1"
+msgstr "%gx%g, Seitenverhältnis %g:1"
+
+#: src/player_equalizer.cpp:483
+#, c-format
+msgid "Area for %g:1 video: [ %g %g %g %g @ %g ]"
+msgstr "Bereich für %g:1 Video: [ %g %g %g %g @ %g ]"
+
+#: src/player_equalizer.cpp:896 src/video_output_qt.cpp:296
 msgid ""
 "This OpenGL implementation does not support OpenGL 2.1 and framebuffer "
 "objects."
@@ -624,15 +644,15 @@ msgstr ""
 "Diese OpenGL Implementierung unterstützt nicht OpenGL 2.1 und "
 "Framebufferobjekte."
 
-#: src/player_equalizer.cpp:1063
+#: src/player_equalizer.cpp:1062
 msgid "Equalizer initialization failed."
 msgstr "Equalizer-Initialisierung fehlgeschlagen."
 
-#: src/player_equalizer.cpp:1071
+#: src/player_equalizer.cpp:1070
 msgid "Cannot get equalizer configuration."
 msgstr "Kann Equalizer Konfiguration nicht bekommen."
 
-#: src/player_equalizer.cpp:1085
+#: src/player_equalizer.cpp:1084
 msgid "Equalizer configuration initialization failed."
 msgstr "Kann Equalizer Konfiguration nicht initialisieren."
 
@@ -895,8 +915,8 @@ msgstr "Farbton:"
 msgid "Saturation:"
 msgstr "Farbsättigung:"
 
-#: src/player_qt.cpp:988 src/player_qt.cpp:1146 src/player_qt.cpp:1265
-#: src/player_qt.cpp:1564 src/player_qt.cpp:2192 src/player_qt.cpp:2364
+#: src/player_qt.cpp:988 src/player_qt.cpp:1147 src/player_qt.cpp:1266
+#: src/player_qt.cpp:1565 src/player_qt.cpp:2193 src/player_qt.cpp:2367
 msgid "OK"
 msgstr "OK"
 
@@ -904,7 +924,8 @@ msgstr "OK"
 msgid "Display Crosstalk Calibration"
 msgstr "Bildschirm-Crosstalk Kalibrierung"
 
-#: src/player_qt.cpp:1120
+#. TRANSLATORS: Please keep the lines short using <br> where necessary.
+#: src/player_qt.cpp:1121
 msgid ""
 "<p>Please read the manual to find out<br>how to measure the crosstalk "
 "levels<br>of your display.</p>"
@@ -912,77 +933,77 @@ msgstr ""
 "<p>Bitte lese das Handbuch um herauszufinden<br>wie Crosstalk-Level für "
 "Deinen<br>Bildschirm gemessen werden.</p>"
 
-#: src/player_qt.cpp:1124
+#: src/player_qt.cpp:1125
 msgid "Red:"
 msgstr "Rot:"
 
-#: src/player_qt.cpp:1131
+#: src/player_qt.cpp:1132
 msgid "Green:"
 msgstr "Grün:"
 
-#: src/player_qt.cpp:1138
+#: src/player_qt.cpp:1139
 msgid "Blue:"
 msgstr "Blau:"
 
-#: src/player_qt.cpp:1207
+#: src/player_qt.cpp:1208
 msgid "Subtitle Settings"
 msgstr "Einstellungen für Untertitel"
 
-#: src/player_qt.cpp:1209
+#: src/player_qt.cpp:1210
 msgid "<p>These settings apply to soft subtitles, but not to bitmaps.</p>"
 msgstr ""
 "<p>Diese Einstellungen gelten für Text-Untertitel, nicht für Bild-Untertitel."
 "</p>"
 
-#: src/player_qt.cpp:1211
+#: src/player_qt.cpp:1212
 msgid "Encoding:"
 msgstr "Zeichensatz:"
 
-#: src/player_qt.cpp:1212
+#: src/player_qt.cpp:1213
 msgid "<p>Set the subtitle character set encoding.</p>"
 msgstr "<p>Auswahl des Untertitelzeichensatzes.</p>"
 
-#: src/player_qt.cpp:1226
+#: src/player_qt.cpp:1227
 msgid "Override font:"
 msgstr "Setze Schriftart:"
 
-#: src/player_qt.cpp:1227
+#: src/player_qt.cpp:1228
 msgid "<p>Override the subtitle font family.</p>"
 msgstr "<p>Auswahl der Schriftart des Untertitels.</p>"
 
-#: src/player_qt.cpp:1235
+#: src/player_qt.cpp:1236
 msgid "Override font size:"
 msgstr "Setze Schriftgröße:"
 
-#: src/player_qt.cpp:1236
+#: src/player_qt.cpp:1237
 msgid "<p>Override the subtitle font size.</p>"
 msgstr "<p>Auswahl der Schriftgröße des Untertitels.</p>"
 
-#: src/player_qt.cpp:1245
+#: src/player_qt.cpp:1246
 msgid "Override scale factor:"
 msgstr "Setze Skalierungsfaktor:"
 
-#: src/player_qt.cpp:1246
+#: src/player_qt.cpp:1247
 msgid "<p>Override the subtitle scale factor.</p>"
 msgstr "<p>Auswahl des Skalierungsfaktors des Untertitels.</p>"
 
-#: src/player_qt.cpp:1256
+#: src/player_qt.cpp:1257
 msgid "Override color:"
 msgstr "Setze Farbe:"
 
-#: src/player_qt.cpp:1257
+#: src/player_qt.cpp:1258
 msgid "<p>Override the subtitle color.</p>"
 msgstr "<p>Auswahl der Farbe des Untertitels.</p>"
 
-#: src/player_qt.cpp:1513
+#: src/player_qt.cpp:1514
 msgid "Stereoscopic Video Settings"
 msgstr "Einstellungen für stereoskopische Videos"
 
-#: src/player_qt.cpp:1515
+#: src/player_qt.cpp:1516
 msgid "Parallax:"
 msgstr "Parallaxe:"
 
-#: src/player_qt.cpp:1516
+#: src/player_qt.cpp:1517
 msgid ""
 "<p>Adjust parallax, from -1 to +1. This changes the separation of left and "
 "right view, and thus the perceived distance of the scene.</p>"
@@ -990,11 +1011,11 @@ msgstr ""
 "<p>Justierung der Parallaxe, von -1 bis +1. Dies ändert die Separierung von "
 "linker und rechter Sicht und damit den wahrgenommenen Abstand der Szene.</p>"
 
-#: src/player_qt.cpp:1531
+#: src/player_qt.cpp:1532
 msgid "Subtitle parallax:"
 msgstr "Untertitelparallaxe:"
 
-#: src/player_qt.cpp:1532
+#: src/player_qt.cpp:1533
 msgid ""
 "<p>Adjust subtitle parallax, from -1 to +1. This changes the perceived "
 "distance of the subtitles.</p>"
@@ -1002,11 +1023,11 @@ msgstr ""
 "<p>Justierung der Untertitelparallaxe, von -1 bis +1. Dies ändert den "
 "wahrgenommenen Abstand der Untertitel.</p>"
 
-#: src/player_qt.cpp:1547
+#: src/player_qt.cpp:1548
 msgid "Ghostbusting:"
 msgstr "Verringerungsfaktor:"
 
-#: src/player_qt.cpp:1548
+#: src/player_qt.cpp:1549
 msgid ""
 "<p>Set the amount of crosstalk ghostbusting, from 0 to 1. You need to set "
 "the crosstalk levels of your display first. Note that crosstalk ghostbusting "
@@ -1016,97 +1037,99 @@ msgstr ""
 "müssen die Crosstalk-Level des Bildschirms gesetzt werden. Crosstalk-"
 "Verringerung funktioniert nicht mit Anaglyphenbrillen.</p>"
 
-#: src/player_qt.cpp:1752
+#: src/player_qt.cpp:1753
 msgid "&File"
 msgstr "&Datei"
 
-#: src/player_qt.cpp:1753
+#: src/player_qt.cpp:1754
 msgid "&Open..."
 msgstr "&Öffnen..."
 
-#: src/player_qt.cpp:1757
+#: src/player_qt.cpp:1758
 msgid "Open &URL..."
 msgstr "Öffne &URL..."
 
-#: src/player_qt.cpp:1761
+#: src/player_qt.cpp:1762
 msgid "&Quit..."
 msgstr "&Beenden..."
 
-#: src/player_qt.cpp:1765
+#: src/player_qt.cpp:1766
 msgid "&Preferences"
 msgstr "&Einstellungen"
 
-#: src/player_qt.cpp:1766
+#: src/player_qt.cpp:1767
 msgid "Display &Color Adjustments..."
 msgstr "Bildschirm&farben..."
 
-#: src/player_qt.cpp:1769
+#: src/player_qt.cpp:1770
 msgid "Display Cross&talk Calibration..."
 msgstr "Bildschirm-Crosstalk..."
 
-#: src/player_qt.cpp:1773
+#: src/player_qt.cpp:1774
 msgid "&Subtitle Settings..."
 msgstr "&Untertitel..."
 
-#: src/player_qt.cpp:1777
+#: src/player_qt.cpp:1778
 msgid "Stereoscopic Video Settings..."
 msgstr "&Stereoskopische Videos..."
 
-#: src/player_qt.cpp:1780
+#: src/player_qt.cpp:1781
 msgid "&Help"
 msgstr "&Hilfe"
 
-#: src/player_qt.cpp:1781
+#: src/player_qt.cpp:1782
 msgid "&Manual..."
 msgstr "&Handbuch..."
 
-#: src/player_qt.cpp:1785
+#: src/player_qt.cpp:1786
 msgid "&Website..."
 msgstr "&Webseite..."
 
-#: src/player_qt.cpp:1788
+#: src/player_qt.cpp:1789
 msgid "&Keyboard Shortcuts"
 msgstr "&Tastaturkürzel"
 
-#: src/player_qt.cpp:1791
+#: src/player_qt.cpp:1792
 msgid "&About"
 msgstr "&Über"
 
-#: src/player_qt.cpp:1845 src/player_qt.cpp:2268 src/player_qt.cpp:2276
+#: src/player_qt.cpp:1846 src/player_qt.cpp:2269 src/player_qt.cpp:2277
 #: src/video_output_qt.cpp:84 src/video_output_qt.cpp:302
 #: src/video_output_qt.cpp:347
 msgid "Error"
 msgstr "Fehler"
 
-#: src/player_qt.cpp:2169
+#: src/player_qt.cpp:2170
 msgid "Open files"
 msgstr "Dateien öffnen"
 
-#: src/player_qt.cpp:2188
+#: src/player_qt.cpp:2189
 msgid "Open URL"
 msgstr "Öffne URL"
 
-#: src/player_qt.cpp:2189
+#: src/player_qt.cpp:2190
 msgid "URL:"
-msgstr "URL"
+msgstr "URL:"
 
-#: src/player_qt.cpp:2193
+#: src/player_qt.cpp:2194
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: src/player_qt.cpp:2268
+#: src/player_qt.cpp:2269
 msgid "Cannot open manual."
 msgstr "Kann Handbuch nicht öffnen."
 
-#: src/player_qt.cpp:2276
+#: src/player_qt.cpp:2277
 msgid "Cannot open website."
 msgstr "Kann Webseite nicht öffnen."
 
-#: src/player_qt.cpp:2282
+#: src/player_qt.cpp:2283
 msgid "Keyboard Shortcuts"
 msgstr "Tastaturkürzel"
 
-#: src/player_qt.cpp:2283
+#. TRANSLATORS: This is a HTML table, shown under Help->Keyboard Shortcuts.
+#. Please make sure that your translation formats properly.
+#: src/player_qt.cpp:2286
 msgid ""
 "<p>Keyboard control:<br>(Click into the video area to give it the keyboard "
 "focus if necessary.)<table><tr><td>q or ESC</td><td>Stop</td></tr><tr><td>p "
@@ -1141,17 +1164,17 @@ msgstr ""
 "tr><tr><td>Seite rauf, Seite runter</td><td>Spule 10 Minuten zurück / vor</"
 "td></tr></table></p>"
 
-#: src/player_qt.cpp:2311
+#: src/player_qt.cpp:2314
 #, c-format
 msgid "About %s"
 msgstr "Über %s"
 
-#: src/player_qt.cpp:2317
+#: src/player_qt.cpp:2320
 #, c-format
 msgid "The %s 3D video player"
-msgstr "%s der 3D Videospieler"
+msgstr "%s - 3D Videospieler"
 
-#: src/player_qt.cpp:2322
+#: src/player_qt.cpp:2325
 #, c-format
 msgid ""
 "<p>%s version %s.</p><p>Copyright (C) 2011 the Bino developers.</p><p>This "
@@ -1166,23 +1189,19 @@ msgstr ""
 "License</a>. Es gibt keine Garantie.</p><p>Siehe <a href=\"%s\">%s</a> für "
 "mehr Informationen über diese Software.</p>"
 
-#: src/player_qt.cpp:2335
-msgid "<p>Libraries used:"
-msgstr "<p>Benutzte Bibliotheken:"
-
-#: src/player_qt.cpp:2359
+#: src/player_qt.cpp:2362
 msgid "About"
 msgstr "Über"
 
-#: src/player_qt.cpp:2360
+#: src/player_qt.cpp:2363
 msgid "Libraries"
 msgstr "Bibliotheken"
 
-#: src/player_qt.cpp:2361
+#: src/player_qt.cpp:2364
 msgid "Team"
 msgstr "Team"
 
-#: src/player_qt.cpp:2362
+#: src/player_qt.cpp:2365
 msgid "License"
 msgstr "Lizenz"
 
