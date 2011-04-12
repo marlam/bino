@@ -25,6 +25,8 @@
 #include <vector>
 #include <string>
 #include <cctype>
+#include <cstdio>
+#include <stdint.h>
 
 
 /**
@@ -646,6 +648,62 @@ namespace opt
         }
 
         const std::vector<std::string> &values() const
+        {
+            return _values;
+        }
+    };
+
+    /**
+     * \brief An option type for colors.
+     *
+     * This option type accepts colors in the format [AA]RRGGBB. If the alpha
+     * part is omitted, it is set to 255.
+     * Color values are returned in uint32_t BGRA format.
+     */
+    class color : public option
+    {
+    private:
+        uint32_t _default_value;
+        std::vector<uint32_t> _values;
+
+    public:
+        color(const std::string &longname, char shortname, option_policy policy,
+                uint32_t default_value = 0u)
+            : option(longname, shortname, policy),
+            _default_value(default_value)
+        {
+        }
+
+        virtual enum argument_policy argument_policy() const
+        {
+            return required_argument;
+        }
+
+        virtual bool parse_argument(const std::string &argument)
+        {
+            unsigned int a = 255u, r, g, b;
+            if (argument.length() != 8 && argument.length() != 6)
+            {
+                return false;
+            }
+            else if (argument.length() == 8 && std::sscanf(argument.c_str(), "%2x%2x%2x%2x", &a, &r, &g, &b) != 4)
+            {
+                return false;
+            }
+            else if (argument.length() == 6 && std::sscanf(argument.c_str(), "%2x%2x%2x", &r, &g, &b) != 3)
+            {
+                return false;
+            }
+            _values.push_back((a << 24u) | (r << 16u) | (g << 8u) | b);
+            return true;
+        }
+
+        uint32_t value() const
+        {
+            return (_values.size() > 0 ? _values.back() : _default_value);
+        }
+
+        const std::vector<uint32_t> &values() const
         {
             return _values;
         }

@@ -24,6 +24,7 @@
 #include "config.h"
 
 #include <cstring>
+#include <limits>
 #include <locale.h>
 
 #if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
@@ -156,12 +157,23 @@ int main(int argc, char *argv[])
     video_output_modes.push_back("equalizer-3d");
     opt::val<std::string> video_output_mode("output", 'o', opt::optional, video_output_modes, "");
     options.push_back(&video_output_mode);
+    opt::val<std::string> subtitle_encoding("subtitle-encoding", '\0', opt::optional, parameters().subtitle_encoding);
+    options.push_back(&subtitle_encoding);
+    opt::val<std::string> subtitle_font("subtitle-font", '\0', opt::optional, parameters().subtitle_font);
+    options.push_back(&subtitle_font);
+    opt::val<int> subtitle_size("subtitle-size", '\0', opt::optional, 1, 999, parameters().subtitle_size);
+    options.push_back(&subtitle_size);
+    opt::val<float> subtitle_scale("subtitle-scale", '\0', opt::optional, 0.0f, false,
+            std::numeric_limits<float>::max(), true, parameters().subtitle_scale);
+    options.push_back(&subtitle_scale);
+    opt::color subtitle_color("subtitle-color", '\0', opt::optional);
+    options.push_back(&subtitle_color);
+    opt::flag swap_eyes("swap-eyes", 'S', opt::optional);
+    options.push_back(&swap_eyes);
     opt::flag fullscreen("fullscreen", 'f', opt::optional);
     options.push_back(&fullscreen);
     opt::flag center("center", 'c', opt::optional);
     options.push_back(&center);
-    opt::flag swap_eyes("swap-eyes", 'S', opt::optional);
-    options.push_back(&swap_eyes);
     opt::flag benchmark("benchmark", 'b', opt::optional);
     options.push_back(&benchmark);
     opt::val<float> parallax("parallax", 'P', opt::optional, -1.0f, +1.0f, parameters().parallax);
@@ -270,6 +282,11 @@ int main(int argc, char *argv[])
                     "    stereo                   OpenGL quad-buffered stereo.\n"
                     "    equalizer                Multi-display via Equalizer (2D setup).\n"
                     "    equalizer-3d             Multi-display via Equalizer (3D setup).\n"
+                    "  --subtitle-encoding=ENC  Set subtitle encoding.\n"
+                    "  --subtitle-font=FONT     Set subtitle font name.\n"
+                    "  --subtitle-size=N        Set subtitle font size.\n"
+                    "  --subtitle-scale=S       Set subtitle scale factor.\n"
+                    "  --subtitle-color=COLOR   Set subtitle color, in [AA]RRGGBB format.\n"
                     "  -S|--swap-eyes           Swap left/right view.\n"
                     "  -f|--fullscreen          Fullscreen.\n"
                     "  -c|--center              Center window on screen.\n"
@@ -389,6 +406,15 @@ int main(int argc, char *argv[])
         parameters::stereo_mode_from_string(video_output_mode.value(), init_data.stereo_mode, init_data.stereo_mode_swap);
         init_data.stereo_mode_swap = swap_eyes.value();
     }
+    init_data.params.subtitle_encoding = subtitle_encoding.value();
+    init_data.params.subtitle_font = subtitle_font.value();
+    init_data.params.subtitle_size = subtitle_size.value();
+    init_data.params.subtitle_scale = subtitle_scale.value();
+    if (!subtitle_color.values().empty())
+    {
+        init_data.params.subtitle_color = subtitle_color.value();
+    }
+    init_data.params.stereo_mode_swap = swap_eyes.value();
     init_data.fullscreen = fullscreen.value();
     init_data.center = center.value();
     init_data.benchmark = benchmark.value();
@@ -401,7 +427,6 @@ int main(int argc, char *argv[])
     init_data.params.crosstalk_g = crosstalk.value()[1];
     init_data.params.crosstalk_b = crosstalk.value()[2];
     init_data.params.ghostbust = ghostbust.value();
-    init_data.params.stereo_mode_swap = swap_eyes.value();
 
     int retval = 0;
     player *player = NULL;
