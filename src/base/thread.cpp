@@ -125,7 +125,7 @@ void *thread::__run(void *p)
     }
     catch (...)
     {
-        t->__exception = exc(_("Unknown exception"));
+        t->__exception = exc(_("Unknown exception."));
     }
     t->__running = false;
     return NULL;

@@ -478,10 +478,9 @@ public:
             _eq_init_data.canvas_video_area.x = -0.5f * _eq_init_data.canvas_video_area.w;
             _eq_init_data.canvas_video_area.y = -0.5f * _eq_init_data.canvas_video_area.h;
         }
-        msg::inf(_("Equalizer canvas:\n"
-                    "    %gx%g, aspect ratio %g:1\n"
-                    "    Area for %g:1 video: [ %g %g %g %g @ %g ]"),
-                canvas_w, canvas_h, canvas_w / canvas_h,        
+        msg::inf(_("Equalizer canvas:"));
+        msg::inf(4, _("%gx%g, aspect ratio %g:1"), canvas_w, canvas_h, canvas_w / canvas_h);
+        msg::inf(4, _("Area for %g:1 video: [ %g %g %g %g @ %g ]"),
                 frame_template.aspect_ratio,
                 _eq_init_data.canvas_video_area.x, _eq_init_data.canvas_video_area.y,
                 _eq_init_data.canvas_video_area.w, _eq_init_data.canvas_video_area.h,

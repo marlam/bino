@@ -142,6 +142,7 @@ namespace dbg
     void crash()
     {
         backtrace();
+        /* TRANSLATORS: %s will be a mail address. */
         msg::err(_("Report bugs to <%s>."), PACKAGE_BUGREPORT);
         abort();
     }

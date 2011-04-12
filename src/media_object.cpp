@@ -805,30 +805,30 @@ void media_object::open(const std::string &url)
     msg::inf(_url + ":");
     for (int i = 0; i < video_streams(); i++)
     {
-        msg::inf(_("    Video stream %d: %s / %s, %g seconds"), i,
+        msg::inf(4, _("Video stream %d: %s / %s, %g seconds"), i,
                 video_frame_template(i).format_info().c_str(),
                 video_frame_template(i).format_name().c_str(),
                 video_duration(i) / 1e6f);
-        msg::inf(_("        Using up to %d threads for decoding."),
+        msg::inf(8, _("Using up to %d threads for decoding."),
                 _ffmpeg->video_codec_ctxs.at(i)->thread_count);
     }
     for (int i = 0; i < audio_streams(); i++)
     {
-        msg::inf(_("    Audio stream %d: %s / %s, %g seconds"), i,
+        msg::inf(4, _("Audio stream %d: %s / %s, %g seconds"), i,
                 audio_blob_template(i).format_info().c_str(),
                 audio_blob_template(i).format_name().c_str(),
                 audio_duration(i) / 1e6f);
     }
     for (int i = 0; i < subtitle_streams(); i++)
     {
-        msg::inf(_("    Subtitle stream %d: %s / %s, %g seconds"), i,
+        msg::inf(4, _("Subtitle stream %d: %s / %s, %g seconds"), i,
                 subtitle_box_template(i).format_info().c_str(),
                 subtitle_box_template(i).format_name().c_str(),
                 subtitle_duration(i) / 1e6f);
     }
     if (video_streams() == 0 && audio_streams() == 0 && subtitle_streams() == 0)
     {
-        msg::inf(_("    No usable streams."));
+        msg::inf(4, _("No usable streams."));
     }
 }
 

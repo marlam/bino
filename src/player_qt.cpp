@@ -1117,6 +1117,7 @@ crosstalk_dialog::crosstalk_dialog(parameters *params, QWidget *parent) : QDialo
     setModal(false);
     setWindowTitle(_("Display Crosstalk Calibration"));
 
+    /* TRANSLATORS: Please keep the lines short using <br> where necessary. */
     QLabel *rtfm_label = new QLabel(_("<p>Please read the manual to find out<br>"
                 "how to measure the crosstalk levels<br>"
                 "of your display.</p>"));
@@ -2279,8 +2280,10 @@ void main_window::help_website()
 
 void main_window::help_keyboard()
 {
-    QMessageBox::information(this, _("Keyboard Shortcuts"), _(
-                "<p>Keyboard control:<br>"
+    QMessageBox::information(this, _("Keyboard Shortcuts"),
+            /* TRANSLATORS: This is a HTML table, shown under Help->Keyboard Shortcuts.
+               Please make sure that your translation formats properly. */
+            _("<p>Keyboard control:<br>"
                 "(Click into the video area to give it the keyboard focus if necessary.)"
                 "<table>"
                 "<tr><td>q or ESC</td><td>Stop</td></tr>"
@@ -2332,7 +2335,7 @@ void main_window::help_about()
     libs_text->setOpenExternalLinks(true);
     libs_text->setWordWrapMode(QTextOption::NoWrap);
     QString libs_blurb = QString(str::asprintf("<p>%s<ul><li>%s</li></ul></p>", _("Platform:"), PLATFORM).c_str());
-    libs_blurb += QString(_("<p>Libraries used:"));
+    libs_blurb += QString("<p>") + QString(_("Libraries used:"));
     std::vector<std::string> libs = lib_versions(true);
     for (size_t i = 0; i < libs.size(); i++)
     {

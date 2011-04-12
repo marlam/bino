@@ -199,23 +199,25 @@ int main(int argc, char *argv[])
     if (version.value())
     {
         msg::req(_("%s version %s"), PACKAGE_NAME, VERSION);
-        msg::req(_("    Copyright (C) 2011 the Bino developers.\n"
-                    "    This is free software. You may redistribute copies of it\n"
-                    "    under the terms of the GNU General Public License.\n"
-                    "    There is NO WARRANTY, to the extent permitted by law."));
+        msg::req(4, _("Copyright (C) 2011 the Bino developers."));
+        msg::req_txt(4, _("This is free software. You may redistribute copies of it "
+                    "under the terms of the GNU General Public License. "
+                    "There is NO WARRANTY, to the extent permitted by law."));
         msg::req(_("Platform:"));
-        msg::req("    %s", PLATFORM);
+        msg::req(4, "%s", PLATFORM);
         msg::req(_("Libraries used:"));
         std::vector<std::string> v = lib_versions(false);
         for (size_t i = 0; i < v.size(); i++)
         {
-            msg::req("    %s", v[i].c_str());
+            msg::req(4, "%s", v[i].c_str());
         }
     }
     if (help.value())
     {
-        msg::req_txt(_(
-                    "Usage:\n"
+        /* TRANSLATORS: This is the --help text. Translate only the description,
+           not the option names. Please keep a proper indentation with spaces, and
+           keep the line length limited. */
+        msg::req_txt(_("Usage:\n"
                     "  %s [option...] [file...]\n"
                     "\n"
                     "Options:\n"

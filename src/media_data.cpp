@@ -259,7 +259,8 @@ std::string video_frame::format_name() const
 
 std::string video_frame::format_info() const
 {
-    return str::asprintf("%dx%d, %.3g:1", raw_width, raw_height, aspect_ratio);
+    /* TRANSLATORS: This is a very short string describing the video size and aspect ratio. */
+    return str::asprintf(_("%dx%d, %.3g:1"), raw_width, raw_height, aspect_ratio);
 }
 
 static int next_multiple_of_4(int x)
@@ -386,7 +387,8 @@ audio_blob::audio_blob() :
 
 std::string audio_blob::format_info() const
 {
-    return str::asprintf("%s, %d ch., %g kHz, %d bit",
+    /* TRANSLATORS: This is a very short string describing the audio language, channels, frequency, and bits. */
+    return str::asprintf(_("%s, %d ch., %g kHz, %d bit"),
             language.empty() ? _("unknown") : language.c_str(),
             channels, rate / 1e3f, sample_bits());
 }
