@@ -66,30 +66,60 @@ namespace msg
 
     /* Print messages */
 
+    void msg(int indent, level_t level, const std::string &s);
+    void msg(int indent, level_t level, const char *format, ...) MSG_AFP(3, 4);
+    void msg_txt(int indent, level_t level, const std::string &s);
+    void msg_txt(int indent, level_t level, const char *format, ...) MSG_AFP(3, 4);
+
     void msg(level_t level, const std::string &s);
     void msg(level_t level, const char *format, ...) MSG_AFP(2, 3);
     void msg_txt(level_t level, const std::string &s);
     void msg_txt(level_t level, const char *format, ...) MSG_AFP(2, 3);
+
+    void dbg(int indent, const std::string &s);
+    void dbg(int indent, const char *format, ...) MSG_AFP(2, 3);
+    void dbg_txt(int indent, const std::string &s);
+    void dbg_txt(int indent, const char *format, ...) MSG_AFP(2, 3);
 
     void dbg(const std::string &s);
     void dbg(const char *format, ...) MSG_AFP(1, 2);
     void dbg_txt(const std::string &s);
     void dbg_txt(const char *format, ...) MSG_AFP(1, 2);
 
+    void inf(int indent, const std::string &s);
+    void inf(int indent, const char *format, ...) MSG_AFP(2, 3);
+    void inf_txt(int indent, const std::string &s);
+    void inf_txt(int indent, const char *format, ...) MSG_AFP(2, 3);
+
     void inf(const std::string &s);
     void inf(const char *format, ...) MSG_AFP(1, 2);
     void inf_txt(const std::string &s);
     void inf_txt(const char *format, ...) MSG_AFP(1, 2);
+
+    void wrn(int indent, const std::string &s);
+    void wrn(int indent, const char *format, ...) MSG_AFP(2, 3);
+    void wrn_txt(int indent, const std::string &s);
+    void wrn_txt(int indent, const char *format, ...) MSG_AFP(2, 3);
 
     void wrn(const std::string &s);
     void wrn(const char *format, ...) MSG_AFP(1, 2);
     void wrn_txt(const std::string &s);
     void wrn_txt(const char *format, ...) MSG_AFP(1, 2);
 
+    void err(int indent, const std::string &s);
+    void err(int indent, const char *format, ...) MSG_AFP(2, 3);
+    void err_txt(int indent, const std::string &s);
+    void err_txt(int indent, const char *format, ...) MSG_AFP(2, 3);
+
     void err(const std::string &s);
     void err(const char *format, ...) MSG_AFP(1, 2);
     void err_txt(const std::string &s);
     void err_txt(const char *format, ...) MSG_AFP(1, 2);
+
+    void req(int indent, const std::string &s);
+    void req(int indent, const char *format, ...) MSG_AFP(2, 3);
+    void req_txt(int indent, const std::string &s);
+    void req_txt(int indent, const char *format, ...) MSG_AFP(2, 3);
 
     void req(const std::string &s);
     void req(const char *format, ...) MSG_AFP(1, 2);

@@ -125,18 +125,18 @@ namespace msg
         }
     }
 
-    void msg(level_t level, const std::string &s)
+    void msg(int indent, level_t level, const std::string &s)
     {
         if (level < _level)
         {
             return;
         }
 
-        std::string out = prefix(level) + s.c_str() + '\n';
+        std::string out = prefix(level) + std::string(indent, ' ') + s.c_str() + '\n';
         std::fputs(out.c_str(), _file);
     }
 
-    void msg(level_t level, const char *format, ...)
+    void msg(int indent, level_t level, const char *format, ...)
     {
         if (level < _level)
         {
@@ -148,17 +148,17 @@ namespace msg
         va_start(args, format);
         s = str::vasprintf(format, args);
         va_end(args);
-        msg(level, s);
+        msg(indent, level, s);
     }
 
-    void msg_txt(level_t level, const std::string &s)
+    void msg_txt(int indent, level_t level, const std::string &s)
     {
         if (level < _level)
         {
             return;
         }
 
-        std::string pfx = prefix(level);
+        std::string pfx = prefix(level) + std::string(indent, ' ');
         int pfx_len = pfx.length();
         std::string text(s);
 
@@ -226,6 +226,56 @@ namespace msg
         std::fputs(out.c_str(), _file);
     }
 
+    void msg_txt(int indent, level_t level, const char *format, ...)
+    {
+        if (level < _level)
+        {
+            return;
+        }
+
+        std::string s;
+        va_list args;
+        va_start(args, format);
+        s = str::vasprintf(format, args);
+        va_end(args);
+        msg_txt(indent, level, s);
+    }
+
+    void msg(level_t level, const std::string &s)
+    {
+        if (level < _level)
+        {
+            return;
+        }
+
+        msg(0, level, s);
+    }
+
+    void msg(level_t level, const char *format, ...)
+    {
+        if (level < _level)
+        {
+            return;
+        }
+
+        std::string s;
+        va_list args;
+        va_start(args, format);
+        s = str::vasprintf(format, args);
+        va_end(args);
+        msg(0, level, s);
+    }
+
+    void msg_txt(level_t level, const std::string &s)
+    {
+        if (level < _level)
+        {
+            return;
+        }
+
+        msg_txt(0, level, s);
+    }
+
     void msg_txt(level_t level, const char *format, ...)
     {
         if (level < _level)
@@ -238,7 +288,57 @@ namespace msg
         va_start(args, format);
         s = str::vasprintf(format, args);
         va_end(args);
-        msg_txt(level, s);
+        msg_txt(0, level, s);
+    }
+
+    void dbg(int indent, const std::string &s)
+    {
+        if (DBG < _level)
+        {
+            return;
+        }
+
+        msg(indent, DBG, s);
+    }
+
+    void dbg(int indent, const char *format, ...)
+    {
+        if (DBG < _level)
+        {
+            return;
+        }
+
+        std::string s;
+        va_list args;
+        va_start(args, format);
+        s = str::vasprintf(format, args);
+        va_end(args);
+        msg(indent, DBG, s);
+    }
+
+    void dbg_txt(int indent, const std::string &s)
+    {
+        if (DBG < _level)
+        {
+            return;
+        }
+
+        msg_txt(indent, DBG, s);
+    }
+
+    void dbg_txt(int indent, const char *format, ...)
+    {
+        if (DBG < _level)
+        {
+            return;
+        }
+
+        std::string s;
+        va_list args;
+        va_start(args, format);
+        s = str::vasprintf(format, args);
+        va_end(args);
+        msg_txt(indent, DBG, s);
     }
 
     void dbg(const std::string &s)
@@ -248,7 +348,7 @@ namespace msg
             return;
         }
 
-        msg(DBG, s);
+        msg(0, DBG, s);
     }
 
     void dbg(const char *format, ...)
@@ -263,7 +363,7 @@ namespace msg
         va_start(args, format);
         s = str::vasprintf(format, args);
         va_end(args);
-        msg(DBG, s);
+        msg(0, DBG, s);
     }
 
     void dbg_txt(const std::string &s)
@@ -273,7 +373,7 @@ namespace msg
             return;
         }
 
-        msg_txt(DBG, s);
+        msg_txt(0, DBG, s);
     }
 
     void dbg_txt(const char *format, ...)
@@ -288,7 +388,57 @@ namespace msg
         va_start(args, format);
         s = str::vasprintf(format, args);
         va_end(args);
-        msg_txt(DBG, s);
+        msg_txt(0, DBG, s);
+    }
+
+    void inf(int indent, const std::string &s)
+    {
+        if (INF < _level)
+        {
+            return;
+        }
+
+        msg(indent, INF, s);
+    }
+
+    void inf(int indent, const char *format, ...)
+    {
+        if (INF < _level)
+        {
+            return;
+        }
+
+        std::string s;
+        va_list args;
+        va_start(args, format);
+        s = str::vasprintf(format, args);
+        va_end(args);
+        msg(indent, INF, s);
+    }
+
+    void inf_txt(int indent, const std::string &s)
+    {
+        if (INF < _level)
+        {
+            return;
+        }
+
+        msg_txt(indent, INF, s);
+    }
+
+    void inf_txt(int indent, const char *format, ...)
+    {
+        if (INF < _level)
+        {
+            return;
+        }
+
+        std::string s;
+        va_list args;
+        va_start(args, format);
+        s = str::vasprintf(format, args);
+        va_end(args);
+        msg_txt(indent, INF, s);
     }
 
     void inf(const std::string &s)
@@ -298,7 +448,7 @@ namespace msg
             return;
         }
 
-        msg(INF, s);
+        msg(0, INF, s);
     }
 
     void inf(const char *format, ...)
@@ -313,7 +463,7 @@ namespace msg
         va_start(args, format);
         s = str::vasprintf(format, args);
         va_end(args);
-        msg(INF, s);
+        msg(0, INF, s);
     }
 
     void inf_txt(const std::string &s)
@@ -323,7 +473,7 @@ namespace msg
             return;
         }
 
-        msg_txt(INF, s);
+        msg_txt(0, INF, s);
     }
 
     void inf_txt(const char *format, ...)
@@ -338,7 +488,57 @@ namespace msg
         va_start(args, format);
         s = str::vasprintf(format, args);
         va_end(args);
-        msg_txt(INF, s);
+        msg_txt(0, INF, s);
+    }
+
+    void wrn(int indent, const std::string &s)
+    {
+        if (WRN < _level)
+        {
+            return;
+        }
+
+        msg(indent, WRN, s);
+    }
+
+    void wrn(int indent, const char *format, ...)
+    {
+        if (WRN < _level)
+        {
+            return;
+        }
+
+        std::string s;
+        va_list args;
+        va_start(args, format);
+        s = str::vasprintf(format, args);
+        va_end(args);
+        msg(indent, WRN, s);
+    }
+
+    void wrn_txt(int indent, const std::string &s)
+    {
+        if (WRN < _level)
+        {
+            return;
+        }
+
+        msg_txt(indent, WRN, s);
+    }
+
+    void wrn_txt(int indent, const char *format, ...)
+    {
+        if (WRN < _level)
+        {
+            return;
+        }
+
+        std::string s;
+        va_list args;
+        va_start(args, format);
+        s = str::vasprintf(format, args);
+        va_end(args);
+        msg_txt(indent, WRN, s);
     }
 
     void wrn(const std::string &s)
@@ -348,7 +548,7 @@ namespace msg
             return;
         }
 
-        msg(WRN, s);
+        msg(0, WRN, s);
     }
 
     void wrn(const char *format, ...)
@@ -363,7 +563,7 @@ namespace msg
         va_start(args, format);
         s = str::vasprintf(format, args);
         va_end(args);
-        msg(WRN, s);
+        msg(0, WRN, s);
     }
 
     void wrn_txt(const std::string &s)
@@ -373,7 +573,7 @@ namespace msg
             return;
         }
 
-        msg_txt(WRN, s);
+        msg_txt(0, WRN, s);
     }
 
     void wrn_txt(const char *format, ...)
@@ -388,7 +588,57 @@ namespace msg
         va_start(args, format);
         s = str::vasprintf(format, args);
         va_end(args);
-        msg_txt(WRN, s);
+        msg_txt(0, WRN, s);
+    }
+
+    void err(int indent, const std::string &s)
+    {
+        if (ERR < _level)
+        {
+            return;
+        }
+
+        msg(indent, ERR, s);
+    }
+
+    void err(int indent, const char *format, ...)
+    {
+        if (ERR < _level)
+        {
+            return;
+        }
+
+        std::string s;
+        va_list args;
+        va_start(args, format);
+        s = str::vasprintf(format, args);
+        va_end(args);
+        msg(indent, ERR, s);
+    }
+
+    void err_txt(int indent, const std::string &s)
+    {
+        if (ERR < _level)
+        {
+            return;
+        }
+
+        msg_txt(indent, ERR, s);
+    }
+
+    void err_txt(int indent, const char *format, ...)
+    {
+        if (ERR < _level)
+        {
+            return;
+        }
+
+        std::string s;
+        va_list args;
+        va_start(args, format);
+        s = str::vasprintf(format, args);
+        va_end(args);
+        msg_txt(indent, ERR, s);
     }
 
     void err(const std::string &s)
@@ -398,7 +648,7 @@ namespace msg
             return;
         }
 
-        msg(ERR, s);
+        msg(0, ERR, s);
     }
 
     void err(const char *format, ...)
@@ -413,7 +663,7 @@ namespace msg
         va_start(args, format);
         s = str::vasprintf(format, args);
         va_end(args);
-        msg(ERR, s);
+        msg(0, ERR, s);
     }
 
     void err_txt(const std::string &s)
@@ -423,7 +673,7 @@ namespace msg
             return;
         }
 
-        msg_txt(ERR, s);
+        msg_txt(0, ERR, s);
     }
 
     void err_txt(const char *format, ...)
@@ -438,12 +688,42 @@ namespace msg
         va_start(args, format);
         s = str::vasprintf(format, args);
         va_end(args);
-        msg_txt(ERR, s);
+        msg_txt(0, ERR, s);
+    }
+
+    void req(int indent, const std::string &s)
+    {
+        msg(indent, REQ, s);
+    }
+
+    void req(int indent, const char *format, ...)
+    {
+        std::string s;
+        va_list args;
+        va_start(args, format);
+        s = str::vasprintf(format, args);
+        va_end(args);
+        msg(indent, REQ, s);
+    }
+
+    void req_txt(int indent, const std::string &s)
+    {
+        msg_txt(indent, REQ, s);
+    }
+
+    void req_txt(int indent, const char *format, ...)
+    {
+        std::string s;
+        va_list args;
+        va_start(args, format);
+        s = str::vasprintf(format, args);
+        va_end(args);
+        msg_txt(indent, REQ, s);
     }
 
     void req(const std::string &s)
     {
-        msg(REQ, s);
+        msg(0, REQ, s);
     }
 
     void req(const char *format, ...)
@@ -453,12 +733,12 @@ namespace msg
         va_start(args, format);
         s = str::vasprintf(format, args);
         va_end(args);
-        msg(REQ, s);
+        msg(0, REQ, s);
     }
 
     void req_txt(const std::string &s)
     {
-        msg_txt(REQ, s);
+        msg_txt(0, REQ, s);
     }
 
     void req_txt(const char *format, ...)
@@ -468,6 +748,6 @@ namespace msg
         va_start(args, format);
         s = str::vasprintf(format, args);
         va_end(args);
-        msg_txt(REQ, s);
+        msg_txt(0, REQ, s);
     }
 }
