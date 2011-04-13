@@ -72,8 +72,10 @@ Bino is a 3D video player with multi-display support.
 separate views for the left and right eye and thus allow depth perception
 through stereopsis.
 
-The input streams can be in any number of input files. The files are decoded
-with the @url{http://ffmpeg.org/,FFmpeg} libraries, so URLs are supported.
+All input files are combined into one media source, so you can have video,
+audio, and subtitle streams in separate files. The files are decoded with the
+@url{http://ffmpeg.org/,FFmpeg}  libraries, so URLs and other special
+constructs are supported.
 
 Bino supports a wide variety of stereoscopic input layouts and display
 techniques.
@@ -82,7 +84,7 @@ techniques.
 @chapter Invocation
 
 Synopsis:
-@code{bino [@var{option}@dots{}] [@var{file-0}] [@var{file-1}] [@var{file-2}]}
+@code{bino [@var{option}@dots{}] [@var{file}@dots{}]}
 
 @table @samp
 @item --help

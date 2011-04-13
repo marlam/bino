@@ -12,14 +12,16 @@
 Bino - a 3D video player with multi-display support.
 .SH SYNOPSIS
 .B bino
-[option...] [file-0] [file-1] [file-2]
+[option...] [file...]
 .SH DESCRIPTION
 Bino plays stereoscopic videos, also known as 3D videos. Such videos have
 separate views for the left and right eye and thus allow depth perception
 through stereopsis.
 .br
-The input streams can be in any number of input files. The files are decoded
-with the \fBFFmpeg\fP libraries, so URLs are supported.
+All input files are combined into one media source, so you can have video,
+audio, and subtitle streams in separate files. The files are decoded with
+the \fBFFmpeg\fP libraries, so URLs and other special constructs are
+supported.
 .IP "\-\-help"
 Print help.
 .IP "\-\-version"
