@@ -157,6 +157,12 @@ int main(int argc, char *argv[])
     video_output_modes.push_back("equalizer-3d");
     opt::val<std::string> video_output_mode("output", 'o', opt::optional, video_output_modes, "");
     options.push_back(&video_output_mode);
+    opt::flag swap_eyes("swap-eyes", 'S', opt::optional);
+    options.push_back(&swap_eyes);
+    opt::flag fullscreen("fullscreen", 'f', opt::optional);
+    options.push_back(&fullscreen);
+    opt::flag center("center", 'c', opt::optional);
+    options.push_back(&center);
     opt::val<std::string> subtitle_encoding("subtitle-encoding", '\0', opt::optional, parameters().subtitle_encoding);
     options.push_back(&subtitle_encoding);
     opt::val<std::string> subtitle_font("subtitle-font", '\0', opt::optional, parameters().subtitle_font);
@@ -168,20 +174,16 @@ int main(int argc, char *argv[])
     options.push_back(&subtitle_scale);
     opt::color subtitle_color("subtitle-color", '\0', opt::optional);
     options.push_back(&subtitle_color);
-    opt::flag swap_eyes("swap-eyes", 'S', opt::optional);
-    options.push_back(&swap_eyes);
-    opt::flag fullscreen("fullscreen", 'f', opt::optional);
-    options.push_back(&fullscreen);
-    opt::flag center("center", 'c', opt::optional);
-    options.push_back(&center);
-    opt::flag benchmark("benchmark", 'b', opt::optional);
-    options.push_back(&benchmark);
+    opt::val<float> subtitle_parallax("subtitle-parallax", '\0', opt::optional, -1.0f, +1.0f, parameters().subtitle_parallax);
+    options.push_back(&subtitle_parallax);
     opt::val<float> parallax("parallax", 'P', opt::optional, -1.0f, +1.0f, parameters().parallax);
     options.push_back(&parallax);
     opt::tuple<float> crosstalk("crosstalk", 'C', opt::optional, 0.0f, 1.0f, std::vector<float>(3, parameters().crosstalk_r), 3);
     options.push_back(&crosstalk);
     opt::val<float> ghostbust("ghostbust", 'G', opt::optional, 0.0f, 1.0f, parameters().ghostbust);
     options.push_back(&ghostbust);
+    opt::flag benchmark("benchmark", 'b', opt::optional);
+    options.push_back(&benchmark);
     // Accept some Equalizer options. These are passed to Equalizer for interpretation.
     opt::val<std::string> eq_server("eq-server", '\0', opt::optional);
     options.push_back(&eq_server);
@@ -282,14 +284,15 @@ int main(int argc, char *argv[])
                     "    stereo                   OpenGL quad-buffered stereo.\n"
                     "    equalizer                Multi-display via Equalizer (2D setup).\n"
                     "    equalizer-3d             Multi-display via Equalizer (3D setup).\n"
+                    "  -S|--swap-eyes           Swap left/right view.\n"
+                    "  -f|--fullscreen          Fullscreen.\n"
+                    "  -c|--center              Center window on screen.\n"
                     "  --subtitle-encoding=ENC  Set subtitle encoding.\n"
                     "  --subtitle-font=FONT     Set subtitle font name.\n"
                     "  --subtitle-size=N        Set subtitle font size.\n"
                     "  --subtitle-scale=S       Set subtitle scale factor.\n"
                     "  --subtitle-color=COLOR   Set subtitle color, in [AA]RRGGBB format.\n"
-                    "  -S|--swap-eyes           Swap left/right view.\n"
-                    "  -f|--fullscreen          Fullscreen.\n"
-                    "  -c|--center              Center window on screen.\n"
+                    "  --subtitle-parallax=VAL  Subtitle parallax adjustment (-1 to +1).\n"
                     "  -P|--parallax=VAL        Parallax adjustment (-1 to +1).\n"
                     "  -C|--crosstalk=VAL       Crosstalk leak level (0 to 1); comma-separated\n"
                     "                           values for the R,G,B channels.\n"
@@ -406,6 +409,9 @@ int main(int argc, char *argv[])
         parameters::stereo_mode_from_string(video_output_mode.value(), init_data.stereo_mode, init_data.stereo_mode_swap);
         init_data.stereo_mode_swap = swap_eyes.value();
     }
+    init_data.params.stereo_mode_swap = swap_eyes.value();
+    init_data.fullscreen = fullscreen.value();
+    init_data.center = center.value();
     init_data.params.subtitle_encoding = subtitle_encoding.value();
     init_data.params.subtitle_font = subtitle_font.value();
     init_data.params.subtitle_size = subtitle_size.value();
@@ -414,19 +420,17 @@ int main(int argc, char *argv[])
     {
         init_data.params.subtitle_color = subtitle_color.value();
     }
-    init_data.params.stereo_mode_swap = swap_eyes.value();
-    init_data.fullscreen = fullscreen.value();
-    init_data.center = center.value();
-    init_data.benchmark = benchmark.value();
-    if (init_data.benchmark)
-    {
-        msg::inf(_("Benchmark mode: audio and time synchronization disabled."));
-    }
+    init_data.params.subtitle_parallax = subtitle_parallax.value();
     init_data.params.parallax = parallax.value();
     init_data.params.crosstalk_r = crosstalk.value()[0];
     init_data.params.crosstalk_g = crosstalk.value()[1];
     init_data.params.crosstalk_b = crosstalk.value()[2];
     init_data.params.ghostbust = ghostbust.value();
+    init_data.benchmark = benchmark.value();
+    if (init_data.benchmark)
+    {
+        msg::inf(_("Benchmark mode: audio and time synchronization disabled."));
+    }
 
     int retval = 0;
     player *player = NULL;
