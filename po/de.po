@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bino 0.9.2\n"
 "Report-Msgid-Bugs-To: bino-list@nongnu.org\n"
-"POT-Creation-Date: 2011-04-12 21:12+0200\n"
+"POT-Creation-Date: 2011-04-13 21:05+0200\n"
 "PO-Revision-Date: 2011-04-10 17:23+0200\n"
 "Last-Translator: Martin Lambers <marlam@marlam.de>\n"
 "Language-Team: none\n"
@@ -203,16 +203,16 @@ msgstr "unbekannt"
 msgid "not used"
 msgstr "nicht benutzt"
 
-#: src/main.cpp:201
+#: src/main.cpp:215
 #, c-format
 msgid "%s version %s"
 msgstr "%s Version %s"
 
-#: src/main.cpp:202
+#: src/main.cpp:216
 msgid "Copyright (C) 2011 the Bino developers."
 msgstr "Copyright (C) 2011 Bino Entwickler."
 
-#: src/main.cpp:203
+#: src/main.cpp:217
 msgid ""
 "This is free software. You may redistribute copies of it under the terms of "
 "the GNU General Public License. There is NO WARRANTY, to the extent "
@@ -221,18 +221,18 @@ msgstr ""
 "Dies ist freie Software. Du kannst Kopien davon verteilen unter den "
 "Bedingungen der GNU General Public License. Es gibt keine Garantie."
 
-#: src/main.cpp:206 src/player_qt.cpp:2337
+#: src/main.cpp:220 src/player_qt.cpp:2337
 msgid "Platform:"
 msgstr "Plattform:"
 
-#: src/main.cpp:208 src/player_qt.cpp:2338
+#: src/main.cpp:222 src/player_qt.cpp:2338
 msgid "Libraries used:"
 msgstr "Benutzte Bibliotheken:"
 
 #. TRANSLATORS: This is the --help text. Translate only the description,
 #. not the option names. Please keep a proper indentation with spaces, and
 #. keep the line length limited.
-#: src/main.cpp:220
+#: src/main.cpp:234
 #, c-format
 msgid ""
 "Usage:\n"
@@ -292,6 +292,12 @@ msgid ""
 "  -S|--swap-eyes           Swap left/right view.\n"
 "  -f|--fullscreen          Fullscreen.\n"
 "  -c|--center              Center window on screen.\n"
+"  --subtitle-encoding=ENC  Set subtitle encoding.\n"
+"  --subtitle-font=FONT     Set subtitle font name.\n"
+"  --subtitle-size=N        Set subtitle font size.\n"
+"  --subtitle-scale=S       Set subtitle scale factor.\n"
+"  --subtitle-color=COLOR   Set subtitle color, in [AA]RRGGBB format.\n"
+"  --subtitle-parallax=VAL  Subtitle parallax adjustment (-1 to +1).\n"
 "  -P|--parallax=VAL        Parallax adjustment (-1 to +1).\n"
 "  -C|--crosstalk=VAL       Crosstalk leak level (0 to 1); comma-separated\n"
 "                           values for the R,G,B channels.\n"
@@ -374,6 +380,13 @@ msgstr ""
 "  -S|--swap-eyes           Tausche linke/rechte Ansicht.\n"
 "  -f|--fullscreen          Vollbild.\n"
 "  -c|--center              Zentriere Fenster auf Bildschirm.\n"
+"  --subtitle-encoding=ENC  Setze Zeichensatz für Untertitel.\n"
+"  --subtitle-font=FONT     Setze Schriftart für Untertitel.\n"
+"  --subtitle-size=N        Setze Schriftgröße für Untertitel.\n"
+"  --subtitle-scale=S       Setze Skalierungsfaktor für Untertitel.\n"
+"  --subtitle-color=COLOR   Setze Farbe für Untertitel, im [AA]RRGGBB "
+"Format.\n"
+"  --subtitle-parallax=VAL  Untertitel-Parallaxenjustierung (-1 bis +1).\n"
 "  -P|--parallax=VAL        Parallaxenjustierung (-1 bis +1).\n"
 "  -C|--crosstalk=VAL       Crosstalk-Level (0 bis 1); kamma-getrennte\n"
 "                           Werte für die R,G,B Kanäle.\n"
@@ -400,16 +413,16 @@ msgstr ""
 "  Seite rauf, Seite runter Spule 10 Minuten zurück / vor.\n"
 "  Mausklick                Spule zur Stelle der horizontalen Klickposition."
 
-#: src/main.cpp:397
+#: src/main.cpp:432
 msgid "Benchmark mode: audio and time synchronization disabled."
 msgstr "Benchmark Modus: Audio und Videosynchronisation deaktiviert."
 
-#: src/main.cpp:415
+#: src/main.cpp:444
 msgid "This version of Bino was compiled without support for Equalizer."
 msgstr ""
 "Diese Version von Bino wurde ohne Unterstützung für Equalizer erstellt."
 
-#: src/main.cpp:432
+#: src/main.cpp:461
 msgid "No video to play."
 msgstr "Kein Video abzuspielen."
 
@@ -1025,7 +1038,7 @@ msgstr ""
 
 #: src/player_qt.cpp:1548
 msgid "Ghostbusting:"
-msgstr "Verringerungsfaktor:"
+msgstr "Crosstalk-Verringerungsfaktor:"
 
 #: src/player_qt.cpp:1549
 msgid ""
