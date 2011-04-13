@@ -1,2 +1,17 @@
-If you would like to translate Bino for your language, please contact
-<bino-list@nongnu.org> for details.
+If you would like to translate Bino into your language, please contact
+<bino-list@nongnu.org> for details and coordination. Please keep in mind that a
+translation will have to be updated regularly as Bino changes, and unmaintained
+translations will have to be removed.
+
+Bino uses the gettext system for translations. To add a translation, e.g. for
+pt (portuguese), add a line "pt" to po/LINGUAS. Then update the translation
+template bino.pot:
+    $ cd po
+    $ make bino.pot
+and copy it to your new translation file:
+    $ cp bino.pot pt.po
+Then translate the strings in pt.po. See the existing *.po files for examples.
+There are special translation editors such as poedit <http://www.poedit.net/>
+that can help, and there are several guides available online, e.g.
+<http://freeciv.wikia.com/wiki/Gettext_Guide>. With the correct locale setting,
+your translation should be available after 'make install'.
