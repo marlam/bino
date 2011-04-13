@@ -123,6 +123,18 @@ Fullscreen.
 @item -c
 @itemx --center
 Center window on screen.
+@item --subtitle-encoding=@var{ENC}
+Set subtitle encoding.
+@item --subtitle-font=@var{FONT}
+Set subtitle font name.
+@item --subtitle-size=@var{N}
+Set subtitle font size.
+@item --subtitle-scale=@var{S}
+Set subtitle scale factor.
+@item --subtitle-color=@var{COLOR}
+Set subtitle color, in [AA]RRGGBB format.
+@item --subtitle-parallax=@var{VAL}
+Subtitle parallax adjustment (-1 to +1).
 @item -P
 @itemx --parallax=@var{VAL}
 Parallax adjustment (-1 to +1).
