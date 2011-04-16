@@ -31,6 +31,10 @@
 # include <windows.h>
 #endif
 
+#ifdef __APPLE__
+# include <mach-o/dyld.h> // for _NSGetExecutablePath()
+#endif
+
 #include "gettext.h"
 #define _(string) gettext(string)
 
@@ -69,6 +73,46 @@ static const char *localedir()
     strcpy(backslash + 1, "..\\locale");
     return buffer;
 #else
+# ifdef __APPLE__
+    try
+    {
+        static char buffer[PATH_MAX];
+        uint32_t buffersize = sizeof(buffer);
+        int32_t check = _NSGetExecutablePath(buffer, &buffersize);
+        if (check != 0)
+        {
+            throw 0;
+        }
+        char *pch = std::strrchr(buffer, '/');
+        if (pch == NULL)
+        {
+            throw 0;
+        }
+        *pch = 0;
+        pch = std::strrchr(buffer, '/');
+        if (pch == NULL)
+        {
+            throw 0;
+        }
+        // check that I'm an application
+        if (std::strncmp(pch, "/MacOS", 6) != 0)
+        {
+            throw 0;
+        }
+        const char *subdir = "/Resources/locale";
+        size_t subdirlen = std::strlen(subdir) + 1;
+        // check that there's enough room left
+        if (sizeof(buffer) - (buffer-pch) <= subdirlen)
+        {
+            throw 0;
+        }
+        std::strncpy(pch, subdir, subdirlen);
+        return buffer;
+    }
+    catch (...)
+    {
+    }
+# endif
     /* GNU/Linux and others: fixed directory defined by LOCALEDIR */
     return LOCALEDIR;
 #endif

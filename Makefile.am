@@ -49,7 +49,8 @@ package-macosx:
 	$(INSTALL) -m 755 src/bino "$$BINO_APP/Contents/MacOS/Bino" && \
 	$(INSTALL) -m 644 $(top_srcdir)/pkg/macosx/Bino.icns "$$BINO_APP/Contents/Resources" && \
 	$(INSTALL) -m 644 $(top_srcdir)/pkg/macosx/Info.plist "$$BINO_APP/Contents" && \
-	$(INSTALL) -m 644 doc/bino.html "$$BINO_APP/Contents/Resources/Bino Help" && \
+	$(MAKE) -C doc install-dist_docDATA docdir="$$BINO_APP/Contents/Resources/Bino Help" && \
+	$(MAKE) -C po install-strip localedir="$$BINO_APP/Contents/Resources/locale" && \
 	macdeployqt "$$BINO_APP" && \
 	rm -rf Bino.app && \
 	ditto "$$BINO_APP" Bino.app && \
