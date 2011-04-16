@@ -107,22 +107,22 @@ vec3 ghostbust(vec3 original, vec3 other)
 
 vec3 tex_l(vec2 texcoord)
 {
-    return texture2D(rgb_l, texcoord - vec2(parallax, 0.0)).rgb;
+    return texture2D(rgb_l, texcoord + vec2(parallax, 0.0)).rgb;
 }
 
 vec3 tex_r(vec2 texcoord)
 {
-    return texture2D(rgb_r, texcoord + vec2(parallax, 0.0)).rgb;
+    return texture2D(rgb_r, texcoord - vec2(parallax, 0.0)).rgb;
 }
 
 vec4 sub_l(vec2 texcoord)
 {
-    return texture2D(subtitle, vec2(texcoord.x - subtitle_parallax, 1.0 - texcoord.y));
+    return texture2D(subtitle, vec2(texcoord.x + subtitle_parallax, 1.0 - texcoord.y));
 }
 
 vec4 sub_r(vec2 texcoord)
 {
-    return texture2D(subtitle, vec2(texcoord.x + subtitle_parallax, 1.0 - texcoord.y));
+    return texture2D(subtitle, vec2(texcoord.x - subtitle_parallax, 1.0 - texcoord.y));
 }
 
 vec3 blend_subtitle(vec3 rgb, vec4 sub)
