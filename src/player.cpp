@@ -164,6 +164,10 @@ void player::stop_playback()
         _video_output->exit_fullscreen();
         _video_output->prepare_next_frame(video_frame(), subtitle_box());
         _video_output->activate_next_frame();
+        if (_audio_output)
+        {
+            _audio_output->stop();
+        }
     }
     notify(notification::play, true, false);
 }
