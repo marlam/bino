@@ -109,6 +109,18 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
     switch (event->key())
     {
     case Qt::Key_Escape:
+        // ESC should stop playback, unless we're in fullscreen mode.
+        // In that case, it should simply leave fullscreen mode, since
+        // this is what most users expect.
+        if (_vo->_fullscreen)
+        {
+            _vo->send_cmd(command::toggle_fullscreen);
+        }
+        else
+        {
+            _vo->send_cmd(command::toggle_play);
+        }
+        break;
     case Qt::Key_Q:
         _vo->send_cmd(command::toggle_play);
         break;

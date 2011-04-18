@@ -309,8 +309,9 @@ shortcuts, e.g. by clicking into it.
 
 The following shortcuts are recognized:
 @table @kbd
-@item q
 @item ESC
+Leave fullscreen mode, or quit when in window mode.
+@item q
 Quit.
 @item p
 @item SPACE
