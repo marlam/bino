@@ -602,6 +602,12 @@ void media_object::set_audio_blob_template(int index)
     {
         audio_blob_template.sample_format = audio_blob::d64;
     }
+    else if (audio_codec_ctx->sample_fmt == SAMPLE_FMT_S32
+            && sizeof(int32_t) == sizeof(float))
+    {
+        // we need to convert this to SAMPLE_FMT_FLT after decoding
+        audio_blob_template.sample_format = audio_blob::f32;
+    }
     else
     {
         throw exc(str::asprintf(_("%s audio stream %d: Cannot handle audio with sample format %s."),
@@ -1385,6 +1391,21 @@ void audio_decode_thread::run()
                     continue;
                 }
                 // Put it in the decoded audio data buffer
+                if (_ffmpeg->audio_codec_ctxs[_audio_stream]->sample_fmt == SAMPLE_FMT_S32)
+                {
+                    // we need to convert this to SAMPLE_FMT_FLT
+                    assert(sizeof(int32_t) == sizeof(float));
+                    int32_t *tmpbuf_i32 = reinterpret_cast<int32_t *>(&(_ffmpeg->audio_tmpbufs[_audio_stream][0]));
+                    float *tmpbuf_flt = reinterpret_cast<float *>(&(_ffmpeg->audio_tmpbufs[_audio_stream][0]));
+                    for (int j = 0; j < tmpbuf_size; j++)
+                    {
+                        int32_t sample_i32 = tmpbuf_i32[j];
+                        float sample_flt = static_cast<float>(sample_i32) / (sample_i32 >= 0
+                                ? +static_cast<float>(std::numeric_limits<int32_t>::max())
+                                : -static_cast<float>(std::numeric_limits<int32_t>::min()));
+                        tmpbuf_flt[j] = sample_flt;
+                    }
+                }
                 size_t old_size = _ffmpeg->audio_buffers[_audio_stream].size();
                 _ffmpeg->audio_buffers[_audio_stream].resize(old_size + tmpbuf_size);
                 memcpy(&(_ffmpeg->audio_buffers[_audio_stream][old_size]), _ffmpeg->audio_tmpbufs[_audio_stream], tmpbuf_size);
