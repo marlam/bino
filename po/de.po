@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bino 0.9.2\n"
 "Report-Msgid-Bugs-To: bino-list@nongnu.org\n"
-"POT-Creation-Date: 2011-04-13 21:05+0200\n"
+"POT-Creation-Date: 2011-04-18 21:39+0200\n"
 "PO-Revision-Date: 2011-04-10 17:23+0200\n"
 "Last-Translator: Martin Lambers <marlam@marlam.de>\n"
 "Language-Team: none\n"
@@ -203,16 +203,16 @@ msgstr "unbekannt"
 msgid "not used"
 msgstr "nicht benutzt"
 
-#: src/main.cpp:215
+#: src/main.cpp:259
 #, c-format
 msgid "%s version %s"
 msgstr "%s Version %s"
 
-#: src/main.cpp:216
+#: src/main.cpp:260
 msgid "Copyright (C) 2011 the Bino developers."
 msgstr "Copyright (C) 2011 Bino Entwickler."
 
-#: src/main.cpp:217
+#: src/main.cpp:261
 msgid ""
 "This is free software. You may redistribute copies of it under the terms of "
 "the GNU General Public License. There is NO WARRANTY, to the extent "
@@ -221,18 +221,18 @@ msgstr ""
 "Dies ist freie Software. Du kannst Kopien davon verteilen unter den "
 "Bedingungen der GNU General Public License. Es gibt keine Garantie."
 
-#: src/main.cpp:220 src/player_qt.cpp:2337
+#: src/main.cpp:264 src/player_qt.cpp:2337
 msgid "Platform:"
 msgstr "Plattform:"
 
-#: src/main.cpp:222 src/player_qt.cpp:2338
+#: src/main.cpp:266 src/player_qt.cpp:2338
 msgid "Libraries used:"
 msgstr "Benutzte Bibliotheken:"
 
 #. TRANSLATORS: This is the --help text. Translate only the description,
 #. not the option names. Please keep a proper indentation with spaces, and
 #. keep the line length limited.
-#: src/main.cpp:234
+#: src/main.cpp:278
 #, c-format
 msgid ""
 "Usage:\n"
@@ -305,7 +305,8 @@ msgid ""
 "  -b|--benchmark           Benchmark mode (no audio, show fps).\n"
 "\n"
 "Interactive control:\n"
-"  q or ESC                 Quit.\n"
+"  ESC                      Leave fullscreen mode, or quit.\n"
+"  q                        Quit.\n"
 "  p or SPACE               Pause / unpause.\n"
 "  f                        Toggle fullscreen.\n"
 "  c                        Center window.\n"
@@ -394,7 +395,8 @@ msgstr ""
 "  -b|--benchmark           Benchmarkmodus (kein Audio, zeige FPS).\n"
 "\n"
 "Interaktion:\n"
-"  q oder ESC               Beenden.\n"
+"  ESC                      Verlasse Vollbildmodus, oder beende.\n"
+"  q                        Beenden.\n"
 "  p oder Leertaste         Pause / weiter.\n"
 "  f                        Schalte Vollbildmodus um.\n"
 "  c                        Zentriere Fenster.\n"
@@ -413,16 +415,16 @@ msgstr ""
 "  Seite rauf, Seite runter Spule 10 Minuten zurück / vor.\n"
 "  Mausklick                Spule zur Stelle der horizontalen Klickposition."
 
-#: src/main.cpp:432
+#: src/main.cpp:477
 msgid "Benchmark mode: audio and time synchronization disabled."
 msgstr "Benchmark Modus: Audio und Videosynchronisation deaktiviert."
 
-#: src/main.cpp:444
+#: src/main.cpp:489
 msgid "This version of Bino was compiled without support for Equalizer."
 msgstr ""
 "Diese Version von Bino wurde ohne Unterstützung für Equalizer erstellt."
 
-#: src/main.cpp:461
+#: src/main.cpp:506
 msgid "No video to play."
 msgstr "Kein Video abzuspielen."
 
@@ -649,7 +651,7 @@ msgstr "%gx%g, Seitenverhältnis %g:1"
 msgid "Area for %g:1 video: [ %g %g %g %g @ %g ]"
 msgstr "Bereich für %g:1 Video: [ %g %g %g %g @ %g ]"
 
-#: src/player_equalizer.cpp:896 src/video_output_qt.cpp:296
+#: src/player_equalizer.cpp:896 src/video_output_qt.cpp:308
 msgid ""
 "This OpenGL implementation does not support OpenGL 2.1 and framebuffer "
 "objects."
@@ -1107,8 +1109,8 @@ msgid "&About"
 msgstr "&Über"
 
 #: src/player_qt.cpp:1846 src/player_qt.cpp:2269 src/player_qt.cpp:2277
-#: src/video_output_qt.cpp:84 src/video_output_qt.cpp:302
-#: src/video_output_qt.cpp:347
+#: src/video_output_qt.cpp:84 src/video_output_qt.cpp:314
+#: src/video_output_qt.cpp:359
 msgid "Error"
 msgstr "Fehler"
 
@@ -1239,16 +1241,16 @@ msgstr "Untertitel-Zeichensatzkonvertierung fehlgeschlagen: %s"
 msgid "Cannot create a PBO buffer."
 msgstr "Kann keinen PBO Puffer erzeugen."
 
-#: src/video_output_qt.cpp:291
+#: src/video_output_qt.cpp:303
 #, c-format
 msgid "Cannot initialize GLEW: %s"
 msgstr "Kann GLEW nicht initialisieren: %s"
 
-#: src/video_output_qt.cpp:337
+#: src/video_output_qt.cpp:349
 msgid "The display does not support OpenGL stereo mode."
 msgstr "Dieses Gerät unterstützt kein OpenGL Stereo."
 
-#: src/video_output_qt.cpp:342
+#: src/video_output_qt.cpp:354
 msgid "Cannot set OpenGL context format."
 msgstr "Kann OpenGL Kontextformat nicht setzen."
 
