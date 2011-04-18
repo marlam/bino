@@ -52,6 +52,7 @@ Var STARTMENU_FOLDER
   !insertmacro MUI_LANGUAGE "English"
   !insertmacro MUI_LANGUAGE "German"
   !insertmacro MUI_LANGUAGE "Czech"
+  !insertmacro MUI_LANGUAGE "Russian"
 
 Section "Bino Program" SecTools
 
@@ -61,6 +62,8 @@ Section "Bino Program" SecTools
   FILE de\LC_MESSAGES\bino.mo
   SetOutPath $INSTDIR\locale\cs\LC_MESSAGES
   FILE cs\LC_MESSAGES\bino.mo
+  SetOutPath $INSTDIR\locale\ru\LC_MESSAGES
+  FILE ru\LC_MESSAGES\bino.mo
   SetOutPath $INSTDIR\doc
   FILE bino.html
   FILE multi-display-vrlab.jpg
@@ -130,6 +133,9 @@ Section "Uninstall"
   Delete $INSTDIR\locale\cs\LC_MESSAGES\bino.mo
   RMDir $INSTDIR\locale\cs\LC_MESSAGES
   RMDir $INSTDIR\locale\cs
+  Delete $INSTDIR\locale\ru\LC_MESSAGES\bino.mo
+  RMDir $INSTDIR\locale\ru\LC_MESSAGES
+  RMDir $INSTDIR\locale\ru
   RMDir $INSTDIR\locale
   Delete $INSTDIR\doc\bino.html
   Delete $INSTDIR\doc\multi-display-vrlab.jpg
