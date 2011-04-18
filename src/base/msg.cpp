@@ -20,9 +20,12 @@
 
 #include "config.h"
 
+#include <limits>
 #include <cstdlib>
 #include <cstdio>
+#include <cwchar>
 
+#include "dbg.h"
 #include "str.h"
 #include "msg.h"
 
@@ -151,6 +154,49 @@ namespace msg
         msg(indent, level, s);
     }
 
+    static std::wstring str_to_wstr(const std::string &in)
+    {
+        std::wstring out;
+        size_t l = std::mbstowcs(NULL, in.c_str(), 0);
+        if (l == static_cast<size_t>(-1) || l > static_cast<size_t>(std::numeric_limits<int>::max() - 1))
+        {
+            // This should never happen. We don't want to handle this case, and we don't want to throw
+            // an exception from a msg function, so inform the user and abort.
+            msg::err("Failure in msg::str_to_wstr().");
+            dbg::crash();
+        }
+        out.resize(l);
+        std::mbstowcs(&(out[0]), in.c_str(), l);
+        return out;
+    }
+
+    static int display_width(const std::wstring &ws)
+    {
+#ifdef HAVE_WCWIDTH
+        return std::max(0, ::wcswidth(ws.c_str(), ws.length()));
+#else
+        return ws.size() - 1;
+#endif
+    }
+
+    static int display_width(const wchar_t *ws, size_t n)
+    {
+#ifdef HAVE_WCWIDTH
+        return std::max(0, ::wcswidth(ws, n));
+#else
+        return n;
+#endif
+    }
+
+    static int display_width(wchar_t w)
+    {
+#ifdef HAVE_WCWIDTH
+        return std::max(0, ::wcwidth(w));
+#else
+        return 1;
+#endif
+    }
+
     void msg_txt(int indent, level_t level, const std::string &s)
     {
         if (level < _level)
@@ -158,38 +204,38 @@ namespace msg
             return;
         }
 
-        std::string pfx = prefix(level) + std::string(indent, ' ');
-        int pfx_len = pfx.length();
-        std::string text(s);
+        std::wstring pfx = str_to_wstr(prefix(level) + std::string(indent, ' '));
+        int pfx_dw = display_width(pfx);
+        std::wstring text = str_to_wstr(s);
 
-        std::string out;
-        int line_len = 0;
+        std::wstring out;
+        int line_dw = 0;
         int first_unprinted = 0;
         int last_blank = -1;
         bool end_of_text = false;
         for (int text_index = 0; !end_of_text; text_index++)
         {
-            if (text[text_index] == '\0')
+            if (text[text_index] == L'\0')
             {
-                text[text_index] = '\n';
+                text[text_index] = L'\n';
                 end_of_text = true;
             }
-            if (text[text_index] == '\n')
+            if (text[text_index] == L'\n')
             {
                 // output from first_unprinted to text_index
                 out += pfx;
-                out += std::string(text.c_str() + first_unprinted, text_index - first_unprinted + 1);
+                out += std::wstring(text.c_str() + first_unprinted, text_index - first_unprinted + 1);
                 first_unprinted = text_index + 1;
                 last_blank = -1;
-                line_len = 0;
+                line_dw = 0;
             }
             else
             {
-                if (text[text_index] == ' ' || text[text_index] == '\t')
+                if (text[text_index] == L' ' || text[text_index] == L'\t')
                 {
                     last_blank = text_index;
                 }
-                if (line_len >= _columns - pfx_len)
+                if (line_dw >= _columns - pfx_dw)
                 {
                     // output from first_unprinted to last_blank (which is replaced
                     // by '\n'), then update first_unprinted.
@@ -200,30 +246,30 @@ namespace msg
                         {
                             text_index++;
                         }
-                        while (text[text_index] != ' '
-                                && text[text_index] != '\t'
-                                && text[text_index] != '\n'
-                                && text[text_index] != '\0');
-                        if (text[text_index] == '\0')
+                        while (text[text_index] != L' '
+                                && text[text_index] != L'\t'
+                                && text[text_index] != L'\n'
+                                && text[text_index] != L'\0');
+                        if (text[text_index] == L'\0')
                         {
                             end_of_text = true;
                         }
                         last_blank = text_index;
                     }
-                    text[last_blank] = '\n';
+                    text[last_blank] = L'\n';
                     out += pfx;
-                    out += std::string(text.c_str() + first_unprinted, last_blank - first_unprinted + 1);
+                    out += std::wstring(text.c_str() + first_unprinted, last_blank - first_unprinted + 1);
                     first_unprinted = last_blank + 1;
                     last_blank = -1;
-                    line_len = text_index - first_unprinted + 1;
+                    line_dw = display_width(text.c_str() + first_unprinted, text_index - first_unprinted + 1);
                 }
                 else
                 {
-                    line_len++;
+                    line_dw += display_width(text[text_index]);
                 }
             }
         }
-        std::fputs(out.c_str(), _file);
+        std::fprintf(_file, "%ls", &(out[0]));
     }
 
     void msg_txt(int indent, level_t level, const char *format, ...)
