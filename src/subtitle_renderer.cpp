@@ -45,9 +45,25 @@ extern "C"
 #include "str.h"
 #include "blob.h"
 #include "msg.h"
+#include "thread.h"
 
 #include "subtitle_renderer.h"
 
+
+/* Rendering subtitles with LibASS is not thread-safe.
+ *
+ * We have multiple concurrent subtitle rendering threads if we are running from Equalizer
+ * and the Equalizer configuration contains multiple channels per node (since each channel
+ * has a video output, which in turn has a subtitle renderer).
+ *
+ * Everything works fine as long as every channel is connected to the same X11 display.
+ * But if channels are connected to different X11 displays, the application crashes.
+ * The culprit here seems to be the freetype library, as this library causes the same
+ * trouble in other applications that are not related to LibASS.
+ *
+ * Anyway, to fix this we use one big global lock around LibASS calls.
+ */
+static mutex global_libass_mutex;
 
 subtitle_renderer::subtitle_renderer() :
     _ass_initialized(false),
@@ -211,9 +227,11 @@ void subtitle_renderer::init_ass()
 {
     if (!_ass_initialized)
     {
+        global_libass_mutex.lock();
         _ass_library = ass_library_init();
         if (!_ass_library)
         {
+            global_libass_mutex.unlock();
             throw exc(_("Cannot initialize LibASS."));
         }
         ass_set_message_cb(_ass_library, libass_msg_callback, NULL);
@@ -221,12 +239,14 @@ void subtitle_renderer::init_ass()
         _ass_renderer = ass_renderer_init(_ass_library);
         if (!_ass_renderer)
         {
+            global_libass_mutex.unlock();
             throw exc(_("Cannot initialize LibASS renderer."));
         }
         ass_set_hinting(_ass_renderer, ASS_HINTING_NATIVE);
         _fontconfig_conffile = get_fontconfig_conffile();
         ass_set_fonts(_ass_renderer, NULL, "sans-serif", 1, _fontconfig_conffile, 1);
         _ass_initialized = true;
+        global_libass_mutex.unlock();
     }
 }
 
@@ -302,6 +322,9 @@ void subtitle_renderer::set_ass_parameters(const parameters &params)
 void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp,
         const parameters &params, int width, int height, float pixel_aspect_ratio)
 {
+    // Lock
+    global_libass_mutex.lock();
+
     // Set basic parameters
     ass_set_frame_size(_ass_renderer, width, height);
     ass_set_aspect_ratio(_ass_renderer, 1.0, pixel_aspect_ratio);
@@ -314,6 +337,7 @@ void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp
     _ass_track = ass_new_track(_ass_library);
     if (!_ass_track)
     {
+        global_libass_mutex.unlock();
         throw exc(_("Cannot initialize LibASS track."));
     }
     std::string conv_str = box.str;
@@ -357,6 +381,9 @@ void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp
 
     // Render subtitle
     _ass_img = ass_render_frame(_ass_renderer, _ass_track, timestamp / 1000, NULL);
+
+    // Unlock
+    global_libass_mutex.unlock();
 
     // Determine bounding box
     int min_x = width;
