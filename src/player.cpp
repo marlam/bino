@@ -527,12 +527,11 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
         _video_pos = _video_frame.presentation_time;
         if (_media_input->selected_subtitle_stream() >= 0)
         {
-            // TODO: start subtitle reading asynchronously to use benefits of multithreading
             while (_next_subtitle_box.is_valid()
                     && _next_subtitle_box.presentation_stop_time < _video_pos)
             {
-                _media_input->start_subtitle_box_read();
                 _next_subtitle_box = _media_input->finish_subtitle_box_read();
+                _media_input->start_subtitle_box_read();
                 // If the box is invalid, we reached the end of the subtitle stream.
                 // Ignore this and let audio/video continue.
             }
