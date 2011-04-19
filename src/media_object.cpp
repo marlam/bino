@@ -1395,14 +1395,16 @@ void audio_decode_thread::run()
                 {
                     // we need to convert this to SAMPLE_FMT_FLT
                     assert(sizeof(int32_t) == sizeof(float));
-                    int32_t *tmpbuf_i32 = reinterpret_cast<int32_t *>(&(_ffmpeg->audio_tmpbufs[_audio_stream][0]));
-                    float *tmpbuf_flt = reinterpret_cast<float *>(&(_ffmpeg->audio_tmpbufs[_audio_stream][0]));
-                    for (int j = 0; j < tmpbuf_size; j++)
+                    assert(tmpbuf_size % sizeof(int32_t) == 0);
+                    void *tmpbuf_v = static_cast<void *>(&(_ffmpeg->audio_tmpbufs[_audio_stream][0]));
+                    int32_t *tmpbuf_i32 = static_cast<int32_t *>(tmpbuf_v);
+                    float *tmpbuf_flt = static_cast<float *>(tmpbuf_v);
+                    const float posdiv = +static_cast<float>(std::numeric_limits<int32_t>::max());
+                    const float negdiv = -static_cast<float>(std::numeric_limits<int32_t>::min());
+                    for (size_t j = 0; j < tmpbuf_size / sizeof(int32_t); j++)
                     {
                         int32_t sample_i32 = tmpbuf_i32[j];
-                        float sample_flt = static_cast<float>(sample_i32) / (sample_i32 >= 0
-                                ? +static_cast<float>(std::numeric_limits<int32_t>::max())
-                                : -static_cast<float>(std::numeric_limits<int32_t>::min()));
+                        float sample_flt = sample_i32 / (sample_i32 >= 0 ? posdiv : negdiv);
                         tmpbuf_flt[j] = sample_flt;
                     }
                 }
