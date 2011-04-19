@@ -586,26 +586,26 @@ void media_object::set_audio_blob_template(int index)
     }
     audio_blob_template.channels = audio_codec_ctx->channels;
     audio_blob_template.rate = audio_codec_ctx->sample_rate;
-    if (audio_codec_ctx->sample_fmt == SAMPLE_FMT_U8)
+    if (audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_U8)
     {
         audio_blob_template.sample_format = audio_blob::u8;
     }
-    else if (audio_codec_ctx->sample_fmt == SAMPLE_FMT_S16)
+    else if (audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_S16)
     {
         audio_blob_template.sample_format = audio_blob::s16;
     }
-    else if (audio_codec_ctx->sample_fmt == SAMPLE_FMT_FLT)
+    else if (audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_FLT)
     {
         audio_blob_template.sample_format = audio_blob::f32;
     }
-    else if (audio_codec_ctx->sample_fmt == SAMPLE_FMT_DBL)
+    else if (audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_DBL)
     {
         audio_blob_template.sample_format = audio_blob::d64;
     }
-    else if (audio_codec_ctx->sample_fmt == SAMPLE_FMT_S32
+    else if (audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_S32
             && sizeof(int32_t) == sizeof(float))
     {
-        // we need to convert this to SAMPLE_FMT_FLT after decoding
+        // we need to convert this to AV_SAMPLE_FMT_FLT after decoding
         audio_blob_template.sample_format = audio_blob::f32;
     }
     else
@@ -1391,9 +1391,9 @@ void audio_decode_thread::run()
                     continue;
                 }
                 // Put it in the decoded audio data buffer
-                if (_ffmpeg->audio_codec_ctxs[_audio_stream]->sample_fmt == SAMPLE_FMT_S32)
+                if (_ffmpeg->audio_codec_ctxs[_audio_stream]->sample_fmt == AV_SAMPLE_FMT_S32)
                 {
-                    // we need to convert this to SAMPLE_FMT_FLT
+                    // we need to convert this to AV_SAMPLE_FMT_FLT
                     assert(sizeof(int32_t) == sizeof(float));
                     assert(tmpbuf_size % sizeof(int32_t) == 0);
                     void *tmpbuf_v = static_cast<void *>(&(_ffmpeg->audio_tmpbufs[_audio_stream][0]));
