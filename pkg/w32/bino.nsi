@@ -12,6 +12,9 @@ Name "Bino ${PACKAGE_VERSION}"
 ; The file to write
 OutFile "bino-${PACKAGE_VERSION}-w32.exe"
 
+; Require Administrator privileges
+RequestExecutionLevel admin
+
 ; The default installation directory
 InstallDir "$PROGRAMFILES\Bino ${PACKAGE_VERSION}"
 
@@ -19,20 +22,18 @@ InstallDir "$PROGRAMFILES\Bino ${PACKAGE_VERSION}"
 ; overwrite the old one automatically)
 InstallDirRegKey HKLM "Software\Bino ${PACKAGE_VERSION}" "Install_Dir"
 
-;SetCompressor lzma
+SetCompressor lzma
 ShowInstDetails show
 
 Var MUI_TEMP
 Var STARTMENU_FOLDER
 
-;Interface Settings
-
+; Interface Settings
   !define MUI_ABORTWARNING
   !define MUI_ICON bino_logo.ico
   ;!define MUI_UNICON appicon.ico
  
-; Pages
-
+; Installer Pages
   !insertmacro MUI_PAGE_WELCOME
   !insertmacro MUI_PAGE_LICENSE "COPYING"
   !insertmacro MUI_PAGE_LICENSE "notes.txt"
@@ -47,16 +48,15 @@ Var STARTMENU_FOLDER
   !insertmacro MUI_UNPAGE_CONFIRM
   !insertmacro MUI_UNPAGE_INSTFILES
 
-;Languages
- 
+; Languages
   !insertmacro MUI_LANGUAGE "English"
   !insertmacro MUI_LANGUAGE "German"
   !insertmacro MUI_LANGUAGE "Czech"
   !insertmacro MUI_LANGUAGE "Russian"
   !insertmacro MUI_LANGUAGE "Polish"
 
+; Program file installation
 Section "Bino Program" SecTools
-
   SetOutPath $INSTDIR\bin
   FILE bino.exe
   SetOutPath $INSTDIR\locale\de\LC_MESSAGES
@@ -66,26 +66,23 @@ Section "Bino Program" SecTools
   SetOutPath $INSTDIR\locale\ru\LC_MESSAGES
   FILE ru\LC_MESSAGES\bino.mo
   SetOutPath $INSTDIR\locale\pl\LC_MESSAGES
-  FILE ru\LC_MESSAGES\bino.mo
+  FILE pl\LC_MESSAGES\bino.mo
   SetOutPath $INSTDIR\doc
   FILE bino.html
   FILE multi-display-vrlab.jpg
   FILE multi-display-rotated.jpg
   FILE gamma-pattern-tb.png
   FILE crosstalk-pattern-tb.png
-  
 SectionEnd
 
+; Last section is a hidden one.
 Var MYTMP
-
-# Last section is a hidden one.
 Section
+  SetShellVarContext all
   WriteUninstaller "$INSTDIR\uninstall.exe"
-
   ; Write the installation path into the registry
   WriteRegStr HKLM "Software\Bino ${PACKAGE_VERSION}" "Install_Dir" "$INSTDIR"
-
-  # Windows Add/Remove Programs support
+  ; Windows Add/Remove Programs support
   StrCpy $MYTMP "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bino ${PACKAGE_VERSION}"
   WriteRegStr       HKLM $MYTMP "DisplayName"     "Bino ${PACKAGE_VERSION}"
   WriteRegExpandStr HKLM $MYTMP "UninstallString" '"$INSTDIR\uninstall.exe"'
@@ -97,77 +94,26 @@ Section
   WriteRegStr       HKLM $MYTMP "URLUpdateInfo"   "http://bino.nongnu.org/"
   WriteRegDWORD     HKLM $MYTMP "NoModify"        "1"
   WriteRegDWORD     HKLM $MYTMP "NoRepair"        "1"
-
-!insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-    
-;Create shortcuts
+  ; Start menu
+  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
   CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Bino.lnk" "$INSTDIR\bin\bino.exe"
   CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\bino.html"
   WriteINIStr "$SMPROGRAMS\$STARTMENU_FOLDER\Website.url" "InternetShortcut" "URL" "http://bino.nongnu.org/"
   CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-!insertmacro MUI_STARTMENU_WRITE_END
-
+  !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
 
-;Descriptions
-
-  LangString DESC_SecTools ${LANG_ENGLISH} "Bino Program"
-
-  !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecTools}     $(DESC_SecTools)
-  !insertmacro MUI_FUNCTION_DESCRIPTION_END
-
-;--------------------------------
-
 ; Uninstaller
-
 Section "Uninstall"
-  
+  SetShellVarContext all
   ; Remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bino ${PACKAGE_VERSION}"
   DeleteRegKey HKLM "Software\Bino ${PACKAGE_VERSION}"
-  ; Remove files
-  Delete $INSTDIR\bin\bino.exe
-  RMDir $INSTDIR\bin
-  Delete $INSTDIR\locale\de\LC_MESSAGES\bino.mo
-  RMDir $INSTDIR\locale\de\LC_MESSAGES
-  RMDir $INSTDIR\locale\de
-  Delete $INSTDIR\locale\cs\LC_MESSAGES\bino.mo
-  RMDir $INSTDIR\locale\cs\LC_MESSAGES
-  RMDir $INSTDIR\locale\cs
-  Delete $INSTDIR\locale\ru\LC_MESSAGES\bino.mo
-  RMDir $INSTDIR\locale\ru\LC_MESSAGES
-  RMDir $INSTDIR\locale\ru
-  Delete $INSTDIR\locale\pl\LC_MESSAGES\bino.mo
-  RMDir $INSTDIR\locale\pl\LC_MESSAGES
-  RMDir $INSTDIR\locale\pl
-  RMDir $INSTDIR\locale
-  Delete $INSTDIR\doc\bino.html
-  Delete $INSTDIR\doc\multi-display-vrlab.jpg
-  Delete $INSTDIR\doc\multi-display-rotated.jpg
-  Delete $INSTDIR\doc\gamma-pattern-tb.png
-  Delete $INSTDIR\doc\crosstalk-pattern-tb.png
-  RMDir $INSTDIR\doc
-  ; Remove uninstaller
-  Delete $INSTDIR\uninstall.exe
-  ; Remove shortcuts, if any
-  !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
-  Delete "$SMPROGRAMS\$MUI_TEMP\Bino.lnk"
-  Delete "$SMPROGRAMS\$MUI_TEMP\Manual.lnk"
-  Delete "$SMPROGRAMS\$MUI_TEMP\Website.url"
-  Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
-  ;Delete empty start menu parent diretories
-  StrCpy $MUI_TEMP "$SMPROGRAMS\$MUI_TEMP"
-  startMenuDeleteLoop:
-    ClearErrors
-    RMDir $MUI_TEMP
-    GetFullPathName $MUI_TEMP "$MUI_TEMP\.."
-    IfErrors startMenuDeleteLoopDone
-    StrCmp $MUI_TEMP $SMPROGRAMS startMenuDeleteLoopDone startMenuDeleteLoop
-  startMenuDeleteLoopDone:
   DeleteRegKey /ifempty HKCU "Software\Bino ${PACKAGE_VERSION}"
-  ; Remove directories used
-  RMDir "$INSTDIR"
-
+  ; Remove start menu entries
+  !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
+  RMDir /r "$SMPROGRAMS\$MUI_TEMP"
+  ; Remove files
+  RMDir /r $INSTDIR
 SectionEnd
