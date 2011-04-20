@@ -2165,21 +2165,13 @@ void main_window::open(QStringList filenames)
 
 void main_window::file_open()
 {
-    QFileDialog *file_dialog = new QFileDialog(this);
-    file_dialog->setDirectory(_settings->value("Session/file-open-dir", QDir::currentPath()).toString());
-    file_dialog->setWindowTitle(_("Open files"));
-    file_dialog->setAcceptMode(QFileDialog::AcceptOpen);
-    file_dialog->setFileMode(QFileDialog::ExistingFiles);
-    if (!file_dialog->exec())
-    {
-        return;
-    }
-    QStringList file_names = file_dialog->selectedFiles();
+    QStringList file_names = QFileDialog::getOpenFileNames(this, _("Open files"),
+            _settings->value("Session/file-open-dir", QDir::currentPath()).toString());
     if (file_names.empty())
     {
         return;
     }
-    _settings->setValue("Session/file-open-dir", file_dialog->directory().path());
+    _settings->setValue("Session/file-open-dir", QFileInfo(file_names[0]).path());
     open(file_names);
 }
 
