@@ -664,7 +664,7 @@ void media_object::open(const std::string &url)
             && i < static_cast<unsigned int>(std::numeric_limits<int>::max()); i++)
     {
         _ffmpeg->format_ctx->streams[i]->discard = AVDISCARD_ALL;        // ignore by default; user must activate streams
-        if (_ffmpeg->format_ctx->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO)
+        if (_ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
         {
             _ffmpeg->video_streams.push_back(i);
             int j = _ffmpeg->video_streams.size() - 1;
@@ -732,7 +732,7 @@ void media_object::open(const std::string &url)
             }
             _ffmpeg->video_last_timestamps.push_back(std::numeric_limits<int64_t>::min());
         }
-        else if (_ffmpeg->format_ctx->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO)
+        else if (_ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO)
         {
             _ffmpeg->audio_streams.push_back(i);
             int j = _ffmpeg->audio_streams.size() - 1;
@@ -764,7 +764,7 @@ void media_object::open(const std::string &url)
             _ffmpeg->audio_buffers.push_back(std::vector<unsigned char>());
             _ffmpeg->audio_last_timestamps.push_back(std::numeric_limits<int64_t>::min());
         }
-        else if (_ffmpeg->format_ctx->streams[i]->codec->codec_type == CODEC_TYPE_SUBTITLE)
+        else if (_ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_SUBTITLE)
         {
             _ffmpeg->subtitle_streams.push_back(i);
             int j = _ffmpeg->subtitle_streams.size() - 1;
