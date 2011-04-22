@@ -360,6 +360,7 @@ void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp
     }
     else
     {
+        // Set a default ASS style for text subtitles
         std::string style =
             "[Script Info]\n"
             "ScriptType: v4.00+\n"
@@ -373,8 +374,11 @@ void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp
             "[Events]\n"
             "Format: Layer, Start, End, Text\n"
             "\n";
-        std::string str = "Dialogue: 0,0:00:00.00,9:59:59.99," + conv_str;
         ass_process_codec_private(_ass_track, const_cast<char *>(style.c_str()), style.length());
+        // Convert text to ASS
+        str::replace(conv_str, "\r\n", "\\N");
+        str::replace(conv_str, "\n", "\\N");
+        std::string str = "Dialogue: 0,0:00:00.00,9:59:59.99," + conv_str;
         ass_process_data(_ass_track, const_cast<char *>(str.c_str()), str.length());
     }
     set_ass_parameters(params);
