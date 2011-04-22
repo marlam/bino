@@ -545,11 +545,6 @@ void video_output_qt::exit_fullscreen()
     }
 }
 
-bool video_output_qt::has_events()
-{
-    return QApplication::hasPendingEvents();
-}
-
 void video_output_qt::process_events()
 {
     QApplication::sendPostedEvents();

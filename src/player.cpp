@@ -685,11 +685,8 @@ bool player::run_step()
         _video_output->activate_next_frame();
     }
 
-    if (_video_output->has_events())
-    {
-        _video_output->process_events();
-    }
-    else if (allowed_sleep > 0)
+    _video_output->process_events();
+    if (allowed_sleep > 0)
     {
         usleep(allowed_sleep);
     }
