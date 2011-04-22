@@ -501,7 +501,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
             notify(notification::pause, false, true);
         }
         *more_steps = true;
-        return 0;
+        return 1000;    // allow some sleep in pause mode
     }
     else if (_need_frame_now)
     {
