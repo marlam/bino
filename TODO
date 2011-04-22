@@ -1,0 +1,32 @@
+This is a random collection of ideas and plans. It is not a priority list.
+
+Small:
+
+- Qt's implementation of sync-to-vblank (swapInterval) seems outdated on X11.
+  Is it worth it to replace this with our own implementation?
+
+- Make media_input more flexible so that files can be added during playback
+  (e.g. subtitle files)?
+
+Medium:
+
+- Add deinterlacing support.
+
+- Better interaction with output devices, e.g. by setting monitor/TV modes.
+  Is this possible?
+
+- Render subtitles into black bars instead of the video area (optionally)?
+  See here:
+  http://lists.nongnu.org/archive/html/bino-list/2011-04/msg00018.html
+
+- Add playlist support.
+
+- Add a "loop playback" option to support A->B loops (and playlist loops if
+  there is a playlist).
+
+Big:
+
+- Rework media input and player interaction/controlling so that it is possible
+  to support devices like DVDs (libdvdread) and BluRays (libbluray).
+
+- Hardware accelerated video decoding.
