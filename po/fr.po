@@ -1,0 +1,1323 @@
+# French translations for bino package
+# Traductions françaises du paquet bino.
+# Copyright (C) 2011 The Bino developers
+# This file is distributed under the same license as the bino package.
+# Frédéric Devernay <>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: bino 0.9.2\n"
+"Report-Msgid-Bugs-To: bino-list@nongnu.org\n"
+"POT-Creation-Date: 2011-04-20 22:46+0200\n"
+"PO-Revision-Date: 2011-04-21 16:48+0200\n"
+"Last-Translator: Frédéric Devernay <>\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: src/base/dbg.cpp:50
+#, c-format
+msgid "Caught signal %d (%s). Aborting."
+msgstr "Signal %d (%s) reçu. Abandon."
+
+#: src/base/dbg.cpp:58
+msgid "Unexpected exception."
+msgstr "Exception inattendue"
+
+#. TRANSLATORS: %s will be a mail address.
+#: src/base/dbg.cpp:146
+#, c-format
+msgid "Report bugs to <%s>."
+msgstr "Signalez les bugs à <%s>."
+
+#: src/base/exc.cpp:54 src/base/exc.cpp:72 src/base/exc.cpp:106
+#, c-format
+msgid "Exception: %s"
+msgstr "Exception: %s"
+
+#: src/base/opt.cpp:151
+#, c-format
+msgid "Invalid option %s."
+msgstr "Option %s invalide."
+
+#: src/base/opt.cpp:155
+#, c-format
+msgid "Option --%s does not take an argument."
+msgstr "L'option --%s ne prend pas d'argument."
+
+#: src/base/opt.cpp:160
+#, c-format
+msgid "Invalid option -%c."
+msgstr "Option -%c invalide."
+
+#: src/base/opt.cpp:169
+#, c-format
+msgid "Option --%s requires an argument."
+msgstr "L'option --%s nécessite un argument."
+
+#: src/base/opt.cpp:174
+#, c-format
+msgid "Option -%c requires an argument."
+msgstr "L'option -%c nécessite un argument."
+
+#: src/base/opt.cpp:195
+#, c-format
+msgid "Invalid argument for -%c."
+msgstr "Argument invalide pour -%c."
+
+#: src/base/opt.cpp:199
+#, c-format
+msgid "Invalid argument for --%s."
+msgstr "Argument invalide pour --%s."
+
+#: src/base/opt.cpp:218
+#, c-format
+msgid "Option --%s (-%c) is mandatory."
+msgstr "L'option --%s (-%c) est obligatoire."
+
+#: src/base/opt.cpp:222
+#, c-format
+msgid "Option --%s is mandatory."
+msgstr "L'option --%s est obligatoire."
+
+#: src/base/opt.cpp:236
+msgid "Too few arguments."
+msgstr "Pas assez d'arguments."
+
+#: src/base/opt.cpp:241
+msgid "Too many arguments."
+msgstr "Trop d'arguments."
+
+#: src/base/str.cpp:209
+#, c-format
+msgid "Cannot convert string to %s."
+msgstr "Impossible de convertir la chaîne de caractères en %s."
+
+#: src/base/str.cpp:378 src/base/str.cpp:396 src/base/str.cpp:406
+#: src/base/str.cpp:417
+#, c-format
+msgid "Cannot convert %s to %s."
+msgstr "Impossible de convertir %s en %s."
+
+#: src/base/thread.cpp:40 src/base/thread.cpp:51
+#, c-format
+msgid "Cannot initialize mutex: %s"
+msgstr "Impossible d'initialiser le mutex: %s"
+
+#: src/base/thread.cpp:65
+#, c-format
+msgid "Cannot lock mutex: %s"
+msgstr "Impossible de verrouiller le mutex: %s"
+
+#: src/base/thread.cpp:79
+#, c-format
+msgid "Cannot unlock mutex: %s"
+msgstr "Impossible de déverrouiller le mutex: %s"
+
+#: src/base/thread.cpp:128
+msgid "Unknown exception."
+msgstr "Exception inconnue."
+
+#: src/base/thread.cpp:142
+#, c-format
+msgid "Cannot create thread: %s"
+msgstr "Impossible de créer le thread: %s"
+
+#: src/base/thread.cpp:157
+#, c-format
+msgid "Cannot join with thread: %s"
+msgstr "Impossible de rejoindre le thread: %s"
+
+#: src/base/timer.cpp:52 src/base/timer.cpp:64 src/base/timer.cpp:78
+msgid "Cannot get time."
+msgstr "Impossible d'obtenir l'heure."
+
+#: src/audio_output.cpp:63
+msgid "No OpenAL device available."
+msgstr "Aucun périphérique OpenAL disponible."
+
+#: src/audio_output.cpp:68
+msgid "No OpenAL context available."
+msgstr "Aucun contexte OpenAL disponible."
+
+#: src/audio_output.cpp:79
+msgid "Cannot create OpenAL buffers."
+msgstr "Impossible de tcréer les tampons OpenAL."
+
+#: src/audio_output.cpp:88
+msgid "Cannot create OpenAL source."
+msgstr "Impossible de créer la source OpenAL."
+
+#: src/audio_output.cpp:101
+msgid "Cannot set OpenAL source parameters."
+msgstr "Impossible de régler les paramètres de la source OpenAL."
+
+#: src/audio_output.cpp:155
+msgid "Cannot check OpenAL source state."
+msgstr "Impossible de vérifier l'état de la source OpenAL."
+
+#: src/audio_output.cpp:162
+msgid "Cannot restart OpenAL source playback."
+msgstr "Impossible de redémarrer la lecture de la source OpenAL."
+
+#: src/audio_output.cpp:315
+#, c-format
+msgid "No OpenAL format available for audio data format %s."
+msgstr "Aucun format OpenAL disponible pour le format de données audio %s."
+
+#: src/audio_output.cpp:342
+msgid "Cannot buffer initial OpenAL data."
+msgstr "Impossible de mettre les données initiales OpenAL en mémoire tampon."
+
+#: src/audio_output.cpp:356
+msgid "Cannot buffer OpenAL data."
+msgstr "Impossible de mettre les données OpenAL en mémoire tampon."
+
+#: src/audio_output.cpp:381
+msgid "Cannot start OpenAL source playback."
+msgstr "Impossible de démarrer la lecture de la source OpenAL."
+
+#: src/audio_output.cpp:395
+msgid "Cannot pause OpenAL source playback."
+msgstr "Impossible de mettre en pause la source OpenAL."
+
+#: src/audio_output.cpp:404
+msgid "Cannot unpause OpenAL source playback."
+msgstr "Impossible de quitter la pause de la source OpenAL."
+
+#: src/audio_output.cpp:413
+msgid "Cannot stop OpenAL source playback."
+msgstr "Impossible d'arrêter la lecture de la source OpenAL."
+
+#: src/audio_output.cpp:424
+msgid "Cannot unqueue OpenAL source buffers."
+msgstr "Impossible de vider la queue de tampons de la source OpenAL."
+
+#: src/lib_versions.cpp:85 src/lib_versions.cpp:118 src/lib_versions.cpp:157
+#: src/media_data.cpp:392 src/media_data.cpp:415 src/media_data.cpp:453
+#: src/media_data.cpp:458
+msgid "unknown"
+msgstr "inconnu"
+
+#: src/lib_versions.cpp:181
+msgid "not used"
+msgstr "inutilisé"
+
+#: src/main.cpp:259
+#, c-format
+msgid "%s version %s"
+msgstr "%s version %s"
+
+#: src/main.cpp:260
+msgid "Copyright (C) 2011 the Bino developers."
+msgstr "Copyright (C) 2011 les développeurs Bino."
+
+#: src/main.cpp:261
+msgid ""
+"This is free software. You may redistribute copies of it under the terms of "
+"the GNU General Public License. There is NO WARRANTY, to the extent "
+"permitted by law."
+msgstr ""
+"Ceci est un logiciel libre. Vous pouvez en distribuer des copies sous les "
+"termes de la GNU General Public License. Il n'y a AUCUNE GARANTIE, dans les "
+"limites autorisées par la loi."
+
+#: src/main.cpp:264 src/player_qt.cpp:2329
+msgid "Platform:"
+msgstr "Plateforme :"
+
+#: src/main.cpp:266 src/player_qt.cpp:2330
+msgid "Libraries used:"
+msgstr "Bibliothèques utilisées :"
+
+#. TRANSLATORS: This is the --help text. Translate only the description,
+#. not the option names. Please keep a proper indentation with spaces, and
+#. keep the line length limited.
+#: src/main.cpp:278
+#, c-format
+msgid ""
+"Usage:\n"
+"  %s [option...] [file...]\n"
+"\n"
+"Options:\n"
+"  --help                   Print help.\n"
+"  --version                Print version.\n"
+"  -n|--no-gui              Do not use the GUI, just show a plain window.\n"
+"  -l|--log-level=LEVEL     Set log level (debug/info/warning/error/quiet).\n"
+"  -v|--video=STREAM        Select video stream (1-n, depending on input).\n"
+"  -a|--audio=STREAM        Select audio stream (1-n, depending on input).\n"
+"  -s|--subtitle=STREAM     Select subtitle stream (0-n, depending on "
+"input).\n"
+"  -i|--input=TYPE          Select input type (default autodetect):\n"
+"    mono                     Single view.\n"
+"    separate-left-right      Left/right separate streams, left first.\n"
+"    separate-right-left      Left/right separate streams, right first.\n"
+"    top-bottom               Left top, right bottom.\n"
+"    top-bottom-half          Left top, right bottom, half height.\n"
+"    bottom-top               Left bottom, right top.\n"
+"    bottom-top-half          Left bottom, right top, half height.\n"
+"    left-right               Left left, right right.\n"
+"    left-right-half          Left left, right right, half width.\n"
+"    right-left               Left right, right left.\n"
+"    right-left-half          Left right, right left, half width.\n"
+"    even-odd-rows            Left even rows, right odd rows.\n"
+"    odd-even-rows            Left odd rows, right even rows.\n"
+"  -o|--output=TYPE         Select output type:\n"
+"    mono-left                Only left.\n"
+"    mono-right               Only right.\n"
+"    top-bottom               Left top, right bottom.\n"
+"    top-bottom-half          Left top, right bottom, half height.\n"
+"    left-right               Left left, right right.\n"
+"    left-right-half          Left left, right right, half width.\n"
+"    even-odd-rows            Left even rows, right odd rows.\n"
+"    even-odd-columns         Left even columns, right odd columns.\n"
+"    checkerboard             Left and right in checkerboard pattern.\n"
+"    hdmi-frame-pack          HDMI frame packing mode.\n"
+"    red-cyan-monochrome      Red/cyan anaglyph, monochrome method.\n"
+"    red-cyan-half-color      Red/cyan anaglyph, half color method.\n"
+"    red-cyan-full-color      Red/cyan anaglyph, full color method.\n"
+"    red-cyan-dubois          Red/cyan anaglyph, Dubois method.\n"
+"    green-magenta-monochrome Green/magenta anaglyph, monochrome method.\n"
+"    green-magenta-half-color Green/magenta anaglyph, half color method.\n"
+"    green-magenta-full-color Green/magenta anaglyph, full color method.\n"
+"    green-magenta-dubois     Green/magenta anaglyph, Dubois method.\n"
+"    amber-blue-monochrome    Amber/blue anaglyph, monochrome method.\n"
+"    amber-blue-half-color    Amber/blue anaglyph, half color method.\n"
+"    amber-blue-full-color    Amber/blue anaglyph, full color method.\n"
+"    amber-blue-dubois        Amber/blue anaglyph, Dubois method.\n"
+"    red-green-monochrome     Red/green anaglyph, monochrome method.\n"
+"    red-blue-monochrome      Red/blue anaglyph, monochrome method.\n"
+"    stereo                   OpenGL quad-buffered stereo.\n"
+"    equalizer                Multi-display via Equalizer (2D setup).\n"
+"    equalizer-3d             Multi-display via Equalizer (3D setup).\n"
+"  -S|--swap-eyes           Swap left/right view.\n"
+"  -f|--fullscreen          Fullscreen.\n"
+"  -c|--center              Center window on screen.\n"
+"  --subtitle-encoding=ENC  Set subtitle encoding.\n"
+"  --subtitle-font=FONT     Set subtitle font name.\n"
+"  --subtitle-size=N        Set subtitle font size.\n"
+"  --subtitle-scale=S       Set subtitle scale factor.\n"
+"  --subtitle-color=COLOR   Set subtitle color, in [AA]RRGGBB format.\n"
+"  --subtitle-parallax=VAL  Subtitle parallax adjustment (-1 to +1).\n"
+"  -P|--parallax=VAL        Parallax adjustment (-1 to +1).\n"
+"  -C|--crosstalk=VAL       Crosstalk leak level (0 to 1); comma-separated\n"
+"                           values for the R,G,B channels.\n"
+"  -G|--ghostbust=VAL       Amount of ghostbusting to apply (0 to 1).\n"
+"  -b|--benchmark           Benchmark mode (no audio, show fps).\n"
+"\n"
+"Interactive control:\n"
+"  ESC                      Leave fullscreen mode, or quit.\n"
+"  q                        Quit.\n"
+"  p or SPACE               Pause / unpause.\n"
+"  f                        Toggle fullscreen.\n"
+"  c                        Center window.\n"
+"  e                        Swap left/right eye.\n"
+"  v                        Cycle through available video streams.\n"
+"  a                        Cycle through available audio streams.\n"
+"  s                        Cycle through available subtitle streams.\n"
+"  1, 2                     Adjust contrast.\n"
+"  3, 4                     Adjust brightness.\n"
+"  5, 6                     Adjust hue.\n"
+"  7, 8                     Adjust saturation.\n"
+"  <, >                     Adjust parallax.\n"
+"  (, )                     Adjust ghostbusting.\n"
+"  left, right              Seek 10 seconds backward / forward.\n"
+"  up, down                 Seek 1 minute backward / forward.\n"
+"  page up, page down       Seek 10 minutes backward / forward.\n"
+"  Mouse click              Seek according to horizontal click position."
+msgstr ""
+"Utilisation :\n"
+"  %s [option...] [fichier...]\n"
+"\n"
+"Options:\n"
+"  --help                   Afficher l'aide.\n"
+"  --version                Afficher la version.\n"
+"  -n|--no-gui              Ne pas utiliser l'IHM, afficher une fenêtre "
+"simple.\n"
+"  -l|--log-level=LEVEL     Niveau de détail du journal (debug/info/warning/"
+"error/quiet).\n"
+"  -v|--video=STREAM        Sélectionner le flux vidéo (1-n, selon "
+"l'entrée).\n"
+"  -a|--audio=STREAM        Sélectionner le flux audio (1-n, selon "
+"l'entrée).\n"
+"  -s|--subtitle=STREAM     Sélectionner le flux de sous-titres (0-n, selon "
+"l'entrée).\n"
+"  -i|--input=TYPE          Sélectionner le type d'entrée (auto-détection par "
+"défaut):\n"
+"    mono                     Une seule vue.\n"
+"    separate-left-right      Flux gauche/droit séparés, gauche d'abord.\n"
+"    separate-right-left      Flux gauche/droit séparés, droit d'abord.\n"
+"    top-bottom               Gauche en haut, droit en bas.\n"
+"    top-bottom-half          Gauche en haut, droit en bas, demi-hauteur.\n"
+"    bottom-top               Gauche en bas, droit en haut.\n"
+"    bottom-top-half          Gauche en bas, droit en haut, demi-hauteur.\n"
+"    left-right               Gauche à gauche, droit à droite.\n"
+"    left-right-half          Gauche à gauche, droit à droite, demi-largeur.\n"
+"    right-left               Gauche à droite, droit à gauche.\n"
+"    right-left-half          Gauche à droite, droit à gauche, demi-largeur.\n"
+"    even-odd-rows            Gauche sur les lignes paires, droit sur les "
+"lignes impaires.\n"
+"    odd-even-rows            Gauche sur les lignes impaires, droit sur les "
+"lignes paires.\n"
+"  -o|--output=TYPE         Sélectionner le type de sortie :\n"
+"    mono-left                Gauche seulement.\n"
+"    mono-right               Droit seulement.\n"
+"    top-bottom               Gauche en haut, droit en bas.\n"
+"    top-bottom-half          Gauche en haut, droit en bas, demi-hauteur.\n"
+"    left-right               Gauche à gauche, droit à droite.\n"
+"    left-right-half          Gauche à gauche, droit à droite, demi-largeur.\n"
+"    even-odd-rows            Gauche sur les lignes paires, droit sur les "
+"lignes impaires.\n"
+"    even-odd-columns         Gauche sur les colonnes paires, droit sur les "
+"colonnes impaires.\n"
+"    checkerboard             Gauche et droit en damier.\n"
+"    hdmi-frame-pack          Mode HDMI frame packing.\n"
+"    red-cyan-monochrome      Anaglyphe rouge/cyan, méthode monochrome.\n"
+"    red-cyan-half-color      Anaglyphe rouge/cyan, méthode demi-couleur.\n"
+"    red-cyan-full-color      Anaglyphe rouge/cyan, méthode pleine couleur.\n"
+"    red-cyan-dubois          Anaglyphe rouge/cyan, méthode Dubois.\n"
+"    green-magenta-monochrome Anaglyphe vert/magenta, méthode monochrome.\n"
+"    green-magenta-half-color Anaglyphe vert/magenta, méthode demi-couleur.\n"
+"    green-magenta-full-color Anaglyphe vert/magenta, méthode pleine "
+"couleur.\n"
+"    green-magenta-dubois     Anaglyphe vert/magenta, méthode Dubois.\n"
+"    amber-blue-monochrome    Anaglyphe ambre/bleu, méthode monochrome.\n"
+"    amber-blue-half-color    Anaglyphe ambre/bleu, méthode demi-couleur.\n"
+"    amber-blue-full-color    Anaglyphe ambre/bleu, méthode pleine couleur.\n"
+"    amber-blue-dubois        Anaglyphe ambre/bleu, méthode Dubois.\n"
+"    red-green-monochrome     Anaglyphe rouge/vert, méthode monochrome.\n"
+"    red-blue-monochrome      Anaglyphe rouge/bleu, méthode monochrome.\n"
+"    stereo                   Stéréo OpenGL quadruple buffer.\n"
+"    equalizer                Multi-affichage par Equalizer (configuration "
+"2D).\n"
+"    equalizer-3d             Multi-affichage par Equalizer (configuration "
+"3D).\n"
+"  -S|--swap-eyes           Echanger les vues gauche et droite.\n"
+"  -f|--fullscreen          Plein écran.\n"
+"  -c|--center              Centrer la fenêtre sur l'écran.\n"
+"  --subtitle-encoding=ENC  Régler l'encodage des sous-titres.\n"
+"  --subtitle-font=FONT     Régler le nom de la fonte des sous-titres.\n"
+"  --subtitle-size=N        Régler la taille de la fonte des sous-titres.\n"
+"  --subtitle-scale=S       Régler le facteur d'échelle des sous-titres.\n"
+"  --subtitle-color=COLOR   Régler la couleur des sous-titres, au format [AA]"
+"RRVVBB.\n"
+"  --subtitle-parallax=VAL  Ajustement de la parallaxe des sous-titres (-1 à "
+"+1).\n"
+"  -P|--parallax=VAL        Ajustement de la parallaxe (-1 à +1).\n"
+"  -C|--crosstalk=VAL       Niveau de fuite du crosstalk (0 à 1); valeurs "
+"séparées\n"
+"                           par des virgules pour les canaux R,V,B.\n"
+"  -G|--ghostbust=VAL       Niveau d'élimination du crosstalk à appliquer (0 "
+"à 1).\n"
+"  -b|--benchmark           Mode banc d'essai (pas d'audio, afficher les "
+"fps).\n"
+"\n"
+"Contrôle interactif :\n"
+"  q or ESC                 Quitter.\n"
+"  p or SPACE               Pause / continuer.\n"
+"  f                        Basculer le mode plein écran.\n"
+"  c                        Centrer la fenêtre.\n"
+"  e                        Echanger les yeux droit et gauche.\n"
+"  v                        Parcourir les flux vidéo disponibles.\n"
+"  a                        Parcourir les flux audio disponibles.\n"
+"  s                        Parcourir les flux de sous-titres disponibles.\n"
+"  1, 2                     Ajuster le contraste.\n"
+"  3, 4                     Ajuster la luminosité.\n"
+"  5, 6                     Ajuster la teinte.\n"
+"  7, 8                     Ajuster la saturation.\n"
+"  <, >                     Ajuster la parallaxe.\n"
+"  (, )                     Ajuster le ghostbusting.\n"
+"  left, right              Avancer/reculer de 10 secondes.\n"
+"  up, down                 Avancer/reculer de 1 minute.\n"
+"  page up, page down       Avancer/reculer de 10 minutes.\n"
+"  Mouse click              Aller à la position définie par l'abscisse du "
+"clic."
+
+#: src/main.cpp:477
+msgid "Benchmark mode: audio and time synchronization disabled."
+msgstr "Mode banc d'essai: audio et synchronisation temporelle désactivés."
+
+#: src/main.cpp:489
+msgid "This version of Bino was compiled without support for Equalizer."
+msgstr "Cette version de Bino a été compilée sans le support Equalizer."
+
+#: src/main.cpp:506
+msgid "No video to play."
+msgstr "Aucune vidéo à jouer."
+
+#. TRANSLATORS: This is a very short string describing the video size and aspect ratio.
+#: src/media_data.cpp:263
+#, c-format
+msgid "%dx%d, %.3g:1"
+msgstr "%dx%d, %.3g:1"
+
+#. TRANSLATORS: This is a very short string describing the audio language, channels, frequency, and bits.
+#: src/media_data.cpp:391
+#, c-format
+msgid "%s, %d ch., %g kHz, %d bit"
+msgstr "%s, %d ch., %g kHz, %d bit"
+
+#: src/media_input.cpp:284 src/player_qt.cpp:161
+msgid "Input:"
+msgstr "Entrée :"
+
+#: src/media_input.cpp:289
+#, c-format
+msgid "Video %s: %s"
+msgstr "Vidéo %s : %s"
+
+#: src/media_input.cpp:294
+msgid "No video."
+msgstr "Aucune vidéo."
+
+#: src/media_input.cpp:300
+#, c-format
+msgid "Audio %s: %s"
+msgstr "Audio %s : %s"
+
+#: src/media_input.cpp:305
+msgid "No audio."
+msgstr "Pas d'audio."
+
+#: src/media_input.cpp:311
+#, c-format
+msgid "Subtitle %s: %s"
+msgstr "Sous-titres %s : %s"
+
+#: src/media_input.cpp:316
+msgid "No subtitle."
+msgstr "Aucun sous-titre."
+
+#: src/media_input.cpp:318
+#, c-format
+msgid "Duration: %g seconds"
+msgstr "Durée : %g secondes"
+
+#: src/media_input.cpp:321
+#, c-format
+msgid "Stereo layout: %s"
+msgstr "Mode stéréo : %s"
+
+#: src/media_object.cpp:584
+#, c-format
+msgid "%s audio stream %d: Cannot handle audio with %d channels."
+msgstr "%s flux audio %d : Impossible de gérer de l'audio à %d canaux."
+
+#: src/media_object.cpp:613
+#, c-format
+msgid "%s audio stream %d: Cannot handle audio with sample format %s."
+msgstr ""
+"%s flux audio %d : Impossible de gérer de l'audio au format d'échantillon %s."
+
+#: src/media_object.cpp:642 src/media_object.cpp:1100 src/xgl.cpp:297
+#, c-format
+msgid "%s: %s"
+msgstr "%s : %s"
+
+#: src/media_object.cpp:647
+#, c-format
+msgid "%s: Cannot read stream info: %s"
+msgstr "%s : Impossible de lire l'information du flux : %s"
+
+#: src/media_object.cpp:675
+#, c-format
+msgid "%s video stream %d: Invalid frame size."
+msgstr "%s flux vidéo %d : Taille de l'image invalide."
+
+#: src/media_object.cpp:681
+#, c-format
+msgid "%s video stream %d: Unsupported video codec."
+msgstr "%s flux vidéo %d : Codec vidéo non supporté."
+
+#: src/media_object.cpp:688
+#, c-format
+msgid "%s video stream %d: Cannot open video codec: %s"
+msgstr "%s flux vidéo %d : Impossible d'ouvrir le codec vidéo : %s"
+
+#: src/media_object.cpp:723
+#, c-format
+msgid "%s video stream %d: Cannot initialize conversion context."
+msgstr "%s flux vidéo %d : Impossible d'initialiser le contexte de conversion."
+
+#: src/media_object.cpp:744
+#, c-format
+msgid "%s audio stream %d: Unsupported audio codec."
+msgstr "%s flux audio %d : Codec audio non supporté."
+
+#: src/media_object.cpp:750
+#, c-format
+msgid "%s audio stream %d: Cannot open audio codec: %s"
+msgstr "%s flux audio %d : Impossible d'ouvrir le codec audio : %s"
+
+#: src/media_object.cpp:783
+#, c-format
+msgid "%s subtitle stream %d: Unsupported subtitle codec."
+msgstr "%s flux de sous-titres %d : Codec de sous-titres non supporté."
+
+#: src/media_object.cpp:789
+#, c-format
+msgid "%s subtitle stream %d: Cannot open subtitle codec: %s"
+msgstr ""
+"%s flux de sous-titres %d : Impossible d'ouvrir le codec de sous-titres : %s"
+
+#: src/media_object.cpp:814
+#, c-format
+msgid "Video stream %d: %s / %s, %g seconds"
+msgstr "Flux vidéo %d : %s / %s, %g secondes"
+
+#: src/media_object.cpp:818
+#, c-format
+msgid "Using up to %d threads for decoding."
+msgstr "Utilisation de maximum %d threads pour le décodage."
+
+#: src/media_object.cpp:823
+#, c-format
+msgid "Audio stream %d: %s / %s, %g seconds"
+msgstr "Flux audio %d : %s / %s, %g secondes"
+
+#: src/media_object.cpp:830
+#, c-format
+msgid "Subtitle stream %d: %s / %s, %g seconds"
+msgstr "Flux de sous-titres %d : %s / %s, %g secondes"
+
+#: src/media_object.cpp:837
+msgid "No usable streams."
+msgstr "Aucun flux utilisable"
+
+#: src/media_object.cpp:1116 src/media_object.cpp:1146
+#: src/media_object.cpp:1176
+#, c-format
+msgid "%s: Cannot duplicate packet."
+msgstr "%s : Impossible de dupliquer le paquet."
+
+#: src/media_object.cpp:1670
+#, c-format
+msgid "%s: Seeking failed."
+msgstr "%s : Échec de la recherche."
+
+#: src/player.cpp:189
+msgid "Cannot create a second master player."
+msgstr "Impossible de créer un second lecteur maître."
+
+#: src/player.cpp:206
+msgid "No video streams found."
+msgstr "Aucun flux vidéo trouvé."
+
+#: src/player.cpp:212
+msgid "Cannot set requested stereo layout: incompatible media."
+msgstr "Impossible de choisir le mode stéréo sélectionné : média incompatible."
+
+#: src/player.cpp:218
+#, c-format
+msgid "Video stream %d not found."
+msgstr "Flux vidéo %d non trouvé."
+
+#: src/player.cpp:223
+#, c-format
+msgid "Audio stream %d not found."
+msgstr "Flux audio %d non trouvé."
+
+#: src/player.cpp:231
+#, c-format
+msgid "Subtitle stream %d not found."
+msgstr "Flux de sous-titres %d non trouvé."
+
+#: src/player.cpp:621
+#, c-format
+msgid "Video: delay %g seconds; dropping next frame."
+msgstr "Vidéo : retard de %g secondes; image suivante sautée."
+
+#: src/player.cpp:633
+#, c-format
+msgid "FPS: %.2f"
+msgstr "FPS : %.2f"
+
+#: src/player_equalizer.cpp:129
+msgid "Reading input frame failed."
+msgstr "Echec de la lecture de l'image d'entrée."
+
+#: src/player_equalizer.cpp:243
+msgid "Init data mapping failed."
+msgstr "Echec du routage des données initiales."
+
+#: src/player_equalizer.cpp:244
+msgid "Frame data mapping failed."
+msgstr "Echec du routage des images."
+
+#: src/player_equalizer.cpp:245
+msgid "Video player initialization failed."
+msgstr "Echec de l'initialisation du lecteur vidéo."
+
+#: src/player_equalizer.cpp:246
+msgid "Need at least OpenGL 2.1."
+msgstr "OpenGL 2.1 minimum requis."
+
+#: src/player_equalizer.cpp:447
+msgid "No canvas in Equalizer configuration."
+msgstr "Pas de canevas dans la configuration Equalizer."
+
+#: src/player_equalizer.cpp:481
+msgid "Equalizer canvas:"
+msgstr "Canevas Equalizer :"
+
+#: src/player_equalizer.cpp:482
+#, c-format
+msgid "%gx%g, aspect ratio %g:1"
+msgstr "%gx%g, facteur d'aspect %g:1"
+
+#: src/player_equalizer.cpp:483
+#, c-format
+msgid "Area for %g:1 video: [ %g %g %g %g @ %g ]"
+msgstr "Région pour vidéo %g:1 : [ %g %g %g %g @ %g ]"
+
+#: src/player_equalizer.cpp:896 src/video_output_qt.cpp:308
+msgid ""
+"This OpenGL implementation does not support OpenGL 2.1 and framebuffer "
+"objects."
+msgstr ""
+"Cette implémentation OpenGL se supporte pas OpenGL 2.1 et les framebuffer "
+"objects."
+
+#: src/player_equalizer.cpp:1062
+msgid "Equalizer initialization failed."
+msgstr "Echec de l'initialisation d'Equalizer."
+
+#: src/player_equalizer.cpp:1070
+msgid "Cannot get equalizer configuration."
+msgstr "Impossible de lire la configuration d'Equalizer."
+
+#: src/player_equalizer.cpp:1084
+msgid "Equalizer configuration initialization failed."
+msgstr "Echec de l'initialisation de la configuration d'Equalizer."
+
+#: src/player_qt.cpp:135
+msgid "Video:"
+msgstr "Vidéo :"
+
+#: src/player_qt.cpp:136
+msgid "<p>Select the video stream.</p>"
+msgstr "<p>Choisir le flux vidéo.</p>"
+
+#: src/player_qt.cpp:142
+msgid "Audio:"
+msgstr "Audio :"
+
+#: src/player_qt.cpp:143
+msgid "<p>Select the audio stream.</p>"
+msgstr "<p>Choisir le flux audio.</p>"
+
+#: src/player_qt.cpp:149
+msgid "Subtitle:"
+msgstr "Sous-titres :"
+
+#: src/player_qt.cpp:150
+msgid "<p>Select the subtitle stream.</p>"
+msgstr "<p>Choisir le flux de sous-titres.</p>"
+
+#: src/player_qt.cpp:162
+msgid "<p>Set the 3D layout of the video stream.</p>"
+msgstr "<p>Choisir la disposition 3D du flux vidéo</p>"
+
+#: src/player_qt.cpp:166
+msgid "2D"
+msgstr "2D"
+
+#: src/player_qt.cpp:167
+msgid "Separate streams, left first"
+msgstr "Flux séparés, gauche d'abord"
+
+#: src/player_qt.cpp:168
+msgid "Separate streams, right first"
+msgstr "Flux séparés, droit d'abord"
+
+#: src/player_qt.cpp:169 src/player_qt.cpp:192
+msgid "Top/bottom"
+msgstr "Haut/bas"
+
+#: src/player_qt.cpp:170 src/player_qt.cpp:193
+msgid "Top/bottom, half height"
+msgstr "Haut/bas, demi-hauteur"
+
+#: src/player_qt.cpp:171
+msgid "Bottom/top"
+msgstr "Bas/haut"
+
+#: src/player_qt.cpp:172
+msgid "Bottom/top, half height"
+msgstr "Bas/haut, demi-hauteur"
+
+#: src/player_qt.cpp:173 src/player_qt.cpp:194
+msgid "Left/right"
+msgstr "gauche/droite"
+
+#: src/player_qt.cpp:174 src/player_qt.cpp:195
+msgid "Left/right, half width"
+msgstr "Gauche/droite, demi-largeur"
+
+#: src/player_qt.cpp:175
+msgid "Right/left"
+msgstr "Droite/gauche"
+
+#: src/player_qt.cpp:176
+msgid "Right/left, half width"
+msgstr "Droite/gauche, demi-largeur"
+
+#: src/player_qt.cpp:177 src/player_qt.cpp:196
+msgid "Even/odd rows"
+msgstr "Lignes paires/impaires"
+
+#: src/player_qt.cpp:178
+msgid "Odd/even rows"
+msgstr "Lignes impaires/paires"
+
+#: src/player_qt.cpp:184
+msgid "Output:"
+msgstr "Sortie :"
+
+#: src/player_qt.cpp:185
+msgid "<p>Set the 3D output type for your display.</p>"
+msgstr "Choisir le type de sortie 3D pour votre affichage."
+
+#: src/player_qt.cpp:189
+msgid "Left view"
+msgstr "Vue gauche"
+
+#: src/player_qt.cpp:190
+msgid "Right view"
+msgstr "Vue droite"
+
+#: src/player_qt.cpp:191
+msgid "OpenGL stereo"
+msgstr "Stéréo OpenGL"
+
+#: src/player_qt.cpp:197
+msgid "Even/odd columns"
+msgstr "Colonnes paires/impaires"
+
+#: src/player_qt.cpp:198
+msgid "Checkerboard pattern"
+msgstr "Damier"
+
+#: src/player_qt.cpp:199
+msgid "HDMI frame packing mode"
+msgstr "Mode HDMI frame packing"
+
+#: src/player_qt.cpp:200
+msgid "Red/cyan glasses, monochrome method"
+msgstr "Lunettes rouge/cyan, monochrome"
+
+#: src/player_qt.cpp:201
+msgid "Red/cyan glasses, half-color method"
+msgstr "Lunettes rouge/cyan, demi-couleur"
+
+#: src/player_qt.cpp:202
+msgid "Red/cyan glasses, full-color method"
+msgstr "Lunettes rouge/cyan, pleine couleur"
+
+#: src/player_qt.cpp:203
+msgid "Red/cyan glasses, high-quality Dubois method"
+msgstr "Lunettes rouge/cyan, méthode Dubois"
+
+#: src/player_qt.cpp:204
+msgid "Green/magenta glasses, monochrome method"
+msgstr "Lunettes vert/magenta, monochrome"
+
+#: src/player_qt.cpp:205
+msgid "Green/magenta glasses, half-color method"
+msgstr "Lunettes vert/magenta, demi-couleur"
+
+#: src/player_qt.cpp:206
+msgid "Green/magenta glasses, full-color method"
+msgstr "Lunettes vert/magenta, pleine couleur"
+
+#: src/player_qt.cpp:207
+msgid "Green/magenta glasses, high-quality Dubois method"
+msgstr "Lunettes vert/magenta, méthode Dubois"
+
+#: src/player_qt.cpp:208
+msgid "Amber/blue glasses, monochrome method"
+msgstr "Lunettes Ambre/bleu, monochrome"
+
+#: src/player_qt.cpp:209
+msgid "Amber/blue glasses, half-color method"
+msgstr "Lunettes Ambre/bleu, demi-couleur"
+
+#: src/player_qt.cpp:210
+msgid "Amber/blue glasses, full-color method"
+msgstr "Lunettes Ambre/bleu, pleine couleur"
+
+#: src/player_qt.cpp:211
+msgid "Amber/blue glasses, high-quality Dubois method"
+msgstr "Lunettes Ambre/bleu, méthode Dubois"
+
+#: src/player_qt.cpp:212
+msgid "Red/green glasses, monochrome method"
+msgstr "Lunettes rouge/vert, monochrome"
+
+#: src/player_qt.cpp:213
+msgid "Red/blue glasses, monochrome method"
+msgstr "Lunettes rouge/bleu, monochrome"
+
+#: src/player_qt.cpp:217
+msgid "Swap left/right"
+msgstr "Echanger gauche/droite"
+
+#: src/player_qt.cpp:218
+msgid ""
+"<p>Swap the left and right view. Use this if the 3D effect seems wrong.</p>"
+msgstr ""
+"<p>Echanger les vues droite et gauche. À utiliser si l'effet 3D parait "
+"étrange.</p>"
+
+#: src/player_qt.cpp:485
+msgid "Off"
+msgstr "Eteint"
+
+#: src/player_qt.cpp:719
+msgid ""
+"<p>This slider shows the progress during video playback, and can be used to "
+"seek in the video.</p>"
+msgstr ""
+"<p>Ce curseur montre la progression de la lecture vidéo, et peut être "
+"utiliser pour naviguer dans la vidéo</p>"
+
+#: src/player_qt.cpp:726
+msgid "<p>Play.</p>"
+msgstr "<p>Lecture.</p>"
+
+#: src/player_qt.cpp:730
+msgid "<p>Pause.</p>"
+msgstr "<p>Pause.</p>"
+
+#: src/player_qt.cpp:734
+msgid "<p>Stop.</p>"
+msgstr "<p>Stop.</p>"
+
+#: src/player_qt.cpp:739
+msgid ""
+"<p>Switch to fullscreen mode. You can leave fullscreen mode by pressing the "
+"f key.</p>"
+msgstr ""
+"<p>Passer en mode plein écran. Vous pouvez quitter le mode plein écran avec "
+"la touche f ou ESC.</p>"
+
+#: src/player_qt.cpp:744
+msgid "<p>Center the video area on your screen.</p>"
+msgstr "<p>Centrer la vidéo sur l'écran.</p>"
+
+#: src/player_qt.cpp:749
+msgid "<p>Seek backward 10 minutes.</p>"
+msgstr "<p>Aller 10 minutes en arrière.</p>"
+
+#: src/player_qt.cpp:753
+msgid "<p>Seek backward 1 minute.</p>"
+msgstr "<p>Aller 1 minute en arrière.</p>"
+
+#: src/player_qt.cpp:757
+msgid "<p>Seek backward 10 seconds.</p>"
+msgstr "<p>Aller 10 secondes en arrière.</p>"
+
+#: src/player_qt.cpp:761
+msgid "<p>Seek forward 10 seconds.</p>"
+msgstr "<p>Aller 10 secondes en avant.</p>"
+
+#: src/player_qt.cpp:765
+msgid "<p>Seek forward 1 minute.</p>"
+msgstr "<p>Aller 1 minute en avant.</p>"
+
+#: src/player_qt.cpp:769
+msgid "<p>Seek forward 10 minutes.</p>"
+msgstr "<p>Aller 10 minutes en avant.</p>"
+
+#: src/player_qt.cpp:941
+msgid "Display Color Adjustments"
+msgstr "Réglages des couleurs d'affichage"
+
+#: src/player_qt.cpp:943
+msgid "Contrast:"
+msgstr "Contraste :"
+
+#: src/player_qt.cpp:954
+msgid "Brightness:"
+msgstr "Luminosité :"
+
+#: src/player_qt.cpp:965
+msgid "Hue:"
+msgstr "Teinte :"
+
+#: src/player_qt.cpp:976
+msgid "Saturation:"
+msgstr "Saturation :"
+
+#: src/player_qt.cpp:988 src/player_qt.cpp:1147 src/player_qt.cpp:1266
+#: src/player_qt.cpp:1565 src/player_qt.cpp:2185 src/player_qt.cpp:2359
+msgid "OK"
+msgstr "OK"
+
+#: src/player_qt.cpp:1118
+msgid "Display Crosstalk Calibration"
+msgstr "Calibrage du crosstalk d'affichage"
+
+#. TRANSLATORS: Please keep the lines short using <br> where necessary.
+#: src/player_qt.cpp:1121
+msgid ""
+"<p>Please read the manual to find out<br>how to measure the crosstalk "
+"levels<br>of your display.</p>"
+msgstr ""
+"<p>Le manuel explique comment<br>mesurer le niveau de crosstalk<br>de votre "
+"affichage.</p>"
+
+#: src/player_qt.cpp:1125
+msgid "Red:"
+msgstr "Rouge :"
+
+#: src/player_qt.cpp:1132
+msgid "Green:"
+msgstr "Vert :"
+
+#: src/player_qt.cpp:1139
+msgid "Blue:"
+msgstr "Bleu :"
+
+#: src/player_qt.cpp:1208
+msgid "Subtitle Settings"
+msgstr "Réglages des sous-titres"
+
+#: src/player_qt.cpp:1210
+msgid "<p>These settings apply to soft subtitles, but not to bitmaps.</p>"
+msgstr ""
+"<p>Ces réglages s'appliquent aux sous-titres textuels, pas aux bitmaps.</p>"
+
+#: src/player_qt.cpp:1212
+msgid "Encoding:"
+msgstr "Encodage :"
+
+#: src/player_qt.cpp:1213
+msgid "<p>Set the subtitle character set encoding.</p>"
+msgstr "<p>Choisir l'encodage du jeux de caractères des sous-titres."
+
+#: src/player_qt.cpp:1227
+msgid "Override font:"
+msgstr "Police de caractères :"
+
+#: src/player_qt.cpp:1228
+msgid "<p>Override the subtitle font family.</p>"
+msgstr "<p>Force la police de caractères utilisée pour les sous-titres.</p>"
+
+#: src/player_qt.cpp:1236
+msgid "Override font size:"
+msgstr "Taille de police :"
+
+#: src/player_qt.cpp:1237
+msgid "<p>Override the subtitle font size.</p>"
+msgstr "<p>Force la taille de la police des sous-titres.</p>"
+
+#: src/player_qt.cpp:1246
+msgid "Override scale factor:"
+msgstr "Facteur d'échelle :"
+
+#: src/player_qt.cpp:1247
+msgid "<p>Override the subtitle scale factor.</p>"
+msgstr "<p>Force le facteur d'échelle des sous-titres.</p>"
+
+#: src/player_qt.cpp:1257
+msgid "Override color:"
+msgstr "Couleur :"
+
+#: src/player_qt.cpp:1258
+msgid "<p>Override the subtitle color.</p>"
+msgstr "<p>Force la couleur des sous-titres.</p>"
+
+#: src/player_qt.cpp:1514
+msgid "Stereoscopic Video Settings"
+msgstr "Réglages de la vidéo stéréoscopique"
+
+#: src/player_qt.cpp:1516
+msgid "Parallax:"
+msgstr "Parallaxe :"
+
+#: src/player_qt.cpp:1517
+msgid ""
+"<p>Adjust parallax, from -1 to +1. This changes the separation of left and "
+"right view, and thus the perceived distance of the scene.</p>"
+msgstr ""
+"<p>Ajuster la parallaxe, de -1 à 1.  Ceci change la séparation des vues "
+"gauche et droite, et donc la distance perçue de la scène.</p>"
+
+#: src/player_qt.cpp:1532
+msgid "Subtitle parallax:"
+msgstr "Parallaxe des sous-titres :"
+
+#: src/player_qt.cpp:1533
+msgid ""
+"<p>Adjust subtitle parallax, from -1 to +1. This changes the perceived "
+"distance of the subtitles.</p>"
+msgstr ""
+"<p>Ajuster la parallaxe des sous-titres, de -1 à 1. Ceci change la distance "
+"perçue des sous-titres.</p>"
+
+#: src/player_qt.cpp:1548
+msgid "Ghostbusting:"
+msgstr "Ghostbusting :"
+
+#: src/player_qt.cpp:1549
+msgid ""
+"<p>Set the amount of crosstalk ghostbusting, from 0 to 1. You need to set "
+"the crosstalk levels of your display first. Note that crosstalk ghostbusting "
+"does not work with anaglyph glasses.</p>"
+msgstr ""
+"<p>Choisir le niveau de ghostbusting (élimination du crosstalk), de 0 à 1. "
+"Vous devez régler le niveau de crosstalk de votre affichage d'abord. Le "
+"ghostbusting ne fonctionne pas avec les lunettes anaglyphes.</p>"
+
+#: src/player_qt.cpp:1753
+msgid "&File"
+msgstr "&Fichier"
+
+#: src/player_qt.cpp:1754
+msgid "&Open..."
+msgstr "&Ouvrir..."
+
+#: src/player_qt.cpp:1758
+msgid "Open &URL..."
+msgstr "Ouvrir l'&URL..."
+
+#: src/player_qt.cpp:1762
+msgid "&Quit..."
+msgstr "&Quitter..."
+
+#: src/player_qt.cpp:1766
+msgid "&Preferences"
+msgstr "&Préférences"
+
+#: src/player_qt.cpp:1767
+msgid "Display &Color Adjustments..."
+msgstr "Réglage des &couleurs de l'affichage..."
+
+#: src/player_qt.cpp:1770
+msgid "Display Cross&talk Calibration..."
+msgstr "Calibrage du cross&talk de l'affichage..."
+
+#: src/player_qt.cpp:1774
+msgid "&Subtitle Settings..."
+msgstr "Réglage des &sous-titres..."
+
+#: src/player_qt.cpp:1778
+msgid "Stereoscopic Video Settings..."
+msgstr "Réglages de la vidéo stéréoscopique..."
+
+#: src/player_qt.cpp:1781
+msgid "&Help"
+msgstr "Aide"
+
+#: src/player_qt.cpp:1782
+msgid "&Manual..."
+msgstr "&Manuel..."
+
+#: src/player_qt.cpp:1786
+msgid "&Website..."
+msgstr "Site &web..."
+
+#: src/player_qt.cpp:1789
+msgid "&Keyboard Shortcuts"
+msgstr "Raccourcis clavier"
+
+#: src/player_qt.cpp:1792
+msgid "&About"
+msgstr "&À propos"
+
+#: src/player_qt.cpp:1846 src/player_qt.cpp:2261 src/player_qt.cpp:2269
+#: src/video_output_qt.cpp:84 src/video_output_qt.cpp:314
+#: src/video_output_qt.cpp:359
+msgid "Error"
+msgstr "Erreur"
+
+#: src/player_qt.cpp:2168
+msgid "Open files"
+msgstr "Ouvrir des fichiers"
+
+#: src/player_qt.cpp:2181
+msgid "Open URL"
+msgstr "Ouvrir un URL"
+
+#: src/player_qt.cpp:2182
+msgid "URL:"
+msgstr "URL :"
+
+#: src/player_qt.cpp:2186
+msgid "Cancel"
+msgstr "Annuler"
+
+#: src/player_qt.cpp:2261
+msgid "Cannot open manual."
+msgstr "Impossible d'ouvrir le manuel."
+
+#: src/player_qt.cpp:2269
+msgid "Cannot open website."
+msgstr "Impossible d'ouvrir le site web."
+
+#: src/player_qt.cpp:2275
+msgid "Keyboard Shortcuts"
+msgstr "Raccourcis clavier"
+
+#. TRANSLATORS: This is a HTML table, shown under Help->Keyboard Shortcuts.
+#. Please make sure that your translation formats properly.
+#: src/player_qt.cpp:2278
+msgid ""
+"<p>Keyboard control:<br>(Click into the video area to give it the keyboard "
+"focus if necessary.)<table><tr><td>q or ESC</td><td>Stop</td></tr><tr><td>p "
+"or SPACE</td><td>Pause / unpause</td></tr><tr><td>f</td><td>Toggle "
+"fullscreen</td></tr><tr><td>c</td><td>Center window</td></tr><tr><td>e</"
+"td><td>Swap left/right eye</td></tr><tr><td>v</td><td>Cycle through "
+"available video streams</td></tr><tr><td>a</td><td>Cycle through available "
+"audio streams</td></tr><tr><td>s</td><td>Cycle through available subtitle "
+"streams</td></tr><tr><td>1, 2</td><td>Adjust contrast</td></tr><tr><td>3, 4</"
+"td><td>Adjust brightness</td></tr><tr><td>5, 6</td><td>Adjust hue</td></"
+"tr><tr><td>7, 8</td><td>Adjust saturation</td></tr><tr><td>&lt;, &gt;</"
+"td><td>Adjust parallax</td></tr><tr><td>(, )</td><td>Adjust ghostbusting</"
+"td></tr><tr><td>left, right</td><td>Seek 10 seconds backward / forward</td></"
+"tr><tr><td>up, down</td><td>Seek 1 minute backward / forward</td></"
+"tr><tr><td>page up, page down</td><td>Seek 10 minutes backward / forward</"
+"td></tr></table></p>"
+msgstr ""
+"<p>Contrôle par le clavier:<br>(Cliquer dans la zone vidéo pour lui donner "
+"le focus si nécessaire.)<table><tr><td>q ou ESC</td><td>Stop</td></"
+"tr><tr><td>p ou ESPACE</td><td>Pause / continuer</td></tr><tr><td>f</"
+"td><td>Basculer en plein écran</td></tr><tr><td>c</td><td>Centrer la "
+"fenêtre</td></tr><tr><td>e</td><td>Echanger les yeux gauche/droit</td></"
+"tr><tr><td>v</td><td>Parcourir les flux vidéo disponibles</td></"
+"tr><tr><td>a</td><td>Parcourir les flux audio disponibles</td></"
+"tr><tr><td>s</td><td>Parcourir les flux de sous-titres disponibles</td></"
+"tr><tr><td>1, 2</td><td>Ajuster le contraste</td></tr><tr><td>3, 4</"
+"td><td>Ajuster la luminosité</td></tr><tr><td>5, 6</td><td>Ajuster la "
+"teinte</td></tr><tr><td>7, 8</td><td>Ajuster la saturation</td></"
+"tr><tr><td>&lt;, &gt;</td><td>Ajuster la parallaxe</td></tr><tr><td>(, )</"
+"td><td>Adjuster le ghostbusting</td></tr><tr><td>gauche, droite</"
+"td><td>Avancer / reculer de 10 secondes</td></tr><tr><td>haut, bas</"
+"td><td>Avancer / reculer d'1 minute</td></tr><tr><td>page prec., page suiv.</"
+"td><td>Avancer / reculer de 10 minutes</td></tr></table></p>"
+
+#: src/player_qt.cpp:2306
+#, c-format
+msgid "About %s"
+msgstr "À propos de %s"
+
+#: src/player_qt.cpp:2312
+#, c-format
+msgid "The %s 3D video player"
+msgstr "Le lecteur vidéo 3D %s"
+
+#: src/player_qt.cpp:2317
+#, c-format
+msgid ""
+"<p>%s version %s.</p><p>Copyright (C) 2011 the Bino developers.</p><p>This "
+"is free software. You may redistribute copies of it under the terms of the "
+"<a href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public License</"
+"a>. There is NO WARRANTY, to the extent permitted by law.</p><p>See <a href="
+"\"%s\">%s</a> for more information on this software.</p>"
+msgstr ""
+"<p>%s version %s.</p><p>Copyright (C) 2011 les développeurs Bino.</p><p>Ceci "
+"est un logiciel libre. Vous pouvez en distribuer des copies sous les termes "
+"de la <a href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public "
+"License</a>. Il n'y a AUCUNE GARANTIE, dans les limites autorisées par la "
+"loi.</p><p>Voir <a href=\"%s\">%s</a> pour plus d'informations sur ce "
+"logiciel.</p>"
+
+#: src/player_qt.cpp:2354
+msgid "About"
+msgstr "À propos"
+
+#: src/player_qt.cpp:2355
+msgid "Libraries"
+msgstr "Bibliothèques"
+
+#: src/player_qt.cpp:2356
+msgid "Team"
+msgstr "Équipe"
+
+#: src/player_qt.cpp:2357
+msgid "License"
+msgstr "Licence"
+
+#: src/subtitle_renderer.cpp:235
+msgid "Cannot initialize LibASS."
+msgstr "Impossible d'initialiser LibASS."
+
+#: src/subtitle_renderer.cpp:243
+msgid "Cannot initialize LibASS renderer."
+msgstr "Impossible d'initialiser le rendu par LibASS."
+
+#: src/subtitle_renderer.cpp:341
+msgid "Cannot initialize LibASS track."
+msgstr "Impossible d'initialiser la piste LibASS."
+
+#: src/subtitle_renderer.cpp:352
+#, c-format
+msgid "Subtitle character set conversion failed: %s"
+msgstr "La conversion de jeu de caractère de sous-titres a échoué : %s"
+
+#: src/video_output.cpp:375 src/video_output.cpp:485
+msgid "Cannot create a PBO buffer."
+msgstr "Impossuble de créer un buffer PBO."
+
+#: src/video_output_qt.cpp:303
+#, c-format
+msgid "Cannot initialize GLEW: %s"
+msgstr "Impossible d'initialiser GLEW : %s"
+
+#: src/video_output_qt.cpp:349
+msgid "The display does not support OpenGL stereo mode."
+msgstr "L'affichage ne supporte pas le mode OpenGL stéréo"
+
+#: src/video_output_qt.cpp:354
+msgid "Cannot set OpenGL context format."
+msgstr "Impossible de choisir le format du contexte OpenGL"
+
+#: src/xgl.cpp:200
+#, c-format
+msgid "OpenGL FBO error %s."
+msgstr "Erreur OpenGL FBO %s."
+
+#: src/xgl.cpp:217
+#, c-format
+msgid "OpenGL error 0x%04X."
+msgstr "Erreur OpenGL 0x%04X."
+
+#: src/xgl.cpp:282
+#, c-format
+msgid "OpenGL %s '%s': compiler warning:"
+msgstr "OpenGL %s '%s' : avertissement du compilateur :"
+
+#: src/xgl.cpp:283 src/xgl.cpp:292
+msgid "vertex shader"
+msgstr "vertex shader"
+
+#: src/xgl.cpp:284 src/xgl.cpp:293
+msgid "geometry shader"
+msgstr "geometry shader"
+
+#: src/xgl.cpp:285 src/xgl.cpp:294
+msgid "fragment shader"
+msgstr "fragment shader"
+
+#: src/xgl.cpp:291
+#, c-format
+msgid "OpenGL %s '%s': compilation failed."
+msgstr "OpenGL %s '%s' : Échec de la compilation."
+
+#: src/xgl.cpp:296 src/xgl.cpp:363
+msgid "unknown error"
+msgstr "erreur inconnue"
+
+#: src/xgl.cpp:357
+#, c-format
+msgid "OpenGL program '%s': linker warning:"
+msgstr "Programme OpenGL '%s' : avertissement de l'éditeur de liens."
+
+#: src/xgl.cpp:362
+#, c-format
+msgid "OpenGL program '%s': linking failed."
+msgstr "Programme OpenGL '%s' : erreur de l'éditeur de liens."

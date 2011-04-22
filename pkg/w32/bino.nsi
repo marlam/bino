@@ -48,25 +48,28 @@ Var STARTMENU_FOLDER
   !insertmacro MUI_UNPAGE_CONFIRM
   !insertmacro MUI_UNPAGE_INSTFILES
 
-; Languages
+; Languages: native first, others sorted by the language code (cs, de, ...)
   !insertmacro MUI_LANGUAGE "English"
-  !insertmacro MUI_LANGUAGE "German"
   !insertmacro MUI_LANGUAGE "Czech"
-  !insertmacro MUI_LANGUAGE "Russian"
+  !insertmacro MUI_LANGUAGE "German"
+  !insertmacro MUI_LANGUAGE "French"
   !insertmacro MUI_LANGUAGE "Polish"
+  !insertmacro MUI_LANGUAGE "Russian"
 
 ; Program file installation
 Section "Bino Program" SecTools
   SetOutPath $INSTDIR\bin
   FILE bino.exe
-  SetOutPath $INSTDIR\locale\de\LC_MESSAGES
-  FILE de\LC_MESSAGES\bino.mo
   SetOutPath $INSTDIR\locale\cs\LC_MESSAGES
   FILE cs\LC_MESSAGES\bino.mo
-  SetOutPath $INSTDIR\locale\ru\LC_MESSAGES
-  FILE ru\LC_MESSAGES\bino.mo
+  SetOutPath $INSTDIR\locale\de\LC_MESSAGES
+  FILE de\LC_MESSAGES\bino.mo
+  SetOutPath $INSTDIR\locale\fr\LC_MESSAGES
+  FILE fr\LC_MESSAGES\bino.mo
   SetOutPath $INSTDIR\locale\pl\LC_MESSAGES
   FILE pl\LC_MESSAGES\bino.mo
+  SetOutPath $INSTDIR\locale\ru\LC_MESSAGES
+  FILE ru\LC_MESSAGES\bino.mo
   SetOutPath $INSTDIR\doc
   FILE bino.html
   FILE multi-display-vrlab.jpg
