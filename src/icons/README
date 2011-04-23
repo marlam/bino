@@ -1,15 +1,5 @@
-For all files in this directory, the following applies:
+The icons in this directory were taken from the Oxygen icon theme at
+<ftp://ftp.kde.org/pub/kde/stable/4.5.5/src/oxygen-icons-4.5.5.tar.bz2>.
 
-# Copyright (C) 2010-2011
-# Martin Lambers <marlam@marlam.de>
-#
-# Copying and distribution of this file, with or without modification, are
-# permitted in any medium without royalty provided the copyright notice and this
-# notice are preserved. This file is offered as-is, without any warranty.
-
-The icons were created with ipe and converted to png using
-iperender -png -resolution 100 <icon.ipe> <icon.png>
-
-Unfortunately, iperender seems to mishandle transparency, so as a
-postprocessing step, transparency was repaired using Gimp's color to alpha
-function on white.
+See the file COPYING in this directory for copyright and license information
+for these icons.

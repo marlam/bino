@@ -68,6 +68,15 @@
 #include "msg.h"
 
 
+// Helper function: Get the icon with the given name from the icon theme.
+// If unavailable, fall back to the built-in icon. Icon names conform to this specification:
+// http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html
+static QIcon get_icon(const QString &name)
+{
+    return QIcon::fromTheme(name, QIcon(QString(":icons/") + name));
+}
+
+
 player_qt_internal::player_qt_internal(bool benchmark, video_container_widget *widget) :
     player(player::master), _benchmark(benchmark), _playing(false), _container_widget(widget), _video_output(NULL)
 {
@@ -722,50 +731,54 @@ controls_widget::controls_widget(QSettings *settings, QWidget *parent)
     _seek_slider->setTracking(false);
     connect(_seek_slider, SIGNAL(valueChanged(int)), this, SLOT(seek_slider_changed()));
     layout->addWidget(_seek_slider, 0, 0, 1, 13);
-    _play_button = new QPushButton(QIcon(":icons/play.png"), "");
+    _play_button = new QPushButton(get_icon("media-playback-start"), "");
     _play_button->setToolTip(_("<p>Play.</p>"));
     connect(_play_button, SIGNAL(pressed()), this, SLOT(play_pressed()));
     layout->addWidget(_play_button, 1, 0);
-    _pause_button = new QPushButton(QIcon(":icons/pause.png"), "");
+    _pause_button = new QPushButton(get_icon("media-playback-pause"), "");
     _pause_button->setToolTip(_("<p>Pause.</p>"));
     connect(_pause_button, SIGNAL(pressed()), this, SLOT(pause_pressed()));
     layout->addWidget(_pause_button, 1, 1);
-    _stop_button = new QPushButton(QIcon(":icons/stop.png"), "");
+    _stop_button = new QPushButton(get_icon("media-playback-stop"), "");
     _stop_button->setToolTip(_("<p>Stop.</p>"));
     connect(_stop_button, SIGNAL(pressed()), this, SLOT(stop_pressed()));
     layout->addWidget(_stop_button, 1, 2);
     layout->addWidget(new QWidget, 1, 3);
-    _fullscreen_button = new QPushButton(QIcon(":icons/fullscreen.png"), "");
+    _fullscreen_button = new QPushButton(get_icon("view-fullscreen"), "");
     _fullscreen_button->setToolTip(_("<p>Switch to fullscreen mode. "
                 "You can leave fullscreen mode by pressing the f key.</p>"));
     connect(_fullscreen_button, SIGNAL(pressed()), this, SLOT(fullscreen_pressed()));
     layout->addWidget(_fullscreen_button, 1, 4);
-    _center_button = new QPushButton(QIcon(":icons/center.png"), "");
+    _center_button = new QPushButton(get_icon("view-restore"), "");
     _center_button->setToolTip(_("<p>Center the video area on your screen.</p>"));
     connect(_center_button, SIGNAL(pressed()), this, SLOT(center_pressed()));
     layout->addWidget(_center_button, 1, 5);
     layout->addWidget(new QWidget, 1, 6);
-    _bbb_button = new QPushButton(QIcon(":icons/bbb.png"), "");
+    _bbb_button = new QPushButton(get_icon("media-seek-backward"), "");
+    _bbb_button->setMinimumWidth(_bbb_button->minimumSizeHint().width() * 6 / 4);
     _bbb_button->setToolTip(_("<p>Seek backward 10 minutes.</p>"));
     connect(_bbb_button, SIGNAL(pressed()), this, SLOT(bbb_pressed()));
     layout->addWidget(_bbb_button, 1, 7);
-    _bb_button = new QPushButton(QIcon(":icons/bb.png"), "");
+    _bb_button = new QPushButton(get_icon("media-seek-backward"), "");
+    _bb_button->setMinimumWidth(_bb_button->minimumSizeHint().width() * 5 / 4);
     _bb_button->setToolTip(_("<p>Seek backward 1 minute.</p>"));
     connect(_bb_button, SIGNAL(pressed()), this, SLOT(bb_pressed()));
     layout->addWidget(_bb_button, 1, 8);
-    _b_button = new QPushButton(QIcon(":icons/b.png"), "");
+    _b_button = new QPushButton(get_icon("media-seek-backward"), "");
     _b_button->setToolTip(_("<p>Seek backward 10 seconds.</p>"));
     connect(_b_button, SIGNAL(pressed()), this, SLOT(b_pressed()));
     layout->addWidget(_b_button, 1, 9);
-    _f_button = new QPushButton(QIcon(":icons/f.png"), "");
+    _f_button = new QPushButton(get_icon("media-seek-forward"), "");
     _f_button->setToolTip(_("<p>Seek forward 10 seconds.</p>"));
     connect(_f_button, SIGNAL(pressed()), this, SLOT(f_pressed()));
     layout->addWidget(_f_button, 1, 10);
-    _ff_button = new QPushButton(QIcon(":icons/ff.png"), "");
+    _ff_button = new QPushButton(get_icon("media-seek-forward"), "");
+    _ff_button->setMinimumWidth(_ff_button->minimumSizeHint().width() * 5 / 4);
     _ff_button->setToolTip(_("<p>Seek forward 1 minute.</p>"));
     connect(_ff_button, SIGNAL(pressed()), this, SLOT(ff_pressed()));
     layout->addWidget(_ff_button, 1, 11);
-    _fff_button = new QPushButton(QIcon(":icons/fff.png"), "");
+    _fff_button = new QPushButton(get_icon("media-seek-forward"), "");
+    _fff_button->setMinimumWidth(_fff_button->minimumSizeHint().width() * 6 / 4);
     _fff_button->setToolTip(_("<p>Seek forward 10 minutes.</p>"));
     connect(_fff_button, SIGNAL(pressed()), this, SLOT(fff_pressed()));
     layout->addWidget(_fff_button, 1, 12);
@@ -1753,15 +1766,18 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     QMenu *file_menu = menuBar()->addMenu(_("&File"));
     QAction *file_open_act = new QAction(_("&Open..."), this);
     file_open_act->setShortcut(QKeySequence::Open);
+    file_open_act->setIcon(get_icon("document-open"));
     connect(file_open_act, SIGNAL(triggered()), this, SLOT(file_open()));
     file_menu->addAction(file_open_act);
     QAction *file_open_url_act = new QAction(_("Open &URL..."), this);
+    file_open_url_act->setIcon(get_icon("document-open"));
     connect(file_open_url_act, SIGNAL(triggered()), this, SLOT(file_open_url()));
     file_menu->addAction(file_open_url_act);
     file_menu->addSeparator();
     QAction *file_quit_act = new QAction(_("&Quit..."), this);
     file_quit_act->setShortcut(QKeySequence::Quit);
     file_quit_act->setMenuRole(QAction::QuitRole);
+    file_quit_act->setIcon(get_icon("application-exit"));
     connect(file_quit_act, SIGNAL(triggered()), this, SLOT(close()));
     file_menu->addAction(file_quit_act);
     QMenu *preferences_menu = menuBar()->addMenu(_("&Preferences"));
@@ -1784,16 +1800,20 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     QMenu *help_menu = menuBar()->addMenu(_("&Help"));
     QAction *help_manual_act = new QAction(_("&Manual..."), this);
     help_manual_act->setShortcut(QKeySequence::HelpContents);
+    help_manual_act->setIcon(get_icon("help-contents"));
     connect(help_manual_act, SIGNAL(triggered()), this, SLOT(help_manual()));
     help_menu->addAction(help_manual_act);
     QAction *help_website_act = new QAction(_("&Website..."), this);
+    help_website_act->setIcon(get_icon("applications-internet"));
     connect(help_website_act, SIGNAL(triggered()), this, SLOT(help_website()));
     help_menu->addAction(help_website_act);
     QAction *help_keyboard_act = new QAction(_("&Keyboard Shortcuts"), this);
+    help_keyboard_act->setIcon(get_icon("preferences-desktop-keyboard"));
     connect(help_keyboard_act, SIGNAL(triggered()), this, SLOT(help_keyboard()));
     help_menu->addAction(help_keyboard_act);
     QAction *help_about_act = new QAction(_("&About"), this);
     help_about_act->setMenuRole(QAction::AboutRole);
+    help_about_act->setIcon(get_icon("help-about"));
     connect(help_about_act, SIGNAL(triggered()), this, SLOT(help_about()));
     help_menu->addAction(help_about_act);
 

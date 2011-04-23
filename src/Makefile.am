@@ -25,8 +25,24 @@ bino_SOURCES = \
 	lib_versions.h lib_versions.cpp \
 	main.cpp
 
+ICONS = \
+	icons/application-exit.png \
+	icons/applications-internet.png \
+	icons/document-open.png \
+	icons/help-about.png \
+	icons/help-contents.png \
+	icons/media-playback-pause.png \
+	icons/media-playback-start.png \
+	icons/media-playback-stop.png \
+	icons/media-seek-backward.png \
+	icons/media-seek-forward.png \
+	icons/preferences-desktop-keyboard.png \
+	icons/view-fullscreen.png \
+	icons/view-restore.png
+
 EXTRA_DIST = \
-	qt_resources.qrc \
+	video_output_color.fs.glsl \
+	video_output_render.fs.glsl \
 	logo/README \
 	logo/bino_logo.ico \
 	logo/bino_logo.png \
@@ -36,24 +52,25 @@ EXTRA_DIST = \
 	logo/bino_logo_small_32x32.png \
 	logo/bino_logo_small_48x48.png \
 	logo/bino_logo_small_64x64.png \
+	icons/COPYING \
 	icons/README \
-	icons/play.ipe icons/play.png \
-	icons/pause.ipe icons/pause.png \
-	icons/stop.ipe icons/stop.png \
-	icons/fullscreen.ipe icons/fullscreen.png \
-	icons/center.ipe icons/center.png \
-	icons/f.ipe icons/f.png \
-	icons/ff.ipe icons/ff.png \
-	icons/fff.ipe icons/fff.png \
-	icons/b.ipe icons/b.png \
-	icons/bb.ipe icons/bb.png \
-	icons/bbb.ipe icons/bbb.png \
-	video_output_color.fs.glsl \
-	video_output_render.fs.glsl
+	$(ICONS)
+
+qt_resources.qrc:
+	$(AM_V_GEN)(echo '<!DOCTYPE RCC><RCC version="1.0">'; \
+	echo '<qresource>'; \
+	echo '<file alias="AUTHORS">$(top_srcdir)/AUTHORS</file>'; \
+	echo '<file alias="LICENSE">$(top_srcdir)/COPYING</file>'; \
+	echo '<file alias="logo/bino_logo.png">$(top_srcdir)/src/logo/bino_logo.png</file>'; \
+	echo '<file alias="logo/bino_logo_small_64x64.png">$(top_srcdir)/src/logo/bino_logo_small_64x64.png</file>'; \
+	for icon in $(ICONS); do echo '<file alias="'"$${icon}"'">$(top_srcdir)/src/'"$${icon}"'</file>'; done; \
+	echo '</qresource>'; \
+	echo '</RCC>') > $@
 
 qt_resources-rcc.cpp: $(filter %.png,$(EXTRA_DIST)) ../AUTHORS ../COPYING
 
 nodist_bino_SOURCES = \
+	qt_resources.qrc \
 	qt_resources-rcc.cpp \
 	player_qt-moc.cpp \
 	video_output_qt-moc.cpp \
