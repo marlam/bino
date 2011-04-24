@@ -83,7 +83,8 @@ public:
         adjust_subtitle_parallax,       // float (relative adjustment)
         set_subtitle_parallax,          // float (absolute value)
         seek,                           // float (relative adjustment)
-        set_pos                         // float (absolute position)
+        set_pos,                        // float (absolute position)
+        set_loop_mode,                  // parameters::loop_mode_t
     };
     
     type type;
@@ -146,7 +147,8 @@ public:
         subtitle_scale,         // float
         subtitle_color,         // uint64_t
         subtitle_parallax,      // float
-        pos                     // float
+        pos,                    // float
+        loop_mode,              // parameters::loop_mode_t
     };
     
     type type;

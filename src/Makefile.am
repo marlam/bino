@@ -34,6 +34,7 @@ ICONS = \
 	icons/media-playback-pause.png \
 	icons/media-playback-start.png \
 	icons/media-playback-stop.png \
+	icons/media-playlist-repeat.png \
 	icons/media-seek-backward.png \
 	icons/media-seek-forward.png \
 	icons/preferences-desktop-keyboard.png \

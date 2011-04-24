@@ -270,6 +270,12 @@ public:
         red_blue_monochrome,            // Red/blue anaglyph, monochrome method
     } stereo_mode_t;
 
+    typedef enum
+    {
+        no_loop,                        // Do not loop.
+        loop_current,                   // Loop the current media input.
+    } loop_mode_t;
+
     stereo_mode_t stereo_mode;          // Stereo mode
     bool stereo_mode_swap;              // Swap left and right view
     float parallax;                     // Parallax adjustment, -1 .. +1
@@ -287,6 +293,7 @@ public:
     float subtitle_scale;               // Scale factor
     uint64_t subtitle_color;            // Subtitle color in uint32_t bgra32 format, > UINT32_MAX means keep default
     float subtitle_parallax;            // Subtitle parallax adjustment, -1 .. +1
+    loop_mode_t loop_mode;              // Current loop behaviour.
 
     // Constructor
     parameters();

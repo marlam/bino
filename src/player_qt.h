@@ -117,6 +117,7 @@ private:
     QPushButton *_play_button;
     QPushButton *_pause_button;
     QPushButton *_stop_button;
+    QPushButton *_loop_button;
     QPushButton *_fullscreen_button;
     QPushButton *_center_button;
     QPushButton *_bbb_button;
@@ -132,6 +133,7 @@ private slots:
     void play_pressed();
     void pause_pressed();
     void stop_pressed();
+    void loop_pressed();
     void fullscreen_pressed();
     void center_pressed();
     void bbb_pressed();

@@ -730,7 +730,7 @@ controls_widget::controls_widget(QSettings *settings, QWidget *parent)
     _seek_slider->setRange(0, 2000);
     _seek_slider->setTracking(false);
     connect(_seek_slider, SIGNAL(valueChanged(int)), this, SLOT(seek_slider_changed()));
-    layout->addWidget(_seek_slider, 0, 0, 1, 13);
+    layout->addWidget(_seek_slider, 0, 0, 1, 15);
     _play_button = new QPushButton(get_icon("media-playback-start"), "");
     _play_button->setToolTip(_("<p>Play.</p>"));
     connect(_play_button, SIGNAL(pressed()), this, SLOT(play_pressed()));
@@ -744,58 +744,67 @@ controls_widget::controls_widget(QSettings *settings, QWidget *parent)
     connect(_stop_button, SIGNAL(pressed()), this, SLOT(stop_pressed()));
     layout->addWidget(_stop_button, 1, 2);
     layout->addWidget(new QWidget, 1, 3);
+    _loop_button = new QPushButton(get_icon("media-playlist-repeat"), "");
+    _loop_button->setToolTip(_("<p>Toggle loop mode.</p>"));
+    _loop_button->setCheckable(true);
+    _loop_button->setChecked(false);
+    connect(_loop_button, SIGNAL(toggled(bool)), this, SLOT(loop_pressed()));
+    layout->addWidget(_loop_button, 1, 4);
+    layout->addWidget(new QWidget, 1, 5);
     _fullscreen_button = new QPushButton(get_icon("view-fullscreen"), "");
     _fullscreen_button->setToolTip(_("<p>Switch to fullscreen mode. "
                 "You can leave fullscreen mode by pressing the f key.</p>"));
     connect(_fullscreen_button, SIGNAL(pressed()), this, SLOT(fullscreen_pressed()));
-    layout->addWidget(_fullscreen_button, 1, 4);
+    layout->addWidget(_fullscreen_button, 1, 6);
     _center_button = new QPushButton(get_icon("view-restore"), "");
     _center_button->setToolTip(_("<p>Center the video area on your screen.</p>"));
     connect(_center_button, SIGNAL(pressed()), this, SLOT(center_pressed()));
-    layout->addWidget(_center_button, 1, 5);
-    layout->addWidget(new QWidget, 1, 6);
+    layout->addWidget(_center_button, 1, 7);
+    layout->addWidget(new QWidget, 1, 8);
     _bbb_button = new QPushButton(get_icon("media-seek-backward"), "");
     _bbb_button->setFixedSize(_bbb_button->minimumSizeHint());
     _bbb_button->setIconSize(_bbb_button->iconSize() * 12 / 10);
     _bbb_button->setToolTip(_("<p>Seek backward 10 minutes.</p>"));
     connect(_bbb_button, SIGNAL(pressed()), this, SLOT(bbb_pressed()));
-    layout->addWidget(_bbb_button, 1, 7);
+    layout->addWidget(_bbb_button, 1, 9);
     _bb_button = new QPushButton(get_icon("media-seek-backward"), "");
     _bb_button->setFixedSize(_bb_button->minimumSizeHint());
     _bb_button->setToolTip(_("<p>Seek backward 1 minute.</p>"));
     connect(_bb_button, SIGNAL(pressed()), this, SLOT(bb_pressed()));
-    layout->addWidget(_bb_button, 1, 8);
+    layout->addWidget(_bb_button, 1, 10);
     _b_button = new QPushButton(get_icon("media-seek-backward"), "");
     _b_button->setFixedSize(_b_button->minimumSizeHint());
     _b_button->setIconSize(_b_button->iconSize() * 8 / 10);
     _b_button->setToolTip(_("<p>Seek backward 10 seconds.</p>"));
     connect(_b_button, SIGNAL(pressed()), this, SLOT(b_pressed()));
-    layout->addWidget(_b_button, 1, 9);
+    layout->addWidget(_b_button, 1, 11);
     _f_button = new QPushButton(get_icon("media-seek-forward"), "");
     _f_button->setFixedSize(_f_button->minimumSizeHint());
     _f_button->setIconSize(_f_button->iconSize() * 8 / 10);
     _f_button->setToolTip(_("<p>Seek forward 10 seconds.</p>"));
     connect(_f_button, SIGNAL(pressed()), this, SLOT(f_pressed()));
-    layout->addWidget(_f_button, 1, 10);
+    layout->addWidget(_f_button, 1, 12);
     _ff_button = new QPushButton(get_icon("media-seek-forward"), "");
     _ff_button->setFixedSize(_ff_button->minimumSizeHint());
     _ff_button->setToolTip(_("<p>Seek forward 1 minute.</p>"));
     connect(_ff_button, SIGNAL(pressed()), this, SLOT(ff_pressed()));
-    layout->addWidget(_ff_button, 1, 11);
+    layout->addWidget(_ff_button, 1, 13);
     _fff_button = new QPushButton(get_icon("media-seek-forward"), "");
     _fff_button->setFixedSize(_fff_button->minimumSizeHint());
     _fff_button->setIconSize(_fff_button->iconSize() * 12 / 10);
     _fff_button->setToolTip(_("<p>Seek forward 10 minutes.</p>"));
     connect(_fff_button, SIGNAL(pressed()), this, SLOT(fff_pressed()));
-    layout->addWidget(_fff_button, 1, 12);
+    layout->addWidget(_fff_button, 1, 14);
     layout->setRowStretch(0, 0);
     layout->setColumnStretch(3, 1);
-    layout->setColumnStretch(6, 1);
+    layout->setColumnStretch(5, 1);
+    layout->setColumnStretch(8, 1);
     setLayout(layout);
 
     _play_button->setEnabled(false);
     _pause_button->setEnabled(false);
     _stop_button->setEnabled(false);
+    _loop_button->setEnabled(false);
     _fullscreen_button->setEnabled(false);
     _center_button->setEnabled(false);
     _bbb_button->setEnabled(false);
@@ -831,6 +840,13 @@ void controls_widget::pause_pressed()
 void controls_widget::stop_pressed()
 {
     send_cmd(command::toggle_play);
+}
+
+void controls_widget::loop_pressed()
+{
+    int loop_mode = static_cast<int>(_loop_button->isChecked()
+            ? parameters::loop_current : parameters::no_loop);
+    send_cmd(command::set_loop_mode, loop_mode);
 }
 
 void controls_widget::fullscreen_pressed()
@@ -893,6 +909,7 @@ void controls_widget::update(const player_init_data &, bool have_valid_input, bo
         _play_button->setEnabled(false);
         _pause_button->setEnabled(false);
         _stop_button->setEnabled(false);
+        _loop_button->setEnabled(false);
         _fullscreen_button->setEnabled(false);
         _center_button->setEnabled(false);
         _bbb_button->setEnabled(false);
@@ -920,6 +937,7 @@ void controls_widget::receive_notification(const notification &note)
         _play_button->setEnabled(!flag);
         _pause_button->setEnabled(flag);
         _stop_button->setEnabled(flag);
+        _loop_button->setEnabled(flag);
         _fullscreen_button->setEnabled(flag);
         _center_button->setEnabled(flag);
         _bbb_button->setEnabled(flag);
@@ -2020,6 +2038,14 @@ void main_window::receive_notification(const notification &note)
         _settings->beginGroup("Video/" + current_file_hash());
         _settings->setValue("subtitle-parallax", QVariant(_init_data.params.subtitle_parallax).toString());
         _settings->endGroup();
+        break;
+
+    case notification::loop_mode:
+        {
+            int loop_mode;
+            s11n::load(current, loop_mode);
+            _init_data.params.loop_mode = static_cast<parameters::loop_mode_t>(loop_mode);
+        }
         break;
 
     case notification::pause:

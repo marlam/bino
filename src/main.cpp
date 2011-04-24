@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
     log_levels.push_back("warning");
     log_levels.push_back("error");
     log_levels.push_back("quiet");
-    opt::val<std::string> log_level("log-level", 'l', opt::optional, log_levels, "");
+    opt::val<std::string> log_level("log-level", 'L', opt::optional, log_levels, "");
     options.push_back(&log_level);
     std::vector<std::string> input_modes;
     input_modes.push_back("mono");
@@ -228,6 +228,8 @@ int main(int argc, char *argv[])
     options.push_back(&ghostbust);
     opt::flag benchmark("benchmark", 'b', opt::optional);
     options.push_back(&benchmark);
+    opt::flag loop("loop", 'l', opt::optional);
+    options.push_back(&loop);
     // Accept some Equalizer options. These are passed to Equalizer for interpretation.
     opt::val<std::string> eq_server("eq-server", '\0', opt::optional);
     options.push_back(&eq_server);
@@ -282,7 +284,7 @@ int main(int argc, char *argv[])
                     "  --help                   Print help.\n"
                     "  --version                Print version.\n"
                     "  -n|--no-gui              Do not use the GUI, just show a plain window.\n"
-                    "  -l|--log-level=LEVEL     Set log level (debug/info/warning/error/quiet).\n"
+                    "  -L|--log-level=LEVEL     Set log level (debug/info/warning/error/quiet).\n"
                     "  -v|--video=STREAM        Select video stream (1-n, depending on input).\n"
                     "  -a|--audio=STREAM        Select audio stream (1-n, depending on input).\n"
                     "  -s|--subtitle=STREAM     Select subtitle stream (0-n, depending on input).\n"
@@ -342,6 +344,7 @@ int main(int argc, char *argv[])
                     "                           values for the R,G,B channels.\n"
                     "  -G|--ghostbust=VAL       Amount of ghostbusting to apply (0 to 1).\n"
                     "  -b|--benchmark           Benchmark mode (no audio, show fps).\n"
+                    "  -l|--loop                Loop the input media.\n"
                     "\n"
                     "Interactive control:\n"
                     "  ESC                      Leave fullscreen mode, or quit.\n"
@@ -476,6 +479,7 @@ int main(int argc, char *argv[])
     {
         msg::inf(_("Benchmark mode: audio and time synchronization disabled."));
     }
+    init_data.params.loop_mode = (loop.value() ? parameters::loop_current : parameters::no_loop);
 
     int retval = 0;
     player *player = NULL;

@@ -516,7 +516,15 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
             else
             {
                 msg::dbg("End of video stream.");
-                stop_playback();
+                if (_params.loop_mode == parameters::loop_current)
+                {
+                    _set_pos_request = 0.0f;
+                    *more_steps = true;
+                }
+                else
+                {
+                    stop_playback();
+                }
                 return 0;
             }
         }
@@ -592,7 +600,15 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
                 if (!blob.is_valid())
                 {
                     msg::dbg("End of audio stream.");
-                    stop_playback();
+                    if (_params.loop_mode == parameters::loop_current)
+                    {
+                        _set_pos_request = 0.0f;
+                        *more_steps = true;
+                    }
+                    else
+                    {
+                        stop_playback();
+                    }
                     return 0;
                 }
                 _audio_pos = blob.presentation_time;
@@ -1049,6 +1065,16 @@ void player::receive_cmd(const command &cmd)
         s11n::load(p, param);
         _set_pos_request = param;
         /* notify when request is fulfilled */
+        break;
+    case command::set_loop_mode:
+        {
+            int old_loop_mode = static_cast<int>(_params.loop_mode);
+            int loop_mode;
+            s11n::load(p, loop_mode);
+            _params.loop_mode = static_cast<parameters::loop_mode_t>(loop_mode);
+            parameters_changed = true;
+            notify(notification::loop_mode, old_loop_mode, loop_mode);
+        }
         break;
     }
 

@@ -540,7 +540,8 @@ parameters::parameters() :
     subtitle_size(std::numeric_limits<int>::min()),
     subtitle_scale(-1.0f),
     subtitle_color(std::numeric_limits<uint64_t>::max()),
-    subtitle_parallax(std::numeric_limits<float>::quiet_NaN())
+    subtitle_parallax(std::numeric_limits<float>::quiet_NaN()),
+    loop_mode(no_loop)
 {
 }
 
@@ -836,6 +837,7 @@ void parameters::save(std::ostream &os) const
     s11n::save(os, subtitle_scale);
     s11n::save(os, subtitle_color);
     s11n::save(os, subtitle_parallax);
+    s11n::save(os, static_cast<int>(loop_mode));
 }
 
 void parameters::load(std::istream &is)
@@ -859,4 +861,6 @@ void parameters::load(std::istream &is)
     s11n::load(is, subtitle_scale);
     s11n::load(is, subtitle_color);
     s11n::load(is, subtitle_parallax);
+    s11n::load(is, x);
+    loop_mode = static_cast<loop_mode_t>(x);
 }
