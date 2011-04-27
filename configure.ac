@@ -85,17 +85,17 @@ if test -z "$PKG_CONFIG"; then
 fi
 
 dnl FFmpeg
-PKG_CHECK_MODULES([libavformat], [libavformat >= 52.104.0 libavcodec], [HAVE_LIBAVFORMAT=1], [HAVE_LIBAVFORMAT=0])
+PKG_CHECK_MODULES([libavformat], [libavformat >= 52.108.0 libavcodec libavutil], [HAVE_LIBAVFORMAT=1], [HAVE_LIBAVFORMAT=0])
 if test "$HAVE_LIBAVFORMAT" != "1"; then
-    AC_MSG_WARN([library libavformat >= 52.104.0 not found:])
+    AC_MSG_WARN([library libavformat >= 52.108.0 not found:])
     AC_MSG_WARN([$libavformat_PKG_ERRORS])
-    AC_MSG_WARN([libavformat >= 52.104.0 is provided by FFmpeg >= 0.6.90-rc0])
+    AC_MSG_WARN([libavformat >= 52.108.0 is provided by FFmpeg >= 0.7-rc1])
 fi
 PKG_CHECK_MODULES([libswscale], [libswscale >= 0.13.0 libavutil], [HAVE_LIBSWSCALE=1], [HAVE_LIBSWSCALE=0])
 if test "$HAVE_LIBSWSCALE" != "1"; then
     AC_MSG_WARN([library libswscale >= 0.13.0 not found:])
     AC_MSG_WARN([$libswscale_PKG_ERRORS])
-    AC_MSG_WARN([libswscale >= 0.13.0 is provided by FFmpeg >= 0.6.90-rc0])
+    AC_MSG_WARN([libswscale >= 0.13.0 is provided by FFmpeg >= 0.7-rc1])
 fi
 AC_CHECK_FUNCS([sysconf])
 
