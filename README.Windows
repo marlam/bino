@@ -34,15 +34,16 @@ The following is known to work with Mingw-cross-env 2.20 installed in
    Optionally build the installer (if nsis was built in Mingw-cross-env):
    $ make package-w32
 
-The installer will install the binary and the manual along with start menu
-entries, and provide uninstall functionality.
+The installer will install the binary, the manual, and translations along with
+start menu entries, and provide uninstall functionality.
 
 You can also copy just the bino.exe binary from the src subdirectory to any
-Windows machine. If you want to access the Bino manual from the GUI, keep the
-following directory structure:
+Windows machine. In that case, if you want to have access to translations and
+the manual, keep the following directory structure:
 c:\<path_to_bino>\bin\bino.exe
 c:\<path_to_bino>\doc\bino.html
 c:\<path_to_bino>\doc\<image_files...>
+c:\<path_to_bino>\locale\<lang>\LC_MESSAGES\bino.mo
 
 8<---- libass.mk -------------------------------------------------------------
 
@@ -72,19 +73,14 @@ define $(PKG)_BUILD
 	--enable-fontconfig
     $(MAKE) -C '$(1)' -j '$(JOBS)'
     $(MAKE) -C '$(1)' -j 1 install
-
-    '$(TARGET)-gcc' \
-        -W -Wall -Werror -ansi -pedantic \
-        '$(2).c' -o '$(PREFIX)/$(TARGET)/bin/test-libass.exe' \
-        `'$(TARGET)-pkg-config' libass --cflags --libs`
 endef
 
 8<---- ffmpeg.mk -------------------------------------------------------------
 
 PKG             := ffmpeg
 $(PKG)_IGNORE   :=
-$(PKG)_VERSION  := 0.6.90-rc0
-$(PKG)_CHECKSUM := a5c898a220a7f2220a49a37c44d273d1775d081c
+$(PKG)_VERSION  := 0.7-rc1
+$(PKG)_CHECKSUM := d15c005f46483fbfc3b678cb1c89123762b56b82
 $(PKG)_SUBDIR   := $(PKG)-$($(PKG)_VERSION)
 $(PKG)_FILE     := $(PKG)-$($(PKG)_VERSION).tar.bz2
 $(PKG)_WEBSITE  := http://www.ffmpeg.org/
