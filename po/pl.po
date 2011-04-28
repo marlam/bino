@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bino 0.9.3\n"
 "Report-Msgid-Bugs-To: bino-list@nongnu.org\n"
-"POT-Creation-Date: 2011-04-20 11:42+0200\n"
+"POT-Creation-Date: 2011-04-28 11:03+0200\n"
 "PO-Revision-Date: 2011-04-20 11:14+0100\n"
 "Last-Translator: Robert Pliszko <plesken@systems-design.eu>\n"
 "Language-Team: Bino Developers <bino-list@nongnu.org>\n"
@@ -228,11 +228,11 @@ msgstr ""
 "the GNU General Public License. There is NO WARRANTY, to the extent "
 "permitted by law."
 
-#: src/main.cpp:264 src/player_qt.cpp:2337
+#: src/main.cpp:264 src/player_qt.cpp:2359
 msgid "Platform:"
 msgstr "Platforma:"
 
-#: src/main.cpp:266 src/player_qt.cpp:2338
+#: src/main.cpp:266 src/player_qt.cpp:2360
 msgid "Libraries used:"
 msgstr "Użyte biblioteki:"
 
@@ -454,7 +454,7 @@ msgstr "%dx%d, %.3g:1"
 msgid "%s, %d ch., %g kHz, %d bit"
 msgstr "%s, %d ch., %g kHz, %d bit"
 
-#: src/media_input.cpp:284 src/player_qt.cpp:161
+#: src/media_input.cpp:284 src/player_qt.cpp:170
 msgid "Input:"
 msgstr "Wejście:"
 
@@ -586,7 +586,7 @@ msgstr "Brak użytecznych strumieni."
 msgid "%s: Cannot duplicate packet."
 msgstr "%s: Nie mogę skopiować pakietu."
 
-#: src/media_object.cpp:1670
+#: src/media_object.cpp:1648
 #, c-format
 msgid "%s: Seeking failed."
 msgstr "%s: Przesuwanie zakończone niepowodzeniem ."
@@ -666,7 +666,7 @@ msgstr "%gx%g, proporcja obrazu %g:1"
 msgid "Area for %g:1 video: [ %g %g %g %g @ %g ]"
 msgstr "Obszar dla %g:1 video: [ %g %g %g %g @ %g ]"
 
-#: src/player_equalizer.cpp:896 src/video_output_qt.cpp:308
+#: src/player_equalizer.cpp:896 src/video_output_qt.cpp:306
 msgid ""
 "This OpenGL implementation does not support OpenGL 2.1 and framebuffer "
 "objects."
@@ -684,188 +684,188 @@ msgstr "Nie można pobrać konfiguracji korektora."
 msgid "Equalizer configuration initialization failed."
 msgstr "Inicjacja konfiguracji korektora zakończona niepowodzeniem."
 
-#: src/player_qt.cpp:135
+#: src/player_qt.cpp:144
 msgid "Video:"
 msgstr "Video:"
 
-#: src/player_qt.cpp:136
+#: src/player_qt.cpp:145
 msgid "<p>Select the video stream.</p>"
 msgstr "<p>Wybierz strumień video.</p>"
 
-#: src/player_qt.cpp:142
+#: src/player_qt.cpp:151
 msgid "Audio:"
 msgstr "Audio:"
 
-#: src/player_qt.cpp:143
+#: src/player_qt.cpp:152
 msgid "<p>Select the audio stream.</p>"
 msgstr "<p>Wybierz strumień audio.</p>"
 
-#: src/player_qt.cpp:149
+#: src/player_qt.cpp:158
 msgid "Subtitle:"
 msgstr "Napisy:"
 
-#: src/player_qt.cpp:150
+#: src/player_qt.cpp:159
 msgid "<p>Select the subtitle stream.</p>"
 msgstr "<p>Wybierz strumień napisów.</p>"
 
-#: src/player_qt.cpp:162
+#: src/player_qt.cpp:171
 msgid "<p>Set the 3D layout of the video stream.</p>"
 msgstr "<p>Ustaw format strumienia 3D.</p>"
 
-#: src/player_qt.cpp:166
+#: src/player_qt.cpp:175
 msgid "2D"
 msgstr "2D"
 
-#: src/player_qt.cpp:167
+#: src/player_qt.cpp:176
 msgid "Separate streams, left first"
 msgstr "Oddzielne strumienie, lewy pierwszy"
 
-#: src/player_qt.cpp:168
+#: src/player_qt.cpp:177
 msgid "Separate streams, right first"
 msgstr "Oddzielne strumienie, prawy pierwszy"
 
-#: src/player_qt.cpp:169 src/player_qt.cpp:192
+#: src/player_qt.cpp:178 src/player_qt.cpp:201
 msgid "Top/bottom"
 msgstr "Góra/Dół"
 
-#: src/player_qt.cpp:170 src/player_qt.cpp:193
+#: src/player_qt.cpp:179 src/player_qt.cpp:202
 msgid "Top/bottom, half height"
 msgstr "Góra/Dół, połowa wysokości"
 
-#: src/player_qt.cpp:171
+#: src/player_qt.cpp:180
 msgid "Bottom/top"
 msgstr "Dół/Góra"
 
-#: src/player_qt.cpp:172
+#: src/player_qt.cpp:181
 msgid "Bottom/top, half height"
 msgstr "Dół/Góra, połowa wysokości"
 
-#: src/player_qt.cpp:173 src/player_qt.cpp:194
+#: src/player_qt.cpp:182 src/player_qt.cpp:203
 msgid "Left/right"
 msgstr "Lewy/Prawy"
 
-#: src/player_qt.cpp:174 src/player_qt.cpp:195
+#: src/player_qt.cpp:183 src/player_qt.cpp:204
 msgid "Left/right, half width"
 msgstr "Lewy/Prawy, połowa szerokości"
 
-#: src/player_qt.cpp:175
+#: src/player_qt.cpp:184
 msgid "Right/left"
 msgstr "Prawy/Lewy"
 
-#: src/player_qt.cpp:176
+#: src/player_qt.cpp:185
 msgid "Right/left, half width"
 msgstr "Prawy/Lewy połowa szerokości"
 
-#: src/player_qt.cpp:177 src/player_qt.cpp:196
+#: src/player_qt.cpp:186 src/player_qt.cpp:205
 msgid "Even/odd rows"
 msgstr "Parzyste/nieparzyste rzędy"
 
-#: src/player_qt.cpp:178
+#: src/player_qt.cpp:187
 msgid "Odd/even rows"
 msgstr "Nieparzyste/parzyste rzędy"
 
-#: src/player_qt.cpp:184
+#: src/player_qt.cpp:193
 msgid "Output:"
 msgstr "Wyjście:"
 
-#: src/player_qt.cpp:185
+#: src/player_qt.cpp:194
 msgid "<p>Set the 3D output type for your display.</p>"
 msgstr "<p>Ustaw typ wyjście 3D dla swojego monitora.</p>"
 
-#: src/player_qt.cpp:189
+#: src/player_qt.cpp:198
 msgid "Left view"
 msgstr "Lewy obraz"
 
-#: src/player_qt.cpp:190
+#: src/player_qt.cpp:199
 msgid "Right view"
 msgstr "Prawy obraz"
 
-#: src/player_qt.cpp:191
+#: src/player_qt.cpp:200
 msgid "OpenGL stereo"
 msgstr "OpenGL stereo"
 
-#: src/player_qt.cpp:197
+#: src/player_qt.cpp:206
 msgid "Even/odd columns"
 msgstr "Parzyste/nieparzyste kolumny"
 
-#: src/player_qt.cpp:198
+#: src/player_qt.cpp:207
 msgid "Checkerboard pattern"
 msgstr "Wzór szachownicy"
 
-#: src/player_qt.cpp:199
+#: src/player_qt.cpp:208
 msgid "HDMI frame packing mode"
 msgstr "Tryb HDMI"
 
-#: src/player_qt.cpp:200
+#: src/player_qt.cpp:209
 msgid "Red/cyan glasses, monochrome method"
 msgstr "Czerwony/cyjan, czarnobiały"
 
-#: src/player_qt.cpp:201
+#: src/player_qt.cpp:210
 msgid "Red/cyan glasses, half-color method"
 msgstr "Czerwony/cyjan, połowa koloru"
 
-#: src/player_qt.cpp:202
+#: src/player_qt.cpp:211
 msgid "Red/cyan glasses, full-color method"
 msgstr "Czerwony/cyjan, kolorowy"
 
-#: src/player_qt.cpp:203
+#: src/player_qt.cpp:212
 msgid "Red/cyan glasses, high-quality Dubois method"
 msgstr "Czerwony/cyjan, Dubois"
 
-#: src/player_qt.cpp:204
+#: src/player_qt.cpp:213
 msgid "Green/magenta glasses, monochrome method"
 msgstr "Zielony/karmazynowy, czarnobiały"
 
-#: src/player_qt.cpp:205
+#: src/player_qt.cpp:214
 msgid "Green/magenta glasses, half-color method"
 msgstr "Zielony/karmazynowy, połowa koloru"
 
-#: src/player_qt.cpp:206
+#: src/player_qt.cpp:215
 msgid "Green/magenta glasses, full-color method"
 msgstr "Zielony/karmazynowy, kolorowy"
 
-#: src/player_qt.cpp:207
+#: src/player_qt.cpp:216
 msgid "Green/magenta glasses, high-quality Dubois method"
 msgstr "Zielony/karmazynowy, Dubois"
 
-#: src/player_qt.cpp:208
+#: src/player_qt.cpp:217
 msgid "Amber/blue glasses, monochrome method"
 msgstr "Bursztynowy/niebieski, czarnobiały"
 
-#: src/player_qt.cpp:209
+#: src/player_qt.cpp:218
 msgid "Amber/blue glasses, half-color method"
 msgstr "Bursztynowy/niebieski,  połowa koloru"
 
-#: src/player_qt.cpp:210
+#: src/player_qt.cpp:219
 msgid "Amber/blue glasses, full-color method"
 msgstr "Bursztynowy/niebieski, kolorowy"
 
-#: src/player_qt.cpp:211
+#: src/player_qt.cpp:220
 msgid "Amber/blue glasses, high-quality Dubois method"
 msgstr "Bursztynowy/niebieski, Dubois"
 
-#: src/player_qt.cpp:212
+#: src/player_qt.cpp:221
 msgid "Red/green glasses, monochrome method"
 msgstr "Czerwony/zielony, czarnobiały"
 
-#: src/player_qt.cpp:213
+#: src/player_qt.cpp:222
 msgid "Red/blue glasses, monochrome method"
 msgstr "Czerwony/zielony, czarnobiały"
 
-#: src/player_qt.cpp:217
+#: src/player_qt.cpp:226
 msgid "Swap left/right"
 msgstr "Zamień lewy/prawy"
 
-#: src/player_qt.cpp:218
+#: src/player_qt.cpp:227
 msgid ""
 "<p>Swap the left and right view. Use this if the 3D effect seems wrong.</p>"
 msgstr "<p>Zamiana obrazu lewego i prawego. Użyj gdy efekt 3D będzie zły.</p>"
 
-#: src/player_qt.cpp:485
+#: src/player_qt.cpp:494
 msgid "Off"
 msgstr "Wyłącz"
 
-#: src/player_qt.cpp:719
+#: src/player_qt.cpp:728
 msgid ""
 "<p>This slider shows the progress during video playback, and can be used to "
 "seek in the video.</p>"
@@ -873,19 +873,19 @@ msgstr ""
 "<p>Suwak pokazuje postęp podczas odtwarzania video i może być używany do "
 "odtwarzania od zaznaczonego punktu czasu w video</p>"
 
-#: src/player_qt.cpp:726
+#: src/player_qt.cpp:735
 msgid "<p>Play.</p>"
 msgstr "<p>Odtwarzaj.</p>"
 
-#: src/player_qt.cpp:730
+#: src/player_qt.cpp:739
 msgid "<p>Pause.</p>"
 msgstr "<p>Pauza.</p>"
 
-#: src/player_qt.cpp:734
+#: src/player_qt.cpp:743
 msgid "<p>Stop.</p>"
 msgstr "<p>Zastav.</p>"
 
-#: src/player_qt.cpp:739
+#: src/player_qt.cpp:748
 msgid ""
 "<p>Switch to fullscreen mode. You can leave fullscreen mode by pressing the "
 "f key.</p>"
@@ -893,65 +893,65 @@ msgstr ""
 "<p>Przełącz na tryb pełnoekranowy. Klikając klawisz \"f\" możesz wyjść z "
 "tego trybu.</p>"
 
-#: src/player_qt.cpp:744
+#: src/player_qt.cpp:753
 msgid "<p>Center the video area on your screen.</p>"
 msgstr "<p>Wypośrodkuj obszar video na monitorze.</p>"
 
-#: src/player_qt.cpp:749
+#: src/player_qt.cpp:760
 msgid "<p>Seek backward 10 minutes.</p>"
 msgstr "<p>Cofnij 10 minut do tyłu.</p>"
 
-#: src/player_qt.cpp:753
+#: src/player_qt.cpp:765
 msgid "<p>Seek backward 1 minute.</p>"
 msgstr "<p>Cofnij 1 minutę do tyłu.</p>"
 
-#: src/player_qt.cpp:757
+#: src/player_qt.cpp:771
 msgid "<p>Seek backward 10 seconds.</p>"
 msgstr "<p>Cofnij 10 sekund do tyłu.</p>"
 
-#: src/player_qt.cpp:761
+#: src/player_qt.cpp:777
 msgid "<p>Seek forward 10 seconds.</p>"
 msgstr "<p>Przeskocz 10 sekund do przodu.</p>"
 
-#: src/player_qt.cpp:765
+#: src/player_qt.cpp:782
 msgid "<p>Seek forward 1 minute.</p>"
 msgstr "<p>Przeskocz 1 minutę do przodu.</p>"
 
-#: src/player_qt.cpp:769
+#: src/player_qt.cpp:788
 msgid "<p>Seek forward 10 minutes.</p>"
 msgstr "<p>Przeskocz 10 minut do przodu.</p>"
 
-#: src/player_qt.cpp:941
+#: src/player_qt.cpp:960
 msgid "Display Color Adjustments"
 msgstr "Wyświetl regulację kolorów"
 
-#: src/player_qt.cpp:943
+#: src/player_qt.cpp:962
 msgid "Contrast:"
 msgstr "Kontrast:"
 
-#: src/player_qt.cpp:954
+#: src/player_qt.cpp:973
 msgid "Brightness:"
 msgstr "Jasność:"
 
-#: src/player_qt.cpp:965
+#: src/player_qt.cpp:984
 msgid "Hue:"
 msgstr "Kolor:"
 
-#: src/player_qt.cpp:976
+#: src/player_qt.cpp:995
 msgid "Saturation:"
 msgstr "Nasycenie:"
 
-#: src/player_qt.cpp:988 src/player_qt.cpp:1147 src/player_qt.cpp:1266
-#: src/player_qt.cpp:1565 src/player_qt.cpp:2193 src/player_qt.cpp:2367
+#: src/player_qt.cpp:1007 src/player_qt.cpp:1166 src/player_qt.cpp:1285
+#: src/player_qt.cpp:1584 src/player_qt.cpp:2215 src/player_qt.cpp:2389
 msgid "OK"
 msgstr "OK"
 
-#: src/player_qt.cpp:1118
+#: src/player_qt.cpp:1137
 msgid "Display Crosstalk Calibration"
 msgstr "Wyświetl kalibrację \"crosstalk\""
 
 #. TRANSLATORS: Please keep the lines short using <br> where necessary.
-#: src/player_qt.cpp:1121
+#: src/player_qt.cpp:1140
 msgid ""
 "<p>Please read the manual to find out<br>how to measure the crosstalk "
 "levels<br>of your display.</p>"
@@ -959,75 +959,75 @@ msgstr ""
 "<p>Proszę przeczytać instrukcję aby dowiedzieć się<br>jak zmierzyć poziom "
 "\"crosstalk\"<br>twojego monitora.</p>"
 
-#: src/player_qt.cpp:1125
+#: src/player_qt.cpp:1144
 msgid "Red:"
 msgstr "Czerwony:"
 
-#: src/player_qt.cpp:1132
+#: src/player_qt.cpp:1151
 msgid "Green:"
 msgstr "Zielony:"
 
-#: src/player_qt.cpp:1139
+#: src/player_qt.cpp:1158
 msgid "Blue:"
 msgstr "Niebieski:"
 
-#: src/player_qt.cpp:1208
+#: src/player_qt.cpp:1227
 msgid "Subtitle Settings"
 msgstr "Ustawienia napisów"
 
-#: src/player_qt.cpp:1210
+#: src/player_qt.cpp:1229
 msgid "<p>These settings apply to soft subtitles, but not to bitmaps.</p>"
 msgstr "<p>Te ustawienia dotyczą zwykłych napisów, a nie w bitmapach.</p>"
 
-#: src/player_qt.cpp:1212
+#: src/player_qt.cpp:1231
 msgid "Encoding:"
 msgstr "Kodowanie:"
 
-#: src/player_qt.cpp:1213
+#: src/player_qt.cpp:1232
 msgid "<p>Set the subtitle character set encoding.</p>"
 msgstr "<p>Ustaw kodowanie napisów.</p>"
 
-#: src/player_qt.cpp:1227
+#: src/player_qt.cpp:1246
 msgid "Override font:"
 msgstr "Zastąp czcionkę:"
 
-#: src/player_qt.cpp:1228
+#: src/player_qt.cpp:1247
 msgid "<p>Override the subtitle font family.</p>"
 msgstr "<p>Zastąp czcionkę napisu.</p>"
 
-#: src/player_qt.cpp:1236
+#: src/player_qt.cpp:1255
 msgid "Override font size:"
 msgstr "Zastąp rozmiar czcionki:"
 
-#: src/player_qt.cpp:1237
+#: src/player_qt.cpp:1256
 msgid "<p>Override the subtitle font size.</p>"
 msgstr "<p>Zastąp rozmiar czcioni napisu.</p>"
 
-#: src/player_qt.cpp:1246
+#: src/player_qt.cpp:1265
 msgid "Override scale factor:"
 msgstr "Zastąp współczynnik skali:"
 
-#: src/player_qt.cpp:1247
+#: src/player_qt.cpp:1266
 msgid "<p>Override the subtitle scale factor.</p>"
 msgstr "<p>Zastąp współczynnik skali napisu.</p>"
 
-#: src/player_qt.cpp:1257
+#: src/player_qt.cpp:1276
 msgid "Override color:"
 msgstr "Zastąp kolor:"
 
-#: src/player_qt.cpp:1258
+#: src/player_qt.cpp:1277
 msgid "<p>Override the subtitle color.</p>"
 msgstr "<p>Zastąp kolor napisu.</p>"
 
-#: src/player_qt.cpp:1514
+#: src/player_qt.cpp:1533
 msgid "Stereoscopic Video Settings"
 msgstr "Ustawienia obrazu 3D"
 
-#: src/player_qt.cpp:1516
+#: src/player_qt.cpp:1535
 msgid "Parallax:"
 msgstr "Paralaksa:"
 
-#: src/player_qt.cpp:1517
+#: src/player_qt.cpp:1536
 msgid ""
 "<p>Adjust parallax, from -1 to +1. This changes the separation of left and "
 "right view, and thus the perceived distance of the scene.</p>"
@@ -1035,11 +1035,11 @@ msgstr ""
 "<p>Regulacja paralaksy od -1 do +1. Zmiany oddzielają lewy i prawy obraz i "
 "wpływają na spostrzeganie dystansu w scenie.</p>"
 
-#: src/player_qt.cpp:1532
+#: src/player_qt.cpp:1551
 msgid "Subtitle parallax:"
 msgstr "Paralaksa napisów:"
 
-#: src/player_qt.cpp:1533
+#: src/player_qt.cpp:1552
 msgid ""
 "<p>Adjust subtitle parallax, from -1 to +1. This changes the perceived "
 "distance of the subtitles.</p>"
@@ -1047,11 +1047,11 @@ msgstr ""
 "<p>Regulacja paralaksy od -1 do +1. Zmiany wpływają na spostrzeganiu "
 "dystansu napisów względem danej sceny.</p>"
 
-#: src/player_qt.cpp:1548
+#: src/player_qt.cpp:1567
 msgid "Ghostbusting:"
 msgstr "Ghostbusting:"
 
-#: src/player_qt.cpp:1549
+#: src/player_qt.cpp:1568
 msgid ""
 "<p>Set the amount of crosstalk ghostbusting, from 0 to 1. You need to set "
 "the crosstalk levels of your display first. Note that crosstalk ghostbusting "
@@ -1061,99 +1061,98 @@ msgstr ""
 "powinieneś ustawić poziom \"crosstalk\" dla monitora. UWAGA. Ustawienie to "
 "nie działa przy okularach anaglifowych.</p>"
 
-#: src/player_qt.cpp:1753
+#: src/player_qt.cpp:1772
 msgid "&File"
 msgstr "&Plik"
 
-#: src/player_qt.cpp:1754
+#: src/player_qt.cpp:1773
 msgid "&Open..."
 msgstr "&Otwórz..."
 
-#: src/player_qt.cpp:1758
+#: src/player_qt.cpp:1778
 msgid "Open &URL..."
 msgstr "Otwórz &URL..."
 
-#: src/player_qt.cpp:1762
+#: src/player_qt.cpp:1783
 msgid "&Quit..."
 msgstr "&Zakończ..."
 
-#: src/player_qt.cpp:1766
+#: src/player_qt.cpp:1789
 msgid "&Preferences"
 msgstr "&Preferencje"
 
-#: src/player_qt.cpp:1767
+#: src/player_qt.cpp:1792
 msgid "Display &Color Adjustments..."
 msgstr "Regulacja &koloru..."
 
-#: src/player_qt.cpp:1770
+#: src/player_qt.cpp:1795
 msgid "Display Cross&talk Calibration..."
 msgstr "Kalibracja &Crosstalku..."
 
-#: src/player_qt.cpp:1774
+#: src/player_qt.cpp:1799
 msgid "&Subtitle Settings..."
 msgstr "Ustawienia &Napisów..."
 
-#: src/player_qt.cpp:1778
+#: src/player_qt.cpp:1803
 msgid "Stereoscopic Video Settings..."
 msgstr "Ustawienia video 3D..."
 
-#: src/player_qt.cpp:1781
+#: src/player_qt.cpp:1806
 msgid "&Help"
 msgstr "&Pomoc"
 
-#: src/player_qt.cpp:1782
+#: src/player_qt.cpp:1807
 msgid "&Manual..."
 msgstr "&Instrukcja..."
 
-#: src/player_qt.cpp:1786
+#: src/player_qt.cpp:1812
 msgid "&Website..."
 msgstr "&Strona..."
 
-#: src/player_qt.cpp:1789
+#: src/player_qt.cpp:1816
 msgid "&Keyboard Shortcuts"
 msgstr "&Skróty klawiszy"
 
-#: src/player_qt.cpp:1792
+#: src/player_qt.cpp:1820
 msgid "&About"
 msgstr "&O Bino"
 
-#: src/player_qt.cpp:1846 src/player_qt.cpp:2269 src/player_qt.cpp:2277
-#: src/video_output_qt.cpp:84 src/video_output_qt.cpp:314
-#: src/video_output_qt.cpp:359
+#: src/player_qt.cpp:1876 src/player_qt.cpp:2291 src/player_qt.cpp:2299
+#: src/video_output_qt.cpp:84 src/video_output_qt.cpp:351
 msgid "Error"
 msgstr "Błąd"
 
-#: src/player_qt.cpp:2170
+#: src/player_qt.cpp:2198
 msgid "Open files"
 msgstr "Otwórz pliki"
 
-#: src/player_qt.cpp:2189
+#: src/player_qt.cpp:2211
 msgid "Open URL"
 msgstr "Otwórz URL"
 
-#: src/player_qt.cpp:2190
+#: src/player_qt.cpp:2212
 msgid "URL:"
 msgstr "URL:"
 
-#: src/player_qt.cpp:2194
+#: src/player_qt.cpp:2216
 msgid "Cancel"
 msgstr "Anuluj"
 
-#: src/player_qt.cpp:2269
+#: src/player_qt.cpp:2291
 msgid "Cannot open manual."
 msgstr "Nie można otworzyć instrukcji."
 
-#: src/player_qt.cpp:2277
+#: src/player_qt.cpp:2299
 msgid "Cannot open website."
 msgstr "Nie można otworzyć strony."
 
-#: src/player_qt.cpp:2283
+#: src/player_qt.cpp:2305
 msgid "Keyboard Shortcuts"
 msgstr "Skróty klawiszy"
 
 #. TRANSLATORS: This is a HTML table, shown under Help->Keyboard Shortcuts.
 #. Please make sure that your translation formats properly.
-#: src/player_qt.cpp:2286
+#: src/player_qt.cpp:2308
 msgid ""
 "<p>Keyboard control:<br>(Click into the video area to give it the keyboard "
 "focus if necessary.)<table><tr><td>q or ESC</td><td>Stop</td></tr><tr><td>p "
@@ -1188,17 +1187,17 @@ msgstr ""
 "tr><tr><td>w górę, w dół</td><td>Przewiń 10 minut do przodu / do tyłu</td></"
 "tr></table></p>"
 
-#: src/player_qt.cpp:2314
+#: src/player_qt.cpp:2336
 #, c-format
 msgid "About %s"
 msgstr "O programie %s"
 
-#: src/player_qt.cpp:2320
+#: src/player_qt.cpp:2342
 #, c-format
 msgid "The %s 3D video player"
 msgstr "%s odtwarzacz 3D"
 
-#: src/player_qt.cpp:2325
+#: src/player_qt.cpp:2347
 #, c-format
 msgid ""
 "<p>%s version %s.</p><p>Copyright (C) 2011 the Bino developers.</p><p>This "
@@ -1213,19 +1212,19 @@ msgstr ""
 "a>. There is NO WARRANTY, to the extent permitted by law.</p><p>See <a href="
 "\"%s\">%s</a> for more information on this software.</p>"
 
-#: src/player_qt.cpp:2362
+#: src/player_qt.cpp:2384
 msgid "About"
 msgstr "O programie"
 
-#: src/player_qt.cpp:2363
+#: src/player_qt.cpp:2385
 msgid "Libraries"
 msgstr "Biblioteki"
 
-#: src/player_qt.cpp:2364
+#: src/player_qt.cpp:2386
 msgid "Team"
 msgstr "Zespół"
 
-#: src/player_qt.cpp:2365
+#: src/player_qt.cpp:2387
 msgid "License"
 msgstr "Licencja"
 
@@ -1250,16 +1249,16 @@ msgstr "Ustawienie kodowania konwersji napisów zakończone niepowodzeniem: %s"
 msgid "Cannot create a PBO buffer."
 msgstr "Nie można utworzyć buforu PBO."
 
-#: src/video_output_qt.cpp:303
+#: src/video_output_qt.cpp:301
 #, c-format
 msgid "Cannot initialize GLEW: %s"
 msgstr "Nie można zainicjować biblioteki GLEW: %s"
 
-#: src/video_output_qt.cpp:349
+#: src/video_output_qt.cpp:341
 msgid "The display does not support OpenGL stereo mode."
 msgstr "Nie obsługiwany tryb stereo OpenGL."
 
-#: src/video_output_qt.cpp:354
+#: src/video_output_qt.cpp:346
 msgid "Cannot set OpenGL context format."
 msgstr "Nie można ustawić formatu OpenGL."
 
