@@ -47,8 +47,7 @@ namespace dbg
 #if HAVE_SIGACTION
     static void signal_crash(int signum)
     {
-        msg::err(_("Caught signal %d (%s). Aborting."), signum,
-                (signum == SIGILL ? "SIGILL" : (signum == SIGFPE ? "SIGFPE" : "SIGSEGV")));
+        msg::err(_("Caught signal %d (%s). Aborting."), signum, strsignal(signum));
         crash();
     }
 #endif
