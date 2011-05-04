@@ -1,9 +1,9 @@
-This is a random collection of ideas and plans. It is not a priority list.
+This is a random collection of small ideas and plans. It is not a priority list.
+
+Please also see the "Help wanted" section on the Bino website:
+http://bino.nongnu.org/help-wanted.html
 
 Small:
-
-- Qt's implementation of sync-to-vblank (swapInterval) seems outdated on X11.
-  Is it worth it to replace this with our own implementation?
 
 - Make media_input more flexible so that files can be added during playback
   (e.g. subtitle files)?
