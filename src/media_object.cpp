@@ -1702,113 +1702,119 @@ void media_object::seek(int64_t dest_pos)
 
 void media_object::close()
 {
-    try
+    if (_ffmpeg)
     {
-        // Stop decoder threads
-        for (size_t i = 0; i < _ffmpeg->video_decode_threads.size(); i++)
+        try
         {
-            _ffmpeg->video_decode_threads[i].finish();
+            // Stop decoder threads
+            for (size_t i = 0; i < _ffmpeg->video_decode_threads.size(); i++)
+            {
+                _ffmpeg->video_decode_threads[i].finish();
+            }
+            for (size_t i = 0; i < _ffmpeg->audio_decode_threads.size(); i++)
+            {
+                _ffmpeg->audio_decode_threads[i].finish();
+            }
+            for (size_t i = 0; i < _ffmpeg->subtitle_decode_threads.size(); i++)
+            {
+                _ffmpeg->subtitle_decode_threads[i].finish();
+            }
+            // Stop reading packets
+            _ffmpeg->reader->finish();
         }
-        for (size_t i = 0; i < _ffmpeg->audio_decode_threads.size(); i++)
+        catch (...)
         {
-            _ffmpeg->audio_decode_threads[i].finish();
         }
-        for (size_t i = 0; i < _ffmpeg->subtitle_decode_threads.size(); i++)
+        for (size_t i = 0; i < _ffmpeg->video_frames.size(); i++)
         {
-            _ffmpeg->subtitle_decode_threads[i].finish();
+            av_free(_ffmpeg->video_frames[i]);
         }
-        // Stop reading packets
-        _ffmpeg->reader->finish();
-    }
-    catch (...)
-    {
-    }
-    for (size_t i = 0; i < _ffmpeg->video_frames.size(); i++)
-    {
-        av_free(_ffmpeg->video_frames[i]);
-    }
-    for (size_t i = 0; i < _ffmpeg->video_out_frames.size(); i++)
-    {
-        av_free(_ffmpeg->video_out_frames[i]);
-    }
-    for (size_t i = 0; i < _ffmpeg->video_buffers.size(); i++)
-    {
-        av_free(_ffmpeg->video_buffers[i]);
-    }
-    for (size_t i = 0; i < _ffmpeg->video_codec_ctxs.size(); i++)
-    {
-        if (i < _ffmpeg->video_codecs.size() && _ffmpeg->video_codecs[i])
+        for (size_t i = 0; i < _ffmpeg->video_out_frames.size(); i++)
         {
-            avcodec_close(_ffmpeg->video_codec_ctxs[i]);
+            av_free(_ffmpeg->video_out_frames[i]);
         }
-    }
-    for (size_t i = 0; i < _ffmpeg->video_img_conv_ctxs.size(); i++)
-    {
-        sws_freeContext(_ffmpeg->video_img_conv_ctxs[i]);
-    }
-    for (size_t i = 0; i < _ffmpeg->video_packet_queues.size(); i++)
-    {
-        if (_ffmpeg->video_packet_queues[i].size() > 0)
+        for (size_t i = 0; i < _ffmpeg->video_buffers.size(); i++)
         {
-            msg::dbg(_url + ": " + str::from(_ffmpeg->video_packet_queues[i].size())
-                    + " unprocessed packets in video stream " + str::from(i));
+            av_free(_ffmpeg->video_buffers[i]);
         }
-        for (size_t j = 0; j < _ffmpeg->video_packet_queues[i].size(); j++)
+        for (size_t i = 0; i < _ffmpeg->video_codec_ctxs.size(); i++)
         {
-            av_free_packet(&_ffmpeg->video_packet_queues[i][j]);
+            if (i < _ffmpeg->video_codecs.size() && _ffmpeg->video_codecs[i])
+            {
+                avcodec_close(_ffmpeg->video_codec_ctxs[i]);
+            }
         }
-    }
-    for (size_t i = 0; i < _ffmpeg->video_packets.size(); i++)
-    {
-        av_free_packet(&(_ffmpeg->video_packets[i]));
-    }
-    for (size_t i = 0; i < _ffmpeg->audio_codec_ctxs.size(); i++)
-    {
-        if (i < _ffmpeg->audio_codecs.size() && _ffmpeg->audio_codecs[i])
+        for (size_t i = 0; i < _ffmpeg->video_img_conv_ctxs.size(); i++)
         {
-            avcodec_close(_ffmpeg->audio_codec_ctxs[i]);
+            sws_freeContext(_ffmpeg->video_img_conv_ctxs[i]);
         }
-    }
-    for (size_t i = 0; i < _ffmpeg->audio_packet_queues.size(); i++)
-    {
-        if (_ffmpeg->audio_packet_queues[i].size() > 0)
+        for (size_t i = 0; i < _ffmpeg->video_packet_queues.size(); i++)
         {
-            msg::dbg(_url + ": " + str::from(_ffmpeg->audio_packet_queues[i].size())
-                    + " unprocessed packets in audio stream " + str::from(i));
+            if (_ffmpeg->video_packet_queues[i].size() > 0)
+            {
+                msg::dbg(_url + ": " + str::from(_ffmpeg->video_packet_queues[i].size())
+                        + " unprocessed packets in video stream " + str::from(i));
+            }
+            for (size_t j = 0; j < _ffmpeg->video_packet_queues[i].size(); j++)
+            {
+                av_free_packet(&_ffmpeg->video_packet_queues[i][j]);
+            }
         }
-        for (size_t j = 0; j < _ffmpeg->audio_packet_queues[i].size(); j++)
+        for (size_t i = 0; i < _ffmpeg->video_packets.size(); i++)
         {
-            av_free_packet(&_ffmpeg->audio_packet_queues[i][j]);
+            av_free_packet(&(_ffmpeg->video_packets[i]));
         }
-    }
-    for (size_t i = 0; i < _ffmpeg->audio_tmpbufs.size(); i++)
-    {
-        av_free(_ffmpeg->audio_tmpbufs[i]);
-    }
-    for (size_t i = 0; i < _ffmpeg->subtitle_codec_ctxs.size(); i++)
-    {
-        if (i < _ffmpeg->subtitle_codecs.size() && _ffmpeg->subtitle_codecs[i])
+        for (size_t i = 0; i < _ffmpeg->audio_codec_ctxs.size(); i++)
         {
-            avcodec_close(_ffmpeg->subtitle_codec_ctxs[i]);
+            if (i < _ffmpeg->audio_codecs.size() && _ffmpeg->audio_codecs[i])
+            {
+                avcodec_close(_ffmpeg->audio_codec_ctxs[i]);
+            }
         }
-    }
-    for (size_t i = 0; i < _ffmpeg->subtitle_packet_queues.size(); i++)
-    {
-        if (_ffmpeg->subtitle_packet_queues[i].size() > 0)
+        for (size_t i = 0; i < _ffmpeg->audio_packet_queues.size(); i++)
         {
-            msg::dbg(_url + ": " + str::from(_ffmpeg->subtitle_packet_queues[i].size())
-                    + " unprocessed packets in subtitle stream " + str::from(i));
+            if (_ffmpeg->audio_packet_queues[i].size() > 0)
+            {
+                msg::dbg(_url + ": " + str::from(_ffmpeg->audio_packet_queues[i].size())
+                        + " unprocessed packets in audio stream " + str::from(i));
+            }
+            for (size_t j = 0; j < _ffmpeg->audio_packet_queues[i].size(); j++)
+            {
+                av_free_packet(&_ffmpeg->audio_packet_queues[i][j]);
+            }
         }
-        for (size_t j = 0; j < _ffmpeg->subtitle_packet_queues[i].size(); j++)
+        for (size_t i = 0; i < _ffmpeg->audio_tmpbufs.size(); i++)
         {
-            av_free_packet(&_ffmpeg->subtitle_packet_queues[i][j]);
+            av_free(_ffmpeg->audio_tmpbufs[i]);
         }
+        for (size_t i = 0; i < _ffmpeg->subtitle_codec_ctxs.size(); i++)
+        {
+            if (i < _ffmpeg->subtitle_codecs.size() && _ffmpeg->subtitle_codecs[i])
+            {
+                avcodec_close(_ffmpeg->subtitle_codec_ctxs[i]);
+            }
+        }
+        for (size_t i = 0; i < _ffmpeg->subtitle_packet_queues.size(); i++)
+        {
+            if (_ffmpeg->subtitle_packet_queues[i].size() > 0)
+            {
+                msg::dbg(_url + ": " + str::from(_ffmpeg->subtitle_packet_queues[i].size())
+                        + " unprocessed packets in subtitle stream " + str::from(i));
+            }
+            for (size_t j = 0; j < _ffmpeg->subtitle_packet_queues[i].size(); j++)
+            {
+                av_free_packet(&_ffmpeg->subtitle_packet_queues[i][j]);
+            }
+        }
+        if (_ffmpeg->format_ctx)
+        {
+            av_close_input_file(_ffmpeg->format_ctx);
+        }
+        delete _ffmpeg->reader;
+        delete _ffmpeg;
+        _ffmpeg = NULL;
     }
-    if (_ffmpeg->format_ctx)
-    {
-        av_close_input_file(_ffmpeg->format_ctx);
-    }
-    delete _ffmpeg->reader;
-    delete _ffmpeg;
-    _ffmpeg = NULL;
+    _url = "";
+    _tag_names.clear();
+    _tag_values.clear();
 }
