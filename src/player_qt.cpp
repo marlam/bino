@@ -720,7 +720,7 @@ void in_out_widget::receive_notification(const notification &note)
 }
 
 
-controls_widget::controls_widget(QSettings *settings, QWidget *parent)
+controls_widget::controls_widget(QSettings *settings, QWidget *parent, const player_init_data &init_data)
     : QWidget(parent), _lock(false), _settings(settings), _playing(false)
 {
     QGridLayout *layout = new QGridLayout;
@@ -747,7 +747,7 @@ controls_widget::controls_widget(QSettings *settings, QWidget *parent)
     _loop_button = new QPushButton(get_icon("media-playlist-repeat"), "");
     _loop_button->setToolTip(_("<p>Toggle loop mode.</p>"));
     _loop_button->setCheckable(true);
-    _loop_button->setChecked(false);
+    _loop_button->setChecked(init_data.params.loop_mode != parameters::no_loop);
     connect(_loop_button, SIGNAL(toggled(bool)), this, SLOT(loop_pressed()));
     layout->addWidget(_loop_button, 1, 4);
     layout->addWidget(new QWidget, 1, 5);
@@ -1779,7 +1779,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     connect(_timer, SIGNAL(timeout()), this, SLOT(playloop_step()));
     _in_out_widget = new in_out_widget(_settings, _player, central_widget);
     layout->addWidget(_in_out_widget, 1, 0);
-    _controls_widget = new controls_widget(_settings, central_widget);
+    _controls_widget = new controls_widget(_settings, central_widget, _init_data);
     layout->addWidget(_controls_widget, 2, 0);
     layout->setRowStretch(0, 1);
     layout->setColumnStretch(0, 1);
