@@ -145,19 +145,8 @@ void video_output::deinit()
     }
 }
 
-void video_output::set_suitable_size(int w, int h, float ar, parameters::stereo_mode_t stereo_mode)
+void video_output::set_suitable_size(int width, int height, float ar, parameters::stereo_mode_t stereo_mode)
 {
-    int width = w;
-    int height = h;
-    if (stereo_mode == parameters::left_right)
-    {
-        w *= 2;
-    }
-    else if (stereo_mode == parameters::top_bottom
-            || stereo_mode == parameters::hdmi_frame_pack)
-    {
-        h *= 2;
-    }
     float aspect_ratio = width * screen_pixel_aspect_ratio() / height;
     if (stereo_mode == parameters::left_right)
     {
