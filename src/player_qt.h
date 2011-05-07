@@ -288,13 +288,14 @@ private:
 
     QString current_file_hash();
     bool open_player();
-    void open(QStringList urls);
+    void open(QStringList urls, bool is_device = false);
 
 private slots:
     void move_event();
     void playloop_step();
     void file_open();
     void file_open_url();
+    void file_open_device();
     void preferences_colors();
     void preferences_crosstalk();
     void preferences_subtitle();

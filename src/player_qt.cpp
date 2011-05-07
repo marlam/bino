@@ -1797,6 +1797,10 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     file_open_url_act->setIcon(get_icon("document-open"));
     connect(file_open_url_act, SIGNAL(triggered()), this, SLOT(file_open_url()));
     file_menu->addAction(file_open_url_act);
+    QAction *file_open_device_act = new QAction(_("Open &device..."), this);
+    file_open_device_act->setIcon(get_icon("camera-web"));
+    connect(file_open_device_act, SIGNAL(triggered()), this, SLOT(file_open_device()));
+    file_menu->addAction(file_open_device_act);
     file_menu->addSeparator();
     QAction *file_quit_act = new QAction(_("&Quit..."), this);
     file_quit_act->setShortcut(QKeySequence::Quit);
@@ -2165,13 +2169,14 @@ void main_window::playloop_step()
     }
 }
 
-void main_window::open(QStringList filenames)
+void main_window::open(QStringList filenames, bool is_device)
 {
     _player->force_stop();
     _player->close();
     parameters params_bak = _init_data.params;
     _init_data = _init_data_template;
     _init_data.params = params_bak;
+    _init_data.is_device = is_device;
     _init_data.urls.clear();
     for (int i = 0; i < filenames.size(); i++)
     {
@@ -2255,6 +2260,63 @@ void main_window::file_open_url()
     {
         QString url = url_edit->text();
         open(QStringList(url));
+    }
+}
+
+void main_window::file_open_device()
+{
+    // Gather list of available devices
+    QStringList devices;
+#ifdef Q_OS_WIN
+    // libavdevice supports devices "0" through "9" in the vfwcap driver on Windows.
+    // Simply list them all here since I don't know how to find out which are actually available.
+    for (int i = 0; i <= 9; i++)
+    {
+        devices << QString(QChar('0' + i));
+    }
+#else
+    // video4linux2 devices dynamically create device files /dev/video0 - /dev/video63.
+    // TODO: does this also work on BSD and Mac OS?
+    for (int i = 0; i < 64; i++)
+    {
+        QString device = QString("/dev/video") + QString::number(i);
+        if (QFileInfo(device).exists())
+        {
+            devices << device;
+        }
+    }
+#endif
+
+    // Choose a device
+    if (devices.empty())
+    {
+        QMessageBox::critical(this, _("Error"), _("No supported devices found."));
+    }
+    else if (devices.size() == 1)       // automatically choose this
+    {
+        open(QStringList(devices[0]), true);
+    }
+    else                                // let the user choose one
+    {
+        QDialog *devices_dialog = new QDialog(this);
+        devices_dialog->setWindowTitle(_("Open device"));
+        QComboBox *devices_combobox = new QComboBox();
+        devices_combobox->addItems(devices);
+        QPushButton *ok_btn = new QPushButton(_("OK"));
+        QPushButton *cancel_btn = new QPushButton(_("Cancel"));
+        connect(ok_btn, SIGNAL(pressed()), devices_dialog, SLOT(accept()));
+        connect(cancel_btn, SIGNAL(pressed()), devices_dialog, SLOT(reject()));
+        QGridLayout *layout = new QGridLayout();
+        layout->addWidget(devices_combobox, 0, 0, 1, 2);
+        layout->addWidget(ok_btn, 1, 0);
+        layout->addWidget(cancel_btn, 1, 1);
+        layout->setRowStretch(0, 1);
+        devices_dialog->setLayout(layout);
+        devices_dialog->exec();
+        if (devices_dialog->result() == QDialog::Accepted)
+        {
+            open(QStringList(devices_combobox->currentText()), true);
+        }
     }
 }
 
