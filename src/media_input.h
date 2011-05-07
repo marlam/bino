@@ -31,6 +31,7 @@
 class media_input
 {
 private:
+    bool _is_device;                            // Whether this is a device (e.g. a camera)
     std::string _id;                            // ID of this input: URL0[/URL1[/URL2[...]]]
     std::vector<media_object> _media_objects;   // The media objects that are combined into one input
     std::vector<std::string> _tag_names;        // Meta data: tag names
@@ -68,9 +69,10 @@ public:
     media_input();
     ~media_input();
 
-    /* Open this input by combining the media objects at the given URLS. */
+    /* Open this input by combining the media objects at the given URLS.
+     * A device can only have a single URL. */
 
-    void open(const std::vector<std::string> &urls);
+    void open(const std::vector<std::string> &urls, bool is_device = false);
 
     /* Get information */
 
@@ -78,6 +80,7 @@ public:
     const std::string &id() const;
 
     // Metadata
+    bool is_device() const;
     size_t tags() const;
     const std::string &tag_name(size_t i) const;
     const std::string &tag_value(size_t i) const;

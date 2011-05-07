@@ -26,6 +26,7 @@ extern "C"
 {
 #define __STDC_CONSTANT_MACROS
 #include <libavformat/avformat.h>
+#include <libavdevice/avdevice.h>
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
 }
@@ -62,11 +63,12 @@ class read_thread : public thread
 {
 private:
     const std::string _url;
+    const bool _is_device;
     struct ffmpeg_stuff *_ffmpeg;
     bool _eof;
 
 public:
-    read_thread(const std::string &url, struct ffmpeg_stuff *ffmpeg);
+    read_thread(const std::string &url, bool is_device, struct ffmpeg_stuff *ffmpeg);
     void run();
     void reset();
     bool eof() const
@@ -315,6 +317,7 @@ static int64_t stream_duration(AVStream *stream, AVFormatContext *format)
 
 media_object::media_object() : _ffmpeg(NULL)
 {
+    avdevice_register_all();
     av_register_all();
     switch (msg::level())
     {
@@ -628,19 +631,40 @@ void media_object::set_subtitle_box_template(int index)
     }
 }
 
-void media_object::open(const std::string &url)
+void media_object::open(const std::string &url, bool is_device)
 {
     assert(!_ffmpeg);
 
     _url = url;
+    _is_device = is_device;
     _ffmpeg = new struct ffmpeg_stuff;
-    _ffmpeg->reader = new read_thread(_url, _ffmpeg);
+    _ffmpeg->reader = new read_thread(_url, _is_device, _ffmpeg);
     int e;
 
-    if ((e = av_open_input_file(&_ffmpeg->format_ctx, _url.c_str(), NULL, 0, NULL)) != 0)
+    AVInputFormat *iformat = NULL;
+    if (is_device)
+    {
+#if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
+        iformat = av_find_input_format("vfwcap");
+#elif defined __FreeBSD__ || defined __NetBSD__ || defined __OpenBSD__ || defined __APPLE__
+        iformat = av_find_input_format("bktr");
+#else
+        iformat = av_find_input_format("video4linux2");
+#endif
+        if (!iformat)
+        {
+            throw exc(_("No device support available"));
+        }
+    }
+    if ((e = av_open_input_file(&_ffmpeg->format_ctx, _url.c_str(), iformat, 0, NULL)) != 0)
     {
         throw exc(str::asprintf(_("%s: %s"),
                     _url.c_str(), my_av_strerror(e).c_str()));
+    }
+    if (is_device)
+    {
+        // For a camera device, do not read ahead multiple packets, to avoid a startup delay.
+        _ffmpeg->format_ctx->max_analyze_duration = 0;
     }
     if ((e = av_find_stream_info(_ffmpeg->format_ctx)) < 0)
     {
@@ -1037,8 +1061,8 @@ int64_t media_object::subtitle_duration(int index) const
             _ffmpeg->format_ctx);
 }
 
-read_thread::read_thread(const std::string &url, struct ffmpeg_stuff *ffmpeg) :
-    _url(url), _ffmpeg(ffmpeg), _eof(false)
+read_thread::read_thread(const std::string &url, bool is_device, struct ffmpeg_stuff *ffmpeg) :
+    _url(url), _is_device(is_device), _ffmpeg(ffmpeg), _eof(false)
 {
 }
 
@@ -1047,9 +1071,11 @@ void read_thread::run()
     while (!_eof)
     {
         // We need another packet if the number of queued packets for an active stream is below a threshold.
-        const size_t video_stream_low_threshold = 2;    // Often, 1 packet results in one video frame
-        const size_t audio_stream_low_threshold = 5;    // Often, 3-4 packets are needed for one buffer fill
-        const size_t subtitle_stream_low_threshold = 1; // Just a guess
+        // For files, we often want to read ahead to avoid i/o waits. For devices, we do not want to read
+        // ahead to avoid latency.
+        const size_t video_stream_low_threshold = (_is_device ? 1 : 2);         // Often, 1 packet results in one video frame
+        const size_t audio_stream_low_threshold = (_is_device ? 1 : 5);         // Often, 3-4 packets are needed for one buffer fill
+        const size_t subtitle_stream_low_threshold = (_is_device ? 1 : 1);      // Just a guess
         bool need_another_packet = false;
         for (size_t i = 0; !need_another_packet && i < _ffmpeg->video_streams.size(); i++)
         {
@@ -1065,8 +1091,8 @@ void read_thread::run()
             if (_ffmpeg->format_ctx->streams[_ffmpeg->audio_streams[i]]->discard == AVDISCARD_DEFAULT)
             {
                 _ffmpeg->audio_packet_queue_mutexes[i].lock();
-                need_another_packet = _ffmpeg->audio_packet_queues[i].size() < audio_stream_low_threshold;
-                _ffmpeg->audio_packet_queue_mutexes[i].unlock();
+                    need_another_packet = _ffmpeg->audio_packet_queues[i].size() < audio_stream_low_threshold;
+                    _ffmpeg->audio_packet_queue_mutexes[i].unlock();
             }
         }
         for (size_t i = 0; !need_another_packet && i < _ffmpeg->subtitle_streams.size(); i++)
@@ -1815,6 +1841,7 @@ void media_object::close()
         _ffmpeg = NULL;
     }
     _url = "";
+    _is_device = false;
     _tag_names.clear();
     _tag_values.clear();
 }

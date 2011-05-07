@@ -85,11 +85,11 @@ CLEANFILES = $(BUILT_SOURCES)
 DEFS += -DDOCDIR=\"$(docdir)\" -DLOCALEDIR=\"$(localedir)\"
 
 AM_CPPFLAGS = -I$(top_srcdir)/src/base \
-	$(libavformat_CFLAGS) $(libswscale_CFLAGS) $(libass_CFLAGS) \
+	$(libavformat_CFLAGS) $(libavdevice_CFLAGS) $(libswscale_CFLAGS) $(libass_CFLAGS) \
 	$(libopenal_CFLAGS) $(libglew_CFLAGS) $(libqtopengl_CFLAGS)
 
 bino_LDADD = $(top_builddir)/src/base/libbase.a $(LIBINTL) \
-	$(libavformat_LIBS) $(libswscale_LIBS) $(libass_LIBS) \
+	$(libavformat_LIBS) $(libavdevice_LIBS) $(libswscale_LIBS) $(libass_LIBS) \
 	$(libopenal_LIBS) $(libglew_LIBS) $(libqtopengl_LIBS)
 
 if HAVE_LIBEQUALIZER

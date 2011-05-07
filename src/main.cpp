@@ -418,6 +418,7 @@ int main(int argc, char *argv[])
     {
         init_data.log_level = msg::REQ;
     }
+    init_data.is_device = (arguments.size() == 1 && arguments[0].substr(0, 5) == "/dev/");
     init_data.urls = arguments;
     init_data.video_stream = video.value() - 1;
     init_data.audio_stream = audio.value() - 1;

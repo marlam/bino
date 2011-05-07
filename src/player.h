@@ -42,6 +42,7 @@ class player_init_data : public s11n
 {
 public:
     msg::level_t log_level;                     // Level of log messages
+    bool is_device;                             // Whether the input is a device
     std::vector<std::string> urls;              // Input media objects
     int video_stream;                           // Selected video stream
     int audio_stream;                           // Selected audio stream

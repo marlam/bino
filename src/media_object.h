@@ -32,6 +32,7 @@ class media_object
 {
 private:
     std::string _url;                           // The URL of the media object (may be a file)
+    bool _is_device;                            // Whether the URL represents a device (e.g. a camera)
     struct ffmpeg_stuff *_ffmpeg;               // FFmpeg related data
     std::vector<std::string> _tag_names;        // Meta data: tag names
     std::vector<std::string> _tag_values;       // Meta data: tag values
@@ -59,7 +60,7 @@ public:
      */
 
     /* Open a media object. The URL may simply be a file name. */
-    void open(const std::string &url);
+    void open(const std::string &url, bool is_device);
 
     /* Get metadata */
     const std::string &url() const;

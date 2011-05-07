@@ -43,6 +43,7 @@
 
 player_init_data::player_init_data() :
     log_level(msg::INF),
+    is_device(false),
     urls(),
     video_stream(0),
     audio_stream(0),
@@ -67,6 +68,7 @@ player_init_data::~player_init_data()
 void player_init_data::save(std::ostream &os) const
 {
     s11n::save(os, static_cast<int>(log_level));
+    s11n::save(os, is_device);
     s11n::save(os, urls);
     s11n::save(os, video_stream);
     s11n::save(os, audio_stream);
@@ -88,6 +90,7 @@ void player_init_data::load(std::istream &is)
     int x;
     s11n::load(is, x);
     log_level = static_cast<msg::level_t>(x);
+    s11n::load(is, is_device);
     s11n::load(is, urls);
     s11n::load(is, video_stream);
     s11n::load(is, audio_stream);
@@ -200,7 +203,7 @@ void player::open(const player_init_data &init_data)
 
     // Create media input
     _media_input = new media_input();
-    _media_input->open(init_data.urls);
+    _media_input->open(init_data.urls, init_data.is_device);
     if (_media_input->video_streams() == 0)
     {
         throw exc(_("No video streams found."));
@@ -628,11 +631,12 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
         }
 
         int64_t allowable_sleep = 0;
-        if (_master_time_current >= _video_pos || _benchmark)
+        if (_master_time_current >= _video_pos || _benchmark || _media_input->is_device())
         {
             // Output current video frame
             _drop_next_frame = false;
-            if (_master_time_current - _video_pos > _media_input->video_frame_duration() * 75 / 100 && !_benchmark)
+            if (_master_time_current - _video_pos > _media_input->video_frame_duration() * 75 / 100
+                    && !_benchmark && !_media_input->is_device())
             {
                 msg::wrn(_("Video: delay %g seconds; dropping next frame."), (_master_time_current - _video_pos) / 1e6f);
                 _drop_next_frame = true;

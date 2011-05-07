@@ -117,15 +117,17 @@ static std::string basename(const std::string &url)
     }
 }
 
-void media_input::open(const std::vector<std::string> &urls)
+void media_input::open(const std::vector<std::string> &urls, bool is_device)
 {
     assert(urls.size() > 0);
+    assert(!is_device || urls.size() == 1);
 
     // Open media objects
+    _is_device = is_device;
     _media_objects.resize(urls.size());
     for (size_t i = 0; i < urls.size(); i++)
     {
-        _media_objects[i].open(urls[i]);
+        _media_objects[i].open(urls[i], is_device);
     }
 
     // Construct id for this input
@@ -326,6 +328,11 @@ void media_input::open(const std::vector<std::string> &urls)
 const std::string &media_input::id() const
 {
     return _id;
+}
+
+bool media_input::is_device() const
+{
+    return _is_device;
 }
 
 size_t media_input::tags() const
@@ -744,6 +751,7 @@ void media_input::close()
     catch (...)
     {
     }
+    _is_device = false;
     _id = "";
     _media_objects.clear();
     _tag_names.clear();

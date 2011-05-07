@@ -92,6 +92,12 @@ if test "$HAVE_LIBAVFORMAT" != "1"; then
     AC_MSG_WARN([$libavformat_PKG_ERRORS])
     AC_MSG_WARN([libavformat >= 52.108.0 is provided by FFmpeg >= 0.7-rc1])
 fi
+PKG_CHECK_MODULES([libavdevice], [libavdevice >= 52.4.0], [HAVE_LIBAVDEVICE=1], [HAVE_LIBAVDEVICE=0])
+if test "$HAVE_LIBAVDEVICE" != "1"; then
+    AC_MSG_WARN([library libavdevice >= 52.4.0 not found:])
+    AC_MSG_WARN([$libavdevice_PKG_ERRORS])
+    AC_MSG_WARN([libavdevice >= 52.4.0 is provided by FFmpeg >= 0.7-rc1])
+fi
 PKG_CHECK_MODULES([libswscale], [libswscale >= 0.13.0 libavutil], [HAVE_LIBSWSCALE=1], [HAVE_LIBSWSCALE=0])
 if test "$HAVE_LIBSWSCALE" != "1"; then
     AC_MSG_WARN([library libswscale >= 0.13.0 not found:])
@@ -157,6 +163,7 @@ AM_CONDITIONAL([HAVE_LIBEQUALIZER], [test "$HAVE_LIBEQUALIZER" = "1"])
 
 dnl Check if all libraries were found
 if test "$HAVE_LIBAVFORMAT" != "1" \
+    -o "$HAVE_LIBAVDEVICE" != "1" \
     -o "$HAVE_LIBSWSCALE" != "1" \
     -o "$HAVE_LIBASS" != "1" \
     -o "$HAVE_LIBOPENAL" != "1" \
