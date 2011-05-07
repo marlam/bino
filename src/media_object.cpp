@@ -642,21 +642,34 @@ void media_object::open(const std::string &url, bool is_device)
     int e;
 
     AVInputFormat *iformat = NULL;
+    AVFormatParameters iparams;
+    std::memset(&iparams, 0, sizeof(iparams));
     if (is_device)
     {
 #if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
         iformat = av_find_input_format("vfwcap");
+        // vfwcap requires a time_base parameter. Simply set this to 1/25 always.
+        iparams.time_base.num = 1;
+        iparams.time_base.den = 25;
 #elif defined __FreeBSD__ || defined __NetBSD__ || defined __OpenBSD__ || defined __APPLE__
         iformat = av_find_input_format("bktr");
+        // bktr requires width, height, time_base parameters, and should also get
+        // the standard parameter. Simply set these to 640x480, 1/25, and "pal" for now.
+        iparams.width = 640;
+        iparams.height = 480;
+        iparams.standard = "pal";
+        iparams.time_base.num = 1;
+        iparams.time_base.den = 25;
 #else
         iformat = av_find_input_format("video4linux2");
+        // video4linux2 can use default parameters.
 #endif
         if (!iformat)
         {
             throw exc(_("No device support available"));
         }
     }
-    if ((e = av_open_input_file(&_ffmpeg->format_ctx, _url.c_str(), iformat, 0, NULL)) != 0)
+    if ((e = av_open_input_file(&_ffmpeg->format_ctx, _url.c_str(), iformat, 0, &iparams)) != 0)
     {
         throw exc(str::asprintf(_("%s: %s"),
                     _url.c_str(), my_av_strerror(e).c_str()));
