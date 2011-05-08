@@ -328,6 +328,7 @@ private slots:
     void preferences_crosstalk();
     void preferences_subtitle();
     void preferences_stereoscopic();
+    void preferences_fullscreen();
     void help_manual();
     void help_website();
     void help_keyboard();

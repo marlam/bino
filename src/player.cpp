@@ -291,7 +291,7 @@ void player::open(const player_init_data &init_data)
                 _params.stereo_mode);
         if (init_data.fullscreen)
         {
-            _video_output->enter_fullscreen();
+            _video_output->enter_fullscreen(_params.fullscreen_screen);
         }
         if (init_data.center)
         {
@@ -888,7 +888,7 @@ void player::receive_cmd(const command &cmd)
         flag = false;
         if (_video_output)
         {
-            flag = _video_output->toggle_fullscreen();
+            flag = _video_output->toggle_fullscreen(_params.fullscreen_screen);
         }
         notify(notification::fullscreen, flag, !flag);
         break;
@@ -1080,6 +1080,13 @@ void player::receive_cmd(const command &cmd)
             notify(notification::loop_mode, old_loop_mode, loop_mode);
         }
         break;
+    case command::set_fullscreen_screen:
+        {
+            int old_screen = _params.fullscreen_screen;
+            s11n::load(p, _params.fullscreen_screen);
+            notify(notification::fullscreen_screen, old_screen, _params.fullscreen_screen);
+            break;
+        }
     }
 
     if (parameters_changed && _video_output)

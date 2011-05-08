@@ -325,6 +325,7 @@ public:
     uint64_t subtitle_color;            // Subtitle color in uint32_t bgra32 format, > UINT32_MAX means keep default
     float subtitle_parallax;            // Subtitle parallax adjustment, -1 .. +1
     loop_mode_t loop_mode;              // Current loop behaviour.
+    int fullscreen_screen;              // Screen to use in fullscreen mode: 0 (primary screen), 1, 2, ...
 
     // Constructor
     parameters();

@@ -190,9 +190,9 @@ public:
     int pos_x() { return 0; }
     int pos_y() { return 0; }
     void center() { }
-    void enter_fullscreen() { }
+    void enter_fullscreen(int) { }
     void exit_fullscreen() { }
-    bool toggle_fullscreen() { return false; }
+    bool toggle_fullscreen(int) { return false; }
     bool has_events() { return false; }
     void process_events() { }
     void receive_notification(const notification &) { }

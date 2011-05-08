@@ -492,7 +492,7 @@ void video_output_qt::center()
     }
 }
 
-void video_output_qt::enter_fullscreen()
+void video_output_qt::enter_fullscreen(int screen)
 {
     if (!_fullscreen)
     {
@@ -504,11 +504,20 @@ void video_output_qt::enter_fullscreen()
         _container_widget->setWindowState(_widget->windowState() | Qt::WindowFullScreen);
         _container_widget->setCursor(Qt::BlankCursor);
         _container_widget->show();
+        if (screen != 0)
+        {
+            screen--;
+            if (screen < QApplication::desktop()->screenCount())
+            {
+                QRect screen_res = QApplication::desktop()->screenGeometry(screen);
+                _container_widget->move(QPoint(screen_res.x(), screen_res.y()));
+            }
+        }
         _widget->setFocus(Qt::OtherFocusReason);
     }
 }
 
-bool video_output_qt::toggle_fullscreen()
+bool video_output_qt::toggle_fullscreen(int screen)
 {
     if (_fullscreen)
     {
@@ -516,7 +525,7 @@ bool video_output_qt::toggle_fullscreen()
     }
     else
     {
-        enter_fullscreen();
+        enter_fullscreen(screen);
     }
     return _fullscreen;
 }

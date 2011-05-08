@@ -217,6 +217,8 @@ int main(int argc, char *argv[])
     options.push_back(&swap_eyes);
     opt::flag fullscreen("fullscreen", 'f', opt::optional);
     options.push_back(&fullscreen);
+    opt::val<int> fullscreen_screen("fullscreen-screen", '\0', opt::optional, 0, 999, parameters().fullscreen_screen);
+    options.push_back(&fullscreen_screen);
     opt::flag center("center", 'c', opt::optional);
     options.push_back(&center);
     opt::val<std::string> subtitle_encoding("subtitle-encoding", '\0', opt::optional, parameters().subtitle_encoding);
@@ -347,6 +349,8 @@ int main(int argc, char *argv[])
                     "    equalizer-3d             Multi-display via Equalizer (3D setup).\n"
                     "  -S|--swap-eyes           Swap left/right view.\n"
                     "  -f|--fullscreen          Fullscreen.\n"
+                    "  --fullscreen-screen=N    Use screen N for fullscreen mode. The default\n"
+                    "                           N=0 uses the primary screen of the desktop.\n"
                     "  -c|--center              Center window on screen.\n"
                     "  --subtitle-encoding=ENC  Set subtitle encoding.\n"
                     "  --subtitle-font=FONT     Set subtitle font name.\n"
@@ -491,6 +495,7 @@ int main(int argc, char *argv[])
     }
     init_data.params.stereo_mode_swap = swap_eyes.value();
     init_data.fullscreen = fullscreen.value();
+    init_data.params.fullscreen_screen = fullscreen_screen.value();
     init_data.center = center.value();
     init_data.params.subtitle_encoding = subtitle_encoding.value();
     init_data.params.subtitle_font = subtitle_font.value();

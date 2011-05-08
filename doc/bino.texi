@@ -126,6 +126,9 @@ Swap left/right view.
 @item -f
 @itemx --fullscreen
 Fullscreen.
+@item --fullscreen-screen=@var{N}
+Use screen @var{N} in fullscreen mode. The default @var{N} uses the primary
+screen of the desktop.
 @item -c
 @itemx --center
 Center window on screen.

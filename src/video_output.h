@@ -153,9 +153,9 @@ public:
     virtual void center() = 0;
 
     /* Enter/exit fullscreen mode */
-    virtual void enter_fullscreen() = 0;
+    virtual void enter_fullscreen(int screen) = 0;
     virtual void exit_fullscreen() = 0;
-    virtual bool toggle_fullscreen() = 0;
+    virtual bool toggle_fullscreen(int screen) = 0;
 
     /* Process window system events (if applicable) */
     virtual void process_events() = 0;

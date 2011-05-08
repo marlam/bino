@@ -127,9 +127,9 @@ public:
     virtual int pos_y();
 
     virtual void center();
-    virtual void enter_fullscreen();
+    virtual void enter_fullscreen(int screen);
     virtual void exit_fullscreen();
-    virtual bool toggle_fullscreen();
+    virtual bool toggle_fullscreen(int screen);
 
     virtual void process_events();
 

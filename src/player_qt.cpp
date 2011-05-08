@@ -55,6 +55,7 @@
 #include <QRegExp>
 #include <QMap>
 #include <QColorDialog>
+#include <QDesktopWidget>
 
 #include "gettext.h"
 #define _(string) gettext(string)
@@ -1885,6 +1886,10 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
         _init_data.params.subtitle_color = _settings->value("subtitle-color",
                 QString(str::from(std::numeric_limits<uint64_t>::max()).c_str())).toULongLong();
     }
+    if (_init_data.params.fullscreen_screen < 0)
+    {
+        _init_data.params.fullscreen_screen = _settings->value("fullscreen-screen", QString("-1")).toInt();
+    }
     _settings->endGroup();
     _init_data.params.set_defaults();
 
@@ -1945,6 +1950,10 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     QAction *preferences_stereoscopic_act = new QAction(_("Stereoscopic Video Settings..."), this);
     connect(preferences_stereoscopic_act, SIGNAL(triggered()), this, SLOT(preferences_stereoscopic()));
     preferences_menu->addAction(preferences_stereoscopic_act);
+    preferences_menu->addSeparator();
+    QAction *preferences_fullscreen_act = new QAction(_("Fullscreen Settings..."), this);
+    connect(preferences_fullscreen_act, SIGNAL(triggered()), this, SLOT(preferences_fullscreen()));
+    preferences_menu->addAction(preferences_fullscreen_act);
     QMenu *help_menu = menuBar()->addMenu(_("&Help"));
     QAction *help_manual_act = new QAction(_("&Manual..."), this);
     help_manual_act->setShortcut(QKeySequence::HelpContents);
@@ -2172,6 +2181,10 @@ void main_window::receive_notification(const notification &note)
         }
         break;
 
+    case notification::fullscreen_screen:
+        s11n::load(current, _init_data.params.fullscreen_screen);
+        break;
+
     case notification::pause:
     case notification::stereo_layout:
     case notification::stereo_mode:
@@ -2234,6 +2247,7 @@ void main_window::closeEvent(QCloseEvent *event)
     _settings->setValue("subtitle-size", QVariant(_init_data.params.subtitle_size).toString());
     _settings->setValue("subtitle-scale", QVariant(_init_data.params.subtitle_scale).toString());
     _settings->setValue("subtitle-color", QVariant(static_cast<qulonglong>(_init_data.params.subtitle_color)).toString());
+    _settings->setValue("fullscreen-screen", QVariant(_init_data.params.fullscreen_screen).toString());
     _settings->endGroup();
     event->accept();
 }
@@ -2500,6 +2514,42 @@ void main_window::preferences_stereoscopic()
     _stereoscopic_dialog->show();
     _stereoscopic_dialog->raise();
     _stereoscopic_dialog->activateWindow();
+}
+
+void main_window::preferences_fullscreen()
+{
+    QDialog *dlg = new QDialog(this);
+    dlg->setWindowTitle(_("Fullscreen Settings"));
+    QLabel *lbl = new QLabel(_("Screen to use in fullscreen mode:"));
+    lbl->setToolTip(_("<p>Select the screen to use in fullscreen mode.</p>"));
+    QComboBox *box = new QComboBox();
+    box->setToolTip(lbl->toolTip());
+    box->addItem(_("Primary screen"));
+    int n = QApplication::desktop()->screenCount();
+    if (n > 1)
+    {
+        for (int i = 0; i < n; i++)
+        {
+            box->addItem(str::from(i + 1).c_str());
+        }
+    }
+    box->setCurrentIndex(_init_data.params.fullscreen_screen);
+    QPushButton *cancel_btn = new QPushButton(_("Cancel"));
+    QPushButton *ok_btn = new QPushButton(_("OK"));
+    ok_btn->setDefault(true);
+    connect(cancel_btn, SIGNAL(pressed()), dlg, SLOT(reject()));
+    connect(ok_btn, SIGNAL(pressed()), dlg, SLOT(accept()));
+    QGridLayout *layout = new QGridLayout();
+    layout->addWidget(lbl, 0, 0, 1, 2);
+    layout->addWidget(box, 1, 0, 1, 2);
+    layout->addWidget(cancel_btn, 2, 0);
+    layout->addWidget(ok_btn, 2, 1);
+    dlg->setLayout(layout);
+    dlg->exec();
+    if (dlg->result() == QDialog::Accepted)
+    {
+        send_cmd(command::set_fullscreen_screen, box->currentIndex());
+    }
 }
 
 void main_window::help_manual()

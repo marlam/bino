@@ -571,7 +571,8 @@ parameters::parameters() :
     subtitle_scale(-1.0f),
     subtitle_color(std::numeric_limits<uint64_t>::max()),
     subtitle_parallax(std::numeric_limits<float>::quiet_NaN()),
-    loop_mode(no_loop)
+    loop_mode(no_loop),
+    fullscreen_screen(-1)
 {
 }
 
@@ -636,6 +637,10 @@ void parameters::set_defaults()
     if (!std::isfinite(subtitle_parallax) || subtitle_parallax < -1.0f || subtitle_parallax > +1.0f)
     {
         subtitle_parallax = 0.0f;
+    }
+    if (fullscreen_screen < 0)
+    {
+        fullscreen_screen = 0;
     }
 }
 
@@ -868,6 +873,7 @@ void parameters::save(std::ostream &os) const
     s11n::save(os, subtitle_color);
     s11n::save(os, subtitle_parallax);
     s11n::save(os, static_cast<int>(loop_mode));
+    s11n::save(os, fullscreen_screen);
 }
 
 void parameters::load(std::istream &is)
@@ -893,4 +899,5 @@ void parameters::load(std::istream &is)
     s11n::load(is, subtitle_parallax);
     s11n::load(is, x);
     loop_mode = static_cast<loop_mode_t>(x);
+    s11n::load(is, fullscreen_screen);
 }

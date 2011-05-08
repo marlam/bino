@@ -85,6 +85,7 @@ public:
         seek,                           // float (relative adjustment)
         set_pos,                        // float (absolute position)
         set_loop_mode,                  // parameters::loop_mode_t
+        set_fullscreen_screen,          // int
     };
     
     type type;
@@ -149,6 +150,7 @@ public:
         subtitle_parallax,      // float
         pos,                    // float
         loop_mode,              // parameters::loop_mode_t
+        fullscreen_screen,      // int
     };
     
     type type;
