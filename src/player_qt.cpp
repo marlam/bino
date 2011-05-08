@@ -1698,16 +1698,40 @@ void stereoscopic_dialog::receive_notification(const notification &note)
     }
 }
 
-open_device_dialog::open_device_dialog(const QStringList &devices, const device_request &dev_request)
+open_device_dialog::open_device_dialog(
+        const QStringList &default_devices,
+        const QStringList &firewire_devices,
+        const QString &x11_device,
+        const device_request &dev_request,
+        QWidget *parent) :
+    QDialog(parent)
 {
     setWindowTitle(_("Open device"));
 
-    _device_combobox = new QComboBox();
-    _device_combobox->setToolTip("<p>Choose a device.</p>");
-    _device_combobox->addItems(devices);
+    _type_combobox = new QComboBox();
+    _type_combobox->setToolTip(_("<p>Choose a device type.</p>"));
+    _type_combobox->addItem(_("Default"));
+    _type_combobox->addItem(_("Firewire"));
+    _type_combobox->addItem(_("X11"));
+    _default_device_combobox = new QComboBox();
+    _default_device_combobox->setToolTip(_("<p>Choose a device.</p>"));
+    _default_device_combobox->addItems(default_devices);
+    _firewire_device_combobox = new QComboBox();
+    _firewire_device_combobox->setToolTip(_("<p>Choose a device.</p>"));
+    _firewire_device_combobox->addItems(firewire_devices);
+    _x11_device_field = new QLineEdit(x11_device);
+    _x11_device_field->setToolTip(_("<p>Set the X11 device string. "
+                "Refer to the FFmpeg documentation on the x11grab device for details.</p>"));
+    _device_chooser_stack = new QStackedWidget();
+    _device_chooser_stack->addWidget(_default_device_combobox);
+    _device_chooser_stack->addWidget(_firewire_device_combobox);
+    _device_chooser_stack->addWidget(_x11_device_field);
+    connect(_type_combobox, SIGNAL(currentIndexChanged(int)), _device_chooser_stack, SLOT(setCurrentIndex(int)));
+    _type_combobox->setCurrentIndex(dev_request.device == device_request::firewire ? 1
+            : dev_request.device == device_request::x11 ? 2 : 0);
     _frame_size_groupbox = new QGroupBox(_("Request frame size"));
-    _frame_size_groupbox->setToolTip("<p>Request a specific frame size from the device, e.g. 640x480. "
-            "The device must support this frame size.</p>");
+    _frame_size_groupbox->setToolTip(_("<p>Request a specific frame size from the device, e.g. 640x480. "
+                "The device must support this frame size.</p>"));
     _frame_size_groupbox->setCheckable(true);
     _frame_size_groupbox->setChecked(dev_request.width != 0 && dev_request.height != 0);
     connect(_frame_size_groupbox, SIGNAL(clicked(bool)), this, SLOT(frame_size_groupbox_clicked(bool)));
@@ -1718,8 +1742,8 @@ open_device_dialog::open_device_dialog(const QStringList &devices, const device_
     _frame_height_spinbox->setRange(_frame_size_groupbox->isChecked() ? 1 : 0, 65535);
     _frame_height_spinbox->setValue(dev_request.height);
     _frame_rate_groupbox = new QGroupBox(_("Request frame rate"));
-    _frame_rate_groupbox->setToolTip("<p>Request a specific frame rate from the device, e.g. 25/1. "
-            "The device must support this frame rate.</p>");
+    _frame_rate_groupbox->setToolTip(_("<p>Request a specific frame rate from the device, e.g. 25/1. "
+                "The device must support this frame rate.</p>"));
     _frame_rate_groupbox->setCheckable(true);
     _frame_rate_groupbox->setChecked(dev_request.frame_rate_num != 0 && dev_request.frame_rate_den != 0);
     connect(_frame_rate_groupbox, SIGNAL(clicked(bool)), this, SLOT(frame_rate_groupbox_clicked(bool)));
@@ -1746,12 +1770,13 @@ open_device_dialog::open_device_dialog(const QStringList &devices, const device_
     _frame_rate_groupbox->setLayout(frame_rate_layout);
 
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(_device_combobox, 0, 0, 1, 2);
-    layout->addWidget(_frame_size_groupbox, 1, 0, 1, 2);
-    layout->addWidget(_frame_rate_groupbox, 2, 0, 1, 2);
-    layout->addWidget(cancel_btn, 3, 0);
-    layout->addWidget(ok_btn, 3, 1);
-    layout->setRowStretch(0, 1);
+    layout->addWidget(_type_combobox, 0, 0, 1, 2);
+    layout->addWidget(_device_chooser_stack, 1, 0, 1, 2);
+    layout->addWidget(_frame_size_groupbox, 2, 0, 1, 2);
+    layout->addWidget(_frame_rate_groupbox, 3, 0, 1, 2);
+    layout->addWidget(cancel_btn, 4, 0);
+    layout->addWidget(ok_btn, 4, 1);
+    layout->setRowStretch(1, 1);
     setLayout(layout);
 }
 
@@ -1773,8 +1798,21 @@ void open_device_dialog::frame_rate_groupbox_clicked(bool checked)
 
 void open_device_dialog::request(QString &device, device_request &dev_request)
 {
-    device = _device_combobox->currentText();
-    dev_request.device = device_request::sys_default;
+    if (_type_combobox->currentIndex() == 1)
+    {
+        dev_request.device = device_request::firewire;
+        device = _firewire_device_combobox->currentText();
+    }
+    else if (_type_combobox->currentIndex() == 2)
+    {
+        dev_request.device = device_request::x11;
+        device = _x11_device_field->text();
+    }
+    else
+    {
+        dev_request.device = device_request::sys_default;
+        device = _default_device_combobox->currentText();
+    }
     dev_request.width = _frame_size_groupbox->isChecked() ? _frame_width_spinbox->value() : 0;
     dev_request.height = _frame_size_groupbox->isChecked() ? _frame_height_spinbox->value() : 0;
     dev_request.frame_rate_num = _frame_rate_groupbox->isChecked() ? _frame_rate_num_spinbox->value() : 0;
@@ -2348,14 +2386,17 @@ void main_window::file_open_url()
 void main_window::file_open_device()
 {
     // Gather list of available devices
-    QStringList devices;
+    QStringList default_devices;
+    QStringList firewire_devices;
+    QString x11_device;
 #ifdef Q_OS_WIN
     // libavdevice supports devices "0" through "9" in the vfwcap driver on Windows.
     // Simply list them all here since I don't know how to find out which are actually available.
     for (int i = 0; i <= 9; i++)
     {
-        devices << QString(QChar('0' + i));
+        default_devices << QString(QChar('0' + i));
     }
+    firewire_devices << "/dev/video1394";       // TODO: this is definitely not correct
 #else
     // video4linux2 devices dynamically create device files /dev/video0 - /dev/video63.
     // TODO: does this also work on BSD and Mac OS?
@@ -2364,20 +2405,24 @@ void main_window::file_open_device()
         QString device = QString("/dev/video") + QString::number(i);
         if (QFileInfo(device).exists())
         {
-            devices << device;
+            default_devices << device;
         }
     }
-#endif
-    if (devices.empty())
+    if (default_devices.empty())
     {
-        QMessageBox::critical(this, _("Error"), _("No devices found."));
-        return;
+        // add a fallback entry
+        default_devices << QString("/dev/video0");
     }
+    firewire_devices << "/dev/video1394";       // TODO: this is probably not correct
+#endif
+    x11_device = _settings->value("Session/device-x11", QString(":0.0+400,300")).toString();
 
     // Get saved settings
     device_request dev_request;
-    dev_request.device = device_request::sys_default;
     _settings->beginGroup("Session");
+    QString saved_type = _settings->value("device-type", QString("default")).toString();
+    dev_request.device = (saved_type == "firewire" ? device_request::firewire
+            : saved_type == "x11" ? device_request::x11 : device_request::sys_default);
     dev_request.width = _settings->value("device-request-frame-width", QString("0")).toInt();
     dev_request.height = _settings->value("device-request-frame-height", QString("0")).toInt();
     dev_request.frame_rate_num = _settings->value("device-request-frame-rate-num", QString("0")).toInt();
@@ -2385,7 +2430,7 @@ void main_window::file_open_device()
     _settings->endGroup();
 
     // Run dialog
-    open_device_dialog *dlg = new open_device_dialog(devices, dev_request);
+    open_device_dialog *dlg = new open_device_dialog(default_devices, firewire_devices, x11_device, dev_request, this);
     dlg->exec();
     if (dlg->result() != QDialog::Accepted)
     {
@@ -2395,7 +2440,13 @@ void main_window::file_open_device()
     dlg->request(device, dev_request);
 
     // Save settings
+    if (dev_request.device == device_request::x11)
+    {
+        _settings->setValue("Session/device-x11", device);
+    }
     _settings->beginGroup("Session");
+    _settings->setValue("device-type", QString(dev_request.device == device_request::firewire ? "firewire"
+                : dev_request.device == device_request::x11 ? "x11" : "default"));
     _settings->setValue("device-request-frame-width", QVariant(dev_request.width).toString());
     _settings->setValue("device-request-frame-height", QVariant(dev_request.height).toString());
     _settings->setValue("device-request-frame-rate-num", QVariant(dev_request.frame_rate_num).toString());

@@ -36,6 +36,7 @@
 #include <QSettings>
 #include <QDialog>
 #include <QGroupBox>
+#include <QStackedWidget>
 
 #include "controller.h"
 #include "video_output_qt.h"
@@ -272,7 +273,11 @@ class open_device_dialog : public QDialog
     Q_OBJECT
 
 private:
-    QComboBox *_device_combobox;
+    QComboBox *_type_combobox;
+    QStackedWidget *_device_chooser_stack;
+    QComboBox *_default_device_combobox;
+    QComboBox *_firewire_device_combobox;
+    QLineEdit *_x11_device_field;
     QGroupBox *_frame_size_groupbox;
     QSpinBox *_frame_width_spinbox;
     QSpinBox *_frame_height_spinbox;
@@ -285,7 +290,8 @@ private slots:
     void frame_rate_groupbox_clicked(bool checked);
 
 public:
-    open_device_dialog(const QStringList &devices, const device_request &dev_request);
+    open_device_dialog(const QStringList &default_devices, const QStringList &firewire_devices,
+            const QString &x11_device, const device_request &dev_request, QWidget *parent);
     void request(QString &device, device_request &dev_request);
 };
 

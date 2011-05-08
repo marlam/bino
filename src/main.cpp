@@ -149,6 +149,12 @@ int main(int argc, char *argv[])
     log_levels.push_back("quiet");
     opt::val<std::string> log_level("log-level", 'L', opt::optional, log_levels, "");
     options.push_back(&log_level);
+    std::vector<std::string> device_types;
+    device_types.push_back("default");
+    device_types.push_back("firewire");
+    device_types.push_back("x11");
+    opt::val<std::string> device_type("device-type", '\0', opt::optional, device_types, "");
+    options.push_back(&device_type);
     opt::tuple<int> device_frame_size("device-frame-size", '\0', opt::optional,
             1, std::numeric_limits<int>::max(), std::vector<int>(2, 0), 2, "x");
     options.push_back(&device_frame_size);
@@ -291,6 +297,7 @@ int main(int argc, char *argv[])
                     "  --version                Print version.\n"
                     "  -n|--no-gui              Do not use the GUI, just show a plain window.\n"
                     "  -L|--log-level=LEVEL     Set log level (debug/info/warning/error/quiet).\n"
+                    "  --device-type=TYPE       Type of input device: default, firewire, or x11.\n"
                     "  --device-frame-size=WxH  Request frame size WxH from input device.\n"
                     "  --device-frame-rate=N/D  Request frame rate N/D from input device.\n"
                     "  -v|--video=STREAM        Select video stream (1-n, depending on input).\n"
@@ -426,9 +433,19 @@ int main(int argc, char *argv[])
     {
         init_data.log_level = msg::REQ;
     }
-    init_data.dev_request.device =
-        (arguments.size() == 1 && arguments[0].substr(0, 5) == "/dev/"
-         ? device_request::sys_default : device_request::no_device);
+    if (device_type.value() == "")
+    {
+        init_data.dev_request.device =
+            (arguments.size() == 1 && arguments[0].substr(0, 5) == "/dev/"
+             ? device_request::sys_default : device_request::no_device);
+    }
+    else
+    {
+        init_data.dev_request.device =
+            (device_type.value() == "firewire" ? device_request::firewire
+             : device_type.value() == "x11" ? device_request::x11
+             : device_request::sys_default);
+    }
     init_data.dev_request.width = device_frame_size.value()[0];
     init_data.dev_request.height = device_frame_size.value()[1];
     init_data.dev_request.frame_rate_num = device_frame_rate.value()[0];

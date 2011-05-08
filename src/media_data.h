@@ -35,7 +35,8 @@ public:
     {
         no_device,      // No device request.
         sys_default,    // Request for system default video device type.
-        // This can be extended with other types later, e.g. Firewire, X11, ...
+        firewire,       // Request for a firefire video device.
+        x11,            // Request for an X11 grabber.
     } device_t;
 
     device_t device;    // The device type.
