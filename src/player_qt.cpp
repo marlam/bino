@@ -2533,7 +2533,14 @@ void main_window::preferences_fullscreen()
             box->addItem(str::from(i + 1).c_str());
         }
     }
-    box->setCurrentIndex(_init_data.params.fullscreen_screen);
+    if (_init_data.params.fullscreen_screen < box->count())
+    {
+        box->setCurrentIndex(_init_data.params.fullscreen_screen);
+    }
+    else
+    {
+        box->setCurrentIndex(0);
+    }
     QPushButton *cancel_btn = new QPushButton(_("Cancel"));
     QPushButton *ok_btn = new QPushButton(_("OK"));
     ok_btn->setDefault(true);
