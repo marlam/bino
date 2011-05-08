@@ -755,6 +755,7 @@ controls_widget::controls_widget(QSettings *settings, QWidget *parent, const pla
     _fullscreen_button = new QPushButton(get_icon("view-fullscreen"), "");
     _fullscreen_button->setToolTip(_("<p>Switch to fullscreen mode. "
                 "You can leave fullscreen mode by pressing the f key.</p>"));
+    _fullscreen_button->setCheckable(true);
     connect(_fullscreen_button, SIGNAL(pressed()), this, SLOT(fullscreen_pressed()));
     layout->addWidget(_fullscreen_button, 1, 6);
     _center_button = new QPushButton(get_icon("view-restore"), "");
@@ -852,7 +853,10 @@ void controls_widget::loop_pressed()
 
 void controls_widget::fullscreen_pressed()
 {
-    send_cmd(command::toggle_fullscreen);
+    if (!_lock)
+    {
+        send_cmd(command::toggle_fullscreen);
+    }
 }
 
 void controls_widget::center_pressed()
@@ -940,6 +944,10 @@ void controls_widget::receive_notification(const notification &note)
         _pause_button->setEnabled(flag);
         _stop_button->setEnabled(flag);
         _fullscreen_button->setEnabled(flag);
+        if (!flag)
+        {
+            _fullscreen_button->setChecked(false);
+        }
         _center_button->setEnabled(flag);
         _bbb_button->setEnabled(flag);
         _bb_button->setEnabled(flag);
@@ -966,6 +974,13 @@ void controls_widget::receive_notification(const notification &note)
             _seek_slider->setValue(qRound(value * 2000.0f));
             _lock = false;
         }
+        break;
+    case notification::fullscreen:
+        s11n::load(current, flag);
+        _lock = true;
+        _fullscreen_button->setChecked(!flag);
+        _lock = false;
+        break;
     default:
         break;
     }
