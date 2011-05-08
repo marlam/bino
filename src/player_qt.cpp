@@ -907,6 +907,7 @@ void controls_widget::update(const player_init_data &, bool have_valid_input, bo
     if (have_valid_input)
     {
         _loop_button->setEnabled(true);
+        _fullscreen_button->setEnabled(true);
         receive_notification(notification(notification::play, !playing, playing));
     }
     else
@@ -943,10 +944,11 @@ void controls_widget::receive_notification(const notification &note)
         _play_button->setEnabled(!flag);
         _pause_button->setEnabled(flag);
         _stop_button->setEnabled(flag);
-        _fullscreen_button->setEnabled(flag);
-        if (!flag)
+        if (flag && _fullscreen_button->isChecked())
         {
-            _fullscreen_button->setChecked(false);
+            _lock = true;
+            send_cmd(command::toggle_fullscreen);
+            _lock = false;
         }
         _center_button->setEnabled(flag);
         _bbb_button->setEnabled(flag);
