@@ -631,12 +631,12 @@ void media_object::set_subtitle_box_template(int index)
     }
 }
 
-void media_object::open(const std::string &url, bool is_device)
+void media_object::open(const std::string &url, const device_request &dev_request)
 {
     assert(!_ffmpeg);
 
     _url = url;
-    _is_device = is_device;
+    _is_device = dev_request.is_device();
     _ffmpeg = new struct ffmpeg_stuff;
     _ffmpeg->reader = new read_thread(_url, _is_device, _ffmpeg);
     int e;
@@ -644,8 +644,9 @@ void media_object::open(const std::string &url, bool is_device)
     AVInputFormat *iformat = NULL;
     AVFormatParameters iparams;
     bool use_iparams = false;
-    if (is_device)
+    if (_is_device)
     {
+        // Currently only the device_request::sys_default device type is supported.
 #if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
         iformat = av_find_input_format("vfwcap");
         // vfwcap requires a time_base parameter. Simply set this to 1/25 always.
@@ -671,6 +672,25 @@ void media_object::open(const std::string &url, bool is_device)
         {
             throw exc(_("No device support available"));
         }
+        if ((dev_request.width != 0 && dev_request.height != 0)
+                || (dev_request.frame_rate_num != 0 && dev_request.frame_rate_den != 0))
+        {
+            if (!use_iparams)
+            {
+                std::memset(&iparams, 0, sizeof(iparams));
+                use_iparams = true;
+            }
+            if (dev_request.width != 0 && dev_request.height != 0)
+            {
+                iparams.width = dev_request.width;
+                iparams.height = dev_request.height;
+            }
+            if (dev_request.frame_rate_num != 0 && dev_request.frame_rate_den != 0)
+            {
+                iparams.time_base.den = dev_request.frame_rate_num;
+                iparams.time_base.num = dev_request.frame_rate_den;
+            }
+        }
     }
     if ((e = av_open_input_file(&_ffmpeg->format_ctx, _url.c_str(), iformat, 0,
                     use_iparams ? &iparams : NULL)) != 0)
@@ -678,7 +698,7 @@ void media_object::open(const std::string &url, bool is_device)
         throw exc(str::asprintf(_("%s: %s"),
                     _url.c_str(), my_av_strerror(e).c_str()));
     }
-    if (is_device)
+    if (_is_device)
     {
         // For a camera device, do not read ahead multiple packets, to avoid a startup delay.
         _ffmpeg->format_ctx->max_analyze_duration = 0;

@@ -149,6 +149,12 @@ int main(int argc, char *argv[])
     log_levels.push_back("quiet");
     opt::val<std::string> log_level("log-level", 'L', opt::optional, log_levels, "");
     options.push_back(&log_level);
+    opt::tuple<int> device_frame_size("device-frame-size", '\0', opt::optional,
+            1, std::numeric_limits<int>::max(), std::vector<int>(2, 0), 2, "x");
+    options.push_back(&device_frame_size);
+    opt::tuple<int> device_frame_rate("device-frame-rate", '\0', opt::optional,
+            1, std::numeric_limits<int>::max(), std::vector<int>(2, 0), 2, "/");
+    options.push_back(&device_frame_rate);
     std::vector<std::string> input_modes;
     input_modes.push_back("mono");
     input_modes.push_back("separate-left-right");
@@ -285,6 +291,8 @@ int main(int argc, char *argv[])
                     "  --version                Print version.\n"
                     "  -n|--no-gui              Do not use the GUI, just show a plain window.\n"
                     "  -L|--log-level=LEVEL     Set log level (debug/info/warning/error/quiet).\n"
+                    "  --device-frame-size=WxH  Request frame size WxH from input device.\n"
+                    "  --device-frame-rate=N/D  Request frame rate N/D from input device.\n"
                     "  -v|--video=STREAM        Select video stream (1-n, depending on input).\n"
                     "  -a|--audio=STREAM        Select audio stream (1-n, depending on input).\n"
                     "  -s|--subtitle=STREAM     Select subtitle stream (0-n, depending on input).\n"
@@ -418,7 +426,13 @@ int main(int argc, char *argv[])
     {
         init_data.log_level = msg::REQ;
     }
-    init_data.is_device = (arguments.size() == 1 && arguments[0].substr(0, 5) == "/dev/");
+    init_data.dev_request.device =
+        (arguments.size() == 1 && arguments[0].substr(0, 5) == "/dev/"
+         ? device_request::sys_default : device_request::no_device);
+    init_data.dev_request.width = device_frame_size.value()[0];
+    init_data.dev_request.height = device_frame_size.value()[1];
+    init_data.dev_request.frame_rate_num = device_frame_rate.value()[0];
+    init_data.dev_request.frame_rate_den = device_frame_rate.value()[1];
     init_data.urls = arguments;
     init_data.video_stream = video.value() - 1;
     init_data.audio_stream = audio.value() - 1;

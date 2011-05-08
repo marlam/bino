@@ -28,6 +28,36 @@
 #include "s11n.h"
 
 
+class device_request : public s11n
+{
+public:
+    typedef enum
+    {
+        no_device,      // No device request.
+        sys_default,    // Request for system default video device type.
+        // This can be extended with other types later, e.g. Firewire, X11, ...
+    } device_t;
+
+    device_t device;    // The device type.
+    int width;          // Request frames of the given width (0 means default).
+    int height;         // Request frames of the given height (0 means default).
+    int frame_rate_num; // Request a specific frame rate (0/0 means default).
+    int frame_rate_den; // For example 1/25, 1/30, ...
+
+    // Constructor
+    device_request();
+
+    // Is this a request for a device?
+    bool is_device() const
+    {
+        return device != no_device;
+    }
+
+    // Serialization
+    void save(std::ostream &os) const;
+    void load(std::istream &is);
+};
+
 class video_frame
 {
 public:

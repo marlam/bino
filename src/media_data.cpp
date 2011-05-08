@@ -35,6 +35,36 @@
 #include "dbg.h"
 
 
+device_request::device_request() :
+    device(no_device),
+    width(0),
+    height(0),
+    frame_rate_num(0),
+    frame_rate_den(0)
+{
+}
+
+void device_request::save(std::ostream &os) const
+{
+    s11n::save(os, static_cast<int>(device));
+    s11n::save(os, width);
+    s11n::save(os, height);
+    s11n::save(os, frame_rate_num);
+    s11n::save(os, frame_rate_den);
+}
+
+void device_request::load(std::istream &is)
+{
+    int x;
+    s11n::load(is, x);
+    device = static_cast<device_t>(x);
+    s11n::load(is, width);
+    s11n::load(is, height);
+    s11n::load(is, frame_rate_num);
+    s11n::load(is, frame_rate_den);
+}
+
+
 video_frame::video_frame() :
     raw_width(-1),
     raw_height(-1),

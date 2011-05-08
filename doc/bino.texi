@@ -99,6 +99,10 @@ parameters given on the command line.
 @itemx --log-level=@var{LEVEL}
 Select log level: @var{debug}, @var{info}, @var{warning}, @var{error}, or
 @var{quiet}.
+@item --device-frame-size=@var{W}x@var{H}
+If the input is a device, request the given frame size, e.g. 640x480.
+@item --device-frame-rate=@var{N}/@var{D}
+If the input is a device, request the given frame rate, e.g. 25/1.
 @item -v
 @itemx --video=@var{STREAM}
 Select video stream (1-n, depending on the input).

@@ -35,6 +35,7 @@
 #include <QTimer>
 #include <QSettings>
 #include <QDialog>
+#include <QGroupBox>
 
 #include "controller.h"
 #include "video_output_qt.h"
@@ -266,6 +267,27 @@ public:
     virtual void receive_notification(const notification &note);
 };
 
+class open_device_dialog : public QDialog
+{
+    Q_OBJECT
+
+private:
+    QComboBox *_device_combobox;
+    QGroupBox *_frame_size_groupbox;
+    QSpinBox *_frame_width_spinbox;
+    QSpinBox *_frame_height_spinbox;
+    QGroupBox *_frame_rate_groupbox;
+    QSpinBox *_frame_rate_num_spinbox;
+    QSpinBox *_frame_rate_den_spinbox;
+
+private slots:
+    void frame_size_groupbox_clicked(bool checked);
+    void frame_rate_groupbox_clicked(bool checked);
+
+public:
+    open_device_dialog(const QStringList &devices, const device_request &dev_request);
+    void request(QString &device, device_request &dev_request);
+};
 
 class main_window : public QMainWindow, public controller
 {
@@ -288,7 +310,7 @@ private:
 
     QString current_file_hash();
     bool open_player();
-    void open(QStringList urls, bool is_device = false);
+    void open(QStringList urls, const device_request &dev_request = device_request());
 
 private slots:
     void move_event();

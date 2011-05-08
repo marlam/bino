@@ -1698,6 +1698,88 @@ void stereoscopic_dialog::receive_notification(const notification &note)
     }
 }
 
+open_device_dialog::open_device_dialog(const QStringList &devices, const device_request &dev_request)
+{
+    setWindowTitle(_("Open device"));
+
+    _device_combobox = new QComboBox();
+    _device_combobox->setToolTip("<p>Choose a device.</p>");
+    _device_combobox->addItems(devices);
+    _frame_size_groupbox = new QGroupBox(_("Request frame size"));
+    _frame_size_groupbox->setToolTip("<p>Request a specific frame size from the device, e.g. 640x480. "
+            "The device must support this frame size.</p>");
+    _frame_size_groupbox->setCheckable(true);
+    _frame_size_groupbox->setChecked(dev_request.width != 0 && dev_request.height != 0);
+    connect(_frame_size_groupbox, SIGNAL(clicked(bool)), this, SLOT(frame_size_groupbox_clicked(bool)));
+    _frame_width_spinbox = new QSpinBox();
+    _frame_width_spinbox->setRange(_frame_size_groupbox->isChecked() ? 1 : 0, 65535);
+    _frame_width_spinbox->setValue(dev_request.width);
+    _frame_height_spinbox = new QSpinBox();
+    _frame_height_spinbox->setRange(_frame_size_groupbox->isChecked() ? 1 : 0, 65535);
+    _frame_height_spinbox->setValue(dev_request.height);
+    _frame_rate_groupbox = new QGroupBox(_("Request frame rate"));
+    _frame_rate_groupbox->setToolTip("<p>Request a specific frame rate from the device, e.g. 25/1. "
+            "The device must support this frame rate.</p>");
+    _frame_rate_groupbox->setCheckable(true);
+    _frame_rate_groupbox->setChecked(dev_request.frame_rate_num != 0 && dev_request.frame_rate_den != 0);
+    connect(_frame_rate_groupbox, SIGNAL(clicked(bool)), this, SLOT(frame_rate_groupbox_clicked(bool)));
+    _frame_rate_num_spinbox = new QSpinBox();
+    _frame_rate_num_spinbox->setRange(_frame_rate_groupbox->isChecked() ? 1 : 0, 65535);
+    _frame_rate_num_spinbox->setValue(dev_request.frame_rate_num);
+    _frame_rate_den_spinbox = new QSpinBox();
+    _frame_rate_den_spinbox->setRange(_frame_rate_groupbox->isChecked() ? 1 : 0, 65535);
+    _frame_rate_den_spinbox->setValue(dev_request.frame_rate_den);
+    QPushButton *cancel_btn = new QPushButton(_("Cancel"));
+    connect(cancel_btn, SIGNAL(pressed()), this, SLOT(reject()));
+    QPushButton *ok_btn = new QPushButton(_("OK"));
+    connect(ok_btn, SIGNAL(pressed()), this, SLOT(accept()));
+
+    QGridLayout *frame_size_layout = new QGridLayout;
+    frame_size_layout->addWidget(_frame_width_spinbox, 0, 0);
+    frame_size_layout->addWidget(new QLabel("x"), 0, 1);
+    frame_size_layout->addWidget(_frame_height_spinbox, 0, 2);
+    _frame_size_groupbox->setLayout(frame_size_layout);
+    QGridLayout *frame_rate_layout = new QGridLayout;
+    frame_rate_layout->addWidget(_frame_rate_num_spinbox, 0, 0);
+    frame_rate_layout->addWidget(new QLabel("/"), 0, 1);
+    frame_rate_layout->addWidget(_frame_rate_den_spinbox, 0, 2);
+    _frame_rate_groupbox->setLayout(frame_rate_layout);
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(_device_combobox, 0, 0, 1, 2);
+    layout->addWidget(_frame_size_groupbox, 1, 0, 1, 2);
+    layout->addWidget(_frame_rate_groupbox, 2, 0, 1, 2);
+    layout->addWidget(cancel_btn, 3, 0);
+    layout->addWidget(ok_btn, 3, 1);
+    layout->setRowStretch(0, 1);
+    setLayout(layout);
+}
+
+void open_device_dialog::frame_size_groupbox_clicked(bool checked)
+{
+    _frame_width_spinbox->setRange(checked ? 1 : 0, 65535);
+    _frame_width_spinbox->setValue(checked ? 640 : 0);
+    _frame_height_spinbox->setRange(checked ? 1 : 0, 65535);
+    _frame_height_spinbox->setValue(checked ? 480 : 0);
+}
+
+void open_device_dialog::frame_rate_groupbox_clicked(bool checked)
+{
+    _frame_rate_num_spinbox->setRange(checked ? 1 : 0, 65535);
+    _frame_rate_num_spinbox->setValue(checked ? 25 : 0);
+    _frame_rate_den_spinbox->setRange(checked ? 1 : 0, 65535);
+    _frame_rate_den_spinbox->setValue(checked ? 1 : 0);
+}
+
+void open_device_dialog::request(QString &device, device_request &dev_request)
+{
+    device = _device_combobox->currentText();
+    dev_request.device = device_request::sys_default;
+    dev_request.width = _frame_size_groupbox->isChecked() ? _frame_width_spinbox->value() : 0;
+    dev_request.height = _frame_size_groupbox->isChecked() ? _frame_height_spinbox->value() : 0;
+    dev_request.frame_rate_num = _frame_rate_groupbox->isChecked() ? _frame_rate_num_spinbox->value() : 0;
+    dev_request.frame_rate_den = _frame_rate_groupbox->isChecked() ? _frame_rate_den_spinbox->value() : 0;
+}
 
 main_window::main_window(QSettings *settings, const player_init_data &init_data) :
     _settings(settings),
@@ -2169,14 +2251,14 @@ void main_window::playloop_step()
     }
 }
 
-void main_window::open(QStringList filenames, bool is_device)
+void main_window::open(QStringList filenames, const device_request &dev_request)
 {
     _player->force_stop();
     _player->close();
     parameters params_bak = _init_data.params;
     _init_data = _init_data_template;
     _init_data.params = params_bak;
-    _init_data.is_device = is_device;
+    _init_data.dev_request = dev_request;
     _init_data.urls.clear();
     for (int i = 0; i < filenames.size(); i++)
     {
@@ -2286,38 +2368,42 @@ void main_window::file_open_device()
         }
     }
 #endif
-
-    // Choose a device
     if (devices.empty())
     {
-        QMessageBox::critical(this, _("Error"), _("No supported devices found."));
+        QMessageBox::critical(this, _("Error"), _("No devices found."));
+        return;
     }
-    else if (devices.size() == 1)       // automatically choose this
+
+    // Get saved settings
+    device_request dev_request;
+    dev_request.device = device_request::sys_default;
+    _settings->beginGroup("Session");
+    dev_request.width = _settings->value("device-request-frame-width", QString("0")).toInt();
+    dev_request.height = _settings->value("device-request-frame-height", QString("0")).toInt();
+    dev_request.frame_rate_num = _settings->value("device-request-frame-rate-num", QString("0")).toInt();
+    dev_request.frame_rate_den = _settings->value("device-request-frame-rate-den", QString("0")).toInt();
+    _settings->endGroup();
+
+    // Run dialog
+    open_device_dialog *dlg = new open_device_dialog(devices, dev_request);
+    dlg->exec();
+    if (dlg->result() != QDialog::Accepted)
     {
-        open(QStringList(devices[0]), true);
+        return;
     }
-    else                                // let the user choose one
-    {
-        QDialog *devices_dialog = new QDialog(this);
-        devices_dialog->setWindowTitle(_("Open device"));
-        QComboBox *devices_combobox = new QComboBox();
-        devices_combobox->addItems(devices);
-        QPushButton *ok_btn = new QPushButton(_("OK"));
-        QPushButton *cancel_btn = new QPushButton(_("Cancel"));
-        connect(ok_btn, SIGNAL(pressed()), devices_dialog, SLOT(accept()));
-        connect(cancel_btn, SIGNAL(pressed()), devices_dialog, SLOT(reject()));
-        QGridLayout *layout = new QGridLayout();
-        layout->addWidget(devices_combobox, 0, 0, 1, 2);
-        layout->addWidget(ok_btn, 1, 0);
-        layout->addWidget(cancel_btn, 1, 1);
-        layout->setRowStretch(0, 1);
-        devices_dialog->setLayout(layout);
-        devices_dialog->exec();
-        if (devices_dialog->result() == QDialog::Accepted)
-        {
-            open(QStringList(devices_combobox->currentText()), true);
-        }
-    }
+    QString device;
+    dlg->request(device, dev_request);
+
+    // Save settings
+    _settings->beginGroup("Session");
+    _settings->setValue("device-request-frame-width", QVariant(dev_request.width).toString());
+    _settings->setValue("device-request-frame-height", QVariant(dev_request.height).toString());
+    _settings->setValue("device-request-frame-rate-num", QVariant(dev_request.frame_rate_num).toString());
+    _settings->setValue("device-request-frame-rate-den", QVariant(dev_request.frame_rate_den).toString());
+    _settings->endGroup();
+
+    // Open device
+    open(QStringList(device), dev_request);
 }
 
 void main_window::preferences_colors()

@@ -60,7 +60,7 @@ public:
      */
 
     /* Open a media object. The URL may simply be a file name. */
-    void open(const std::string &url, bool is_device);
+    void open(const std::string &url, const device_request &dev_request);
 
     /* Get metadata */
     const std::string &url() const;

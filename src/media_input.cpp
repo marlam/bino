@@ -117,17 +117,17 @@ static std::string basename(const std::string &url)
     }
 }
 
-void media_input::open(const std::vector<std::string> &urls, bool is_device)
+void media_input::open(const std::vector<std::string> &urls, const device_request &dev_request)
 {
     assert(urls.size() > 0);
-    assert(!is_device || urls.size() == 1);
+    assert(!dev_request.is_device() || urls.size() == 1);
 
     // Open media objects
-    _is_device = is_device;
+    _is_device = dev_request.is_device();
     _media_objects.resize(urls.size());
     for (size_t i = 0; i < urls.size(); i++)
     {
-        _media_objects[i].open(urls[i], is_device);
+        _media_objects[i].open(urls[i], dev_request);
     }
 
     // Construct id for this input

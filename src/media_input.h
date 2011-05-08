@@ -72,7 +72,7 @@ public:
     /* Open this input by combining the media objects at the given URLS.
      * A device can only have a single URL. */
 
-    void open(const std::vector<std::string> &urls, bool is_device = false);
+    void open(const std::vector<std::string> &urls, const device_request &dev_request = device_request());
 
     /* Get information */
 
