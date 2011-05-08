@@ -1986,7 +1986,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
         {
             urls.push_back(QFile::decodeName(init_data.urls[i].c_str()));
         }
-        open(urls);
+        open(urls, init_data.dev_request);
     }
 }
 
