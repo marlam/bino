@@ -24,6 +24,7 @@ extern "C"
 {
 #define __STDC_CONSTANT_MACROS
 #include <libavformat/avformat.h>
+#include <libavdevice/avdevice.h>
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
 }
@@ -69,6 +70,9 @@ static void ffmpeg_versions()
         ffmpeg_v.push_back(str::asprintf("libavformat %d.%d.%d / %d.%d.%d",
                     LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO,
                     avformat_version() >> 16, avformat_version() >> 8 & 0xff, avformat_version() & 0xff));
+        ffmpeg_v.push_back(str::asprintf("libavdevice %d.%d.%d / %d.%d.%d",
+                    LIBAVDEVICE_VERSION_MAJOR, LIBAVDEVICE_VERSION_MINOR, LIBAVDEVICE_VERSION_MICRO,
+                    avdevice_version() >> 16, avdevice_version() >> 8 & 0xff, avdevice_version() & 0xff));
         ffmpeg_v.push_back(str::asprintf("libavcodec %d.%d.%d / %d.%d.%d",
                     LIBAVCODEC_VERSION_MAJOR, LIBAVCODEC_VERSION_MINOR, LIBAVCODEC_VERSION_MICRO,
                     avcodec_version() >> 16, avcodec_version() >> 8 & 0xff, avcodec_version() & 0xff));
