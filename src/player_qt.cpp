@@ -2555,6 +2555,7 @@ void main_window::preferences_fullscreen()
     dlg->exec();
     if (dlg->result() == QDialog::Accepted)
     {
+        _init_data.params.fullscreen_screen = box->currentIndex();
         send_cmd(command::set_fullscreen_screen, box->currentIndex());
     }
 }
