@@ -1749,7 +1749,7 @@ open_device_dialog::open_device_dialog(
             : dev_request.device == device_request::x11 ? 2 : 0);
     _frame_size_groupbox = new QGroupBox(_("Request frame size"));
     _frame_size_groupbox->setToolTip(_("<p>Request a specific frame size from the device, e.g. 640x480. "
-                "The device must support this frame size.</p>"));
+                "The device must support this frame size. Some devices require a frame size to be selected.</p>"));
     _frame_size_groupbox->setCheckable(true);
     _frame_size_groupbox->setChecked(dev_request.width != 0 && dev_request.height != 0);
     connect(_frame_size_groupbox, SIGNAL(clicked(bool)), this, SLOT(frame_size_groupbox_clicked(bool)));
@@ -1761,7 +1761,7 @@ open_device_dialog::open_device_dialog(
     _frame_height_spinbox->setValue(dev_request.height);
     _frame_rate_groupbox = new QGroupBox(_("Request frame rate"));
     _frame_rate_groupbox->setToolTip(_("<p>Request a specific frame rate from the device, e.g. 25/1. "
-                "The device must support this frame rate.</p>"));
+                "The device must support this frame rate. Some devices require a frame rate to be selected.</p>"));
     _frame_rate_groupbox->setCheckable(true);
     _frame_rate_groupbox->setChecked(dev_request.frame_rate_num != 0 && dev_request.frame_rate_den != 0);
     connect(_frame_rate_groupbox, SIGNAL(clicked(bool)), this, SLOT(frame_rate_groupbox_clicked(bool)));
