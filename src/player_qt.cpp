@@ -2580,9 +2580,9 @@ void main_window::preferences_fullscreen()
 void main_window::help_manual()
 {
     QUrl manual_url;
-#if defined(Q_WS_WIN32)
+#if defined(Q_OS_WIN)
     manual_url = QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/../doc/bino.html");
-#elif defined(Q_WS_MAC)
+#elif defined(Q_OS_MAC)
     manual_url = QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/../Resources/Bino Help/bino.html");
 #else
     manual_url = QUrl::fromLocalFile(DOCDIR "/bino.html");
