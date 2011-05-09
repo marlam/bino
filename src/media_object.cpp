@@ -644,11 +644,15 @@ void media_object::open(const std::string &url, const device_request &dev_reques
     /* Set format and parameters for device input */
     AVInputFormat *iformat;
     AVFormatParameters iparams;
+    std::memset(&iparams, 0, sizeof(iparams));
+    iparams.pix_fmt = PIX_FMT_NONE;
     bool use_iparams = false;
     switch (dev_request.device)
     {
     case device_request::firewire:
         iformat = av_find_input_format("libdc1394");
+        // libdc1394 requires pix_fmt = PIX_FMT_NONE to choose a suitable default pixel format.
+        use_iparams = true;
         break;
     case device_request::x11:
         iformat = av_find_input_format("x11grab");
@@ -657,7 +661,6 @@ void media_object::open(const std::string &url, const device_request &dev_reques
 #if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
         iformat = av_find_input_format("vfwcap");
         // vfwcap requires a time_base parameter. Set the default to 1/25.
-        std::memset(&iparams, 0, sizeof(iparams));
         iparams.time_base.num = 1;
         iparams.time_base.den = 25;
         use_iparams = true;
@@ -665,7 +668,6 @@ void media_object::open(const std::string &url, const device_request &dev_reques
         iformat = av_find_input_format("bktr");
         // bktr requires width, height, time_base parameters.
         // Set the defaults to 640x480 and 1/25.
-        std::memset(&iparams, 0, sizeof(iparams));
         iparams.width = 640;
         iparams.height = 480;
         iparams.time_base.num = 1;
@@ -691,11 +693,7 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             && ((dev_request.width != 0 && dev_request.height != 0)
                 || (dev_request.frame_rate_num != 0 && dev_request.frame_rate_den != 0)))
     {
-        if (!use_iparams)
-        {
-            std::memset(&iparams, 0, sizeof(iparams));
-            use_iparams = true;
-        }
+        use_iparams = true;
         if (dev_request.width != 0 && dev_request.height != 0)
         {
             iparams.width = dev_request.width;
