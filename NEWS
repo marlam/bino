@@ -1,0 +1,4 @@
+New in version 1.1.0:
+- Support for camera devices.
+- Support for selecting the screen to use in fullscreen mode.
+- A loop mode.
