@@ -2547,7 +2547,7 @@ void main_window::preferences_fullscreen()
     {
         for (int i = 0; i < n; i++)
         {
-            box->addItem(str::from(i + 1).c_str());
+            box->addItem(str::asprintf(_("Screen %d"), i + 1).c_str());
         }
     }
     if (_init_data.params.fullscreen_screen < box->count())
