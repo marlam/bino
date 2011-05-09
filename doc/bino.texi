@@ -390,6 +390,9 @@ name is of the form
 @code{smith}, starting at position @code{160,120}.
 @end itemize
 
+Note: for @var{firewire} and @var{x11} devices to work, your FFmpeg libraries
+must have @var{libdc1394} and @var{x11grab} enabled, which is not the default.
+
 @node Crosstalk Ghostbusting
 @chapter Crosstalk Ghostbusting
 
