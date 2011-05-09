@@ -1739,7 +1739,7 @@ open_device_dialog::open_device_dialog(
     _firewire_device_combobox->addItems(firewire_devices);
     _x11_device_field = new QLineEdit(x11_device);
     _x11_device_field->setToolTip(_("<p>Set the X11 device string. "
-                "Refer to the FFmpeg documentation on the x11grab device for details.</p>"));
+                "Refer to the manual for details.</p>"));
     _device_chooser_stack = new QStackedWidget();
     _device_chooser_stack->addWidget(_default_device_combobox);
     _device_chooser_stack->addWidget(_firewire_device_combobox);

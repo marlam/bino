@@ -59,6 +59,7 @@ Table of Contents:
 * Output Techniques::
 * File Name Conventions::
 * Interactive Control::
+* Camera Devices::
 * Crosstalk Ghostbusting::
 * Multi Display Support::
 @end menu
@@ -370,6 +371,24 @@ Seek 10 minutes backward / forward.
 @item Mouse click
 Seek according to the horizontal click position.
 @end table
+
+@node Camera Devices
+@chapter Camera Devices
+
+Bino supports the following types of camera devices:
+@itemize
+@item @var{default}: the system-specific default device type.@*
+This is video4linux2 on GNU/Linux, bktr on BSD and Mac OS, and VfW on Windows.
+This should work for all webcams and similar camera devices.
+@item @var{firewire}: Firewire devices.
+@item @var{x11}: X11-grabber pseudo devices.@*
+This device type allows to capture part of an X11 screen as a video. It
+requires the user to select a specific frame size and frame rate. The device
+name is of the form
+@code{[@var{hostname}]:@var{display}.@var{screen}[+@var{x},@var{y}]}. For example,
+@code{smith:0.0+160,120} would capture from X11 display @code{:0.0} on host
+@code{smith}, starting at position @code{160,120}.
+@end itemize
 
 @node Crosstalk Ghostbusting
 @chapter Crosstalk Ghostbusting
