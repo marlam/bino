@@ -45,6 +45,9 @@ namespace str
     /* Sanitize a string (replace control characters with '?') */
     std::string sanitize(const std::string &s);
 
+    /* Trim a string (remove whitespace from both ends) */
+    std::string trim(const std::string &s);
+
     /* Create std::strings from all basic data types */
     std::string from(bool x);
     std::string from(signed char x);
