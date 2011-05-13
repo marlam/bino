@@ -128,7 +128,7 @@ namespace str
 
     std::string trim(const std::string &s)
     {
-        const char whitespace = " \t\v\f\n\r";
+        const char whitespace[] = " \t\v\f\n\r";
         size_t first = s.find_first_not_of(whitespace);
         if (first != std::string::npos)
         {
