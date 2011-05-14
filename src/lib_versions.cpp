@@ -87,7 +87,7 @@ static void libass_versions()
 {
     if (libass_v.size() == 0)
     {
-        libass_v.push_back(_("unknown"));
+        libass_v.push_back(LIBASS_PKGCONFIG_VERSION);
     }
 }
 
@@ -193,7 +193,7 @@ static void lircclient_versions()
     if (lircclient_v.size() == 0)
     {
 #if HAVE_LIBLIRCCLIENT
-        lircclient_v.push_back(LIBLIRCCLIENT_VERSION);
+        lircclient_v.push_back(LIBLIRCCLIENT_PKGCONFIG_VERSION);
 #else
         lircclient_v.push_back(_("not used"));
 #endif

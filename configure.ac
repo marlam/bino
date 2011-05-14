@@ -108,12 +108,16 @@ fi
 AC_CHECK_FUNCS([sysconf])
 
 dnl libass
+LIBASS_PKGCONFIG_VERSION="\"\""
 PKG_CHECK_MODULES([libass], [libass >= 0.9.9], [HAVE_LIBASS=1], [HAVE_LIBASS=0])
 if test "$HAVE_LIBASS" != "1"; then
     AC_MSG_WARN([library libass not found:])
     AC_MSG_WARN([$libopenal_PKG_ERRORS])
     AC_MSG_WARN([libass is provided by LibASS; Debian package: libass-dev])
+else
+    LIBASS_PKGCONFIG_VERSION="\"`$PKG_CONFIG --modversion libass`\""
 fi
+AC_DEFINE_UNQUOTED([LIBASS_PKGCONFIG_VERSION], [$LIBASS_PKGCONFIG_VERSION], [libass version])
 
 dnl OpenAL
 PKG_CHECK_MODULES([libopenal], [openal >= 0.0], [HAVE_LIBOPENAL=1], [HAVE_LIBOPENAL=0])
@@ -163,7 +167,7 @@ AC_DEFINE_UNQUOTED([HAVE_LIBEQUALIZER], [$HAVE_LIBEQUALIZER], [Have Equalizer?])
 AM_CONDITIONAL([HAVE_LIBEQUALIZER], [test "$HAVE_LIBEQUALIZER" = "1"])
 
 dnl LIRC
-LIBLIRCCLIENT_VERSION="\"\""
+LIBLIRCCLIENT_PKGCONFIG_VERSION="\"\""
 AC_ARG_WITH([liblircclient],
     [AS_HELP_STRING([--without-liblircclient], [Disable remote control support via liblircclient (enabled by default)])],
     [if test "$withval" = "yes"; then lirc="yes"; else lirc="no"; fi], [lirc="yes"])
@@ -175,13 +179,13 @@ if test "$lirc" = "yes"; then
         AC_MSG_WARN([liblircclient is provided by LIRC; Debian package: liblircclient-dev])
 	lirc="no"
     else
-        LIBLIRCCLIENT_VERSION="\"`$PKG_CONFIG --modversion liblircclient0`\""
+        LIBLIRCCLIENT_PKGCONFIG_VERSION="\"`$PKG_CONFIG --modversion liblircclient0`\""
     fi
 else
     HAVE_LIBLIRCCLIENT=0
 fi
 AC_DEFINE_UNQUOTED([HAVE_LIBLIRCCLIENT], [$HAVE_LIBLIRCCLIENT], [Have liblircclient?])
-AC_DEFINE_UNQUOTED([LIBLIRCCLIENT_VERSION], [$LIBLIRCCLIENT_VERSION], [liblircclient version])
+AC_DEFINE_UNQUOTED([LIBLIRCCLIENT_PKGCONFIG_VERSION], [$LIBLIRCCLIENT_PKGCONFIG_VERSION], [liblircclient version])
 AM_CONDITIONAL([HAVE_LIBLIRCCLIENT], [test "$HAVE_LIBLIRCCLIENT" = "1"])
 
 dnl Check if all libraries were found
