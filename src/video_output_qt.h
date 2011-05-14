@@ -55,6 +55,7 @@ protected:
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
     virtual void mouseDoubleClickEvent(QMouseEvent *event);
+    virtual void focusOutEvent(QFocusEvent *event);
 };
 
 /* Public interface. You can use this as a video container widget, to
@@ -115,6 +116,9 @@ public:
      * parent widgets receive. This is required for the masking output modes
      * (even-odd-*, checkerboard). */
     void move_event();
+
+    /* Grab the keyboard focus for the video widget, to enable keyboard shortcuts */
+    void grab_focus();
 
     virtual void init();
     virtual void deinit();

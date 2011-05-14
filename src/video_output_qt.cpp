@@ -216,6 +216,11 @@ void video_output_qt_widget::mouseDoubleClickEvent(QMouseEvent *)
     _vo->mouse_toggle_fullscreen();
 }
 
+void video_output_qt_widget::focusOutEvent(QFocusEvent *)
+{
+    setFocus(Qt::OtherFocusReason);
+}
+
 
 /* Our own video container widget, used in case that the video_output_qt
  * constructor is called without an external container widget. */
@@ -438,6 +443,14 @@ void video_output_qt::move_event()
     }
 }
 
+void video_output_qt::grab_focus()
+{
+    if (_widget)
+    {
+        _widget->setFocus(Qt::OtherFocusReason);
+    }
+}
+
 bool video_output_qt::supports_stereo() const
 {
     QGLFormat fmt = _format;
@@ -506,7 +519,6 @@ void video_output_qt::center()
                 dest_screen_pos_x - window_offset_x,
                 dest_screen_pos_y - window_offset_y,
                 _widget->window()->width(), _widget->window()->height());
-        _widget->setFocus(Qt::OtherFocusReason);
     }
 }
 
@@ -531,7 +543,6 @@ void video_output_qt::enter_fullscreen(int screen)
                 _container_widget->move(QPoint(screen_res.x(), screen_res.y()));
             }
         }
-        _widget->setFocus(Qt::OtherFocusReason);
     }
 }
 
@@ -560,7 +571,6 @@ void video_output_qt::exit_fullscreen()
         _container_widget->setWindowState(_widget->windowState() & ~Qt::WindowFullScreen);
         _container_widget->setCursor(Qt::ArrowCursor);
         _container_widget->show();
-        _widget->setFocus(Qt::OtherFocusReason);
     }
 }
 

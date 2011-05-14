@@ -63,6 +63,7 @@ public:
     virtual void receive_notification(const notification &note);
 
     const video_output_qt *get_video_output() const;
+    video_output_qt *get_video_output();
     bool playloop_step();
     void force_stop();
     void move_event();

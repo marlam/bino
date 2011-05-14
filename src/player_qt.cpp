@@ -119,6 +119,11 @@ const video_output_qt *player_qt_internal::get_video_output() const
     return _video_output;
 }
 
+video_output_qt *player_qt_internal::get_video_output()
+{
+    return _video_output;
+}
+
 bool player_qt_internal::playloop_step()
 {
     return run_step();
@@ -2091,7 +2096,7 @@ void main_window::receive_notification(const notification &note)
             _in_out_widget->update(_init_data, true, true);
             _controls_widget->update(_init_data, true, true);
             // Give the keyboard focus to the video widget
-            _video_container_widget->setFocus(Qt::OtherFocusReason);
+            _player->get_video_output()->grab_focus();
             // Start the play loop
             _timer->start(0);
         }
@@ -2607,7 +2612,6 @@ void main_window::help_keyboard()
             /* TRANSLATORS: This is a HTML table, shown under Help->Keyboard Shortcuts.
                Please make sure that your translation formats properly. */
             _("<p>Keyboard control:<br>"
-                "(Click into the video area to give it the keyboard focus if necessary.)"
                 "<table>"
                 "<tr><td>q or ESC</td><td>Stop</td></tr>"
                 "<tr><td>p or SPACE</td><td>Pause / unpause</td></tr>"
