@@ -144,16 +144,18 @@ AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
 dnl Equalizer
 dnl We assume that Equalizer includes GLEW. If we don't use Equalizer, we need GLEW separately.
 AC_ARG_WITH([equalizer],
-    [AS_HELP_STRING([--with-equalizer], [Enable multi-display support via Equalizer (disabled by default)])],
-    [if test "$withval" = "yes"; then equalizer="yes"; else equalizer="no "; fi], [equalizer="no"])
+    [AS_HELP_STRING([--without-equalizer], [Disable multi-display support via Equalizer (enabled by default)])],
+    [if test "$withval" = "yes"; then equalizer="yes"; else equalizer="no"; fi], [equalizer="yes"])
 if test "$equalizer" = "yes"; then
     PKG_CHECK_MODULES([libEqualizer], [Equalizer >= 0.9.3], [HAVE_LIBEQUALIZER=1], [HAVE_LIBEQUALIZER=0])
     if test "$HAVE_LIBEQUALIZER" != "1"; then
         AC_MSG_WARN([library libEqualizer not found:])
         AC_MSG_WARN([$libEqualizer_PKG_ERRORS])
         AC_MSG_WARN([libEqualizer is provided by Equalizer])
+	equalizer="no"
     fi
-else
+fi
+if test "$equalizer" = "no"; then
     HAVE_LIBEQUALIZER=0
     dnl glew
     PKG_CHECK_MODULES([libglew], [glew >= 1.5.0], [HAVE_LIBGLEW=1], [HAVE_LIBGLEW=0])
