@@ -211,6 +211,11 @@ void video_output_qt_widget::mouseReleaseEvent(QMouseEvent *event)
     _vo->mouse_set_pos(std::max(std::min(static_cast<float>(event->posF().x()) / this->width(), 1.0f), 0.0f));
 }
 
+void video_output_qt_widget::mouseDoubleClickEvent(QMouseEvent *)
+{
+    _vo->mouse_toggle_fullscreen();
+}
+
 
 /* Our own video container widget, used in case that the video_output_qt
  * constructor is called without an external container widget. */
@@ -409,6 +414,19 @@ void video_output_qt::mouse_set_pos(float dest)
     if (_playing || !_container_is_external)
     {
         send_cmd(command::set_pos, dest);
+    }
+}
+
+void video_output_qt::mouse_toggle_fullscreen()
+{
+    if (!_container_is_external)
+    {
+        // Disabled in non-GUI mode
+        return;
+    }
+    if (_playing)
+    {
+        send_cmd(command::toggle_fullscreen);
     }
 }
 

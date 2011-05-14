@@ -54,6 +54,7 @@ protected:
     virtual void moveEvent(QMoveEvent *event);
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
+    virtual void mouseDoubleClickEvent(QMouseEvent *event);
 };
 
 /* Public interface. You can use this as a video container widget, to
@@ -91,6 +92,7 @@ private:
 
     void create_widget();
     void mouse_set_pos(float dest);
+    void mouse_toggle_fullscreen();
 
 protected:
     virtual void make_context_current();
