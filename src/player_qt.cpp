@@ -911,6 +911,7 @@ void controls_widget::update(const player_init_data &, bool have_valid_input, bo
 {
     if (have_valid_input)
     {
+        _play_button->setDefault(true);
         _loop_button->setEnabled(true);
         _fullscreen_button->setEnabled(true);
         receive_notification(notification(notification::play, !playing, playing));
