@@ -254,7 +254,7 @@ void video_container_widget::closeEvent(QCloseEvent *)
 /* The video_output_qt class */
 
 video_output_qt::video_output_qt(bool benchmark, video_container_widget *container_widget) :
-    video_output(true),
+    video_output(),
     _qt_app_owner(false),
     _container_widget(container_widget),
     _container_is_external(container_widget != NULL),

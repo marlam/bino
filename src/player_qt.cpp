@@ -97,7 +97,7 @@ void player_qt_internal::receive_cmd(const command &cmd)
 {
     if (cmd.type == command::toggle_play && !_playing)
     {
-        notify(notification::play, false, true);
+        controller::notify_all(notification::play, false, true);
     }
     else if (_playing)
     {
@@ -126,7 +126,7 @@ bool player_qt_internal::playloop_step()
 
 void player_qt_internal::force_stop()
 {
-    notify(notification::play, false, false);
+    controller::notify_all(notification::play, false, false);
 }
 
 void player_qt_internal::move_event()

@@ -67,7 +67,7 @@ private:
     ALenum get_al_format(const audio_blob &blob);
 
 public:
-    audio_output(bool receive_notifications = false);
+    audio_output();
     ~audio_output();
     
     /* Initialize the audio device for output. Throw an exception if this fails. */

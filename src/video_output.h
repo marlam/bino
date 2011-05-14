@@ -124,7 +124,7 @@ protected:
 
 public:
     /* Constructor, Destructor */
-    video_output(bool receive_notifications = true);
+    video_output();
     virtual ~video_output();
 
     /* Initialize the video output, or throw an exception */

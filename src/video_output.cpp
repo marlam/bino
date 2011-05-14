@@ -85,9 +85,7 @@
  * interpolation, too.
  */
 
-video_output::video_output(bool receive_notifications) :
-    controller(receive_notifications),
-    _initialized(false)
+video_output::video_output() : controller(), _initialized(false)
 {
     // XXX: Hack: work around broken SRGB texture implementations
     _srgb_textures_are_broken = std::getenv("SRGB_TEXTURES_ARE_BROKEN");

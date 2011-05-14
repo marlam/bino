@@ -43,9 +43,7 @@
 const size_t audio_output::_num_buffers = 3;
 const size_t audio_output::_buffer_size = 20160 * 2;
 
-audio_output::audio_output(bool receive_notifications) :
-    controller(receive_notifications),
-    _initialized(false)
+audio_output::audio_output() : controller(), _initialized(false)
 {
 }
 

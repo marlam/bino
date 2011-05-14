@@ -29,7 +29,6 @@
 #include "msg.h"
 #include "s11n.h"
 
-#include "controller.h"
 #include "media_data.h"
 #include "media_input.h"
 #include "audio_output.h"
@@ -169,14 +168,6 @@ protected:
     {
         return *_media_input;
     }
-
-    // Send a notification to the controllers (with some convenience wrappers)
-    void notify(const notification &note);
-    void notify(enum notification::type t, bool p, bool c) { notify(notification(t, p, c)); }
-    void notify(enum notification::type t, int p, int c) { notify(notification(t, p, c)); }
-    void notify(enum notification::type t, float p, float c) { notify(notification(t, p, c)); }
-    void notify(enum notification::type t, uint64_t p, uint64_t c) { notify(notification(t, p, c)); }
-    void notify(enum notification::type t, const std::string &p, const std::string &c) { notify(notification(t, p, c)); }
 
 public:
     /* Constructor/destructor.

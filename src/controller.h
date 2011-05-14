@@ -222,22 +222,42 @@ public:
 
 class controller
 {
+private:
+    static void visit_all_controllers(int action, const notification &note);
+
 public:
-    /* A controller usually receives notifications, but may choose not to, e.g. when it
-     * never will react on any notification anyway. */
-    controller(bool receive_notifications = true) throw ();
+    controller() throw ();
     virtual ~controller();
 
-    /* Send a command to the player. */
+    /* The controller uses this function to send a command to the player. */
     void send_cmd(const command &cmd);
-    void send_cmd(enum command::type t) { send_cmd(command(t)); }                               // convenience wrapper
-    void send_cmd(enum command::type t, int p) { send_cmd(command(t, p)); }                     // convenience wrapper
-    void send_cmd(enum command::type t, float p) { send_cmd(command(t, p)); }                   // convenience wrapper
-    void send_cmd(enum command::type t, const std::string &p) { send_cmd(command(t, p)); }      // convenience wrapper
+    // Convenience wrappers:
+    void send_cmd(enum command::type t) { send_cmd(command(t)); }
+    void send_cmd(enum command::type t, int p) { send_cmd(command(t, p)); }
+    void send_cmd(enum command::type t, float p) { send_cmd(command(t, p)); }
+    void send_cmd(enum command::type t, const std::string &p) { send_cmd(command(t, p)); }
 
-    /* Receive notifications via this function. The default implementation
-     * simply ignores the notification. */
+    /* The controller receives notifications via this function. The default
+     * implementation simply ignores the notification. */
     virtual void receive_notification(const notification &note);
+
+    /* The controller is asked to process events via this function. The default
+     * implementation simply does nothing. */
+    virtual void process_events();
+
+    /* The following functions can be used by command dispatchers to handle all
+     * controller-related tasks: managing the global player object, and notifying
+     * registered controllers. */
+    static void *get_global_player();
+    static void set_global_player(void *p);
+    static void process_all_events();
+    static void notify_all(const notification &note);
+    // Convenience wrappers:
+    static void notify_all(enum notification::type t, bool p, bool c) { notify_all(notification(t, p, c)); }
+    static void notify_all(enum notification::type t, int p, int c) { notify_all(notification(t, p, c)); }
+    static void notify_all(enum notification::type t, float p, float c) { notify_all(notification(t, p, c)); }
+    static void notify_all(enum notification::type t, uint64_t p, uint64_t c) { notify_all(notification(t, p, c)); }
+    static void notify_all(enum notification::type t, const std::string &p, const std::string &c) { notify_all(notification(t, p, c)); }
 };
 
 #endif

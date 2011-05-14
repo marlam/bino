@@ -201,7 +201,7 @@ public:
     video_output_eq_channel(eq::Channel *channel,
             float canvas_width, float canvas_height,
             float canvas_video_area_w, float canvas_video_area_h) :
-        video_output(false),
+        video_output(),
         _channel(channel),
         _canvas_width(canvas_width),
         _canvas_height(canvas_height),
@@ -415,7 +415,7 @@ public:
         _eq_init_data(),
         _eq_frame_data(),
         _player(),
-        _controller(false),
+        _controller(),
         frame_template()
     {
     }
