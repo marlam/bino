@@ -1,4 +1,5 @@
-New in version 1.1.0:
+New in version 1.2.0:
+- Support for remote controls via LIRC.
 - Support for camera devices.
 - Support for selecting the screen to use in fullscreen mode.
 - A loop mode.
