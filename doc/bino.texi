@@ -106,6 +106,8 @@ Type of input device: @var{default}, @var{firewire}, or @var{x11}.
 If the input is a device, request the given frame size, e.g. 640x480.
 @item --device-frame-rate=@var{N}/@var{D}
 If the input is a device, request the given frame rate, e.g. 25/1.
+@item --lirc-config=@var{FILE}
+Use the given LIRC configuration file. This option can be used more than once.
 @item -v
 @itemx --video=@var{STREAM}
 Select video stream (1-n, depending on the input).
@@ -315,6 +317,8 @@ The following file name forms are recognized:
 @node Interactive Control
 @chapter Interactive Control
 
+@section Keyboard Shortcuts
+
 Bino reacts on a number of keyboard shortcuts during playback.
 
 Make sure that the video area has the keyboard focus before using these
@@ -371,6 +375,64 @@ Seek 10 minutes backward / forward.
 @item Mouse click
 Seek according to the horizontal click position.
 @end table
+
+@section Remote Controls
+
+Bino supports remote controls via @url{http://www.lirc.org/,LIRC}.
+
+If you want to use one or more custom LIRC configuration files instead of the
+default LIRC configuration, use the @var{--lirc-config} option.
+
+Use the LIRC client name @code{bino} in your LIRC configuration.
+The following commands are available:
+
+@table @samp
+@item toggle-play
+Start / stop.
+@item toggle-pause
+Pause / unpause.
+@item cycle-video-stream
+Cycle through available video streams.
+@item cycle-audio-stream
+Cycle through available audio streams.
+@item cycle-subtitle-stream
+Cycle through available subtitle streams.
+@item toggle-stereo-mode-swap
+Swap left/right eye.
+@item toggle-fullscreen
+Toggle fullscreen.
+@item center
+Center window.
+@item adjust-contrast @var{delta}
+Adjust contrast by adding @var{delta}, e.g. @var{-0.05} or @var{+0.05}.
+@item adjust-brightness @var{delta}
+Adjust brightness by adding @var{delta}, e.g. @var{-0.05} or @var{+0.05}.
+@item adjust-hue @var{delta}
+Adjust hue by adding @var{delta}, e.g. @var{-0.05} or @var{+0.05}.
+@item adjust-saturation @var{delta}
+Adjust saturation by adding @var{delta}, e.g. @var{-0.05} or @var{+0.05}.
+@item adjust-parallax @var{delta}
+Adjust parallax by adding @var{delta}, e.g. @var{-0.01} or @var{+0.01}.
+@item adjust-subtitle-parallax @var{delta}
+Adjust contrast by adding @var{delta}, e.g. @var{-0.01} or @var{+0.01}.
+@item seek @var{delta}
+Seek by the given number of seconds. For example @var{-60.0} seeks backwards
+one minute, and @var{+60.0} seeks forward one minute.
+@item set-pos @var{pos}
+Seek by setting a position in the stream, with @var{pos} between 0 and 1.
+For example, to seek to the middle of the video, set the position @var{0.5}.
+@end table
+
+Example configuration file excerpt:
+@example
+begin
+  remote = ...
+  button = ...
+  prog	 = bino
+  config = adjust-brightness +0.05
+end
+@end example
+
 
 @node Camera Devices
 @chapter Camera Devices

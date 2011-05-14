@@ -47,6 +47,9 @@
 #if HAVE_LIBEQUALIZER
 # include "player_equalizer.h"
 #endif
+#if HAVE_LIBLIRCCLIENT
+# include "lirc.h"
+#endif
 #include "qt_app.h"
 #include "lib_versions.h"
 
@@ -161,6 +164,8 @@ int main(int argc, char *argv[])
     opt::tuple<int> device_frame_rate("device-frame-rate", '\0', opt::optional,
             1, std::numeric_limits<int>::max(), std::vector<int>(2, 0), 2, "/");
     options.push_back(&device_frame_rate);
+    opt::val<std::string> lirc_config("lirc-config", '\0', opt::optional);
+    options.push_back(&lirc_config);
     std::vector<std::string> input_modes;
     input_modes.push_back("mono");
     input_modes.push_back("separate-left-right");
@@ -302,6 +307,8 @@ int main(int argc, char *argv[])
                     "  --device-type=TYPE       Type of input device: default, firewire, or x11.\n"
                     "  --device-frame-size=WxH  Request frame size WxH from input device.\n"
                     "  --device-frame-rate=N/D  Request frame rate N/D from input device.\n"
+                    "  --lirc-config=FILE       Use the given LIRC configuration file. This\n"
+                    "                           option can be used more than once.\n"
                     "  -v|--video=STREAM        Select video stream (1-n, depending on input).\n"
                     "  -a|--audio=STREAM        Select audio stream (1-n, depending on input).\n"
                     "  -s|--subtitle=STREAM     Select subtitle stream (0-n, depending on input).\n"
@@ -518,6 +525,23 @@ int main(int argc, char *argv[])
     }
     init_data.params.loop_mode = (loop.value() ? parameters::loop_current : parameters::no_loop);
 
+#if HAVE_LIBLIRCCLIENT
+    lircclient lirc(PACKAGE, lirc_config.values());
+    try
+    {
+        lirc.init();
+    }
+    catch (std::exception &e)
+    {
+        msg::wrn("%s", e.what());
+    }
+#else
+    if (lirc_config.values().size() > 0)
+    {
+        msg::wrn(_("This version of Bino was compiled without support for LIRC."));
+    }
+#endif
+
     int retval = 0;
     player *player = NULL;
     try
@@ -561,6 +585,10 @@ int main(int argc, char *argv[])
         try { player->close(); } catch (...) {}
         delete player;
     }
+
+#if HAVE_LIBLIRCCLIENT
+    lirc.deinit();
+#endif
 
     return retval;
 }

@@ -61,6 +61,7 @@ static std::vector<std::string> openal_v;
 static std::vector<std::string> opengl_v;
 static std::vector<std::string> glew_v;
 static std::vector<std::string> equalizer_v;
+static std::vector<std::string> lircclient_v;
 static std::vector<std::string> qt_v;
 
 static void ffmpeg_versions()
@@ -187,6 +188,18 @@ static void equalizer_versions()
     }
 }
 
+static void lircclient_versions()
+{
+    if (lircclient_v.size() == 0)
+    {
+#if HAVE_LIBLIRCCLIENT
+        lircclient_v.push_back(LIBLIRCCLIENT_VERSION);
+#else
+        lircclient_v.push_back(_("not used"));
+#endif
+    }
+}
+
 static void qt_versions()
 {
     if (qt_v.size() == 0)
@@ -203,6 +216,7 @@ std::vector<std::string> lib_versions(bool html)
     opengl_versions();
     glew_versions();
     equalizer_versions();
+    lircclient_versions();
     qt_versions();
 
     std::vector<std::string> v;
@@ -245,6 +259,12 @@ std::vector<std::string> lib_versions(bool html)
             v.push_back(std::string("<br>") + equalizer_v[i]);
         }
         v.push_back("</li>");
+        v.push_back("<li><a href=\"http://www.lirc.org/\">LIRC Client</a>");
+        for (size_t i = 0; i < lircclient_v.size(); i++)
+        {
+            v.push_back(std::string("<br>") + lircclient_v[i]);
+        }
+        v.push_back("</li>");
         v.push_back("<li><a href=\"http://qt.nokia.com/\">Qt</a>");
         for (size_t i = 0; i < qt_v.size(); i++)
         {
@@ -284,6 +304,11 @@ std::vector<std::string> lib_versions(bool html)
         for (size_t i = 0; i < equalizer_v.size(); i++)
         {
             v.push_back(std::string("    ") + equalizer_v[i]);
+        }
+        v.push_back("LIRC Client:");
+        for (size_t i = 0; i < lircclient_v.size(); i++)
+        {
+            v.push_back(std::string("    ") + lircclient_v[i]);
         }
         v.push_back("Qt:");
         for (size_t i = 0; i < qt_v.size(); i++)

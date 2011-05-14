@@ -49,6 +49,7 @@ class command
 public:
     enum type
     {
+        noop,                           // no parameters
         toggle_play,                    // no parameters
         toggle_pause,                   // no parameters
         cycle_video_stream,             // no parameters
@@ -90,6 +91,11 @@ public:
     
     type type;
     std::string param;
+
+    command() :
+        type(noop)
+    {
+    }
 
     command(enum type t) :
         type(t)

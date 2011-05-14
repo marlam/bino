@@ -162,6 +162,28 @@ fi
 AC_DEFINE_UNQUOTED([HAVE_LIBEQUALIZER], [$HAVE_LIBEQUALIZER], [Have Equalizer?])
 AM_CONDITIONAL([HAVE_LIBEQUALIZER], [test "$HAVE_LIBEQUALIZER" = "1"])
 
+dnl LIRC
+LIBLIRCCLIENT_VERSION="\"\""
+AC_ARG_WITH([liblircclient],
+    [AS_HELP_STRING([--without-liblircclient], [Disable remote control support via liblircclient (enabled by default)])],
+    [if test "$withval" = "yes"; then lirc="yes"; else lirc="no"; fi], [lirc="yes"])
+if test "$lirc" = "yes"; then
+    PKG_CHECK_MODULES([liblircclient], [liblircclient0 >= 0.0], [HAVE_LIBLIRCCLIENT=1], [HAVE_LIBLIRCCLIENT=0])
+    if test "$HAVE_LIBLIRCCLIENT" != "1"; then
+        AC_MSG_WARN([library liblircclient not found:])
+        AC_MSG_WARN([$liblircclient_PKG_ERRORS])
+        AC_MSG_WARN([liblircclient is provided by LIRC; Debian package: liblircclient-dev])
+	lirc="no"
+    else
+        LIBLIRCCLIENT_VERSION="\"`$PKG_CONFIG --modversion liblircclient0`\""
+    fi
+else
+    HAVE_LIBLIRCCLIENT=0
+fi
+AC_DEFINE_UNQUOTED([HAVE_LIBLIRCCLIENT], [$HAVE_LIBLIRCCLIENT], [Have liblircclient?])
+AC_DEFINE_UNQUOTED([LIBLIRCCLIENT_VERSION], [$LIBLIRCCLIENT_VERSION], [liblircclient version])
+AM_CONDITIONAL([HAVE_LIBLIRCCLIENT], [test "$HAVE_LIBLIRCCLIENT" = "1"])
+
 dnl Check if all libraries were found
 if test "$HAVE_LIBAVFORMAT" != "1" \
     -o "$HAVE_LIBAVDEVICE" != "1" \
@@ -170,7 +192,8 @@ if test "$HAVE_LIBAVFORMAT" != "1" \
     -o "$HAVE_LIBOPENAL" != "1" \
     -o "$HAVE_LIBQTOPENGL" != "1" \
     -o \( "$equalizer" = "yes" -a "$HAVE_LIBEQUALIZER" != "1" \) \
-    -o \( "$HAVE_LIBEQUALIZER" != "1" -a "$HAVE_LIBGLEW" != "1" \) ; then
+    -o \( "$HAVE_LIBEQUALIZER" != "1" -a "$HAVE_LIBGLEW" != "1" \) \
+    -o \( "$lirc" = "yes" -a "$HAVE_LIBLIRCCLIENT" != "1" \) ; then
     AC_MSG_ERROR([One or more libraries were not found. See messages above.])
 fi
 
@@ -183,3 +206,9 @@ AC_CONFIG_FILES([Makefile	\
 	pkg/macosx/Info.plist	\
 	])
 AC_OUTPUT
+
+dnl Print configuration for user to check
+echo "Configuration:"
+echo "NLS:           $USE_NLS"
+echo "Equalizer:     $equalizer"
+echo "liblircclient: $lirc"

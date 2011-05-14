@@ -102,6 +102,12 @@ AM_CPPFLAGS += $(libglew_CFLAGS)
 bino_LDADD += $(libglew_LIBS)
 endif
 
+if HAVE_LIBLIRCCLIENT
+bino_SOURCES += lirc.h lirc.cpp
+AM_CPPFLAGS += $(liblircclient_CFLAGS)
+bino_LDADD += $(liblircclient_LIBS)
+endif
+
 if W32
 bino_SOURCES += logo/bino_logo.ico
 .ico.o:

@@ -743,6 +743,8 @@ void player::receive_cmd(const command &cmd)
 
     switch (cmd.type)
     {
+    case command::noop:
+        break;
     case command::toggle_play:
         _quit_request = true;
         /* notify when request is fulfilled */
