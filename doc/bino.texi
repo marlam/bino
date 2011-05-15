@@ -380,10 +380,11 @@ Seek according to the horizontal click position.
 
 Bino supports remote controls via @url{http://www.lirc.org/,LIRC}.
 
-If you want to use one or more custom LIRC configuration files instead of the
-default LIRC configuration, use the @var{--lirc-config} option.
+Use the client name @samp{bino} in your LIRC configuration. The default LIRC
+configuration file usually is @code{~/.lircrc}. You can use the
+@samp{--lirc-config} option to use one or more custom LIRC configuration files
+instead.
 
-Use the LIRC client name @code{bino} in your LIRC configuration.
 The following commands are available:
 
 @table @samp
@@ -404,31 +405,31 @@ Toggle fullscreen.
 @item center
 Center window.
 @item adjust-contrast @var{delta}
-Adjust contrast by adding @var{delta}, e.g. @var{-0.05} or @var{+0.05}.
+Adjust contrast by adding @var{delta}, e.g. -0.05 or +0.05.
 @item adjust-brightness @var{delta}
-Adjust brightness by adding @var{delta}, e.g. @var{-0.05} or @var{+0.05}.
+Adjust brightness by adding @var{delta}, e.g. -0.05 or +0.05.
 @item adjust-hue @var{delta}
-Adjust hue by adding @var{delta}, e.g. @var{-0.05} or @var{+0.05}.
+Adjust hue by adding @var{delta}, e.g. -0.05 or +0.05.
 @item adjust-saturation @var{delta}
-Adjust saturation by adding @var{delta}, e.g. @var{-0.05} or @var{+0.05}.
+Adjust saturation by adding @var{delta}, e.g. -0.05 or +0.05.
 @item adjust-parallax @var{delta}
-Adjust parallax by adding @var{delta}, e.g. @var{-0.01} or @var{+0.01}.
+Adjust parallax by adding @var{delta}, e.g. -0.01 or +0.01.
 @item adjust-subtitle-parallax @var{delta}
-Adjust contrast by adding @var{delta}, e.g. @var{-0.01} or @var{+0.01}.
+Adjust contrast by adding @var{delta}, e.g. -0.01 or +0.01.
 @item seek @var{delta}
-Seek by the given number of seconds. For example @var{-60.0} seeks backwards
-one minute, and @var{+60.0} seeks forward one minute.
+Seek by the given number of seconds relative to the current position.  For
+example -60.0 seeks backwards one minute, and +60.0 seeks forward one minute.
 @item set-pos @var{pos}
-Seek by setting a position in the stream, with @var{pos} between 0 and 1.
-For example, to seek to the middle of the video, set the position @var{0.5}.
+Seek by setting an absolute position in the stream, with @var{pos} between 0 and
+1. For example, to seek to the middle of the video, use 0.5.
 @end table
 
-Example configuration file excerpt:
+Example LIRC configuration file excerpt:
 @example
 begin
   remote = ...
   button = ...
-  prog	 = bino
+  prog   = bino
   config = adjust-brightness +0.05
 end
 @end example
