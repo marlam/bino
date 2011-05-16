@@ -571,6 +571,7 @@ void video_output_qt::exit_fullscreen()
         _container_widget->setWindowState(_widget->windowState() & ~Qt::WindowFullScreen);
         _container_widget->setCursor(Qt::ArrowCursor);
         _container_widget->show();
+        grab_focus();
     }
 }
 
