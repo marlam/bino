@@ -572,7 +572,11 @@ parameters::parameters() :
     subtitle_color(std::numeric_limits<uint64_t>::max()),
     subtitle_parallax(std::numeric_limits<float>::quiet_NaN()),
     loop_mode(no_loop),
-    fullscreen_screen(-1)
+    fullscreen_screens(-1),
+    fullscreen_flip_left(-1),
+    fullscreen_flop_left(-1),
+    fullscreen_flip_right(-1),
+    fullscreen_flop_right(-1)
 {
 }
 
@@ -638,9 +642,25 @@ void parameters::set_defaults()
     {
         subtitle_parallax = 0.0f;
     }
-    if (fullscreen_screen < 0)
+    if (fullscreen_screens < 0)
     {
-        fullscreen_screen = 0;
+        fullscreen_screens = 0;
+    }
+    if (fullscreen_flip_left < 0)
+    {
+        fullscreen_flip_left = 0;
+    }
+    if (fullscreen_flop_left < 0)
+    {
+        fullscreen_flop_left = 0;
+    }
+    if (fullscreen_flip_right < 0)
+    {
+        fullscreen_flip_right = 0;
+    }
+    if (fullscreen_flop_right < 0)
+    {
+        fullscreen_flop_right = 0;
     }
 }
 
@@ -873,7 +893,11 @@ void parameters::save(std::ostream &os) const
     s11n::save(os, subtitle_color);
     s11n::save(os, subtitle_parallax);
     s11n::save(os, static_cast<int>(loop_mode));
-    s11n::save(os, fullscreen_screen);
+    s11n::save(os, fullscreen_screens);
+    s11n::save(os, fullscreen_flip_left);
+    s11n::save(os, fullscreen_flop_left);
+    s11n::save(os, fullscreen_flip_right);
+    s11n::save(os, fullscreen_flop_right);
 }
 
 void parameters::load(std::istream &is)
@@ -899,5 +923,9 @@ void parameters::load(std::istream &is)
     s11n::load(is, subtitle_parallax);
     s11n::load(is, x);
     loop_mode = static_cast<loop_mode_t>(x);
-    s11n::load(is, fullscreen_screen);
+    s11n::load(is, fullscreen_screens);
+    s11n::load(is, fullscreen_flip_left);
+    s11n::load(is, fullscreen_flop_left);
+    s11n::load(is, fullscreen_flip_right);
+    s11n::load(is, fullscreen_flop_right);
 }

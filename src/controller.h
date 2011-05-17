@@ -86,7 +86,11 @@ public:
         seek,                           // float (relative adjustment)
         set_pos,                        // float (absolute position)
         set_loop_mode,                  // parameters::loop_mode_t
-        set_fullscreen_screen,          // int
+        set_fullscreen_screens,         // int
+        set_fullscreen_flip_left,       // int
+        set_fullscreen_flop_left,       // int
+        set_fullscreen_flip_right,      // int
+        set_fullscreen_flop_right,      // int
     };
     
     type type;
@@ -156,7 +160,11 @@ public:
         subtitle_parallax,      // float
         pos,                    // float
         loop_mode,              // parameters::loop_mode_t
-        fullscreen_screen,      // int
+        fullscreen_screens,     // int
+        fullscreen_flip_left,   // int
+        fullscreen_flop_left,   // int
+        fullscreen_flip_right,  // int
+        fullscreen_flop_right,  // int
     };
     
     type type;

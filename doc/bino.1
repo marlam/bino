@@ -173,9 +173,18 @@ otherwise \fIred\-cyan\-dubois\fP. The default for mono input is
 Swap left/right view.
 .IP "\-f|\-\-fullscreen"
 Fullscreen.
-.IP "\-\-fullscreen\-screen=\fIN\fP"
-Use screen \fIN\fP in fullscreen mode. The default \fIN\fP=0 uses the primary
-screen of the desktop.
+.IP "\-\-fullscreen\-screens=[\fIS0\fP[,\fIS1\fP[,...]]]"
+Use the listed screens \fIS0\fP, ..., \fISn\fP in fullscreen mode. Screen numbers
+start with 1. If the list is empty, the primary screen will be used (this is the
+default).
+.IP "\-\-fullscreen\-flip\-left"
+Flip left view vertically when in fullscreen mode.
+.IP "\-\-fullscreen\-flop\-left"
+Flop left view horizontally when in fullscreen mode.
+.IP "\-\-fullscreen\-flip\-right"
+Flip right view vertically when in fullscreen mode.
+.IP "\-\-fullscreen\-flop\-right"
+Flop right view horizontally when in fullscreen mode.
 .IP "\-c|\-\-center"
 Center window on screen.
 .IP "\-\-subtitle\-encoding=\fIENC\fP"

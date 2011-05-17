@@ -222,8 +222,16 @@ int main(int argc, char *argv[])
     options.push_back(&swap_eyes);
     opt::flag fullscreen("fullscreen", 'f', opt::optional);
     options.push_back(&fullscreen);
-    opt::val<int> fullscreen_screen("fullscreen-screen", '\0', opt::optional, 0, 999, parameters().fullscreen_screen);
-    options.push_back(&fullscreen_screen);
+    opt::tuple<int> fullscreen_screens("fullscreen-screens", '\0', opt::optional, 1, 16);
+    options.push_back(&fullscreen_screens);
+    opt::flag fullscreen_flip_left("fullscreen-flip-left", '\0', opt::optional);
+    options.push_back(&fullscreen_flip_left);
+    opt::flag fullscreen_flop_left("fullscreen-flop-left", '\0', opt::optional);
+    options.push_back(&fullscreen_flop_left);
+    opt::flag fullscreen_flip_right("fullscreen-flip-right", '\0', opt::optional);
+    options.push_back(&fullscreen_flip_right);
+    opt::flag fullscreen_flop_right("fullscreen-flop-right", '\0', opt::optional);
+    options.push_back(&fullscreen_flop_right);
     opt::flag center("center", 'c', opt::optional);
     options.push_back(&center);
     opt::val<std::string> subtitle_encoding("subtitle-encoding", '\0', opt::optional, parameters().subtitle_encoding);
@@ -304,14 +312,14 @@ int main(int argc, char *argv[])
                     "  --version                Print version.\n"
                     "  -n|--no-gui              Do not use the GUI, just show a plain window.\n"
                     "  -L|--log-level=LEVEL     Set log level (debug/info/warning/error/quiet).\n"
-                    "  --device-type=TYPE       Type of input device: default, firewire, or x11.\n"
+                    "  --device-type=TYPE       Type of input device: default, firewire, x11.\n"
                     "  --device-frame-size=WxH  Request frame size WxH from input device.\n"
                     "  --device-frame-rate=N/D  Request frame rate N/D from input device.\n"
                     "  --lirc-config=FILE       Use the given LIRC configuration file. This\n"
                     "                           option can be used more than once.\n"
                     "  -v|--video=STREAM        Select video stream (1-n, depending on input).\n"
                     "  -a|--audio=STREAM        Select audio stream (1-n, depending on input).\n"
-                    "  -s|--subtitle=STREAM     Select subtitle stream (0-n, depending on input).\n"
+                    "  -s|--subtitle=STREAM     Select subtitle stream (0-n, dep. on input).\n"
                     "  -i|--input=TYPE          Select input type (default autodetect):\n"
                     "    mono                     Single view.\n"
                     "    separate-left-right      Left/right separate streams, left first.\n"
@@ -356,8 +364,13 @@ int main(int argc, char *argv[])
                     "    equalizer-3d             Multi-display via Equalizer (3D setup).\n"
                     "  -S|--swap-eyes           Swap left/right view.\n"
                     "  -f|--fullscreen          Fullscreen.\n"
-                    "  --fullscreen-screen=N    Use screen N for fullscreen mode. The default\n"
-                    "                           N=0 uses the primary screen of the desktop.\n"
+                    "  --fullscreen-screens=    Use the listed screens in fullscreen mode.\n"
+                    "     [S0[,S1[,...]]]       Screen numbers start with 1. The default\n"
+                    "                           (empty list) is to use the primary screen.\n"
+                    "  --fullscreen-flip-left   Flip left view vertically when fullscreen.\n"
+                    "  --fullscreen-flop-left   Flop left view horizontally when fullscreen.\n"
+                    "  --fullscreen-flip-right  Flip right view vertically when fullscreen.\n"
+                    "  --fullscreen-flop-right  Flop right view horizontally when fullscreen.\n"
                     "  -c|--center              Center window on screen.\n"
                     "  --subtitle-encoding=ENC  Set subtitle encoding.\n"
                     "  --subtitle-font=FONT     Set subtitle font name.\n"
@@ -502,7 +515,30 @@ int main(int argc, char *argv[])
     }
     init_data.params.stereo_mode_swap = swap_eyes.value();
     init_data.fullscreen = fullscreen.value();
-    init_data.params.fullscreen_screen = fullscreen_screen.value();
+    if (fullscreen_screens.values().size() > 0)
+    {
+        init_data.params.fullscreen_screens = 0;
+        for (size_t i = 0; i < fullscreen_screens.value().size(); i++)
+        {
+            init_data.params.fullscreen_screens |= (1 << (fullscreen_screens.value()[i] - 1));
+        }
+    }
+    if (fullscreen_flip_left.values().size() > 0)
+    {
+        init_data.params.fullscreen_flip_left = fullscreen_flip_left.value();
+    }
+    if (fullscreen_flop_left.values().size() > 0)
+    {
+        init_data.params.fullscreen_flop_left = fullscreen_flop_left.value();
+    }
+    if (fullscreen_flip_right.values().size() > 0)
+    {
+        init_data.params.fullscreen_flip_right = fullscreen_flip_right.value();
+    }
+    if (fullscreen_flop_right.values().size() > 0)
+    {
+        init_data.params.fullscreen_flop_right = fullscreen_flop_right.value();
+    }
     init_data.center = center.value();
     init_data.params.subtitle_encoding = subtitle_encoding.value();
     init_data.params.subtitle_font = subtitle_font.value();

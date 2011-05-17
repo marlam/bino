@@ -281,7 +281,7 @@ void player::open(const player_init_data &init_data)
                 _params.stereo_mode);
         if (init_data.fullscreen)
         {
-            _video_output->enter_fullscreen(_params.fullscreen_screen);
+            _video_output->enter_fullscreen(_params.fullscreen_screens);
         }
         if (init_data.center)
         {
@@ -880,7 +880,7 @@ void player::receive_cmd(const command &cmd)
         flag = false;
         if (_video_output)
         {
-            flag = _video_output->toggle_fullscreen(_params.fullscreen_screen);
+            flag = _video_output->toggle_fullscreen(_params.fullscreen_screens);
         }
         controller::notify_all(notification::fullscreen, flag, !flag);
         break;
@@ -1072,13 +1072,46 @@ void player::receive_cmd(const command &cmd)
             controller::notify_all(notification::loop_mode, old_loop_mode, loop_mode);
         }
         break;
-    case command::set_fullscreen_screen:
+    case command::set_fullscreen_screens:
         {
-            int old_screen = _params.fullscreen_screen;
-            s11n::load(p, _params.fullscreen_screen);
-            controller::notify_all(notification::fullscreen_screen, old_screen, _params.fullscreen_screen);
-            break;
+            int old_screen = _params.fullscreen_screens;
+            s11n::load(p, _params.fullscreen_screens);
+            parameters_changed = true;
+            controller::notify_all(notification::fullscreen_screens, old_screen, _params.fullscreen_screens);
         }
+        break;
+    case command::set_fullscreen_flip_left:
+        {
+            int old = _params.fullscreen_flip_left;
+            s11n::load(p, _params.fullscreen_flip_left);
+            parameters_changed = true;
+            controller::notify_all(notification::fullscreen_flip_left, old, _params.fullscreen_flip_left);
+        }
+        break;
+    case command::set_fullscreen_flop_left:
+        {
+            int old = _params.fullscreen_flop_left;
+            s11n::load(p, _params.fullscreen_flop_left);
+            parameters_changed = true;
+            controller::notify_all(notification::fullscreen_flop_left, old, _params.fullscreen_flop_left);
+        }
+        break;
+    case command::set_fullscreen_flip_right:
+        {
+            int old = _params.fullscreen_flip_right;
+            s11n::load(p, _params.fullscreen_flip_right);
+            parameters_changed = true;
+            controller::notify_all(notification::fullscreen_flip_right, old, _params.fullscreen_flip_right);
+        }
+        break;
+    case command::set_fullscreen_flop_right:
+        {
+            int old = _params.fullscreen_flop_right;
+            s11n::load(p, _params.fullscreen_flop_right);
+            parameters_changed = true;
+            controller::notify_all(notification::fullscreen_flop_right, old, _params.fullscreen_flop_right);
+        }
+        break;
     }
 
     if (parameters_changed && _video_output)

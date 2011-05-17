@@ -131,11 +131,12 @@ public:
     virtual int height();
     virtual int pos_x();
     virtual int pos_y();
+    virtual bool fullscreen();
 
     virtual void center();
-    virtual void enter_fullscreen(int screen);
+    virtual void enter_fullscreen(int screens);
     virtual void exit_fullscreen();
-    virtual bool toggle_fullscreen(int screen);
+    virtual bool toggle_fullscreen(int screens);
 
     virtual void process_events();
 

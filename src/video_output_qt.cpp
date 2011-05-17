@@ -38,6 +38,10 @@ static GLEWContext* glewGetContext() { return &_glewContext; }
 #include <QIcon>
 #include <QMessageBox>
 #include <QPalette>
+#ifdef Q_WS_X11
+# include <QX11Info>
+# include <X11/Xlib.h>
+#endif
 
 #include "gettext.h"
 #define _(string) gettext(string)
@@ -506,6 +510,11 @@ int video_output_qt::pos_y()
     return _widget->mapToGlobal(QPoint(0, 0)).y();
 }
 
+bool video_output_qt::fullscreen()
+{
+    return _fullscreen;
+}
+
 void video_output_qt::center()
 {
     if (!_fullscreen)
@@ -522,7 +531,7 @@ void video_output_qt::center()
     }
 }
 
-void video_output_qt::enter_fullscreen(int screen)
+void video_output_qt::enter_fullscreen(int screens)
 {
     if (!_fullscreen)
     {
@@ -531,22 +540,66 @@ void video_output_qt::enter_fullscreen(int screen)
         {
             _container_widget->setWindowFlags(Qt::Window);
         }
-        _container_widget->setWindowState(_widget->windowState() | Qt::WindowFullScreen);
-        _container_widget->setCursor(Qt::BlankCursor);
-        _container_widget->show();
-        if (screen != 0)
+        // Determine combined geometry of the chosen screens.
+        QRect geom(0, 0, 0, 0);
+        int screen_count = 0;
+        for (int i = 0; i < std::min(QApplication::desktop()->screenCount(), 16); i++)
         {
-            screen--;
-            if (screen < QApplication::desktop()->screenCount())
+            if (screens & (1 << i))
             {
-                QRect screen_res = QApplication::desktop()->screenGeometry(screen);
-                _container_widget->move(QPoint(screen_res.x(), screen_res.y()));
+                if (screen_count == 0)
+                {
+                    geom = QApplication::desktop()->screenGeometry(i);
+                }
+                else
+                {
+                    geom = geom.united(QApplication::desktop()->screenGeometry(i));
+                }
+                screen_count++;
             }
+        }
+        if (screen_count <= 1)
+        {
+            // The single screen case is supported by Qt.
+            _container_widget->setWindowState(_widget->windowState() | Qt::WindowFullScreen);
+            if (screen_count == 1)
+            {
+                // Set the chosen screen
+                _container_widget->setGeometry(geom);
+            }
+            _container_widget->setCursor(Qt::BlankCursor);
+            _container_widget->show();
+        }
+        else
+        {
+            // In the dual and multi screen cases we need to bypass the window manager
+            // on X11 because Qt does not support _NET_WM_FULLSCREEN_MONITORS, and thus
+            // the window manager would always restrict the fullscreen window to one screen.
+            // Note: it may be better to set _NET_WM_FULLSCREEN_MONITORS ourselves, but that
+            // would also require the window manager to support this extension...
+            _container_widget->setWindowFlags(_container_widget->windowFlags()
+                    | Qt::X11BypassWindowManagerHint
+                    | Qt::WindowStaysOnTopHint);
+            _container_widget->setWindowState(_widget->windowState() | Qt::WindowFullScreen);
+            _container_widget->setGeometry(geom);
+            _container_widget->setCursor(Qt::BlankCursor);
+            _container_widget->show();
+            _container_widget->raise();
+            _container_widget->activateWindow();
+#ifdef Q_WS_X11
+            /* According to the Qt documentation, it should be sufficient to call activateWindow()
+             * to make a X11 window active when using Qt::X11BypassWindowManagerHint, but this
+             * does not work for me (Ubuntu 11.04 Gnome-2D desktop). This is a workaround. */
+            QApplication::syncX();      // just for safety; not sure if it is necessary
+            XSetInputFocus(QX11Info::display(), _container_widget->winId(), RevertToParent, CurrentTime);
+            XFlush(QX11Info::display());
+#endif
+            grab_focus();
         }
     }
 }
 
-bool video_output_qt::toggle_fullscreen(int screen)
+bool video_output_qt::toggle_fullscreen(int screens)
 {
     if (_fullscreen)
     {
@@ -554,7 +607,7 @@ bool video_output_qt::toggle_fullscreen(int screen)
     }
     else
     {
-        enter_fullscreen(screen);
+        enter_fullscreen(screens);
     }
     return _fullscreen;
 }
@@ -568,6 +621,9 @@ void video_output_qt::exit_fullscreen()
         {
             _container_widget->setWindowFlags(Qt::Widget);
         }
+        _container_widget->setWindowFlags(_container_widget->windowFlags()
+                & ~Qt::X11BypassWindowManagerHint
+                & ~Qt::WindowStaysOnTopHint);
         _container_widget->setWindowState(_widget->windowState() & ~Qt::WindowFullScreen);
         _container_widget->setCursor(Qt::ArrowCursor);
         _container_widget->show();

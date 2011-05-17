@@ -148,6 +148,7 @@ public:
     virtual int height() = 0;                   // in pixels
     virtual int pos_x() = 0;                    // in pixels
     virtual int pos_y() = 0;                    // in pixels
+    virtual bool fullscreen() = 0;              // whether the video area is in fullscreen mode
 
     /* Center video area on screen */
     virtual void center() = 0;

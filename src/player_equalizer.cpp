@@ -189,6 +189,7 @@ public:
     int height() { return _channel->getPixelViewport().h; }
     int pos_x() { return 0; }
     int pos_y() { return 0; }
+    bool fullscreen() { return false; }
     void center() { }
     void enter_fullscreen(int) { }
     void exit_fullscreen() { }
