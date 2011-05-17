@@ -480,29 +480,32 @@ namespace opt
         {
             std::istringstream is(argument);
             std::vector<T> vv;
-            do
+            if (argument.length() > 0)
             {
-                T v;
-                is >> v;
-                if (is.fail())
+                do
                 {
-                    return false;
-                }
-                vv.push_back(v);
-                if (!is.eof())
-                {
-                    for (size_t i = 0; i < _separator.length(); i++)
+                    T v;
+                    is >> v;
+                    if (is.fail())
                     {
-                        char c;
-                        is.get(c);
-                        if (is.fail() || c != _separator[i])
+                        return false;
+                    }
+                    vv.push_back(v);
+                    if (!is.eof())
+                    {
+                        for (size_t i = 0; i < _separator.length(); i++)
                         {
-                            return false;
+                            char c;
+                            is.get(c);
+                            if (is.fail() || c != _separator[i])
+                            {
+                                return false;
+                            }
                         }
                     }
                 }
+                while (!is.eof());
             }
-            while (!is.eof());
             if (_size_is_fixed && vv.size() != _fixed_size)
             {
                 return false;
