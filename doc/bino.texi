@@ -397,10 +397,12 @@ instead.
 The following commands are available:
 
 @table @samp
-@item toggle-play
-Start / stop.
-@item toggle-pause
-Pause / unpause.
+@item play
+Start playback, or switch of pause mode.
+@item pause
+When playing, go into pause mode.
+@item stop
+Stop playback.
 @item cycle-video-stream
 Cycle through available video streams.
 @item cycle-audio-stream

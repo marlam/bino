@@ -64,6 +64,7 @@ public:
 
     const video_output_qt *get_video_output() const;
     video_output_qt *get_video_output();
+    bool is_playing() const;
     bool playloop_step();
     void force_stop();
     void move_event();

@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include <limits>
+#include <unistd.h>
 
 #include <QCoreApplication>
 #include <QApplication>
@@ -124,6 +125,11 @@ const video_output_qt *player_qt_internal::get_video_output() const
 video_output_qt *player_qt_internal::get_video_output()
 {
     return _video_output;
+}
+
+bool player_qt_internal::is_playing() const
+{
+    return _playing;
 }
 
 bool player_qt_internal::playloop_step()
@@ -2037,6 +2043,9 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
         }
         open(urls, init_data.dev_request);
     }
+
+    // Start the event and play loop
+    _timer->start(0);
 }
 
 main_window::~main_window()
@@ -2115,12 +2124,6 @@ void main_window::receive_notification(const notification &note)
             _controls_widget->update(_init_data, true, true);
             // Give the keyboard focus to the video widget
             _player->get_video_output()->grab_focus();
-            // Start the play loop
-            _timer->start(0);
-        }
-        else
-        {
-            _timer->stop();
         }
         break;
 
@@ -2336,30 +2339,31 @@ void main_window::move_event()
 
 void main_window::playloop_step()
 {
-    if (_stop_request)
+    if (_player->is_playing() && _stop_request)
     {
-        _timer->stop();
         _player->force_stop();
         _in_out_widget->update(_init_data, false, false);
         _controls_widget->update(_init_data, false, false);
         _stop_request = false;
     }
-    else
+    else if (_player->is_playing() && !_stop_request)
     {
         try
         {
-            if (!_player->playloop_step())
-            {
-                _timer->stop();
-            }
+            _player->playloop_step();
         }
         catch (std::exception &e)
         {
-            _timer->stop();
             send_cmd(command::toggle_play);
             _player->playloop_step();   // react on command
             QMessageBox::critical(this, "Error", e.what());
         }
+    }
+    else
+    {
+        /* Process controller events. When we're playing, the player does this. */
+        controller::process_all_events();
+        usleep(5000);   // don't busy loop for controller events
     }
 }
 

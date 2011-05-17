@@ -38,6 +38,11 @@ private:
     int _socket;
     struct lirc_config *_config;
 
+    // Current player state; required for some commands
+    bool _playing;
+    bool _pausing;
+
+    // Helper function to read a command from a string
     bool get_command(const std::string &s, command &c);
 
 public:
@@ -48,6 +53,9 @@ public:
     void init();
     /* Deinitialize. */
     void deinit();
+
+    /* Receive notifications to keep track of required state. */
+    virtual void receive_notification(const notification &note);
 
     /* Process LIRC events. */
     virtual void process_events();

@@ -41,7 +41,9 @@ lircclient::lircclient(
     controller(),
     _client_name(client_name),
     _conf_files(conf_files),
-    _initialized(false)
+    _initialized(false),
+    _playing(false),
+    _pausing(false)
 {
 }
 
@@ -104,6 +106,27 @@ void lircclient::deinit()
     }
 }
 
+void lircclient::receive_notification(const notification &note)
+{
+    std::istringstream current(note.current);
+
+    switch (note.type)
+    {
+    case notification::play:
+        s11n::load(current, _playing);
+        if (!_playing)
+        {
+            _pausing = false;
+        }
+        break;
+    case notification::pause:
+        s11n::load(current, _pausing);
+        break;
+    default:
+        break;
+    }
+}
+
 void lircclient::process_events()
 {
     if (_initialized)
@@ -149,15 +172,7 @@ bool lircclient::get_command(const std::string &s, command &c)
     bool ok = true;
     float parameter;
 
-    if (t == "toggle-play")
-    {
-        c = command(command::toggle_play);
-    }
-    else if (t == "toggle-pause")
-    {
-        c = command(command::toggle_pause);
-    }
-    else if (t == "cycle-video-stream")
+    if (t == "cycle-video-stream")
     {
         c = command(command::cycle_video_stream);
     }
@@ -213,6 +228,45 @@ bool lircclient::get_command(const std::string &s, command &c)
     {
         c = command(command::set_pos, parameter);
     }
+    /* The following commands need access to state. */
+    else if (t == "play")
+    {
+        if (!_playing)
+        {
+            c = command(command::toggle_play);
+        }
+        else if (_pausing)
+        {
+            c = command(command::toggle_pause);
+        }
+        else
+        {
+            c = command(command::noop);
+        }
+    }
+    else if (t == "pause")
+    {
+        if (_playing && !_pausing)
+        {
+            c = command(command::toggle_pause);
+        }
+        else
+        {
+            c = command(command::noop);
+        }
+    }
+    else if (t == "stop")
+    {
+        if (_playing)
+        {
+            c = command(command::toggle_play);
+        }
+        else
+        {
+            c = command(command::noop);
+        }
+    }
+    /* No known command. */
     else
     {
         ok = false;
