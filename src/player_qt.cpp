@@ -2292,6 +2292,8 @@ void main_window::moveEvent(QMoveEvent *)
 
 void main_window::closeEvent(QCloseEvent *event)
 {
+    // Stop the event and play loop
+    _timer->stop();
     // Remember the Session preferences
     _settings->beginGroup("Session");
     _settings->setValue("contrast", QVariant(_init_data.params.contrast).toString());
