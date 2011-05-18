@@ -180,6 +180,10 @@ public:
     virtual void open(const player_init_data &init_data);
 
     /* Get information about input and output parameters */
+    bool has_media_input() const
+    {
+        return _media_input;
+    }
     const media_input &get_media_input() const
     {
         return *_media_input;

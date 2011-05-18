@@ -98,7 +98,7 @@ video_output *player_qt_internal::create_video_output()
 
 void player_qt_internal::receive_cmd(const command &cmd)
 {
-    if (cmd.type == command::toggle_play && !_playing)
+    if (cmd.type == command::toggle_play && has_media_input() && !_playing)
     {
         controller::notify_all(notification::play, false, true);
     }
