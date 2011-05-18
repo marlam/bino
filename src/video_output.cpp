@@ -916,23 +916,31 @@ void video_output::display_current_frame(
     {
         if (_params.fullscreen_flip_left)
         {
-            std::swap(tex_coords[0][0], tex_coords[0][3]);
-            std::swap(tex_coords[0][1], tex_coords[0][2]);
+            std::swap(tex_coords[0][0][0], tex_coords[0][3][0]);
+            std::swap(tex_coords[0][0][1], tex_coords[0][3][1]);
+            std::swap(tex_coords[0][1][0], tex_coords[0][2][0]);
+            std::swap(tex_coords[0][1][1], tex_coords[0][2][1]);
         }
         if (_params.fullscreen_flop_left)
         {
-            std::swap(tex_coords[0][0], tex_coords[0][1]);
-            std::swap(tex_coords[0][3], tex_coords[0][2]);
+            std::swap(tex_coords[0][0][0], tex_coords[0][1][0]);
+            std::swap(tex_coords[0][0][1], tex_coords[0][1][1]);
+            std::swap(tex_coords[0][3][0], tex_coords[0][2][0]);
+            std::swap(tex_coords[0][3][1], tex_coords[0][2][1]);
         }
         if (_params.fullscreen_flip_right)
         {
-            std::swap(tex_coords[1][0], tex_coords[1][3]);
-            std::swap(tex_coords[1][1], tex_coords[1][2]);
+            std::swap(tex_coords[1][0][0], tex_coords[1][3][0]);
+            std::swap(tex_coords[1][0][1], tex_coords[1][3][1]);
+            std::swap(tex_coords[1][1][0], tex_coords[1][2][0]);
+            std::swap(tex_coords[1][1][1], tex_coords[1][2][1]);
         }
         if (_params.fullscreen_flop_right)
         {
-            std::swap(tex_coords[1][0], tex_coords[1][1]);
-            std::swap(tex_coords[1][3], tex_coords[1][2]);
+            std::swap(tex_coords[1][0][0], tex_coords[1][1][0]);
+            std::swap(tex_coords[1][0][1], tex_coords[1][1][1]);
+            std::swap(tex_coords[1][3][0], tex_coords[1][2][0]);
+            std::swap(tex_coords[1][3][1], tex_coords[1][2][1]);
         }
     }
 
