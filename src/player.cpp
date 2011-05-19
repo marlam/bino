@@ -706,6 +706,7 @@ bool player::run_step()
 
 void player::run()
 {
+    controller::notify_all(notification::play, false, true);
     while (run_step());
 }
 
