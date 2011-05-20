@@ -72,8 +72,11 @@ AC_CHECK_DECLS([optreset], [#include <getopt.h>])
 AC_SEARCH_LIBS([clock_gettime], [rt])
 AC_SEARCH_LIBS([pthread_create], [pthread])
 AC_CHECK_FUNCS([backtrace clock_gettime sigaction vasprintf wcwidth])
+CPPFLAGS_bak="$CPPFLAGS"
+LDFLAGS_bak="$LDFLAGS"
 CPPFLAGS="-pthread $CPPFLAGS"
 LDFLAGS="-pthread $LDFLAGS"
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [], [CPPFLAGS="$CPPFLAGS_bak"; LDFLAGS="$LDFLAGS_bak"])
 
 dnl Gettext
 AM_GNU_GETTEXT([external])
