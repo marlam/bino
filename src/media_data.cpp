@@ -425,7 +425,7 @@ std::string audio_blob::format_info() const
 
 std::string audio_blob::format_name() const
 {
-    const char *sample_format_name;
+    const char *sample_format_name = "";
     switch (sample_format)
     {
     case u8:

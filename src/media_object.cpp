@@ -642,7 +642,7 @@ void media_object::open(const std::string &url, const device_request &dev_reques
     int e;
 
     /* Set format and parameters for device input */
-    AVInputFormat *iformat;
+    AVInputFormat *iformat = NULL;
     AVFormatParameters iparams;
     std::memset(&iparams, 0, sizeof(iparams));
     iparams.pix_fmt = PIX_FMT_NONE;
@@ -679,7 +679,6 @@ void media_object::open(const std::string &url, const device_request &dev_reques
 #endif
         break;
     case device_request::no_device:
-        iformat = NULL;
         break;
     }
     if (_is_device && !iformat)
