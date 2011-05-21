@@ -5,22 +5,15 @@ environment (http://www.nongnu.org/mingw-cross-env). This is because
 Mingw-cross-env not only provides a recent version of gcc as a cross compiler,
 but also all required libraries, and the nsis package to build an installer.
 
-The following is known to work with Mingw-cross-env 2.20 installed in
+The following is known to work with Mingw-cross-env 2.21 installed in
 /path/to/mce:
 
-0. Update some Mingw-cross-env packages
-
-   LibASS and FFmpeg are too old or not yet available in Mingw-cross-env. This
-   will likely be fixed in a future version. In the meantime, please copy the
-   files libass.mk and ffmpeg.mk (attached below) into /path/to/mce/src.
-
-1. Build the required libraries in Mingw-cross-env:
+1. Build the required Mingw-cross-env packages:
 
    $ cd /path/to/mce
-   $ make gettext pthreads ffmpeg libass openal glew qt
+   $ make gettext pthreads ffmpeg libass openal glew qt nsis
 
-   If you want to build a Bino installer later, you need to build nsis, too:
-   $ make nsis
+   (If you do not need to build a Bino installer package, you can skip nsis).
 
    Add Mingw-cross-env to your PATH:
    $ export PATH="/path/to/mce/usr/bin:$PATH"
@@ -31,95 +24,16 @@ The following is known to work with Mingw-cross-env 2.20 installed in
    $ ./configure --host=i686-pc-mingw32
    $ make
 
-   Optionally build the installer (if nsis was built in Mingw-cross-env):
+   Optionally build the installer (requires nsis):
    $ make package-w32
 
 The installer will install the binary, the manual, and translations along with
 start menu entries, and provide uninstall functionality.
 
 You can also copy just the bino.exe binary from the src subdirectory to any
-Windows machine. In that case, if you want to have access to translations and
-the manual, keep the following directory structure:
+Windows machine. If you want to have access to translations and the manual, keep
+the following directory structure:
 c:\<path_to_bino>\bin\bino.exe
 c:\<path_to_bino>\doc\bino.html
 c:\<path_to_bino>\doc\<image_files...>
 c:\<path_to_bino>\locale\<lang>\LC_MESSAGES\bino.mo
-
-8<---- libass.mk -------------------------------------------------------------
-
-PKG             := libass
-$(PKG)_IGNORE   :=
-$(PKG)_VERSION  := 0.9.11
-$(PKG)_CHECKSUM := 6f69f6c4474c649de4fd7913b050bfd4cf8110cb
-$(PKG)_SUBDIR   := $(PKG)-$($(PKG)_VERSION)
-$(PKG)_FILE     := $(PKG)-$($(PKG)_VERSION).tar.bz2
-$(PKG)_WEBSITE  := http://code.google.com/p/libass/
-$(PKG)_URL      := http://libass.googlecode.com/files/$($(PKG)_FILE)
-$(PKG)_DEPS     := gcc freetype fontconfig
-
-define $(PKG)_UPDATE
-    wget -q -O- 'http://code.google.com/p/libass/downloads/list?sort=-uploaded' | \
-    $(SED) -n 's,.*libass-\([0-9][^<]*\)\.tar.bz2,\1,p' | \
-    head -1
-endef
-
-define $(PKG)_BUILD
-    cd '$(1)' && ./configure \
-        --host='$(TARGET)' \
-        --prefix='$(PREFIX)/$(TARGET)' \
-        --disable-shared \
-	--disable-png \
-	--disable-enca \
-	--enable-fontconfig
-    $(MAKE) -C '$(1)' -j '$(JOBS)'
-    $(MAKE) -C '$(1)' -j 1 install
-endef
-
-8<---- ffmpeg.mk -------------------------------------------------------------
-
-PKG             := ffmpeg
-$(PKG)_IGNORE   :=
-$(PKG)_VERSION  := 0.7-rc1
-$(PKG)_CHECKSUM := d15c005f46483fbfc3b678cb1c89123762b56b82
-$(PKG)_SUBDIR   := $(PKG)-$($(PKG)_VERSION)
-$(PKG)_FILE     := $(PKG)-$($(PKG)_VERSION).tar.bz2
-$(PKG)_WEBSITE  := http://www.ffmpeg.org/
-$(PKG)_URL      := http://www.ffmpeg.org/releases/$($(PKG)_FILE)
-$(PKG)_DEPS     := gcc bzip2 lame libvpx opencore-amr sdl speex theora vorbis x264 xvidcore zlib
-
-define $(PKG)_UPDATE
-    wget -q -O- 'http://www.ffmpeg.org/download.html' | \
-    $(SED) -n 's,.*ffmpeg-\([0-9][^>]*\)\.tar.*,\1,p' | \
-    head -1
-endef
-
-define $(PKG)_BUILD
-    cd '$(1)' && ./configure \
-        --cross-prefix='$(TARGET)'- \
-        --enable-cross-compile \
-        --arch=i686 \
-        --target-os=mingw32 \
-        --prefix='$(PREFIX)/$(TARGET)' \
-        --disable-shared \
-        --disable-debug \
-        --disable-doc \
-        --enable-memalign-hack \
-        --enable-gpl \
-        --enable-version3 \
-        --disable-nonfree \
-        --enable-postproc \
-        --enable-libspeex \
-        --enable-libtheora \
-        --enable-libvorbis \
-        --enable-libmp3lame \
-        --enable-libxvid \
-        --disable-libfaac \
-        --enable-libopencore-amrnb \
-        --enable-libopencore-amrwb \
-        --enable-libx264 \
-        --enable-libvpx \
-        --disable-pthreads \
-        --enable-w32threads
-    $(MAKE) -C '$(1)' -j '$(JOBS)'
-    $(MAKE) -C '$(1)' -j 1 install
-endef
