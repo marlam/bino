@@ -742,30 +742,32 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             && i < static_cast<unsigned int>(std::numeric_limits<int>::max()); i++)
     {
         _ffmpeg->format_ctx->streams[i]->discard = AVDISCARD_ALL;        // ignore by default; user must activate streams
-        if (_ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+        AVCodecContext *codec_ctx = _ffmpeg->format_ctx->streams[i]->codec;
+        AVCodec *codec = NULL;
+        if (_ffmpeg->format_ctx->streams[i]->codec->codec_id != CODEC_ID_TEXT
+                && (!(codec = avcodec_find_decoder(_ffmpeg->format_ctx->streams[i]->codec->codec_id))
+                    || (e = avcodec_open(codec_ctx, codec)) < 0))
+        {
+            msg::wrn(_("%s stream %d: Cannot open %s: %s"), _url.c_str(), i,
+                    _ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO ? _("video codec")
+                    : _ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO ? _("audio codec")
+                    : _ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_SUBTITLE ? _("subtitle codec")
+                    : _("data"),
+                    codec ? my_av_strerror(e).c_str() : _("codec not supported"));
+        }
+        else if (_ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
         {
             _ffmpeg->video_streams.push_back(i);
             int j = _ffmpeg->video_streams.size() - 1;
             msg::dbg(_url + " stream " + str::from(i) + " is video stream " + str::from(j) + ".");
-            _ffmpeg->video_codec_ctxs.push_back(_ffmpeg->format_ctx->streams[i]->codec);
+            _ffmpeg->video_codec_ctxs.push_back(codec_ctx);
             if (_ffmpeg->video_codec_ctxs[j]->width < 1 || _ffmpeg->video_codec_ctxs[j]->height < 1)
             {
                 throw exc(str::asprintf(_("%s video stream %d: Invalid frame size."),
                             _url.c_str(), j + 1));
             }
-            _ffmpeg->video_codecs.push_back(avcodec_find_decoder(_ffmpeg->video_codec_ctxs[j]->codec_id));
-            if (!_ffmpeg->video_codecs[j])
-            {
-                throw exc(str::asprintf(_("%s video stream %d: Unsupported video codec."),
-                            _url.c_str(), j + 1));
-            }
+            _ffmpeg->video_codecs.push_back(codec);
             _ffmpeg->video_codec_ctxs[j]->thread_count = video_decoding_threads();
-            if ((e = avcodec_open(_ffmpeg->video_codec_ctxs[j], _ffmpeg->video_codecs[j])) < 0)
-            {
-                _ffmpeg->video_codecs[j] = NULL;
-                throw exc(str::asprintf(_("%s video stream %d: Cannot open video codec: %s"),
-                            _url.c_str(), j + 1, my_av_strerror(e).c_str()));
-            }
             // Determine frame template.
             _ffmpeg->video_frame_templates.push_back(video_frame());
             set_video_frame_template(j);
@@ -815,19 +817,8 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             _ffmpeg->audio_streams.push_back(i);
             int j = _ffmpeg->audio_streams.size() - 1;
             msg::dbg(_url + " stream " + str::from(i) + " is audio stream " + str::from(j) + ".");
-            _ffmpeg->audio_codec_ctxs.push_back(_ffmpeg->format_ctx->streams[i]->codec);
-            _ffmpeg->audio_codecs.push_back(avcodec_find_decoder(_ffmpeg->audio_codec_ctxs[j]->codec_id));
-            if (!_ffmpeg->audio_codecs[j])
-            {
-                throw exc(str::asprintf(_("%s audio stream %d: Unsupported audio codec."),
-                            _url.c_str(), j + 1));
-            }
-            if ((e = avcodec_open(_ffmpeg->audio_codec_ctxs[j], _ffmpeg->audio_codecs[j])) < 0)
-            {
-                _ffmpeg->audio_codecs[j] = NULL;
-                throw exc(str::asprintf(_("%s audio stream %d: Cannot open audio codec: %s"),
-                            _url.c_str(), j + 1, my_av_strerror(e).c_str()));
-            }
+            _ffmpeg->audio_codec_ctxs.push_back(codec_ctx);
+            _ffmpeg->audio_codecs.push_back(codec);
             _ffmpeg->audio_blob_templates.push_back(audio_blob());
             set_audio_blob_template(j);
             _ffmpeg->audio_decode_threads.push_back(audio_decode_thread(_url, _ffmpeg, j));
@@ -847,27 +838,10 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             _ffmpeg->subtitle_streams.push_back(i);
             int j = _ffmpeg->subtitle_streams.size() - 1;
             msg::dbg(_url + " stream " + str::from(i) + " is subtitle stream " + str::from(j) + ".");
-            _ffmpeg->subtitle_codec_ctxs.push_back(_ffmpeg->format_ctx->streams[i]->codec);
-            if (_ffmpeg->subtitle_codec_ctxs[j]->codec_id == CODEC_ID_TEXT)
-            {
-                // CODEC_ID_TEXT does not have any decoder; it is just UTF-8 text in the packet data.
-                _ffmpeg->subtitle_codecs.push_back(NULL);
-            }
-            else
-            {
-                _ffmpeg->subtitle_codecs.push_back(avcodec_find_decoder(_ffmpeg->subtitle_codec_ctxs[j]->codec_id));
-                if (!_ffmpeg->subtitle_codecs[j])
-                {
-                    throw exc(str::asprintf(_("%s subtitle stream %d: Unsupported subtitle codec."),
-                                _url.c_str(), j + 1));
-                }
-                if ((e = avcodec_open(_ffmpeg->subtitle_codec_ctxs[j], _ffmpeg->subtitle_codecs[j])) < 0)
-                {
-                    _ffmpeg->subtitle_codecs[j] = NULL;
-                    throw exc(str::asprintf(_("%s subtitle stream %d: Cannot open subtitle codec: %s"),
-                                _url.c_str(), j + 1, my_av_strerror(e).c_str()));
-                }
-            }
+            _ffmpeg->subtitle_codec_ctxs.push_back(codec_ctx);
+            // CODEC_ID_TEXT does not have any decoder; it is just UTF-8 text in the packet data.
+            _ffmpeg->subtitle_codecs.push_back(
+                    _ffmpeg->subtitle_codec_ctxs[j]->codec_id == CODEC_ID_TEXT ? NULL : codec);
             _ffmpeg->subtitle_box_templates.push_back(subtitle_box());
             set_subtitle_box_template(j);
             _ffmpeg->subtitle_decode_threads.push_back(subtitle_decode_thread(_url, _ffmpeg, j));
