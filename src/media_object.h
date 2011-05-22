@@ -31,6 +31,7 @@
 class media_object
 {
 private:
+    bool _always_convert_to_bgra32;             // Always convert video to BGRA32 format
     std::string _url;                           // The URL of the media object (may be a file)
     bool _is_device;                            // Whether the URL represents a device (e.g. a camera)
     struct ffmpeg_stuff *_ffmpeg;               // FFmpeg related data
@@ -52,7 +53,7 @@ private:
 public:
 
     /* Constructor, Destructor */
-    media_object();
+    media_object(bool always_convert_to_bgra32 = false);
     ~media_object();
 
     /*

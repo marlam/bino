@@ -315,7 +315,8 @@ static int64_t stream_duration(AVStream *stream, AVFormatContext *format)
 }
 
 
-media_object::media_object() : _ffmpeg(NULL)
+media_object::media_object(bool always_convert_to_bgra32) :
+    _always_convert_to_bgra32(always_convert_to_bgra32), _ffmpeg(NULL)
 {
     avdevice_register_all();
     av_register_all();
@@ -382,9 +383,10 @@ void media_object::set_video_frame_template(int index)
     video_frame_template.color_space = video_frame::srgb;
     video_frame_template.value_range = video_frame::u8_full;
     video_frame_template.chroma_location = video_frame::center;
-    if (video_codec_ctx->pix_fmt == PIX_FMT_YUV444P
-            || video_codec_ctx->pix_fmt == PIX_FMT_YUV422P
-            || video_codec_ctx->pix_fmt == PIX_FMT_YUV420P)
+    if (!_always_convert_to_bgra32
+            && (video_codec_ctx->pix_fmt == PIX_FMT_YUV444P
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV422P
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV420P))
     {
         if (video_codec_ctx->pix_fmt == PIX_FMT_YUV444P)
         {
@@ -418,9 +420,10 @@ void media_object::set_video_frame_template(int index)
             video_frame_template.chroma_location = video_frame::topleft;
         }
     }
-    else if (video_codec_ctx->pix_fmt == PIX_FMT_YUVJ444P
-            || video_codec_ctx->pix_fmt == PIX_FMT_YUVJ422P
-            || video_codec_ctx->pix_fmt == PIX_FMT_YUVJ420P)
+    else if (!_always_convert_to_bgra32
+            && (video_codec_ctx->pix_fmt == PIX_FMT_YUVJ444P
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUVJ422P
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUVJ420P))
     {
         if (video_codec_ctx->pix_fmt == PIX_FMT_YUVJ444P)
         {
