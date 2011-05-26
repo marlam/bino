@@ -94,6 +94,8 @@ private:
     void create_widget();
     void mouse_set_pos(float dest);
     void mouse_toggle_fullscreen();
+    void suspend_screensaver();
+    void resume_screensaver();
 
 protected:
     virtual void make_context_current();

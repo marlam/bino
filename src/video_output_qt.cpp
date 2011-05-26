@@ -38,6 +38,7 @@ static GLEWContext* glewGetContext() { return &_glewContext; }
 #include <QIcon>
 #include <QMessageBox>
 #include <QPalette>
+#include <QProcess>
 #ifdef Q_WS_X11
 # include <QX11Info>
 # include <X11/Xlib.h>
@@ -439,6 +440,36 @@ void video_output_qt::mouse_toggle_fullscreen()
     }
 }
 
+void video_output_qt::suspend_screensaver()
+{
+#if defined(Q_WS_X11)
+    if (QProcess::execute(QString("xdg-screensaver suspend ")
+                + str::from(_container_widget->winId()).c_str()) != 0)
+    {
+        msg::wrn(_("Cannot suspend screensaver."));
+    }
+#elif defined(Q_WS_WIN)
+    /* TODO */
+#elif defined(Q_WS_MAC)
+    /* TODO */
+#endif
+}
+
+void video_output_qt::resume_screensaver()
+{
+#if defined(Q_WS_X11)
+    if (QProcess::execute(QString("xdg-screensaver resume ")
+                + str::from(_container_widget->winId()).c_str()) != 0)
+    {
+        msg::wrn(_("Cannot resume screensaver."));
+    }
+#elif defined(Q_WS_WIN)
+    /* TODO */
+#elif defined(Q_WS_MAC)
+    /* TODO */
+#endif
+}
+
 void video_output_qt::move_event()
 {
     if (_widget)
@@ -596,6 +627,9 @@ void video_output_qt::enter_fullscreen(int screens)
 #endif
             grab_focus();
         }
+        // Suspend the screensaver after going fullscreen, so that our window ID
+        // represents the fullscreen window. We need to have the same ID for resume.
+        suspend_screensaver();
     }
 }
 
@@ -616,6 +650,9 @@ void video_output_qt::exit_fullscreen()
 {
     if (_fullscreen)
     {
+        // Resume the screensaver before disabling fullscreen, so that our window ID
+        // still represents the fullscreen window and was the same when suspending the screensaver.
+        resume_screensaver();
         _fullscreen = false;
         if (_container_is_external)
         {
