@@ -734,7 +734,7 @@ void in_out_widget::receive_notification(const notification &note)
 }
 
 
-controls_widget::controls_widget(QSettings *settings, QWidget *parent, const player_init_data &init_data)
+controls_widget::controls_widget(QSettings *settings, const player_init_data &init_data, QWidget *parent)
     : QWidget(parent), _lock(false), _settings(settings), _playing(false)
 {
     QGridLayout *layout = new QGridLayout;
@@ -859,9 +859,12 @@ void controls_widget::stop_pressed()
 
 void controls_widget::loop_pressed()
 {
-    int loop_mode = static_cast<int>(_loop_button->isChecked()
-            ? parameters::loop_current : parameters::no_loop);
-    send_cmd(command::set_loop_mode, loop_mode);
+    if (!_lock)
+    {
+        parameters::loop_mode_t loop_mode = _loop_button->isChecked()
+            ? parameters::loop_current : parameters::no_loop;
+        send_cmd(command::set_loop_mode, static_cast<int>(loop_mode));
+    }
 }
 
 void controls_widget::fullscreen_pressed()
@@ -958,6 +961,14 @@ void controls_widget::receive_notification(const notification &note)
         _play_button->setEnabled(!flag);
         _pause_button->setEnabled(flag);
         _stop_button->setEnabled(flag);
+        if (flag)
+        {
+            _lock = true;
+            parameters::loop_mode_t loop_mode = _loop_button->isChecked()
+                ? parameters::loop_current : parameters::no_loop;
+            send_cmd(command::set_loop_mode, static_cast<int>(loop_mode));
+            _lock = false;
+        }
         if (flag && _fullscreen_button->isChecked())
         {
             _lock = true;
@@ -1951,7 +1962,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     connect(_timer, SIGNAL(timeout()), this, SLOT(playloop_step()));
     _in_out_widget = new in_out_widget(_settings, _player, central_widget);
     layout->addWidget(_in_out_widget, 1, 0);
-    _controls_widget = new controls_widget(_settings, central_widget, _init_data);
+    _controls_widget = new controls_widget(_settings, _init_data, central_widget);
     layout->addWidget(_controls_widget, 2, 0);
     layout->setRowStretch(0, 1);
     layout->setColumnStretch(0, 1);

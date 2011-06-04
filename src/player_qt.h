@@ -149,7 +149,7 @@ private slots:
     void seek_slider_changed();
 
 public:
-    controls_widget(QSettings *settings, QWidget *parent, const player_init_data &init_data);
+    controls_widget(QSettings *settings, const player_init_data &init_data, QWidget *parent);
     virtual ~controls_widget();
 
     void update(const player_init_data &init_data, bool have_valid_input, bool playing);
