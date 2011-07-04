@@ -577,7 +577,7 @@ void media_object::set_audio_blob_template(int index)
     AVCodecContext *audio_codec_ctx = _ffmpeg->audio_codec_ctxs[index];
     audio_blob &audio_blob_template = _ffmpeg->audio_blob_templates[index];
 
-    AVMetadataTag *tag = av_metadata_get(audio_stream->metadata, "language", NULL, AV_METADATA_IGNORE_SUFFIX);
+    AVDictionaryEntry *tag = av_dict_get(audio_stream->metadata, "language", NULL, AV_DICT_IGNORE_SUFFIX);
     if (tag)
     {
         audio_blob_template.language = tag->value;
@@ -627,7 +627,7 @@ void media_object::set_subtitle_box_template(int index)
     //AVCodecContext *subtitle_codec_ctx = _ffmpeg->subtitle_codec_ctxs[index];
     subtitle_box &subtitle_box_template = _ffmpeg->subtitle_box_templates[index];
 
-    AVMetadataTag *tag = av_metadata_get(subtitle_stream->metadata, "language", NULL, AV_METADATA_IGNORE_SUFFIX);
+    AVDictionaryEntry *tag = av_dict_get(subtitle_stream->metadata, "language", NULL, AV_DICT_IGNORE_SUFFIX);
     if (tag)
     {
         subtitle_box_template.language = tag->value;
@@ -646,16 +646,11 @@ void media_object::open(const std::string &url, const device_request &dev_reques
 
     /* Set format and parameters for device input */
     AVInputFormat *iformat = NULL;
-    AVFormatParameters iparams;
-    std::memset(&iparams, 0, sizeof(iparams));
-    iparams.pix_fmt = PIX_FMT_NONE;
-    bool use_iparams = false;
+    AVDictionary *iparams = NULL;
     switch (dev_request.device)
     {
     case device_request::firewire:
         iformat = av_find_input_format("libdc1394");
-        // libdc1394 requires pix_fmt = PIX_FMT_NONE to choose a suitable default pixel format.
-        use_iparams = true;
         break;
     case device_request::x11:
         iformat = av_find_input_format("x11grab");
@@ -663,22 +658,10 @@ void media_object::open(const std::string &url, const device_request &dev_reques
     case device_request::sys_default:
 #if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
         iformat = av_find_input_format("vfwcap");
-        // vfwcap requires a time_base parameter. Set the default to 1/25.
-        iparams.time_base.num = 1;
-        iparams.time_base.den = 25;
-        use_iparams = true;
 #elif defined __FreeBSD__ || defined __NetBSD__ || defined __OpenBSD__ || defined __APPLE__
         iformat = av_find_input_format("bktr");
-        // bktr requires width, height, time_base parameters.
-        // Set the defaults to 640x480 and 1/25.
-        iparams.width = 640;
-        iparams.height = 480;
-        iparams.time_base.num = 1;
-        iparams.time_base.den = 25;
-        use_iparams = true;
 #else
         iformat = av_find_input_format("video4linux2");
-        // video4linux2 can use default parameters.
 #endif
         break;
     case device_request::no_device:
@@ -691,30 +674,26 @@ void media_object::open(const std::string &url, const device_request &dev_reques
                 : dev_request.device == device_request::x11 ? _("X11")
                 : _("default")));
     }
-    if (_is_device
-            && ((dev_request.width != 0 && dev_request.height != 0)
-                || (dev_request.frame_rate_num != 0 && dev_request.frame_rate_den != 0)))
+    if (_is_device && dev_request.width != 0 && dev_request.height != 0)
     {
-        use_iparams = true;
-        if (dev_request.width != 0 && dev_request.height != 0)
-        {
-            iparams.width = dev_request.width;
-            iparams.height = dev_request.height;
-        }
-        if (dev_request.frame_rate_num != 0 && dev_request.frame_rate_den != 0)
-        {
-            iparams.time_base.den = dev_request.frame_rate_num;
-            iparams.time_base.num = dev_request.frame_rate_den;
-        }
+        av_dict_set(&iparams, "video_size", str::asprintf("%dx%d",
+                    dev_request.width, dev_request.height).c_str(), 0);
+    }
+    if (_is_device && dev_request.frame_rate_num != 0 && dev_request.frame_rate_den != 0)
+    {
+        av_dict_set(&iparams, "framerate", str::asprintf("%d/%d",
+                    dev_request.frame_rate_num, dev_request.frame_rate_den).c_str(), 0);
     }
 
     /* Open the input */
-    if ((e = av_open_input_file(&_ffmpeg->format_ctx, _url.c_str(), iformat, 0,
-                    use_iparams ? &iparams : NULL)) != 0)
+    _ffmpeg->format_ctx = NULL;
+    if ((e = avformat_open_input(&_ffmpeg->format_ctx, _url.c_str(), iformat, &iparams)) != 0)
     {
+        av_dict_free(&iparams);
         throw exc(str::asprintf(_("%s: %s"),
                     _url.c_str(), my_av_strerror(e).c_str()));
     }
+    av_dict_free(&iparams);
     if (_is_device)
     {
         // For a camera device, do not read ahead multiple packets, to avoid a startup delay.
@@ -728,8 +707,8 @@ void media_object::open(const std::string &url, const device_request &dev_reques
     av_dump_format(_ffmpeg->format_ctx, 0, _url.c_str(), 0);
 
     /* Metadata */
-    AVMetadataTag *tag = NULL;
-    while ((tag = av_metadata_get(_ffmpeg->format_ctx->metadata, "", tag, AV_METADATA_IGNORE_SUFFIX)))
+    AVDictionaryEntry *tag = NULL;
+    while ((tag = av_dict_get(_ffmpeg->format_ctx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
     {
         _tag_names.push_back(tag->key);
         _tag_values.push_back(tag->value);
