@@ -380,6 +380,26 @@ namespace str
         }
     }
 
+    std::string human_readable_time(int64_t microseconds)
+    {
+        int64_t hours = microseconds / (1000000ll * 60ll * 60ll);
+        microseconds -= hours * (1000000ll * 60ll * 60ll);
+        int64_t minutes = microseconds / (1000000ll * 60ll);
+        microseconds -= minutes * (1000000ll * 60ll);
+        int64_t seconds = microseconds / 1000000ll;
+        std::string hr;
+        if (hours > 0)
+        {
+            hr = str::from(hours) + ':';
+        }
+        if (minutes < 10)
+        {
+            hr += '0';
+        }
+        hr += str::from(minutes) + (seconds < 10 ? ":0" : ":") + str::from(seconds);
+        return hr;
+    }
+
     /* Convert a string from one character set to another */
 
     std::string convert(const std::string &src, const std::string &from_charset, const std::string &to_charset)

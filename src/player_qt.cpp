@@ -737,83 +737,97 @@ void in_out_widget::receive_notification(const notification &note)
 controls_widget::controls_widget(QSettings *settings, const player_init_data &init_data, QWidget *parent)
     : QWidget(parent), _lock(false), _settings(settings), _playing(false)
 {
-    QGridLayout *layout = new QGridLayout;
+    QGridLayout *row0_layout = new QGridLayout;
     _seek_slider = new QSlider(Qt::Horizontal);
     _seek_slider->setToolTip(_("<p>This slider shows the progress during video playback, "
                 "and can be used to seek in the video.</p>"));
     _seek_slider->setRange(0, 2000);
     _seek_slider->setTracking(false);
     connect(_seek_slider, SIGNAL(valueChanged(int)), this, SLOT(seek_slider_changed()));
-    layout->addWidget(_seek_slider, 0, 0, 1, 15);
+    row0_layout->addWidget(_seek_slider, 0, 0);
+    _pos_label = new QLabel("0:00");
+    _pos_label->setToolTip(_("<p>Elapsed / total time.</p>"));
+    _pos_label->setAlignment(Qt::AlignRight);
+    _pos_label->setTextFormat(Qt::PlainText);
+    _pos_label->setFrameShape(QFrame::StyledPanel);
+    _pos_label->setMinimumSize(QSize(0, 0));
+    row0_layout->addWidget(_pos_label, 0, 1);
+    row0_layout->setColumnStretch(0, 1);
+
+    QGridLayout *row1_layout = new QGridLayout;
     _play_button = new QPushButton(get_icon("media-playback-start"), "");
     _play_button->setToolTip(_("<p>Play.</p>"));
     connect(_play_button, SIGNAL(pressed()), this, SLOT(play_pressed()));
-    layout->addWidget(_play_button, 1, 0);
+    row1_layout->addWidget(_play_button, 1, 0);
     _pause_button = new QPushButton(get_icon("media-playback-pause"), "");
     _pause_button->setToolTip(_("<p>Pause.</p>"));
     connect(_pause_button, SIGNAL(pressed()), this, SLOT(pause_pressed()));
-    layout->addWidget(_pause_button, 1, 1);
+    row1_layout->addWidget(_pause_button, 1, 1);
     _stop_button = new QPushButton(get_icon("media-playback-stop"), "");
     _stop_button->setToolTip(_("<p>Stop.</p>"));
     connect(_stop_button, SIGNAL(pressed()), this, SLOT(stop_pressed()));
-    layout->addWidget(_stop_button, 1, 2);
-    layout->addWidget(new QWidget, 1, 3);
+    row1_layout->addWidget(_stop_button, 1, 2);
+    row1_layout->addWidget(new QWidget, 1, 3);
     _loop_button = new QPushButton(get_icon("media-playlist-repeat"), "");
     _loop_button->setToolTip(_("<p>Toggle loop mode.</p>"));
     _loop_button->setCheckable(true);
     _loop_button->setChecked(init_data.params.loop_mode != parameters::no_loop);
     connect(_loop_button, SIGNAL(toggled(bool)), this, SLOT(loop_pressed()));
-    layout->addWidget(_loop_button, 1, 4);
-    layout->addWidget(new QWidget, 1, 5);
+    row1_layout->addWidget(_loop_button, 1, 4);
+    row1_layout->addWidget(new QWidget, 1, 5);
     _fullscreen_button = new QPushButton(get_icon("view-fullscreen"), "");
     _fullscreen_button->setToolTip(_("<p>Switch to fullscreen mode. "
                 "You can leave fullscreen mode by pressing the f key.</p>"));
     _fullscreen_button->setCheckable(true);
     connect(_fullscreen_button, SIGNAL(pressed()), this, SLOT(fullscreen_pressed()));
-    layout->addWidget(_fullscreen_button, 1, 6);
+    row1_layout->addWidget(_fullscreen_button, 1, 6);
     _center_button = new QPushButton(get_icon("view-restore"), "");
     _center_button->setToolTip(_("<p>Center the video area on your screen.</p>"));
     connect(_center_button, SIGNAL(pressed()), this, SLOT(center_pressed()));
-    layout->addWidget(_center_button, 1, 7);
-    layout->addWidget(new QWidget, 1, 8);
+    row1_layout->addWidget(_center_button, 1, 7);
+    row1_layout->addWidget(new QWidget, 1, 8);
     _bbb_button = new QPushButton(get_icon("media-seek-backward"), "");
     _bbb_button->setFixedSize(_bbb_button->minimumSizeHint());
     _bbb_button->setIconSize(_bbb_button->iconSize() * 12 / 10);
     _bbb_button->setToolTip(_("<p>Seek backward 10 minutes.</p>"));
     connect(_bbb_button, SIGNAL(pressed()), this, SLOT(bbb_pressed()));
-    layout->addWidget(_bbb_button, 1, 9);
+    row1_layout->addWidget(_bbb_button, 1, 9);
     _bb_button = new QPushButton(get_icon("media-seek-backward"), "");
     _bb_button->setFixedSize(_bb_button->minimumSizeHint());
     _bb_button->setToolTip(_("<p>Seek backward 1 minute.</p>"));
     connect(_bb_button, SIGNAL(pressed()), this, SLOT(bb_pressed()));
-    layout->addWidget(_bb_button, 1, 10);
+    row1_layout->addWidget(_bb_button, 1, 10);
     _b_button = new QPushButton(get_icon("media-seek-backward"), "");
     _b_button->setFixedSize(_b_button->minimumSizeHint());
     _b_button->setIconSize(_b_button->iconSize() * 8 / 10);
     _b_button->setToolTip(_("<p>Seek backward 10 seconds.</p>"));
     connect(_b_button, SIGNAL(pressed()), this, SLOT(b_pressed()));
-    layout->addWidget(_b_button, 1, 11);
+    row1_layout->addWidget(_b_button, 1, 11);
     _f_button = new QPushButton(get_icon("media-seek-forward"), "");
     _f_button->setFixedSize(_f_button->minimumSizeHint());
     _f_button->setIconSize(_f_button->iconSize() * 8 / 10);
     _f_button->setToolTip(_("<p>Seek forward 10 seconds.</p>"));
     connect(_f_button, SIGNAL(pressed()), this, SLOT(f_pressed()));
-    layout->addWidget(_f_button, 1, 12);
+    row1_layout->addWidget(_f_button, 1, 12);
     _ff_button = new QPushButton(get_icon("media-seek-forward"), "");
     _ff_button->setFixedSize(_ff_button->minimumSizeHint());
     _ff_button->setToolTip(_("<p>Seek forward 1 minute.</p>"));
     connect(_ff_button, SIGNAL(pressed()), this, SLOT(ff_pressed()));
-    layout->addWidget(_ff_button, 1, 13);
+    row1_layout->addWidget(_ff_button, 1, 13);
     _fff_button = new QPushButton(get_icon("media-seek-forward"), "");
     _fff_button->setFixedSize(_fff_button->minimumSizeHint());
     _fff_button->setIconSize(_fff_button->iconSize() * 12 / 10);
     _fff_button->setToolTip(_("<p>Seek forward 10 minutes.</p>"));
     connect(_fff_button, SIGNAL(pressed()), this, SLOT(fff_pressed()));
-    layout->addWidget(_fff_button, 1, 14);
-    layout->setRowStretch(0, 0);
-    layout->setColumnStretch(3, 1);
-    layout->setColumnStretch(5, 1);
-    layout->setColumnStretch(8, 1);
+    row1_layout->addWidget(_fff_button, 1, 14);
+    row1_layout->setRowStretch(0, 0);
+    row1_layout->setColumnStretch(3, 1);
+    row1_layout->setColumnStretch(5, 1);
+    row1_layout->setColumnStretch(8, 1);
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addLayout(row0_layout, 0, 0);
+    layout->addLayout(row1_layout, 1, 0);
     setLayout(layout);
 
     _play_button->setEnabled(false);
@@ -829,6 +843,7 @@ controls_widget::controls_widget(QSettings *settings, const player_init_data &in
     _ff_button->setEnabled(false);
     _fff_button->setEnabled(false);
     _seek_slider->setEnabled(false);
+    _pos_label->setEnabled(false);
 }
 
 controls_widget::~controls_widget()
@@ -918,7 +933,7 @@ void controls_widget::seek_slider_changed()
     }
 }
 
-void controls_widget::update(const player_init_data &, bool have_valid_input, bool playing)
+void controls_widget::update(const player_init_data &, bool have_valid_input, bool playing, int64_t input_duration)
 {
     if (have_valid_input)
     {
@@ -926,6 +941,11 @@ void controls_widget::update(const player_init_data &, bool have_valid_input, bo
         _loop_button->setEnabled(true);
         _fullscreen_button->setEnabled(true);
         receive_notification(notification(notification::play, !playing, playing));
+        _input_duration = input_duration;
+        std::string hr_duration = str::human_readable_time(_input_duration);
+        _pos_label->setText((hr_duration + '/' + hr_duration).c_str());
+        _pos_label->setMinimumSize(_pos_label->minimumSizeHint());
+        _pos_label->setText(hr_duration.c_str());
     }
     else
     {
@@ -944,6 +964,9 @@ void controls_widget::update(const player_init_data &, bool have_valid_input, bo
         _fff_button->setEnabled(false);
         _seek_slider->setEnabled(false);
         _seek_slider->setValue(0);
+        _pos_label->setEnabled(false);
+        _pos_label->setText("0:00");
+        _pos_label->setMinimumSize(QSize(0, 0));
     }
 }
 
@@ -983,9 +1006,11 @@ void controls_widget::receive_notification(const notification &note)
         _ff_button->setEnabled(flag);
         _fff_button->setEnabled(flag);
         _seek_slider->setEnabled(flag);
+        _pos_label->setEnabled(flag);
         if (!flag)
         {
             _seek_slider->setValue(0);
+            _pos_label->setText(str::human_readable_time(_input_duration).c_str());
         }
         break;
     case notification::pause:
@@ -999,6 +1024,9 @@ void controls_widget::receive_notification(const notification &note)
             _lock = true;
             s11n::load(current, value);
             _seek_slider->setValue(qRound(value * 2000.0f));
+            _pos_label->setText((str::human_readable_time(
+                            static_cast<int64_t>(value * 1000.0f) * _input_duration / 1000)
+                        + '/' + str::human_readable_time(_input_duration)).c_str());
             _lock = false;
         }
         break;
@@ -2038,7 +2066,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
 
     // Update widget contents
     _in_out_widget->update(_init_data, false, false);
-    _controls_widget->update(_init_data, false, false);
+    _controls_widget->update(_init_data, false, false, -1);
 
     // Show window. Must happen before opening initial files!
     show();
@@ -2132,7 +2160,7 @@ void main_window::receive_notification(const notification &note)
                     QString(parameters::stereo_mode_to_string(_init_data.stereo_mode, _init_data.stereo_mode_swap).c_str()));
             // Update widgets: we're now playing
             _in_out_widget->update(_init_data, true, true);
-            _controls_widget->update(_init_data, true, true);
+            _controls_widget->update(_init_data, true, true, _player->get_media_input().duration());
             // Give the keyboard focus to the video widget
             _player->get_video_output()->grab_focus();
         }
@@ -2356,7 +2384,7 @@ void main_window::playloop_step()
     {
         _player->force_stop();
         _in_out_widget->update(_init_data, false, false);
-        _controls_widget->update(_init_data, false, false);
+        _controls_widget->update(_init_data, false, false, -1);
         _stop_request = false;
     }
     else if (_player->is_playing() && !_stop_request)
@@ -2426,12 +2454,12 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
         _init_data.params.set_defaults();
         // Update the widget with the new settings
         _in_out_widget->update(_init_data, true, false);
-        _controls_widget->update(_init_data, true, false);
+        _controls_widget->update(_init_data, true, false, _player->get_media_input().duration());
     }
     else
     {
         _in_out_widget->update(_init_data, false, false);
-        _controls_widget->update(_init_data, false, false);
+        _controls_widget->update(_init_data, false, false, -1);
     }
 }
 

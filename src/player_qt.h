@@ -116,6 +116,7 @@ class controls_widget : public QWidget, public controller
     Q_OBJECT
 
 private:
+    int64_t _input_duration;
     bool _lock;
     QSettings *_settings;
     QPushButton *_play_button;
@@ -131,6 +132,7 @@ private:
     QPushButton *_ff_button;
     QPushButton *_fff_button;
     QSlider *_seek_slider;
+    QLabel *_pos_label;
     bool _playing;
 
 private slots:
@@ -152,7 +154,7 @@ public:
     controls_widget(QSettings *settings, const player_init_data &init_data, QWidget *parent);
     virtual ~controls_widget();
 
-    void update(const player_init_data &init_data, bool have_valid_input, bool playing);
+    void update(const player_init_data &init_data, bool have_valid_input, bool playing, int64_t input_duration);
     virtual void receive_notification(const notification &note);
 };
 
