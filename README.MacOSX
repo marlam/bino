@@ -76,7 +76,7 @@ description	Bino plays stereoscopic videos, also known as 3D videos
 
 long_description	${description}
 
-homepage	http://www.nongnu.org/bino/
+homepage	http://bino3d.org/
 #checksums           md5     8293eb63a682e61cc7f9ed322fa61dd4 \
 #                    sha1    1de0e1fe6750148d3d7316e719f434101479d4dd \
 #                    rmd160  f2724a8acc79aca9ddd317c7334c9bfa5ed64ef0

@@ -92,9 +92,9 @@ Section
   WriteRegExpandStr HKLM $MYTMP "InstallLocation" "$INSTDIR"
   WriteRegStr       HKLM $MYTMP "DisplayVersion"  "${PACKAGE_VERSION}"
   WriteRegStr       HKLM $MYTMP "Publisher"       "The Bino developers"
-  WriteRegStr       HKLM $MYTMP "URLInfoAbout"    "http://bino.nongnu.org/"
-  WriteRegStr       HKLM $MYTMP "HelpLink"        "http://bino.nongnu.org/"
-  WriteRegStr       HKLM $MYTMP "URLUpdateInfo"   "http://bino.nongnu.org/"
+  WriteRegStr       HKLM $MYTMP "URLInfoAbout"    "http://bino3d.org/"
+  WriteRegStr       HKLM $MYTMP "HelpLink"        "http://bino3d.org/"
+  WriteRegStr       HKLM $MYTMP "URLUpdateInfo"   "http://bino3d.org/"
   WriteRegDWORD     HKLM $MYTMP "NoModify"        "1"
   WriteRegDWORD     HKLM $MYTMP "NoRepair"        "1"
   ; Start menu
@@ -102,7 +102,7 @@ Section
   CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
   CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Bino.lnk" "$INSTDIR\bin\bino.exe"
   CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\bino.html"
-  WriteINIStr "$SMPROGRAMS\$STARTMENU_FOLDER\Website.url" "InternetShortcut" "URL" "http://bino.nongnu.org/"
+  WriteINIStr "$SMPROGRAMS\$STARTMENU_FOLDER\Website.url" "InternetShortcut" "URL" "http://bino3d.org/"
   CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
   !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd

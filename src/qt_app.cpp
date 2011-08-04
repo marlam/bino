@@ -70,7 +70,7 @@ bool init_qt()
         // The following is necessary for i18n via gettext:
         QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale());
         QCoreApplication::setOrganizationName("Bino");
-        QCoreApplication::setOrganizationDomain("bino.nongnu.org");
+        QCoreApplication::setOrganizationDomain("bino3d.org");
         QCoreApplication::setApplicationName(PACKAGE_NAME);
         return true;
     }

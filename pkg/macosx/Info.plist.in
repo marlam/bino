@@ -339,7 +339,7 @@
 	<key>CFBundleIconFile</key>
 	<string>Bino.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.nongnu.bino</string>
+	<string>org.bino3d</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

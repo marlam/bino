@@ -15,7 +15,7 @@ cross-compiler environment: http://www.nongnu.org/mingw-cross-env/
 The installer was produced using NSIS: http://nsis.sourceforge.net/
 
 The source code for Bino is available here:
-http://bino.nongnu.org/download.html
+http://bino3d.org/download.html
 
 Instructions to build this package from source can be found here:
 http://git.savannah.gnu.org/cgit/bino.git/plain/README.Windows
