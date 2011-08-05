@@ -390,11 +390,7 @@ namespace str
         std::string hr;
         if (hours > 0)
         {
-            hr = str::from(hours) + ':';
-        }
-        if (minutes < 10)
-        {
-            hr += '0';
+            hr = str::from(hours) + (minutes < 10 ? ":0" : ":");
         }
         hr += str::from(minutes) + (seconds < 10 ? ":0" : ":") + str::from(seconds);
         return hr;
