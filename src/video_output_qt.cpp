@@ -625,8 +625,8 @@ void video_output_qt::enter_fullscreen(int screens)
             XSetInputFocus(QX11Info::display(), _container_widget->winId(), RevertToParent, CurrentTime);
             XFlush(QX11Info::display());
 #endif
-            grab_focus();
         }
+        grab_focus();
         // Suspend the screensaver after going fullscreen, so that our window ID
         // represents the fullscreen window. We need to have the same ID for resume.
         suspend_screensaver();
