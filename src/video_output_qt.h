@@ -123,6 +123,7 @@ public:
     void grab_focus();
 
     virtual void init();
+    virtual int64_t wait_for_subtitle_renderer();
     virtual void deinit();
 
     virtual bool supports_stereo() const;

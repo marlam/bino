@@ -404,6 +404,7 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
     int height = 0;
     if (subtitle.is_valid())
     {
+        assert(_subtitle_renderer.is_initialized());
         if (_subtitle_renderer.render_to_display_size(subtitle))
         {
             width = video_display_width();

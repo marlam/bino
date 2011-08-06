@@ -685,6 +685,10 @@ bool player::run_step()
     }
     if (prep_frame)
     {
+        if (_current_subtitle_box.is_valid() && _video_output)
+        {
+            _master_time_start += _video_output->wait_for_subtitle_renderer();
+        }
         _video_output->prepare_next_frame(_video_frame, _current_subtitle_box);
     }
     else if (drop_frame)

@@ -176,6 +176,26 @@ protected:
     void trigger_resize(int, int) { }
 
 public:
+    int64_t wait_for_subtitle_renderer()
+    {
+        if (!_subtitle_renderer.is_initialized())
+        {
+            msg::wrn(_("Waiting for subtitle renderer initialization..."));
+            try
+            {
+                while (!_subtitle_renderer.is_initialized())
+                {
+                    usleep(10000);
+                }
+            }
+            catch (std::exception &e)
+            {
+                msg::err("%s", e.what());
+                abort();
+            }
+        }
+        return 0;
+    }
     bool supports_stereo() const { return false; }
     int screen_width() { return _channel->getPixelViewport().w / _channel->getViewport().w; }
     int screen_height() { return _channel->getPixelViewport().h / _channel->getViewport().h; }
@@ -999,6 +1019,10 @@ protected:
         if (node->frame_data.prep_frame)
         {
             getWindow()->makeCurrent();
+            if (node->frame_data.subtitle.is_valid())
+            {
+                _video_output.wait_for_subtitle_renderer();
+            }
             _video_output.prepare_next_frame(node->get_video_frame(), node->frame_data.subtitle);
         }
         if (node->frame_data.display_frame)

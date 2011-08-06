@@ -31,14 +31,33 @@ extern "C"
 #include <ass/ass.h>
 }
 
+#include "thread.h"
+
 #include "media_data.h"
 
+
+class subtitle_renderer;
+
+class subtitle_renderer_initializer : public thread
+{
+private:
+    subtitle_renderer &_subtitle_renderer;
+
+public:
+    subtitle_renderer_initializer(subtitle_renderer &renderer);
+    void run();
+};
 
 class subtitle_renderer
 {
 private:
+    // Initialization
+    subtitle_renderer_initializer _initializer;
+    bool _initialized;
+    void init();
+    friend class subtitle_renderer_initializer;
+
     // Static ASS data
-    bool _ass_initialized;
     const char *_fontconfig_conffile;
     ASS_Library *_ass_library;
     ASS_Renderer *_ass_renderer;
@@ -52,7 +71,6 @@ private:
 
     // ASS helper functions
     const char *get_fontconfig_conffile();
-    void init_ass();
     void blend_ass_image(const ASS_Image *img, uint32_t *buf);
     void set_ass_parameters(const parameters &params);
 
@@ -69,6 +87,15 @@ private:
 public:
     subtitle_renderer();
     ~subtitle_renderer();
+
+    // Check if the subtitle renderer is initialized. Since initialization may
+    // take a long time on systems where fontconfig needs to create its cache first,
+    // it is done in a separate thread in the background.
+    // You must make sure that the renderer is initialized before calling any of
+    // the functions below!
+    // In the case of initialization failure, this function will throw the appropriate
+    // exception.
+    bool is_initialized();
 
     /*
      * To render a subtitle, the following steps are necessary:

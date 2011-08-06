@@ -36,7 +36,6 @@
 class video_output : public controller
 {
 private:
-    subtitle_renderer _subtitle_renderer;
     bool _initialized;
     bool _srgb_textures_are_broken;     // XXX: Hack: work around broken SRGB texture implementations
 
@@ -95,6 +94,8 @@ private:
     void update_subtitle_tex(int index, const video_frame &frame, const subtitle_box &subtitle, const parameters &params);
 
 protected:
+    subtitle_renderer _subtitle_renderer;
+
     // Get total size of the video display area. For single window output, this
     // is the same as the current viewport. The Equalizer video output can override
     // this function.
@@ -129,6 +130,10 @@ public:
 
     /* Initialize the video output, or throw an exception */
     virtual void init();
+    /* Wait for subtitle renderer initialization to finish. Has to be called
+     * if the video has subtitles. Returns the number of microseconds that the
+     * waiting took. */
+    virtual int64_t wait_for_subtitle_renderer() = 0;
     /* Deinitialize the video output */
     virtual void deinit();
 

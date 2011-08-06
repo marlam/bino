@@ -130,6 +130,12 @@ public:
     // running, this function does nothing.
     void start();
 
+    // Returns whether this thread is currently running.
+    bool is_running()
+    {
+        return __running;
+    }
+
     // Wait for the thread to finish. If the thread is not running, this function
     // returns immediately.
     void wait();
@@ -137,6 +143,9 @@ public:
     // Wait for the thread to finish, like wait(), and rethrow an exception that the
     // run() function might have thrown during its execution.
     void finish();
+
+    // Cancel a thread. This is dangerous and should not be used.
+    void cancel();
 
     // Get an exception that the run() function might have thrown.
     const exc &exception() const

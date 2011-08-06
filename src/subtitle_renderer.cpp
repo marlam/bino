@@ -45,6 +45,7 @@ extern "C"
 #include "gettext.h"
 #define _(string) gettext(string)
 
+#include "dbg.h"
 #include "exc.h"
 #include "str.h"
 #include "blob.h"
@@ -52,6 +53,17 @@ extern "C"
 #include "thread.h"
 
 #include "subtitle_renderer.h"
+
+
+subtitle_renderer_initializer::subtitle_renderer_initializer(subtitle_renderer &renderer) :
+    _subtitle_renderer(renderer)
+{
+}
+
+void subtitle_renderer_initializer::run()
+{
+    _subtitle_renderer.init();
+}
 
 
 /* Rendering subtitles with LibASS is not thread-safe.
@@ -70,16 +82,28 @@ extern "C"
 static mutex global_libass_mutex;
 
 subtitle_renderer::subtitle_renderer() :
-    _ass_initialized(false),
+    _initializer(*this),
+    _initialized(false),
     _fontconfig_conffile(NULL),
     _ass_library(NULL),
     _ass_renderer(NULL),
     _ass_track(NULL)
 {
+    _initializer.start();
 }
 
 subtitle_renderer::~subtitle_renderer()
 {
+    if (_initializer.is_running())
+    {
+        try
+        {
+            _initializer.cancel();
+        }
+        catch (...)
+        {
+        }
+    }
     if (_ass_track)
     {
         ass_free_track(_ass_track);
@@ -98,6 +122,20 @@ subtitle_renderer::~subtitle_renderer()
     }
 }
 
+bool subtitle_renderer::is_initialized()
+{
+    if (_initializer.is_running())
+    {
+        return false;
+    }
+    else
+    {
+        // rethrow a possible exception if something went wrong
+        _initializer.finish();
+        return _initialized;
+    }
+}
+
 bool subtitle_renderer::render_to_display_size(const subtitle_box &box) const
 {
     return (box.format != subtitle_box::image);
@@ -108,12 +146,12 @@ void subtitle_renderer::prerender(const subtitle_box &box, int64_t timestamp,
         int width, int height, float pixel_aspect_ratio,
         int &bb_x, int &bb_y, int &bb_w, int &bb_h)
 {
+    assert(_initialized);
     _fmt = box.format;
     switch (_fmt)
     {
     case subtitle_box::text:
     case subtitle_box::ass:
-        init_ass();
         prerender_ass(box, timestamp, params, width, height, pixel_aspect_ratio);
         break;
     case subtitle_box::image:
@@ -254,30 +292,37 @@ static void libass_msg_callback(int level, const char *fmt, va_list args, void *
     msg::msg(l, std::string("LibASS: ") + s);
 }
 
-void subtitle_renderer::init_ass()
+void subtitle_renderer::init()
 {
-    if (!_ass_initialized)
+    if (!_initialized)
     {
-        global_libass_mutex.lock();
-        _ass_library = ass_library_init();
-        if (!_ass_library)
+        try
         {
+            global_libass_mutex.lock();
+            _ass_library = ass_library_init();
+            if (!_ass_library)
+            {
+                throw exc(_("Cannot initialize LibASS."));
+            }
+            ass_set_message_cb(_ass_library, libass_msg_callback, NULL);
+            ass_set_extract_fonts(_ass_library, 1);
+            _ass_renderer = ass_renderer_init(_ass_library);
+            if (!_ass_renderer)
+            {
+                throw exc(_("Cannot initialize LibASS renderer."));
+            }
+            ass_set_hinting(_ass_renderer, ASS_HINTING_NATIVE);
+            _fontconfig_conffile = get_fontconfig_conffile();
+            ass_set_fonts(_ass_renderer, NULL, "sans-serif", 1, _fontconfig_conffile, 1);
+            _initialized = true;
             global_libass_mutex.unlock();
-            throw exc(_("Cannot initialize LibASS."));
         }
-        ass_set_message_cb(_ass_library, libass_msg_callback, NULL);
-        ass_set_extract_fonts(_ass_library, 1);
-        _ass_renderer = ass_renderer_init(_ass_library);
-        if (!_ass_renderer)
+        catch (...)
         {
+            // Either we threw this exception ourselves, or the thread was cancelled.
             global_libass_mutex.unlock();
-            throw exc(_("Cannot initialize LibASS renderer."));
+            throw;
         }
-        ass_set_hinting(_ass_renderer, ASS_HINTING_NATIVE);
-        _fontconfig_conffile = get_fontconfig_conffile();
-        ass_set_fonts(_ass_renderer, NULL, "sans-serif", 1, _fontconfig_conffile, 1);
-        _ass_initialized = true;
-        global_libass_mutex.unlock();
     }
 }
 

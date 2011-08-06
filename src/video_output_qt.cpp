@@ -30,6 +30,7 @@ static GLEWContext* glewGetContext() { return &_glewContext; }
 
 #include <cmath>
 #include <cstdlib>
+#include <unistd.h>
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -39,6 +40,8 @@ static GLEWContext* glewGetContext() { return &_glewContext; }
 #include <QMessageBox>
 #include <QPalette>
 #include <QProcess>
+#include <QDialog>
+#include <QLabel>
 #ifdef Q_WS_X11
 # include <QX11Info>
 # include <X11/Xlib.h>
@@ -51,6 +54,7 @@ static GLEWContext* glewGetContext() { return &_glewContext; }
 #include "msg.h"
 #include "str.h"
 #include "dbg.h"
+#include "timer.h"
 
 #include "qt_app.h"
 #include "video_output_qt.h"
@@ -327,6 +331,58 @@ void video_output_qt::init()
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
     }
+}
+
+int64_t video_output_qt::wait_for_subtitle_renderer()
+{
+    if (_subtitle_renderer.is_initialized())
+    {
+        return 0;
+    }
+    int64_t wait_start = timer::get_microseconds(timer::monotonic);
+    exc init_exception;
+    QDialog *mbox = NULL;
+    // Show a dialog only in GUI mode
+    if (_container_is_external && !_fullscreen)
+    {
+        mbox = new QDialog(_container_widget);
+        mbox->setModal(true);
+        mbox->setWindowTitle(_("Please wait"));
+        QGridLayout *mbox_layout = new QGridLayout;
+        QLabel *mbox_label = new QLabel(_("Waiting for subtitle renderer initialization..."));
+        mbox_layout->addWidget(mbox_label, 0, 0);
+        mbox->setLayout(mbox_layout);
+        mbox->show();
+    }
+    else
+    {
+        msg::wrn(_("Waiting for subtitle renderer initialization..."));
+    }
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    try
+    {
+        while (!_subtitle_renderer.is_initialized())
+        {
+            process_events();
+            usleep(10000);
+        }
+    }
+    catch (std::exception &e)
+    {
+        init_exception = e;
+    }
+    QApplication::restoreOverrideCursor();
+    if (mbox)
+    {
+        mbox->hide();
+        delete mbox;
+    }
+    if (!init_exception.empty())
+    {
+        throw init_exception;
+    }
+    int64_t wait_stop = timer::get_microseconds(timer::monotonic);
+    return (wait_stop - wait_start);
 }
 
 void video_output_qt::deinit()

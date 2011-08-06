@@ -125,7 +125,10 @@ void *thread::__run(void *p)
     }
     catch (...)
     {
-        t->__exception = exc(_("Unknown exception."));
+        // We must assume this means thread cancellation. In this
+        // case, we *must* rethrow the exception.
+        t->__running = false;
+        throw;
     }
     t->__running = false;
     return NULL;
@@ -167,4 +170,16 @@ void thread::finish()
     {
         throw exception();
     }
+}
+
+void thread::cancel()
+{
+    __wait_mutex.lock();
+    int e = pthread_cancel(__thread_id);
+    if (e != 0)
+    {
+        __wait_mutex.unlock();
+        throw exc(str::asprintf(_("Cannot cancel thread: %s"), std::strerror(e)), e);
+    }
+    __wait_mutex.unlock();
 }
