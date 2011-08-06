@@ -4,6 +4,7 @@
  * Copyright (C) 2011
  * Martin Lambers <marlam@marlam.de>
  * Joe <cuchac@email.cz>
+ * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +32,9 @@
 
 #if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
 # include <windows.h>
+#endif
+#if defined __APPLE__
+# include <unistd.h>
 #endif
 
 extern "C"
@@ -138,15 +142,16 @@ void subtitle_renderer::render(uint32_t *bgra32_buffer)
 
 const char *subtitle_renderer::get_fontconfig_conffile()
 {
-#if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
+#if ((defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__) || defined __APPLE__
     /* Fontconfig annoyingly requires a configuration file, but there is no
-     * default location for it on Windows. So we just create a temporary one.
-     * Note that due to lack of mkstemp() on Windows, this code has race
-     * conditions. Note also that if something goes wrong and we return NULL
-     * here, the application will likely crash when we try to render a subtitle. */
+     * default location for it on Windows or Mac OS X. So we just create a temporary one.
+     * Note that if something goes wrong and we return NULL here, the application will
+     * likely crash when trying to render a subtitle. */
+    FILE *f;
+# if ((defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__)
+    /* Note that due to lack of mkstemp() on Windows, this code has race conditions. */
     char tmppathname[MAX_PATH];
     static char tmpfilename[MAX_PATH];
-    FILE *f;
     DWORD ret;
     ret = GetTempPath(MAX_PATH, tmppathname);
     if (ret > MAX_PATH || ret == 0)
@@ -155,14 +160,38 @@ const char *subtitle_renderer::get_fontconfig_conffile()
         return NULL;
     if (!(f = fopen(tmpfilename, "w")))
         return NULL;
+# else /* __APPLE__ */
+    static char tmpfilename[] = "/tmp/fontsXXXXXX.conf";
+    int d = mkstemps(tmpfilename, 5);
+    if (d == -1)
+        return NULL;
+    if (!(f = fdopen(d, "w")))
+        return NULL;
+# endif
     fprintf(f,
             "<?xml version=\"1.0\"?>\n"
             "<!DOCTYPE fontconfig SYSTEM \"fonts.dtd\">\n"
             "<fontconfig>\n"
+# if ((defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__)
             "<dir>WINDOWSFONTDIR</dir>\n"
             "<dir>~/.fonts</dir>\n"
             "<cachedir>WINDOWSTEMPDIR_FONTCONFIG_CACHE</cachedir>\n"
             "<cachedir>~/.fontconfig</cachedir>\n"
+# else /* __APPLE__ */
+            "<dir>/usr/share/fonts</dir>\n"
+            "<dir>/usr/X11/lib/X11/fonts</dir>\n"
+            "<dir>/usr/X11/share/fonts</dir>\n"
+            "<dir>/opt/X11/share/fonts</dir>\n"
+            "<dir>/Library/Fonts</dir>\n"
+            "<dir>/Network/Library/Fonts</dir>\n"
+            "<dir>/System/Library/Fonts</dir>\n"
+            "<dir>~/Library/Application Support/Bino/fonts</dir>\n"
+            "<cachedir>/var/cache/fontconfig</cachedir>\n"
+            "<cachedir>/usr/X11/var/cache/fontconfig</cachedir>\n"
+            "<cachedir>/opt/X11/var/cache/fontconfig</cachedir>\n"
+            "<cachedir>~/Library/Application Support/Bino/cache/fonts</cachedir>\n"
+            "<cachedir>~/.fontconfig</cachedir>\n"
+# endif
             "<config>\n"
             "<blank>\n"
             "<int>0x0020</int> <int>0x00A0</int> <int>0x00AD</int> <int>0x034F</int> <int>0x0600</int>\n"
@@ -184,6 +213,8 @@ const char *subtitle_renderer::get_fontconfig_conffile()
     fclose(f);
     return tmpfilename;
 #else
+    /* Systems other than Windows and Mac OS are expected to have a default
+     * fontconfig configuration file so that we can simply return NULL. */
     return NULL;
 #endif
 }
