@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bino 1.1.1\n"
 "Report-Msgid-Bugs-To: bino-list@nongnu.org\n"
-"POT-Creation-Date: 2011-08-04 20:57+0200\n"
+"POT-Creation-Date: 2011-08-06 15:49+0200\n"
 "PO-Revision-Date: 2011-04-10 17:23+0200\n"
 "Last-Translator: Martin Lambers <marlam@marlam.de>\n"
 "Language-Team: none\n"
@@ -93,8 +93,8 @@ msgstr "Zu viele Argumente."
 msgid "Cannot convert string to %s."
 msgstr "Kann Zeichenkette nicht zu %s konvertieren."
 
-#: src/base/str.cpp:415 src/base/str.cpp:433 src/base/str.cpp:443
-#: src/base/str.cpp:454
+#: src/base/str.cpp:411 src/base/str.cpp:429 src/base/str.cpp:439
+#: src/base/str.cpp:450
 #, c-format
 msgid "Cannot convert %s to %s."
 msgstr "Kann %s nicht zu %s konvertieren."
@@ -114,19 +114,20 @@ msgstr "Kann Mutex nicht sichern: %s"
 msgid "Cannot unlock mutex: %s"
 msgstr "Kann Mutex nicht entsichern: %s"
 
-#: src/base/thread.cpp:128
-msgid "Unknown exception."
-msgstr "Unbekannte Ausnahme."
-
-#: src/base/thread.cpp:142
+#: src/base/thread.cpp:145
 #, c-format
 msgid "Cannot create thread: %s"
 msgstr "Kann Thread nicht erzeugen: %s"
 
-#: src/base/thread.cpp:157
+#: src/base/thread.cpp:160
 #, c-format
 msgid "Cannot join with thread: %s"
 msgstr "Kann nicht auf Thread warten: %s"
+
+#: src/base/thread.cpp:182
+#, c-format
+msgid "Cannot cancel thread: %s"
+msgstr "Kann Thread nicht abbrechen: %s"
 
 #: src/base/timer.cpp:52 src/base/timer.cpp:64 src/base/timer.cpp:78
 msgid "Cannot get time."
@@ -652,41 +653,46 @@ msgstr "FPS: %.2f"
 msgid "Reading input frame failed."
 msgstr "Lesen des Eingabebildes fehlgeschlagen."
 
-#: src/player_equalizer.cpp:244
+#: src/player_equalizer.cpp:183 src/video_output_qt.cpp:352
+#: src/video_output_qt.cpp:359
+msgid "Waiting for subtitle renderer initialization..."
+msgstr "Warte auf die Initialisierung der Untertitelanzeige..."
+
+#: src/player_equalizer.cpp:264
 msgid "Init data mapping failed."
 msgstr "Zuordnung von InitData fehlgeschlagen."
 
-#: src/player_equalizer.cpp:245
+#: src/player_equalizer.cpp:265
 msgid "Frame data mapping failed."
 msgstr "Zuordnung von FrameData fehlgeschlagen."
 
-#: src/player_equalizer.cpp:246
+#: src/player_equalizer.cpp:266
 msgid "Video player initialization failed."
 msgstr "Videoplayer-Initialisierung fehlgeschlagen."
 
-#: src/player_equalizer.cpp:247
+#: src/player_equalizer.cpp:267
 msgid "Need at least OpenGL 2.1."
 msgstr "Benötige mindestens OpenGL 2.1."
 
-#: src/player_equalizer.cpp:448
+#: src/player_equalizer.cpp:468
 msgid "No canvas in Equalizer configuration."
 msgstr "Kein canvas in Equalizer Konfiguration."
 
-#: src/player_equalizer.cpp:482
+#: src/player_equalizer.cpp:502
 msgid "Equalizer canvas:"
 msgstr "Equalizer canvas:"
 
-#: src/player_equalizer.cpp:483
+#: src/player_equalizer.cpp:503
 #, c-format
 msgid "%gx%g, aspect ratio %g:1"
 msgstr "%gx%g, Seitenverhältnis %g:1"
 
-#: src/player_equalizer.cpp:484
+#: src/player_equalizer.cpp:504
 #, c-format
 msgid "Area for %g:1 video: [ %g %g %g %g @ %g ]"
 msgstr "Bereich für %g:1 Video: [ %g %g %g %g @ %g ]"
 
-#: src/player_equalizer.cpp:897 src/video_output_qt.cpp:321
+#: src/player_equalizer.cpp:917 src/video_output_qt.cpp:325
 msgid ""
 "This OpenGL implementation does not support OpenGL 2.1 and framebuffer "
 "objects."
@@ -694,15 +700,15 @@ msgstr ""
 "Diese OpenGL Implementierung unterstützt nicht OpenGL 2.1 und "
 "Framebufferobjekte."
 
-#: src/player_equalizer.cpp:1063
+#: src/player_equalizer.cpp:1087
 msgid "Equalizer initialization failed."
 msgstr "Equalizer-Initialisierung fehlgeschlagen."
 
-#: src/player_equalizer.cpp:1071
+#: src/player_equalizer.cpp:1095
 msgid "Cannot get equalizer configuration."
 msgstr "Kann Equalizer Konfiguration nicht bekommen."
 
-#: src/player_equalizer.cpp:1085
+#: src/player_equalizer.cpp:1109
 msgid "Equalizer configuration initialization failed."
 msgstr "Kann Equalizer Konfiguration nicht initialisieren."
 
@@ -1213,7 +1219,7 @@ msgid "&About"
 msgstr "&Über"
 
 #: src/player_qt.cpp:2115 src/player_qt.cpp:2831 src/player_qt.cpp:2839
-#: src/video_output_qt.cpp:89 src/video_output_qt.cpp:366
+#: src/video_output_qt.cpp:93 src/video_output_qt.cpp:422
 msgid "Error"
 msgstr "Fehler"
 
@@ -1393,45 +1399,49 @@ msgstr "Team"
 msgid "License"
 msgstr "Lizenz"
 
-#: src/subtitle_renderer.cpp:235
+#: src/subtitle_renderer.cpp:305
 msgid "Cannot initialize LibASS."
 msgstr "Kann LibASS nicht initialisieren."
 
-#: src/subtitle_renderer.cpp:243
+#: src/subtitle_renderer.cpp:312
 msgid "Cannot initialize LibASS renderer."
 msgstr "Kann LibASS-Renderer nicht initialisieren."
 
-#: src/subtitle_renderer.cpp:341
+#: src/subtitle_renderer.cpp:417
 msgid "Cannot initialize LibASS track."
 msgstr "Kann LibASS-Spur nicht initialisieren."
 
-#: src/subtitle_renderer.cpp:352
+#: src/subtitle_renderer.cpp:428
 #, c-format
 msgid "Subtitle character set conversion failed: %s"
 msgstr "Untertitel-Zeichensatzkonvertierung fehlgeschlagen: %s"
 
-#: src/video_output.cpp:362 src/video_output.cpp:472
+#: src/video_output.cpp:362 src/video_output.cpp:473
 msgid "Cannot create a PBO buffer."
 msgstr "Kann keinen PBO Puffer erzeugen."
 
-#: src/video_output_qt.cpp:316
+#: src/video_output_qt.cpp:320
 #, c-format
 msgid "Cannot initialize GLEW: %s"
 msgstr "Kann GLEW nicht initialisieren: %s"
 
-#: src/video_output_qt.cpp:356
+#: src/video_output_qt.cpp:350
+msgid "Please wait"
+msgstr "Bitte warten"
+
+#: src/video_output_qt.cpp:412
 msgid "The display does not support OpenGL stereo mode."
 msgstr "Dieses Gerät unterstützt kein OpenGL Stereo."
 
-#: src/video_output_qt.cpp:361
+#: src/video_output_qt.cpp:417
 msgid "Cannot set OpenGL context format."
 msgstr "Kann OpenGL Kontextformat nicht setzen."
 
-#: src/video_output_qt.cpp:449
+#: src/video_output_qt.cpp:505
 msgid "Cannot suspend screensaver."
 msgstr "Kann Bildschirmschoner nicht deaktivieren."
 
-#: src/video_output_qt.cpp:464
+#: src/video_output_qt.cpp:520
 msgid "Cannot resume screensaver."
 msgstr "Kann Bildschirmschoner nicht reaktivieren."
 
