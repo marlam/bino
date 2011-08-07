@@ -152,6 +152,9 @@ void player::reset_playstate()
     _pause_request = false;
     _seek_request = 0;
     _set_pos_request = -1.0f;
+    _video_frame = video_frame();
+    _current_subtitle_box = subtitle_box();
+    _next_subtitle_box = subtitle_box();
 }
 
 void player::stop_playback()
