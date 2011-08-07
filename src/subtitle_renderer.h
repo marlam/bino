@@ -54,11 +54,12 @@ private:
     // Initialization
     subtitle_renderer_initializer _initializer;
     bool _initialized;
+    const char *_fontconfig_conffile;
+    const char *get_fontconfig_conffile();
     void init();
     friend class subtitle_renderer_initializer;
 
     // Static ASS data
-    const char *_fontconfig_conffile;
     ASS_Library *_ass_library;
     ASS_Renderer *_ass_renderer;
 
@@ -70,7 +71,6 @@ private:
     int _bb_x, _bb_y, _bb_w, _bb_h;
 
     // ASS helper functions
-    const char *get_fontconfig_conffile();
     void blend_ass_image(const ASS_Image *img, uint32_t *buf);
     void set_ass_parameters(const parameters &params);
 

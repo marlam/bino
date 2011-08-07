@@ -122,60 +122,12 @@ subtitle_renderer::~subtitle_renderer()
     }
 }
 
-bool subtitle_renderer::is_initialized()
+static void libass_msg_callback(int level, const char *fmt, va_list args, void *)
 {
-    if (_initializer.is_running())
-    {
-        return false;
-    }
-    else
-    {
-        // rethrow a possible exception if something went wrong
-        _initializer.finish();
-        return _initialized;
-    }
-}
-
-bool subtitle_renderer::render_to_display_size(const subtitle_box &box) const
-{
-    return (box.format != subtitle_box::image);
-}
-
-void subtitle_renderer::prerender(const subtitle_box &box, int64_t timestamp,
-        const parameters &params,
-        int width, int height, float pixel_aspect_ratio,
-        int &bb_x, int &bb_y, int &bb_w, int &bb_h)
-{
-    assert(_initialized);
-    _fmt = box.format;
-    switch (_fmt)
-    {
-    case subtitle_box::text:
-    case subtitle_box::ass:
-        prerender_ass(box, timestamp, params, width, height, pixel_aspect_ratio);
-        break;
-    case subtitle_box::image:
-        prerender_img(box);
-        break;
-    }
-    bb_x = _bb_x;
-    bb_y = _bb_y;
-    bb_w = _bb_w;
-    bb_h = _bb_h;
-}
-
-void subtitle_renderer::render(uint32_t *bgra32_buffer)
-{
-    switch (_fmt)
-    {
-    case subtitle_box::text:
-    case subtitle_box::ass:
-        render_ass(bgra32_buffer);
-        break;
-    case subtitle_box::image:
-        render_img(bgra32_buffer);
-        break;
-    }
+    msg::level_t msg_levels[8] = { msg::ERR, msg::ERR, msg::WRN, msg::WRN, msg::WRN, msg::INF, msg::DBG, msg::DBG };
+    msg::level_t l = (level < 0 || level > 7 ? msg::ERR : msg_levels[level]);
+    std::string s = str::vasprintf(fmt, args);
+    msg::msg(l, std::string("LibASS: ") + s);
 }
 
 const char *subtitle_renderer::get_fontconfig_conffile()
@@ -257,41 +209,6 @@ const char *subtitle_renderer::get_fontconfig_conffile()
 #endif
 }
 
-static void libass_msg_callback(int level, const char *fmt, va_list args, void *)
-{
-    msg::level_t l;
-    switch (level)
-    {
-    default:
-    case 0:
-        l = msg::ERR;
-        break;
-    case 1:
-        l = msg::ERR;
-        break;
-    case 2:
-        l = msg::WRN;
-        break;
-    case 3:
-        l = msg::WRN;
-        break;
-    case 4:
-        l = msg::WRN;
-        break;
-    case 5:
-        l = msg::INF;
-        break;
-    case 6:
-        l = msg::DBG;
-        break;
-    case 7:
-        l = msg::DBG;
-        break;
-    }
-    std::string s = str::vasprintf(fmt, args);
-    msg::msg(l, std::string("LibASS: ") + s);
-}
-
 void subtitle_renderer::init()
 {
     if (!_initialized)
@@ -331,6 +248,62 @@ void subtitle_renderer::init()
             global_libass_mutex.unlock();
             throw;
         }
+    }
+}
+
+bool subtitle_renderer::is_initialized()
+{
+    if (_initializer.is_running())
+    {
+        return false;
+    }
+    else
+    {
+        // rethrow a possible exception if something went wrong
+        _initializer.finish();
+        return _initialized;
+    }
+}
+
+bool subtitle_renderer::render_to_display_size(const subtitle_box &box) const
+{
+    return (box.format != subtitle_box::image);
+}
+
+void subtitle_renderer::prerender(const subtitle_box &box, int64_t timestamp,
+        const parameters &params,
+        int width, int height, float pixel_aspect_ratio,
+        int &bb_x, int &bb_y, int &bb_w, int &bb_h)
+{
+    assert(_initialized);
+    _fmt = box.format;
+    switch (_fmt)
+    {
+    case subtitle_box::text:
+    case subtitle_box::ass:
+        prerender_ass(box, timestamp, params, width, height, pixel_aspect_ratio);
+        break;
+    case subtitle_box::image:
+        prerender_img(box);
+        break;
+    }
+    bb_x = _bb_x;
+    bb_y = _bb_y;
+    bb_w = _bb_w;
+    bb_h = _bb_h;
+}
+
+void subtitle_renderer::render(uint32_t *bgra32_buffer)
+{
+    switch (_fmt)
+    {
+    case subtitle_box::text:
+    case subtitle_box::ass:
+        render_ass(bgra32_buffer);
+        break;
+    case subtitle_box::image:
+        render_img(bgra32_buffer);
+        break;
     }
 }
 
