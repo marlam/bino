@@ -299,27 +299,35 @@ void subtitle_renderer::init()
         try
         {
             global_libass_mutex.lock();
-            _ass_library = ass_library_init();
-            if (!_ass_library)
+
+            ASS_Library *ass_library = ass_library_init();
+            if (!ass_library)
             {
                 throw exc(_("Cannot initialize LibASS."));
             }
-            ass_set_message_cb(_ass_library, libass_msg_callback, NULL);
-            ass_set_extract_fonts(_ass_library, 1);
-            _ass_renderer = ass_renderer_init(_ass_library);
-            if (!_ass_renderer)
+            ass_set_message_cb(ass_library, libass_msg_callback, NULL);
+            ass_set_extract_fonts(ass_library, 1);
+            _ass_library = ass_library;
+
+            ASS_Renderer *ass_renderer = ass_renderer_init(_ass_library);
+            if (!ass_renderer)
             {
                 throw exc(_("Cannot initialize LibASS renderer."));
             }
-            ass_set_hinting(_ass_renderer, ASS_HINTING_NATIVE);
+            ass_set_hinting(ass_renderer, ASS_HINTING_NATIVE);
             _fontconfig_conffile = get_fontconfig_conffile();
-            ass_set_fonts(_ass_renderer, NULL, "sans-serif", 1, _fontconfig_conffile, 1);
+            ass_set_fonts(ass_renderer, NULL, "sans-serif", 1, _fontconfig_conffile, 1);
+            _ass_renderer = ass_renderer;
+
             _initialized = true;
             global_libass_mutex.unlock();
         }
         catch (...)
         {
             // Either we threw this exception ourselves, or the thread was cancelled.
+            // Note that if the thread was cancelled, we likely leak ressources.
+            // But at least we avoid to deconstruct potentially inconsistent ASS_Library
+            // and ASS_Renderer objects.
             global_libass_mutex.unlock();
             throw;
         }
