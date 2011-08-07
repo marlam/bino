@@ -81,8 +81,8 @@ static QIcon get_icon(const QString &name)
 }
 
 
-player_qt_internal::player_qt_internal(bool benchmark, video_container_widget *widget) :
-    player(player::master), _benchmark(benchmark), _playing(false), _container_widget(widget), _video_output(NULL)
+player_qt_internal::player_qt_internal(video_output_qt *video_output) :
+    player(player::master), _playing(false), _video_output(video_output)
 {
 }
 
@@ -92,8 +92,12 @@ player_qt_internal::~player_qt_internal()
 
 video_output *player_qt_internal::create_video_output()
 {
-    _video_output = new video_output_qt(_benchmark, _container_widget);
     return _video_output;
+}
+
+void player_qt_internal::destroy_video_output(video_output *)
+{
+    // do nothing; we reuse our video output later
 }
 
 void player_qt_internal::receive_cmd(const command &cmd)
@@ -1985,7 +1989,8 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     _video_container_widget = new video_container_widget(central_widget);
     connect(_video_container_widget, SIGNAL(move_event()), this, SLOT(move_event()));
     layout->addWidget(_video_container_widget, 0, 0);
-    _player = new player_qt_internal(_init_data.benchmark, _video_container_widget);
+    _video_output = new video_output_qt(_init_data.benchmark, _video_container_widget);
+    _player = new player_qt_internal(_video_output);
     _timer = new QTimer(this);
     connect(_timer, SIGNAL(timeout()), this, SLOT(playloop_step()));
     _in_out_widget = new in_out_widget(_settings, _player, central_widget);
@@ -2094,6 +2099,7 @@ main_window::~main_window()
         try { _player->close(); } catch (...) { }
         delete _player;
     }
+    delete _video_output;
 }
 
 QString main_window::current_file_hash()

@@ -174,9 +174,19 @@ video_output *player::create_video_output()
     return new video_output_qt(_benchmark);
 }
 
+void player::destroy_video_output(video_output *vo)
+{
+    delete vo;
+}
+
 audio_output *player::create_audio_output()
 {
     return new audio_output();
+}
+
+void player::destroy_audio_output(audio_output *ao)
+{
+    delete ao;
 }
 
 void player::make_master()
@@ -720,13 +730,13 @@ void player::close()
     if (_audio_output)
     {
         try { _audio_output->deinit(); } catch (...) {}
-        delete _audio_output;
+        destroy_audio_output(_audio_output);
         _audio_output = NULL;
     }
     if (_video_output)
     {
         try { _video_output->deinit(); } catch (...) {}
-        delete _video_output;
+        destroy_video_output(_video_output);
         _video_output = NULL;
     }
     if (_media_input)

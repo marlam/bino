@@ -46,16 +46,15 @@
 class player_qt_internal : public player, public controller
 {
 private:
-    bool _benchmark;
     bool _playing;
-    video_container_widget *_container_widget;
     video_output_qt *_video_output;
 
 protected:
     virtual video_output *create_video_output();
+    virtual void destroy_video_output(video_output *vo);
 
 public:
-    player_qt_internal(bool benchmark, video_container_widget *widget);
+    player_qt_internal(video_output_qt *video_output);
     virtual ~player_qt_internal();
 
     virtual void receive_cmd(const command &cmd);
@@ -306,6 +305,7 @@ class main_window : public QMainWindow, public controller
 private:
     QSettings *_settings;
     video_container_widget *_video_container_widget;
+    video_output_qt *_video_output;
     in_out_widget *_in_out_widget;
     controls_widget *_controls_widget;
     color_dialog *_color_dialog;

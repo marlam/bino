@@ -149,9 +149,11 @@ protected:
     subtitle_box _current_subtitle_box;
     subtitle_box _next_subtitle_box;
 
-    // Create video and audio output (overridable by subclasses)
+    // Create and destroy video and audio output (overridable by subclasses)
     virtual video_output *create_video_output();
+    virtual void destroy_video_output(video_output *vo);
     virtual audio_output *create_audio_output();
+    virtual void destroy_audio_output(audio_output *ao);
 
     // Make this player the master player
     void make_master();

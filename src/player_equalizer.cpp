@@ -75,10 +75,19 @@ protected:
         return NULL;
     }
 
+    void destory_video_output(video_output *)
+    {
+    }
+
     audio_output *create_audio_output()
     {
         // Only the master player may have an audio output.
         return _is_master ? new audio_output() : NULL;
+    }
+
+    void destroy_audio_output(audio_output *ao)
+    {
+        delete ao;
     }
 
 public:
