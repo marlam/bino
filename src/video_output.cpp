@@ -134,6 +134,7 @@ void video_output::deinit()
     {
         make_context_current();
         assert(xgl::CheckError(HERE));
+        clear();
         input_deinit(0);
         input_deinit(1);
         color_deinit();
