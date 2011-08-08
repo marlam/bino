@@ -666,6 +666,7 @@ void video_output_qt::enter_fullscreen(int screens)
             // would also require the window manager to support this extension...
             _container_widget->setWindowFlags(_container_widget->windowFlags()
                     | Qt::X11BypassWindowManagerHint
+                    | Qt::FramelessWindowHint
                     | Qt::WindowStaysOnTopHint);
             _container_widget->setWindowState(_widget->windowState() | Qt::WindowFullScreen);
             _container_widget->setGeometry(geom);
@@ -716,6 +717,7 @@ void video_output_qt::exit_fullscreen()
         }
         _container_widget->setWindowFlags(_container_widget->windowFlags()
                 & ~Qt::X11BypassWindowManagerHint
+                & ~Qt::FramelessWindowHint
                 & ~Qt::WindowStaysOnTopHint);
         _container_widget->setWindowState(_widget->windowState() & ~Qt::WindowFullScreen);
         _container_widget->setCursor(Qt::ArrowCursor);
