@@ -28,6 +28,7 @@ mydist:
 EXTRA_DIST += pkg/w32/bino.nsi pkg/w32/notes.txt
 if HAVE_MAKENSIS
 package-w32:
+	$(MAKE) -C po update-po && \
 	TMPDIR="`mktemp -d`" && \
 	$(MAKE) install-strip prefix="$$TMPDIR" bindir="$$TMPDIR" docdir="$$TMPDIR" localedir="$$TMPDIR" && \
 	cp $(top_srcdir)/pkg/w32/bino.nsi "$$TMPDIR" && \
