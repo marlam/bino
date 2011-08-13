@@ -17,7 +17,6 @@ src/media_object.cpp
 src/player.cpp
 src/player_equalizer.cpp
 src/player_qt.cpp
-src/qt_app.cpp
 src/subtitle_renderer.cpp
 src/video_output.cpp
 src/video_output_qt.cpp
