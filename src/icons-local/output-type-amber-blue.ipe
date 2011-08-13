@@ -2,7 +2,7 @@
 <!DOCTYPE ipe SYSTEM "ipe.dtd">
 <ipe version="70010" creator="Ipe 7.0.10">
 <info created="D:20110813152635" modified="D:20110813182326"/>
-<preamble>\usepackage{mathptmx}</preamble>
+<preamble>\renewcommand{\familydefault}{\sfdefault}</preamble>
 <ipestyle name="basic">
 <symbol name="arrow/arc(spx)">
 <path stroke="sym-stroke" fill="sym-stroke" pen="sym-pen">

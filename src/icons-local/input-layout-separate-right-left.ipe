@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <!DOCTYPE ipe SYSTEM "ipe.dtd">
 <ipe version="70010" creator="Ipe 7.0.10">
-<info created="D:20110813152635" modified="D:20110813153014"/>
-<preamble>\usepackage{mathptmx}</preamble>
+<info created="D:20110813152635" modified="D:20110813202552"/>
+<preamble>\renewcommand{\familydefault}{\sfdefault}</preamble>
 <ipestyle name="basic">
 <symbol name="arrow/arc(spx)">
 <path stroke="sym-stroke" fill="sym-stroke" pen="sym-pen">
@@ -233,14 +233,21 @@ h
 <page>
 <layer name="alpha"/>
 <view layers="alpha" active="alpha"/>
-<path layer="alpha" stroke="black" fill="red">
+<path layer="alpha" fill="white">
+128 768 m
+128 720 l
+144 720 l
+144 768 l
+h
+</path>
+<path stroke="black" fill="red">
 64 768 m
 64 720 l
 128 720 l
 128 768 l
 h
 </path>
-<text matrix="1 0 0 1 0 -4" transformations="translations" pos="64 752" stroke="black" type="minipage" width="64" valign="top" style="center">R</text>
+<text transformations="translations" pos="64 752" stroke="black" type="minipage" width="64" height="11.093" depth="6.12" valign="top" size="Huge" style="center">\textbf{R}</text>
 <path matrix="1 0 0 1 80 0" stroke="black" fill="green">
 64 768 m
 64 720 l
@@ -248,6 +255,6 @@ h
 128 768 l
 h
 </path>
-<text matrix="1 0 0 1 80 -4" transformations="translations" pos="64 752" stroke="black" type="minipage" width="64" valign="top" style="center">L</text>
+<text matrix="1 0 0 1 80 0" transformations="translations" pos="64 752" stroke="black" type="minipage" width="64" height="11.093" depth="6.12" valign="top" size="Huge" style="center">\textbf{L}</text>
 </page>
 </ipe>

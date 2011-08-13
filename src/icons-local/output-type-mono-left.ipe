@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <!DOCTYPE ipe SYSTEM "ipe.dtd">
 <ipe version="70010" creator="Ipe 7.0.10">
-<info created="D:20110813152635" modified="D:20110813172720"/>
-<preamble>\usepackage{mathptmx}</preamble>
+<info created="D:20110813152635" modified="D:20110813202755"/>
+<preamble>\renewcommand{\familydefault}{\sfdefault}</preamble>
 <ipestyle name="basic">
 <symbol name="arrow/arc(spx)">
 <path stroke="sym-stroke" fill="sym-stroke" pen="sym-pen">
@@ -240,6 +240,6 @@ h
 128 768 l
 h
 </path>
-<text matrix="1 0 0 1 0 -4" transformations="translations" pos="64 752" stroke="black" type="minipage" width="64" valign="top" style="center">L</text>
+<text transformations="translations" pos="64 752" stroke="black" type="minipage" width="64" height="11.093" depth="6.12" valign="top" size="Huge" style="center">\textbf{L}</text>
 </page>
 </ipe>
