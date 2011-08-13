@@ -83,7 +83,6 @@ protected:
 class video_output_qt : public video_output
 {
 private:
-    bool _qt_app_owner;
     video_container_widget *_container_widget;
     bool _container_is_external;
     video_output_qt_widget *_widget;

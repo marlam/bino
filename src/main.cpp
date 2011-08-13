@@ -24,6 +24,7 @@
 #include "config.h"
 
 #include <cstring>
+#include <cstdlib>
 #include <limits>
 #include <locale.h>
 
@@ -34,6 +35,11 @@
 #ifdef __APPLE__
 # include <mach-o/dyld.h> // for _NSGetExecutablePath()
 #endif
+
+#include <QCoreApplication>
+#include <QApplication>
+#include <QtGlobal>
+#include <QTextCodec>
 
 #include "gettext.h"
 #define _(string) gettext(string)
@@ -50,7 +56,6 @@
 #if HAVE_LIBLIRCCLIENT
 # include "lirc.h"
 #endif
-#include "qt_app.h"
 #include "lib_versions.h"
 
 
@@ -121,6 +126,25 @@ static const char *localedir()
 #endif
 }
 
+static void qt_msg_handler(QtMsgType type, const char *msg)
+{
+    switch (type)
+    {
+    case QtDebugMsg:
+        msg::dbg("%s", msg);
+        break;
+    case QtWarningMsg:
+        msg::wrn("%s", msg);
+        break;
+    case QtCriticalMsg:
+        msg::err("%s", msg);
+        break;
+    case QtFatalMsg:
+        msg::err("%s", msg);
+        std::abort();
+    }
+}
+
 int main(int argc, char *argv[])
 {
     /* Initialization: gettext */
@@ -135,6 +159,14 @@ int main(int argc, char *argv[])
     msg::set_program_name(program_name);
     msg::set_columns_from_env();
     dbg::init_crashhandler();
+
+    /* Initialization: Qt */
+    qInstallMsgHandler(qt_msg_handler);
+    QApplication *qt_app = new QApplication(argc, argv);
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale()); // necessary for i18n via gettext
+    QCoreApplication::setOrganizationName("Bino");
+    QCoreApplication::setOrganizationDomain("bino3d.org");
+    QCoreApplication::setApplicationName(PACKAGE_NAME);
 
     /* Command line handling */
     std::vector<opt::option *> options;
@@ -282,7 +314,6 @@ int main(int argc, char *argv[])
     {
         return 1;
     }
-    set_qt_argv(argc, argv);
     if (version.value())
     {
         msg::req(_("%s version %s"), PACKAGE_NAME, VERSION);
@@ -625,6 +656,8 @@ int main(int argc, char *argv[])
 #if HAVE_LIBLIRCCLIENT
     lirc.deinit();
 #endif
+
+    delete qt_app;
 
     return retval;
 }

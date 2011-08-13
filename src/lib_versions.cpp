@@ -50,8 +50,6 @@ extern "C"
 #include "gettext.h"
 #define _(string) gettext(string)
 
-#include "qt_app.h"
-
 #include "str.h"
 
 
@@ -147,15 +145,10 @@ static void opengl_versions()
 #endif
         if (have_display)
         {
-            bool qt_app_owner = init_qt();
             QGLWidget *tmpwidget = new QGLWidget();
             tmpwidget->makeCurrent();
             set_opengl_versions();
             delete tmpwidget;
-            if (qt_app_owner)
-            {
-                exit_qt();
-            }
         }
         if (opengl_v.size() == 0)
         {

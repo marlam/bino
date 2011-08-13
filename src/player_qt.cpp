@@ -64,7 +64,6 @@
 #define _(string) gettext(string)
 
 #include "player_qt.h"
-#include "qt_app.h"
 #include "video_output_qt.h"
 #include "lib_versions.h"
 
@@ -2952,7 +2951,6 @@ void main_window::help_about()
 
 player_qt::player_qt() : player(player::slave)
 {
-    _qt_app_owner = init_qt();
     QCoreApplication::setOrganizationName(PACKAGE_NAME);
     QCoreApplication::setApplicationName(PACKAGE_NAME);
     _settings = new QSettings;
@@ -2960,10 +2958,6 @@ player_qt::player_qt() : player(player::slave)
 
 player_qt::~player_qt()
 {
-    if (_qt_app_owner)
-    {
-        exit_qt();
-    }
     delete _settings;
 }
 
@@ -2975,7 +2969,7 @@ void player_qt::open(const player_init_data &init_data)
 
 void player_qt::run()
 {
-    exec_qt();
+    QApplication::exec();
     delete _main_window;
     _main_window = NULL;
 }

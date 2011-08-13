@@ -355,7 +355,6 @@ public:
 class player_qt : public player
 {
 private:
-    bool _qt_app_owner;
     main_window *_main_window;
     QSettings *_settings;
 

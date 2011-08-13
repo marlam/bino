@@ -56,7 +56,6 @@ static GLEWContext* glewGetContext() { return &_glewContext; }
 #include "dbg.h"
 #include "timer.h"
 
-#include "qt_app.h"
 #include "video_output_qt.h"
 #include "lib_versions.h"
 
@@ -274,14 +273,12 @@ void video_container_widget::closeEvent(QCloseEvent *)
 
 video_output_qt::video_output_qt(bool benchmark, video_container_widget *container_widget) :
     video_output(),
-    _qt_app_owner(false),
     _container_widget(container_widget),
     _container_is_external(container_widget != NULL),
     _widget(NULL),
     _fullscreen(false),
     _playing(false)
 {
-    _qt_app_owner = init_qt();
     if (!_container_widget)
     {
         _container_widget = new video_container_widget(NULL);
@@ -300,10 +297,6 @@ video_output_qt::~video_output_qt()
     if (!_container_is_external)
     {
         delete _container_widget;
-    }
-    if (_qt_app_owner)
-    {
-        exit_qt();
     }
 }
 
