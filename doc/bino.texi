@@ -191,8 +191,10 @@ streams inside the same file, and often they are packed into a single video on
 top of each other or next to each other, with or without a reduction of
 resolution.
 
-By default, Bino tries to autodetect the input layout from meta data stored in
-the file. If this fails, Bino tries to autodetect the input layout based on
+By default, Bino autodetects the input layout from meta data stored in the file
+(for example, the Matroska and WebM formats have a @code{StereoMode} field for
+that purpose).
+If no meta data is available, Bino tries to autodetect the input layout based on
 the file name. @xref{File Name Conventions}. If that fails, too, Bino guesses
 based on the resolution of the input.
 
