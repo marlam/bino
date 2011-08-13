@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bino 1.1.1\n"
 "Report-Msgid-Bugs-To: bino-list@nongnu.org\n"
-"POT-Creation-Date: 2011-08-13 22:49+0200\n"
+"POT-Creation-Date: 2011-08-14 01:38+0200\n"
 "PO-Revision-Date: 2011-04-10 17:23+0200\n"
 "Last-Translator: Martin Lambers <marlam@marlam.de>\n"
 "Language-Team: none\n"
@@ -203,16 +203,16 @@ msgstr "unbekannt"
 msgid "not used"
 msgstr "nicht benutzt"
 
-#: src/main.cpp:319
+#: src/main.cpp:325
 #, c-format
 msgid "%s version %s"
 msgstr "%s Version %s"
 
-#: src/main.cpp:320
+#: src/main.cpp:326
 msgid "Copyright (C) 2011 the Bino developers."
 msgstr "Copyright (C) 2011 Bino Entwickler."
 
-#: src/main.cpp:321
+#: src/main.cpp:327
 msgid ""
 "This is free software. You may redistribute copies of it under the terms of "
 "the GNU General Public License. There is NO WARRANTY, to the extent "
@@ -221,18 +221,18 @@ msgstr ""
 "Dies ist freie Software. Du kannst Kopien davon verteilen unter den "
 "Bedingungen der GNU General Public License. Es gibt keine Garantie."
 
-#: src/main.cpp:324 src/player_qt.cpp:2903
+#: src/main.cpp:330 src/player_qt.cpp:2903
 msgid "Platform:"
 msgstr "Plattform:"
 
-#: src/main.cpp:326 src/player_qt.cpp:2904
+#: src/main.cpp:332 src/player_qt.cpp:2904
 msgid "Libraries used:"
 msgstr "Benutzte Bibliotheken:"
 
 #. TRANSLATORS: This is the --help text. Translate only the description,
 #. not the option names. Please keep a proper indentation with spaces, and
 #. keep the line length limited.
-#: src/main.cpp:338
+#: src/main.cpp:344
 #, c-format
 msgid ""
 "Usage:\n"
@@ -439,20 +439,24 @@ msgstr ""
 "  Seite rauf, Seite runter Spule 10 Minuten zurück / vor.\n"
 "  Mausklick                Spule zur Stelle der horizontalen Klickposition."
 
-#: src/main.cpp:591
+#: src/main.cpp:597
 msgid "Benchmark mode: audio and time synchronization disabled."
 msgstr "Benchmark Modus: Audio und Videosynchronisation deaktiviert."
 
-#: src/main.cpp:608
+#: src/main.cpp:614
 msgid "This version of Bino was compiled without support for LIRC."
 msgstr "Diese Version von Bino wurde ohne Unterstützung für LIRC erstellt."
 
-#: src/main.cpp:621
+#: src/main.cpp:627
 msgid "This version of Bino was compiled without support for Equalizer."
 msgstr ""
 "Diese Version von Bino wurde ohne Unterstützung für Equalizer erstellt."
 
-#: src/main.cpp:638
+#: src/main.cpp:634
+msgid "Cannot connect to X server."
+msgstr "Kann keine Verbindung zum X Server aufbauen."
+
+#: src/main.cpp:650
 msgid "No video to play."
 msgstr "Kein Video abzuspielen."
 
