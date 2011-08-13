@@ -161,8 +161,14 @@ int main(int argc, char *argv[])
     dbg::init_crashhandler();
 
     /* Initialization: Qt */
+#ifdef Q_WS_X11
+    const char *display = getenv("DISPLAY");
+    bool have_display = (display && display[0] != '\0');
+#else
+    bool have_display = true;
+#endif
     qInstallMsgHandler(qt_msg_handler);
-    QApplication *qt_app = new QApplication(argc, argv);
+    QApplication *qt_app = new QApplication(argc, argv, have_display);
     QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale()); // necessary for i18n via gettext
     QCoreApplication::setOrganizationName("Bino");
     QCoreApplication::setOrganizationDomain("bino3d.org");
@@ -621,23 +627,30 @@ int main(int argc, char *argv[])
             throw exc(_("This version of Bino was compiled without support for Equalizer."));
 #endif
         }
-        else if (!no_gui.value())
-        {
-            if (log_level.value() == "")
-            {
-                init_data.log_level = msg::WRN;         // Be silent by default when the GUI is used
-            }
-            init_data.fullscreen = false;               // GUI overrides fullscreen setting
-            init_data.center = false;                   // GUI overrides center flag
-            player = new class player_qt();
-        }
         else
         {
-            if (arguments.size() == 0)
+            if (!have_display)
             {
-                throw exc(_("No video to play."));
+                throw exc(_("Cannot connect to X server."));
             }
-            player = new class player();
+            else if (!no_gui.value())
+            {
+                if (log_level.value() == "")
+                {
+                    init_data.log_level = msg::WRN;         // Be silent by default when the GUI is used
+                }
+                init_data.fullscreen = false;               // GUI overrides fullscreen setting
+                init_data.center = false;                   // GUI overrides center flag
+                player = new class player_qt();
+            }
+            else
+            {
+                if (arguments.size() == 0)
+                {
+                    throw exc(_("No video to play."));
+                }
+                player = new class player();
+            }
         }
         player->open(init_data);
         player->run();
