@@ -25,6 +25,38 @@ bino_SOURCES = \
 	lib_versions.h lib_versions.cpp \
 	main.cpp
 
+ICONS_LOCAL_IPE = \
+	icons-local/input-layout-mono.ipe \
+	icons-local/input-layout-separate-left-right.ipe \
+	icons-local/input-layout-separate-right-left.ipe \
+	icons-local/input-layout-top-bottom.ipe \
+	icons-local/input-layout-top-bottom-half.ipe \
+	icons-local/input-layout-bottom-top.ipe \
+	icons-local/input-layout-bottom-top-half.ipe \
+	icons-local/input-layout-left-right.ipe \
+	icons-local/input-layout-left-right-half.ipe \
+	icons-local/input-layout-right-left.ipe \
+	icons-local/input-layout-right-left-half.ipe \
+	icons-local/input-layout-even-odd-rows.ipe \
+	icons-local/input-layout-odd-even-rows.ipe \
+	icons-local/output-type-mono-left.ipe \
+	icons-local/output-type-mono-right.ipe \
+	icons-local/output-type-top-bottom.ipe \
+	icons-local/output-type-top-bottom-half.ipe \
+	icons-local/output-type-left-right.ipe \
+	icons-local/output-type-left-right-half.ipe \
+	icons-local/output-type-even-odd-rows.ipe \
+	icons-local/output-type-even-odd-columns.ipe \
+	icons-local/output-type-checkerboard.ipe \
+	icons-local/output-type-hdmi-frame-pack.ipe \
+	icons-local/output-type-red-cyan.ipe \
+	icons-local/output-type-green-magenta.ipe \
+	icons-local/output-type-amber-blue.ipe \
+	icons-local/output-type-red-green.ipe \
+	icons-local/output-type-red-blue.ipe \
+	icons-local/output-type-stereo.ipe
+
+
 ICONS = \
 	icons/application-exit.png \
 	icons/applications-internet.png \
@@ -40,7 +72,8 @@ ICONS = \
 	icons/media-seek-forward.png \
 	icons/preferences-desktop-keyboard.png \
 	icons/view-fullscreen.png \
-	icons/view-restore.png
+	icons/view-restore.png \
+	$(patsubst %.ipe,%.png,$(ICONS_LOCAL_IPE))
 
 EXTRA_DIST = \
 	video_output_color.fs.glsl \
@@ -56,7 +89,8 @@ EXTRA_DIST = \
 	logo/bino_logo_small_64x64.png \
 	icons/COPYING \
 	icons/README \
-	$(ICONS)
+	icons-local/README \
+	$(ICONS) $(ICONS_LOCAL_IPE)
 
 qt_resources.qrc:
 	$(AM_V_GEN)(echo '<!DOCTYPE RCC><RCC version="1.0">'; \
