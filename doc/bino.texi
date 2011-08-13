@@ -50,7 +50,7 @@ without any warranty.
 @end ifnottex
 
 @ifhtml
-Table of Contents:
+Short Contents:
 @end ifhtml
 @menu
 * Introduction::
@@ -60,6 +60,9 @@ Table of Contents:
 * Interactive Control::
 * Camera Devices::
 @end menu
+@ifhtml
+@contents
+@end ifhtml
 
 @node Introduction
 @chapter Introduction
