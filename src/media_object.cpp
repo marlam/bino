@@ -554,6 +554,62 @@ void media_object::set_video_frame_template(int index)
         val = tag_value("StereoscopicHalfHeight");
         video_frame_template.stereo_layout = (val == "1" ? video_frame::top_bottom_half : video_frame::top_bottom);
     }
+    /* Check the Matroska StereoMode metadata, which is translated by FFmpeg to a "stereo_mode" tag.
+     * This tag is per-track, not per-file!
+     * This tag is the most reliable source of information about the stereo layout and should be used
+     * by everyone. Unfortunately, we still have to look at the resolution to guess whether we have
+     * a reduced resolution (*_half) stereo layout. */
+    val = "";
+    AVDictionaryEntry *tag = NULL;
+    while ((tag = av_dict_get(video_stream->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
+    {
+        if (std::string(tag->key) == "stereo_mode")
+        {
+            val = tag->value;
+            break;
+        }
+    }
+    if (val == "mono")
+    {
+        video_frame_template.stereo_layout = video_frame::mono;
+        video_frame_template.stereo_layout_swap = false;
+    }
+    else if (val == "left_right" || val == "right_left")
+    {
+        if (video_frame_template.raw_width / 2 > video_frame_template.raw_height)
+        {
+            video_frame_template.stereo_layout = video_frame::left_right;
+        }
+        else
+        {
+            video_frame_template.stereo_layout = video_frame::left_right_half;
+        }
+        video_frame_template.stereo_layout_swap = (val == "right_left");
+    }
+    else if (val == "top_bottom" || val == "bottom_top")
+    {
+        if (video_frame_template.raw_height > video_frame_template.raw_width)
+        {
+            video_frame_template.stereo_layout = video_frame::top_bottom;
+        }
+        else
+        {
+            video_frame_template.stereo_layout = video_frame::top_bottom_half;
+        }
+        video_frame_template.stereo_layout_swap = (val == "bottom_top");
+    }
+    else if (val == "row_interleaved_lr" || val == "row_interleaved_rl")
+    {
+        video_frame_template.stereo_layout = video_frame::even_odd_rows;
+        video_frame_template.stereo_layout_swap = (val == "row_interleaved_rl");
+    }
+    else if (!val.empty())
+    {
+        msg::wrn(_("%s video stream %d: Unsupported stereo layout %s."),
+                _url.c_str(), index + 1, str::sanitize(val).c_str());
+        video_frame_template.stereo_layout = video_frame::mono;
+        video_frame_template.stereo_layout_swap = false;
+    }
     /* Sanity checks. If these fail, use safe fallback */
     if (((video_frame_template.stereo_layout == video_frame::left_right
                     || video_frame_template.stereo_layout == video_frame::left_right_half)
