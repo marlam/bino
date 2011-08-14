@@ -33,6 +33,12 @@ ICONS_LOCAL = \
 	output-type-red-blue.png \
 	output-type-stereo.png
 
+input-layout-%.png:
+	$(LN_S) $(top_srcdir)/src/icons-local/$@
+
+output-type-%.png:
+	$(LN_S) $(top_srcdir)/src/icons-local/$@
+
 IMAGES = \
 	multi-display-vrlab.jpg \
 	multi-display-rotated.jpg \
