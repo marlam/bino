@@ -872,7 +872,7 @@ The following commands are available:
 
 @table @samp
 @item play
-Start playback, or switch of pause mode.
+Start playback, or exit pause mode.
 @item pause
 When playing, go into pause mode.
 @item stop
