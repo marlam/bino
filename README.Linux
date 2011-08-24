@@ -2,13 +2,12 @@ The free graphics drivers shipped with recent Linux kernel + Mesa + X.org
 combinations mostly work fine with Bino. Proprietary graphics drivers work too,
 but are *not* required!
 
-However, the free graphics drivers (especially older versions) still have some
+However, some free graphics drivers (especially older versions) still have some
 limitations. Here is a list of known problems:
 
-- The drivers for Intel GMA and i965 graphics chips seem to cause Bino to crash.
-  This has been reported for Ubuntu 10.04, 10.10, and 11.04. It is still not
-  entirely clear what causes this crash, but it may be a bug somewhere in the
-  graphics stack.
+- Older drivers for Intel GMA and i965 graphics chips seem to cause Bino to crash.
+  This has been reported for Ubuntu 10.04 and 10.10, but it seems to be fixed in
+  11.04.
 
 - Bino relies on OpenGL SRGB textures for proper scaling of video frames.
   Unfortunately some free graphics drivers (notably those for ATI cards) have
