@@ -10,6 +10,7 @@ src/base/timer.cpp
 src/audio_output.cpp
 src/controller.cpp
 src/lib_versions.cpp
+src/lirc.cpp
 src/main.cpp
 src/media_data.cpp
 src/media_input.cpp
