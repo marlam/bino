@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bino 1.1.1\n"
 "Report-Msgid-Bugs-To: bino-list@nongnu.org\n"
-"POT-Creation-Date: 2011-08-14 01:38+0200\n"
+"POT-Creation-Date: 2011-08-27 19:21+0200\n"
 "PO-Revision-Date: 2011-04-10 17:23+0200\n"
 "Last-Translator: Martin Lambers <marlam@marlam.de>\n"
 "Language-Team: none\n"
@@ -202,6 +202,37 @@ msgstr "unbekannt"
 #: src/lib_versions.cpp:179 src/lib_versions.cpp:191
 msgid "not used"
 msgstr "nicht benutzt"
+
+#: src/lirc.cpp:63
+msgid "Cannot initialize LIRC."
+msgstr "Kann LIRC nicht initialisieren."
+
+#
+#: src/lirc.cpp:69
+msgid "Cannot set LIRC socket properties."
+msgstr "Kann LIRC Parameter nicht setzen."
+
+#: src/lirc.cpp:76
+msgid "Cannot read LIRC default configuration."
+msgstr "Kann LIRC Standardkonfiguration nicht lesen."
+
+#: src/lirc.cpp:91
+#, c-format
+msgid "Cannot read LIRC configuration file %s."
+msgstr "Kann LIRC Konfigurationsdatei %s nicht lesen."
+
+#: src/lirc.cpp:140
+msgid "Cannot get LIRC event; disabling LIRC support."
+msgstr "Kann LIRC Ereignis nicht lesen; schalte LIRC ab."
+
+#: src/lirc.cpp:154
+#, c-format
+msgid "Received invalid command '%s' from LIRC."
+msgstr "Ungültiges Kommando '%s' von LIRC erhalten."
+
+#: src/lirc.cpp:164
+msgid "Cannot get command for LIRC code."
+msgstr "Kann kein Kommando für LIRC Code bekommen."
 
 #: src/main.cpp:325
 #, c-format
