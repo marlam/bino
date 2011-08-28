@@ -779,6 +779,13 @@ void media_object::open(const std::string &url, const device_request &dev_reques
         _ffmpeg->format_ctx->streams[i]->discard = AVDISCARD_ALL;        // ignore by default; user must activate streams
         AVCodecContext *codec_ctx = _ffmpeg->format_ctx->streams[i]->codec;
         AVCodec *codec = NULL;
+        if (_ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+        {
+            // Activate multithreaded decoding. This must be done before opening the codec; see
+            // http://lists.gnu.org/archive/html/bino-list/2011-08/msg00019.html
+            codec_ctx->thread_count = video_decoding_threads();
+        }
+        // Find and open the codec. CODEC_ID_TEXT is a special case: it has no decoder since it is unencoded raw data.
         if (_ffmpeg->format_ctx->streams[i]->codec->codec_id != CODEC_ID_TEXT
                 && (!(codec = avcodec_find_decoder(_ffmpeg->format_ctx->streams[i]->codec->codec_id))
                     || (e = avcodec_open(codec_ctx, codec)) < 0))
@@ -802,7 +809,6 @@ void media_object::open(const std::string &url, const device_request &dev_reques
                             _url.c_str(), j + 1));
             }
             _ffmpeg->video_codecs.push_back(codec);
-            _ffmpeg->video_codec_ctxs[j]->thread_count = video_decoding_threads();
             // Determine frame template.
             _ffmpeg->video_frame_templates.push_back(video_frame());
             set_video_frame_template(j);
