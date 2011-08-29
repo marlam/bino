@@ -50,51 +50,42 @@ void media_input::get_video_stream(int stream, int &media_object, int &media_obj
 {
     assert(stream < video_streams());
 
-    for (size_t i = 0; i < _media_objects.size(); i++)
+    size_t i = 0;
+    while (_media_objects[i].video_streams() < stream + 1)
     {
-        if (_media_objects[i].video_streams() < stream + 1)
-        {
-            stream -= _media_objects[i].video_streams();
-            continue;
-        }
-        media_object = i;
-        media_object_video_stream = stream;
-        break;
+        stream -= _media_objects[i].video_streams();
+        i++;
     }
+    media_object = i;
+    media_object_video_stream = stream;
 }
 
 void media_input::get_audio_stream(int stream, int &media_object, int &media_object_audio_stream) const
 {
     assert(stream < audio_streams());
 
-    for (size_t i = 0; i < _media_objects.size(); i++)
+    size_t i = 0;
+    while (_media_objects[i].audio_streams() < stream + 1)
     {
-        if (_media_objects[i].audio_streams() < stream + 1)
-        {
-            stream -= _media_objects[i].audio_streams();
-            continue;
-        }
-        media_object = i;
-        media_object_audio_stream = stream;
-        break;
+        stream -= _media_objects[i].audio_streams();
+        i++;
     }
+    media_object = i;
+    media_object_audio_stream = stream;
 }
 
 void media_input::get_subtitle_stream(int stream, int &media_object, int &media_object_subtitle_stream) const
 {
     assert(stream < subtitle_streams());
 
-    for (size_t i = 0; i < _media_objects.size(); i++)
+    size_t i = 0;
+    while (_media_objects[i].subtitle_streams() < stream + 1)
     {
-        if (_media_objects[i].subtitle_streams() < stream + 1)
-        {
-            stream -= _media_objects[i].subtitle_streams();
-            continue;
-        }
-        media_object = i;
-        media_object_subtitle_stream = stream;
-        break;
+        stream -= _media_objects[i].subtitle_streams();
+        i++;
     }
+    media_object = i;
+    media_object_subtitle_stream = stream;
 }
 
 // Get the basename of an URL (just the file name, without leading paths)
