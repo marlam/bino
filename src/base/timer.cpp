@@ -39,12 +39,7 @@ int64_t timer::get_microseconds(timer::type t)
     struct timespec time;
     int r = clock_gettime(
               t == realtime ? CLOCK_REALTIME
-            : t == monotonic ? 
-# ifdef CLOCK_MONOTONIC_RAW
-                               CLOCK_MONOTONIC_RAW
-# else
-                               CLOCK_MONOTONIC
-# endif
+            : t == monotonic ? CLOCK_MONOTONIC
             : t == process_cpu ? CLOCK_PROCESS_CPUTIME_ID
             : CLOCK_THREAD_CPUTIME_ID, &time);
     if (r != 0)
