@@ -5,8 +5,12 @@ environment (http://www.nongnu.org/mingw-cross-env). This is because
 Mingw-cross-env not only provides a recent version of gcc as a cross compiler,
 but also all required libraries, and the nsis package to build an installer.
 
-The following is known to work with Mingw-cross-env 2.21 installed in
-/path/to/mce:
+Mingw-cross-env version 2.22 will provide the required up-to-date libraries, but
+this version is not yet released at the time of writing. In the meantime, you
+can use development revision 1955:
+$ hg clone -r 1955 http://hg.savannah.nongnu.org/hgweb/mingw-cross-env
+
+The following is known to work with Mingw-cross-env installed in /path/to/mce:
 
 1. Build the required Mingw-cross-env packages:
 
