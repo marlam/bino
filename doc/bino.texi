@@ -74,11 +74,16 @@ separate views for the left and right eye and thus allow depth perception
 through stereopsis.
 
 The left and right view of a stereoscopic video can be stored using different
-layouts. Bino supports all commonly used layouts. @xref{Input Layouts}.
+layouts. Sometimes the two views are stored as two separate video streams, but
+most often both views are packed into a single video stream and need to be
+unpacked by the video player. Bino supports all commonly used layouts.
+@xref{Input Layouts}.
 
-To display a stereoscopic video, the left and right view have to be prepared
-in a special way depending on the output display technique. Bino supports a
-wide variety of display techniques. @xref{Output Techniques}.
+To display a stereoscopic video, the left and right view have to be prepared in
+a special way so that the left eye sees the left view and the right eye sees
+the right view. Different display techniques use different approaches to
+achieve this separation of the two views. Bino supports a wide variety of such
+techniques. @xref{Output Techniques}.
 
 @node Invocation
 @chapter Invocation
@@ -202,87 +207,87 @@ based on the resolution of the input.
 
 @table @var
 @item mono
-Single view (2D).@*
+Single view (2D conventional video).@*
 @image{input-layout-mono,,,,png}
 @item separate-left-right
-Left/right view in separate streams, left first.@*
+Separate streams: left view first, right view second.@*
 @image{input-layout-separate-left-right,,,,png}
 @item separate-right-left
-Left/right view in separate streams, right first.@*
+Separate streams: right view first, left view second.@*
 @image{input-layout-separate-right-left,,,,png}
 @item top-bottom
-Left view top, right view bottom.@*
+Single stream: left view top, right view bottom.@*
 @image{input-layout-top-bottom,,,,png}
 @item top-bottom-half
-Left view top, right view bottom, half height.@*
+Single stream: left view top, right view bottom, both with half height.@*
 @image{input-layout-top-bottom-half,,,,png}
 @item bottom-top
-Left view bottom, right view top.@*
+Single stream: right view top, left view bottom.@*
 @image{input-layout-bottom-top,,,,png}
 @item bottom-top-half
-Left view bottom, right view top, half height.@*
+Single stream: right view top, left view bottom, both with half height.@*
 @image{input-layout-bottom-top-half,,,,png}
 @item left-right
-Left view left, right view right.@*
+Single stream: left view left, right view right.@*
 @image{input-layout-left-right,,,,png}
 @item left-right-half
-Left view left, right view right, half width.@*
+Single stream: left view left, right view right, both with half width.@*
 @image{input-layout-left-right-half,,,,png}
 @item right-left
-Left view right, right view left.@*
+Single stream: right view left, left view right.@*
 @image{input-layout-right-left,,,,png}
 @item right-left-half
-Left view right, right view left, half width.@*
+Single stream: right view left, left view right, both with half width.@*
 @image{input-layout-right-left-half,,,,png}
 @item even-odd-rows
-Left view even rows, right view odd rows.@*
+Single stream: left view in even rows, right view in odd rows.@*
 @image{input-layout-even-odd-rows,,,,png}
 @item odd-even-rows
-Left view odd rows, right view even rows.@*
+Single stream: right view in even rows, left view in odd rows.@*
 @image{input-layout-odd-even-rows,,,,png}
 @end table
 
 @section File Name Conventions
 @anchor{File Name Conventions}
 
-If the meta data stored in a file does not indicate its stereoscopic layout,
-Bino tries to guess it by looking at the last part of the file name before
-the file name extension (@file{.ext}).
+If the meta data stored in a file does not indicate the input layout, Bino
+tries to guess it by looking at the last part of the file name before the file
+name extension (@file{.ext}).
 
 The following file name forms are recognized:
 @table @file
 @item *-lr.ext
-@var{left-right}
+Input layout @var{left-right}.
 @item *-lrh.ext
 @itemx *-lrq.ext
-@var{left-right-half}
+Input layout @var{left-right-half}.
 @item *-rl.ext
-@var{right-left}
+Input layout @var{right-left}.
 @item *-rlh.ext
 @itemx *-rlq.ext
-@var{right-left-half}
+Input layout @var{right-left-half}.
 @item *-tb.ext
 @itemx *-ab.ext
-@var{top-bottom}
+Input layout @var{top-bottom}.
 @item *-tbh.ext
 @itemx *-abq.ext
-@var{top-bottom-half}
+Input layout @var{top-bottom-half}.
 @item *-bt.ext
 @itemx *-ba.ext
-@var{bottom-top}
+Input layout @var{bottom-top}.
 @item *-bth.ext
 @itemx *-baq.ext
-@var{bottom-top-half}
+Input layout @var{bottom-top-half}.
 @item *-eo.ext
 @itemx *-eoq.ext
 @itemx *-3dir.ext
-@var{even-odd-rows}
+Input layout @var{even-odd-rows}.
 @item *-oe.ext
 @itemx *-oeq.ext
 @itemx *-3di.ext
-@var{odd-even-rows}
+Input layout @var{odd-even-rows}.
 @item *-2d.ext
-@var{mono}
+Input layout @var{mono}.
 @end table
 
 
@@ -293,27 +298,35 @@ The following file name forms are recognized:
 
 The left and right view of a stereoscopic video need to be displayed in a way
 that ensures that the left view is only seen by the left eye of the user and
-the right view is only seen by the right view. There are many different
-techniques to achieve this, and Bino supports most of them.
+the right view is only seen by the right eye. There are many different
+techniques to achieve this separation of left and right view, and Bino supports
+most of them.
 
 With some display techniques, some part of the right view may also seen by the
 left eye and vice versa. This is called crosstalk and leads to ghosting
-artefacts which reduce image quality. For some display types, Bino can reduce
+artefacts that reduce image quality. For some display types, Bino can reduce
 such artefacts. @xref{Crosstalk Ghostbusting}.
 
-One of the simplest output technique are anaglyph glasses. These use color
-filters to separate the left and right view. Anaglyph glasses are cheap and
-work with every display, but the image quality is low.
+One of the simplest output techniques is anaglyph glasses. Such glasses use
+color filters to separate the left and right view. Anaglyph glasses are cheap
+and work with every display, but the view separation and color reproduction are
+of relatively low quality. Still, depending on the video material, Bino can
+achieve high quality results using the
+@url{http://www.site.uottawa.ca/~edubois/anaglyph/,Dubois method} to produce
+video output for anaglyph glasses.
 
 With OpenGL, the default method to display stereoscopic 3D content is OpenGL
-quad buffered stereo, often used with shutter glasses. However, graphics card
-manufacturers tend to enable this output technique only on expensive high end
-hardware.
+quad buffered stereo, often used with active shutter glasses. However, graphics
+card manufacturers tend to enable this output technique only on expensive high
+end hardware.
 
-Most types of 3D computer displays expect left and right view packed in a
+Many 3D computer displays use polarized glasses to separate left and right
+view, and some autostereoscopic displays do not require any glasses at all.
+Most of these 3D computer displays expect left and right view packed in a
 single video frame, e.g. on top of each other or next to each other or
-partitioned into even and odd pixel lines or columns. Refer to the manual of
-your display to find out which output technique is required.
+partitioned into even and odd pixel lines or columns. Bino supports all
+variants of such modes; refer to the manual of your display to find out which
+mode is required.
 
 Another common way to display 3D stereoscopic content is to use two
 conventional 2D displays or projectors for the left and right view and combine
@@ -321,7 +334,7 @@ both views either using a half-transparent mirror, or a single screen with
 polarized glasses. This is supported in Bino using multiscreen output.
 @xref{Basic Multi Display Support}.
 
-For more complex setups such as powerwalls or virtual reality installations
+For more complex setups, such as powerwalls or virtual reality installations
 driven by render clusters, Bino supports distributed video rendering via
 Equalizer. @xref{Advanced Multi Display Support}.
 
@@ -341,22 +354,22 @@ Right view only.@*
 Left view top, right view bottom.@*
 @image{output-type-top-bottom,,,,png}
 @item top-bottom-half
-Left view top, right view bottom, half height.@*
+Left view top, right view bottom, both with half height.@*
 @image{output-type-top-bottom-half,,,,png}
 @item left-right
 Left view left, right view right.@*
 @image{output-type-left-right,,,,png}
 @item left-right-half
-Left view left, right view right, half width.@*
+Left view left, right view right, both with half width.@*
 @image{output-type-left-right-half,,,,png}
 @item even-odd-rows
-Left view even rows, right view odd rows.@*
+Left view in even rows, right view in odd rows.@*
 @image{output-type-even-odd-rows,,,,png}
 @item even-odd-columns
-Left view even columns, right view odd columns.@*
+Left view in even columns, right view in odd columns.@*
 @image{output-type-even-odd-columns,,,,png}
 @item checkerboard
-Left and right view in checkerboard pattern.@*
+Left and right view in a checkerboard pattern.@*
 @image{output-type-checkerboard,,,,png}
 @item hdmi-frame-pack
 HDMI frame packing mode (left top, right bottom, plus extra blank lines
@@ -366,46 +379,46 @@ GNU/Linux can be found in
 @url{http://lists.nongnu.org/archive/html/bino-list/2011-03/msg00033.html,this post to the Bino mailing list}.@*
 @image{output-type-hdmi-frame-pack,,,,png}
 @item red-cyan-monochrome
-Red/cyan anaglyph, monochrome method.@*
+Red/cyan anaglyph glasses, monochrome method.@*
 @image{output-type-red-cyan,,,,png}
 @item red-cyan-half-color
-Red/cyan anaglyph, half color method.@*
+Red/cyan anaglyph glasses, half color method.@*
 @image{output-type-red-cyan,,,,png}
 @item red-cyan-full-color
-Red/cyan anaglyph, full color method.@*
+Red/cyan anaglyph glasses, full color method.@*
 @image{output-type-red-cyan,,,,png}
 @item red-cyan-dubois
-Red/cyan anaglyph, high-quality Dubois method.@*
+Red/cyan anaglyph glasses, high-quality Dubois method.@*
 @image{output-type-red-cyan,,,,png}
 @item green-magenta-monochrome
-Green/magenta anaglyph, monochrome method.@*
+Green/magenta anaglyph glasses, monochrome method.@*
 @image{output-type-green-magenta,,,,png}
 @item green-magenta-half-color
-Green/magenta anaglyph, half color method.@*
+Green/magenta anaglyph glasses, half color method.@*
 @image{output-type-green-magenta,,,,png}
 @item green-magenta-full-color
-Green/magenta anaglyph, full color method.@*
+Green/magenta anaglyph glasses, full color method.@*
 @image{output-type-green-magenta,,,,png}
 @item green-magenta-dubois
-Green/magenta anaglyph, high-quality Dubois method.@*
+Green/magenta anaglyph glasses, high-quality Dubois method.@*
 @image{output-type-green-magenta,,,,png}
 @item amber-blue-monochrome
-Amber/blue anaglyph, monochrome method.@*
+Amber/blue anaglyph glasses, monochrome method.@*
 @image{output-type-amber-blue,,,,png}
 @item amber-blue-half-color
-Amber/blue anaglyph, half color method.@*
+Amber/blue anaglyph glasses, half color method.@*
 @image{output-type-amber-blue,,,,png}
 @item amber-blue-full-color
-Amber/blue anaglyph, full color method.@*
+Amber/blue anaglyph glasses, full color method.@*
 @image{output-type-amber-blue,,,,png}
 @item amber-blue-dubois
-Amber/blue anaglyph, high-quality Dubois method.@*
+Amber/blue anaglyph glasses, high-quality Dubois method.@*
 @image{output-type-amber-blue,,,,png}
 @item red-green-monochrome
-Red/green anaglyph, monochrome method.@*
+Red/green anaglyph glasses, monochrome method.@*
 @image{output-type-red-green,,,,png}
 @item red-blue-monochrome
-Red/blue anaglyph, monochrome method.@*
+Red/blue anaglyph glasses, monochrome method.@*
 @image{output-type-red-blue,,,,png}
 @item stereo
 OpenGL quad-buffer stereo.@*
@@ -804,9 +817,6 @@ server
 
 Bino reacts on a number of keyboard shortcuts during playback.
 
-Make sure that the video area has the keyboard focus before using these
-shortcuts, e.g. by clicking into it.
-
 The following shortcuts are recognized:
 @table @kbd
 @item ESC
@@ -828,32 +838,23 @@ Cycle through available video streams.
 Cycle through available audio streams.
 @item a
 Cycle through available subtitle streams.
-@item 1
-@item 2
+@item 1, 2
 Adjust contrast.
-@item 3
-@item 4
+@item 3, 4
 Adjust brightness.
-@item 5
-@item 6
+@item 5, 6
 Adjust hue.
-@item 7
-@item 8
+@item 7, 8
 Adjust saturation.
-@item <
-@item >
+@item <, >
 Adjust parallax.
-@item (
-@item )
+@item (, )
 Adjust ghostbusting.
-@item LEFT
-@item RIGHT
+@item LEFT, RIGHT
 Seek 10 seconds backward / forward.
-@item UP
-@item DOWN
+@item UP, DOWN
 Seek 1 minute backward / forward.
-@item PAGE UP
-@item PAGE DOWN
+@item PAGE UP, PAGE DOWN
 Seek 10 minutes backward / forward.
 @item Mouse click
 Seek according to the horizontal click position.
@@ -939,6 +940,6 @@ name is of the form
 @end itemize
 
 Note: for @var{firewire} and @var{x11} devices to work, your FFmpeg libraries
-must have @var{libdc1394} and @var{x11grab} enabled, which is not the default.
+must have @var{libdc1394} and @var{x11grab} support enabled.
 
 @bye
