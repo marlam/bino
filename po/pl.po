@@ -1547,18 +1547,16 @@ msgid "OpenGL program '%s': linking failed."
 msgstr "OpenGL program '%s': linkowanie zakończone niepowodzeniem."
 
 #~ msgid "Unknown exception."
-#~ msgstr "Exception inconnue."
+#~ msgstr "Nieznany wyjątek."
 
 #~ msgid "%s audio stream %d: Unsupported audio codec."
-#~ msgstr "%s flux audio %d : Codec audio non supporté."
+#~ msgstr "%s strumień audio %d : Nie obsługiwany kodek."
 
 #~ msgid "%s audio stream %d: Cannot open audio codec: %s"
-#~ msgstr "%s flux audio %d : Impossible d'ouvrir le codec audio : %s"
+#~ msgstr "%s strumień audio %d : Nie można otworzyć kodeka audio : %s"
 
 #~ msgid "%s subtitle stream %d: Unsupported subtitle codec."
-#~ msgstr "%s flux de sous-titres %d : Codec de sous-titres non supporté."
+#~ msgstr "%s strumień napisów %d : Nie obsługiwany format napisów."
 
 #~ msgid "%s subtitle stream %d: Cannot open subtitle codec: %s"
-#~ msgstr ""
-#~ "%s flux de sous-titres %d : Impossible d'ouvrir le codec de sous-titres : "
-#~ "%s"
+#~ msgstr "%s strumień napisów %d : Nie można otworzyć napisów : %s"
