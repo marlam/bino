@@ -136,7 +136,7 @@ public:
         if (!_video_frame.is_valid())
         {
             msg::err(_("Reading input frame failed."));
-            abort();
+            std::exit(1);
         }
     }
 
@@ -200,7 +200,7 @@ public:
             catch (std::exception &e)
             {
                 msg::err("%s", e.what());
-                abort();
+                std::exit(1);
             }
         }
         return 0;

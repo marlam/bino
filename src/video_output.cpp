@@ -360,8 +360,7 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
             void *pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
             if (!pboptr)
             {
-                msg::err(_("Cannot create a PBO buffer."));
-                abort();
+                throw exc(_("Cannot create a PBO buffer."));
             }
             assert(reinterpret_cast<uintptr_t>(pboptr) % 4 == 0);
             // Get the plane data into the pbo
@@ -471,8 +470,7 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
             void *pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
             if (!pboptr)
             {
-                msg::err(_("Cannot create a PBO buffer."));
-                abort();
+                throw exc(_("Cannot create a PBO buffer."));
             }
             assert(reinterpret_cast<uintptr_t>(pboptr) % 4 == 0);
             // Render the subtitle into the buffer.

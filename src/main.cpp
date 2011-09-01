@@ -141,7 +141,7 @@ static void qt_msg_handler(QtMsgType type, const char *msg)
         break;
     case QtFatalMsg:
         msg::err("%s", msg);
-        std::abort();
+        std::exit(1);
     }
 }
 
