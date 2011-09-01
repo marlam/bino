@@ -146,8 +146,11 @@ static void opengl_versions()
         if (have_display)
         {
             QGLWidget *tmpwidget = new QGLWidget();
-            tmpwidget->makeCurrent();
-            set_opengl_versions();
+            if (tmpwidget->context()->isValid())
+            {
+                tmpwidget->makeCurrent();
+                set_opengl_versions();
+            }
             delete tmpwidget;
         }
         if (opengl_v.size() == 0)

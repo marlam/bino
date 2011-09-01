@@ -393,6 +393,13 @@ void video_output_qt::deinit()
 void video_output_qt::create_widget()
 {
     _widget = new video_output_qt_widget(this, _format, _container_widget);
+    if (!_widget->context()->isValid())
+    {
+        // TODO: replace the error message with a better one once the freeze
+        // of translatable strings is over.
+        QMessageBox::critical(_widget, _("Error"), _("Cannot set OpenGL context format."));
+        std::exit(1);
+    }
     QObject::connect(_container_widget, SIGNAL(move_event()), _widget, SLOT(move_event()));
     if ((_format.doubleBuffer() && !_widget->format().doubleBuffer())
             || (_format.stereo() && !_widget->format().stereo()))
@@ -413,7 +420,7 @@ void video_output_qt::create_widget()
         catch (std::exception &e)
         {
             QMessageBox::critical(_widget, _("Error"), e.what());
-            abort();
+            std::exit(1);
         }
     }
     QGridLayout *container_layout = new QGridLayout();
