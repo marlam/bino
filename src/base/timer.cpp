@@ -37,11 +37,33 @@ int64_t timer::get_microseconds(timer::type t)
 #ifdef HAVE_CLOCK_GETTIME
 
     struct timespec time;
-    int r = clock_gettime(
-              t == realtime ? CLOCK_REALTIME
-            : t == monotonic ? CLOCK_MONOTONIC
-            : t == process_cpu ? CLOCK_PROCESS_CPUTIME_ID
-            : CLOCK_THREAD_CPUTIME_ID, &time);
+    int r;
+    if (t == realtime)
+    {
+        r = clock_gettime(CLOCK_REALTIME, &time);
+    }
+    else if (t == monotonic)
+    {
+        r = clock_gettime(CLOCK_MONOTONIC, &time);
+    }
+    else if (t == process_cpu)
+    {
+#ifdef CLOCK_PROCESS_CPUTIME_ID
+        r = clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time);
+#else
+        r = -1;
+        errno = ENOSYS;
+#endif
+    }
+    else // t == thread_cpu
+    {
+#ifdef CLOCK_THREAD_CPUTIME_ID
+        r = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &time);
+#else
+        r = -1;
+        errno = ENOSYS;
+#endif
+    }
     if (r != 0)
     {
         throw exc(_("Cannot get time."), errno);
