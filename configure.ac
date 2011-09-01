@@ -80,7 +80,13 @@ LDFLAGS="-pthread $LDFLAGS"
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [], [CPPFLAGS="$CPPFLAGS_bak"; LDFLAGS="$LDFLAGS_bak"])
 
 dnl Gettext
+AC_LANG_PUSH([C])
+AM_ICONV([])
+if test "$am_cv_func_iconv" != "yes"; then
+    AC_MSG_WARN([libiconv not found])
+fi
 AM_GNU_GETTEXT([external])
+AC_LANG_POP([C])
 
 dnl pkg-config (required to detect libraries)
 PKG_PROG_PKG_CONFIG([])
@@ -144,6 +150,10 @@ AC_CHECK_TOOLS([RCC], [rcc-qt4 rcc])
 MOC=""
 AC_ARG_VAR([MOC], [moc command])
 AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
+if test -z "$RCC" -o -z "$MOC"; then
+    AC_MSG_WARN([rcc and/or moc not found; QtOpenGL not usable])
+    HAVE_LIBQTOPENGL="0"
+fi
 
 dnl Equalizer
 dnl We assume that Equalizer includes GLEW. If we don't use Equalizer, we need GLEW separately.
@@ -195,7 +205,8 @@ AC_DEFINE_UNQUOTED([LIBLIRCCLIENT_PKGCONFIG_VERSION], [$LIBLIRCCLIENT_PKGCONFIG_
 AM_CONDITIONAL([HAVE_LIBLIRCCLIENT], [test "$HAVE_LIBLIRCCLIENT" = "1"])
 
 dnl Check if all libraries were found
-if test "$HAVE_LIBAVFORMAT" != "1" \
+if test "$am_cv_func_iconv" != "yes" \
+    -o "$HAVE_LIBAVFORMAT" != "1" \
     -o "$HAVE_LIBAVDEVICE" != "1" \
     -o "$HAVE_LIBSWSCALE" != "1" \
     -o "$HAVE_LIBASS" != "1" \

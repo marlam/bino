@@ -430,7 +430,7 @@ namespace str
         }
         char *outbuf = orig_outbuf;
 
-        size_t s = iconv(cd, const_cast<char **>(&inbuf), &inbytesleft, &outbuf, &outbytesleft);
+        size_t s = iconv(cd, const_cast<ICONV_CONST char **>(&inbuf), &inbytesleft, &outbuf, &outbytesleft);
         int saved_errno = errno;
         iconv_close(cd);
         if (s == static_cast<size_t>(-1))
