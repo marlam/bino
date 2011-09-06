@@ -35,7 +35,6 @@ AM_SILENT_RULES([yes])
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_RANLIB
-AC_PROG_GREP
 AC_PROG_LN_S
 AC_LANG([C++])
 AC_C_BIGENDIAN
@@ -159,11 +158,6 @@ fi
 if test "$HAVE_LIBQTOPENGL" = "1"; then
     dnl When running on X11, we need to link with -lX11 explicitly since we use X functions directly
     AC_MSG_CHECKING([whether we need to link with X11])
-    if test -n "`$PKG_CONFIG --static --libs QtOpenGL | $GREP X11`"; then
-        NEED_LIBX11="yes"
-    else
-        NEED_LIBX11="no"
-    fi
     CPPFLAGS_BAK="$CPPFLAGS"
     CPPFLAGS="$CPPFLAGS $libqtopengl_CFLAGS"
     AC_COMPILE_IFELSE(
