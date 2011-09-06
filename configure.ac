@@ -164,6 +164,17 @@ if test "$HAVE_LIBQTOPENGL" = "1"; then
     else
         NEED_LIBX11="no"
     fi
+    CPPFLAGS_BAK="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS $libqtopengl_CFLAGS"
+    AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM([[
+	 #include <QGLWidget>
+	 #ifndef Q_WS_X11
+	  error: No X11
+	 #endif]],
+	[[int x = 0;]])],
+	[NEED_LIBX11="yes"],[NEED_LIBX11="no"])
+    CPPFLAGS="$CPPFLAGS_BAK"
     AC_MSG_RESULT([$NEED_LIBX11])
     if test "$NEED_LIBX11" = "yes"; then
         PKG_CHECK_MODULES([libX11], [x11 >= 0.0], [HAVE_LIBX11=1], [HAVE_LIBX11=0])
