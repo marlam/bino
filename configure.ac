@@ -138,42 +138,40 @@ if test "$HAVE_LIBOPENAL" != "1"; then
 fi
 
 dnl Qt
+RCC=""
+AC_ARG_VAR([RCC], [rcc command])
+MOC=""
+AC_ARG_VAR([MOC], [moc command])
 PKG_CHECK_MODULES([libqtopengl], [QtOpenGL >= 0.0], [HAVE_LIBQTOPENGL=1], [HAVE_LIBQTOPENGL=0])
 if test "$HAVE_LIBQTOPENGL" != "1"; then
     AC_MSG_WARN([library QtOpenGL not found:])
     AC_MSG_WARN([$libqtopengl_PKG_ERRORS])
     AC_MSG_WARN([QtOpenGL is provided by Qt; Debian package: libqt4-opengl-dev])
-fi
-RCC=""
-AC_ARG_VAR([RCC], [rcc command])
-AC_CHECK_TOOLS([RCC], [rcc-qt4 rcc])
-MOC=""
-AC_ARG_VAR([MOC], [moc command])
-AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
-if test -z "$RCC" -o -z "$MOC"; then
-    AC_MSG_WARN([rcc and/or moc not found; QtOpenGL not usable])
-    HAVE_LIBQTOPENGL="0"
+else
+    AC_CHECK_TOOLS([RCC], [rcc-qt4 rcc])
+    AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
+    if test -z "$RCC" -o -z "$MOC"; then
+        AC_MSG_WARN([rcc and/or moc not found; QtOpenGL not usable])
+        HAVE_LIBQTOPENGL="0"
+    fi
 fi
 if test "$HAVE_LIBQTOPENGL" = "1"; then
     dnl When running on X11, we need to link with -lX11 explicitly since we use X functions directly
     AC_MSG_CHECKING([whether we need to link with X11])
-    AC_COMPILE_IFELSE(
-        [AC_LANG_PROGRAM([[
-	 #include <QGLWidget>
-	 #ifndef Q_WS_X11
-	  error: No X11
-	 #endif]],
-	[[int x = 0;]])],
-	[NEED_LIBX11="yes"],[NEED_LIBX11="no"])
+    if test -n "`$PKG_CONFIG --static --libs QtOpenGL | grep X11`"; then
+        NEED_LIBX11="yes"
+    else
+        NEED_LIBX11="no"
+    fi
     AC_MSG_RESULT([$NEED_LIBX11])
     if test "$NEED_LIBX11" = "yes"; then
-        PKG_CHECK_MODULES([libx11], [x11 >= 0.0], [HAVE_LIBX11=1], [HAVE_LIBX11=0])
+        PKG_CHECK_MODULES([libX11], [x11 >= 0.0], [HAVE_LIBX11=1], [HAVE_LIBX11=0])
         if test "$HAVE_LIBX11" != "1"; then
             AC_MSG_WARN([library libX11 not found:])
             AC_MSG_WARN([$libx11_PKG_ERRORS])
         else
-            libqtopengl_CFLAGS="$libqtopengl_CFLAGS $libx11_CFLAGS"
-            libqtopengl_LIBS="$libqtopengl_LIBS $libx11_LIBS"
+            libqtopengl_CFLAGS="$libqtopengl_CFLAGS $libX11_CFLAGS"
+            libqtopengl_LIBS="$libqtopengl_LIBS $libX11_LIBS"
         fi
     fi
 fi
