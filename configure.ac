@@ -205,6 +205,12 @@ fi
 AC_DEFINE_UNQUOTED([HAVE_LIBEQUALIZER], [$HAVE_LIBEQUALIZER], [Have Equalizer?])
 AM_CONDITIONAL([HAVE_LIBEQUALIZER], [test "$HAVE_LIBEQUALIZER" = "1"])
 
+dnl OpenGL
+dnl We need to explicitly link with OpenGL since we use its functions directly.
+dnl However, this is most probably not necessary on Windows and Mac OS X (for now),
+dnl so we just use a pkg-config check and ignore a failure.
+PKG_CHECK_MODULES([libgl], [gl >= 0.0], [HAVE_LIBGL=1], [HAVE_LIBGL=0])
+
 dnl LIRC
 LIBLIRCCLIENT_PKGCONFIG_VERSION="\"\""
 AC_ARG_WITH([liblircclient],

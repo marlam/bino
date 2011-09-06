@@ -120,11 +120,11 @@ DEFS += -DDOCDIR=\"$(docdir)\" -DLOCALEDIR=\"$(localedir)\"
 
 AM_CPPFLAGS = -I$(top_srcdir)/src/base \
 	$(libavformat_CFLAGS) $(libavdevice_CFLAGS) $(libswscale_CFLAGS) $(libass_CFLAGS) \
-	$(libopenal_CFLAGS) $(libglew_CFLAGS) $(libqtopengl_CFLAGS)
+	$(libopenal_CFLAGS) $(libgl_CFLAGS) $(libglew_CFLAGS) $(libqtopengl_CFLAGS)
 
 bino_LDADD = $(top_builddir)/src/base/libbase.a $(LIBINTL) $(LIBICONV) \
 	$(libavformat_LIBS) $(libavdevice_LIBS) $(libswscale_LIBS) $(libass_LIBS) \
-	$(libopenal_LIBS) $(libglew_LIBS) $(libqtopengl_LIBS)
+	$(libopenal_LIBS) $(libgl_LIBS) $(libglew_LIBS) $(libqtopengl_LIBS)
 
 if HAVE_LIBEQUALIZER
 bino_SOURCES += player_equalizer.h player_equalizer.cpp
