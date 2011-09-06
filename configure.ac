@@ -154,6 +154,29 @@ if test -z "$RCC" -o -z "$MOC"; then
     AC_MSG_WARN([rcc and/or moc not found; QtOpenGL not usable])
     HAVE_LIBQTOPENGL="0"
 fi
+if test "$HAVE_LIBQTOPENGL" = "1"; then
+    dnl When running on X11, we need to link with -lX11 explicitly since we use X functions directly
+    AC_MSG_CHECKING([whether we need to link with X11])
+    AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM([[
+	 #include <QGLWidget>
+	 #ifndef Q_WS_X11
+	  error: No X11
+	 #endif]],
+	[[int x = 0;]])],
+	[NEED_LIBX11="yes"],[NEED_LIBX11="no"])
+    AC_MSG_RESULT([$NEED_LIBX11])
+    if test "$NEED_LIBX11" = "yes"; then
+        PKG_CHECK_MODULES([libx11], [x11 >= 0.0], [HAVE_LIBX11=1], [HAVE_LIBX11=0])
+        if test "$HAVE_LIBX11" != "1"; then
+            AC_MSG_WARN([library libX11 not found:])
+            AC_MSG_WARN([$libx11_PKG_ERRORS])
+        else
+            libqtopengl_CFLAGS="$libqtopengl_CFLAGS $libx11_CFLAGS"
+            libqtopengl_LIBS="$libqtopengl_LIBS $libx11_LIBS"
+        fi
+    fi
+fi
 
 dnl Equalizer
 dnl We assume that Equalizer includes GLEW. If we don't use Equalizer, we need GLEW separately.

@@ -678,6 +678,8 @@ void video_output_qt::enter_fullscreen(int screens)
             /* According to the Qt documentation, it should be sufficient to call activateWindow()
              * to make a X11 window active when using Qt::X11BypassWindowManagerHint, but this
              * does not work for me (Ubuntu 11.04 Gnome-2D desktop). This is a workaround. */
+            /* Note that using X11 functions directly means that we have to link with libX11
+             * explicitly; see configure.ac. */
             QApplication::syncX();      // just for safety; not sure if it is necessary
             XSetInputFocus(QX11Info::display(), _container_widget->winId(), RevertToParent, CurrentTime);
             XFlush(QX11Info::display());
