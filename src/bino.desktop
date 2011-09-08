@@ -1,7 +1,10 @@
 [Desktop Entry]
 Name=Bino
 GenericName=3D video player
-Comment=Play 3D videos
+GenericName[de]=3D Videospieler
+GenericName[fr]=Lecteur vidéo 3D
+GenericName[pl]=Odtwarzacz 3D
+GenericName[ru]=3D видео плеер
 Icon=bino
 Categories=AudioVideo;Player;Video;
 Type=Application
