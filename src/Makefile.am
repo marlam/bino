@@ -150,12 +150,12 @@ dist_icons48_DATA = logo/48x48/bino.png
 dist_icons64_DATA = logo/64x64/bino.png
 dist_iconsscal_DATA = logo/scalable/bino.svg
 update-icon-cache:
-	test -n "$(DESTDIR)" -o -z "$(GTK_UPDATE_ICON_CACHE)" || $(GTK_UPDATE_ICON_CACHE) -q -f -t "$(iconsdatadir)"
+	test -n "$(DESTDIR)" -o -z "$(GTK_UPDATE_ICON_CACHE)" || (umask 022 && $(GTK_UPDATE_ICON_CACHE) -q -f -t "$(iconsdatadir)")
 
 appdatadir = $(datadir)/applications
 dist_appdata_DATA = bino.desktop
 update-desktop-database:
-	test -n "$(DESTDIR)" -o -z "$(UPDATE_DESKTOP_DATABASE)" || $(UPDATE_DESKTOP_DATABASE) "$(appdatadir)"
+	test -n "$(DESTDIR)" -o -z "$(UPDATE_DESKTOP_DATABASE)" || (umask 022 && $(UPDATE_DESKTOP_DATABASE) "$(appdatadir)")
 
 install-data-hook: update-icon-cache update-desktop-database
 uninstall-hook: update-icon-cache update-desktop-database
