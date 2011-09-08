@@ -237,6 +237,14 @@ AC_DEFINE_UNQUOTED([HAVE_LIBLIRCCLIENT], [$HAVE_LIBLIRCCLIENT], [Have liblirccli
 AC_DEFINE_UNQUOTED([LIBLIRCCLIENT_PKGCONFIG_VERSION], [$LIBLIRCCLIENT_PKGCONFIG_VERSION], [liblircclient version])
 AM_CONDITIONAL([HAVE_LIBLIRCCLIENT], [test "$HAVE_LIBLIRCCLIENT" = "1"])
 
+dnl Icon and Menu tools
+GTK_UPDATE_ICON_CACHE=""
+AC_ARG_VAR([GTK_UPDATE_ICON_CACHE], [gtk-update-icon-cache command])
+AC_CHECK_PROGS([GTK_UPDATE_ICON_CACHE], [gtk-update-icon-cache])
+UPDATE_DESKTOP_DATABASE=""
+AC_ARG_VAR([UPDATE_DESKTOP_DATABASE], [update-desktop-database command])
+AC_CHECK_PROGS([UPDATE_DESKTOP_DATABASE], [update-desktop-database])
+
 dnl Check if all libraries were found
 if test "$am_cv_func_iconv" != "yes" \
     -o "$HAVE_LIBAVFORMAT" != "1" \

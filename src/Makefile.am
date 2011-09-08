@@ -55,7 +55,6 @@ ICONS_LOCAL_IPE = \
 	icons-local/output-type-red-blue.ipe \
 	icons-local/output-type-stereo.ipe
 
-
 ICONS = \
 	icons/application-exit.png \
 	icons/applications-internet.png \
@@ -81,11 +80,6 @@ EXTRA_DIST = \
 	logo/bino_logo.ico \
 	logo/bino_logo.png \
 	logo/bino_logo.svg \
-	logo/bino_logo_small.svg \
-	logo/bino_logo_small_16x16.png \
-	logo/bino_logo_small_32x32.png \
-	logo/bino_logo_small_48x48.png \
-	logo/bino_logo_small_64x64.png \
 	icons/COPYING \
 	icons/README \
 	icons-local/README \
@@ -97,7 +91,7 @@ qt_resources.qrc:
 	echo '<file alias="AUTHORS">$(top_srcdir)/AUTHORS</file>'; \
 	echo '<file alias="LICENSE">$(top_srcdir)/COPYING</file>'; \
 	echo '<file alias="logo/bino_logo.png">$(top_srcdir)/src/logo/bino_logo.png</file>'; \
-	echo '<file alias="logo/bino_logo_small_64x64.png">$(top_srcdir)/src/logo/bino_logo_small_64x64.png</file>'; \
+	echo '<file alias="logo/64x64/bino.png">$(top_srcdir)/src/logo/64x64/bino.png</file>'; \
 	for icon in $(ICONS); do echo '<file alias="'"$${icon}"'">$(top_srcdir)/src/'"$${icon}"'</file>'; done; \
 	echo '</qresource>'; \
 	echo '</RCC>') > $@
@@ -143,6 +137,29 @@ bino_SOURCES += logo/bino_logo.ico
 .ico.o:
 	$(AM_V_GEN)echo "IDI_ICON1 ICON DISCARDABLE \"$<\"" | $(WINDRES) -o $@
 endif
+
+iconsdatadir = $(datadir)/icons/hicolor
+icons16dir = $(iconsdatadir)/16x16/apps
+icons32dir = $(iconsdatadir)/32x32/apps
+icons48dir = $(iconsdatadir)/48x48/apps
+icons64dir = $(iconsdatadir)/64x64/apps
+iconsscaldir = $(iconsdatadir)/scalable/apps
+dist_icons16_DATA = logo/16x16/bino.png
+dist_icons32_DATA = logo/32x32/bino.png
+dist_icons48_DATA = logo/48x48/bino.png
+dist_icons64_DATA = logo/64x64/bino.png
+dist_iconsscal_DATA = logo/scalable/bino.svg
+update-icon-cache:
+	test -n "$(DESTDIR)" -o -z "$(GTK_UPDATE_ICON_CACHE)" || $(GTK_UPDATE_ICON_CACHE) -q -f -t "$(iconsdatadir)"
+
+appdatadir = $(datadir)/applications
+dist_appdata_DATA = bino.desktop
+update-desktop-database:
+	test -n "$(DESTDIR)" -o -z "$(UPDATE_DESKTOP_DATABASE)" || $(UPDATE_DESKTOP_DATABASE) "$(appdatadir)"
+
+install-data-hook: update-icon-cache update-desktop-database
+uninstall-hook: update-icon-cache update-desktop-database
+
 
 moc_verbose = $(moc_verbose_$(V))
 moc_verbose_ = $(moc_verbose_$(AM_DEFAULT_VERBOSITY))

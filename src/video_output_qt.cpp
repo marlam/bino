@@ -235,7 +235,7 @@ void video_output_qt_widget::focusOutEvent(QFocusEvent *)
 
 video_container_widget::video_container_widget(QWidget *parent) : QWidget(parent), _w(64), _h(64)
 {
-    setWindowIcon(QIcon(":logo/bino_logo_small_64x64.png"));
+    setWindowIcon(QIcon(":logo/bino/64x64/bino.png"));
     // Set minimum size > 0 so that the container is always visible
     setMinimumSize(_w, _h);
     // Set suitable size policy

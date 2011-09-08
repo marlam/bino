@@ -1906,7 +1906,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
 {
     // Application properties
     setWindowTitle(PACKAGE_NAME);
-    setWindowIcon(QIcon(":logo/bino_logo_small_64x64.png"));
+    setWindowIcon(QIcon(":logo/64x64/bino.png"));
 
     // Load preferences
     _settings->beginGroup("Session");
