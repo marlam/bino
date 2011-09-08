@@ -10,7 +10,7 @@ SUBDIRS = po src doc
 
 ACLOCAL_AMFLAGS = -I m4
 
-EXTRA_DIST = README.Linux README.MacOSX README.Windows
+EXTRA_DIST = README.Linux README.FreeBSD README.MacOSX README.Windows
 
 # Create the ChangeLog file from the git log
 dist-hook:
