@@ -52,7 +52,7 @@ if test "$w32" = "yes"; then
     fi
     AC_CHECK_TOOL([MAKENSIS], [makensis], [:])
     if test "$MAKENSIS" = ":"; then
-        AC_MSG_WARN([makensis not found: you will not be able to create a W32 installer])
+        AC_MSG_WARN([optional tool makensis not found])
     fi
 else
     MAKENSIS=":"
@@ -83,7 +83,7 @@ dnl Gettext
 AC_LANG_PUSH([C])
 AM_ICONV([])
 if test "$am_cv_func_iconv" != "yes"; then
-    AC_MSG_WARN([libiconv not found])
+    AC_MSG_WARN([required library libiconv not found])
 fi
 AM_GNU_GETTEXT([external])
 AC_LANG_POP([C])
@@ -91,7 +91,7 @@ AC_LANG_POP([C])
 dnl pkg-config (required to detect libraries)
 PKG_PROG_PKG_CONFIG([])
 if test -z "$PKG_CONFIG"; then
-    AC_MSG_WARN([pkg-config not found])
+    AC_MSG_WARN([required tool pkg-config not found])
     AC_MSG_WARN([required libraries cannot be detected])
     AC_MSG_WARN([please install pkg-config; Debian package: pkg-config])
 fi
@@ -99,19 +99,19 @@ fi
 dnl FFmpeg
 PKG_CHECK_MODULES([libavformat], [libavformat >= 52.110.0 libavcodec libavutil], [HAVE_LIBAVFORMAT=1], [HAVE_LIBAVFORMAT=0])
 if test "$HAVE_LIBAVFORMAT" != "1"; then
-    AC_MSG_WARN([library libavformat >= 52.110.0 not found:])
+    AC_MSG_WARN([required library libavformat >= 52.110.0 not found:])
     AC_MSG_WARN([$libavformat_PKG_ERRORS])
     AC_MSG_WARN([libavformat >= 52.110.0 is provided by libav >= 0.7 or FFmpeg >= 0.7])
 fi
 PKG_CHECK_MODULES([libavdevice], [libavdevice >= 52.5.0], [HAVE_LIBAVDEVICE=1], [HAVE_LIBAVDEVICE=0])
 if test "$HAVE_LIBAVDEVICE" != "1"; then
-    AC_MSG_WARN([library libavdevice >= 52.5.0 not found:])
+    AC_MSG_WARN([required library libavdevice >= 52.5.0 not found:])
     AC_MSG_WARN([$libavdevice_PKG_ERRORS])
     AC_MSG_WARN([libavdevice >= 52.5.0 is provided by libav >= 0.7 or FFmpeg >= 0.7])
 fi
 PKG_CHECK_MODULES([libswscale], [libswscale >= 0.14.1 libavutil], [HAVE_LIBSWSCALE=1], [HAVE_LIBSWSCALE=0])
 if test "$HAVE_LIBSWSCALE" != "1"; then
-    AC_MSG_WARN([library libswscale >= 0.14.1 not found:])
+    AC_MSG_WARN([required library libswscale >= 0.14.1 not found:])
     AC_MSG_WARN([$libswscale_PKG_ERRORS])
     AC_MSG_WARN([libswscale >= 0.14.1 is provided by libav >= 0.7 or FFmpeg >= 0.7])
 fi
@@ -121,7 +121,7 @@ dnl libass
 LIBASS_PKGCONFIG_VERSION="\"\""
 PKG_CHECK_MODULES([libass], [libass >= 0.9.9], [HAVE_LIBASS=1], [HAVE_LIBASS=0])
 if test "$HAVE_LIBASS" != "1"; then
-    AC_MSG_WARN([library libass not found:])
+    AC_MSG_WARN([required library libass not found:])
     AC_MSG_WARN([$libopenal_PKG_ERRORS])
     AC_MSG_WARN([libass is provided by LibASS; Debian package: libass-dev])
 else
@@ -132,7 +132,7 @@ AC_DEFINE_UNQUOTED([LIBASS_PKGCONFIG_VERSION], [$LIBASS_PKGCONFIG_VERSION], [lib
 dnl OpenAL
 PKG_CHECK_MODULES([libopenal], [openal >= 0.0], [HAVE_LIBOPENAL=1], [HAVE_LIBOPENAL=0])
 if test "$HAVE_LIBOPENAL" != "1"; then
-    AC_MSG_WARN([library libopenal not found:])
+    AC_MSG_WARN([required library libopenal not found:])
     AC_MSG_WARN([$libopenal_PKG_ERRORS])
     AC_MSG_WARN([libopenal is provided by OpenAL; Debian package: libopenal-dev])
 fi
@@ -144,14 +144,14 @@ MOC=""
 AC_ARG_VAR([MOC], [moc command])
 PKG_CHECK_MODULES([libqtopengl], [QtOpenGL >= 0.0], [HAVE_LIBQTOPENGL=1], [HAVE_LIBQTOPENGL=0])
 if test "$HAVE_LIBQTOPENGL" != "1"; then
-    AC_MSG_WARN([library QtOpenGL not found:])
+    AC_MSG_WARN([required library QtOpenGL not found:])
     AC_MSG_WARN([$libqtopengl_PKG_ERRORS])
     AC_MSG_WARN([QtOpenGL is provided by Qt; Debian package: libqt4-opengl-dev])
 else
     AC_CHECK_TOOLS([RCC], [rcc-qt4 rcc])
     AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
     if test -z "$RCC" -o -z "$MOC"; then
-        AC_MSG_WARN([rcc and/or moc not found; QtOpenGL not usable])
+        AC_MSG_WARN([required tools rcc and/or moc not found; QtOpenGL not usable])
         HAVE_LIBQTOPENGL="0"
     fi
 fi
@@ -173,8 +173,8 @@ if test "$HAVE_LIBQTOPENGL" = "1"; then
     if test "$NEED_LIBX11" = "yes"; then
         PKG_CHECK_MODULES([libX11], [x11 >= 0.0], [HAVE_LIBX11=1], [HAVE_LIBX11=0])
         if test "$HAVE_LIBX11" != "1"; then
-            AC_MSG_WARN([library libX11 not found:])
-            AC_MSG_WARN([$libx11_PKG_ERRORS])
+            AC_MSG_WARN([required library libX11 not found:])
+            AC_MSG_WARN([$libX11_PKG_ERRORS])
         else
             libqtopengl_CFLAGS="$libqtopengl_CFLAGS $libX11_CFLAGS"
             libqtopengl_LIBS="$libqtopengl_LIBS $libX11_LIBS"
@@ -190,7 +190,7 @@ AC_ARG_WITH([equalizer],
 if test "$equalizer" = "yes"; then
     PKG_CHECK_MODULES([libEqualizer], [Equalizer >= 0.9.3], [HAVE_LIBEQUALIZER=1], [HAVE_LIBEQUALIZER=0])
     if test "$HAVE_LIBEQUALIZER" != "1"; then
-        AC_MSG_WARN([library libEqualizer not found:])
+        AC_MSG_WARN([optional library libEqualizer not found:])
         AC_MSG_WARN([$libEqualizer_PKG_ERRORS])
         AC_MSG_WARN([libEqualizer is provided by Equalizer])
 	equalizer="no"
@@ -201,7 +201,7 @@ if test "$equalizer" = "no"; then
     dnl glew
     PKG_CHECK_MODULES([libglew], [glew >= 1.5.0], [HAVE_LIBGLEW=1], [HAVE_LIBGLEW=0])
     if test "$HAVE_LIBGLEW" != "1"; then
-        AC_MSG_WARN([library libglew >= 1.5.0 not found:])
+        AC_MSG_WARN([required library libglew >= 1.5.0 not found:])
         AC_MSG_WARN([$libglew_PKG_ERRORS])
         AC_MSG_WARN([libglew is provided by glew; Debian package: libglew-dev])
     fi
@@ -223,7 +223,7 @@ AC_ARG_WITH([liblircclient],
 if test "$lirc" = "yes"; then
     PKG_CHECK_MODULES([liblircclient], [liblircclient0 >= 0.0], [HAVE_LIBLIRCCLIENT=1], [HAVE_LIBLIRCCLIENT=0])
     if test "$HAVE_LIBLIRCCLIENT" != "1"; then
-        AC_MSG_WARN([library liblircclient not found:])
+        AC_MSG_WARN([optional library liblircclient not found:])
         AC_MSG_WARN([$liblircclient_PKG_ERRORS])
         AC_MSG_WARN([liblircclient is provided by LIRC; Debian package: liblircclient-dev])
 	lirc="no"
@@ -237,7 +237,7 @@ AC_DEFINE_UNQUOTED([HAVE_LIBLIRCCLIENT], [$HAVE_LIBLIRCCLIENT], [Have liblirccli
 AC_DEFINE_UNQUOTED([LIBLIRCCLIENT_PKGCONFIG_VERSION], [$LIBLIRCCLIENT_PKGCONFIG_VERSION], [liblircclient version])
 AM_CONDITIONAL([HAVE_LIBLIRCCLIENT], [test "$HAVE_LIBLIRCCLIENT" = "1"])
 
-dnl Icon and Menu tools
+dnl Icon and Menu tools. It is ok if these are missing.
 GTK_UPDATE_ICON_CACHE=""
 AC_ARG_VAR([GTK_UPDATE_ICON_CACHE], [gtk-update-icon-cache command])
 AC_CHECK_PROGS([GTK_UPDATE_ICON_CACHE], [gtk-update-icon-cache])
