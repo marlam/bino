@@ -316,6 +316,16 @@ void media_input::open(const std::vector<std::string> &urls, const device_reques
     }
 }
 
+size_t media_input::urls() const
+{
+    return _media_objects.size();
+}
+
+const std::string &media_input::url(size_t i) const
+{
+    return _media_objects[i].url();
+}
+
 const std::string &media_input::id() const
 {
     return _id;

@@ -76,6 +76,11 @@ public:
 
     /* Get information */
 
+    // The number of URLs (= the number of media objects)
+    size_t urls() const;
+    // Get the URL with the given index
+    const std::string &url(size_t i) const;
+
     // Identifier.
     const std::string &id() const;
 
