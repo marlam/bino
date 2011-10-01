@@ -2829,7 +2829,7 @@ void main_window::help_manual()
 #elif defined(Q_OS_MAC)
     manual_url = QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/../Resources/Bino Help/bino.html");
 #else
-    manual_url = QUrl::fromLocalFile(DOCDIR "/bino.html");
+    manual_url = QUrl::fromLocalFile(HTMLDIR "/bino.html");
 #endif
     if (!QDesktopServices::openUrl(manual_url))
     {
