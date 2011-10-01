@@ -50,6 +50,6 @@ bino_TEXINFOS = bino.texi $(IMAGES)
 
 AM_MAKEINFOHTMLFLAGS = --no-split
 
-dist_doc_DATA = bino.html $(IMAGES)
+dist_html_DATA = bino.html $(IMAGES)
 
 EXTRA_DIST = $(man_MANS)

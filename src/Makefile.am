@@ -110,7 +110,7 @@ BUILT_SOURCES = $(nodist_bino_SOURCES)
 
 CLEANFILES = $(BUILT_SOURCES)
 
-DEFS += -DDOCDIR=\"$(docdir)\" -DLOCALEDIR=\"$(localedir)\"
+DEFS += -DHTMLDIR=\"$(htmldir)\" -DLOCALEDIR=\"$(localedir)\"
 
 AM_CPPFLAGS = -I$(top_srcdir)/src/base \
 	$(libavformat_CFLAGS) $(libavdevice_CFLAGS) $(libswscale_CFLAGS) $(libass_CFLAGS) \
