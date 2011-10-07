@@ -40,7 +40,7 @@ private:
 
     // Set video frame and audio blob templates by extracting the information
     // from the given streams
-    void set_video_frame_template(int video_stream);
+    void set_video_frame_template(int video_stream, int width_before_avcodec_open, int height_before_avcodec_open);
     void set_audio_blob_template(int audio_stream);
     void set_subtitle_box_template(int subtitle_stream);
 
