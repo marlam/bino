@@ -1045,8 +1045,8 @@ void controls_widget::receive_notification(const notification &note)
 }
 
 
-color_dialog::color_dialog(const parameters &params, QWidget *parent) : QDialog(parent),
-    _lock(false)
+color_dialog::color_dialog(parameters *params, QWidget *parent) : QDialog(parent),
+    _params(params), _lock(false)
 {
     setModal(false);
     setWindowTitle(_("Display Color Adjustments"));
@@ -1054,44 +1054,44 @@ color_dialog::color_dialog(const parameters &params, QWidget *parent) : QDialog(
     QLabel *c_label = new QLabel(_("Contrast:"));
     _c_slider = new QSlider(Qt::Horizontal);
     _c_slider->setRange(-1000, 1000);
-    _c_slider->setValue(params.contrast * 1000.0f);
+    _c_slider->setValue(params->contrast * 1000.0f);
     connect(_c_slider, SIGNAL(valueChanged(int)), this, SLOT(c_slider_changed(int)));
     _c_spinbox = new QDoubleSpinBox();
     _c_spinbox->setRange(-1.0, +1.0);
-    _c_spinbox->setValue(params.contrast);
+    _c_spinbox->setValue(params->contrast);
     _c_spinbox->setDecimals(2);
     _c_spinbox->setSingleStep(0.01);
     connect(_c_spinbox, SIGNAL(valueChanged(double)), this, SLOT(c_spinbox_changed(double)));
     QLabel *b_label = new QLabel(_("Brightness:"));
     _b_slider = new QSlider(Qt::Horizontal);
     _b_slider->setRange(-1000, 1000);
-    _b_slider->setValue(params.brightness * 1000.0f);
+    _b_slider->setValue(params->brightness * 1000.0f);
     connect(_b_slider, SIGNAL(valueChanged(int)), this, SLOT(b_slider_changed(int)));
     _b_spinbox = new QDoubleSpinBox();
     _b_spinbox->setRange(-1.0, +1.0);
-    _b_spinbox->setValue(params.brightness);
+    _b_spinbox->setValue(params->brightness);
     _b_spinbox->setDecimals(2);
     _b_spinbox->setSingleStep(0.01);
     connect(_b_spinbox, SIGNAL(valueChanged(double)), this, SLOT(b_spinbox_changed(double)));
     QLabel *h_label = new QLabel(_("Hue:"));
     _h_slider = new QSlider(Qt::Horizontal);
     _h_slider->setRange(-1000, 1000);
-    _h_slider->setValue(params.hue * 1000.0f);
+    _h_slider->setValue(params->hue * 1000.0f);
     connect(_h_slider, SIGNAL(valueChanged(int)), this, SLOT(h_slider_changed(int)));
     _h_spinbox = new QDoubleSpinBox();
     _h_spinbox->setRange(-1.0, +1.0);
-    _h_spinbox->setValue(params.hue);
+    _h_spinbox->setValue(params->hue);
     _h_spinbox->setDecimals(2);
     _h_spinbox->setSingleStep(0.01);
     connect(_h_spinbox, SIGNAL(valueChanged(double)), this, SLOT(h_spinbox_changed(double)));
     QLabel *s_label = new QLabel(_("Saturation:"));
     _s_slider = new QSlider(Qt::Horizontal);
     _s_slider->setRange(-1000, 1000);
-    _s_slider->setValue(params.saturation * 1000.0f);
+    _s_slider->setValue(params->saturation * 1000.0f);
     connect(_s_slider, SIGNAL(valueChanged(int)), this, SLOT(s_slider_changed(int)));
     _s_spinbox = new QDoubleSpinBox();
     _s_spinbox->setRange(-1.0, +1.0);
-    _s_spinbox->setValue(params.saturation);
+    _s_spinbox->setValue(params->saturation);
     _s_spinbox->setDecimals(2);
     _s_spinbox->setSingleStep(0.01);
     connect(_s_spinbox, SIGNAL(valueChanged(double)), this, SLOT(s_spinbox_changed(double)));
@@ -1120,6 +1120,10 @@ void color_dialog::c_slider_changed(int val)
 {
     if (!_lock)
     {
+        _params->contrast = val / 1000.0f;
+        _lock = true;
+        _c_spinbox->setValue(val / 1000.0f);
+        _lock = false;
         send_cmd(command::set_contrast, val / 1000.0f);
     }
 }
@@ -1128,6 +1132,10 @@ void color_dialog::c_spinbox_changed(double val)
 {
     if (!_lock)
     {
+        _params->contrast = val;
+        _lock = true;
+        _c_slider->setValue(val * 1000.0);
+        _lock = false;
         send_cmd(command::set_contrast, static_cast<float>(val));
     }
 }
@@ -1136,6 +1144,10 @@ void color_dialog::b_slider_changed(int val)
 {
     if (!_lock)
     {
+        _params->brightness = val / 1000.0f;
+        _lock = true;
+        _b_spinbox->setValue(val / 1000.0f);
+        _lock = false;
         send_cmd(command::set_brightness, val / 1000.0f);
     }
 }
@@ -1144,6 +1156,10 @@ void color_dialog::b_spinbox_changed(double val)
 {
     if (!_lock)
     {
+        _params->brightness = val;
+        _lock = true;
+        _b_slider->setValue(val * 1000.0);
+        _lock = false;
         send_cmd(command::set_brightness, static_cast<float>(val));
     }
 }
@@ -1152,6 +1168,10 @@ void color_dialog::h_slider_changed(int val)
 {
     if (!_lock)
     {
+        _params->hue = val / 1000.0f;
+        _lock = true;
+        _h_spinbox->setValue(val / 1000.0f);
+        _lock = false;
         send_cmd(command::set_hue, val / 1000.0f);
     }
 }
@@ -1160,6 +1180,10 @@ void color_dialog::h_spinbox_changed(double val)
 {
     if (!_lock)
     {
+        _params->hue = val;
+        _lock = true;
+        _h_slider->setValue(val * 1000.0);
+        _lock = false;
         send_cmd(command::set_hue, static_cast<float>(val));
     }
 }
@@ -1168,6 +1192,10 @@ void color_dialog::s_slider_changed(int val)
 {
     if (!_lock)
     {
+        _params->saturation = val / 1000.0f;
+        _lock = true;
+        _s_spinbox->setValue(val / 1000.0f);
+        _lock = false;
         send_cmd(command::set_saturation, val / 1000.0f);
     }
 }
@@ -1176,6 +1204,10 @@ void color_dialog::s_spinbox_changed(double val)
 {
     if (!_lock)
     {
+        _params->saturation = val;
+        _lock = true;
+        _s_slider->setValue(val * 1000.0);
+        _lock = false;
         send_cmd(command::set_saturation, static_cast<float>(val));
     }
 }
@@ -1223,7 +1255,7 @@ void color_dialog::receive_notification(const notification &note)
 
 
 crosstalk_dialog::crosstalk_dialog(parameters *params, QWidget *parent) : QDialog(parent),
-    _lock(false), _params(params)
+    _params(params), _lock(false)
 {
     setModal(false);
     setWindowTitle(_("Display Crosstalk Calibration"));
@@ -1274,17 +1306,14 @@ void crosstalk_dialog::spinbox_changed()
 {
     if (!_lock)
     {
+        _params->crosstalk_r = _r_spinbox->value();
+        _params->crosstalk_g = _g_spinbox->value();
+        _params->crosstalk_b = _b_spinbox->value();
         std::ostringstream v;
         s11n::save(v, static_cast<float>(_r_spinbox->value()));
         s11n::save(v, static_cast<float>(_g_spinbox->value()));
         s11n::save(v, static_cast<float>(_b_spinbox->value()));
         send_cmd(command::set_crosstalk, v.str());
-        /* Also set crosstalk levels in init data, because this must also work in
-         * the absence of a player that interpretes the above command (i.e. when
-         * no video is currently playing */
-        _params->crosstalk_r = _r_spinbox->value();
-        _params->crosstalk_g = _g_spinbox->value();
-        _params->crosstalk_b = _b_spinbox->value();
     }
 }
 
@@ -1461,12 +1490,10 @@ void subtitle_dialog::encoding_changed()
     {
         std::string encoding = _encoding_checkbox->isChecked()
             ? _encoding_combobox->currentText().toStdString() : "";
+        _params->subtitle_encoding = encoding;
         std::ostringstream v;
         s11n::save(v, encoding);
         send_cmd(command::set_subtitle_encoding, v.str());
-        /* Also set in init data, because this must also work in the absence of a player
-         * that interpretes the above command (i.e. when no video is currently playing). */
-        _params->subtitle_encoding = encoding;
     }
 }
 
@@ -1477,12 +1504,10 @@ void subtitle_dialog::font_changed()
         std::string font = _font_checkbox->isChecked()
             ? _font_combobox->currentFont().family().toLocal8Bit().constData()
             : "";
+        _params->subtitle_font = font;
         std::ostringstream v;
         s11n::save(v, font);
         send_cmd(command::set_subtitle_font, v.str());
-        /* Also set in init data, because this must also work in the absence of a player
-         * that interpretes the above command (i.e. when no video is currently playing). */
-        _params->subtitle_font = font;
     }
 }
 
@@ -1491,12 +1516,10 @@ void subtitle_dialog::size_changed()
     if (!_lock)
     {
         int size = _size_checkbox->isChecked() ? _size_spinbox->value() : -1;
+        _params->subtitle_size = size;
         std::ostringstream v;
         s11n::save(v, size);
         send_cmd(command::set_subtitle_size, v.str());
-        /* Also set in init data, because this must also work in the absence of a player
-         * that interpretes the above command (i.e. when no video is currently playing). */
-        _params->subtitle_size = size;
     }
 }
 
@@ -1505,12 +1528,10 @@ void subtitle_dialog::scale_changed()
     if (!_lock)
     {
         float scale = _scale_checkbox->isChecked() ? _scale_spinbox->value() : -1.0f;
+        _params->subtitle_scale = scale;
         std::ostringstream v;
         s11n::save(v, scale);
         send_cmd(command::set_subtitle_scale, v.str());
-        /* Also set in init data, because this must also work in the absence of a player
-         * that interpretes the above command (i.e. when no video is currently playing). */
-        _params->subtitle_scale = scale;
     }
 }
 
@@ -1531,12 +1552,10 @@ void subtitle_dialog::color_changed()
         {
             color = std::numeric_limits<uint64_t>::max();
         }
+        _params->subtitle_color = color;
         std::ostringstream v;
         s11n::save(v, color);
         send_cmd(command::set_subtitle_color, v.str());
-        /* Also set in init data, because this must also work in the absence of a player
-         * that interpretes the above command (i.e. when no video is currently playing). */
-        _params->subtitle_color = color;
     }
 }
 
@@ -1618,8 +1637,8 @@ void subtitle_dialog::receive_notification(const notification &note)
 }
 
 
-stereoscopic_dialog::stereoscopic_dialog(const parameters &params, QWidget *parent) : QDialog(parent),
-    _lock(false)
+stereoscopic_dialog::stereoscopic_dialog(parameters *params, QWidget *parent) : QDialog(parent),
+    _params(params), _lock(false)
 {
     setModal(false);
     setWindowTitle(_("Stereoscopic Video Settings"));
@@ -1630,12 +1649,12 @@ stereoscopic_dialog::stereoscopic_dialog(const parameters &params, QWidget *pare
     _p_slider = new QSlider(Qt::Horizontal);
     _p_slider->setToolTip(p_label->toolTip());
     _p_slider->setRange(-1000, 1000);
-    _p_slider->setValue(params.parallax * 1000.0f);
+    _p_slider->setValue(params->parallax * 1000.0f);
     connect(_p_slider, SIGNAL(valueChanged(int)), this, SLOT(p_slider_changed(int)));
     _p_spinbox = new QDoubleSpinBox();
     _p_spinbox->setToolTip(p_label->toolTip());
     _p_spinbox->setRange(-1.0, +1.0);
-    _p_spinbox->setValue(params.parallax);
+    _p_spinbox->setValue(params->parallax);
     _p_spinbox->setDecimals(2);
     _p_spinbox->setSingleStep(0.01);
     connect(_p_spinbox, SIGNAL(valueChanged(double)), this, SLOT(p_spinbox_changed(double)));
@@ -1646,12 +1665,12 @@ stereoscopic_dialog::stereoscopic_dialog(const parameters &params, QWidget *pare
     _sp_slider = new QSlider(Qt::Horizontal);
     _sp_slider->setToolTip(sp_label->toolTip());
     _sp_slider->setRange(-1000, 1000);
-    _sp_slider->setValue(params.subtitle_parallax * 1000.0f);
+    _sp_slider->setValue(params->subtitle_parallax * 1000.0f);
     connect(_sp_slider, SIGNAL(valueChanged(int)), this, SLOT(sp_slider_changed(int)));
     _sp_spinbox = new QDoubleSpinBox();
     _sp_spinbox->setToolTip(sp_label->toolTip());
     _sp_spinbox->setRange(-1.0, +1.0);
-    _sp_spinbox->setValue(params.subtitle_parallax);
+    _sp_spinbox->setValue(params->subtitle_parallax);
     _sp_spinbox->setDecimals(2);
     _sp_spinbox->setSingleStep(0.01);
     connect(_sp_spinbox, SIGNAL(valueChanged(double)), this, SLOT(sp_spinbox_changed(double)));
@@ -1663,12 +1682,12 @@ stereoscopic_dialog::stereoscopic_dialog(const parameters &params, QWidget *pare
     _g_slider = new QSlider(Qt::Horizontal);
     _g_slider->setToolTip(g_label->toolTip());
     _g_slider->setRange(0, 1000);
-    _g_slider->setValue(params.ghostbust * 1000.0f);
+    _g_slider->setValue(params->ghostbust * 1000.0f);
     connect(_g_slider, SIGNAL(valueChanged(int)), this, SLOT(g_slider_changed(int)));
     _g_spinbox = new QDoubleSpinBox();
     _g_spinbox->setToolTip(g_label->toolTip());
     _g_spinbox->setRange(0.0, +1.0);
-    _g_spinbox->setValue(params.ghostbust);
+    _g_spinbox->setValue(params->ghostbust);
     _g_spinbox->setDecimals(2);
     _g_spinbox->setSingleStep(0.01);
     connect(_g_spinbox, SIGNAL(valueChanged(double)), this, SLOT(g_spinbox_changed(double)));
@@ -1694,6 +1713,10 @@ void stereoscopic_dialog::p_slider_changed(int val)
 {
     if (!_lock)
     {
+        _params->parallax = val / 1000.0f;
+        _lock = true;
+        _p_spinbox->setValue(val / 1000.0f);
+        _lock = false;
         send_cmd(command::set_parallax, val / 1000.0f);
     }
 }
@@ -1702,6 +1725,10 @@ void stereoscopic_dialog::p_spinbox_changed(double val)
 {
     if (!_lock)
     {
+        _params->parallax = val;
+        _lock = true;
+        _p_slider->setValue(val * 1000.0);
+        _lock = false;
         send_cmd(command::set_parallax, static_cast<float>(val));
     }
 }
@@ -1710,6 +1737,10 @@ void stereoscopic_dialog::sp_slider_changed(int val)
 {
     if (!_lock)
     {
+        _params->subtitle_parallax = val / 1000.0f;
+        _lock = true;
+        _sp_spinbox->setValue(val / 1000.0f);
+        _lock = false;
         send_cmd(command::set_subtitle_parallax, val / 1000.0f);
     }
 }
@@ -1718,6 +1749,10 @@ void stereoscopic_dialog::sp_spinbox_changed(double val)
 {
     if (!_lock)
     {
+        _params->subtitle_parallax = val;
+        _lock = true;
+        _sp_slider->setValue(val * 1000.0);
+        _lock = false;
         send_cmd(command::set_subtitle_parallax, static_cast<float>(val));
     }
 }
@@ -1726,6 +1761,10 @@ void stereoscopic_dialog::g_slider_changed(int val)
 {
     if (!_lock)
     {
+        _params->ghostbust = val / 1000.0f;
+        _lock = true;
+        _g_spinbox->setValue(val / 1000.0f);
+        _lock = false;
         send_cmd(command::set_ghostbust, val / 1000.0f);
     }
 }
@@ -1734,6 +1773,10 @@ void stereoscopic_dialog::g_spinbox_changed(double val)
 {
     if (!_lock)
     {
+        _params->ghostbust = val;
+        _lock = true;
+        _g_slider->setValue(val * 1000.0);
+        _lock = false;
         send_cmd(command::set_ghostbust, static_cast<float>(val));
     }
 }
@@ -2586,7 +2629,7 @@ void main_window::preferences_colors()
 {
     if (!_color_dialog)
     {
-        _color_dialog = new color_dialog(_init_data.params, this);
+        _color_dialog = new color_dialog(&_init_data.params, this);
     }
     _color_dialog->show();
     _color_dialog->raise();
@@ -2619,7 +2662,7 @@ void main_window::preferences_stereoscopic()
 {
     if (!_stereoscopic_dialog)
     {
-        _stereoscopic_dialog = new stereoscopic_dialog(_init_data.params, this);
+        _stereoscopic_dialog = new stereoscopic_dialog(&_init_data.params, this);
     }
     _stereoscopic_dialog->show();
     _stereoscopic_dialog->raise();

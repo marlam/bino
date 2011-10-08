@@ -162,6 +162,7 @@ class color_dialog : public QDialog, public controller
     Q_OBJECT
 
 private:
+    parameters *_params;
     bool _lock;
     QDoubleSpinBox *_c_spinbox;
     QSlider *_c_slider;
@@ -183,7 +184,7 @@ private slots:
     void s_spinbox_changed(double val);
 
 public:
-    color_dialog(const parameters &params, QWidget *parent);
+    color_dialog(parameters *params, QWidget *parent);
 
     virtual void receive_notification(const notification &note);
 };
@@ -193,11 +194,11 @@ class crosstalk_dialog : public QDialog, public controller
     Q_OBJECT
 
 private:
+    parameters *_params;
     bool _lock;
     QDoubleSpinBox *_r_spinbox;
     QDoubleSpinBox *_g_spinbox;
     QDoubleSpinBox *_b_spinbox;
-    parameters *_params;
 
 private slots:
     void spinbox_changed();
@@ -249,6 +250,7 @@ class stereoscopic_dialog : public QDialog, public controller
     Q_OBJECT
 
 private:
+    parameters *_params;
     bool _lock;
     QDoubleSpinBox *_p_spinbox;
     QSlider *_p_slider;
@@ -266,7 +268,7 @@ private slots:
     void g_spinbox_changed(double val);
 
 public:
-    stereoscopic_dialog(const parameters &params, QWidget *parent);
+    stereoscopic_dialog(parameters *params, QWidget *parent);
 
     virtual void receive_notification(const notification &note);
 };
