@@ -196,6 +196,10 @@ bool lircclient::get_command(const std::string &s, command &c)
     {
         c = command(command::center);
     }
+    else if (std::sscanf(t.c_str(), "zoom %f", &parameter) == 1)
+    {
+        c = command(command::adjust_zoom, parameter);
+    }
     else if (std::sscanf(t.c_str(), "adjust-contrast %f", &parameter) == 1)
     {
         c = command(command::adjust_contrast, parameter);

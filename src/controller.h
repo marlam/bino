@@ -91,6 +91,8 @@ public:
         set_fullscreen_flop_left,       // int
         set_fullscreen_flip_right,      // int
         set_fullscreen_flop_right,      // int
+        adjust_zoom,                    // float (relative adjustment)
+        set_zoom,                       // float (absolute value)
     };
     
     type type;
@@ -165,6 +167,7 @@ public:
         fullscreen_flop_left,   // int
         fullscreen_flip_right,  // int
         fullscreen_flop_right,  // int
+        zoom,                   // float
     };
     
     type type;

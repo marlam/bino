@@ -576,7 +576,8 @@ parameters::parameters() :
     fullscreen_flip_left(-1),
     fullscreen_flop_left(-1),
     fullscreen_flip_right(-1),
-    fullscreen_flop_right(-1)
+    fullscreen_flop_right(-1),
+    zoom(-1.0f)
 {
 }
 
@@ -661,6 +662,10 @@ void parameters::set_defaults()
     if (fullscreen_flop_right < 0)
     {
         fullscreen_flop_right = 0;
+    }
+    if (!std::isfinite(zoom) || zoom < 0.0f)
+    {
+        zoom = 0.0f;
     }
 }
 
@@ -898,6 +903,7 @@ void parameters::save(std::ostream &os) const
     s11n::save(os, fullscreen_flop_left);
     s11n::save(os, fullscreen_flip_right);
     s11n::save(os, fullscreen_flop_right);
+    s11n::save(os, zoom);
 }
 
 void parameters::load(std::istream &is)
@@ -928,4 +934,5 @@ void parameters::load(std::istream &is)
     s11n::load(is, fullscreen_flop_left);
     s11n::load(is, fullscreen_flip_right);
     s11n::load(is, fullscreen_flop_right);
+    s11n::load(is, zoom);
 }

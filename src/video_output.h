@@ -72,8 +72,9 @@ private:
     GLuint _render_prg;                 // reads sRGB texture, renders according to _params[_active_index]
     GLuint _render_dummy_tex;           // an empty subtitle texture
     GLuint _render_mask_tex;            // for the masking modes even-odd-{rows,columns}, checkerboard
-    // OpenGL viewports for drawing the two views of the video frame
+    // OpenGL viewports and tex coordinates for drawing the two views of the video frame
     GLint _viewport[2][4];
+    float _tex_coords[2][4][2];
 
 private:
     // Step 1: initialize/deinitialize, and check if reinitialization is necessary
@@ -117,10 +118,11 @@ protected:
      * The second version is for everyone else.
      * TODO: This function needs to handle interlaced frames! */
     void display_current_frame(bool keep_viewport, bool mono_right_instead_of_left,
-            float x, float y, float w, float h, const GLint viewport[2][4]);
+            float x, float y, float w, float h,
+            const GLint viewport[2][4], const float tex_coords[2][4][2]);
     void display_current_frame()
     {
-        display_current_frame(false, false, -1.0f, -1.0f, 2.0f, 2.0f, _viewport);
+        display_current_frame(false, false, -1.0f, -1.0f, 2.0f, 2.0f, _viewport, _tex_coords);
     }
 
 public:

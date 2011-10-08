@@ -184,11 +184,17 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_ParenRight:
         _vo->send_cmd(command::adjust_ghostbust, +0.01f);
         break;
-    case Qt::Key_Less:
+    case Qt::Key_BracketLeft:
         _vo->send_cmd(command::adjust_parallax, -0.01f);
         break;
-    case Qt::Key_Greater:
+    case Qt::Key_BracketRight:
         _vo->send_cmd(command::adjust_parallax, +0.01f);
+        break;
+    case Qt::Key_Less:
+        _vo->send_cmd(command::adjust_zoom, -0.1f);
+        break;
+    case Qt::Key_Greater:
+        _vo->send_cmd(command::adjust_zoom, +0.1f);
         break;
     case Qt::Key_Left:
         _vo->send_cmd(command::seek, -10.0f);

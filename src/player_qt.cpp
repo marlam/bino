@@ -1045,6 +1045,76 @@ void controls_widget::receive_notification(const notification &note)
 }
 
 
+zoom_dialog::zoom_dialog(const parameters &params, QWidget *parent) : QDialog(parent),
+    _lock(false)
+{
+    setModal(false);
+    setWindowTitle(_("Zoom Settings"));
+
+    QLabel *z_label = new QLabel(_("Zoom:"));
+    z_label->setToolTip(_("<p>Set the zoom level for videos that are wider than the screen, "
+                "from 0 (off; show full video width) to 1 (full; use full screen height).</p>"));
+    _z_slider = new QSlider(Qt::Horizontal);
+    _z_slider->setRange(0, 1000);
+    _z_slider->setValue(params.zoom * 1000.0f);
+    _z_slider->setToolTip(z_label->toolTip());
+    connect(_z_slider, SIGNAL(valueChanged(int)), this, SLOT(z_slider_changed(int)));
+    _z_spinbox = new QDoubleSpinBox();
+    _z_spinbox->setRange(0.0, +1.0);
+    _z_spinbox->setValue(params.zoom);
+    _z_spinbox->setDecimals(2);
+    _z_spinbox->setSingleStep(0.01);
+    _z_spinbox->setToolTip(z_label->toolTip());
+    connect(_z_spinbox, SIGNAL(valueChanged(double)), this, SLOT(z_spinbox_changed(double)));
+
+    QPushButton *ok_button = new QPushButton(_("OK"));
+    connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(z_label, 0, 0);
+    layout->addWidget(_z_slider, 0, 1);
+    layout->addWidget(_z_spinbox, 0, 2);
+    layout->addWidget(ok_button, 1, 0, 1, 3);
+    setLayout(layout);
+}
+
+void zoom_dialog::z_slider_changed(int val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_zoom, val / 1000.0f);
+    }
+}
+
+void zoom_dialog::z_spinbox_changed(double val)
+{
+    if (!_lock)
+    {
+        send_cmd(command::set_zoom, static_cast<float>(val));
+    }
+}
+
+void zoom_dialog::receive_notification(const notification &note)
+{
+    std::istringstream current(note.current);
+    float value;
+
+    switch (note.type)
+    {
+    case notification::zoom:
+        s11n::load(current, value);
+        _lock = true;
+        _z_slider->setValue(value * 1000.0f);
+        _z_spinbox->setValue(value);
+        _lock = false;
+        break;
+    default:
+        /* not handled */
+        break;
+    }
+}
+
+
 color_dialog::color_dialog(const parameters &params, QWidget *parent) : QDialog(parent),
     _lock(false)
 {
@@ -1895,6 +1965,7 @@ void open_device_dialog::request(QString &device, device_request &dev_request)
 
 main_window::main_window(QSettings *settings, const player_init_data &init_data) :
     _settings(settings),
+    _zoom_dialog(NULL),
     _color_dialog(NULL),
     _crosstalk_dialog(NULL),
     _subtitle_dialog(NULL),
@@ -1979,6 +2050,10 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     {
         _init_data.params.fullscreen_flop_right = _settings->value("fullscreen-flop-right", QString("-1")).toInt();
     }
+    if (_init_data.params.zoom < 0.0f)
+    {
+        _init_data.params.zoom = _settings->value("zoom", QString("-1")).toFloat();
+    }
     _settings->endGroup();
     _init_data.params.set_defaults();
 
@@ -2026,6 +2101,9 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     QMenu *preferences_menu = menuBar()->addMenu(_("&Preferences"));
     // note: whenever the preferences menu becomes a preferences panel, don't forget
     // to preferences_act->setMenuRole(QAction::PreferencesRole) on the menu item
+    QAction *preferences_zoom_act = new QAction(_("&Zoom..."), this);
+    connect(preferences_zoom_act, SIGNAL(triggered()), this, SLOT(preferences_zoom()));
+    preferences_menu->addAction(preferences_zoom_act);
     QAction *preferences_fullscreen_act = new QAction(_("&Fullscreen Settings..."), this);
     connect(preferences_fullscreen_act, SIGNAL(triggered()), this, SLOT(preferences_fullscreen()));
     preferences_menu->addAction(preferences_fullscreen_act);
@@ -2288,6 +2366,10 @@ void main_window::receive_notification(const notification &note)
         s11n::load(current, _init_data.params.fullscreen_flop_right);
         break;
 
+    case notification::zoom:
+        s11n::load(current, _init_data.params.zoom);
+        break;
+
     case notification::pause:
     case notification::stereo_layout:
     case notification::stereo_mode:
@@ -2357,6 +2439,7 @@ void main_window::closeEvent(QCloseEvent *event)
     _settings->setValue("fullscreen-flop-left", QVariant(_init_data.params.fullscreen_flop_left).toString());
     _settings->setValue("fullscreen-flip-right", QVariant(_init_data.params.fullscreen_flip_right).toString());
     _settings->setValue("fullscreen-flop-right", QVariant(_init_data.params.fullscreen_flop_right).toString());
+    _settings->setValue("zoom", QVariant(_init_data.params.zoom).toString());
     _settings->endGroup();
     event->accept();
 }
@@ -2580,6 +2663,17 @@ void main_window::file_open_device()
 
     // Open device
     open(QStringList(device), dev_request);
+}
+
+void main_window::preferences_zoom()
+{
+    if (!_zoom_dialog)
+    {
+        _zoom_dialog = new zoom_dialog(_init_data.params, this);
+    }
+    _zoom_dialog->show();
+    _zoom_dialog->raise();
+    _zoom_dialog->activateWindow();
 }
 
 void main_window::preferences_colors()
@@ -2864,8 +2958,9 @@ void main_window::help_keyboard()
                 "<tr><td>3, 4</td><td>Adjust brightness</td></tr>"
                 "<tr><td>5, 6</td><td>Adjust hue</td></tr>"
                 "<tr><td>7, 8</td><td>Adjust saturation</td></tr>"
-                "<tr><td>&lt;, &gt;</td><td>Adjust parallax</td></tr>"
+                "<tr><td>[, ]</td><td>Adjust parallax</td></tr>"
                 "<tr><td>(, )</td><td>Adjust ghostbusting</td></tr>"
+                "<tr><td>&lt;, &gt;</td><td>Adjust zoom</td></tr>"
                 "<tr><td>left, right</td><td>Seek 10 seconds backward / forward</td></tr>"
                 "<tr><td>up, down</td><td>Seek 1 minute backward / forward</td></tr>"
                 "<tr><td>page up, page down</td><td>Seek 10 minutes backward / forward</td></tr>"

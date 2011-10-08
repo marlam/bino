@@ -152,6 +152,10 @@ Flop left view horizontally when in fullscreen mode.
 Flip right view vertically when in fullscreen mode.
 @item --fullscreen-flop-right
 Flop right view horizontally when in fullscreen mode.
+@item -z
+@itemx --zoom=@var{Z}
+Set zoom for videos that are wider than the screen, from 0 (off; show full
+video width) to 1 (full; use full screen height). The default is 0.
 @item -c
 @itemx --center
 Center window on screen.
@@ -846,10 +850,12 @@ Adjust brightness.
 Adjust hue.
 @item 7, 8
 Adjust saturation.
-@item <, >
+@item [, ]
 Adjust parallax.
 @item (, )
 Adjust ghostbusting.
+@item <, >
+Adjust zoom for videos that are wider than the screen.
 @item LEFT, RIGHT
 Seek 10 seconds backward / forward.
 @item UP, DOWN
@@ -890,6 +896,8 @@ Swap left/right eye.
 Toggle fullscreen.
 @item center
 Center window.
+@item adjust-zoom @var{delta}
+Adjust zoom for wide videos by adding @var{delta}, e.g. -0.1 or +0.1.
 @item adjust-contrast @var{delta}
 Adjust contrast by adding @var{delta}, e.g. -0.05 or +0.05.
 @item adjust-brightness @var{delta}

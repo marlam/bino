@@ -24,6 +24,7 @@
 
 #include <limits>
 #include <cstdlib>
+#include <cstring>
 #include <cmath>
 
 #include <GL/glew.h>
@@ -84,6 +85,12 @@
  * information on a better way to do this, and other players seem to use linear
  * interpolation, too.
  */
+
+static const float full_tex_coords[2][4][2] =
+{
+    { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } },
+    { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } }
+};
 
 video_output::video_output() : controller(), _initialized(false)
 {
@@ -725,33 +732,35 @@ void video_output::set_parameters(const parameters &params)
 }
 
 static void draw_quad(float x, float y, float w, float h,
-        const float tex_coords[2][4][2],
+        const float tex_coords[2][4][2] = NULL,
         const float more_tex_coords[4][2] = NULL)
 {
+    const float (*my_tex_coords)[4][2] = (tex_coords ? tex_coords : full_tex_coords);
+
     glBegin(GL_QUADS);
-    glTexCoord2f(tex_coords[0][0][0], tex_coords[0][0][1]);
-    glMultiTexCoord2f(GL_TEXTURE1, tex_coords[1][0][0], tex_coords[1][0][1]);
+    glTexCoord2f(my_tex_coords[0][0][0], my_tex_coords[0][0][1]);
+    glMultiTexCoord2f(GL_TEXTURE1, my_tex_coords[1][0][0], my_tex_coords[1][0][1]);
     if (more_tex_coords)
     {
         glMultiTexCoord2f(GL_TEXTURE2, more_tex_coords[0][0], more_tex_coords[0][1]);
     }
     glVertex2f(x, y);
-    glTexCoord2f(tex_coords[0][1][0], tex_coords[0][1][1]);
-    glMultiTexCoord2f(GL_TEXTURE1, tex_coords[1][1][0], tex_coords[1][1][1]);
+    glTexCoord2f(my_tex_coords[0][1][0], my_tex_coords[0][1][1]);
+    glMultiTexCoord2f(GL_TEXTURE1, my_tex_coords[1][1][0], my_tex_coords[1][1][1]);
     if (more_tex_coords)
     {
         glMultiTexCoord2f(GL_TEXTURE2, more_tex_coords[1][0], more_tex_coords[1][1]);
     }
     glVertex2f(x + w, y);
-    glTexCoord2f(tex_coords[0][2][0], tex_coords[0][2][1]);
-    glMultiTexCoord2f(GL_TEXTURE1, tex_coords[1][2][0], tex_coords[1][2][1]);
+    glTexCoord2f(my_tex_coords[0][2][0], my_tex_coords[0][2][1]);
+    glMultiTexCoord2f(GL_TEXTURE1, my_tex_coords[1][2][0], my_tex_coords[1][2][1]);
     if (more_tex_coords)
     {
         glMultiTexCoord2f(GL_TEXTURE2, more_tex_coords[2][0], more_tex_coords[2][1]);
     }
     glVertex2f(x + w, y + h);
-    glTexCoord2f(tex_coords[0][3][0], tex_coords[0][3][1]);
-    glMultiTexCoord2f(GL_TEXTURE1, tex_coords[1][3][0], tex_coords[1][3][1]);
+    glTexCoord2f(my_tex_coords[0][3][0], my_tex_coords[0][3][1]);
+    glMultiTexCoord2f(GL_TEXTURE1, my_tex_coords[1][3][0], my_tex_coords[1][3][1]);
     if (more_tex_coords)
     {
         glMultiTexCoord2f(GL_TEXTURE2, more_tex_coords[3][0], more_tex_coords[3][1]);
@@ -762,7 +771,9 @@ static void draw_quad(float x, float y, float w, float h,
 
 void video_output::display_current_frame(
         bool keep_viewport, bool mono_right_instead_of_left,
-        float x, float y, float w, float h, const GLint viewport[2][4])
+        float x, float y, float w, float h,
+        const GLint viewport[2][4],
+        const float tex_coords[2][4][2])
 {
     make_context_current();
     assert(xgl::CheckError(HERE));
@@ -778,7 +789,9 @@ void video_output::display_current_frame(
                 || frame.height != _color_last_frame.height
                 || frame.aspect_ratio < _color_last_frame.aspect_ratio
                 || frame.aspect_ratio > _color_last_frame.aspect_ratio
-                || _render_last_params.stereo_mode != _params.stereo_mode))
+                || _render_last_params.stereo_mode != _params.stereo_mode
+                || _render_last_params.zoom < _params.zoom
+                || _render_last_params.zoom > _params.zoom))
     {
         reshape(width(), height());
     }
@@ -820,11 +833,6 @@ void video_output::display_current_frame(
 
     glEnable(GL_TEXTURE_2D);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    float tex_coords[2][4][2] =
-    {
-        { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } },
-        { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } }
-    };
 
     /* Step 2: color-correction */
 
@@ -871,7 +879,7 @@ void video_output::display_current_frame(
     }
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
             GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_srgb_tex[0], 0);
-    draw_quad(-1.0f, +1.0f, +2.0f, -2.0f, tex_coords);
+    draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
     // right view: render into _color_srgb_tex[1]
     if (left != right)
     {
@@ -891,7 +899,7 @@ void video_output::display_current_frame(
         }
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
                 GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_srgb_tex[1], 0);
-        draw_quad(-1.0f, +1.0f, +2.0f, -2.0f, tex_coords);
+        draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
     }
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
     glViewport(viewport[0][0], viewport[0][1], viewport[0][2], viewport[0][3]);
@@ -912,35 +920,37 @@ void video_output::display_current_frame(
     /* Step 3: rendering */
 
     // Apply fullscreen flipping/flopping
+    float my_tex_coords[2][4][2];
+    std::memcpy(my_tex_coords, tex_coords, sizeof(my_tex_coords));
     if (fullscreen())
     {
         if (_params.fullscreen_flip_left)
         {
-            std::swap(tex_coords[0][0][0], tex_coords[0][3][0]);
-            std::swap(tex_coords[0][0][1], tex_coords[0][3][1]);
-            std::swap(tex_coords[0][1][0], tex_coords[0][2][0]);
-            std::swap(tex_coords[0][1][1], tex_coords[0][2][1]);
+            std::swap(my_tex_coords[0][0][0], my_tex_coords[0][3][0]);
+            std::swap(my_tex_coords[0][0][1], my_tex_coords[0][3][1]);
+            std::swap(my_tex_coords[0][1][0], my_tex_coords[0][2][0]);
+            std::swap(my_tex_coords[0][1][1], my_tex_coords[0][2][1]);
         }
         if (_params.fullscreen_flop_left)
         {
-            std::swap(tex_coords[0][0][0], tex_coords[0][1][0]);
-            std::swap(tex_coords[0][0][1], tex_coords[0][1][1]);
-            std::swap(tex_coords[0][3][0], tex_coords[0][2][0]);
-            std::swap(tex_coords[0][3][1], tex_coords[0][2][1]);
+            std::swap(my_tex_coords[0][0][0], my_tex_coords[0][1][0]);
+            std::swap(my_tex_coords[0][0][1], my_tex_coords[0][1][1]);
+            std::swap(my_tex_coords[0][3][0], my_tex_coords[0][2][0]);
+            std::swap(my_tex_coords[0][3][1], my_tex_coords[0][2][1]);
         }
         if (_params.fullscreen_flip_right)
         {
-            std::swap(tex_coords[1][0][0], tex_coords[1][3][0]);
-            std::swap(tex_coords[1][0][1], tex_coords[1][3][1]);
-            std::swap(tex_coords[1][1][0], tex_coords[1][2][0]);
-            std::swap(tex_coords[1][1][1], tex_coords[1][2][1]);
+            std::swap(my_tex_coords[1][0][0], my_tex_coords[1][3][0]);
+            std::swap(my_tex_coords[1][0][1], my_tex_coords[1][3][1]);
+            std::swap(my_tex_coords[1][1][0], my_tex_coords[1][2][0]);
+            std::swap(my_tex_coords[1][1][1], my_tex_coords[1][2][1]);
         }
         if (_params.fullscreen_flop_right)
         {
-            std::swap(tex_coords[1][0][0], tex_coords[1][1][0]);
-            std::swap(tex_coords[1][0][1], tex_coords[1][1][1]);
-            std::swap(tex_coords[1][3][0], tex_coords[1][2][0]);
-            std::swap(tex_coords[1][3][1], tex_coords[1][2][1]);
+            std::swap(my_tex_coords[1][0][0], my_tex_coords[1][1][0]);
+            std::swap(my_tex_coords[1][0][1], my_tex_coords[1][1][1]);
+            std::swap(my_tex_coords[1][3][0], my_tex_coords[1][2][0]);
+            std::swap(my_tex_coords[1][3][1], my_tex_coords[1][2][1]);
         }
     }
 
@@ -999,10 +1009,10 @@ void video_output::display_current_frame(
     {
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
         glDrawBuffer(GL_BACK_LEFT);
-        draw_quad(x, y, w, h, tex_coords);
+        draw_quad(x, y, w, h, my_tex_coords);
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
         glDrawBuffer(GL_BACK_RIGHT);
-        draw_quad(x, y, w, h, tex_coords);
+        draw_quad(x, y, w, h, my_tex_coords);
     }
     else if (_params.stereo_mode == parameters::even_odd_rows
             || _params.stereo_mode == parameters::even_odd_columns
@@ -1016,7 +1026,7 @@ void video_output::display_current_frame(
         };
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, _render_mask_tex);
-        draw_quad(x, y, w, h, tex_coords, more_tex_coords);
+        draw_quad(x, y, w, h, my_tex_coords, more_tex_coords);
     }
     else if (_params.stereo_mode == parameters::red_cyan_monochrome
             || _params.stereo_mode == parameters::red_cyan_half_color
@@ -1033,19 +1043,19 @@ void video_output::display_current_frame(
             || _params.stereo_mode == parameters::red_green_monochrome
             || _params.stereo_mode == parameters::red_blue_monochrome)
     {
-        draw_quad(x, y, w, h, tex_coords);
+        draw_quad(x, y, w, h, my_tex_coords);
     }
     else if (_params.stereo_mode == parameters::mono_left
             && !mono_right_instead_of_left)
     {
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
-        draw_quad(x, y, w, h, tex_coords);
+        draw_quad(x, y, w, h, my_tex_coords);
     }
     else if (_params.stereo_mode == parameters::mono_right
             || (_params.stereo_mode == parameters::mono_left && mono_right_instead_of_left))
     {
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
-        draw_quad(x, y, w, h, tex_coords);
+        draw_quad(x, y, w, h, my_tex_coords);
     }
     else if (_params.stereo_mode == parameters::left_right
             || _params.stereo_mode == parameters::left_right_half
@@ -1054,10 +1064,10 @@ void video_output::display_current_frame(
             || _params.stereo_mode == parameters::hdmi_frame_pack)
     {
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
-        draw_quad(x, y, w, h, tex_coords);
+        draw_quad(x, y, w, h, my_tex_coords);
         glViewport(viewport[1][0], viewport[1][1], viewport[1][2], viewport[1][3]);
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
-        draw_quad(x, y, w, h, tex_coords);
+        draw_quad(x, y, w, h, my_tex_coords);
     }
     assert(xgl::CheckError(HERE));
 }
@@ -1080,22 +1090,37 @@ void video_output::clear()
     assert(xgl::CheckError(HERE));
 }
 
-static void compute_viewport(int vp[4], int w, int h, float dst_w, float dst_h, float dst_ar, float src_ar)
+static void compute_viewport_and_tex_coords(int vp[4], float tc[4][2],
+        float src_ar, int w, int h, float dst_w, float dst_h, float dst_ar,
+        float zoom)
 {
-    vp[2] = dst_w;
-    vp[3] = dst_h;
     if (src_ar >= dst_ar)
     {
         // need black borders top and bottom
-        vp[3] = dst_ar / src_ar * dst_h;
+        float zoom_src_ar = zoom * dst_ar + (1.0f - zoom) * src_ar;
+        vp[2] = dst_w;
+        vp[3] = dst_ar / zoom_src_ar * dst_h;
+        vp[0] = (w - vp[2]) / 2;
+        vp[1] = (h - vp[3]) / 2;
+        float cutoff = (1.0f - zoom_src_ar / src_ar) / 2.0f;
+        tc[0][0] = cutoff;
+        tc[0][1] = 0.0f;
+        tc[1][0] = 1.0f - cutoff;
+        tc[1][1] = 0.0f;
+        tc[2][0] = 1.0f - cutoff;
+        tc[2][1] = 1.0f;
+        tc[3][0] = cutoff;
+        tc[3][1] = 1.0f;
     }
     else
     {
         // need black borders left and right
         vp[2] = src_ar / dst_ar * dst_w;
+        vp[3] = dst_h;
+        vp[0] = (w - vp[2]) / 2;
+        vp[1] = (h - vp[3]) / 2;
+        std::memcpy(tc, full_tex_coords[0], sizeof(tc));
     }
-    vp[0] = (w - vp[2]) / 2;
-    vp[1] = (h - vp[3]) / 2;
 }
 
 void video_output::reshape(int w, int h)
@@ -1110,6 +1135,7 @@ void video_output::reshape(int w, int h)
     _viewport[1][1] = 0;
     _viewport[1][2] = w;
     _viewport[1][3] = h;
+    std::memcpy(_tex_coords, full_tex_coords, sizeof(_tex_coords));
     glViewport(0, 0, w, h);
     clear();
     if (!_frame[_active_index].is_valid())
@@ -1129,11 +1155,11 @@ void video_output::reshape(int w, int h)
         {
             src_ar /= 2.0f;
         }
-        compute_viewport(_viewport[0], w / 2, h, dst_w, dst_h, dst_ar, src_ar);
+        compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
+                w / 2, h, dst_w, dst_h, dst_ar, _params.zoom);
+        std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[1][0] = _viewport[0][0] + w / 2;
-        _viewport[1][1] = _viewport[0][1];
-        _viewport[1][2] = _viewport[0][2];
-        _viewport[1][3] = _viewport[0][3];
+        std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }
     else if (_params.stereo_mode == parameters::top_bottom
             || _params.stereo_mode == parameters::top_bottom_half)
@@ -1146,11 +1172,11 @@ void video_output::reshape(int w, int h)
         {
             src_ar *= 2.0f;
         }
-        compute_viewport(_viewport[0], w, h / 2, dst_w, dst_h, dst_ar, src_ar);
-        _viewport[1][0] = _viewport[0][0];
+        compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
+                w, h / 2, dst_w, dst_h, dst_ar, _params.zoom);
+        std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[1][1] = _viewport[0][1] + h / 2;
-        _viewport[1][2] = _viewport[0][2];
-        _viewport[1][3] = _viewport[0][3];
+        std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }
     else if (_params.stereo_mode == parameters::hdmi_frame_pack)
     {
@@ -1166,11 +1192,11 @@ void video_output::reshape(int w, int h)
         float dst_h = (h - blank_lines) / 2;
         float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
         float src_ar = _frame[_active_index].aspect_ratio;
-        compute_viewport(_viewport[0], w, (h - blank_lines) / 2, dst_w, dst_h, dst_ar, src_ar);
-        _viewport[1][0] = _viewport[0][0];
+        compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
+                w, (h - blank_lines) / 2, dst_w, dst_h, dst_ar, _params.zoom);
+        std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[1][1] = _viewport[0][1] + (h - blank_lines) / 2 + blank_lines;
-        _viewport[1][2] = _viewport[0][2];
-        _viewport[1][3] = _viewport[0][3];
+        std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }
     else
     {
@@ -1178,11 +1204,10 @@ void video_output::reshape(int w, int h)
         float dst_h = h;
         float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
         float src_ar = _frame[_active_index].aspect_ratio;
-        compute_viewport(_viewport[0], w, h, dst_w, dst_h, dst_ar, src_ar);
-        _viewport[1][0] = _viewport[0][0];
-        _viewport[1][1] = _viewport[0][1];
-        _viewport[1][2] = _viewport[0][2];
-        _viewport[1][3] = _viewport[0][3];
+        compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
+                w, h, dst_w, dst_h, dst_ar, _params.zoom);
+        std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
+        std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }
 }
 

@@ -157,6 +157,25 @@ public:
     virtual void receive_notification(const notification &note);
 };
 
+class zoom_dialog : public QDialog, public controller
+{
+    Q_OBJECT
+
+private:
+    bool _lock;
+    QDoubleSpinBox *_z_spinbox;
+    QSlider *_z_slider;
+
+private slots:
+    void z_slider_changed(int val);
+    void z_spinbox_changed(double val);
+
+public:
+    zoom_dialog(const parameters &params, QWidget *parent);
+
+    virtual void receive_notification(const notification &note);
+};
+
 class color_dialog : public QDialog, public controller
 {
     Q_OBJECT
@@ -308,6 +327,7 @@ private:
     video_output_qt *_video_output;
     in_out_widget *_in_out_widget;
     controls_widget *_controls_widget;
+    zoom_dialog *_zoom_dialog;
     color_dialog *_color_dialog;
     crosstalk_dialog *_crosstalk_dialog;
     subtitle_dialog *_subtitle_dialog;
@@ -328,6 +348,7 @@ private slots:
     void file_open();
     void file_open_url();
     void file_open_device();
+    void preferences_zoom();
     void preferences_colors();
     void preferences_crosstalk();
     void preferences_subtitle();

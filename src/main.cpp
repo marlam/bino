@@ -270,6 +270,8 @@ int main(int argc, char *argv[])
     options.push_back(&fullscreen_flip_right);
     opt::flag fullscreen_flop_right("fullscreen-flop-right", '\0', opt::optional);
     options.push_back(&fullscreen_flop_right);
+    opt::val<float> zoom("zoom", 'z', opt::optional, 0.0f, 1.0f, parameters().zoom);
+    options.push_back(&zoom);
     opt::flag center("center", 'c', opt::optional);
     options.push_back(&center);
     opt::val<std::string> subtitle_encoding("subtitle-encoding", '\0', opt::optional, parameters().subtitle_encoding);
@@ -408,6 +410,7 @@ int main(int argc, char *argv[])
                     "  --fullscreen-flop-left   Flop left view horizontally when fullscreen.\n"
                     "  --fullscreen-flip-right  Flip right view vertically when fullscreen.\n"
                     "  --fullscreen-flop-right  Flop right view horizontally when fullscreen.\n"
+                    "  -z|--zoom=Z              Set zoom for wide videos (0=off to 1=full).\n"
                     "  -c|--center              Center window on screen.\n"
                     "  --subtitle-encoding=ENC  Set subtitle encoding.\n"
                     "  --subtitle-font=FONT     Set subtitle font name.\n"
@@ -436,8 +439,9 @@ int main(int argc, char *argv[])
                     "  3, 4                     Adjust brightness.\n"
                     "  5, 6                     Adjust hue.\n"
                     "  7, 8                     Adjust saturation.\n"
-                    "  <, >                     Adjust parallax.\n"
+                    "  [, ]                     Adjust parallax.\n"
                     "  (, )                     Adjust ghostbusting.\n"
+                    "  <, >                     Adjust zoom for wide videos.\n"
                     "  left, right              Seek 10 seconds backward / forward.\n"
                     "  up, down                 Seek 1 minute backward / forward.\n"
                     "  page up, page down       Seek 10 minutes backward / forward.\n"
@@ -576,6 +580,7 @@ int main(int argc, char *argv[])
     {
         init_data.params.fullscreen_flop_right = fullscreen_flop_right.value();
     }
+    init_data.params.zoom = zoom.value();
     init_data.center = center.value();
     init_data.params.subtitle_encoding = subtitle_encoding.value();
     init_data.params.subtitle_font = subtitle_font.value();

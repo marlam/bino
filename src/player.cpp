@@ -1130,6 +1130,20 @@ void player::receive_cmd(const command &cmd)
             controller::notify_all(notification::fullscreen_flop_right, old, _params.fullscreen_flop_right);
         }
         break;
+    case command::adjust_zoom:
+        s11n::load(p, param);
+        oldval = _params.zoom;
+        _params.zoom = std::max(std::min(_params.zoom + param, 1.0f), 0.0f);
+        parameters_changed = true;
+        controller::notify_all(notification::zoom, oldval, _params.zoom);
+        break;
+    case command::set_zoom:
+        s11n::load(p, param);
+        oldval = _params.zoom;
+        _params.zoom = std::max(std::min(param, 1.0f), 0.0f);
+        parameters_changed = true;
+        controller::notify_all(notification::zoom, oldval, _params.zoom);
+        break;
     }
 
     if (parameters_changed && _video_output)

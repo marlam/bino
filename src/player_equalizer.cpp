@@ -172,8 +172,8 @@ private:
     eq::Channel *_channel;
     const float _canvas_width;
     const float _canvas_height;
-    const float _canvas_video_area_w;
-    const float _canvas_video_area_h;
+    float _canvas_video_area_w;
+    float _canvas_video_area_h;
 
 protected:
     int video_display_width() { return screen_width() * _canvas_video_area_w; }
@@ -229,24 +229,44 @@ public:
 
 public:
     video_output_eq_channel(eq::Channel *channel,
-            float canvas_width, float canvas_height,
-            float canvas_video_area_w, float canvas_video_area_h) :
+            float canvas_width, float canvas_height) :
         video_output(),
         _channel(channel),
         _canvas_width(canvas_width),
-        _canvas_height(canvas_height),
-        _canvas_video_area_w(canvas_video_area_w),
-        _canvas_video_area_h(canvas_video_area_h)
+        _canvas_height(canvas_height)
     {
     }
 
-    void display_current_frame(bool mono_right_instead_of_left,
-            float x, float y, float w, float h, const GLint viewport[4])
+    void set_canvas_size(float canvas_video_area_w, float canvas_video_area_h)
     {
+        _canvas_video_area_w = canvas_video_area_w;
+        _canvas_video_area_h = canvas_video_area_h;
+    }
+
+    void display_current_frame(bool mono_right_instead_of_left,
+            float x, float y, float w, float h,
+            const GLint viewport[4], const float tex_coords[4][2])
+    {
+        float my_tex_coords[2][4][2] =
+        {
+            {
+                { tex_coords[0][0], tex_coords[0][1] },
+                { tex_coords[1][0], tex_coords[1][1] },
+                { tex_coords[2][0], tex_coords[2][1] },
+                { tex_coords[3][0], tex_coords[3][1] },
+            },
+            {
+                { tex_coords[0][0], tex_coords[0][1] },
+                { tex_coords[1][0], tex_coords[1][1] },
+                { tex_coords[2][0], tex_coords[2][1] },
+                { tex_coords[3][0], tex_coords[3][1] },
+            },
+        };
         GLint vp[2][4];
         std::memcpy(vp[0], viewport, 4 * sizeof(int));
         std::memcpy(vp[1], viewport, 4 * sizeof(int));
-        video_output::display_current_frame(true, mono_right_instead_of_left, x, y, w, h, vp);
+        video_output::display_current_frame(true, mono_right_instead_of_left,
+                x, y, w, h, vp, my_tex_coords);
     }
 };
 
@@ -307,16 +327,10 @@ public:
     bool flat_screen;
     float canvas_width;
     float canvas_height;
-    struct { float x, y, w, h, d; } canvas_video_area;
 
     eq_init_data() : init_data()
     {
         flat_screen = true;
-        canvas_video_area.x = 0.0f;
-        canvas_video_area.y = 0.0f;
-        canvas_video_area.w = 1.0f;
-        canvas_video_area.h = 1.0f;
-        canvas_video_area.d = 1.0f;
     }
 
     virtual ~eq_init_data()
@@ -338,11 +352,6 @@ protected:
         s11n::save(oss, flat_screen);
         s11n::save(oss, canvas_width);
         s11n::save(oss, canvas_height);
-        s11n::save(oss, canvas_video_area.x);
-        s11n::save(oss, canvas_video_area.y);
-        s11n::save(oss, canvas_video_area.w);
-        s11n::save(oss, canvas_video_area.h);
-        s11n::save(oss, canvas_video_area.d);
         os << oss.str();
     }
 
@@ -357,11 +366,6 @@ protected:
         s11n::load(iss, flat_screen);
         s11n::load(iss, canvas_width);
         s11n::load(iss, canvas_height);
-        s11n::load(iss, canvas_video_area.x);
-        s11n::load(iss, canvas_video_area.y);
-        s11n::load(iss, canvas_video_area.w);
-        s11n::load(iss, canvas_video_area.h);
-        s11n::load(iss, canvas_video_area.d);
     }
 };
 
@@ -378,6 +382,8 @@ public:
     bool prep_frame;
     bool drop_frame;
     bool display_frame;
+    struct { float x, y, w, h, d; } canvas_video_area;
+    float tex_coords[4][2];
 
 public:
     eq_frame_data() :
@@ -405,6 +411,8 @@ protected:
         s11n::save(oss, prep_frame);
         s11n::save(oss, drop_frame);
         s11n::save(oss, display_frame);
+        s11n::save(oss, &canvas_video_area, sizeof(canvas_video_area));
+        s11n::save(oss, tex_coords, sizeof(tex_coords));
         os << oss.str();
     }
 
@@ -419,6 +427,8 @@ protected:
         s11n::load(iss, prep_frame);
         s11n::load(iss, drop_frame);
         s11n::load(iss, display_frame);
+        s11n::load(iss, &canvas_video_area, sizeof(canvas_video_area));
+        s11n::load(iss, tex_coords, sizeof(tex_coords));
     }
 };
 
@@ -471,7 +481,7 @@ public:
         {
             return false;
         }
-        // Find region of canvas to use, depending on the video aspect ratio
+        // Find canvas
         if (getCanvases().size() < 1)
         {
             msg::err(_("No canvas in Equalizer configuration."));
@@ -479,42 +489,9 @@ public:
         }
         float canvas_w = getCanvases()[0]->getWall().getWidth();
         float canvas_h = getCanvases()[0]->getWall().getHeight();
-        float canvas_aspect_ratio = canvas_w / canvas_h;
         _eq_init_data.canvas_width = canvas_w;
         _eq_init_data.canvas_height = canvas_h;
-        _eq_init_data.canvas_video_area.w = 1.0f;
-        _eq_init_data.canvas_video_area.h = 1.0f;
-
-        if (flat_screen)
-        {
-            if (frame_template.aspect_ratio > canvas_aspect_ratio)
-            {
-                // need black borders top and bottom
-                _eq_init_data.canvas_video_area.h = canvas_aspect_ratio / frame_template.aspect_ratio;
-            }
-            else
-            {
-                // need black borders left and right
-                _eq_init_data.canvas_video_area.w = frame_template.aspect_ratio / canvas_aspect_ratio;
-            }
-            _eq_init_data.canvas_video_area.x = (1.0f - _eq_init_data.canvas_video_area.w) / 2.0f;
-            _eq_init_data.canvas_video_area.y = (1.0f - _eq_init_data.canvas_video_area.h) / 2.0f;
-        }
-        else
-        {
-            compute_3d_canvas(&_eq_init_data.canvas_video_area.h, &_eq_init_data.canvas_video_area.d);
-            // compute width and offset for 1m high 'screen' quad in 3D space
-            _eq_init_data.canvas_video_area.w = _eq_init_data.canvas_video_area.h * frame_template.aspect_ratio;
-            _eq_init_data.canvas_video_area.x = -0.5f * _eq_init_data.canvas_video_area.w;
-            _eq_init_data.canvas_video_area.y = -0.5f * _eq_init_data.canvas_video_area.h;
-        }
-        msg::inf(_("Equalizer canvas:"));
-        msg::inf(4, _("%gx%g, aspect ratio %g:1"), canvas_w, canvas_h, canvas_w / canvas_h);
-        msg::inf(4, _("Area for %g:1 video: [ %g %g %g %g @ %g ]"),
-                frame_template.aspect_ratio,
-                _eq_init_data.canvas_video_area.x, _eq_init_data.canvas_video_area.y,
-                _eq_init_data.canvas_video_area.w, _eq_init_data.canvas_video_area.h,
-                _eq_init_data.canvas_video_area.d);
+        msg::inf(_("Equalizer canvas: %gx%g, aspect ratio %g:1"), canvas_w, canvas_h, canvas_w / canvas_h);
         // Register master instances
         registerObject(&_eq_frame_data);
         _eq_init_data.frame_data_id = _eq_frame_data.getID();
@@ -549,6 +526,62 @@ public:
         // Update the video state for all (it might have changed via handleEvent())
         _eq_frame_data.subtitle = _player.get_subtitle();
         _eq_frame_data.params = _player.get_parameters();
+        // Find region of canvas to use, depending on the video aspect ratio and zoom level
+        float canvas_aspect_ratio = _eq_init_data.canvas_width / _eq_init_data.canvas_height;
+        if (_eq_init_data.flat_screen)
+        {
+            if (frame_template.aspect_ratio >= canvas_aspect_ratio)
+            {
+                // need black borders top and bottom
+                float zoom_src_ar = _eq_frame_data.params.zoom * canvas_aspect_ratio
+                    + (1.0f - _eq_frame_data.params.zoom) * frame_template.aspect_ratio;
+                _eq_frame_data.canvas_video_area.w = 1.0f;
+                _eq_frame_data.canvas_video_area.h = canvas_aspect_ratio / zoom_src_ar;
+                _eq_frame_data.canvas_video_area.x = (1.0f - _eq_frame_data.canvas_video_area.w) / 2.0f;
+                _eq_frame_data.canvas_video_area.y = (1.0f - _eq_frame_data.canvas_video_area.h) / 2.0f;
+                float cutoff = (1.0f - zoom_src_ar / frame_template.aspect_ratio) / 2.0f;
+                _eq_frame_data.tex_coords[0][0] = cutoff;
+                _eq_frame_data.tex_coords[0][1] = 0.0f;
+                _eq_frame_data.tex_coords[1][0] = 1.0f - cutoff;
+                _eq_frame_data.tex_coords[1][1] = 0.0f;
+                _eq_frame_data.tex_coords[2][0] = 1.0f - cutoff;
+                _eq_frame_data.tex_coords[2][1] = 1.0f;
+                _eq_frame_data.tex_coords[3][0] = cutoff;
+                _eq_frame_data.tex_coords[3][1] = 1.0f;
+            }
+            else
+            {
+                // need black borders left and right
+                _eq_frame_data.canvas_video_area.w = frame_template.aspect_ratio / canvas_aspect_ratio;
+                _eq_frame_data.canvas_video_area.h = 1.0f;
+                _eq_frame_data.canvas_video_area.x = (1.0f - _eq_frame_data.canvas_video_area.w) / 2.0f;
+                _eq_frame_data.canvas_video_area.y = (1.0f - _eq_frame_data.canvas_video_area.h) / 2.0f;
+                _eq_frame_data.tex_coords[0][0] = 0.0f;
+                _eq_frame_data.tex_coords[0][1] = 0.0f;
+                _eq_frame_data.tex_coords[1][0] = 1.0f;
+                _eq_frame_data.tex_coords[1][1] = 0.0f;
+                _eq_frame_data.tex_coords[2][0] = 1.0f;
+                _eq_frame_data.tex_coords[2][1] = 1.0f;
+                _eq_frame_data.tex_coords[3][0] = 0.0f;
+                _eq_frame_data.tex_coords[3][1] = 1.0f;
+            }
+        }
+        else
+        {
+            compute_3d_canvas(&_eq_frame_data.canvas_video_area.h, &_eq_frame_data.canvas_video_area.d);
+            // compute width and offset for 1m high 'screen' quad in 3D space
+            _eq_frame_data.canvas_video_area.w = _eq_frame_data.canvas_video_area.h * frame_template.aspect_ratio;
+            _eq_frame_data.canvas_video_area.x = -0.5f * _eq_frame_data.canvas_video_area.w;
+            _eq_frame_data.canvas_video_area.y = -0.5f * _eq_frame_data.canvas_video_area.h;
+            _eq_frame_data.tex_coords[0][0] = 0.0f;
+            _eq_frame_data.tex_coords[0][1] = 0.0f;
+            _eq_frame_data.tex_coords[1][0] = 1.0f;
+            _eq_frame_data.tex_coords[1][1] = 0.0f;
+            _eq_frame_data.tex_coords[2][0] = 1.0f;
+            _eq_frame_data.tex_coords[2][1] = 1.0f;
+            _eq_frame_data.tex_coords[3][0] = 0.0f;
+            _eq_frame_data.tex_coords[3][1] = 1.0f;
+        }
         // Commit the updated frame data
         const eq::uint128_t version = _eq_frame_data.commit();
         // Start this frame with the committed frame data
@@ -623,10 +656,10 @@ public:
             case '8':
                 _controller.send_cmd(command::adjust_saturation, +0.05f);
                 break;
-            case '<':
+            case '[':
                 _controller.send_cmd(command::adjust_parallax, -0.01f);
                 break;
-            case '>':
+            case ']':
                 _controller.send_cmd(command::adjust_parallax, +0.01f);
                 break;
             case '(':
@@ -634,6 +667,12 @@ public:
                 break;
             case ')':
                 _controller.send_cmd(command::adjust_ghostbust, +0.01f);
+                break;
+            case '<':
+                _controller.send_cmd(command::adjust_zoom, -0.1f);
+                break;
+            case '>':
+                _controller.send_cmd(command::adjust_zoom, +0.1f);
                 break;
             case eq::KC_LEFT:
                 _controller.send_cmd(command::seek, -10.0f);
@@ -956,9 +995,7 @@ public:
         eq::Channel(parent),
         _video_output(this,
                 static_cast<eq_node *>(getNode())->init_data.canvas_width,
-                static_cast<eq_node *>(getNode())->init_data.canvas_height,
-                static_cast<eq_node *>(getNode())->init_data.canvas_video_area.w,
-                static_cast<eq_node *>(getNode())->init_data.canvas_video_area.h)
+                static_cast<eq_node *>(getNode())->init_data.canvas_height)
     {
     }
 
@@ -982,12 +1019,13 @@ protected:
         eq_node *node = static_cast<eq_node *>(getNode());
         const struct { float x, y, w, h, d; } canvas_video_area =
         {
-            node->init_data.canvas_video_area.x,
-            node->init_data.canvas_video_area.y,
-            node->init_data.canvas_video_area.w,
-            node->init_data.canvas_video_area.h,
-            node->init_data.canvas_video_area.d
+            node->frame_data.canvas_video_area.x,
+            node->frame_data.canvas_video_area.y,
+            node->frame_data.canvas_video_area.w,
+            node->frame_data.canvas_video_area.h,
+            node->frame_data.canvas_video_area.d
         };
+        _video_output.set_canvas_size(canvas_video_area.w, canvas_video_area.h);
         const eq::Viewport &canvas_channel_area = getViewport();
         // Determine the video quad to render
         float quad_x = canvas_video_area.x;
@@ -1016,7 +1054,8 @@ protected:
         bool mono_right_instead_of_left = (getEye() == eq::EYE_RIGHT);
         GLint viewport[4];
         glGetIntegerv(GL_VIEWPORT, viewport);
-        _video_output.display_current_frame(mono_right_instead_of_left, quad_x, quad_y, quad_w, quad_h, viewport);
+        _video_output.display_current_frame(mono_right_instead_of_left, quad_x, quad_y, quad_w, quad_h,
+                viewport, node->frame_data.tex_coords);
     }
 
     virtual void frameStart(const eq::uint128_t &, const uint32_t frame_number)
