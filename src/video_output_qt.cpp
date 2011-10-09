@@ -401,9 +401,7 @@ void video_output_qt::create_widget()
     _widget = new video_output_qt_widget(this, _format, _container_widget);
     if (!_widget->context()->isValid())
     {
-        // TODO: replace the error message with a better one once the freeze
-        // of translatable strings is over.
-        QMessageBox::critical(_widget, _("Error"), _("Cannot set OpenGL context format."));
+        QMessageBox::critical(_widget, _("Error"), _("Cannot get valid OpenGL context."));
         std::exit(1);
     }
     QObject::connect(_container_widget, SIGNAL(move_event()), _widget, SLOT(move_event()));
