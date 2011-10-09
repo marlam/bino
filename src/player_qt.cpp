@@ -2201,6 +2201,12 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     _in_out_widget->update(_init_data, false, false);
     _controls_widget->update(_init_data, false, false, -1);
 
+    // Restore Mainwindow state
+    _settings->beginGroup("Mainwindow");
+    restoreGeometry(_settings->value("geometry").toByteArray());
+    restoreState(_settings->value("windowstate").toByteArray());
+    _settings->endGroup();
+
     // Show window. Must happen before opening initial files!
     show();
     raise();
@@ -2492,6 +2498,12 @@ void main_window::closeEvent(QCloseEvent *event)
     _settings->setValue("fullscreen-flop-right", QVariant(_init_data.params.fullscreen_flop_right).toString());
     _settings->setValue("zoom", QVariant(_init_data.params.zoom).toString());
     _settings->endGroup();
+    // Remember the Mainwindow state
+    _settings->beginGroup("Mainwindow");
+    _settings->setValue("geometry", saveGeometry());
+    _settings->setValue("windowState", saveState());
+    _settings->endGroup();
+
     event->accept();
 }
 
