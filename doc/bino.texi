@@ -107,6 +107,8 @@ Print version.
 @itemx --no-gui
 Do not use the GUI, just play the given input in a plain window using the
 parameters given on the command line.
+@itemx --log-file=@var{FILE}
+Append all log messages to the given file.
 @item -L
 @itemx --log-level=@var{LEVEL}
 Select log level: @var{debug}, @var{info}, @var{warning}, @var{error}, or

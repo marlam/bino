@@ -25,6 +25,8 @@
 
 #include <cstring>
 #include <cstdlib>
+#include <cstdio>
+#include <cerrno>
 #include <limits>
 #include <locale.h>
 
@@ -145,6 +147,17 @@ static void qt_msg_handler(QtMsgType type, const char *msg)
     }
 }
 
+// Handle a log file that may be set via the --log-file option; see below
+static FILE *logf = NULL;
+static void close_log_file(void)
+{
+    if (logf)
+    {
+        (void)std::fclose(logf);
+    }
+}
+
+
 int main(int argc, char *argv[])
 {
     /* Initialization: gettext */
@@ -182,6 +195,8 @@ int main(int argc, char *argv[])
     options.push_back(&version);
     opt::flag no_gui("no-gui", 'n', opt::optional);
     options.push_back(&no_gui);
+    opt::val<std::string> log_file("log-file", '\0', opt::optional);
+    options.push_back(&log_file);
     std::vector<std::string> log_levels;
     log_levels.push_back("debug");
     log_levels.push_back("info");
@@ -322,6 +337,19 @@ int main(int argc, char *argv[])
     {
         return 1;
     }
+    if (!log_file.value().empty())
+    {
+        logf = std::fopen(log_file.value().c_str(), "a");
+        if (!logf)
+        {
+            msg::err(_("%s: %s"), log_file.value().c_str(), std::strerror(errno));
+            return 1;
+        }
+        std::atexit(close_log_file);
+        msg::set_file(logf);
+        msg::set_columns(80);
+    }
+
     if (version.value())
     {
         msg::req(_("%s version %s"), PACKAGE_NAME, VERSION);
@@ -350,6 +378,7 @@ int main(int argc, char *argv[])
                     "  --help                   Print help.\n"
                     "  --version                Print version.\n"
                     "  -n|--no-gui              Do not use the GUI, just show a plain window.\n"
+                    "  --log-file=FILE          Append all log messages to the given file.\n"
                     "  -L|--log-level=LEVEL     Set log level (debug/info/warning/error/quiet).\n"
                     "  --device-type=TYPE       Type of input device: default, firewire, x11.\n"
                     "  --device-frame-size=WxH  Request frame size WxH from input device.\n"
