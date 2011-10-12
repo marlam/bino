@@ -368,7 +368,7 @@ void media_object::set_video_frame_template(int index, int width_before_avcodec_
             && (width_before_avcodec_open != video_codec_ctx->width
                 || height_before_avcodec_open != video_codec_ctx->height))
     {
-        msg::wrn(_("%s video stream %d: Using frame size %dx%d instead of %dx%d."),
+        msg::dbg("%s video stream %d: using frame size %dx%d instead of %dx%d.",
                 _url.c_str(), index + 1,
                 width_before_avcodec_open, height_before_avcodec_open,
                 video_codec_ctx->width, video_codec_ctx->height);
