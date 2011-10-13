@@ -401,14 +401,19 @@ void media_object::set_video_frame_template(int index, int width_before_avcodec_
     video_frame_template.chroma_location = video_frame::center;
     if (!_always_convert_to_bgra32
             && (video_codec_ctx->pix_fmt == PIX_FMT_YUV444P
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV444P10
                 || video_codec_ctx->pix_fmt == PIX_FMT_YUV422P
-                || video_codec_ctx->pix_fmt == PIX_FMT_YUV420P))
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV422P10
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV420P
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV420P10))
     {
-        if (video_codec_ctx->pix_fmt == PIX_FMT_YUV444P)
+        if (video_codec_ctx->pix_fmt == PIX_FMT_YUV444P
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV444P10)
         {
             video_frame_template.layout = video_frame::yuv444p;
         }
-        else if (video_codec_ctx->pix_fmt == PIX_FMT_YUV422P)
+        else if (video_codec_ctx->pix_fmt == PIX_FMT_YUV422P
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV422P10)
         {
             video_frame_template.layout = video_frame::yuv422p;
         }
@@ -421,10 +426,23 @@ void media_object::set_video_frame_template(int index, int width_before_avcodec_
         {
             video_frame_template.color_space = video_frame::yuv709;
         }
-        video_frame_template.value_range = video_frame::u8_mpeg;
-        if (video_codec_ctx->color_range == AVCOL_RANGE_JPEG)
+        if (video_codec_ctx->pix_fmt == PIX_FMT_YUV444P10
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV422P10
+                || video_codec_ctx->pix_fmt == PIX_FMT_YUV420P10)
         {
-            video_frame_template.value_range = video_frame::u8_full;
+            video_frame_template.value_range = video_frame::u10_mpeg;
+            if (video_codec_ctx->color_range == AVCOL_RANGE_JPEG)
+            {
+                video_frame_template.value_range = video_frame::u10_full;
+            }
+        }
+        else
+        {
+            video_frame_template.value_range = video_frame::u8_mpeg;
+            if (video_codec_ctx->color_range == AVCOL_RANGE_JPEG)
+            {
+                video_frame_template.value_range = video_frame::u8_full;
+            }
         }
         video_frame_template.chroma_location = video_frame::center;
         if (video_codec_ctx->chroma_sample_location == AVCHROMA_LOC_LEFT)

@@ -219,6 +219,9 @@ void video_output::input_init(int index, const video_frame &frame)
             _input_yuv_chroma_height_divisor[index] = 2;
             need_chroma_filtering = true;
         }
+        bool type_u8 = (frame.value_range == video_frame::u8_full || frame.value_range == video_frame::u8_mpeg);
+        GLint internal_format = type_u8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
+        GLint type = type_u8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
         for (int i = 0; i < (frame.stereo_layout == video_frame::mono ? 1 : 2); i++)
         {
             glGenTextures(1, &(_input_yuv_y_tex[index][i]));
@@ -227,30 +230,30 @@ void video_output::input_init(int index, const video_frame &frame)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8,
+            glTexImage2D(GL_TEXTURE_2D, 0, internal_format,
                     frame.width,
                     frame.height,
-                    0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
+                    0, GL_LUMINANCE, type, NULL);
             glGenTextures(1, &(_input_yuv_u_tex[index][i]));
             glBindTexture(GL_TEXTURE_2D, _input_yuv_u_tex[index][i]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, need_chroma_filtering ? GL_LINEAR : GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, need_chroma_filtering ? GL_LINEAR : GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8,
+            glTexImage2D(GL_TEXTURE_2D, 0, internal_format,
                     frame.width / _input_yuv_chroma_width_divisor[index],
                     frame.height / _input_yuv_chroma_height_divisor[index],
-                    0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
+                    0, GL_LUMINANCE, type, NULL);
             glGenTextures(1, &(_input_yuv_v_tex[index][i]));
             glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[index][i]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, need_chroma_filtering ? GL_LINEAR : GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, need_chroma_filtering ? GL_LINEAR : GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8,
+            glTexImage2D(GL_TEXTURE_2D, 0, internal_format,
                     frame.width / _input_yuv_chroma_width_divisor[index],
                     frame.height / _input_yuv_chroma_height_divisor[index],
-                    0, GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
+                    0, GL_LUMINANCE, type, NULL);
         }
     }
     assert(xgl::CheckError(HERE));
@@ -333,9 +336,16 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
         input_init(index, frame);
     }
     _frame[index] = frame;
-    int bytes_per_pixel = (frame.layout == video_frame::bgra32 ? 4 : 1);
-    GLenum format = (frame.layout == video_frame::bgra32 ? GL_BGRA : GL_LUMINANCE);
-    GLenum type = (frame.layout == video_frame::bgra32 ? GL_UNSIGNED_INT_8_8_8_8_REV : GL_UNSIGNED_BYTE);
+    int bytes_per_pixel = 4;
+    GLenum format = GL_BGRA;
+    GLenum type = GL_UNSIGNED_INT_8_8_8_8_REV;
+    if (frame.layout != video_frame::bgra32)
+    {
+        bool type_u8 = (frame.value_range == video_frame::u8_full || frame.value_range == video_frame::u8_mpeg);
+        bytes_per_pixel = type_u8 ? 1 : 2;
+        format = GL_LUMINANCE;
+        type = type_u8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
+    }
     for (int i = 0; i < (frame.stereo_layout == video_frame::mono ? 1 : 2); i++)
     {
         for (int plane = 0; plane < (frame.layout == video_frame::bgra32 ? 1 : 3); plane++)
@@ -531,9 +541,17 @@ void video_output::color_init(const video_frame &frame)
         {
             value_range_str = "value_range_8bit_full";
         }
-        else
+        else if (frame.value_range == video_frame::u8_mpeg)
         {
             value_range_str = "value_range_8bit_mpeg";
+        }
+        else if (frame.value_range == video_frame::u10_full)
+        {
+            value_range_str = "value_range_10bit_full";
+        }
+        else
+        {
+            value_range_str = "value_range_10bit_mpeg";
         }
         chroma_offset_x_str = "0.0";
         chroma_offset_y_str = "0.0";

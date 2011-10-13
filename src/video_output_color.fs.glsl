@@ -31,6 +31,8 @@
 
 // value_range_8bit_full
 // value_range_8bit_mpeg
+// value_range_10bit_full
+// value_range_10bit_mpeg
 #define $value_range
 
 // the offset between the y texture coordinates and the appropriate
@@ -75,10 +77,13 @@ vec3 srgb_to_yuv(vec3 srgb)
 
 vec3 yuv_to_srgb(vec3 yuv)
 {
+    // Convert the MPEG range to the full range for each component, if necessary
 #if defined(value_range_8bit_mpeg)
-    // Convert the MPEG range to the full range for each component
     yuv = (yuv - vec3(16.0 / 255.0)) * vec3(256.0 / 220.0, 256.0 / 225.0, 256.0 / 225.0);
+#elif defined(value_range_10bit_mpeg)
+    yuv = (yuv - vec3(64.0 / 1023.0)) * vec3(1024.0 / 877.0, 1024.0 / 897.0, 1024.0 / 897.0);
 #endif
+
 #if defined(color_space_yuv709)
     // According to ITU.BT-709 (see entries 3.2 and 3.3 in Sec. 3 ("Signal format"))
     mat3 m = mat3(
@@ -114,8 +119,13 @@ vec3 get_yuv(vec2 tex_coord)
 {
 #if defined(layout_bgra32)
     return srgb_to_yuv(texture2D(srgb_tex, tex_coord).xyz);
-#elif defined(layout_yuv_p)
+#elif defined(value_range_8bit_full) || defined(value_range_8bit_mpeg)
     return vec3(
+            texture2D(y_tex, tex_coord).x,
+            texture2D(u_tex, tex_coord + vec2(chroma_offset_x, chroma_offset_y)).x,
+            texture2D(v_tex, tex_coord + vec2(chroma_offset_x, chroma_offset_y)).x);
+#else
+    return (65535.0 / 1023.0) * vec3(
             texture2D(y_tex, tex_coord).x,
             texture2D(u_tex, tex_coord + vec2(chroma_offset_x, chroma_offset_y)).x,
             texture2D(v_tex, tex_coord + vec2(chroma_offset_x, chroma_offset_y)).x);

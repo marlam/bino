@@ -267,6 +267,12 @@ std::string video_frame::format_name() const
         case u8_mpeg:
             name += "-mpeg";
             break;
+        case u10_full:
+            name += "-jpeg10";
+            break;
+        case u10_mpeg:
+            name += "-mpeg10";
+            break;
         }
     }
     if (layout == yuv422p || layout == yuv420p)
@@ -307,18 +313,19 @@ void video_frame::copy_plane(int view, int plane, void *buf) const
     size_t dst_row_width = 0;
     size_t dst_row_size = 0;
     size_t lines = 0;
+    size_t type_size = (value_range == u8_full || value_range == u8_mpeg) ? 1 : 2;
 
     switch (layout)
     {
     case bgra32:
         dst_row_width = width * 4;
-        dst_row_size = dst_row_width;
+        dst_row_size = dst_row_width * type_size;
         lines = height;
         break;
 
     case yuv444p:
         dst_row_width = width;
-        dst_row_size = next_multiple_of_4(dst_row_width);
+        dst_row_size = next_multiple_of_4(dst_row_width * type_size);
         lines = height;
         break;
 
@@ -326,13 +333,13 @@ void video_frame::copy_plane(int view, int plane, void *buf) const
         if (plane == 0)
         {
             dst_row_width = width;
-            dst_row_size = next_multiple_of_4(dst_row_width);
+            dst_row_size = next_multiple_of_4(dst_row_width * type_size);
             lines = height;
         }
         else
         {
             dst_row_width = width / 2;
-            dst_row_size = next_multiple_of_4(dst_row_width);
+            dst_row_size = next_multiple_of_4(dst_row_width * type_size);
             lines = height;
         }
         break;
@@ -341,13 +348,13 @@ void video_frame::copy_plane(int view, int plane, void *buf) const
         if (plane == 0)
         {
             dst_row_width = width;
-            dst_row_size = next_multiple_of_4(dst_row_width);
+            dst_row_size = next_multiple_of_4(dst_row_width * type_size);
             lines = height;
         }
         else
         {
             dst_row_width = width / 2;
-            dst_row_size = next_multiple_of_4(dst_row_width);
+            dst_row_size = next_multiple_of_4(dst_row_width * type_size);
             lines = height / 2;
         }
         break;
@@ -397,7 +404,7 @@ void video_frame::copy_plane(int view, int plane, void *buf) const
         size_t dst_offset = 0;
         for (size_t y = 0; y < lines; y++)
         {
-            std::memcpy(dst + dst_offset, src + src_offset, dst_row_width);
+            std::memcpy(dst + dst_offset, src + src_offset, dst_row_width * type_size);
             dst_offset += dst_row_size;
             src_offset += src_row_size;
         }

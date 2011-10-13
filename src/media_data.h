@@ -83,7 +83,9 @@ public:
     typedef enum
     {
         u8_full,        // 0-255 for all components
-        u8_mpeg         // 16-235 for Y, 16-240 for U and V
+        u8_mpeg,        // 16-235 for Y, 16-240 for U and V
+        u10_full,       // 0-1023 for all components (stored in 16 bits)
+        u10_mpeg,       // 64-940 for Y, 64-960 for U and V (stored in 16 bits)
     } value_range_t;
 
     // Location of chroma samples (only relevant for chroma subsampling layouts)
