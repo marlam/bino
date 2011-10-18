@@ -100,9 +100,6 @@ static const float full_tex_coords[2][4][2] =
 
 video_output::video_output() : controller(), _initialized(false)
 {
-    // XXX: Hack: work around broken SRGB texture implementations
-    _srgb_textures_are_broken = std::getenv("SRGB_TEXTURES_ARE_BROKEN");
-
     _input_pbo = 0;
     _input_fbo = 0;
     _active_index = 1;
@@ -598,6 +595,13 @@ void video_output::color_init(const video_frame &frame)
             }
         }
     }
+    // XXX: Hack: work around broken SRGB texture implementations
+    if (std::getenv("SRGB_TEXTURES_ARE_BROKEN"))
+    {
+        msg::dbg("Avoiding broken SRGB texture implementation.");
+        storage_str = "storage_linear_rgb";
+    }
+
     std::string color_fs_src(VIDEO_OUTPUT_COLOR_FS_GLSL_STR);
     str::replace(color_fs_src, "$layout", layout_str);
     str::replace(color_fs_src, "$color_space", color_space_str);
@@ -616,7 +620,7 @@ void video_output::color_init(const video_frame &frame)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glTexImage2D(GL_TEXTURE_2D, 0,
-                storage_str == "storage_srgb" ? (_srgb_textures_are_broken ? GL_RGB8 : GL_SRGB8) : GL_RGB16,
+                storage_str == "storage_srgb" ? GL_SRGB8 : GL_RGB16,
                 frame.width, frame.height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
     }
     assert(xgl::CheckError(HERE));
@@ -677,10 +681,8 @@ void video_output::render_init()
             : _params.stereo_mode == parameters::red_green_monochrome ? "mode_red_green_monochrome"
             : _params.stereo_mode == parameters::red_blue_monochrome ? "mode_red_blue_monochrome"
             : "mode_onechannel");
-    std::string srgb_broken_str = (_srgb_textures_are_broken ? "1" : "0");
     std::string render_fs_src(VIDEO_OUTPUT_RENDER_FS_GLSL_STR);
     str::replace(render_fs_src, "$mode", mode_str);
-    str::replace(render_fs_src, "$srgb_broken", srgb_broken_str);
     _render_prg = xgl::CreateProgram("video_output_render", "", "", render_fs_src);
     xgl::LinkProgram("video_output_render", _render_prg);
     uint32_t dummy_texture = 0;

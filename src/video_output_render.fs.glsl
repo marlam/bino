@@ -77,24 +77,20 @@ float linear_to_nonlinear(float x)
 
 vec3 rgb_to_srgb(vec3 rgb)
 {
-#if $srgb_broken
-    return rgb;
-#else
-# if 1
+#if 1
     // Correct variant, see GL_ARB_framebuffer_sRGB extension
     float sr = linear_to_nonlinear(rgb.r);
     float sg = linear_to_nonlinear(rgb.g);
     float sb = linear_to_nonlinear(rgb.b);
     return vec3(sr, sg, sb);
-# endif
-# if 0
+#endif
+#if 0
     // Faster variant
     return pow(rgb, 1.0 / 2.2);
-# endif
-# if 0
+#endif
+#if 0
     // Even faster variant, assuming gamma = 2.0
     return sqrt(rgb);
-# endif
 #endif
 }
 

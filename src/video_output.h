@@ -37,7 +37,6 @@ class video_output : public controller
 {
 private:
     bool _initialized;
-    bool _srgb_textures_are_broken;     // XXX: Hack: work around broken SRGB texture implementations
 
     /* We manage two frames, each with its own set of properties etc.
      * The active frame is the one that is displayed, the other frame is the one
