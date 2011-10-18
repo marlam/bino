@@ -59,23 +59,29 @@
  * The input data is first converted to YUV (for the common planar YUV frame
  * formats, this just means gathering of the three components from the
  * three planes). Then color adjustment in the YUV space is performed.
- * Finally the result is converted to sRGB and stored in an GL_SRGB texture.
+ * If the input data had an 8 bit value range, the result is converted to sRGB
+ * and stored in an GL_SRGB texture. If the input data had a larger value range,
+ * the result is converted to linear RGB and stored in an GL_RGB16 texture.
  * In this color correction step, no interpolation is done, because we're
  * dealing with non-linear values, and interpolating them would lead to
- * errors. We do not convert to linear RGB (as opposed to sRGB) in this step
- * because storing linear RGB in a GL_RGB texture would lose some precision
- * when compared to the non-linear input data.
+ * errors. We do not store linear RGB in GL_RGB8 textures because that would
+ * lose some precision when compared to the input data - so we either use
+ * GL_SRGB8 (and store sRGB values) or GL_RGB16 (and store linear values).
+ * In both cases, the rendering step can properly interpolate.
  *
  * Step 3: Rendering.
- * This step reads from the sRGB textures created in the previous step, which
- * means that the GL will transform the input to linear RGB automatically and
- * handle hardware accelerated bilinear interpolation correctly. Thus,
- * magnification or minification are safe in this step. Furthermore, we can
- * do interpolation on the linear RGB values for the masking output modes.
- * We then transform the resulting linear RGB values back to non-linear sRGB
- * values for output. We do not use the GL_ARB_framebuffer_sRGB extension for
- * this purpose because 1) we need computations on non-linear values for the
- * anaglyph methods and 2) sRGB framebuffers are not yet widely supported.
+ * This step reads from the color textures created in the previous step. In the
+ * case of GL_SRGB8 textures, this means that OpenGL will transform the input to
+ * linear RGB automatically and handle hardware accelerated bilinear
+ * interpolation correctly. Thus, magnification or minification are safe in this
+ * step. With GL_RGB16 textures and the linear values stored therein, no special
+ * handling is necessary.
+ * Furthermore, we can do interpolation on the linear RGB values for the masking
+ * output modes. We then transform the resulting linear RGB values back to
+ * non-linear sRGB values for output. We do not use the GL_ARB_framebuffer_sRGB
+ * extension for this purpose because 1) we need computations on non-linear
+ * values for the anaglyph methods and 2) sRGB framebuffers are not yet widely
+ * supported.
  *
  * Open issues / TODO:
  * The 420p and 422p chroma subsampling formats are currently handled by
@@ -109,7 +115,7 @@ video_output::video_output() : controller(), _initialized(false)
             _input_yuv_v_tex[i][j] = 0;
             _input_bgra32_tex[i][j] = 0;
         }
-        _color_srgb_tex[i] = 0;
+        _color_tex[i] = 0;
         _input_subtitle_tex[i] = 0;
         _input_subtitle_width[i] = -1;
         _input_subtitle_height[i] = -1;
@@ -518,6 +524,7 @@ void video_output::color_init(const video_frame &frame)
     std::string layout_str;
     std::string color_space_str;
     std::string value_range_str;
+    std::string storage_str;
     std::string chroma_offset_x_str;
     std::string chroma_offset_y_str;
     if (frame.layout == video_frame::bgra32)
@@ -525,6 +532,7 @@ void video_output::color_init(const video_frame &frame)
         layout_str = "layout_bgra32";
         color_space_str = "color_space_srgb";
         value_range_str = "value_range_8bit_full";
+        storage_str = "storage_srgb";
     }
     else
     {
@@ -540,18 +548,22 @@ void video_output::color_init(const video_frame &frame)
         if (frame.value_range == video_frame::u8_full)
         {
             value_range_str = "value_range_8bit_full";
+            storage_str = "storage_srgb";
         }
         else if (frame.value_range == video_frame::u8_mpeg)
         {
             value_range_str = "value_range_8bit_mpeg";
+            storage_str = "storage_srgb";
         }
         else if (frame.value_range == video_frame::u10_full)
         {
             value_range_str = "value_range_10bit_full";
+            storage_str = "storage_linear_rgb";
         }
         else
         {
             value_range_str = "value_range_10bit_mpeg";
+            storage_str = "storage_linear_rgb";
         }
         chroma_offset_x_str = "0.0";
         chroma_offset_y_str = "0.0";
@@ -592,18 +604,19 @@ void video_output::color_init(const video_frame &frame)
     str::replace(color_fs_src, "$value_range", value_range_str);
     str::replace(color_fs_src, "$chroma_offset_x", chroma_offset_x_str);
     str::replace(color_fs_src, "$chroma_offset_y", chroma_offset_y_str);
+    str::replace(color_fs_src, "$storage", storage_str);
     _color_prg = xgl::CreateProgram("video_output_color", "", "", color_fs_src);
     xgl::LinkProgram("video_output_color", _color_prg);
     for (int i = 0; i < (frame.stereo_layout == video_frame::mono ? 1 : 2); i++)
     {
-        glGenTextures(1, &(_color_srgb_tex[i]));
-        glBindTexture(GL_TEXTURE_2D, _color_srgb_tex[i]);
+        glGenTextures(1, &(_color_tex[i]));
+        glBindTexture(GL_TEXTURE_2D, _color_tex[i]);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glTexImage2D(GL_TEXTURE_2D, 0,
-                _srgb_textures_are_broken ? GL_RGB8 : GL_SRGB8,
+                storage_str == "storage_srgb" ? (_srgb_textures_are_broken ? GL_RGB8 : GL_SRGB8) : GL_RGB16,
                 frame.width, frame.height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
     }
     assert(xgl::CheckError(HERE));
@@ -621,10 +634,10 @@ void video_output::color_deinit()
     }
     for (int i = 0; i < 2; i++)
     {
-        if (_color_srgb_tex[i] != 0)
+        if (_color_tex[i] != 0)
         {
-            glDeleteTextures(1, &(_color_srgb_tex[i]));
-            _color_srgb_tex[i] = 0;
+            glDeleteTextures(1, &(_color_tex[i]));
+            _color_tex[i] = 0;
         }
     }
     _color_last_frame = video_frame();
@@ -880,7 +893,7 @@ void video_output::display_current_frame(
     glUniform1f(glGetUniformLocation(_color_prg, "cos_hue"), std::cos(_params.hue * M_PI));
     glUniform1f(glGetUniformLocation(_color_prg, "sin_hue"), std::sin(_params.hue * M_PI));
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _color_fbo);
-    // left view: render into _color_srgb_tex[0]
+    // left view: render into _color_tex[0]
     if (frame.layout == video_frame::bgra32)
     {
         glActiveTexture(GL_TEXTURE0);
@@ -896,9 +909,9 @@ void video_output::display_current_frame(
         glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[_active_index][left]);
     }
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
-            GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_srgb_tex[0], 0);
+            GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[0], 0);
     draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
-    // right view: render into _color_srgb_tex[1]
+    // right view: render into _color_tex[1]
     if (left != right)
     {
         if (frame.layout == video_frame::bgra32)
@@ -916,7 +929,7 @@ void video_output::display_current_frame(
             glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[_active_index][right]);
         }
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
-                GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_srgb_tex[1], 0);
+                GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[1], 0);
         draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
     }
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
@@ -930,8 +943,8 @@ void video_output::display_current_frame(
         glEnable(GL_SCISSOR_TEST);
     }
 
-    // at this point, the left view is in _color_srgb_tex[0],
-    // and the right view (if it exists) is in _color_srgb_tex[1]
+    // at this point, the left view is in _color_tex[0],
+    // and the right view (if it exists) is in _color_tex[1]
     right = (left != right ? 1 : 0);
     left = 0;
 
@@ -980,11 +993,11 @@ void video_output::display_current_frame(
 
     glUseProgram(_render_prg);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _color_srgb_tex[left]);
+    glBindTexture(GL_TEXTURE_2D, _color_tex[left]);
     if (left != right)
     {
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, _color_srgb_tex[right]);
+        glBindTexture(GL_TEXTURE_2D, _color_tex[right]);
     }
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, (_input_subtitle_box[_active_index].is_valid()

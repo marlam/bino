@@ -66,7 +66,7 @@ private:
     video_frame _color_last_frame;      // last frame for this step; used for reinitialization check
     GLuint _color_prg;                  // color space transformation, color adjustment
     GLuint _color_fbo;                  // framebuffer object to render into the sRGB texture
-    GLuint _color_srgb_tex[2];          // output: sRGB texture
+    GLuint _color_tex[2];               // output: SRGB8 or linear RGB16 texture
     // Step 3: rendering
     parameters _render_last_params;     // last params for this step; used for reinitialization check
     GLuint _render_prg;                 // reads sRGB texture, renders according to _params[_active_index]

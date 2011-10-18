@@ -40,6 +40,10 @@
 #define chroma_offset_x $chroma_offset_x
 #define chroma_offset_y $chroma_offset_y
 
+// storage_srgb
+// storage_linear_rgb
+#define $storage
+
 #if defined(layout_yuv_p)
 uniform sampler2D y_tex;
 uniform sampler2D u_tex;
@@ -101,6 +105,21 @@ vec3 yuv_to_srgb(vec3 yuv)
 #endif
 }
 
+#if defined(storage_linear_rgb)
+// See GL_ARB_framebuffer_sRGB extension
+float nonlinear_to_linear(float x)
+{
+    return (x <= 0.04045 ? (x / 12.92) : pow((x + 0.055) / 1.055, 2.4));
+}
+vec3 srgb_to_rgb(vec3 srgb)
+{
+    float r = nonlinear_to_linear(srgb.r);
+    float g = nonlinear_to_linear(srgb.g);
+    float b = nonlinear_to_linear(srgb.b);
+    return vec3(r, g, b);
+}
+#endif
+
 vec3 adjust_yuv(vec3 yuv)
 {
     // Adapted from http://www.silicontrip.net/~mark/lavtools/yuvadjust.c
@@ -137,5 +156,10 @@ void main()
     vec3 yuv = get_yuv(gl_TexCoord[0].xy);
     vec3 adjusted_yuv = adjust_yuv(yuv);
     vec3 srgb = yuv_to_srgb(adjusted_yuv);
+#if defined(storage_srgb)
     gl_FragColor = vec4(srgb, 1.0);
+#else
+    vec3 rgb = srgb_to_rgb(srgb);
+    gl_FragColor = vec4(rgb, 1.0);
+#endif
 }
