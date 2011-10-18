@@ -427,6 +427,10 @@ void video_output_qt::create_widget()
             std::exit(1);
         }
     }
+    msg::dbg("OpenGL framebuffer: %d:%d:%d bits for R:G:B",
+            _widget->format().redBufferSize(),
+            _widget->format().greenBufferSize(),
+            _widget->format().blueBufferSize());
     QGridLayout *container_layout = new QGridLayout();
     container_layout->addWidget(_widget, 0, 0);
     container_layout->setContentsMargins(0, 0, 0, 0);
