@@ -122,7 +122,7 @@ LIBASS_PKGCONFIG_VERSION="\"\""
 PKG_CHECK_MODULES([libass], [libass >= 0.9.9], [HAVE_LIBASS=1], [HAVE_LIBASS=0])
 if test "$HAVE_LIBASS" != "1"; then
     AC_MSG_WARN([required library libass not found:])
-    AC_MSG_WARN([$libopenal_PKG_ERRORS])
+    AC_MSG_WARN([$libass_PKG_ERRORS])
     AC_MSG_WARN([libass is provided by LibASS; Debian package: libass-dev])
 else
     LIBASS_PKGCONFIG_VERSION="\"`$PKG_CONFIG --modversion libass`\""
