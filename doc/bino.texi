@@ -866,6 +866,8 @@ Seek 1 minute backward / forward.
 Seek 10 minutes backward / forward.
 @item Mouse click
 Seek according to the horizontal click position.
+@item "Media Keys"
+Media keys (if available) should work as expected.
 @end table
 
 @section Remote Controls

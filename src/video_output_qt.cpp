@@ -130,6 +130,7 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
         }
         break;
     case Qt::Key_Q:
+    case Qt::Key_MediaStop:
         _vo->send_cmd(command::toggle_play);
         break;
     case Qt::Key_E:
@@ -143,7 +144,20 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_Space:
     case Qt::Key_P:
+    case Qt::Key_MediaTogglePlayPause:
         _vo->send_cmd(command::toggle_pause);
+        break;
+    case Qt::Key_MediaPlay:
+        if (_vo->_pausing)
+        {
+            _vo->send_cmd(command::toggle_pause);
+        }
+        break;
+    case Qt::Key_MediaPause:
+        if (!_vo->_pausing)
+        {
+            _vo->send_cmd(command::toggle_pause);
+        }
         break;
     case Qt::Key_V:
         _vo->send_cmd(command::cycle_video_stream);
@@ -191,9 +205,11 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
         _vo->send_cmd(command::adjust_parallax, +0.01f);
         break;
     case Qt::Key_Less:
+    case Qt::Key_ZoomOut:
         _vo->send_cmd(command::adjust_zoom, -0.1f);
         break;
     case Qt::Key_Greater:
+    case Qt::Key_ZoomIn:
         _vo->send_cmd(command::adjust_zoom, +0.1f);
         break;
     case Qt::Key_Left:
@@ -283,7 +299,8 @@ video_output_qt::video_output_qt(bool benchmark, video_container_widget *contain
     _container_is_external(container_widget != NULL),
     _widget(NULL),
     _fullscreen(false),
-    _playing(false)
+    _playing(false),
+    _pausing(false)
 {
     if (!_container_widget)
     {
@@ -748,6 +765,11 @@ void video_output_qt::receive_notification(const notification &note)
     {
         std::istringstream current(note.current);
         s11n::load(current, _playing);
+    }
+    else if (note.type == notification::pause)
+    {
+        std::istringstream current(note.current);
+        s11n::load(current, _pausing);
     }
     /* More is currently not implemented.
      * In the future, an on-screen display might show hints about what happened. */

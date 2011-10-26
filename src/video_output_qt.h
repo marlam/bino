@@ -89,6 +89,7 @@ private:
     QGLFormat _format;
     bool _fullscreen;
     bool _playing;
+    bool _pausing;
 
     void create_widget();
     void mouse_set_pos(float dest);

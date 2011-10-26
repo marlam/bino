@@ -474,7 +474,8 @@ int main(int argc, char *argv[])
                     "  left, right              Seek 10 seconds backward / forward.\n"
                     "  up, down                 Seek 1 minute backward / forward.\n"
                     "  page up, page down       Seek 10 minutes backward / forward.\n"
-                    "  Mouse click              Seek according to horizontal click position."),
+                    "  Mouse click              Seek according to horizontal click position.\n"
+                    "  Media keys               Media keys should work as expected."),
                 program_name);
     }
     if (version.value() || help.value())
