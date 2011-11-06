@@ -183,7 +183,7 @@ if test "$HAVE_LIBQTOPENGL" = "1"; then
 fi
 
 dnl Equalizer
-dnl We assume that Equalizer includes GLEW. If we don't use Equalizer, we need GLEW separately.
+dnl We assume that Equalizer does not use an included GLEW!
 AC_ARG_WITH([equalizer],
     [AS_HELP_STRING([--without-equalizer], [Disable multi-display support via Equalizer (enabled by default)])],
     [if test "$withval" = "yes"; then equalizer="yes"; else equalizer="no"; fi], [equalizer="yes"])
@@ -195,10 +195,24 @@ if test "$equalizer" = "yes"; then
         AC_MSG_WARN([libEqualizer is provided by Equalizer])
 	equalizer="no"
     fi
-fi
-if test "$equalizer" = "no"; then
+else
     HAVE_LIBEQUALIZER=0
-    dnl glew
+fi
+AC_DEFINE_UNQUOTED([HAVE_LIBEQUALIZER], [$HAVE_LIBEQUALIZER], [Have Equalizer?])
+AM_CONDITIONAL([HAVE_LIBEQUALIZER], [test "$HAVE_LIBEQUALIZER" = "1"])
+
+dnl glew
+dnl With Equalizer, we need glewmx, since that is what Equalizer uses.
+dnl Without Equalizer, glew (without mx) is ok to use, too.
+PKG_CHECK_MODULES([libglewmx], [glewmx >= 1.5.0], [HAVE_LIBGLEWMX=1], [HAVE_LIBGLEWMX=0])
+if test "$HAVE_LIBGLEWMX" != "1"; then
+    AC_MSG_WARN([required library libglewmx >= 1.5.0 not found:])
+    AC_MSG_WARN([$libglewmx_PKG_ERRORS])
+    AC_MSG_WARN([libglewmx is provided by glew; Debian package: libglewmx-dev])
+fi
+AM_CONDITIONAL([HAVE_LIBGLEWMX], [test "$HAVE_LIBGLEWMX" = "1"])
+if test "$HAVE_LIBGLEWMX" != "1" -a "$HAVE_EQUALIZER" != "1"; then
+    AC_MSG_NOTICE([trying to use libglew instead of libglewmx])
     PKG_CHECK_MODULES([libglew], [glew >= 1.5.0], [HAVE_LIBGLEW=1], [HAVE_LIBGLEW=0])
     if test "$HAVE_LIBGLEW" != "1"; then
         AC_MSG_WARN([required library libglew >= 1.5.0 not found:])
@@ -206,13 +220,12 @@ if test "$equalizer" = "no"; then
         AC_MSG_WARN([libglew is provided by glew; Debian package: libglew-dev])
     fi
 fi
-AC_DEFINE_UNQUOTED([HAVE_LIBEQUALIZER], [$HAVE_LIBEQUALIZER], [Have Equalizer?])
-AM_CONDITIONAL([HAVE_LIBEQUALIZER], [test "$HAVE_LIBEQUALIZER" = "1"])
 
 dnl OpenGL
 dnl We need to explicitly link with OpenGL since we use its functions directly.
-dnl However, this is most probably not necessary on Windows and Mac OS X (for now),
-dnl so we just use a pkg-config check and ignore a failure.
+dnl However, this is most probably not necessary on Windows and Mac OS X (for
+dnl now), so we just use a pkg-config check (which usually only works on Linux)
+dnl and ignore a failure.
 PKG_CHECK_MODULES([libgl], [gl >= 0.0], [HAVE_LIBGL=1], [HAVE_LIBGL=0])
 
 dnl LIRC
@@ -253,8 +266,8 @@ if test "$am_cv_func_iconv" != "yes" \
     -o "$HAVE_LIBASS" != "1" \
     -o "$HAVE_LIBOPENAL" != "1" \
     -o "$HAVE_LIBQTOPENGL" != "1" \
+    -o \( "$HAVE_LIBGLEWMX" != "1" -a "$HAVE_LIBGLEW" != "1" \) \
     -o \( "$equalizer" = "yes" -a "$HAVE_LIBEQUALIZER" != "1" \) \
-    -o \( "$HAVE_LIBEQUALIZER" != "1" -a "$HAVE_LIBGLEW" != "1" \) \
     -o \( "$lirc" = "yes" -a "$HAVE_LIBLIRCCLIENT" != "1" \) ; then
     AC_MSG_ERROR([One or more libraries were not found. See messages above.])
 fi
