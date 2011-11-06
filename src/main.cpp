@@ -622,6 +622,10 @@ int main(int argc, char *argv[])
         if (equalizer)
         {
 #if HAVE_LIBEQUALIZER
+            if (arguments.size() == 0)
+            {
+                throw exc(_("No video to play."));
+            }
             player = new class player_equalizer(&argc, argv, equalizer_flat_screen);
 #else
             throw exc(_("This version of Bino was compiled without support for Equalizer."));
