@@ -211,7 +211,7 @@ if test "$HAVE_LIBGLEWMX" != "1"; then
     AC_MSG_WARN([libglewmx is provided by glew; Debian package: libglewmx-dev])
 fi
 AM_CONDITIONAL([HAVE_LIBGLEWMX], [test "$HAVE_LIBGLEWMX" = "1"])
-if test "$HAVE_LIBGLEWMX" != "1" -a "$HAVE_EQUALIZER" != "1"; then
+if test "$HAVE_LIBGLEWMX" != "1" -a "$HAVE_LIBEQUALIZER" != "1"; then
     AC_MSG_NOTICE([trying to use libglew instead of libglewmx])
     PKG_CHECK_MODULES([libglew], [glew >= 1.5.0], [HAVE_LIBGLEW=1], [HAVE_LIBGLEW=0])
     if test "$HAVE_LIBGLEW" != "1"; then
