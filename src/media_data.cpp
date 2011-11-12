@@ -590,39 +590,39 @@ parameters::parameters() :
 
 void parameters::set_defaults()
 {
-    if (!std::isfinite(parallax) || parallax < -1.0f || parallax > +1.0f)
+    if (!std::isnormal(parallax) || parallax < -1.0f || parallax > +1.0f)
     {
         parallax = 0.0f;
     }
-    if (!std::isfinite(crosstalk_r) || crosstalk_r < 0.0f || crosstalk_r > +1.0f)
+    if (!std::isnormal(crosstalk_r) || crosstalk_r < 0.0f || crosstalk_r > +1.0f)
     {
         crosstalk_r = 0.0f;
     }
-    if (!std::isfinite(crosstalk_g) || crosstalk_g < 0.0f || crosstalk_g > +1.0f)
+    if (!std::isnormal(crosstalk_g) || crosstalk_g < 0.0f || crosstalk_g > +1.0f)
     {
         crosstalk_g = 0.0f;
     }
-    if (!std::isfinite(crosstalk_b) || crosstalk_b < 0.0f || crosstalk_b > +1.0f)
+    if (!std::isnormal(crosstalk_b) || crosstalk_b < 0.0f || crosstalk_b > +1.0f)
     {
         crosstalk_b = 0.0f;
     }
-    if (!std::isfinite(ghostbust) || ghostbust < 0.0f || ghostbust > +1.0f)
+    if (!std::isnormal(ghostbust) || ghostbust < 0.0f || ghostbust > +1.0f)
     {
         ghostbust = 0.0f;
     }
-    if (!std::isfinite(contrast) || contrast < -1.0f || contrast > +1.0f)
+    if (!std::isnormal(contrast) || contrast < -1.0f || contrast > +1.0f)
     {
         contrast = 0.0f;
     }
-    if (!std::isfinite(brightness) || brightness < -1.0f || brightness > +1.0f)
+    if (!std::isnormal(brightness) || brightness < -1.0f || brightness > +1.0f)
     {
         brightness = 0.0f;
     }
-    if (!std::isfinite(hue) || hue < -1.0f || hue > +1.0f)
+    if (!std::isnormal(hue) || hue < -1.0f || hue > +1.0f)
     {
         hue = 0.0f;
     }
-    if (!std::isfinite(saturation) || saturation < -1.0f || saturation > +1.0f)
+    if (!std::isnormal(saturation) || saturation < -1.0f || saturation > +1.0f)
     {
         saturation = 0.0f;
     }
@@ -638,7 +638,7 @@ void parameters::set_defaults()
     {
         subtitle_size = -1;
     }
-    if (!std::isfinite(subtitle_scale) || subtitle_scale < 0.0f)
+    if (!std::isnormal(subtitle_scale) || subtitle_scale < 0.0f)
     {
         subtitle_scale = -1.0f;
     }
@@ -646,7 +646,7 @@ void parameters::set_defaults()
     {
         subtitle_color = std::numeric_limits<uint64_t>::max();
     }
-    if (!std::isfinite(subtitle_parallax) || subtitle_parallax < -1.0f || subtitle_parallax > +1.0f)
+    if (!std::isnormal(subtitle_parallax) || subtitle_parallax < -1.0f || subtitle_parallax > +1.0f)
     {
         subtitle_parallax = 0.0f;
     }
@@ -670,7 +670,7 @@ void parameters::set_defaults()
     {
         fullscreen_flop_right = 0;
     }
-    if (!std::isfinite(zoom) || zoom < 0.0f)
+    if (!std::isnormal(zoom) || zoom < 0.0f)
     {
         zoom = 0.0f;
     }
