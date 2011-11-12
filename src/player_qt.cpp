@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include <limits>
+#include <cmath>
 #include <unistd.h>
 
 #include <QCoreApplication>
@@ -1953,31 +1954,31 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
 
     // Load preferences
     _settings->beginGroup("Session");
-    if (!(_init_data.params.contrast >= -1.0f && _init_data.params.contrast <= +1.0f))
+    if (!std::isnormal(_init_data.params.contrast))
     {
         _init_data.params.contrast = _settings->value("contrast", QString("0")).toFloat();
     }
-    if (!(_init_data.params.brightness >= -1.0f && _init_data.params.brightness <= +1.0f))
+    if (!std::isnormal(_init_data.params.brightness))
     {
         _init_data.params.brightness = _settings->value("brightness", QString("0")).toFloat();
     }
-    if (!(_init_data.params.hue >= -1.0f && _init_data.params.hue <= +1.0f))
+    if (!std::isnormal(_init_data.params.hue))
     {
         _init_data.params.hue = _settings->value("hue", QString("0")).toFloat();
     }
-    if (!(_init_data.params.saturation >= -1.0f && _init_data.params.saturation <= +1.0f))
+    if (!std::isnormal(_init_data.params.saturation))
     {
         _init_data.params.saturation = _settings->value("saturation", QString("0")).toFloat();
     }
-    if (!(_init_data.params.crosstalk_r >= 0.0f && _init_data.params.crosstalk_r <= 1.0f))
+    if (!std::isnormal(_init_data.params.crosstalk_r))
     {
         _init_data.params.crosstalk_r = _settings->value("crosstalk_r", QString("0")).toFloat();
     }
-    if (!(_init_data.params.crosstalk_g >= 0.0f && _init_data.params.crosstalk_g <= 1.0f))
+    if (!std::isnormal(_init_data.params.crosstalk_g))
     {
         _init_data.params.crosstalk_g = _settings->value("crosstalk_g", QString("0")).toFloat();
     }
-    if (!(_init_data.params.crosstalk_b >= 0.0f && _init_data.params.crosstalk_b <= 1.0f))
+    if (!std::isnormal(_init_data.params.crosstalk_b))
     {
         _init_data.params.crosstalk_b = _settings->value("crosstalk_b", QString("0")).toFloat();
     }
