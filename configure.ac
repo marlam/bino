@@ -45,7 +45,8 @@ AC_DEFINE_UNQUOTED([PLATFORM], ["${target}"], [Platform triplet])
 dnl Special handling of W32
 case "${target}" in *-*-mingw32*) w32="yes" ;; *) w32="no " ;; esac
 if test "$w32" = "yes"; then
-    LDFLAGS="-mwindows $LDFLAGS"
+    CXXFLAGS="-mthreads $CXXFLAGS"
+    LDFLAGS="-mthreads -mwindows $LDFLAGS"
     AC_CHECK_TOOL([WINDRES], [windres], [:])
     if test "$WINDRES" = ":"; then
         AC_MSG_ERROR([windres not found])
