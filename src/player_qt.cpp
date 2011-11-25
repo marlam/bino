@@ -72,6 +72,10 @@
 #include "msg.h"
 
 
+#ifndef PACKAGE_URL
+#  define PACKAGE_URL "http://www.bino3d.org"
+#endif
+
 // Helper function: Get the icon with the given name from the icon theme.
 // If unavailable, fall back to the built-in icon. Icon names conform to this specification:
 // http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html
