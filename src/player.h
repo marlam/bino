@@ -46,6 +46,7 @@ public:
     int video_stream;                           // Selected video stream
     int audio_stream;                           // Selected audio stream
     int subtitle_stream;                        // Selected subtitle stream
+    int swap_interval;                          // locked refresh rate
     bool benchmark;                             // Benchmark mode?
     bool fullscreen;                            // Make video fullscreen?
     bool center;                                // Center video on screen?
@@ -98,6 +99,7 @@ private:
 
     // Benchmark mode
     bool _benchmark;                            // Is benchmark mode active?
+    int _swap_interval;                         // 0 in benchmark mode
     int _frames_shown;                          // Frames shown since last reset
     int64_t _fps_mark_time;                     // Time when _frames_shown was reset to zero
 

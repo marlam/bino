@@ -48,6 +48,7 @@ player_init_data::player_init_data() :
     video_stream(0),
     audio_stream(0),
     subtitle_stream(-1),
+    swap_interval(1),
     benchmark(false),
     fullscreen(false),
     center(false),
@@ -73,6 +74,7 @@ void player_init_data::save(std::ostream &os) const
     s11n::save(os, video_stream);
     s11n::save(os, audio_stream);
     s11n::save(os, subtitle_stream);
+    s11n::save(os, swap_interval);
     s11n::save(os, benchmark);
     s11n::save(os, fullscreen);
     s11n::save(os, center);
@@ -95,6 +97,7 @@ void player_init_data::load(std::istream &is)
     s11n::load(is, video_stream);
     s11n::load(is, audio_stream);
     s11n::load(is, subtitle_stream);
+    s11n::load(is, swap_interval);
     s11n::load(is, benchmark);
     s11n::load(is, fullscreen);
     s11n::load(is, center);
@@ -174,7 +177,7 @@ void player::stop_playback()
 
 video_output *player::create_video_output()
 {
-    return new video_output_qt(_benchmark);
+    return new video_output_qt(_swap_interval);
 }
 
 void player::destroy_video_output(video_output *vo)
@@ -202,6 +205,7 @@ void player::open(const player_init_data &init_data)
     // Initialize basics
     msg::set_level(init_data.log_level);
     _benchmark = init_data.benchmark;
+    _swap_interval = init_data.swap_interval;
     reset_playstate();
 
     // Create media input

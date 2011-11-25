@@ -310,6 +310,8 @@ int main(int argc, char *argv[])
     options.push_back(&ghostbust);
     opt::flag benchmark("benchmark", 'b', opt::optional);
     options.push_back(&benchmark);
+    opt::val<int> swap_interval("swap-interval", '\0', opt::optional, 0, 999, -1);
+    options.push_back(&swap_interval);
     opt::flag loop("loop", 'l', opt::optional);
     options.push_back(&loop);
     // Accept some Equalizer options. These are passed to Equalizer for interpretation.
@@ -452,6 +454,7 @@ int main(int argc, char *argv[])
                     "                           values for the R,G,B channels.\n"
                     "  -G|--ghostbust=VAL       Amount of ghostbusting to apply (0 to 1).\n"
                     "  -b|--benchmark           Benchmark mode (no audio, show fps).\n"
+                    "  --swap-interval          Frame rate divisor relative to display refresh rate, default 0 for benchmark, 1 otherwise.\n"
                     "  -l|--loop                Loop the input media.\n"
                     "\n"
                     "Interactive control:\n"
@@ -629,8 +632,14 @@ int main(int argc, char *argv[])
     init_data.benchmark = benchmark.value();
     if (init_data.benchmark)
     {
+        init_data.swap_interval = 0;
         msg::inf(_("Benchmark mode: audio and time synchronization disabled."));
     }
+    if (swap_interval.value() >= 0)
+    {
+        init_data.swap_interval = swap_interval.value();
+    }
+
     init_data.params.loop_mode = (loop.value() ? parameters::loop_current : parameters::no_loop);
 
 #if HAVE_LIBLIRCCLIENT

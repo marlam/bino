@@ -293,7 +293,7 @@ void video_container_widget::closeEvent(QCloseEvent *)
 
 /* The video_output_qt class */
 
-video_output_qt::video_output_qt(bool benchmark, video_container_widget *container_widget) :
+video_output_qt::video_output_qt(const int swap_interval, video_container_widget *container_widget) :
     video_output(),
     _container_widget(container_widget),
     _container_is_external(container_widget != NULL),
@@ -307,10 +307,7 @@ video_output_qt::video_output_qt(bool benchmark, video_container_widget *contain
         _container_widget = new video_container_widget(NULL);
     }
     _format.setDoubleBuffer(true);
-    if (!benchmark)
-    {
-        _format.setSwapInterval(1);
-    }
+    _format.setSwapInterval(swap_interval);
     _format.setStereo(false);
 }
 
