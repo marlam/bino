@@ -186,6 +186,9 @@ Amount of crosstalk ghostbusting to apply (0 to 1).
 @itemx --benchmark
 Benchmark mode: no audio, no time synchronization, output of frames-per-second
 measurements.
+@item --swap-interval=@var{D}
+Frame rate divisor relative to display refresh rate. The default is 0 for
+benchmark mode and 1 otherwise.
 @item -l
 @itemx --loop
 Loop the input media.
