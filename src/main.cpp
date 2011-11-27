@@ -354,6 +354,8 @@ int main(int argc, char *argv[])
 
     if (version.value())
     {
+        if (msg::file() == stderr)
+            msg::set_file(stdout);
         msg::req(_("%s version %s"), PACKAGE_NAME, VERSION);
         msg::req(4, _("Copyright (C) 2011 the Bino developers."));
         msg::req_txt(4, _("This is free software. You may redistribute copies of it "
@@ -370,6 +372,8 @@ int main(int argc, char *argv[])
     }
     if (help.value())
     {
+        if (msg::file() == stderr)
+            msg::set_file(stdout);
         /* TRANSLATORS: This is the --help text. Translate only the description,
            not the option names. Please keep a proper indentation with spaces, and
            keep the line length limited. */
