@@ -71,9 +71,9 @@
 #include "dbg.h"
 #include "msg.h"
 
-
+// for autoconf < 2.65:
 #ifndef PACKAGE_URL
-#  define PACKAGE_URL "http://www.bino3d.org"
+#  define PACKAGE_URL "http://bino3d.org"
 #endif
 
 // Helper function: Get the icon with the given name from the icon theme.
