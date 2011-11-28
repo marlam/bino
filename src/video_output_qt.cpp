@@ -144,6 +144,8 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_Space:
     case Qt::Key_P:
+
+#if QT_VERSION >= 0x040700
     case Qt::Key_MediaTogglePlayPause:
         _vo->send_cmd(command::toggle_pause);
         break;
@@ -159,6 +161,8 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
             _vo->send_cmd(command::toggle_pause);
         }
         break;
+#endif
+
     case Qt::Key_V:
         _vo->send_cmd(command::cycle_video_stream);
         break;
