@@ -28,7 +28,7 @@
 #include "s11n.h"
 
 
-class device_request : public s11n
+class device_request : public serializable
 {
 public:
     typedef enum
@@ -194,7 +194,7 @@ public:
     int sample_bits() const;
 };
 
-class subtitle_box : public s11n
+class subtitle_box : public serializable
 {
 public:
     // Format
@@ -206,7 +206,7 @@ public:
     } format_t;
 
     // Image data
-    class image_t : public s11n
+    class image_t : public serializable
     {
     public:
         int w, h;                       // Dimensions
@@ -270,7 +270,7 @@ public:
     void load(std::istream &is);
 };
 
-class parameters : public s11n
+class parameters : public serializable
 {
 public:
     // Do not change these enum values without a good reason, because the GUI saves them to a file.

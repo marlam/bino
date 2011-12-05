@@ -1,7 +1,5 @@
 /*
- * This file is part of bino, a 3D video player.
- *
- * Copyright (C) 2009-2011
+ * Copyright (C) 2009, 2010, 2011
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -58,7 +56,11 @@ namespace msg
 
     void set_level(level_t l)
     {
+#ifdef NDEBUG
+        _level = (l == msg::DBG ? msg::INF : l);
+#else
         _level = l;
+#endif
     }
 
     int columns()
@@ -337,6 +339,7 @@ namespace msg
         msg_txt(0, level, s);
     }
 
+#ifndef NDEBUG
     void dbg(int indent, const std::string &s)
     {
         if (DBG < _level)
@@ -436,6 +439,7 @@ namespace msg
         va_end(args);
         msg_txt(0, DBG, s);
     }
+#endif
 
     void inf(int indent, const std::string &s)
     {

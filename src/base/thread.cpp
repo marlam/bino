@@ -1,6 +1,4 @@
 /*
- * This file is part of bino, a 3D video player.
- *
  * Copyright (C) 2011
  * Martin Lambers <marlam@marlam.de>
  *
@@ -22,11 +20,13 @@
 
 #include <cstring>
 #include <pthread.h>
+#include <sched.h>
 
 #include "gettext.h"
 #define _(string) gettext(string)
 
 #include "dbg.h"
+#include "str.h"
 #include "thread.h"
 
 
@@ -36,20 +36,16 @@ mutex::mutex() : _mutex(_mutex_initializer)
 {
     int e = pthread_mutex_init(&_mutex, NULL);
     if (e != 0)
-    {
         throw exc(str::asprintf(_("Cannot initialize mutex: %s"), std::strerror(e)), e);
-    }
 }
 
-mutex::mutex(const mutex &) : _mutex(_mutex_initializer)
+mutex::mutex(const mutex&) : _mutex(_mutex_initializer)
 {
     // You cannot have multiple copies of the same mutex.
     // Instead, we create a new one. This allows easier use of mutexes in STL containers.
     int e = pthread_mutex_init(&_mutex, NULL);
     if (e != 0)
-    {
         throw exc(str::asprintf(_("Cannot initialize mutex: %s"), std::strerror(e)), e);
-    }
 }
 
 mutex::~mutex()
@@ -61,9 +57,7 @@ void mutex::lock()
 {
     int e = pthread_mutex_lock(&_mutex);
     if (e != 0)
-    {
         throw exc(str::asprintf(_("Cannot lock mutex: %s"), std::strerror(e)), e);
-    }
 }
 
 bool mutex::trylock()
@@ -75,11 +69,12 @@ void mutex::unlock()
 {
     int e = pthread_mutex_unlock(&_mutex);
     if (e != 0)
-    {
         throw exc(str::asprintf(_("Cannot unlock mutex: %s"), std::strerror(e)), e);
-    }
 }
 
+
+const int thread::priority_default;
+const int thread::priority_min;
 
 thread::thread() :
     __thread_id(pthread_self()),
@@ -90,7 +85,7 @@ thread::thread() :
 {
 }
 
-thread::thread(const thread &) :
+thread::thread(const thread&) :
     __thread_id(pthread_self()),
     __joinable(false),
     __running(false),
@@ -103,28 +98,22 @@ thread::thread(const thread &) :
 thread::~thread()
 {
     if (__joinable)
-    {
         (void)pthread_detach(__thread_id);
-    }
 }
 
-void *thread::__run(void *p)
+void* thread::__run(void* p)
 {
-    thread *t = static_cast<thread *>(p);
-    try
-    {
+    thread* t = static_cast<thread*>(p);
+    try {
         t->run();
     }
-    catch (exc &e)
-    {
+    catch (exc& e) {
         t->__exception = e;
     }
-    catch (std::exception &e)
-    {
+    catch (std::exception& e) {
         t->__exception = e;
     }
-    catch (...)
-    {
+    catch (...) {
         // We must assume this means thread cancellation. In this
         // case, we *must* rethrow the exception.
         t->__running = false;
@@ -134,14 +123,37 @@ void *thread::__run(void *p)
     return NULL;
 }
 
-void thread::start()
+void thread::start(int priority)
 {
-    if (atomic::bool_compare_and_swap(&__running, false, true))
-    {
+    if (atomic::bool_compare_and_swap(&__running, false, true)) {
         wait();
-        int e = pthread_create(&__thread_id, NULL, __run, this);
-        if (e != 0)
+        int e;
+        pthread_attr_t priority_thread_attr;
+        pthread_attr_t* thread_attr = NULL;
+        if (priority != priority_default)
         {
+            // Currently this means priority_min
+            int policy, min_priority;
+            struct sched_param param;
+            e = pthread_attr_init(&priority_thread_attr);
+            e = e || pthread_attr_getschedpolicy(&priority_thread_attr, &policy);
+            if (e == 0) {
+                min_priority = sched_get_priority_min(policy);
+                if (min_priority == -1)
+                    e = errno;
+            }
+            e = e || pthread_attr_getschedparam(&priority_thread_attr, &param);
+            if (e == 0) {
+                param.sched_priority = min_priority;
+            }
+            e = e || pthread_attr_setschedparam(&priority_thread_attr, &param);
+            if (e != 0) {
+                throw exc(str::asprintf(_("Cannot create thread: %s"), std::strerror(e)), e);
+            }
+            thread_attr = &priority_thread_attr;
+        }
+        e = pthread_create(&__thread_id, thread_attr, __run, this);
+        if (e != 0) {
             throw exc(str::asprintf(_("Cannot create thread: %s"), std::strerror(e)), e);
         }
         __joinable = true;
@@ -151,11 +163,9 @@ void thread::start()
 void thread::wait()
 {
     __wait_mutex.lock();
-    if (atomic::bool_compare_and_swap(&__joinable, true, false))
-    {
+    if (atomic::bool_compare_and_swap(&__joinable, true, false)) {
         int e = pthread_join(__thread_id, NULL);
-        if (e != 0)
-        {
+        if (e != 0) {
             __wait_mutex.unlock();
             throw exc(str::asprintf(_("Cannot join with thread: %s"), std::strerror(e)), e);
         }
@@ -167,19 +177,67 @@ void thread::finish()
 {
     wait();
     if (!exception().empty())
-    {
         throw exception();
-    }
 }
 
 void thread::cancel()
 {
     __wait_mutex.lock();
     int e = pthread_cancel(__thread_id);
-    if (e != 0)
-    {
+    if (e != 0) {
         __wait_mutex.unlock();
         throw exc(str::asprintf(_("Cannot cancel thread: %s"), std::strerror(e)), e);
     }
     __wait_mutex.unlock();
+}
+
+
+thread_group::thread_group(unsigned char size) : __max_size(size)
+{
+    __active_threads.reserve(__max_size);
+    __finished_threads.reserve(__max_size);
+}
+
+thread_group::~thread_group()
+{
+    try {
+        for (size_t i = 0; i < __active_threads.size(); i++) {
+            __active_threads[i]->cancel();
+        }
+    }
+    catch (...) {
+    }
+}
+
+bool thread_group::start(thread* t, int priority)
+{
+    if (__active_threads.size() < __max_size) {
+        t->start(priority);
+        __active_threads.push_back(t);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+thread* thread_group::get_next_finished_thread()
+{
+    if (__finished_threads.size() == 0) {
+        std::vector<thread*>::iterator it = __active_threads.begin();
+        while (it != __active_threads.end()) {
+            if (!(*it)->is_running()) {
+                __finished_threads.push_back(*it);
+                it = __active_threads.erase(it);
+            } else {
+                it++;
+            }
+        }
+    }
+    if (__finished_threads.size() > 0) {
+        thread* ret = __finished_threads.back();
+        __finished_threads.pop_back();
+        return ret;
+    } else {
+        return NULL;
+    }
 }

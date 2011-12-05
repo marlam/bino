@@ -1,7 +1,5 @@
 /*
- * This file is part of bino, a 3D video player.
- *
- * Copyright (C) 2009-2011
+ * Copyright (C) 2009, 2010, 2011
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,8 +25,19 @@
 #include <cerrno>
 #include <limits>
 #include <sstream>
+#include <locale>
 
-#include <iconv.h>
+#ifdef HAVE_NL_LANGINFO
+# include <locale.h>
+# include <langinfo.h>
+#else
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
+#endif
+
+#ifdef HAVE_ICONV
+# include <iconv.h>
+#endif
 
 #include "gettext.h"
 #define _(string) gettext(string)
@@ -101,6 +110,7 @@ template<typename T>
 static inline std::string float_to_str(T x)
 {
     std::ostringstream os;
+    os.imbue(std::locale::classic());
     os.precision(std::numeric_limits<T>::digits10 + 1);
     os << x;
     return os.str();
@@ -396,6 +406,30 @@ namespace str
         return hr;
     }
 
+    /* Get the name of the user's character set */
+    std::string localcharset()
+    {
+#ifdef HAVE_NL_LANGINFO
+        std::string bak = setlocale(LC_CTYPE, NULL);
+        setlocale(LC_CTYPE, "");
+        char *charset = nl_langinfo(CODESET);
+        setlocale(LC_CTYPE, bak.c_str());
+#else
+        char charset[2 + 10 + 1];
+        snprintf(charset, 2 + 10 + 1, "CP%u", GetACP());
+        /* Another instance of incredibly braindead Windows design.
+         * We need to return the active code page to get correct results when
+         * output goes into files or pipes. But the console output codepage is
+         * not related to the active code page. So we force it to be the same.
+         * but this only works if the console window uses a true type font;
+         * raster fonts ignore the console output codepage.
+         * If you find this too stupid to believe, read Microsofts documentation
+         * of the SetConsoleOutputCP function. */
+        SetConsoleOutputCP(GetACP());
+#endif
+        return std::string(charset);
+    }
+
     /* Convert a string from one character set to another */
 
     std::string convert(const std::string &src, const std::string &from_charset, const std::string &to_charset)
@@ -405,6 +439,7 @@ namespace str
             return src;
         }
 
+#ifdef HAVE_ICONV
         iconv_t cd = iconv_open(to_charset.c_str(), from_charset.c_str());
         if (cd == reinterpret_cast<iconv_t>(static_cast<size_t>(-1)))
         {
@@ -451,5 +486,8 @@ namespace str
         }
         free(orig_outbuf);
         return dst;
+#else
+        throw exc(str::asprintf(_("Cannot convert %s to %s."), from_charset.c_str(), to_charset.c_str()), ENOSYS);
+#endif
     }
 }

@@ -73,7 +73,7 @@ dnl Feature checks needed by the base module
 AC_CHECK_DECLS([optreset], [#include <getopt.h>])
 AC_SEARCH_LIBS([clock_gettime], [rt])
 AC_SEARCH_LIBS([pthread_create], [pthread])
-AC_CHECK_FUNCS([backtrace clock_gettime sigaction vasprintf wcwidth])
+AC_CHECK_FUNCS([backtrace clock_gettime fdatasync fnmatch fseeko ftello getpwuid link mmap nl_langinfo posix_fadvise readdir_r sigaction symlink sysconf vasprintf wcwidth])
 CPPFLAGS_bak="$CPPFLAGS"
 LDFLAGS_bak="$LDFLAGS"
 CPPFLAGS="-pthread $CPPFLAGS"

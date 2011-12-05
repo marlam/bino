@@ -1,7 +1,5 @@
 /*
- * This file is part of bino, a 3D video player.
- *
- * Copyright (C) 2008-2011
+ * Copyright (C) 2008, 2009, 2010, 2011
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,21 +29,37 @@
  */
 
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
 
-class s11n
+class serializable
 {
 public:
-
     /*
      * Interface for serializable classes
      */
 
-    virtual void save(std::ostream &os) const = 0;
-    virtual void load(std::istream &is) = 0;
+    // Save binary. Efficient. Needs compatible architectures and application versions on the writing and reading end.
+    virtual void save(std::ostream& os) const = 0;
+    virtual void load(std::istream& is) = 0;
 
+    // Save in human-readable and editable text format. Can be used for machine- and application version independent
+    // saving of data. The default implementation falls back on the above binary functions and stores the binary data in
+    // strings.
+    virtual void save(std::ostream& os, const char* name) const;
+    virtual void load(const std::string& s);
+};
+
+namespace s11n
+{
+    // Functions needed to human-readable save/load:
+    // - When saving a group of values contained in a serializable class, use startgroup()/endgroup()
+    // - When loading back, get the next name/value pair and interpret it
+    void startgroup(std::ostream& os, const char* name);
+    void endgroup(std::ostream& os);
+    void load(std::istream& is, std::string& name, std::string& value);
 
     /*
      * Save a value to a stream
@@ -53,49 +67,77 @@ public:
 
     // Fundamental arithmetic data types
 
-    static void save(std::ostream &os, const bool x);
-    static void save(std::ostream &os, const char x);
-    static void save(std::ostream &os, const signed char x);
-    static void save(std::ostream &os, const unsigned char x);
-    static void save(std::ostream &os, const short x);
-    static void save(std::ostream &os, const unsigned short x);
-    static void save(std::ostream &os, const int x);
-    static void save(std::ostream &os, const unsigned int x);
-    static void save(std::ostream &os, const long x);
-    static void save(std::ostream &os, const unsigned long x);
-    static void save(std::ostream &os, const long long x);
-    static void save(std::ostream &os, const unsigned long long x);
-    static void save(std::ostream &os, const float x);
-    static void save(std::ostream &os, const double x);
-    static void save(std::ostream &os, const long double x);
+    void save(std::ostream& os, bool x);
+    void save(std::ostream& os, const char* name, bool x);
+    void save(std::ostream& os, char x);
+    void save(std::ostream& os, const char* name, char x);
+    void save(std::ostream& os, signed char x);
+    void save(std::ostream& os, const char* name, signed char x);
+    void save(std::ostream& os, unsigned char x);
+    void save(std::ostream& os, const char* name, unsigned char x);
+    void save(std::ostream& os, short x);
+    void save(std::ostream& os, const char* name, short x);
+    void save(std::ostream& os, unsigned short x);
+    void save(std::ostream& os, const char* name, unsigned short x);
+    void save(std::ostream& os, int x);
+    void save(std::ostream& os, const char* name, int x);
+    void save(std::ostream& os, unsigned int x);
+    void save(std::ostream& os, const char* name, unsigned int x);
+    void save(std::ostream& os, long x);
+    void save(std::ostream& os, const char* name, long x);
+    void save(std::ostream& os, unsigned long x);
+    void save(std::ostream& os, const char* name, unsigned long x);
+    void save(std::ostream& os, long long x);
+    void save(std::ostream& os, const char* name, long long x);
+    void save(std::ostream& os, unsigned long long x);
+    void save(std::ostream& os, const char* name, unsigned long long x);
+    void save(std::ostream& os, float x);
+    void save(std::ostream& os, const char* name, float x);
+    void save(std::ostream& os, double x);
+    void save(std::ostream& os, const char* name, double x);
+    void save(std::ostream& os, long double x);
+    void save(std::ostream& os, const char* name, long double x);
 
     // Binary blobs
 
-    static void save(std::ostream &os, const void *x, const size_t n);
+    void save(std::ostream& os, const void* x, const size_t n);
+    void save(std::ostream& os, const char* name, const void* x, const size_t n);
 
     // Serializable classes
 
-    static void save(std::ostream &os, const s11n &x);
+    void save(std::ostream& os, const serializable& x);
+    void save(std::ostream& os, const char* name, const serializable& x);
 
     // Basic STL types
 
-    static void save(std::ostream &os, const std::string &x);
+    void save(std::ostream& os, const std::string& x);
+    void save(std::ostream& os, const char* name, const std::string& x);
 
     // STL containters
 
     template<typename T>
-    static void save(std::ostream &os, const std::vector<T> &x)
+    void save(std::ostream& os, const std::vector<T>& x)
     {
         size_t s = x.size();
         save(os, s);
-        for (size_t i = 0; i < s; i++)
-        {
+        for (size_t i = 0; i < s; i++) {
             save(os, x[i]);
         }
     }
 
-    // TODO: add more STL containers as needed
+    template<typename T>
+    void save(std::ostream& os, const char* name, const std::vector<T>& x)
+    {
+        size_t s = x.size();
+        startgroup(os, name);
+        save(os, "size", s);
+        for (size_t i = 0; i < s; i++) {
+            save(os, "", x[i]);
+        }
+        endgroup(os);
+    }
 
+    // TODO: add more STL containers as needed
 
     /*
      * Load a value from a stream
@@ -103,48 +145,85 @@ public:
 
     // Fundamental arithmetic data types
 
-    static void load(std::istream &is, bool &x);
-    static void load(std::istream &is, char &x);
-    static void load(std::istream &is, signed char &x);
-    static void load(std::istream &is, unsigned char &x);
-    static void load(std::istream &is, short &x);
-    static void load(std::istream &is, unsigned short &x);
-    static void load(std::istream &is, int &x);
-    static void load(std::istream &is, unsigned int &x);
-    static void load(std::istream &is, long &x);
-    static void load(std::istream &is, unsigned long &x);
-    static void load(std::istream &is, long long &x);
-    static void load(std::istream &is, unsigned long long &x);
-    static void load(std::istream &is, float &x);
-    static void load(std::istream &is, double &x);
-    static void load(std::istream &is, long double &x);
+    void load(std::istream& is, bool& x);
+    void load(const std::string& s, bool& x);
+    void load(std::istream& is, char& x);
+    void load(const std::string& s, char& x);
+    void load(std::istream& is, signed char& x);
+    void load(const std::string& s, signed char& x);
+    void load(std::istream& is, unsigned char& x);
+    void load(const std::string& s, unsigned char& x);
+    void load(std::istream& is, short& x);
+    void load(const std::string& s, short& x);
+    void load(std::istream& is, unsigned short& x);
+    void load(const std::string& s, unsigned short& x);
+    void load(std::istream& is, int& x);
+    void load(const std::string& s, int& x);
+    void load(std::istream& is, unsigned int& x);
+    void load(const std::string& s, unsigned int& x);
+    void load(std::istream& is, long& x);
+    void load(const std::string& s, long& x);
+    void load(std::istream& is, unsigned long& x);
+    void load(const std::string& s, unsigned long& x);
+    void load(std::istream& is, long long& x);
+    void load(const std::string& s, long long& x);
+    void load(std::istream& is, unsigned long long& x);
+    void load(const std::string& s, unsigned long long& x);
+    void load(std::istream& is, float& x);
+    void load(const std::string& s, float& x);
+    void load(std::istream& is, double& x);
+    void load(const std::string& s, double& x);
+    void load(std::istream& is, long double& x);
+    void load(const std::string& s, long double& x);
 
     // Binary blobs
 
-    static void load(std::istream &is, void *x, const size_t n);
+    void load(std::istream& is, void* x, const size_t n);
+    void load(const std::string& s, void* x, const size_t n);
 
     // Serializable classes
 
-    static void load(std::istream &is, s11n &x);
+    void load(std::istream& is, serializable& x);
+    void load(const std::string& s, serializable& x);
 
     // Basic STL types
 
-    static void load(std::istream &is, std::string &x);
+    void load(std::istream& is, std::string& x);
+    void load(const std::string& s, std::string& x);
 
     // STL containers
 
     template<typename T>
-    static void load(std::istream &is, std::vector<T> &x)
+    void load(std::istream& is, std::vector<T>& x)
     {
         x.clear();
         size_t s;
         load(is, s);
-        for (size_t i = 0; i < s; i++)
-        {
+        for (size_t i = 0; i < s; i++) {
             T v;
             load(is, v);
             x.push_back(v);
         }
+    }
+
+    template<typename T>
+    void load(const std::string& s, std::vector<T>& x)
+    {
+        std::stringstream ss(s);
+        std::string name, value;
+        size_t z = 0;
+        load(ss, name, value);
+        if (name == "size")
+            load(value, z);
+        size_t i = 0;
+        while (ss.good() && i < z) {
+            load(ss, name, value);
+            T v;
+            load(value, v);
+            x.push_back(v);
+            i++;
+        }
+        x.resize(z);
     }
 
     // TODO: add more STL containers as needed

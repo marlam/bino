@@ -37,7 +37,7 @@
 
 /* The player_init_data contains everything that a player needs to start. */
 
-class player_init_data : public s11n
+class player_init_data : public serializable
 {
 public:
     msg::level_t log_level;                     // Level of log messages

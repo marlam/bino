@@ -1,7 +1,5 @@
 /*
- * This file is part of bino, a 3D video player.
- *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -41,76 +39,82 @@
 class blob
 {
 private:
-    
-    size_t _size;
-    void *_ptr;
 
-    static void *alloc(size_t s)
+    size_t _size;
+    void* _ptr;
+
+    static void* alloc(size_t s)
     {
-        void *ptr = ::malloc(s);
-        if (s != 0 && !ptr)
-        {
+        void* ptr = std::malloc(s);
+        if (s != 0 && !ptr) {
             throw exc(ENOMEM);
         }
         return ptr;
     }
 
-    static void *realloc(void *p, size_t s)
+    static void* realloc(void* p, size_t s)
     {
-        void *ptr = ::realloc(p, s);
-        if (s != 0 && !ptr)
-        {
+        void* ptr = std::realloc(p, s);
+        if (s != 0 && !ptr) {
             throw exc(ENOMEM);
         }
         return ptr;
     }
 
 public:
-    
-    blob() throw ()
-        : _size(0), _ptr(NULL)
+
+    blob() throw () :
+        _size(0), _ptr(NULL)
     {
     }
 
-    blob(size_t s)
-        : _size(s), _ptr(alloc(_size))
+    blob(size_t s) :
+        _size(s), _ptr(alloc(_size))
     {
     }
 
-    blob(size_t s, size_t n)
-        : _size(checked_mul(s, n)), _ptr(alloc(_size))
+    blob(size_t s, size_t n) :
+        _size(checked_mul(s, n)), _ptr(alloc(_size))
     {
     }
 
-    blob(size_t s, size_t n0, size_t n1)
-        : _size(checked_mul(checked_mul(s, n0), n1)), _ptr(alloc(_size))
+    blob(size_t s, size_t n0, size_t n1) :
+        _size(checked_mul(checked_mul(s, n0), n1)), _ptr(alloc(_size))
     {
     }
 
-    blob(size_t s, size_t n0, size_t n1, size_t n2)
-        : _size(checked_mul(checked_mul(s, n0), checked_mul(n1, n2))), _ptr(alloc(_size))
+    blob(size_t s, size_t n0, size_t n1, size_t n2) :
+        _size(checked_mul(checked_mul(s, n0), checked_mul(n1, n2))), _ptr(alloc(_size))
     {
     }
 
-    blob(const blob &b)
-        : _size(b._size), _ptr(alloc(_size))
+    blob(const blob& b) :
+        _size(b._size), _ptr(alloc(_size))
     {
-        memcpy(_ptr, b._ptr, _size);
+        if (_size > 0) {
+            std::memcpy(_ptr, b._ptr, _size);
+        }
     }
 
-    const blob &operator=(const blob &b)
+    const blob& operator=(const blob& b)
     {
-        void *ptr = alloc(b.size());
-        memcpy(ptr, b.ptr(), b.size());
-        ::free(_ptr);
-        _ptr = ptr;
-        _size = b.size();
+        if (b.size() == 0) {
+            std::free(_ptr);
+            _size = 0;
+            _ptr = NULL;
+        } else {
+            void *ptr = alloc(b.size());
+            std::memcpy(ptr, b.ptr(), b.size());
+            std::free(_ptr);
+            _ptr = ptr;
+            _size = b.size();
+        }
         return *this;
     }
 
     ~blob() throw ()
     {
-        ::free(_ptr);
+        std::free(_ptr);
     }
 
     void resize(size_t s)
@@ -142,26 +146,26 @@ public:
         return _size;
     }
 
-    const void *ptr(size_t offset = 0) const throw ()
+    const void* ptr(size_t offset = 0) const throw ()
     {
-        return static_cast<const void *>(static_cast<const char *>(_ptr) + offset);
+        return static_cast<const void*>(static_cast<const char*>(_ptr) + offset);
     }
 
-    void *ptr(size_t offset = 0) throw ()
+    void* ptr(size_t offset = 0) throw ()
     {
-        return static_cast<void *>(static_cast<char *>(_ptr) + offset);
-    }
-
-    template<typename T>
-    const T *ptr(size_t offset = 0) const throw ()
-    {
-        return static_cast<const T *>(ptr(offset * sizeof(T)));
+        return static_cast<void*>(static_cast<char*>(_ptr) + offset);
     }
 
     template<typename T>
-    T *ptr(size_t offset = 0) throw ()
+    const T* ptr(size_t offset = 0) const throw ()
     {
-        return static_cast<T *>(ptr(offset * sizeof(T)));
+        return static_cast<const T*>(ptr(offset * sizeof(T)));
+    }
+
+    template<typename T>
+    T* ptr(size_t offset = 0) throw ()
+    {
+        return static_cast<T*>(ptr(offset * sizeof(T)));
     }
 };
 

@@ -70,6 +70,7 @@
 
 #include "dbg.h"
 #include "msg.h"
+#include "str.h"
 
 // for autoconf < 2.65:
 #ifndef PACKAGE_URL

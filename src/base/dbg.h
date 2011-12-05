@@ -1,7 +1,5 @@
 /*
- * This file is part of bino, a 3D video player.
- *
- * Copyright (C) 2006-2007, 2009-2011
+ * Copyright (C) 2006, 2007, 2009, 2010, 2011
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,13 +21,15 @@
 
 #include <cassert>
 
-#include "str.h"
+#ifndef NDEBUG
+# include "msg.h"
+# include "str.h"
+#endif
 
 #undef assert
 #ifdef NDEBUG
 # define assert(condition)
 #else
-# include "msg.h"
 # define assert(condition) \
     if (!(condition)) \
     { \
@@ -39,7 +39,11 @@
     }
 #endif
 
-#define HERE str::asprintf("%s, function %s, line %d", __FILE__, __func__, __LINE__)
+#ifdef NDEBUG
+# define HERE std::string()
+#else
+# define HERE str::asprintf("%s, function %s, line %d", __FILE__, __func__, __LINE__)
+#endif
 
 namespace dbg
 {
