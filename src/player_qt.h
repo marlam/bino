@@ -1,10 +1,11 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010-2012
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
+ * Daniel Schaal <farbing@web.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -341,9 +342,19 @@ private:
     const player_init_data _init_data_template;
     bool _stop_request;
 
+    int _max_recent_files;
+    QStringList _recent_files;
+    QList<QAction *> _recent_file_actions;
+    QAction *_recent_files_separator;
+    QAction *_clear_recent_separator;
+    QAction *_clear_recent_files_act;
+
     QString current_file_hash();
     bool open_player();
     void open(QStringList urls, const device_request &dev_request = device_request());
+    void open(QString url);
+    void update_recent_file_actions();
+    QString stripped_name(const QString &filename);
 
 private slots:
     void move_event();
@@ -361,6 +372,9 @@ private slots:
     void help_website();
     void help_keyboard();
     void help_about();
+
+    void open_recent_file();
+    void clear_recent_files();
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event);

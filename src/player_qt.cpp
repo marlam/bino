@@ -1,10 +1,11 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010-2012
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
+ * Daniel Schaal <farbing@web.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2030,7 +2031,8 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     _player(NULL),
     _init_data(init_data),
     _init_data_template(init_data),
-    _stop_request(false)
+    _stop_request(false),
+    _max_recent_files(5)
 {
     // Application properties
     setWindowTitle(PACKAGE_NAME);
@@ -2148,6 +2150,24 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     file_open_device_act->setIcon(get_icon("camera-web"));
     connect(file_open_device_act, SIGNAL(triggered()), this, SLOT(file_open_device()));
     file_menu->addAction(file_open_device_act);
+
+    _recent_files_separator = file_menu->addSeparator();
+
+    for (int i = 0; i < _max_recent_files; ++i) {
+        QAction * recent = new QAction(this);
+        recent->setVisible(false);
+        file_menu->addAction(recent);
+        connect(recent, SIGNAL(triggered()),
+                this, SLOT(open_recent_file()));
+        _recent_file_actions.append(recent);
+    }
+    _clear_recent_files_act = new QAction(_("&Clear recent files"), this);
+    connect(_clear_recent_files_act,SIGNAL(triggered()), this, SLOT(clear_recent_files()));
+
+    _clear_recent_separator = file_menu->addSeparator();
+    file_menu->addAction(_clear_recent_files_act);
+    update_recent_file_actions();
+
     file_menu->addSeparator();
     QAction *file_quit_act = new QAction(_("&Quit..."), this);
     file_quit_act->setShortcut(QKeySequence::Quit);
@@ -2240,6 +2260,46 @@ main_window::~main_window()
         delete _player;
     }
     delete _video_output;
+}
+
+void main_window::open_recent_file()
+{
+     QAction *action = qobject_cast<QAction *>(sender());
+     if (action)
+         open(action->data().toString());
+}
+
+void main_window::update_recent_file_actions()
+{
+     QStringList files = _settings->value("Session/recent-files").toStringList();
+
+     int num_recent_files = qMin(files.size(), (int)_max_recent_files);
+     bool have_recent_files = num_recent_files > 0;
+
+     for (int i = 0; i < num_recent_files; ++i) {
+         QString text = QString("&%1 %2").arg(i + 1).arg(stripped_name(files[i]));
+         _recent_file_actions[i]->setText(text);
+         _recent_file_actions[i]->setData(files[i]);
+         _recent_file_actions[i]->setVisible(true);
+     }
+     for (int j = num_recent_files; j < _max_recent_files; ++j)
+         _recent_file_actions[j]->setVisible(false);
+
+     _recent_files_separator->setVisible(have_recent_files);
+     _clear_recent_separator->setVisible(have_recent_files);
+     _clear_recent_files_act->setVisible(have_recent_files);
+
+}
+
+void main_window::clear_recent_files()
+{
+     _settings->remove("Session/recent-files");
+     update_recent_file_actions();
+}
+
+QString main_window::stripped_name(const QString& filename)
+{
+    return QFileInfo(filename).fileName();
 }
 
 QString main_window::current_file_hash()
@@ -2565,6 +2625,11 @@ void main_window::playloop_step()
     }
 }
 
+void main_window::open(QString url)
+{
+    open(QStringList(url));
+}
+
 void main_window::open(QStringList filenames, const device_request &dev_request)
 {
     _player->force_stop();
@@ -2628,8 +2693,20 @@ void main_window::file_open()
     {
         return;
     }
+
     _settings->setValue("Session/file-open-dir", QFileInfo(file_names[0]).path());
     open(file_names);
+
+    QStringList files = _settings->value("Session/recent-files").toStringList();
+
+    foreach(QString file, file_names) {
+        files.removeAll(file);
+        files.prepend(file);
+    }
+    while (files.size() > _max_recent_files)
+        files.removeLast();
+    _settings->setValue("Session/recent-files", files);
+    update_recent_file_actions();
 }
 
 void main_window::file_open_url()
