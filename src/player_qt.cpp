@@ -2266,20 +2266,21 @@ void main_window::open_recent_file()
 {
      QAction *action = qobject_cast<QAction *>(sender());
      if (action)
-         open(action->data().toString());
+         open(action->data().toStringList());
 }
 
 void main_window::update_recent_file_actions()
 {
-     QStringList files = _settings->value("Session/recent-files").toStringList();
+     QVariantList files = _settings->value("Session/recent-files").toList();
 
-     int num_recent_files = qMin(files.size(), (int)_max_recent_files);
+     int num_recent_files = qMin(files.size(), _max_recent_files);
      bool have_recent_files = num_recent_files > 0;
 
      for (int i = 0; i < num_recent_files; ++i) {
-         QString text = QString("&%1 %2").arg(i + 1).arg(stripped_name(files[i]));
+         QStringList recentFilesEntry = files[i].toStringList();
+         QString text = QString("&%1 %2").arg(i + 1).arg(stripped_name(recentFilesEntry));
          _recent_file_actions[i]->setText(text);
-         _recent_file_actions[i]->setData(files[i]);
+         _recent_file_actions[i]->setData(recentFilesEntry);
          _recent_file_actions[i]->setVisible(true);
      }
      for (int j = num_recent_files; j < _max_recent_files; ++j)
@@ -2297,9 +2298,16 @@ void main_window::clear_recent_files()
      update_recent_file_actions();
 }
 
-QString main_window::stripped_name(const QString& filename)
+QString main_window::stripped_name(const QStringList & filenames)
 {
-    return QFileInfo(filename).fileName();
+    QStringList stripped;
+    foreach(QString file, filenames) {
+      stripped.append(QFileInfo(file).fileName());
+    }
+    QString strippedNames = stripped.join(", ");
+    if(strippedNames.length() >= 50)
+      strippedNames = strippedNames.left(47).append("...");
+    return strippedNames;
 }
 
 QString main_window::current_file_hash()
@@ -2625,11 +2633,6 @@ void main_window::playloop_step()
     }
 }
 
-void main_window::open(QString url)
-{
-    open(QStringList(url));
-}
-
 void main_window::open(QStringList filenames, const device_request &dev_request)
 {
     _player->force_stop();
@@ -2697,12 +2700,11 @@ void main_window::file_open()
     _settings->setValue("Session/file-open-dir", QFileInfo(file_names[0]).path());
     open(file_names);
 
-    QStringList files = _settings->value("Session/recent-files").toStringList();
+    QVariantList files = _settings->value("Session/recent-files").toList();
 
-    foreach(QString file, file_names) {
-        files.removeAll(file);
-        files.prepend(file);
-    }
+    files.removeAll(file_names);
+    files.prepend(file_names);
+
     while (files.size() > _max_recent_files)
         files.removeLast();
     _settings->setValue("Session/recent-files", files);

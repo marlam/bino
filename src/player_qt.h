@@ -343,7 +343,6 @@ private:
     bool _stop_request;
 
     int _max_recent_files;
-    QStringList _recent_files;
     QList<QAction *> _recent_file_actions;
     QAction *_recent_files_separator;
     QAction *_clear_recent_separator;
@@ -352,9 +351,8 @@ private:
     QString current_file_hash();
     bool open_player();
     void open(QStringList urls, const device_request &dev_request = device_request());
-    void open(QString url);
     void update_recent_file_actions();
-    QString stripped_name(const QString &filename);
+    QString stripped_name(const QStringList & filenames);
 
 private slots:
     void move_event();
