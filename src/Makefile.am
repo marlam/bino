@@ -61,6 +61,7 @@ ICONS = \
 	icons/application-exit.png \
 	icons/applications-internet.png \
         icons/camera-web.png \
+	icons/dialog-information.png \
 	icons/document-open.png \
 	icons/help-about.png \
 	icons/help-contents.png \

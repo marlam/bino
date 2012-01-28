@@ -2704,6 +2704,33 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
 
 void main_window::file_open()
 {
+    if (_settings->value("Session/show-multi-open-tip", true).toBool())
+    {
+        QDialog *dlg = new QDialog(this);
+        dlg->setModal(true);
+        dlg->setWindowTitle(_("Tip"));
+        QLabel *dlg_icon_label = new QLabel;
+        dlg_icon_label->setPixmap(get_icon("dialog-information").pixmap(48));
+        QLabel *dlg_tip_label = new QLabel(_("<p>You can select and open multiple files at once.</p>"
+                    "<p>This is useful for example if you have extra subtitle files,<br>"
+                    "or if left and right view are stored in separate files.</p>"));
+        QCheckBox *dlg_checkbox = new QCheckBox(_("Do not show this message again."));
+        QPushButton *dlg_ok_button = new QPushButton(_("OK"));
+        connect(dlg_ok_button, SIGNAL(pressed()), dlg, SLOT(accept()));
+        QGridLayout *dlg_layout = new QGridLayout;
+        dlg_layout->addWidget(dlg_icon_label, 0, 0);
+        dlg_layout->addWidget(dlg_tip_label, 0, 1);
+        dlg_layout->addWidget(new QLabel, 1, 0, 1, 2);
+        dlg_layout->addWidget(dlg_checkbox, 2, 0, 1, 2, Qt::AlignHCenter);
+        dlg_layout->addWidget(dlg_ok_button, 3, 0, 1, 2, Qt::AlignHCenter);
+        dlg_layout->setColumnStretch(1, 1);
+        dlg_layout->setRowStretch(1, 1);
+        dlg->setLayout(dlg_layout);
+        dlg_ok_button->setFocus();
+        dlg->exec();
+        _settings->setValue("Session/show-multi-open-tip", !dlg_checkbox->isChecked());
+    }
+
     QStringList file_names = QFileDialog::getOpenFileNames(this, _("Open files"),
             _settings->value("Session/file-open-dir", QDir::currentPath()).toString());
     if (file_names.empty())
