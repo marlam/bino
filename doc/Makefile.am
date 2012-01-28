@@ -6,6 +6,8 @@ ICONS_LOCAL = \
 	input-layout-mono.png \
 	input-layout-separate-left-right.png \
 	input-layout-separate-right-left.png \
+	input-layout-alternating-left-right.png \
+	input-layout-alternating-right-left.png \
 	input-layout-top-bottom.png \
 	input-layout-top-bottom-half.png \
 	input-layout-bottom-top.png \
