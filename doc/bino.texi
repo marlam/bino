@@ -10,7 +10,7 @@
 This manual was last updated @value{UPDATED} for version
 @value{VERSION} of Bino.
 
-Copyright @copyright{} 2011
+Copyright @copyright{} 2011, 2012
 Martin Lambers (@email{marlam@@marlam.de}),
 Stefan Eilemann (@email{eile@@eyescale.ch}),
 Frédéric Devernay (@email{Frederic.Devernay@@inrialpes.fr})
@@ -224,6 +224,12 @@ Separate streams: left view first, right view second.@*
 @item separate-right-left
 Separate streams: right view first, left view second.@*
 @image{input-layout-separate-right-left,,,,png}
+@item alternating-left-right
+Alternating frames: left view first, right view second.@*
+@image{input-layout-alternating-left-right,,,,png}
+@item alternating-right-left
+Alternating frames: right view first, left view second.@*
+@image{input-layout-alternating-right-left,,,,png}
 @item top-bottom
 Single stream: left view top, right view bottom.@*
 @image{input-layout-top-bottom,,,,png}
