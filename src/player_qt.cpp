@@ -3200,7 +3200,7 @@ void main_window::help_about()
     about_text->setOpenExternalLinks(true);
     about_text->setText(str::asprintf(_(
                     "<p>%s version %s.</p>"
-                    "<p>Copyright (C) 2011 the Bino developers.</p>"
+                    "<p>Copyright (C) 2012 the Bino developers.</p>"
                     "<p>This is free software. You may redistribute copies of it "
                     "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
                     "GNU General Public License</a>. "
