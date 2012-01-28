@@ -113,6 +113,11 @@ Append all log messages to the given file.
 @itemx --log-level=@var{LEVEL}
 Select log level: @var{debug}, @var{info}, @var{warning}, @var{error}, or
 @var{quiet}.
+@item --list-audio-devices
+Print a list of known audio devices and exit.
+@item -A
+@itemx --audio-device=@var{D}
+Use audio device number @var{D}. @var{D}=0 is the default device.
 @item --device-type=@var{TYPE}
 Type of input device: @var{default}, @var{firewire}, or @var{x11}.
 @item --device-frame-size=@var{W}x@var{H}

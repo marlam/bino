@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Alexey Osipov <lion-simba@pridelands.ru>
  * Joe <cuchac@email.cz>
@@ -41,6 +41,7 @@ class player_init_data : public serializable
 {
 public:
     msg::level_t log_level;                     // Level of log messages
+    int audio_device;                           // Audio device index, or -1 for default
     device_request dev_request;                 // Request for input device settings
     std::vector<std::string> urls;              // Input media objects
     int video_stream;                           // Selected video stream

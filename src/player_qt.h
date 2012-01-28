@@ -210,6 +210,25 @@ public:
     virtual void receive_notification(const notification &note);
 };
 
+class audio_dialog : public QDialog, public controller
+{
+    Q_OBJECT
+
+private:
+    player_init_data *_init_data;
+    parameters *_params;
+    bool _lock;
+    QComboBox *_device_combobox;
+
+private slots:
+    void device_changed();
+
+public:
+    audio_dialog(player_init_data *init_data, parameters *params, QWidget *parent);
+
+    virtual void receive_notification(const notification &note);
+};
+
 class subtitle_dialog: public QDialog, public controller
 {
     Q_OBJECT
@@ -317,6 +336,7 @@ private:
     controls_widget *_controls_widget;
     color_dialog *_color_dialog;
     crosstalk_dialog *_crosstalk_dialog;
+    audio_dialog *_audio_dialog;
     subtitle_dialog *_subtitle_dialog;
     video_dialog *_video_dialog;
     player_qt_internal *_player;
@@ -346,6 +366,7 @@ private slots:
     void preferences_fullscreen();
     void preferences_colors();
     void preferences_crosstalk();
+    void preferences_audio();
     void preferences_subtitle();
     void preferences_video();
     void help_manual();

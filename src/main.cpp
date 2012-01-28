@@ -205,6 +205,10 @@ int main(int argc, char *argv[])
     log_levels.push_back("quiet");
     opt::val<std::string> log_level("log-level", 'L', opt::optional, log_levels, "");
     options.push_back(&log_level);
+    opt::info list_audio_devices("list-audio-devices", '\0', opt::optional);
+    options.push_back(&list_audio_devices);
+    opt::val<int> audio_device("audio-device", '\0', opt::optional, 0, 999, 0);
+    options.push_back(&audio_device);
     std::vector<std::string> device_types;
     device_types.push_back("default");
     device_types.push_back("firewire");
@@ -388,6 +392,8 @@ int main(int argc, char *argv[])
                     "  -n|--no-gui              Do not use the GUI, just show a plain window.\n"
                     "  --log-file=FILE          Append all log messages to the given file.\n"
                     "  -L|--log-level=LEVEL     Set log level (debug/info/warning/error/quiet).\n"
+                    "  --list-audio-devices     Print a list of known audio devices and exit.\n"
+                    "  -A|--audio-devices=D     Use audio device number D (D=0 is the default).\n"
                     "  --device-type=TYPE       Type of input device: default, firewire, x11.\n"
                     "  --device-frame-size=WxH  Request frame size WxH from input device.\n"
                     "  --device-frame-rate=N/D  Request frame rate N/D from input device.\n"
@@ -490,7 +496,23 @@ int main(int argc, char *argv[])
                     "  Media keys               Media keys should work as expected."),
                 program_name);
     }
-    if (version.value() || help.value())
+    if (list_audio_devices.value())
+    {
+        audio_output ao;
+        if (ao.devices() == 0)
+        {
+            msg::req(_("No audio devices known."));
+        }
+        else
+        {
+            msg::req("%d audio devices available:", ao.devices());
+            for (int i = 0; i < ao.devices(); i++)
+            {
+                msg::req(4, "%d: %s", i + 1, ao.device_name(i).c_str());
+            }
+        }
+    }
+    if (version.value() || help.value() || list_audio_devices.value())
     {
         return 0;
     }
@@ -539,6 +561,10 @@ int main(int argc, char *argv[])
     else if (log_level.value() == "quiet")
     {
         init_data.log_level = msg::REQ;
+    }
+    if (audio_device.values().size() > 0)
+    {
+        init_data.audio_device = audio_device.value() - 1;
     }
     if (device_type.value() == "")
     {

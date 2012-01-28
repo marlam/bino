@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Alexey Osipov <lion-simba@pridelands.ru>
  * Joe <cuchac@email.cz>
@@ -43,6 +43,7 @@
 
 player_init_data::player_init_data() :
     log_level(msg::INF),
+    audio_device(-2),
     dev_request(),
     urls(),
     video_stream(0),
@@ -69,6 +70,7 @@ player_init_data::~player_init_data()
 void player_init_data::save(std::ostream &os) const
 {
     s11n::save(os, static_cast<int>(log_level));
+    s11n::save(os, audio_device);
     s11n::save(os, dev_request);
     s11n::save(os, urls);
     s11n::save(os, video_stream);
@@ -92,6 +94,7 @@ void player_init_data::load(std::istream &is)
     int x;
     s11n::load(is, x);
     log_level = static_cast<msg::level_t>(x);
+    s11n::load(is, audio_device);
     s11n::load(is, dev_request);
     s11n::load(is, urls);
     s11n::load(is, video_stream);
@@ -252,7 +255,7 @@ void player::open(const player_init_data &init_data)
     }
     if (_audio_output)
     {
-        _audio_output->init();
+        _audio_output->init(init_data.audio_device < -1 ? -1 : init_data.audio_device);
     }
 
     // Create video output

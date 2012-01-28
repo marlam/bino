@@ -1362,6 +1362,54 @@ void crosstalk_dialog::receive_notification(const notification &note)
 }
 
 
+audio_dialog::audio_dialog(player_init_data *init_data, parameters *params, QWidget *parent) : QDialog(parent),
+    _init_data(init_data), _params(params), _lock(false)
+{
+    setModal(false);
+    setWindowTitle(_("Audio Settings"));
+
+    QLabel *info_label = new QLabel(_("<p>Changing the audio device takes effect<br>for the next started video.</p>"));
+    QLabel *device_label = new QLabel(_("Audio Device:"));
+    device_label->setToolTip(_("<p>Select the audio device. This will take effect for the next started video.</p>"));
+    _device_combobox = new QComboBox();
+    _device_combobox->setToolTip(device_label->toolTip());
+    _device_combobox->addItem(_("Default"));
+    audio_output ao;
+    for (int i = 0; i < ao.devices(); i++)
+    {
+        _device_combobox->addItem(ao.device_name(i).c_str());
+    }
+    connect(_device_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(device_changed()));
+    if (_init_data->audio_device < 0 || _init_data->audio_device >= _device_combobox->count())
+    {
+        _device_combobox->setCurrentIndex(0);
+    }
+    else
+    {
+        _device_combobox->setCurrentIndex(_init_data->audio_device + 1);
+    }
+
+    QPushButton *ok_button = new QPushButton(_("OK"));
+    connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(info_label, 0, 0, 1, 2);
+    layout->addWidget(device_label, 1, 0);
+    layout->addWidget(_device_combobox, 1, 1);
+    layout->addWidget(ok_button, 2, 0, 1, 2);
+    setLayout(layout);
+}
+
+void audio_dialog::device_changed()
+{
+    _init_data->audio_device = _device_combobox->currentIndex() - 1;
+}
+
+void audio_dialog::receive_notification(const notification &/* note */)
+{
+}
+
+
 subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(parent),
     _params(params), _lock(false)
 {
@@ -2011,6 +2059,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     _settings(settings),
     _color_dialog(NULL),
     _crosstalk_dialog(NULL),
+    _audio_dialog(NULL),
     _subtitle_dialog(NULL),
     _video_dialog(NULL),
     _player(NULL),
@@ -2025,6 +2074,10 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
 
     // Load preferences
     _settings->beginGroup("Session");
+    if (_init_data.audio_device < -1)
+    {
+        _init_data.audio_device = _settings->value("audio-device", QString("-1")).toInt();
+    }
     if (!std::isnormal(_init_data.params.contrast))
     {
         _init_data.params.contrast = _settings->value("contrast", QString("0")).toFloat();
@@ -2172,6 +2225,10 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     QAction *preferences_crosstalk_act = new QAction(_("Display Cross&talk Calibration..."), this);
     connect(preferences_crosstalk_act, SIGNAL(triggered()), this, SLOT(preferences_crosstalk()));
     preferences_menu->addAction(preferences_crosstalk_act);
+    preferences_menu->addSeparator();
+    QAction *preferences_audio_act = new QAction(_("&Audio Settings..."), this);
+    connect(preferences_audio_act, SIGNAL(triggered()), this, SLOT(preferences_audio()));
+    preferences_menu->addAction(preferences_audio_act);
     preferences_menu->addSeparator();
     QAction *preferences_subtitle_act = new QAction(_("&Subtitle Settings..."), this);
     connect(preferences_subtitle_act, SIGNAL(triggered()), this, SLOT(preferences_subtitle()));
@@ -2535,6 +2592,7 @@ void main_window::closeEvent(QCloseEvent *event)
     _timer->stop();
     // Remember the Session preferences
     _settings->beginGroup("Session");
+    _settings->setValue("audio-device", QVariant(_init_data.audio_device).toString());
     _settings->setValue("contrast", QVariant(_init_data.params.contrast).toString());
     _settings->setValue("brightness", QVariant(_init_data.params.brightness).toString());
     _settings->setValue("hue", QVariant(_init_data.params.hue).toString());
@@ -3037,6 +3095,17 @@ void main_window::preferences_crosstalk()
     _crosstalk_dialog->show();
     _crosstalk_dialog->raise();
     _crosstalk_dialog->activateWindow();
+}
+
+void main_window::preferences_audio()
+{
+    if (!_audio_dialog)
+    {
+        _audio_dialog = new audio_dialog(&_init_data, &_init_data.params, this);
+    }
+    _audio_dialog->show();
+    _audio_dialog->raise();
+    _audio_dialog->activateWindow();
 }
 
 void main_window::preferences_subtitle()

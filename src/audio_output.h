@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Gabriele Greco <gabrielegreco@gmail.com>
  *
@@ -45,6 +45,7 @@ private:
     static const size_t _buffer_size;   // Size of each audio buffer
 
     // OpenAL things
+    std::vector<std::string> _devices;  // List of known OpenAL devices
     bool _initialized;                  // Was this initialized?
     ALCdevice *_device;                 // Audio device        
     ALCcontext *_context;               // Audio context associated with device
@@ -70,8 +71,14 @@ public:
     audio_output();
     ~audio_output();
     
-    /* Initialize the audio device for output. Throw an exception if this fails. */
-    void init();
+    /* How many OpenAL devices are available? */
+    int devices() const;
+    /* Return the name of OpenAL device i. */
+    const std::string &device_name(int i) const;
+
+    /* Initialize the audio device i for output. If i is -1, the default device
+     * will be used. Throw an exception if this fails. */
+    void init(int i = -1);
     /* Deinitialize the audio device. */
     void deinit();
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Gabriele Greco <gabrielegreco@gmail.com>
  *
@@ -45,6 +45,20 @@ const size_t audio_output::_buffer_size = 20160 * 2;
 
 audio_output::audio_output() : controller(), _initialized(false)
 {
+    if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT"))
+    {
+        const char *p = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
+        while (p && *p)
+        {
+            _devices.push_back(p);
+            p += _devices.back().length() + 1;
+        }
+        msg::dbg("%d OpenAL devices available:", devices());
+        for (size_t i = 0; i < _devices.size(); i++)
+        {
+            msg::dbg(4, _devices[i]);
+        }
+    }
 }
 
 audio_output::~audio_output()
@@ -52,13 +66,39 @@ audio_output::~audio_output()
     deinit();
 }
 
-void audio_output::init()
+int audio_output::devices() const
+{
+    return _devices.size();
+}
+
+const std::string &audio_output::device_name(int i) const
+{
+    assert(i >= 0 && i < devices());
+    return _devices[i];
+}
+
+void audio_output::init(int i)
 {
     if (!_initialized)
     {
-        if (!(_device = alcOpenDevice(NULL)))
+        if (i == -1)
         {
-            throw exc(_("No OpenAL device available."));
+            if (!(_device = alcOpenDevice(NULL)))
+            {
+                throw exc(_("No OpenAL device available."));
+            }
+        }
+        else if (i < -1 || i >= static_cast<int>(_devices.size()))
+        {
+            throw exc(str::asprintf(_("OpenAL device '%s' is not available."), _("unknown")));
+        }
+        else
+        {
+            if (!(_device = alcOpenDevice(_devices[i].c_str())))
+            {
+                throw exc(str::asprintf(_("OpenAL device '%s' is not available."),
+                            _devices[i].c_str()));
+            }
         }
         if (!(_context = alcCreateContext(_device, NULL)))
         {
