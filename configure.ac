@@ -4,7 +4,7 @@ dnl configure.ac
 dnl
 dnl This file is part of bino, a 3D video player.
 dnl
-dnl Copyright (C) 2010-2011
+dnl Copyright (C) 2010, 2011, 2012
 dnl Martin Lambers <marlam@marlam.de>
 dnl
 dnl This program is free software; you can redistribute it and/or modify
@@ -139,9 +139,7 @@ if test "$HAVE_LIBOPENAL" != "1"; then
 fi
 
 dnl Qt
-RCC=""
 AC_ARG_VAR([RCC], [rcc command])
-MOC=""
 AC_ARG_VAR([MOC], [moc command])
 PKG_CHECK_MODULES([libqtopengl], [QtOpenGL >= 0.0], [HAVE_LIBQTOPENGL=1], [HAVE_LIBQTOPENGL=0])
 if test "$HAVE_LIBQTOPENGL" != "1"; then
