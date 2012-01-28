@@ -1066,84 +1066,6 @@ void controls_widget::receive_notification(const notification &note)
 }
 
 
-zoom_dialog::zoom_dialog(parameters *params, QWidget *parent) : QDialog(parent),
-    _params(params), _lock(false)
-{
-    setModal(false);
-    setWindowTitle(_("Zoom Settings"));
-
-    QLabel *z_label = new QLabel(_("Zoom:"));
-    z_label->setToolTip(_("<p>Set the zoom level for videos that are wider than the screen, "
-                "from 0 (off; show full video width) to 1 (full; use full screen height).</p>"));
-    _z_slider = new QSlider(Qt::Horizontal);
-    _z_slider->setRange(0, 1000);
-    _z_slider->setValue(params->zoom * 1000.0f);
-    _z_slider->setToolTip(z_label->toolTip());
-    connect(_z_slider, SIGNAL(valueChanged(int)), this, SLOT(z_slider_changed(int)));
-    _z_spinbox = new QDoubleSpinBox();
-    _z_spinbox->setRange(0.0, +1.0);
-    _z_spinbox->setValue(params->zoom);
-    _z_spinbox->setDecimals(2);
-    _z_spinbox->setSingleStep(0.01);
-    _z_spinbox->setToolTip(z_label->toolTip());
-    connect(_z_spinbox, SIGNAL(valueChanged(double)), this, SLOT(z_spinbox_changed(double)));
-
-    QPushButton *ok_button = new QPushButton(_("OK"));
-    connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
-
-    QGridLayout *layout = new QGridLayout;
-    layout->addWidget(z_label, 0, 0);
-    layout->addWidget(_z_slider, 0, 1);
-    layout->addWidget(_z_spinbox, 0, 2);
-    layout->addWidget(ok_button, 1, 0, 1, 3);
-    setLayout(layout);
-}
-
-void zoom_dialog::z_slider_changed(int val)
-{
-    if (!_lock)
-    {
-        _params->zoom = val / 1000.0f;
-        _lock = true;
-        _z_spinbox->setValue(val / 1000.0f);
-        _lock = false;
-        send_cmd(command::set_zoom, val / 1000.0f);
-    }
-}
-
-void zoom_dialog::z_spinbox_changed(double val)
-{
-    if (!_lock)
-    {
-        _params->zoom = val;
-        _lock = true;
-        _z_slider->setValue(val * 1000.0);
-        _lock = false;
-        send_cmd(command::set_zoom, static_cast<float>(val));
-    }
-}
-
-void zoom_dialog::receive_notification(const notification &note)
-{
-    std::istringstream current(note.current);
-    float value;
-
-    switch (note.type)
-    {
-    case notification::zoom:
-        s11n::load(current, value);
-        _lock = true;
-        _z_slider->setValue(value * 1000.0f);
-        _z_spinbox->setValue(value);
-        _lock = false;
-        break;
-    default:
-        /* not handled */
-        break;
-    }
-}
-
-
 color_dialog::color_dialog(parameters *params, QWidget *parent) : QDialog(parent),
     _params(params), _lock(false)
 {
@@ -1736,11 +1658,27 @@ void subtitle_dialog::receive_notification(const notification &note)
 }
 
 
-stereoscopic_dialog::stereoscopic_dialog(parameters *params, QWidget *parent) : QDialog(parent),
+video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent),
     _params(params), _lock(false)
 {
     setModal(false);
-    setWindowTitle(_("Stereoscopic Video Settings"));
+    setWindowTitle(_("Video Settings"));
+
+    QLabel *z_label = new QLabel(_("Zoom:"));
+    z_label->setToolTip(_("<p>Set the zoom level for videos that are wider than the screen, "
+                "from 0 (off; show full video width) to 1 (full; use full screen height).</p>"));
+    _z_slider = new QSlider(Qt::Horizontal);
+    _z_slider->setRange(0, 1000);
+    _z_slider->setValue(params->zoom * 1000.0f);
+    _z_slider->setToolTip(z_label->toolTip());
+    connect(_z_slider, SIGNAL(valueChanged(int)), this, SLOT(z_slider_changed(int)));
+    _z_spinbox = new QDoubleSpinBox();
+    _z_spinbox->setRange(0.0, +1.0);
+    _z_spinbox->setValue(params->zoom);
+    _z_spinbox->setDecimals(2);
+    _z_spinbox->setSingleStep(0.01);
+    _z_spinbox->setToolTip(z_label->toolTip());
+    connect(_z_spinbox, SIGNAL(valueChanged(double)), this, SLOT(z_spinbox_changed(double)));
 
     QLabel *p_label = new QLabel(_("Parallax:"));
     p_label->setToolTip(_("<p>Adjust parallax, from -1 to +1. This changes the separation of left and right view, "
@@ -1795,20 +1733,47 @@ stereoscopic_dialog::stereoscopic_dialog(parameters *params, QWidget *parent) : 
     connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
 
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(p_label, 0, 0);
-    layout->addWidget(_p_slider, 0, 1);
-    layout->addWidget(_p_spinbox, 0, 2);
-    layout->addWidget(sp_label, 1, 0);
-    layout->addWidget(_sp_slider, 1, 1);
-    layout->addWidget(_sp_spinbox, 1, 2);
-    layout->addWidget(g_label, 2, 0);
-    layout->addWidget(_g_slider, 2, 1);
-    layout->addWidget(_g_spinbox, 2, 2);
-    layout->addWidget(ok_button, 3, 0, 1, 3);
+    layout->addWidget(z_label, 0, 0);
+    layout->addWidget(_z_slider, 0, 1);
+    layout->addWidget(_z_spinbox, 0, 2);
+    layout->addWidget(p_label, 1, 0);
+    layout->addWidget(_p_slider, 1, 1);
+    layout->addWidget(_p_spinbox, 1, 2);
+    layout->addWidget(sp_label, 2, 0);
+    layout->addWidget(_sp_slider, 2, 1);
+    layout->addWidget(_sp_spinbox, 2, 2);
+    layout->addWidget(g_label, 3, 0);
+    layout->addWidget(_g_slider, 3, 1);
+    layout->addWidget(_g_spinbox, 3, 2);
+    layout->addWidget(ok_button, 4, 0, 1, 3);
     setLayout(layout);
 }
 
-void stereoscopic_dialog::p_slider_changed(int val)
+void video_dialog::z_slider_changed(int val)
+{
+    if (!_lock)
+    {
+        _params->zoom = val / 1000.0f;
+        _lock = true;
+        _z_spinbox->setValue(val / 1000.0f);
+        _lock = false;
+        send_cmd(command::set_zoom, val / 1000.0f);
+    }
+}
+
+void video_dialog::z_spinbox_changed(double val)
+{
+    if (!_lock)
+    {
+        _params->zoom = val;
+        _lock = true;
+        _z_slider->setValue(val * 1000.0);
+        _lock = false;
+        send_cmd(command::set_zoom, static_cast<float>(val));
+    }
+}
+
+void video_dialog::p_slider_changed(int val)
 {
     if (!_lock)
     {
@@ -1820,7 +1785,7 @@ void stereoscopic_dialog::p_slider_changed(int val)
     }
 }
 
-void stereoscopic_dialog::p_spinbox_changed(double val)
+void video_dialog::p_spinbox_changed(double val)
 {
     if (!_lock)
     {
@@ -1832,7 +1797,7 @@ void stereoscopic_dialog::p_spinbox_changed(double val)
     }
 }
 
-void stereoscopic_dialog::sp_slider_changed(int val)
+void video_dialog::sp_slider_changed(int val)
 {
     if (!_lock)
     {
@@ -1844,7 +1809,7 @@ void stereoscopic_dialog::sp_slider_changed(int val)
     }
 }
 
-void stereoscopic_dialog::sp_spinbox_changed(double val)
+void video_dialog::sp_spinbox_changed(double val)
 {
     if (!_lock)
     {
@@ -1856,7 +1821,7 @@ void stereoscopic_dialog::sp_spinbox_changed(double val)
     }
 }
 
-void stereoscopic_dialog::g_slider_changed(int val)
+void video_dialog::g_slider_changed(int val)
 {
     if (!_lock)
     {
@@ -1868,7 +1833,7 @@ void stereoscopic_dialog::g_slider_changed(int val)
     }
 }
 
-void stereoscopic_dialog::g_spinbox_changed(double val)
+void video_dialog::g_spinbox_changed(double val)
 {
     if (!_lock)
     {
@@ -1880,13 +1845,20 @@ void stereoscopic_dialog::g_spinbox_changed(double val)
     }
 }
 
-void stereoscopic_dialog::receive_notification(const notification &note)
+void video_dialog::receive_notification(const notification &note)
 {
     std::istringstream current(note.current);
     float value;
 
     switch (note.type)
     {
+    case notification::zoom:
+        s11n::load(current, value);
+        _lock = true;
+        _z_slider->setValue(value * 1000.0f);
+        _z_spinbox->setValue(value);
+        _lock = false;
+        break;
     case notification::parallax:
         s11n::load(current, value);
         _lock = true;
@@ -2037,11 +2009,10 @@ void open_device_dialog::request(QString &device, device_request &dev_request)
 
 main_window::main_window(QSettings *settings, const player_init_data &init_data) :
     _settings(settings),
-    _zoom_dialog(NULL),
     _color_dialog(NULL),
     _crosstalk_dialog(NULL),
     _subtitle_dialog(NULL),
-    _stereoscopic_dialog(NULL),
+    _video_dialog(NULL),
     _player(NULL),
     _init_data(init_data),
     _init_data_template(init_data),
@@ -2192,9 +2163,6 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     QMenu *preferences_menu = menuBar()->addMenu(_("&Preferences"));
     // note: whenever the preferences menu becomes a preferences panel, don't forget
     // to preferences_act->setMenuRole(QAction::PreferencesRole) on the menu item
-    QAction *preferences_zoom_act = new QAction(_("&Zoom..."), this);
-    connect(preferences_zoom_act, SIGNAL(triggered()), this, SLOT(preferences_zoom()));
-    preferences_menu->addAction(preferences_zoom_act);
     QAction *preferences_fullscreen_act = new QAction(_("&Fullscreen Settings..."), this);
     connect(preferences_fullscreen_act, SIGNAL(triggered()), this, SLOT(preferences_fullscreen()));
     preferences_menu->addAction(preferences_fullscreen_act);
@@ -2209,9 +2177,9 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     connect(preferences_subtitle_act, SIGNAL(triggered()), this, SLOT(preferences_subtitle()));
     preferences_menu->addAction(preferences_subtitle_act);
     preferences_menu->addSeparator();
-    QAction *preferences_stereoscopic_act = new QAction(_("Stereoscopic Video Settings..."), this);
-    connect(preferences_stereoscopic_act, SIGNAL(triggered()), this, SLOT(preferences_stereoscopic()));
-    preferences_menu->addAction(preferences_stereoscopic_act);
+    QAction *preferences_video_act = new QAction(_("Current &Video Settings..."), this);
+    connect(preferences_video_act, SIGNAL(triggered()), this, SLOT(preferences_video()));
+    preferences_menu->addAction(preferences_video_act);
     QMenu *help_menu = menuBar()->addMenu(_("&Help"));
     QAction *help_manual_act = new QAction(_("&Manual..."), this);
     help_manual_act->setShortcut(QKeySequence::HelpContents);
@@ -2854,61 +2822,6 @@ void main_window::file_open_device()
     open(QStringList(device), dev_request);
 }
 
-void main_window::preferences_zoom()
-{
-    if (!_zoom_dialog)
-    {
-        _zoom_dialog = new zoom_dialog(&_init_data.params, this);
-    }
-    _zoom_dialog->show();
-    _zoom_dialog->raise();
-    _zoom_dialog->activateWindow();
-}
-
-void main_window::preferences_colors()
-{
-    if (!_color_dialog)
-    {
-        _color_dialog = new color_dialog(&_init_data.params, this);
-    }
-    _color_dialog->show();
-    _color_dialog->raise();
-    _color_dialog->activateWindow();
-}
-
-void main_window::preferences_crosstalk()
-{
-    if (!_crosstalk_dialog)
-    {
-        _crosstalk_dialog = new crosstalk_dialog(&_init_data.params, this);
-    }
-    _crosstalk_dialog->show();
-    _crosstalk_dialog->raise();
-    _crosstalk_dialog->activateWindow();
-}
-
-void main_window::preferences_subtitle()
-{
-    if (!_subtitle_dialog)
-    {
-        _subtitle_dialog = new subtitle_dialog(&_init_data.params, this);
-    }
-    _subtitle_dialog->show();
-    _subtitle_dialog->raise();
-    _subtitle_dialog->activateWindow();
-}
-
-void main_window::preferences_stereoscopic()
-{
-    if (!_stereoscopic_dialog)
-    {
-        _stereoscopic_dialog = new stereoscopic_dialog(&_init_data.params, this);
-    }
-    _stereoscopic_dialog->show();
-    _stereoscopic_dialog->raise();
-    _stereoscopic_dialog->activateWindow();
-}
-
 void main_window::preferences_fullscreen()
 {
     int n = QApplication::desktop()->screenCount();
@@ -3102,6 +3015,50 @@ void main_window::preferences_fullscreen()
         _init_data.params.fullscreen_flop_right = flop_right_box->isChecked() ? 1 : 0;
         send_cmd(command::set_fullscreen_flop_right, _init_data.params.fullscreen_flop_right);
     }
+}
+
+void main_window::preferences_colors()
+{
+    if (!_color_dialog)
+    {
+        _color_dialog = new color_dialog(&_init_data.params, this);
+    }
+    _color_dialog->show();
+    _color_dialog->raise();
+    _color_dialog->activateWindow();
+}
+
+void main_window::preferences_crosstalk()
+{
+    if (!_crosstalk_dialog)
+    {
+        _crosstalk_dialog = new crosstalk_dialog(&_init_data.params, this);
+    }
+    _crosstalk_dialog->show();
+    _crosstalk_dialog->raise();
+    _crosstalk_dialog->activateWindow();
+}
+
+void main_window::preferences_subtitle()
+{
+    if (!_subtitle_dialog)
+    {
+        _subtitle_dialog = new subtitle_dialog(&_init_data.params, this);
+    }
+    _subtitle_dialog->show();
+    _subtitle_dialog->raise();
+    _subtitle_dialog->activateWindow();
+}
+
+void main_window::preferences_video()
+{
+    if (!_video_dialog)
+    {
+        _video_dialog = new video_dialog(&_init_data.params, this);
+    }
+    _video_dialog->show();
+    _video_dialog->raise();
+    _video_dialog->activateWindow();
 }
 
 void main_window::help_manual()

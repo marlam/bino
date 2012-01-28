@@ -158,26 +158,6 @@ public:
     virtual void receive_notification(const notification &note);
 };
 
-class zoom_dialog : public QDialog, public controller
-{
-    Q_OBJECT
-
-private:
-    parameters *_params;
-    bool _lock;
-    QDoubleSpinBox *_z_spinbox;
-    QSlider *_z_slider;
-
-private slots:
-    void z_slider_changed(int val);
-    void z_spinbox_changed(double val);
-
-public:
-    zoom_dialog(parameters *params, QWidget *parent);
-
-    virtual void receive_notification(const notification &note);
-};
-
 class color_dialog : public QDialog, public controller
 {
     Q_OBJECT
@@ -266,13 +246,15 @@ public:
     virtual void receive_notification(const notification &note);
 };
 
-class stereoscopic_dialog : public QDialog, public controller
+class video_dialog : public QDialog, public controller
 {
     Q_OBJECT
 
 private:
     parameters *_params;
     bool _lock;
+    QDoubleSpinBox *_z_spinbox;
+    QSlider *_z_slider;
     QDoubleSpinBox *_p_spinbox;
     QSlider *_p_slider;
     QDoubleSpinBox *_sp_spinbox;
@@ -281,6 +263,8 @@ private:
     QSlider *_g_slider;
 
 private slots:
+    void z_slider_changed(int val);
+    void z_spinbox_changed(double val);
     void p_slider_changed(int val);
     void p_spinbox_changed(double val);
     void sp_slider_changed(int val);
@@ -289,7 +273,7 @@ private slots:
     void g_spinbox_changed(double val);
 
 public:
-    stereoscopic_dialog(parameters *params, QWidget *parent);
+    video_dialog(parameters *params, QWidget *parent);
 
     virtual void receive_notification(const notification &note);
 };
@@ -331,11 +315,10 @@ private:
     video_output_qt *_video_output;
     in_out_widget *_in_out_widget;
     controls_widget *_controls_widget;
-    zoom_dialog *_zoom_dialog;
     color_dialog *_color_dialog;
     crosstalk_dialog *_crosstalk_dialog;
     subtitle_dialog *_subtitle_dialog;
-    stereoscopic_dialog *_stereoscopic_dialog;
+    video_dialog *_video_dialog;
     player_qt_internal *_player;
     QTimer *_timer;
     player_init_data _init_data;
@@ -360,12 +343,11 @@ private slots:
     void file_open();
     void file_open_url();
     void file_open_device();
-    void preferences_zoom();
+    void preferences_fullscreen();
     void preferences_colors();
     void preferences_crosstalk();
     void preferences_subtitle();
-    void preferences_stereoscopic();
-    void preferences_fullscreen();
+    void preferences_video();
     void help_manual();
     void help_website();
     void help_keyboard();
