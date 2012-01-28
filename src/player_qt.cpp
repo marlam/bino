@@ -1,11 +1,12 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2012
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
  * Daniel Schaal <farbing@web.de>
+ * D. Matz <bandregent@yahoo.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -199,6 +200,8 @@ in_out_widget::in_out_widget(QSettings *settings, const player_qt_internal *play
     _input_combobox->addItem(QIcon(":icons-local/input-layout-mono.png"), _("2D"));
     _input_combobox->addItem(QIcon(":icons-local/input-layout-separate-left-right.png"), _("Separate streams, left first"));
     _input_combobox->addItem(QIcon(":icons-local/input-layout-separate-right-left.png"), _("Separate streams, right first"));
+    _input_combobox->addItem(QIcon(":icons-local/input-layout-alternating-left-right.png"), _("Alternating, left first"));
+    _input_combobox->addItem(QIcon(":icons-local/input-layout-alternating-right-left.png"), _("Alternating, right first"));
     _input_combobox->addItem(QIcon(":icons-local/input-layout-top-bottom.png"), _("Top/bottom"));
     _input_combobox->addItem(QIcon(":icons-local/input-layout-top-bottom-half.png"), _("Top/bottom, half height"));
     _input_combobox->addItem(QIcon(":icons-local/input-layout-bottom-top.png"), _("Bottom/top"));
@@ -305,20 +308,23 @@ void in_out_widget::set_stereo_layout(video_frame::stereo_layout_t stereo_layout
     case video_frame::separate:
         _input_combobox->setCurrentIndex(stereo_layout_swap ? 2 : 1);
         break;
+    case video_frame::alternating:
+        _input_combobox->setCurrentIndex(stereo_layout_swap ? 4 : 3);
+        break;
     case video_frame::top_bottom:
-        _input_combobox->setCurrentIndex(stereo_layout_swap ? 5 : 3);
+        _input_combobox->setCurrentIndex(stereo_layout_swap ? 7 : 5);
         break;
     case video_frame::top_bottom_half:
-        _input_combobox->setCurrentIndex(stereo_layout_swap ? 6 : 4);
+        _input_combobox->setCurrentIndex(stereo_layout_swap ? 8 : 6);
         break;
     case video_frame::left_right:
-        _input_combobox->setCurrentIndex(stereo_layout_swap ? 9: 7);
+        _input_combobox->setCurrentIndex(stereo_layout_swap ? 11: 9);
         break;
     case video_frame::left_right_half:
-        _input_combobox->setCurrentIndex(stereo_layout_swap ? 10 : 8);
+        _input_combobox->setCurrentIndex(stereo_layout_swap ? 12 : 10);
         break;
     case video_frame::even_odd_rows:
-        _input_combobox->setCurrentIndex(stereo_layout_swap ? 12 : 11);
+        _input_combobox->setCurrentIndex(stereo_layout_swap ? 14 : 13);
         break;
     }
     _video_combobox->setEnabled(stereo_layout != video_frame::separate);
@@ -581,42 +587,50 @@ void in_out_widget::get_stereo_layout(video_frame::stereo_layout_t &stereo_layou
         stereo_layout_swap = true;
         break;
     case 3:
-        stereo_layout = video_frame::top_bottom;
+        stereo_layout = video_frame::alternating;
         stereo_layout_swap = false;
         break;
     case 4:
-        stereo_layout = video_frame::top_bottom_half;
-        stereo_layout_swap = false;
+        stereo_layout = video_frame::alternating;
+        stereo_layout_swap = true;
         break;
     case 5:
         stereo_layout = video_frame::top_bottom;
-        stereo_layout_swap = true;
+        stereo_layout_swap = false;
         break;
     case 6:
         stereo_layout = video_frame::top_bottom_half;
-        stereo_layout_swap = true;
+        stereo_layout_swap = false;
         break;
     case 7:
-        stereo_layout = video_frame::left_right;
-        stereo_layout_swap = false;
+        stereo_layout = video_frame::top_bottom;
+        stereo_layout_swap = true;
         break;
     case 8:
-        stereo_layout = video_frame::left_right_half;
-        stereo_layout_swap = false;
+        stereo_layout = video_frame::top_bottom_half;
+        stereo_layout_swap = true;
         break;
     case 9:
         stereo_layout = video_frame::left_right;
-        stereo_layout_swap = true;
+        stereo_layout_swap = false;
         break;
     case 10:
         stereo_layout = video_frame::left_right_half;
-        stereo_layout_swap = true;
+        stereo_layout_swap = false;
         break;
     case 11:
+        stereo_layout = video_frame::left_right;
+        stereo_layout_swap = true;
+        break;
+    case 12:
+        stereo_layout = video_frame::left_right_half;
+        stereo_layout_swap = true;
+        break;
+    case 13:
         stereo_layout = video_frame::even_odd_rows;
         stereo_layout_swap = false;
         break;
-    case 12:
+    case 14:
         stereo_layout = video_frame::even_odd_rows;
         stereo_layout_swap = true;
         break;

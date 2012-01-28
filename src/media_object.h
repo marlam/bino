@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Joe <cuchac@email.cz>
  *
@@ -109,8 +109,10 @@ public:
      * Access media data
      */
 
-    /* Start to read a video frame asynchronously (in a separate thread). */
-    void start_video_frame_read(int video_stream);
+    /* Start to read a video frame asynchronously (in a separate thread).
+     * The value of 'raw_frames' must be 1 or 2. If it is 2, the two views of the frame
+     * are read from two consecutive raw video frames. */
+    void start_video_frame_read(int video_stream, int raw_frames);
     /* Wait for the video frame reading to finish, and return the frame.
      * An invalid frame means that EOF was reached. */
     video_frame finish_video_frame_read(int video_stream);

@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Stefan Eilemann <eile@eyescale.ch>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
@@ -223,6 +223,8 @@ int main(int argc, char *argv[])
     input_modes.push_back("mono");
     input_modes.push_back("separate-left-right");
     input_modes.push_back("separate-right-left");
+    input_modes.push_back("alternating-left-right");
+    input_modes.push_back("alternating-right-left");
     input_modes.push_back("top-bottom");
     input_modes.push_back("top-bottom-half");
     input_modes.push_back("bottom-top");
@@ -398,6 +400,8 @@ int main(int argc, char *argv[])
                     "    mono                     Single view.\n"
                     "    separate-left-right      Left/right separate streams, left first.\n"
                     "    separate-right-left      Left/right separate streams, right first.\n"
+                    "    alternating-left-right   Left/right alternating, left first.\n"
+                    "    alternating-right-left   Left/right alternating, right first.\n"
                     "    top-bottom               Left top, right bottom.\n"
                     "    top-bottom-half          Left top, right bottom, half height.\n"
                     "    bottom-top               Left bottom, right top.\n"

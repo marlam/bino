@@ -1,9 +1,10 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Joe <joe@wpj.cz>
+ * D. Matz <bandregent@yahoo.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -101,6 +102,7 @@ public:
     {
         mono,           // 1 video source: center view
         separate,       // 2 video sources: left and right view independent
+        alternating,    // 2 video sources: left and right view consecutively
         top_bottom,     // 1 video source: left view top, right view bottom, both with full size
         top_bottom_half,// 1 video source: left view top, right view bottom, both with half size
         left_right,     // 1 video source: left view left, right view right, both with full size

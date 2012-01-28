@@ -1,10 +1,11 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
+ * D. Matz <bandregent@yahoo.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,11 +87,16 @@ private:
     struct ffmpeg_stuff *_ffmpeg;
     int _video_stream;
     video_frame _frame;
+    int _raw_frames;
 
     int64_t handle_timestamp(int64_t timestamp);
 
 public:
     video_decode_thread(const std::string &url, struct ffmpeg_stuff *ffmpeg, int video_stream);
+    void set_raw_frames(int raw_frames)
+    {
+        _raw_frames = raw_frames;
+    }
     void run();
     const video_frame &frame()
     {
@@ -158,15 +164,17 @@ struct ffmpeg_stuff
     std::vector<int> video_streams;
     std::vector<AVCodecContext *> video_codec_ctxs;
     std::vector<video_frame> video_frame_templates;
-    std::vector<struct SwsContext *> video_img_conv_ctxs;
+    std::vector<struct SwsContext *> video_sws_ctxs;
     std::vector<AVCodec *> video_codecs;
     std::vector<std::deque<AVPacket> > video_packet_queues;
     std::vector<mutex> video_packet_queue_mutexes;
     std::vector<AVPacket> video_packets;
     std::vector<video_decode_thread> video_decode_threads;
     std::vector<AVFrame *> video_frames;
-    std::vector<AVFrame *> video_out_frames;
+    std::vector<AVFrame *> video_buffered_frames;
     std::vector<uint8_t *> video_buffers;
+    std::vector<AVFrame *> video_sws_frames;
+    std::vector<uint8_t *> video_sws_buffers;
     std::vector<int64_t> video_last_timestamps;
 
     std::vector<int> audio_streams;
@@ -488,6 +496,13 @@ void media_object::set_video_frame_template(int index, int width_before_avcodec_
     {
         video_frame_template.stereo_layout = video_frame::top_bottom;
     }
+    /* MPO files are alternating-left-right. */
+    if (_url.length() > 4
+            && (_url.substr(_url.length() - 4) == ".mpo"
+                || _url.substr(_url.length() - 4) == ".MPO"))
+    {
+        video_frame_template.stereo_layout = video_frame::alternating;
+    }
     /* Determine the input mode by looking at the file name.
      * This should be compatible to these conventions:
      * http://www.tru3d.com/technology/3D_Media_Formats_Software.php?file=TriDef%20Supported%203D%20Formats */
@@ -636,6 +651,11 @@ void media_object::set_video_frame_template(int index, int width_before_avcodec_
     {
         video_frame_template.stereo_layout = video_frame::even_odd_rows;
         video_frame_template.stereo_layout_swap = (val == "row_interleaved_rl");
+    }
+    else if (val == "block_lr" || val == "block_rl")
+    {
+        video_frame_template.stereo_layout = video_frame::alternating;
+        video_frame_template.stereo_layout_swap = (val == "block_rl");
     }
     else if (!val.empty())
     {
@@ -858,29 +878,37 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             av_init_packet(&(_ffmpeg->video_packets[j]));
             _ffmpeg->video_decode_threads.push_back(video_decode_thread(_url, _ffmpeg, j));
             _ffmpeg->video_frames.push_back(avcodec_alloc_frame());
-            if (!_ffmpeg->video_frames[j])
+            _ffmpeg->video_buffered_frames.push_back(avcodec_alloc_frame());
+            enum PixelFormat frame_fmt = (_ffmpeg->video_frame_templates[j].layout == video_frame::bgra32
+                    ? PIX_FMT_BGRA : _ffmpeg->video_codec_ctxs[j]->pix_fmt);
+            int frame_bufsize = (avpicture_get_size(frame_fmt,
+                        _ffmpeg->video_codec_ctxs[j]->width, _ffmpeg->video_codec_ctxs[j]->height));
+            _ffmpeg->video_buffers.push_back(static_cast<uint8_t *>(av_malloc(frame_bufsize)));
+            avpicture_fill(reinterpret_cast<AVPicture *>(_ffmpeg->video_buffered_frames[j]), _ffmpeg->video_buffers[j],
+                    frame_fmt, _ffmpeg->video_codec_ctxs[j]->width, _ffmpeg->video_codec_ctxs[j]->height);
+            if (!_ffmpeg->video_frames[j] || !_ffmpeg->video_buffered_frames[j] || !_ffmpeg->video_buffers[j])
             {
                 throw exc(HERE + ": " + strerror(ENOMEM));
             }
             if (_ffmpeg->video_frame_templates[j].layout == video_frame::bgra32)
             {
                 // Initialize things needed for software pixel format conversion
-                int bufsize = avpicture_get_size(PIX_FMT_BGRA,
+                int sws_bufsize = avpicture_get_size(PIX_FMT_BGRA,
                         _ffmpeg->video_codec_ctxs[j]->width, _ffmpeg->video_codec_ctxs[j]->height);
-                _ffmpeg->video_out_frames.push_back(avcodec_alloc_frame());
-                _ffmpeg->video_buffers.push_back(static_cast<uint8_t *>(av_malloc(bufsize)));
-                if (!_ffmpeg->video_out_frames[j] || !_ffmpeg->video_buffers[j])
+                _ffmpeg->video_sws_frames.push_back(avcodec_alloc_frame());
+                _ffmpeg->video_sws_buffers.push_back(static_cast<uint8_t *>(av_malloc(sws_bufsize)));
+                if (!_ffmpeg->video_sws_frames[j] || !_ffmpeg->video_sws_buffers[j])
                 {
                     throw exc(HERE + ": " + strerror(ENOMEM));
                 }
-                avpicture_fill(reinterpret_cast<AVPicture *>(_ffmpeg->video_out_frames[j]), _ffmpeg->video_buffers[j],
+                avpicture_fill(reinterpret_cast<AVPicture *>(_ffmpeg->video_sws_frames[j]), _ffmpeg->video_sws_buffers[j],
                         PIX_FMT_BGRA, _ffmpeg->video_codec_ctxs[j]->width, _ffmpeg->video_codec_ctxs[j]->height);
                 // Call sws_getCachedContext(NULL, ...) instead of sws_getContext(...) just to avoid a deprecation warning.
-                _ffmpeg->video_img_conv_ctxs.push_back(sws_getCachedContext(NULL,
+                _ffmpeg->video_sws_ctxs.push_back(sws_getCachedContext(NULL,
                             _ffmpeg->video_codec_ctxs[j]->width, _ffmpeg->video_codec_ctxs[j]->height, _ffmpeg->video_codec_ctxs[j]->pix_fmt,
                             _ffmpeg->video_codec_ctxs[j]->width, _ffmpeg->video_codec_ctxs[j]->height, PIX_FMT_BGRA,
                             SWS_POINT, NULL, NULL, NULL));
-                if (!_ffmpeg->video_img_conv_ctxs[j])
+                if (!_ffmpeg->video_sws_ctxs[j])
                 {
                     throw exc(str::asprintf(_("%s video stream %d: Cannot initialize conversion context."),
                                 _url.c_str(), j + 1));
@@ -888,9 +916,9 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             }
             else
             {
-                _ffmpeg->video_out_frames.push_back(NULL);
-                _ffmpeg->video_buffers.push_back(NULL);
-                _ffmpeg->video_img_conv_ctxs.push_back(NULL);
+                _ffmpeg->video_sws_frames.push_back(NULL);
+                _ffmpeg->video_sws_buffers.push_back(NULL);
+                _ffmpeg->video_sws_ctxs.push_back(NULL);
             }
             _ffmpeg->video_last_timestamps.push_back(std::numeric_limits<int64_t>::min());
         }
@@ -1334,7 +1362,7 @@ void read_thread::reset()
 }
 
 video_decode_thread::video_decode_thread(const std::string &url, struct ffmpeg_stuff *ffmpeg, int video_stream) :
-    _url(url), _ffmpeg(ffmpeg), _video_stream(video_stream), _frame()
+    _url(url), _ffmpeg(ffmpeg), _video_stream(video_stream), _frame(), _raw_frames(1)
 {
 }
 
@@ -1350,87 +1378,115 @@ int64_t video_decode_thread::handle_timestamp(int64_t timestamp)
 
 void video_decode_thread::run()
 {
-    int frame_finished = 0;
-    do
+    _frame = _ffmpeg->video_frame_templates[_video_stream];
+    for (int raw_frame = 0; raw_frame < _raw_frames; raw_frame++)
     {
-        bool empty;
+        int frame_finished = 0;
         do
         {
-            _ffmpeg->video_packet_queue_mutexes[_video_stream].lock();
-            empty = _ffmpeg->video_packet_queues[_video_stream].empty();
-            _ffmpeg->video_packet_queue_mutexes[_video_stream].unlock();
-            if (empty)
+            bool empty;
+            do
             {
-                if (_ffmpeg->reader->eof())
+                _ffmpeg->video_packet_queue_mutexes[_video_stream].lock();
+                empty = _ffmpeg->video_packet_queues[_video_stream].empty();
+                _ffmpeg->video_packet_queue_mutexes[_video_stream].unlock();
+                if (empty)
                 {
-                    _frame = video_frame();
-                    return;
+                    if (_ffmpeg->reader->eof())
+                    {
+                        if (raw_frame == 1)
+                        {
+                            _frame.data[1][0] = _frame.data[0][0];
+                            _frame.data[1][1] = _frame.data[0][1];
+                            _frame.data[1][2] = _frame.data[0][2];
+                            _frame.line_size[1][0] = _frame.line_size[0][0];
+                            _frame.line_size[1][1] = _frame.line_size[0][1];
+                            _frame.line_size[1][2] = _frame.line_size[0][2];
+                        }
+                        else
+                        {
+                            _frame = video_frame();
+                        }
+                        return;
+                    }
+                    msg::dbg(_url + ": video stream " + str::from(_video_stream) + ": need to wait for packets...");
+                    _ffmpeg->reader->start();
+                    _ffmpeg->reader->finish();
                 }
-                msg::dbg(_url + ": video stream " + str::from(_video_stream) + ": need to wait for packets...");
-                _ffmpeg->reader->start();
-                _ffmpeg->reader->finish();
             }
+            while (empty);
+            av_free_packet(&(_ffmpeg->video_packets[_video_stream]));
+            _ffmpeg->video_packet_queue_mutexes[_video_stream].lock();
+            _ffmpeg->video_packets[_video_stream] = _ffmpeg->video_packet_queues[_video_stream].front();
+            _ffmpeg->video_packet_queues[_video_stream].pop_front();
+            _ffmpeg->video_packet_queue_mutexes[_video_stream].unlock();
+            _ffmpeg->reader->start();       // Refill the packet queue
+            avcodec_decode_video2(_ffmpeg->video_codec_ctxs[_video_stream],
+                    _ffmpeg->video_frames[_video_stream], &frame_finished,
+                    &(_ffmpeg->video_packets[_video_stream]));
         }
-        while (empty);
-        av_free_packet(&(_ffmpeg->video_packets[_video_stream]));
-        _ffmpeg->video_packet_queue_mutexes[_video_stream].lock();
-        _ffmpeg->video_packets[_video_stream] = _ffmpeg->video_packet_queues[_video_stream].front();
-        _ffmpeg->video_packet_queues[_video_stream].pop_front();
-        _ffmpeg->video_packet_queue_mutexes[_video_stream].unlock();
-        _ffmpeg->reader->start();       // Refill the packet queue
-        avcodec_decode_video2(_ffmpeg->video_codec_ctxs[_video_stream],
-                _ffmpeg->video_frames[_video_stream], &frame_finished,
-                &(_ffmpeg->video_packets[_video_stream]));
-    }
-    while (!frame_finished);
+        while (!frame_finished);
 
-    _frame = _ffmpeg->video_frame_templates[_video_stream];
-    if (_frame.layout == video_frame::bgra32)
-    {
-        sws_scale(_ffmpeg->video_img_conv_ctxs[_video_stream],
-                _ffmpeg->video_frames[_video_stream]->data,
-                _ffmpeg->video_frames[_video_stream]->linesize,
-                0, _frame.raw_height,
-                _ffmpeg->video_out_frames[_video_stream]->data,
-                _ffmpeg->video_out_frames[_video_stream]->linesize);
-        // TODO: Handle sws_scale errors. How?
-        _frame.data[0][0] = _ffmpeg->video_out_frames[_video_stream]->data[0];
-        _frame.line_size[0][0] = _ffmpeg->video_out_frames[_video_stream]->linesize[0];
-    }
-    else
-    {
-        _frame.data[0][0] = _ffmpeg->video_frames[_video_stream]->data[0];
-        _frame.data[0][1] = _ffmpeg->video_frames[_video_stream]->data[1];
-        _frame.data[0][2] = _ffmpeg->video_frames[_video_stream]->data[2];
-        _frame.line_size[0][0] = _ffmpeg->video_frames[_video_stream]->linesize[0];
-        _frame.line_size[0][1] = _ffmpeg->video_frames[_video_stream]->linesize[1];
-        _frame.line_size[0][2] = _ffmpeg->video_frames[_video_stream]->linesize[2];
-    }
+        if (_frame.layout == video_frame::bgra32)
+        {
+            sws_scale(_ffmpeg->video_sws_ctxs[_video_stream],
+                    _ffmpeg->video_frames[_video_stream]->data,
+                    _ffmpeg->video_frames[_video_stream]->linesize,
+                    0, _frame.raw_height,
+                    _ffmpeg->video_sws_frames[_video_stream]->data,
+                    _ffmpeg->video_sws_frames[_video_stream]->linesize);
+            // TODO: Handle sws_scale errors. How?
+            _frame.data[raw_frame][0] = _ffmpeg->video_sws_frames[_video_stream]->data[0];
+            _frame.line_size[raw_frame][0] = _ffmpeg->video_sws_frames[_video_stream]->linesize[0];
+        }
+        else
+        {
+            const AVFrame *src_frame = _ffmpeg->video_frames[_video_stream];
+            if (_raw_frames == 2 && raw_frame == 0)
+            {
+                // We need to buffer the data because FFmpeg will clubber it when decoding the next frame.
+                av_picture_copy(reinterpret_cast<AVPicture *>(_ffmpeg->video_buffered_frames[_video_stream]),
+                        reinterpret_cast<AVPicture *>(_ffmpeg->video_frames[_video_stream]),
+                        static_cast<enum PixelFormat>(_ffmpeg->video_codec_ctxs[_video_stream]->pix_fmt),
+                        _ffmpeg->video_codec_ctxs[_video_stream]->width,
+                        _ffmpeg->video_codec_ctxs[_video_stream]->height);
+                src_frame = _ffmpeg->video_buffered_frames[_video_stream];
+            }
+            _frame.data[raw_frame][0] = src_frame->data[0];
+            _frame.data[raw_frame][1] = src_frame->data[1];
+            _frame.data[raw_frame][2] = src_frame->data[2];
+            _frame.line_size[raw_frame][0] = src_frame->linesize[0];
+            _frame.line_size[raw_frame][1] = src_frame->linesize[1];
+            _frame.line_size[raw_frame][2] = src_frame->linesize[2];
+        }
 
-    if (_ffmpeg->video_packets[_video_stream].dts != static_cast<int64_t>(AV_NOPTS_VALUE))
-    {
-        _frame.presentation_time = handle_timestamp(_ffmpeg->video_packets[_video_stream].dts * 1000000
-                * _ffmpeg->format_ctx->streams[_ffmpeg->video_streams[_video_stream]]->time_base.num
-                / _ffmpeg->format_ctx->streams[_ffmpeg->video_streams[_video_stream]]->time_base.den);
-    }
-    else if (_ffmpeg->video_last_timestamps[_video_stream] != std::numeric_limits<int64_t>::min())
-    {
-        msg::dbg(_url + ": video stream " + str::from(_video_stream)
-                + ": no timestamp available, using a questionable guess");
-        _frame.presentation_time = _ffmpeg->video_last_timestamps[_video_stream];
-    }
-    else
-    {
-        msg::dbg(_url + ": video stream " + str::from(_video_stream)
-                + ": no timestamp available, using a bad guess");
-        _frame.presentation_time = _ffmpeg->pos;
+        if (_ffmpeg->video_packets[_video_stream].dts != static_cast<int64_t>(AV_NOPTS_VALUE))
+        {
+            _frame.presentation_time = handle_timestamp(_ffmpeg->video_packets[_video_stream].dts * 1000000
+                    * _ffmpeg->format_ctx->streams[_ffmpeg->video_streams[_video_stream]]->time_base.num
+                    / _ffmpeg->format_ctx->streams[_ffmpeg->video_streams[_video_stream]]->time_base.den);
+        }
+        else if (_ffmpeg->video_last_timestamps[_video_stream] != std::numeric_limits<int64_t>::min())
+        {
+            msg::dbg(_url + ": video stream " + str::from(_video_stream)
+                    + ": no timestamp available, using a questionable guess");
+            _frame.presentation_time = _ffmpeg->video_last_timestamps[_video_stream];
+        }
+        else
+        {
+            msg::dbg(_url + ": video stream " + str::from(_video_stream)
+                    + ": no timestamp available, using a bad guess");
+            _frame.presentation_time = _ffmpeg->pos;
+        }
     }
 }
 
-void media_object::start_video_frame_read(int video_stream)
+void media_object::start_video_frame_read(int video_stream, int raw_frames)
 {
     assert(video_stream >= 0);
     assert(video_stream < video_streams());
+    assert(raw_frames == 1 || raw_frames == 2);
+    _ffmpeg->video_decode_threads[video_stream].set_raw_frames(raw_frames);
     _ffmpeg->video_decode_threads[video_stream].start();
 }
 
@@ -1867,13 +1923,21 @@ void media_object::close()
             {
                 av_free(_ffmpeg->video_frames[i]);
             }
-            for (size_t i = 0; i < _ffmpeg->video_out_frames.size(); i++)
+            for (size_t i = 0; i < _ffmpeg->video_buffered_frames.size(); i++)
             {
-                av_free(_ffmpeg->video_out_frames[i]);
+                av_free(_ffmpeg->video_buffered_frames[i]);
             }
             for (size_t i = 0; i < _ffmpeg->video_buffers.size(); i++)
             {
                 av_free(_ffmpeg->video_buffers[i]);
+            }
+            for (size_t i = 0; i < _ffmpeg->video_sws_frames.size(); i++)
+            {
+                av_free(_ffmpeg->video_sws_frames[i]);
+            }
+            for (size_t i = 0; i < _ffmpeg->video_sws_buffers.size(); i++)
+            {
+                av_free(_ffmpeg->video_sws_buffers[i]);
             }
             for (size_t i = 0; i < _ffmpeg->video_codec_ctxs.size(); i++)
             {
@@ -1882,9 +1946,9 @@ void media_object::close()
                     avcodec_close(_ffmpeg->video_codec_ctxs[i]);
                 }
             }
-            for (size_t i = 0; i < _ffmpeg->video_img_conv_ctxs.size(); i++)
+            for (size_t i = 0; i < _ffmpeg->video_sws_ctxs.size(); i++)
             {
-                sws_freeContext(_ffmpeg->video_img_conv_ctxs[i]);
+                sws_freeContext(_ffmpeg->video_sws_ctxs[i]);
             }
             for (size_t i = 0; i < _ffmpeg->video_packet_queues.size(); i++)
             {

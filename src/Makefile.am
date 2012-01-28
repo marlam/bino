@@ -1,4 +1,4 @@
-# Copyright (C) 2010-2011
+# Copyright (C) 2010, 2011, 2012
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -28,6 +28,8 @@ ICONS_LOCAL_IPE = \
 	icons-local/input-layout-mono.ipe \
 	icons-local/input-layout-separate-left-right.ipe \
 	icons-local/input-layout-separate-right-left.ipe \
+	icons-local/input-layout-alternating-left-right.ipe \
+	icons-local/input-layout-alternating-right-left.ipe \
 	icons-local/input-layout-top-bottom.ipe \
 	icons-local/input-layout-top-bottom-half.ipe \
 	icons-local/input-layout-bottom-top.ipe \

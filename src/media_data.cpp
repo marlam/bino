@@ -1,9 +1,10 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Joe <joe@wpj.cz>
+ * D. Matz <bandregent@yahoo.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -133,6 +134,9 @@ std::string video_frame::stereo_layout_to_string(stereo_layout_t stereo_layout, 
     case separate:
         s = stereo_layout_swap ? "separate-right-left" : "separate-left-right";
         break;
+    case alternating:
+        s = stereo_layout_swap ? "alternating-right-left" : "alternating-left-right";
+        break;
     case top_bottom:
         s = stereo_layout_swap ? "bottom-top" : "top-bottom";
         break;
@@ -167,6 +171,16 @@ void video_frame::stereo_layout_from_string(const std::string &s, stereo_layout_
     else if (s == "separate-left-right")
     {
         stereo_layout = separate;
+        stereo_layout_swap = false;
+    }
+    else if (s == "alternating-right-left")
+    {
+        stereo_layout = alternating;
+        stereo_layout_swap = true;
+    }
+    else if (s == "alternating-left-right")
+    {
+        stereo_layout = alternating;
         stereo_layout_swap = false;
     }
     else if (s == "bottom-top")
@@ -372,6 +386,7 @@ void video_frame::copy_plane(int view, int plane, void *buf) const
         src_offset = 0;
         break;
     case separate:
+    case alternating:
         src = static_cast<const char *>(data[view][plane]);
         src_row_size = line_size[view][plane];
         src_offset = 0;
@@ -395,6 +410,7 @@ void video_frame::copy_plane(int view, int plane, void *buf) const
         break;
     }
 
+    assert(src);
     if (src_row_size == dst_row_size)
     {
         std::memcpy(dst, src + src_offset, lines * src_row_size);

@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -578,14 +578,15 @@ void media_input::start_video_frame_read()
         int o0, s0, o1, s1;
         get_video_stream(0, o0, s0);
         get_video_stream(1, o1, s1);
-        _media_objects[o0].start_video_frame_read(s0);
-        _media_objects[o1].start_video_frame_read(s1);
+        _media_objects[o0].start_video_frame_read(s0, 1);
+        _media_objects[o1].start_video_frame_read(s1, 1);
     }
     else
     {
         int o, s;
         get_video_stream(_active_video_stream, o, s);
-        _media_objects[o].start_video_frame_read(s);
+        _media_objects[o].start_video_frame_read(s,
+                _video_frame.stereo_layout == video_frame::alternating ? 2 : 1);
     }
     _have_active_video_read = true;
 }
@@ -626,10 +627,13 @@ video_frame media_input::finish_video_frame_read()
         if (f.is_valid())
         {
             frame = _video_frame;
-            for (int p = 0; p < 3; p++)
+            for (int v = 0; v < 2; v++)
             {
-                frame.data[0][p] = f.data[0][p];
-                frame.line_size[0][p] = f.line_size[0][p];
+                for (int p = 0; p < 3; p++)
+                {
+                    frame.data[v][p] = f.data[v][p];
+                    frame.line_size[v][p] = f.line_size[v][p];
+                }
             }
             frame.presentation_time = f.presentation_time;
         }
