@@ -1,3 +1,13 @@
+New in version 1.4.0:
+- Better support for audio control. Volume, mute, and delay can be adjusted,
+  and the output device can be selected.
+- Support for high precision color input and output (30 bits per pixel).
+- Support for the MPO file format for stereoscopic photos.
+- An adjustable zoom mode for videos that are wider than the screen.
+- Support for a "Recent Files" section in the File menu.
+- Support for multimedia keyboards.
+- Various user interface tweaks.
+
 New in version 1.2.0:
 - Flexible fullscreen mode with support for multiple screens.
 - Support for remote controls via LIRC.
