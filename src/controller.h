@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Joe <cuchac@email.cz>
  *
@@ -93,6 +93,9 @@ public:
         set_fullscreen_flop_right,      // int
         adjust_zoom,                    // float (relative adjustment)
         set_zoom,                       // float (absolute value)
+        adjust_audio_volume,            // float (relative adjustment)
+        set_audio_volume,               // float (absolute value)
+        toggle_audio_mute,              // no parameters
     };
     
     type type;
@@ -168,6 +171,8 @@ public:
         fullscreen_flip_right,  // int
         fullscreen_flop_right,  // int
         zoom,                   // float
+        audio_volume,           // float
+        audio_mute,             // int
     };
     
     type type;

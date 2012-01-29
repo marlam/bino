@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -130,7 +130,9 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
         }
         break;
     case Qt::Key_Q:
+#if QT_VERSION >= 0x040700
     case Qt::Key_MediaStop:
+#endif
         _vo->send_cmd(command::toggle_play);
         break;
     case Qt::Key_E:
@@ -144,9 +146,9 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_Space:
     case Qt::Key_P:
-
 #if QT_VERSION >= 0x040700
     case Qt::Key_MediaTogglePlayPause:
+#endif
         _vo->send_cmd(command::toggle_pause);
         break;
     case Qt::Key_MediaPlay:
@@ -161,8 +163,6 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
             _vo->send_cmd(command::toggle_pause);
         }
         break;
-#endif
-
     case Qt::Key_V:
         _vo->send_cmd(command::cycle_video_stream);
         break;
@@ -215,6 +215,24 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Greater:
     case Qt::Key_ZoomIn:
         _vo->send_cmd(command::adjust_zoom, +0.1f);
+        break;
+    case Qt::Key_Slash:
+#if QT_VERSION >= 0x040700
+    case Qt::Key_VolumeDown:
+#endif
+        _vo->send_cmd(command::adjust_audio_volume, -0.05f);
+        break;
+    case Qt::Key_Asterisk:
+#if QT_VERSION >= 0x040700
+    case Qt::Key_VolumeUp:
+#endif
+        _vo->send_cmd(command::adjust_audio_volume, +0.05f);
+        break;
+    case Qt::Key_M:
+#if QT_VERSION >= 0x040700
+    case Qt::Key_VolumeMute:
+#endif
+        _vo->send_cmd(command::toggle_audio_mute);
         break;
     case Qt::Key_Left:
         _vo->send_cmd(command::seek, -10.0f);

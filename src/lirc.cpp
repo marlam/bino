@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2011
+ * Copyright (C) 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -231,6 +231,14 @@ bool lircclient::get_command(const std::string &s, command &c)
     else if (std::sscanf(t.c_str(), "set-pos %f", &parameter) == 1)
     {
         c = command(command::set_pos, parameter);
+    }
+    else if (std::sscanf(t.c_str(), "adjust-audio-volume %f", &parameter) == 1)
+    {
+        c = command(command::adjust_audio_volume, parameter);
+    }
+    else if (t == "toggle-audio-mute")
+    {
+        c = command(command::toggle_audio_mute);
     }
     /* The following commands need access to state. */
     else if (t == "play")

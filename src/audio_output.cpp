@@ -161,6 +161,21 @@ void audio_output::deinit()
     }
 }
 
+void audio_output::set_parameters(const parameters &params)
+{
+    _params = params;
+    float gain = _params.audio_volume;
+    if (_params.audio_mute == 1)
+    {
+        gain = 0.0f;
+    }
+    alSourcef(_source, AL_GAIN, gain);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        throw exc(_("Cannot set OpenAL audio volume."));
+    }
+}
+
 size_t audio_output::required_initial_data_size() const
 {
     return _num_buffers * _buffer_size;

@@ -118,6 +118,12 @@ Print a list of known audio devices and exit.
 @item -A
 @itemx --audio-device=@var{D}
 Use audio device number @var{D}. @var{D}=0 is the default device.
+@item -V
+@itemx --audio-volume=@var{V}
+Set audio volume (0 to 1). Default is 1.
+@item -m
+@itemx --audio-mute
+Mute audio.
 @item --device-type=@var{TYPE}
 Type of input device: @var{default}, @var{firewire}, or @var{x11}.
 @item --device-frame-size=@var{W}x@var{H}
@@ -872,6 +878,10 @@ Adjust parallax.
 Adjust ghostbusting.
 @item <, >
 Adjust zoom for videos that are wider than the screen.
+@item /, *
+Adjust audio volume.
+@item m
+Toggle audio mute.
 @item LEFT, RIGHT
 Seek 10 seconds backward / forward.
 @item UP, DOWN
@@ -934,6 +944,10 @@ example -60.0 seeks backwards one minute, and +60.0 seeks forward one minute.
 @item set-pos @var{pos}
 Seek by setting an absolute position in the stream, with @var{pos} between 0 and
 1. For example, to seek to the middle of the video, use 0.5.
+@item adjust-audio-volume @var{delta}
+Adjust audio volume by adding @var{delta}, e.g. -0.05 or +0.05.
+@item toggle-audio-mute
+Toggle audio mute.
 @end table
 
 Example LIRC configuration file excerpt:

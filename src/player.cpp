@@ -291,6 +291,10 @@ void player::open(const player_init_data &init_data)
     }
 
     // Set initial parameters
+    if (_audio_output)
+    {
+        _audio_output->set_parameters(_params);
+    }
     if (_video_output)
     {
         _video_output->set_parameters(_params);
@@ -1151,10 +1155,36 @@ void player::receive_cmd(const command &cmd)
         parameters_changed = true;
         controller::notify_all(notification::zoom, oldval, _params.zoom);
         break;
+    case command::adjust_audio_volume:
+        s11n::load(p, param);
+        oldval = _params.audio_volume;
+        _params.audio_volume = std::max(std::min(_params.audio_volume + param, 1.0f), 0.0f);
+        parameters_changed = true;
+        controller::notify_all(notification::audio_volume, oldval, _params.audio_volume);
+        break;
+    case command::set_audio_volume:
+        s11n::load(p, param);
+        oldval = _params.audio_volume;
+        _params.audio_volume = std::max(std::min(param, 1.0f), 0.0f);
+        parameters_changed = true;
+        controller::notify_all(notification::audio_volume, oldval, _params.audio_volume);
+        break;
+    case command::toggle_audio_mute:
+        _params.audio_mute = !_params.audio_mute;
+        parameters_changed = true;
+        controller::notify_all(notification::audio_mute, _params.audio_mute ? 0 : 1, _params.audio_mute ? 1 : 0);
+        break;
     }
 
-    if (parameters_changed && _video_output)
+    if (parameters_changed)
     {
-        _video_output->set_parameters(_params);
+        if (_audio_output)
+        {
+            _audio_output->set_parameters(_params);
+        }
+        if (_video_output)
+        {
+            _video_output->set_parameters(_params);
+        }
     }
 }

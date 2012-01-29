@@ -758,8 +758,9 @@ void in_out_widget::receive_notification(const notification &note)
 }
 
 
-controls_widget::controls_widget(QSettings *settings, const player_init_data &init_data, QWidget *parent)
-    : QWidget(parent), _lock(false), _settings(settings), _playing(false)
+controls_widget::controls_widget(parameters *params, QSettings *settings,
+        const player_init_data &init_data, QWidget *parent)
+    : QWidget(parent), _params(params), _lock(false), _settings(settings), _playing(false)
 {
     QGridLayout *row0_layout = new QGridLayout;
     _seek_slider = new QSlider(Qt::Horizontal);
@@ -776,6 +777,20 @@ controls_widget::controls_widget(QSettings *settings, const player_init_data &in
     _pos_label->setFrameShape(QFrame::StyledPanel);
     _pos_label->setMinimumSize(QSize(0, 0));
     row0_layout->addWidget(_pos_label, 0, 1);
+    _audio_mute_button = new QPushButton(get_icon("audio-volume-medium"), "");
+    _audio_mute_button->setToolTip(_("<p>Toggle audio mute.</p>"));
+    _audio_mute_button->setCheckable(true);
+    connect(_audio_mute_button, SIGNAL(toggled(bool)), this, SLOT(audio_mute_pressed()));
+    row0_layout->addWidget(_audio_mute_button, 0, 2);
+    _audio_volume_slider = new QSlider(Qt::Horizontal);
+    _audio_volume_slider->setToolTip(_("<p>Adjust audio volume.</p>"));
+    _audio_volume_slider->setRange(0, 1000);
+    _audio_volume_slider->setTickPosition(QSlider::TicksBelow);
+    _audio_volume_slider->setTickInterval(100);
+    _audio_volume_slider->setSingleStep(25);
+    _audio_volume_slider->setPageStep(200);
+    connect(_audio_volume_slider, SIGNAL(valueChanged(int)), this, SLOT(audio_volume_slider_changed()));
+    row0_layout->addWidget(_audio_volume_slider, 0, 3);
     row0_layout->setColumnStretch(0, 1);
 
     QGridLayout *row1_layout = new QGridLayout;
@@ -868,10 +883,25 @@ controls_widget::controls_widget(QSettings *settings, const player_init_data &in
     _fff_button->setEnabled(false);
     _seek_slider->setEnabled(false);
     _pos_label->setEnabled(false);
+
+    update_audio_widgets();
 }
 
 controls_widget::~controls_widget()
 {
+}
+
+void controls_widget::update_audio_widgets()
+{
+    _lock = true;
+    _audio_mute_button->setChecked(_params->audio_mute ? true : false);
+    _audio_mute_button->setIcon(get_icon(
+                _params->audio_mute ? "audio-volume-muted"
+                : _params->audio_volume < 0.33f ? "audio-volume-low"
+                : _params->audio_volume < 0.66f ? "audio-volume-medium"
+                : "audio-volume-high"));
+    _audio_volume_slider->setValue(qRound(_params->audio_volume * 1000.0f));
+    _lock = false;
 }
 
 void controls_widget::play_pressed()
@@ -957,11 +987,33 @@ void controls_widget::seek_slider_changed()
     }
 }
 
+void controls_widget::audio_mute_pressed()
+{
+    _params->audio_mute = _audio_mute_button->isChecked() ? 1 : 0;
+    if (!_lock)
+    {
+        send_cmd(command::toggle_audio_mute);
+    }
+    update_audio_widgets();
+}
+
+void controls_widget::audio_volume_slider_changed()
+{
+    float v = _audio_volume_slider->value() / 1000.0f;
+    _params->audio_volume = v;
+    if (!_lock)
+    {
+        send_cmd(command::set_audio_volume, v);
+    }
+    update_audio_widgets();
+}
+
 void controls_widget::update(const player_init_data &, bool have_valid_input, bool playing, int64_t input_duration)
 {
     if (have_valid_input)
     {
         _play_button->setDefault(true);
+        _play_button->setFocus();
         _loop_button->setEnabled(true);
         _fullscreen_button->setEnabled(true);
         receive_notification(notification(notification::play, !playing, playing));
@@ -1042,6 +1094,12 @@ void controls_widget::receive_notification(const notification &note)
         _play_button->setEnabled(flag);
         _pause_button->setEnabled(!flag);
         break;
+    case notification::fullscreen:
+        s11n::load(current, flag);
+        _lock = true;
+        _fullscreen_button->setChecked(!flag);
+        _lock = false;
+        break;
     case notification::pos:
         if (!_seek_slider->isSliderDown())
         {
@@ -1054,11 +1112,13 @@ void controls_widget::receive_notification(const notification &note)
             _lock = false;
         }
         break;
-    case notification::fullscreen:
-        s11n::load(current, flag);
-        _lock = true;
-        _fullscreen_button->setChecked(!flag);
-        _lock = false;
+    case notification::audio_volume:
+        s11n::load(current, _params->audio_volume);
+        update_audio_widgets();
+        break;
+    case notification::audio_mute:
+        s11n::load(current, _params->audio_mute);
+        update_audio_widgets();
         break;
     default:
         break;
@@ -2166,7 +2226,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     connect(_timer, SIGNAL(timeout()), this, SLOT(playloop_step()));
     _in_out_widget = new in_out_widget(_settings, _player, central_widget);
     layout->addWidget(_in_out_widget, 1, 0);
-    _controls_widget = new controls_widget(_settings, _init_data, central_widget);
+    _controls_widget = new controls_widget(&_init_data.params, _settings, _init_data, central_widget);
     layout->addWidget(_controls_widget, 2, 0);
     layout->setRowStretch(0, 1);
     layout->setColumnStretch(0, 1);
@@ -2538,6 +2598,14 @@ void main_window::receive_notification(const notification &note)
 
     case notification::zoom:
         s11n::load(current, _init_data.params.zoom);
+        break;
+
+    case notification::audio_volume:
+        s11n::load(current, _init_data.params.audio_volume);
+        break;
+
+    case notification::audio_mute:
+        s11n::load(current, _init_data.params.audio_mute);
         break;
 
     case notification::pause:
@@ -3175,6 +3243,8 @@ void main_window::help_keyboard()
                 "<tr><td>7, 8</td><td>Adjust saturation</td></tr>"
                 "<tr><td>[, ]</td><td>Adjust parallax</td></tr>"
                 "<tr><td>(, )</td><td>Adjust ghostbusting</td></tr>"
+                "<tr><td>/, *</td><td>Adjust audio volume</td></tr>"
+                "<tr><td>m</td><td>Toggle audio mute</td></tr>"
                 "<tr><td>&lt;, &gt;</td><td>Adjust zoom</td></tr>"
                 "<tr><td>left, right</td><td>Seek 10 seconds backward / forward</td></tr>"
                 "<tr><td>up, down</td><td>Seek 1 minute backward / forward</td></tr>"

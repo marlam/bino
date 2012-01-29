@@ -335,6 +335,8 @@ public:
     int fullscreen_flip_right;          // Flip right view vertically in fullscreen mode (0/1)
     int fullscreen_flop_right;          // Flop right view horizontally in fullscreen mode (0/1)
     float zoom;                         // Zoom, 0 = off (show full video width) .. 1 = full (use full screen height)
+    float audio_volume;                 // Audio volume, 0 .. 1
+    int audio_mute;                     // Audio mute: -1 = unknown, 0 = off, 1 = on
 
     // Constructor
     parameters();

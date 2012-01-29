@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2012
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -116,6 +116,7 @@ class controls_widget : public QWidget, public controller
     Q_OBJECT
 
 private:
+    parameters *_params;
     int64_t _input_duration;
     bool _lock;
     QSettings *_settings;
@@ -133,7 +134,12 @@ private:
     QPushButton *_fff_button;
     QSlider *_seek_slider;
     QLabel *_pos_label;
+    QPushButton *_audio_mute_button;
+    QSlider *_audio_volume_slider;
     bool _playing;
+
+private:
+    void update_audio_widgets();
 
 private slots:
     void play_pressed();
@@ -149,9 +155,11 @@ private slots:
     void ff_pressed();
     void fff_pressed();
     void seek_slider_changed();
+    void audio_mute_pressed();
+    void audio_volume_slider_changed();
 
 public:
-    controls_widget(QSettings *settings, const player_init_data &init_data, QWidget *parent);
+    controls_widget(parameters *params, QSettings *settings, const player_init_data &init_data, QWidget *parent);
     virtual ~controls_widget();
 
     void update(const player_init_data &init_data, bool have_valid_input, bool playing, int64_t input_duration);

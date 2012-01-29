@@ -60,6 +60,10 @@ ICONS_LOCAL_IPE = \
 ICONS = \
 	icons/application-exit.png \
 	icons/applications-internet.png \
+	icons/audio-volume-high.png \
+	icons/audio-volume-low.png \
+	icons/audio-volume-medium.png \
+	icons/audio-volume-muted.png \
         icons/camera-web.png \
 	icons/dialog-information.png \
 	icons/document-open.png \

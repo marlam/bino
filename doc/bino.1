@@ -38,6 +38,10 @@ Select log level:
 Print a list of known audio devices and exit.
 .IP "\-A|\-\-audio\-device=\fID\fP"
 Use audio device number D. D=0 is the default device.
+.IP "\-V|\-\-audio\-volume=\fIV\fP"
+Set audio volume (0 to 1). Default is 1.
+.IP "\-m|\-\-audio\-mute"
+Mute audio.
 .IP "\-\-device\-type=\fITYPE\fP"
 Type of input device: \fIdefault\fP, \fIfirewire\fP, or \fIx11\fP.
 .IP "\-\-device\-frame\-size=\fIW\fPx\fIH\fP"
@@ -259,6 +263,10 @@ Adjust parallax.
 Adjust ghostbusting.
 .IP "<, >"
 Adjust zoom for videos that are wider than the screen.
+.IP "/, *"
+Adjust audio volume.
+.IP "m"
+Toggle audio mute.
 .IP "left, right"
 Seek 10 seconds backward / forward.
 .IP "up, down"

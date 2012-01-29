@@ -209,6 +209,10 @@ int main(int argc, char *argv[])
     options.push_back(&list_audio_devices);
     opt::val<int> audio_device("audio-device", '\0', opt::optional, 0, 999, 0);
     options.push_back(&audio_device);
+    opt::val<float> audio_volume("audio-volume", 'V', opt::optional, 0.0f, 1.0f, 1.0f);
+    options.push_back(&audio_volume);
+    opt::flag audio_mute("audio-mute", 'm', opt::optional);
+    options.push_back(&audio_mute);
     std::vector<std::string> device_types;
     device_types.push_back("default");
     device_types.push_back("firewire");
@@ -394,6 +398,8 @@ int main(int argc, char *argv[])
                     "  -L|--log-level=LEVEL     Set log level (debug/info/warning/error/quiet).\n"
                     "  --list-audio-devices     Print a list of known audio devices and exit.\n"
                     "  -A|--audio-devices=D     Use audio device number D (D=0 is the default).\n"
+                    "  -V|--audio-volume=V      Set audio volume (0 to 1). Default is 1.\n"
+                    "  -m|--audio-mute          Mute audio.\n"
                     "  --device-type=TYPE       Type of input device: default, firewire, x11.\n"
                     "  --device-frame-size=WxH  Request frame size WxH from input device.\n"
                     "  --device-frame-rate=N/D  Request frame rate N/D from input device.\n"
@@ -489,6 +495,8 @@ int main(int argc, char *argv[])
                     "  [, ]                     Adjust parallax.\n"
                     "  (, )                     Adjust ghostbusting.\n"
                     "  <, >                     Adjust zoom for wide videos.\n"
+                    "  /, *                     Adjust audio volume.\n"
+                    "  m                        Toggle audio mute.\n"
                     "  left, right              Seek 10 seconds backward / forward.\n"
                     "  up, down                 Seek 1 minute backward / forward.\n"
                     "  page up, page down       Seek 10 minutes backward / forward.\n"
@@ -649,6 +657,14 @@ int main(int argc, char *argv[])
         init_data.params.fullscreen_flop_right = fullscreen_flop_right.value();
     }
     init_data.params.zoom = zoom.value();
+    if (audio_volume.values().size() > 0)
+    {
+        init_data.params.audio_volume = audio_volume.value();
+    }
+    if (audio_mute.values().size() > 0)
+    {
+        init_data.params.audio_mute = audio_mute.value();
+    }
     init_data.center = center.value();
     init_data.params.subtitle_encoding = subtitle_encoding.value();
     init_data.params.subtitle_font = subtitle_font.value();
