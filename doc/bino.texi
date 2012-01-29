@@ -116,8 +116,8 @@ Select log level: @var{debug}, @var{info}, @var{warning}, @var{error}, or
 @item --list-audio-devices
 Print a list of known audio devices and exit.
 @item -A
-@itemx --audio-device=@var{D}
-Use audio device number @var{D}. @var{D}=0 is the default device.
+@itemx --audio-device=@var{N}
+Use audio device number @var{N}. @var{N}=0 is the default device.
 @item -V
 @itemx --audio-volume=@var{V}
 Set audio volume (0 to 1). Default is 1.

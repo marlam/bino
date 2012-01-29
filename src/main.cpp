@@ -397,7 +397,7 @@ int main(int argc, char *argv[])
                     "  --log-file=FILE          Append all log messages to the given file.\n"
                     "  -L|--log-level=LEVEL     Set log level (debug/info/warning/error/quiet).\n"
                     "  --list-audio-devices     Print a list of known audio devices and exit.\n"
-                    "  -A|--audio-devices=D     Use audio device number D (D=0 is the default).\n"
+                    "  -A|--audio-device=N      Use audio device number N (N=0 is the default).\n"
                     "  -V|--audio-volume=V      Set audio volume (0 to 1). Default is 1.\n"
                     "  -m|--audio-mute          Mute audio.\n"
                     "  --device-type=TYPE       Type of input device: default, firewire, x11.\n"
