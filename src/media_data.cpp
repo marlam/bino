@@ -602,7 +602,8 @@ parameters::parameters() :
     fullscreen_flop_right(-1),
     zoom(-1.0f),
     audio_volume(std::numeric_limits<float>::quiet_NaN()),
-    audio_mute(-1)
+    audio_mute(-1),
+    audio_delay(std::numeric_limits<int64_t>::min())
 {
 }
 
@@ -699,6 +700,10 @@ void parameters::set_defaults()
     if (audio_mute != 0 && audio_mute != 1)
     {
         audio_mute = 0;
+    }
+    if (audio_delay == std::numeric_limits<int64_t>::min())
+    {
+        audio_delay = 0;
     }
 }
 
@@ -939,6 +944,7 @@ void parameters::save(std::ostream &os) const
     s11n::save(os, zoom);
     s11n::save(os, audio_volume);
     s11n::save(os, audio_mute);
+    s11n::save(os, audio_delay);
 }
 
 void parameters::load(std::istream &is)
@@ -972,4 +978,5 @@ void parameters::load(std::istream &is)
     s11n::load(is, zoom);
     s11n::load(is, audio_volume);
     s11n::load(is, audio_mute);
+    s11n::load(is, audio_delay);
 }

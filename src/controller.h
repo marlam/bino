@@ -96,6 +96,7 @@ public:
         adjust_audio_volume,            // float (relative adjustment)
         set_audio_volume,               // float (absolute value)
         toggle_audio_mute,              // no parameters
+        set_audio_delay,                // float (absolute value)
     };
     
     type type;
@@ -120,6 +121,14 @@ public:
     }
 
     command(enum type t, float p) :
+        type(t)
+    {
+        std::ostringstream oss;
+        s11n::save(oss, p);
+        param = oss.str();
+    }
+
+    command(enum type t, int64_t p) :
         type(t)
     {
         std::ostringstream oss;
@@ -173,6 +182,7 @@ public:
         zoom,                   // float
         audio_volume,           // float
         audio_mute,             // int
+        audio_delay,            // float
     };
     
     type type;
@@ -207,6 +217,17 @@ public:
     }
 
     notification(enum type t, float p, float c) :
+        type(t)
+    {
+        std::ostringstream ossp;
+        s11n::save(ossp, p);
+        previous = ossp.str();
+        std::ostringstream ossc;
+        s11n::save(ossc, c);
+        current = ossc.str();
+    }
+
+    notification(enum type t, int64_t p, int64_t c) :
         type(t)
     {
         std::ostringstream ossp;
@@ -257,6 +278,7 @@ public:
     void send_cmd(enum command::type t) { send_cmd(command(t)); }
     void send_cmd(enum command::type t, int p) { send_cmd(command(t, p)); }
     void send_cmd(enum command::type t, float p) { send_cmd(command(t, p)); }
+    void send_cmd(enum command::type t, int64_t p) { send_cmd(command(t, p)); }
     void send_cmd(enum command::type t, const std::string &p) { send_cmd(command(t, p)); }
 
     /* The controller receives notifications via this function. The default
@@ -278,6 +300,7 @@ public:
     static void notify_all(enum notification::type t, bool p, bool c) { notify_all(notification(t, p, c)); }
     static void notify_all(enum notification::type t, int p, int c) { notify_all(notification(t, p, c)); }
     static void notify_all(enum notification::type t, float p, float c) { notify_all(notification(t, p, c)); }
+    static void notify_all(enum notification::type t, int64_t p, int64_t c) { notify_all(notification(t, p, c)); }
     static void notify_all(enum notification::type t, uint64_t p, uint64_t c) { notify_all(notification(t, p, c)); }
     static void notify_all(enum notification::type t, const std::string &p, const std::string &c) { notify_all(notification(t, p, c)); }
 };

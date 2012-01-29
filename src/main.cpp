@@ -209,6 +209,8 @@ int main(int argc, char *argv[])
     options.push_back(&list_audio_devices);
     opt::val<int> audio_device("audio-device", 'A', opt::optional, 0, 999, 0);
     options.push_back(&audio_device);
+    opt::val<int> audio_delay("audio-delay", 'D', opt::optional, -10000, +10000, 0);
+    options.push_back(&audio_delay);
     opt::val<float> audio_volume("audio-volume", 'V', opt::optional, 0.0f, 1.0f, 1.0f);
     options.push_back(&audio_volume);
     opt::flag audio_mute("audio-mute", 'm', opt::optional);
@@ -398,6 +400,7 @@ int main(int argc, char *argv[])
                     "  -L|--log-level=LEVEL     Set log level (debug/info/warning/error/quiet).\n"
                     "  --list-audio-devices     Print a list of known audio devices and exit.\n"
                     "  -A|--audio-device=N      Use audio device number N (N=0 is the default).\n"
+                    "  -D|--audio-delay=D       Delay audio by D milliseconds. Default is 0.\n"
                     "  -V|--audio-volume=V      Set audio volume (0 to 1). Default is 1.\n"
                     "  -m|--audio-mute          Mute audio.\n"
                     "  --device-type=TYPE       Type of input device: default, firewire, x11.\n"
@@ -657,6 +660,10 @@ int main(int argc, char *argv[])
         init_data.params.fullscreen_flop_right = fullscreen_flop_right.value();
     }
     init_data.params.zoom = zoom.value();
+    if (audio_delay.values().size() > 0)
+    {
+        init_data.params.audio_delay = audio_delay.value() * 1000;
+    }
     if (audio_volume.values().size() > 0)
     {
         init_data.params.audio_volume = audio_volume.value();

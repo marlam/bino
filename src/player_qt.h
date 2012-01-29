@@ -227,9 +227,11 @@ private:
     parameters *_params;
     bool _lock;
     QComboBox *_device_combobox;
+    QSpinBox *_delay_spinbox;
 
 private slots:
     void device_changed();
+    void delay_changed();
 
 public:
     audio_dialog(player_init_data *init_data, parameters *params, QWidget *parent);

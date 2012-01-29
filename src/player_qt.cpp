@@ -1428,9 +1428,9 @@ audio_dialog::audio_dialog(player_init_data *init_data, parameters *params, QWid
     setModal(false);
     setWindowTitle(_("Audio Settings"));
 
-    QLabel *info_label = new QLabel(_("<p>Changing the audio device takes effect<br>for the next started video.</p>"));
-    QLabel *device_label = new QLabel(_("Audio Device:"));
-    device_label->setToolTip(_("<p>Select the audio device. This will take effect for the next started video.</p>"));
+    QLabel *device_label = new QLabel(_("Audio device:"));
+    device_label->setToolTip(_("<p>Select the audio device.<br>"
+                "This will take effect for the next started video.</p>"));
     _device_combobox = new QComboBox();
     _device_combobox->setToolTip(device_label->toolTip());
     _device_combobox->addItem(_("Default"));
@@ -1449,13 +1449,24 @@ audio_dialog::audio_dialog(player_init_data *init_data, parameters *params, QWid
         _device_combobox->setCurrentIndex(_init_data->audio_device + 1);
     }
 
+    QLabel *delay_label = new QLabel(_("Audio delay (ms):"));
+    delay_label->setToolTip(_("<p>Set an audio delay, in milliseconds.<br>"
+                "This is useful if audio and video are not in sync.</p>"));
+    _delay_spinbox = new QSpinBox();
+    _delay_spinbox->setToolTip(delay_label->toolTip());
+    _delay_spinbox->setRange(-10000, +10000);
+    _delay_spinbox->setSingleStep(1);
+    _delay_spinbox->setValue(_params->audio_delay / 1000);
+    connect(_delay_spinbox, SIGNAL(valueChanged(int)), this, SLOT(delay_changed()));
+
     QPushButton *ok_button = new QPushButton(_("OK"));
     connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
 
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(info_label, 0, 0, 1, 2);
-    layout->addWidget(device_label, 1, 0);
-    layout->addWidget(_device_combobox, 1, 1);
+    layout->addWidget(device_label, 0, 0);
+    layout->addWidget(_device_combobox, 0, 1);
+    layout->addWidget(delay_label, 1, 0);
+    layout->addWidget(_delay_spinbox, 1, 1);
     layout->addWidget(ok_button, 2, 0, 1, 2);
     setLayout(layout);
 }
@@ -1465,8 +1476,32 @@ void audio_dialog::device_changed()
     _init_data->audio_device = _device_combobox->currentIndex() - 1;
 }
 
-void audio_dialog::receive_notification(const notification &/* note */)
+void audio_dialog::delay_changed()
 {
+    if (!_lock)
+    {
+        _params->audio_delay = _delay_spinbox->value() * 1000;
+        send_cmd(command::set_audio_delay, _params->audio_delay);
+    }
+}
+
+void audio_dialog::receive_notification(const notification &note)
+{
+    std::istringstream current(note.current);
+    int64_t value;
+
+    switch (note.type)
+    {
+    case notification::audio_delay:
+        s11n::load(current, value);
+        _lock = true;
+        _delay_spinbox->setValue(value / 1000);
+        _lock = false;
+        break;
+    default:
+        /* not handled */
+        break;
+    }
 }
 
 
@@ -2606,6 +2641,10 @@ void main_window::receive_notification(const notification &note)
 
     case notification::audio_mute:
         s11n::load(current, _init_data.params.audio_mute);
+        break;
+
+    case notification::audio_delay:
+        s11n::load(current, _init_data.params.audio_delay);
         break;
 
     case notification::pause:

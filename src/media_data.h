@@ -337,6 +337,7 @@ public:
     float zoom;                         // Zoom, 0 = off (show full video width) .. 1 = full (use full screen height)
     float audio_volume;                 // Audio volume, 0 .. 1
     int audio_mute;                     // Audio mute: -1 = unknown, 0 = off, 1 = on
+    int64_t audio_delay;                // Audio delay in microseconds. INT64_MIN means "unspecified".
 
     // Constructor
     parameters();

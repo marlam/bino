@@ -645,11 +645,13 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
         }
 
         int64_t allowable_sleep = 0;
-        if (_master_time_current >= _video_pos || _benchmark || _media_input->is_device())
+        if (_master_time_current + _params.audio_delay
+                >= _video_pos || _benchmark || _media_input->is_device())
         {
             // Output current video frame
             _drop_next_frame = false;
-            if (_master_time_current - _video_pos > _media_input->video_frame_duration() * 75 / 100
+            if (_master_time_current + _params.audio_delay - _video_pos
+                    > _media_input->video_frame_duration() * 75 / 100
                     && !_benchmark && !_media_input->is_device())
             {
                 msg::wrn(_("Video: delay %g seconds; dropping next frame."), (_master_time_current - _video_pos) / 1e6f);
@@ -1173,6 +1175,14 @@ void player::receive_cmd(const command &cmd)
         _params.audio_mute = !_params.audio_mute;
         parameters_changed = true;
         controller::notify_all(notification::audio_mute, _params.audio_mute ? 0 : 1, _params.audio_mute ? 1 : 0);
+        break;
+    case command::set_audio_delay:
+        {
+            int64_t old = _params.audio_delay;
+            s11n::load(p, _params.audio_delay);
+            parameters_changed = true;
+            controller::notify_all(notification::audio_delay, old, _params.audio_delay);
+        }
         break;
     }
 
