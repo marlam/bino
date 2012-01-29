@@ -98,7 +98,7 @@ subtitle_renderer::~subtitle_renderer()
     {
         try
         {
-            _initializer.cancel();
+            _initializer.finish();
         }
         catch (...)
         {
