@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
     options.push_back(&log_level);
     opt::info list_audio_devices("list-audio-devices", '\0', opt::optional);
     options.push_back(&list_audio_devices);
-    opt::val<int> audio_device("audio-device", '\0', opt::optional, 0, 999, 0);
+    opt::val<int> audio_device("audio-device", 'A', opt::optional, 0, 999, 0);
     options.push_back(&audio_device);
     opt::val<float> audio_volume("audio-volume", 'V', opt::optional, 0.0f, 1.0f, 1.0f);
     options.push_back(&audio_volume);
