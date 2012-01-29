@@ -2375,6 +2375,9 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     show();
     raise();
 
+    // Start the event and play loop
+    _timer->start(0);
+
     // Open files if any
     if (init_data.urls.size() > 0)
     {
@@ -2385,9 +2388,6 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
         }
         open(urls, init_data.dev_request);
     }
-
-    // Start the event and play loop
-    _timer->start(0);
 }
 
 main_window::~main_window()
@@ -2832,6 +2832,8 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
         // Update the widget with the new settings
         _in_out_widget->update(_init_data, true, false);
         _controls_widget->update(_init_data, true, false, _player->get_media_input().duration());
+        // Automatically start playing
+        send_cmd(command::toggle_play);
     }
     else
     {
