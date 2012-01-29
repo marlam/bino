@@ -2173,6 +2173,10 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     {
         _init_data.audio_device = _settings->value("audio-device", QString("-1")).toInt();
     }
+    if (_init_data.params.audio_delay == std::numeric_limits<int64_t>::min())
+    {
+        _init_data.params.audio_delay = _settings->value("audio-delay", QString("0")).toLongLong();
+    }
     if (!std::isnormal(_init_data.params.contrast))
     {
         _init_data.params.contrast = _settings->value("contrast", QString("0")).toFloat();
@@ -2700,6 +2704,7 @@ void main_window::closeEvent(QCloseEvent *event)
     // Remember the Session preferences
     _settings->beginGroup("Session");
     _settings->setValue("audio-device", QVariant(_init_data.audio_device).toString());
+    _settings->setValue("audio-delay", QVariant(static_cast<qlonglong>(_init_data.params.audio_delay)).toString());
     _settings->setValue("contrast", QVariant(_init_data.params.contrast).toString());
     _settings->setValue("brightness", QVariant(_init_data.params.brightness).toString());
     _settings->setValue("hue", QVariant(_init_data.params.hue).toString());
