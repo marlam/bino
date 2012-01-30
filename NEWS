@@ -2,7 +2,7 @@ New in version 1.4.0:
 - Better support for audio control. Volume, mute, and delay can be adjusted,
   and the output device can be selected.
 - Support for high precision color input and output (30 bits per pixel).
-- Support for the MPO file format for stereoscopic photos.
+- Support for the MPO, JPS, and PNS file formats for stereoscopic images.
 - An adjustable zoom mode for videos that are wider than the screen.
 - Support for a "Recent Files" section in the File menu.
 - Support for multimedia keyboards.

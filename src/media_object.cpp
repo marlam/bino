@@ -496,17 +496,32 @@ void media_object::set_video_frame_template(int index, int width_before_avcodec_
     {
         video_frame_template.stereo_layout = video_frame::top_bottom;
     }
-    /* MPO files are alternating-left-right. */
-    if (_url.length() > 4
-            && (_url.substr(_url.length() - 4) == ".mpo"
-                || _url.substr(_url.length() - 4) == ".MPO"))
+    /* Gather hints from the filename extension */
+    std::string extension;
+    size_t extension_dot_pos = _url.find_last_of('.');
+    if (extension_dot_pos != std::string::npos)
     {
+        extension = _url.substr(extension_dot_pos + 1);
+        for (size_t i = 0; i < extension.length(); i++)
+        {
+            extension[i] =  std::tolower(extension[i]);
+        }
+    }
+    if (extension == "mpo")
+    {
+        /* MPO files are alternating-left-right. */
         video_frame_template.stereo_layout = video_frame::alternating;
+    }
+    else if (extension == "jps" || extension == "pns")
+    {
+        /* JPS and PNS are side-by-side in right-left mode */
+        video_frame_template.stereo_layout = video_frame::left_right;
+        video_frame_template.stereo_layout_swap = true;
     }
     /* Determine the input mode by looking at the file name.
      * This should be compatible to these conventions:
      * http://www.tru3d.com/technology/3D_Media_Formats_Software.php?file=TriDef%20Supported%203D%20Formats */
-    std::string marker = _url.substr(0, _url.find_last_of('.'));
+    std::string marker = _url.substr(0, extension_dot_pos);
     size_t last_dash = marker.find_last_of('-');
     if (last_dash != std::string::npos)
     {
