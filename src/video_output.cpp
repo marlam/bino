@@ -471,11 +471,13 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
                     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
         }
         // Clear the texture
+        GLint framebuffer_bak;
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &framebuffer_bak);
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _input_fbo);
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
                 GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _input_subtitle_tex[index], 0);
         glClear(GL_COLOR_BUFFER_BIT);
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer_bak);
         // Prerender the subtitle to get a bounding box
         int bb_x, bb_y, bb_w, bb_h;
         _subtitle_renderer.prerender(subtitle, frame.presentation_time, params,
@@ -894,6 +896,8 @@ void video_output::display_current_frame(
     glUniform1f(glGetUniformLocation(_color_prg, "saturation"), _params.saturation);
     glUniform1f(glGetUniformLocation(_color_prg, "cos_hue"), std::cos(_params.hue * M_PI));
     glUniform1f(glGetUniformLocation(_color_prg, "sin_hue"), std::sin(_params.hue * M_PI));
+    GLint framebuffer_bak;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &framebuffer_bak);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _color_fbo);
     // left view: render into _color_tex[0]
     if (frame.layout == video_frame::bgra32)
@@ -934,7 +938,7 @@ void video_output::display_current_frame(
                 GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[1], 0);
         draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
     }
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer_bak);
     glViewport(viewport[0][0], viewport[0][1], viewport[0][2], viewport[0][3]);
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
@@ -1103,6 +1107,10 @@ void video_output::display_current_frame(
         draw_quad(x, y, w, h, my_tex_coords);
     }
     assert(xgl::CheckError(HERE));
+    glUseProgram(0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
 }
 
 void video_output::clear()
