@@ -382,6 +382,7 @@ public:
     bool prep_frame;
     bool drop_frame;
     bool display_frame;
+    bool display_statistics;
     struct { float x, y, w, h, d; } canvas_video_area;
     float tex_coords[4][2];
 
@@ -392,7 +393,8 @@ public:
         seek_to(0),
         prep_frame(false),
         drop_frame(false),
-        display_frame(false)
+        display_frame(false),
+        display_statistics(false)
     {
     }
 
@@ -411,6 +413,7 @@ protected:
         s11n::save(oss, prep_frame);
         s11n::save(oss, drop_frame);
         s11n::save(oss, display_frame);
+        s11n::save(oss, display_statistics);
         s11n::save(oss, &canvas_video_area, sizeof(canvas_video_area));
         s11n::save(oss, tex_coords, sizeof(tex_coords));
         os << oss.str();
@@ -427,6 +430,7 @@ protected:
         s11n::load(iss, prep_frame);
         s11n::load(iss, drop_frame);
         s11n::load(iss, display_frame);
+        s11n::load(iss, display_statistics);
         s11n::load(iss, &canvas_video_area, sizeof(canvas_video_area));
         s11n::load(iss, tex_coords, sizeof(tex_coords));
     }
@@ -598,6 +602,9 @@ public:
         {
             switch (event->data.keyPress.key)
             {
+            case 'S':
+                _eq_frame_data.display_statistics = !_eq_frame_data.display_statistics;
+                break;
             case 'q':
                 _controller.send_cmd(command::toggle_play);
                 break;
@@ -1056,6 +1063,12 @@ protected:
         glGetIntegerv(GL_VIEWPORT, viewport);
         _video_output.display_current_frame(mono_right_instead_of_left, quad_x, quad_y, quad_w, quad_h,
                 viewport, node->frame_data.tex_coords);
+
+        // Statistics Overlay
+        if (node->frame_data.display_statistics)
+        {
+            drawStatistics();
+        }
     }
 
     virtual void frameStart(const eq::uint128_t &, const uint32_t frame_number)
