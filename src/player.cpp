@@ -654,7 +654,8 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
                     > _media_input->video_frame_duration() * 75 / 100
                     && !_benchmark && !_media_input->is_device())
             {
-                msg::wrn(_("Video: delay %g seconds; dropping next frame."), (_master_time_current - _video_pos) / 1e6f);
+                msg::wrn(_("Video: delay %g seconds; dropping next frame."),
+                        (_master_time_current + _params.audio_delay - _video_pos) / 1e6f);
                 _drop_next_frame = true;
             }
             if (!_previous_frame_dropped)
