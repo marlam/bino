@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Stefan Eilemann <eile@eyescale.ch>
  *
@@ -519,10 +519,17 @@ public:
 
     virtual uint32_t startFrame()
     {
-        // Run one player step to find out what to do
+        // Run player steps until we are told to do something
         bool more_steps;
-        _player.step(&more_steps, &_eq_frame_data.seek_to,
-                &_eq_frame_data.prep_frame, &_eq_frame_data.drop_frame, &_eq_frame_data.display_frame);
+        do {
+            _player.step(&more_steps, &_eq_frame_data.seek_to,
+                    &_eq_frame_data.prep_frame, &_eq_frame_data.drop_frame, &_eq_frame_data.display_frame);
+        }
+        while (more_steps
+                && _eq_frame_data.seek_to == -1
+                && !_eq_frame_data.prep_frame
+                && !_eq_frame_data.drop_frame
+                && !_eq_frame_data.display_frame);
         if (!more_steps)
         {
             this->exit();
