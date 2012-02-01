@@ -218,6 +218,26 @@ public:
     virtual void receive_notification(const notification &note);
 };
 
+class zoom_dialog : public QDialog, public controller
+{
+    Q_OBJECT
+
+private:
+    parameters *_params;
+    bool _lock;
+    QDoubleSpinBox *_z_spinbox;
+    QSlider *_z_slider;
+
+private slots:
+    void z_slider_changed(int val);
+    void z_spinbox_changed(double val);
+
+public:
+    zoom_dialog(parameters *params, QWidget *parent);
+
+    virtual void receive_notification(const notification &note);
+};
+
 class audio_dialog : public QDialog, public controller
 {
     Q_OBJECT
@@ -282,8 +302,6 @@ class video_dialog : public QDialog, public controller
 private:
     parameters *_params;
     bool _lock;
-    QDoubleSpinBox *_z_spinbox;
-    QSlider *_z_slider;
     QDoubleSpinBox *_p_spinbox;
     QSlider *_p_slider;
     QDoubleSpinBox *_sp_spinbox;
@@ -292,8 +310,6 @@ private:
     QSlider *_g_slider;
 
 private slots:
-    void z_slider_changed(int val);
-    void z_spinbox_changed(double val);
     void p_slider_changed(int val);
     void p_spinbox_changed(double val);
     void sp_slider_changed(int val);
@@ -346,6 +362,7 @@ private:
     controls_widget *_controls_widget;
     color_dialog *_color_dialog;
     crosstalk_dialog *_crosstalk_dialog;
+    zoom_dialog *_zoom_dialog;
     audio_dialog *_audio_dialog;
     subtitle_dialog *_subtitle_dialog;
     video_dialog *_video_dialog;
@@ -376,6 +393,7 @@ private slots:
     void preferences_fullscreen();
     void preferences_colors();
     void preferences_crosstalk();
+    void preferences_zoom();
     void preferences_audio();
     void preferences_subtitle();
     void preferences_video();

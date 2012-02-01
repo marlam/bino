@@ -1422,6 +1422,90 @@ void crosstalk_dialog::receive_notification(const notification &note)
 }
 
 
+zoom_dialog::zoom_dialog(parameters *params, QWidget *parent) : QDialog(parent),
+    _params(params), _lock(false)
+{
+    setModal(false);
+    setWindowTitle(_("Zoom for wide videos"));
+
+    QLabel *info_label = new QLabel(_(
+                "<p>Set zoom level for videos that<br>"
+                "are wider than the screen:<br>"
+                "0: Show full video width.<br>"
+                "1: Use full screen height.<br>"
+                "> 1: Zoom even more.</p>"));
+    QLabel *z_label = new QLabel(_("Zoom:"));
+    z_label->setToolTip(_("<p>Set the zoom level for videos that are wider than the screen</p>"));
+    _z_slider = new QSlider(Qt::Horizontal);
+    _z_slider->setRange(0, 2000);
+    _z_slider->setValue(params->zoom * 1000.0f);
+    _z_slider->setToolTip(z_label->toolTip());
+    connect(_z_slider, SIGNAL(valueChanged(int)), this, SLOT(z_slider_changed(int)));
+    _z_spinbox = new QDoubleSpinBox();
+    _z_spinbox->setRange(0.0, +2.0);
+    _z_spinbox->setValue(params->zoom);
+    _z_spinbox->setDecimals(2);
+    _z_spinbox->setSingleStep(0.01);
+    _z_spinbox->setToolTip(z_label->toolTip());
+    connect(_z_spinbox, SIGNAL(valueChanged(double)), this, SLOT(z_spinbox_changed(double)));
+
+    QPushButton *ok_button = new QPushButton(_("OK"));
+    connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(info_label, 0, 0, 1, 3);
+    layout->addWidget(z_label, 1, 0);
+    layout->addWidget(_z_slider, 1, 1);
+    layout->addWidget(_z_spinbox, 1, 2);
+    layout->addWidget(ok_button, 2, 0, 1, 3);
+    setLayout(layout);
+}
+
+void zoom_dialog::z_slider_changed(int val)
+{
+    if (!_lock)
+    {
+        _params->zoom = val / 1000.0f;
+        _lock = true;
+        _z_spinbox->setValue(val / 1000.0f);
+        _lock = false;
+        send_cmd(command::set_zoom, val / 1000.0f);
+    }
+}
+
+void zoom_dialog::z_spinbox_changed(double val)
+{
+    if (!_lock)
+    {
+        _params->zoom = val;
+        _lock = true;
+        _z_slider->setValue(val * 1000.0);
+        _lock = false;
+        send_cmd(command::set_zoom, static_cast<float>(val));
+    }
+}
+
+void zoom_dialog::receive_notification(const notification &note)
+{
+    std::istringstream current(note.current);
+    float value;
+
+    switch (note.type)
+    {
+    case notification::zoom:
+        s11n::load(current, value);
+        _lock = true;
+        _z_slider->setValue(value * 1000.0f);
+        _z_spinbox->setValue(value);
+        _lock = false;
+        break;
+    default:
+        /* not handled */
+        break;
+    }
+}
+
+
 audio_dialog::audio_dialog(player_init_data *init_data, parameters *params, QWidget *parent) : QDialog(parent),
     _init_data(init_data), _params(params), _lock(false)
 {
@@ -1807,22 +1891,6 @@ video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent
     setModal(false);
     setWindowTitle(_("Video Settings"));
 
-    QLabel *z_label = new QLabel(_("Zoom:"));
-    z_label->setToolTip(_("<p>Set the zoom level for videos that are wider than the screen, "
-                "from 0 (off; show full video width) to 1 (full; use full screen height).</p>"));
-    _z_slider = new QSlider(Qt::Horizontal);
-    _z_slider->setRange(0, 1000);
-    _z_slider->setValue(params->zoom * 1000.0f);
-    _z_slider->setToolTip(z_label->toolTip());
-    connect(_z_slider, SIGNAL(valueChanged(int)), this, SLOT(z_slider_changed(int)));
-    _z_spinbox = new QDoubleSpinBox();
-    _z_spinbox->setRange(0.0, +1.0);
-    _z_spinbox->setValue(params->zoom);
-    _z_spinbox->setDecimals(2);
-    _z_spinbox->setSingleStep(0.01);
-    _z_spinbox->setToolTip(z_label->toolTip());
-    connect(_z_spinbox, SIGNAL(valueChanged(double)), this, SLOT(z_spinbox_changed(double)));
-
     QLabel *p_label = new QLabel(_("Parallax:"));
     p_label->setToolTip(_("<p>Adjust parallax, from -1 to +1. This changes the separation of left and right view, "
                 "and thus the perceived distance of the scene.</p>"));
@@ -1876,44 +1944,17 @@ video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent
     connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
 
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(z_label, 0, 0);
-    layout->addWidget(_z_slider, 0, 1);
-    layout->addWidget(_z_spinbox, 0, 2);
-    layout->addWidget(p_label, 1, 0);
-    layout->addWidget(_p_slider, 1, 1);
-    layout->addWidget(_p_spinbox, 1, 2);
-    layout->addWidget(sp_label, 2, 0);
-    layout->addWidget(_sp_slider, 2, 1);
-    layout->addWidget(_sp_spinbox, 2, 2);
-    layout->addWidget(g_label, 3, 0);
-    layout->addWidget(_g_slider, 3, 1);
-    layout->addWidget(_g_spinbox, 3, 2);
-    layout->addWidget(ok_button, 4, 0, 1, 3);
+    layout->addWidget(p_label, 0, 0);
+    layout->addWidget(_p_slider, 0, 1);
+    layout->addWidget(_p_spinbox, 0, 2);
+    layout->addWidget(sp_label, 1, 0);
+    layout->addWidget(_sp_slider, 1, 1);
+    layout->addWidget(_sp_spinbox, 1, 2);
+    layout->addWidget(g_label, 2, 0);
+    layout->addWidget(_g_slider, 2, 1);
+    layout->addWidget(_g_spinbox, 2, 2);
+    layout->addWidget(ok_button, 3, 0, 1, 3);
     setLayout(layout);
-}
-
-void video_dialog::z_slider_changed(int val)
-{
-    if (!_lock)
-    {
-        _params->zoom = val / 1000.0f;
-        _lock = true;
-        _z_spinbox->setValue(val / 1000.0f);
-        _lock = false;
-        send_cmd(command::set_zoom, val / 1000.0f);
-    }
-}
-
-void video_dialog::z_spinbox_changed(double val)
-{
-    if (!_lock)
-    {
-        _params->zoom = val;
-        _lock = true;
-        _z_slider->setValue(val * 1000.0);
-        _lock = false;
-        send_cmd(command::set_zoom, static_cast<float>(val));
-    }
 }
 
 void video_dialog::p_slider_changed(int val)
@@ -1995,13 +2036,6 @@ void video_dialog::receive_notification(const notification &note)
 
     switch (note.type)
     {
-    case notification::zoom:
-        s11n::load(current, value);
-        _lock = true;
-        _z_slider->setValue(value * 1000.0f);
-        _z_spinbox->setValue(value);
-        _lock = false;
-        break;
     case notification::parallax:
         s11n::load(current, value);
         _lock = true;
@@ -2154,6 +2188,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     _settings(settings),
     _color_dialog(NULL),
     _crosstalk_dialog(NULL),
+    _zoom_dialog(NULL),
     _audio_dialog(NULL),
     _subtitle_dialog(NULL),
     _video_dialog(NULL),
@@ -2324,6 +2359,10 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     QAction *preferences_crosstalk_act = new QAction(_("Display Cross&talk Calibration..."), this);
     connect(preferences_crosstalk_act, SIGNAL(triggered()), this, SLOT(preferences_crosstalk()));
     preferences_menu->addAction(preferences_crosstalk_act);
+    preferences_menu->addSeparator();
+    QAction *preferences_zoom_act = new QAction(_("&Zoom for wide videos..."), this);
+    connect(preferences_zoom_act, SIGNAL(triggered()), this, SLOT(preferences_zoom()));
+    preferences_menu->addAction(preferences_zoom_act);
     preferences_menu->addSeparator();
     QAction *preferences_audio_act = new QAction(_("&Audio Settings..."), this);
     connect(preferences_audio_act, SIGNAL(triggered()), this, SLOT(preferences_audio()));
@@ -3209,6 +3248,17 @@ void main_window::preferences_crosstalk()
     _crosstalk_dialog->show();
     _crosstalk_dialog->raise();
     _crosstalk_dialog->activateWindow();
+}
+
+void main_window::preferences_zoom()
+{
+    if (!_zoom_dialog)
+    {
+        _zoom_dialog = new zoom_dialog(&_init_data.params, this);
+    }
+    _zoom_dialog->show();
+    _zoom_dialog->raise();
+    _zoom_dialog->activateWindow();
 }
 
 void main_window::preferences_audio()

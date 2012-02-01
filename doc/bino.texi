@@ -170,8 +170,8 @@ Flip right view vertically when in fullscreen mode.
 Flop right view horizontally when in fullscreen mode.
 @item -z
 @itemx --zoom=@var{Z}
-Set zoom for videos that are wider than the screen, from 0 (off; show full
-video width) to 1 (full; use full screen height). The default is 0.
+Set zoom for videos that are wider than the screen, from 0 to 2.
+@var{Z}=0: show full video width, @var{Z}=1: use full screen height.
 @item -c
 @itemx --center
 Center window on screen.

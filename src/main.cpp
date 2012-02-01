@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
     options.push_back(&fullscreen_flip_right);
     opt::flag fullscreen_flop_right("fullscreen-flop-right", '\0', opt::optional);
     options.push_back(&fullscreen_flop_right);
-    opt::val<float> zoom("zoom", 'z', opt::optional, 0.0f, 1.0f, parameters().zoom);
+    opt::val<float> zoom("zoom", 'z', opt::optional, 0.0f, 2.0f, parameters().zoom);
     options.push_back(&zoom);
     opt::flag center("center", 'c', opt::optional);
     options.push_back(&center);
