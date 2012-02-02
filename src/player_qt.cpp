@@ -1432,17 +1432,16 @@ zoom_dialog::zoom_dialog(parameters *params, QWidget *parent) : QDialog(parent),
                 "<p>Set zoom level for videos that<br>"
                 "are wider than the screen:<br>"
                 "0: Show full video width.<br>"
-                "1: Use full screen height.<br>"
-                "> 1: Zoom even more.</p>"));
+                "1: Use full screen height.</p"));
     QLabel *z_label = new QLabel(_("Zoom:"));
     z_label->setToolTip(_("<p>Set the zoom level for videos that are wider than the screen</p>"));
     _z_slider = new QSlider(Qt::Horizontal);
-    _z_slider->setRange(0, 4000);
+    _z_slider->setRange(0, 1000);
     _z_slider->setValue(params->zoom * 1000.0f);
     _z_slider->setToolTip(z_label->toolTip());
     connect(_z_slider, SIGNAL(valueChanged(int)), this, SLOT(z_slider_changed(int)));
     _z_spinbox = new QDoubleSpinBox();
-    _z_spinbox->setRange(0.0, +4.0);
+    _z_spinbox->setRange(0.0, 1.0);
     _z_spinbox->setValue(params->zoom);
     _z_spinbox->setDecimals(2);
     _z_spinbox->setSingleStep(0.01);

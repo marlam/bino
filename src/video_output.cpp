@@ -1138,7 +1138,7 @@ static void compute_viewport_and_tex_coords(int vp[4], float tc[4][2],
     if (src_ar >= dst_ar)
     {
         // need black borders top and bottom
-        float zoom_src_ar = std::max(0.1f, zoom * dst_ar + (1.0f - zoom) * src_ar);
+        float zoom_src_ar = zoom * dst_ar + (1.0f - zoom) * src_ar;
         vp[2] = dst_w;
         vp[3] = dst_ar / zoom_src_ar * dst_h;
         vp[0] = (w - vp[2]) / 2;
