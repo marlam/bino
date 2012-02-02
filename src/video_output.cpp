@@ -840,8 +840,8 @@ void video_output::display_current_frame(
     {                
         render_deinit();
         render_init();
-        _render_last_params = _params;
     }
+    _render_last_params = _params;
 
     /* Use correct left and right view indices */
 
