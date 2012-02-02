@@ -301,7 +301,9 @@ void player::open(const player_init_data &init_data)
         _video_output->set_suitable_size(
                 _media_input->video_frame_template().width,
                 _media_input->video_frame_template().height,
-                _media_input->video_frame_template().aspect_ratio,
+                _params.crop_aspect_ratio > 0.0f
+                ? _params.crop_aspect_ratio
+                : _media_input->video_frame_template().aspect_ratio,
                 _params.stereo_mode);
         if (init_data.fullscreen)
         {
@@ -1157,6 +1159,13 @@ void player::receive_cmd(const command &cmd)
         _params.zoom = std::max(std::min(param, 1.0f), 0.0f);
         parameters_changed = true;
         controller::notify_all(notification::zoom, oldval, _params.zoom);
+        break;
+    case command::set_crop_aspect_ratio:
+        s11n::load(p, param);
+        oldval = _params.crop_aspect_ratio;
+        _params.crop_aspect_ratio = (param <= 0.0f ? 0.0f : std::max(std::min(param, 2.39f), 1.0f));
+        parameters_changed = true;
+        controller::notify_all(notification::crop_aspect_ratio, oldval, _params.crop_aspect_ratio);
         break;
     case command::adjust_audio_volume:
         s11n::load(p, param);

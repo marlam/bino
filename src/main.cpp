@@ -299,6 +299,9 @@ int main(int argc, char *argv[])
     options.push_back(&fullscreen_flop_right);
     opt::val<float> zoom("zoom", 'z', opt::optional, 0.0f, 1.0f, parameters().zoom);
     options.push_back(&zoom);
+    opt::tuple<float> crop_aspect_ratio("crop-aspect-ratio", 'C', opt::optional,
+            0.0f, 100.0f, std::vector<float>(), 2, ":");
+    options.push_back(&crop_aspect_ratio);
     opt::flag center("center", 'c', opt::optional);
     options.push_back(&center);
     opt::val<std::string> subtitle_encoding("subtitle-encoding", '\0', opt::optional, parameters().subtitle_encoding);
@@ -465,6 +468,7 @@ int main(int argc, char *argv[])
                     "  --fullscreen-flip-right  Flip right view vertically when fullscreen.\n"
                     "  --fullscreen-flop-right  Flop right view horizontally when fullscreen.\n"
                     "  -z|--zoom=Z              Set zoom for wide videos (0=off to 1=full).\n"
+                    "  -C|--crop=W:H            Crop video to given aspect ratio (0:0=off).\n"
                     "  -c|--center              Center window on screen.\n"
                     "  --subtitle-encoding=ENC  Set subtitle encoding.\n"
                     "  --subtitle-font=FONT     Set subtitle font name.\n"
@@ -659,7 +663,20 @@ int main(int argc, char *argv[])
     {
         init_data.params.fullscreen_flop_right = fullscreen_flop_right.value();
     }
-    init_data.params.zoom = zoom.value();
+    if (zoom.values().size() > 0)
+    {
+        init_data.params.zoom = zoom.value();
+    }
+    if (crop_aspect_ratio.values().size() > 0)
+    {
+        float crop_ar = 0.0f;
+        if (crop_aspect_ratio.value()[0] > 0.0f && crop_aspect_ratio.value()[1] > 0.0f)
+        {
+            crop_ar = crop_aspect_ratio.value()[0] / crop_aspect_ratio.value()[1];
+            crop_ar = std::min(std::max(crop_ar, 1.0f), 2.39f);
+        }
+        init_data.params.crop_aspect_ratio = crop_ar;
+    }
     if (audio_delay.values().size() > 0)
     {
         init_data.params.audio_delay = audio_delay.value() * 1000;

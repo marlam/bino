@@ -825,6 +825,8 @@ void video_output::display_current_frame(
                 || frame.aspect_ratio < _color_last_frame.aspect_ratio
                 || frame.aspect_ratio > _color_last_frame.aspect_ratio
                 || _render_last_params.stereo_mode != _params.stereo_mode
+                || _render_last_params.crop_aspect_ratio < _params.crop_aspect_ratio
+                || _render_last_params.crop_aspect_ratio > _params.crop_aspect_ratio
                 || _render_last_params.zoom < _params.zoom
                 || _render_last_params.zoom > _params.zoom))
     {
@@ -1133,8 +1135,29 @@ void video_output::clear()
 
 static void compute_viewport_and_tex_coords(int vp[4], float tc[4][2],
         float src_ar, int w, int h, float dst_w, float dst_h, float dst_ar,
-        float zoom)
+        float crop_ar, float zoom)
 {
+    std::memcpy(tc, full_tex_coords[0], sizeof(tc));
+    if (crop_ar > 0.0f)
+    {
+        if (src_ar >= crop_ar)
+        {
+            float cutoff = (1.0f - crop_ar / src_ar) / 2.0f;
+            tc[0][0] += cutoff;
+            tc[1][0] -= cutoff;
+            tc[2][0] -= cutoff;
+            tc[3][0] += cutoff;
+        }
+        else
+        {
+            float cutoff = (1.0f - src_ar / crop_ar) / 2.0f;
+            tc[0][1] += cutoff;
+            tc[1][1] += cutoff;
+            tc[2][1] -= cutoff;
+            tc[3][1] -= cutoff;
+        }
+        src_ar = crop_ar;
+    }
     if (src_ar >= dst_ar)
     {
         // need black borders top and bottom
@@ -1144,14 +1167,10 @@ static void compute_viewport_and_tex_coords(int vp[4], float tc[4][2],
         vp[0] = (w - vp[2]) / 2;
         vp[1] = (h - vp[3]) / 2;
         float cutoff = (1.0f - zoom_src_ar / src_ar) / 2.0f;
-        tc[0][0] = cutoff;
-        tc[0][1] = 0.0f;
-        tc[1][0] = 1.0f - cutoff;
-        tc[1][1] = 0.0f;
-        tc[2][0] = 1.0f - cutoff;
-        tc[2][1] = 1.0f;
-        tc[3][0] = cutoff;
-        tc[3][1] = 1.0f;
+        tc[0][0] += cutoff;
+        tc[1][0] -= cutoff;
+        tc[2][0] -= cutoff;
+        tc[3][0] += cutoff;
     }
     else
     {
@@ -1160,7 +1179,6 @@ static void compute_viewport_and_tex_coords(int vp[4], float tc[4][2],
         vp[3] = dst_h;
         vp[0] = (w - vp[2]) / 2;
         vp[1] = (h - vp[3]) / 2;
-        std::memcpy(tc, full_tex_coords[0], sizeof(tc));
     }
 }
 
@@ -1197,7 +1215,8 @@ void video_output::reshape(int w, int h)
             src_ar /= 2.0f;
         }
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
-                w / 2, h, dst_w, dst_h, dst_ar, _params.zoom);
+                w / 2, h, dst_w, dst_h, dst_ar,
+                _params.crop_aspect_ratio, _params.zoom);
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[1][0] = _viewport[0][0] + w / 2;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
@@ -1214,7 +1233,8 @@ void video_output::reshape(int w, int h)
             src_ar *= 2.0f;
         }
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
-                w, h / 2, dst_w, dst_h, dst_ar, _params.zoom);
+                w, h / 2, dst_w, dst_h, dst_ar,
+                _params.crop_aspect_ratio, _params.zoom);
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[1][1] = _viewport[0][1] + h / 2;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
@@ -1234,7 +1254,8 @@ void video_output::reshape(int w, int h)
         float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
         float src_ar = _frame[_active_index].aspect_ratio;
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
-                w, (h - blank_lines) / 2, dst_w, dst_h, dst_ar, _params.zoom);
+                w, (h - blank_lines) / 2, dst_w, dst_h, dst_ar,
+                _params.crop_aspect_ratio, _params.zoom);
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[1][1] = _viewport[0][1] + (h - blank_lines) / 2 + blank_lines;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
@@ -1246,7 +1267,8 @@ void video_output::reshape(int w, int h)
         float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
         float src_ar = _frame[_active_index].aspect_ratio;
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
-                w, h, dst_w, dst_h, dst_ar, _params.zoom);
+                w, h, dst_w, dst_h, dst_ar,
+                _params.crop_aspect_ratio, _params.zoom);
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }

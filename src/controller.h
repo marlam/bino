@@ -93,6 +93,7 @@ public:
         set_fullscreen_flop_right,      // int
         adjust_zoom,                    // float (relative adjustment)
         set_zoom,                       // float (absolute value)
+        set_crop_aspect_ratio,          // float
         adjust_audio_volume,            // float (relative adjustment)
         set_audio_volume,               // float (absolute value)
         toggle_audio_mute,              // no parameters
@@ -180,6 +181,7 @@ public:
         fullscreen_flip_right,  // int
         fullscreen_flop_right,  // int
         zoom,                   // float
+        crop_aspect_ratio,      // float
         audio_volume,           // float
         audio_mute,             // int
         audio_delay,            // float

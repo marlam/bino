@@ -1890,6 +1890,24 @@ video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent
     setModal(false);
     setWindowTitle(_("Video Settings"));
 
+    QLabel *crop_ar_label = new QLabel(_("Crop to aspect ratio:"));
+    crop_ar_label->setToolTip(_("<p>Set the real aspect ratio of the video, so that borders can be cropped.</p>"));
+    _crop_ar_combobox = new QComboBox();
+    _crop_ar_combobox->setToolTip(crop_ar_label->toolTip());
+    _crop_ar_combobox->addItem(_("Do not crop"));
+    _crop_ar_combobox->addItem(_("16:10"));
+    _crop_ar_combobox->addItem(_("16:9"));
+    _crop_ar_combobox->addItem(_("1.85:1"));
+    _crop_ar_combobox->addItem(_("2.21:1"));
+    _crop_ar_combobox->addItem(_("2.35:1"));
+    _crop_ar_combobox->addItem(_("2.39:1"));
+    _crop_ar_combobox->addItem(_("5:3"));
+    _crop_ar_combobox->addItem(_("4:3"));
+    _crop_ar_combobox->addItem(_("5:4"));
+    _crop_ar_combobox->addItem(_("1:1"));
+    set_crop_ar(params->crop_aspect_ratio);
+    connect(_crop_ar_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(crop_ar_changed()));
+
     QLabel *p_label = new QLabel(_("Parallax:"));
     p_label->setToolTip(_("<p>Adjust parallax, from -1 to +1. This changes the separation of left and right view, "
                 "and thus the perceived distance of the scene.</p>"));
@@ -1943,17 +1961,58 @@ video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent
     connect(ok_button, SIGNAL(pressed()), this, SLOT(close()));
 
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(p_label, 0, 0);
-    layout->addWidget(_p_slider, 0, 1);
-    layout->addWidget(_p_spinbox, 0, 2);
-    layout->addWidget(sp_label, 1, 0);
-    layout->addWidget(_sp_slider, 1, 1);
-    layout->addWidget(_sp_spinbox, 1, 2);
-    layout->addWidget(g_label, 2, 0);
-    layout->addWidget(_g_slider, 2, 1);
-    layout->addWidget(_g_spinbox, 2, 2);
-    layout->addWidget(ok_button, 3, 0, 1, 3);
+    layout->addWidget(crop_ar_label, 0, 0);
+    layout->addWidget(_crop_ar_combobox, 0, 1, 1, 2);
+    layout->addWidget(p_label, 1, 0);
+    layout->addWidget(_p_slider, 1, 1);
+    layout->addWidget(_p_spinbox, 1, 2);
+    layout->addWidget(sp_label, 2, 0);
+    layout->addWidget(_sp_slider, 2, 1);
+    layout->addWidget(_sp_spinbox, 2, 2);
+    layout->addWidget(g_label, 3, 0);
+    layout->addWidget(_g_slider, 3, 1);
+    layout->addWidget(_g_spinbox, 3, 2);
+    layout->addWidget(ok_button, 4, 0, 1, 3);
     setLayout(layout);
+}
+
+void video_dialog::set_crop_ar(float value)
+{
+    _lock = true;
+    _crop_ar_combobox->setCurrentIndex(
+              ( std::abs(value - 16.0f / 10.0f) < 0.01f ? 1
+              : std::abs(value - 16.0f / 9.0f)  < 0.01f ? 2
+              : std::abs(value - 1.85f)         < 0.01f ? 3
+              : std::abs(value - 2.21f)         < 0.01f ? 4
+              : std::abs(value - 2.35f)         < 0.01f ? 5
+              : std::abs(value - 2.39f)         < 0.01f ? 6
+              : std::abs(value - 5.0f / 3.0f)   < 0.01f ? 7
+              : std::abs(value - 4.0f / 3.0f)   < 0.01f ? 8
+              : std::abs(value - 5.0f / 4.0f)   < 0.01f ? 9
+              : std::abs(value - 1.0f)          < 0.01f ? 10
+              : 0));
+    _lock = false;
+}
+
+void video_dialog::crop_ar_changed()
+{
+    if (!_lock)
+    {
+        int i = _crop_ar_combobox->currentIndex();
+        _params->crop_aspect_ratio =
+                ( i == 1 ? 16.0f / 10.0f
+                : i == 2 ? 16.0f / 9.0f
+                : i == 3 ? 1.85f
+                : i == 4 ? 2.21f
+                : i == 5 ? 2.35f
+                : i == 6 ? 2.39f
+                : i == 7 ? 5.0f / 3.0f
+                : i == 8 ? 4.0f / 3.0f
+                : i == 9 ? 5.0f / 4.0f
+                : i == 10 ? 1.0f
+                : 0.0f);
+        send_cmd(command::set_crop_aspect_ratio, _params->crop_aspect_ratio);
+    }
 }
 
 void video_dialog::p_slider_changed(int val)
@@ -2035,6 +2094,10 @@ void video_dialog::receive_notification(const notification &note)
 
     switch (note.type)
     {
+    case notification::crop_aspect_ratio:
+        s11n::load(current, value);
+        set_crop_ar(value);
+        break;
     case notification::parallax:
         s11n::load(current, value);
         _lock = true;
@@ -2541,6 +2604,7 @@ void main_window::receive_notification(const notification &note)
             _settings->setValue("video-stream", QVariant(_init_data.video_stream).toString());
             _settings->setValue("audio-stream", QVariant(_init_data.audio_stream).toString());
             _settings->setValue("subtitle-stream", QVariant(_init_data.subtitle_stream).toString());
+            _settings->setValue("crop-aspect-ratio", QVariant(_init_data.params.crop_aspect_ratio).toString());
             _settings->setValue("parallax", QVariant(_init_data.params.parallax).toString());
             _settings->setValue("ghostbust", QVariant(_init_data.params.ghostbust).toString());
             _settings->setValue("subtitle-parallax", QVariant(_init_data.params.subtitle_parallax).toString());
@@ -2675,6 +2739,13 @@ void main_window::receive_notification(const notification &note)
 
     case notification::zoom:
         s11n::load(current, _init_data.params.zoom);
+        break;
+
+    case notification::crop_aspect_ratio:
+        s11n::load(current, _init_data.params.crop_aspect_ratio);
+        _settings->beginGroup("Video/" + current_file_hash());
+        _settings->setValue("crop-aspect-ratio", QVariant(_init_data.params.crop_aspect_ratio).toString());
+        _settings->endGroup();
         break;
 
     case notification::audio_volume:
@@ -2852,6 +2923,7 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
         _init_data.audio_stream = std::max(0, std::min(_init_data.audio_stream, _player->get_media_input().audio_streams() - 1));
         _init_data.subtitle_stream = QVariant(_settings->value("subtitle-stream", QVariant(_init_data.subtitle_stream)).toString()).toInt();
         _init_data.subtitle_stream = std::max(-1, std::min(_init_data.subtitle_stream, _player->get_media_input().subtitle_streams() - 1));
+        _init_data.params.crop_aspect_ratio = QVariant(_settings->value("crop-aspect-ratio", QVariant(_init_data.params.crop_aspect_ratio)).toString()).toFloat();
         _init_data.params.parallax = QVariant(_settings->value("parallax", QVariant(_init_data.params.parallax)).toString()).toFloat();
         _init_data.params.ghostbust = QVariant(_settings->value("ghostbust", QVariant(_init_data.params.ghostbust)).toString()).toFloat();
         _init_data.params.subtitle_parallax = QVariant(_settings->value("subtitle-parallax", QVariant(_init_data.params.parallax)).toString()).toFloat();

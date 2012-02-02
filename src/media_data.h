@@ -335,6 +335,7 @@ public:
     int fullscreen_flip_right;          // Flip right view vertically in fullscreen mode (0/1)
     int fullscreen_flop_right;          // Flop right view horizontally in fullscreen mode (0/1)
     float zoom;                         // Zoom, 0 = off (show full video width) .. 1 = full (use full screen height)
+    float crop_aspect_ratio;            // Crop the video to this aspect ratio, 0 = don't crop.
     float audio_volume;                 // Audio volume, 0 .. 1
     int audio_mute;                     // Audio mute: -1 = unknown, 0 = off, 1 = on
     int64_t audio_delay;                // Audio delay in microseconds. INT64_MIN means "unspecified".
