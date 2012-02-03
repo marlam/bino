@@ -1210,13 +1210,15 @@ void video_output::reshape(int w, int h)
         float dst_h = h;
         float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
         float src_ar = _frame[_active_index].aspect_ratio;
+        float crop_ar = _params.crop_aspect_ratio;
         if (_params.stereo_mode == parameters::left_right_half)
         {
             src_ar /= 2.0f;
+            crop_ar /= 2.0f;
         }
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
                 w / 2, h, dst_w, dst_h, dst_ar,
-                _params.crop_aspect_ratio, _params.zoom);
+                crop_ar, _params.zoom);
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[1][0] = _viewport[0][0] + w / 2;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
@@ -1228,13 +1230,15 @@ void video_output::reshape(int w, int h)
         float dst_h = h / 2;
         float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
         float src_ar = _frame[_active_index].aspect_ratio;
+        float crop_ar = _params.crop_aspect_ratio;
         if (_params.stereo_mode == parameters::top_bottom_half)
         {
             src_ar *= 2.0f;
+            crop_ar *= 2.0f;
         }
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
                 w, h / 2, dst_w, dst_h, dst_ar,
-                _params.crop_aspect_ratio, _params.zoom);
+                crop_ar, _params.zoom);
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[1][1] = _viewport[0][1] + h / 2;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
