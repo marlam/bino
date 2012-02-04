@@ -471,7 +471,6 @@ public:
 
     bool init(const player_init_data &init_data, bool flat_screen)
     {
-        msg::set_level(init_data.log_level);
         msg::dbg(HERE);
         // If this function is called, then this is the master config
         _is_master_config = true;
@@ -848,7 +847,7 @@ protected:
             return false;
         }
 
-        msg::set_level(init_data.init_data.log_level);
+        msg::set_level(init_data.init_data.params.log_level());
         msg::dbg(HERE);
         // Create decoders and input
         if (!_is_app_node)

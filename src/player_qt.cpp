@@ -298,36 +298,36 @@ in_out_widget::~in_out_widget()
 {
 }
 
-void in_out_widget::set_stereo_layout(video_frame::stereo_layout_t stereo_layout, bool stereo_layout_swap)
+void in_out_widget::set_stereo_layout(parameters::stereo_layout_t stereo_layout, bool stereo_layout_swap)
 {
     switch (stereo_layout)
     {
-    case video_frame::mono:
+    case parameters::layout_mono:
         _input_combobox->setCurrentIndex(0);
         break;
-    case video_frame::separate:
+    case parameters::layout_separate:
         _input_combobox->setCurrentIndex(stereo_layout_swap ? 2 : 1);
         break;
-    case video_frame::alternating:
+    case parameters::layout_alternating:
         _input_combobox->setCurrentIndex(stereo_layout_swap ? 4 : 3);
         break;
-    case video_frame::top_bottom:
+    case parameters::layout_top_bottom:
         _input_combobox->setCurrentIndex(stereo_layout_swap ? 7 : 5);
         break;
-    case video_frame::top_bottom_half:
+    case parameters::layout_top_bottom_half:
         _input_combobox->setCurrentIndex(stereo_layout_swap ? 8 : 6);
         break;
-    case video_frame::left_right:
+    case parameters::layout_left_right:
         _input_combobox->setCurrentIndex(stereo_layout_swap ? 11: 9);
         break;
-    case video_frame::left_right_half:
+    case parameters::layout_left_right_half:
         _input_combobox->setCurrentIndex(stereo_layout_swap ? 12 : 10);
         break;
-    case video_frame::even_odd_rows:
+    case parameters::layout_even_odd_rows:
         _input_combobox->setCurrentIndex(stereo_layout_swap ? 14 : 13);
         break;
     }
-    _video_combobox->setEnabled(stereo_layout != video_frame::separate);
+    _video_combobox->setEnabled(stereo_layout != parameters::layout_separate);
 }
 
 void in_out_widget::set_stereo_mode(parameters::stereo_mode_t stereo_mode, bool stereo_mode_swap)
@@ -335,79 +335,79 @@ void in_out_widget::set_stereo_mode(parameters::stereo_mode_t stereo_mode, bool 
     switch (stereo_mode)
     {
     default:
-    case parameters::mono_left:
+    case parameters::mode_mono_left:
         _output_combobox->setCurrentIndex(0);
         break;
-    case parameters::mono_right:
+    case parameters::mode_mono_right:
         _output_combobox->setCurrentIndex(1);
         break;
-    case parameters::stereo:
+    case parameters::mode_stereo:
         _output_combobox->setCurrentIndex(2);
         break;
-    case parameters::top_bottom:
+    case parameters::mode_top_bottom:
         _output_combobox->setCurrentIndex(3);
         break;
-    case parameters::top_bottom_half:
+    case parameters::mode_top_bottom_half:
         _output_combobox->setCurrentIndex(4);
         break;
-    case parameters::left_right:
+    case parameters::mode_left_right:
         _output_combobox->setCurrentIndex(5);
         break;
-    case parameters::left_right_half:
+    case parameters::mode_left_right_half:
         _output_combobox->setCurrentIndex(6);
         break;
-    case parameters::even_odd_rows:
+    case parameters::mode_even_odd_rows:
         _output_combobox->setCurrentIndex(7);
         break;
-    case parameters::even_odd_columns:
+    case parameters::mode_even_odd_columns:
         _output_combobox->setCurrentIndex(8);
         break;
-    case parameters::checkerboard:
+    case parameters::mode_checkerboard:
         _output_combobox->setCurrentIndex(9);
         break;
-    case parameters::hdmi_frame_pack:
+    case parameters::mode_hdmi_frame_pack:
         _output_combobox->setCurrentIndex(10);
         break;
-    case parameters::red_cyan_monochrome:
+    case parameters::mode_red_cyan_monochrome:
         _output_combobox->setCurrentIndex(11);
         break;
-    case parameters::red_cyan_half_color:
+    case parameters::mode_red_cyan_half_color:
         _output_combobox->setCurrentIndex(12);
         break;
-    case parameters::red_cyan_full_color:
+    case parameters::mode_red_cyan_full_color:
         _output_combobox->setCurrentIndex(13);
         break;
-    case parameters::red_cyan_dubois:
+    case parameters::mode_red_cyan_dubois:
         _output_combobox->setCurrentIndex(14);
         break;
-    case parameters::green_magenta_monochrome:
+    case parameters::mode_green_magenta_monochrome:
         _output_combobox->setCurrentIndex(15);
         break;
-    case parameters::green_magenta_half_color:
+    case parameters::mode_green_magenta_half_color:
         _output_combobox->setCurrentIndex(16);
         break;
-    case parameters::green_magenta_full_color:
+    case parameters::mode_green_magenta_full_color:
         _output_combobox->setCurrentIndex(17);
         break;
-    case parameters::green_magenta_dubois:
+    case parameters::mode_green_magenta_dubois:
         _output_combobox->setCurrentIndex(18);
         break;
-    case parameters::amber_blue_monochrome:
+    case parameters::mode_amber_blue_monochrome:
         _output_combobox->setCurrentIndex(19);
         break;
-    case parameters::amber_blue_half_color:
+    case parameters::mode_amber_blue_half_color:
         _output_combobox->setCurrentIndex(20);
         break;
-    case parameters::amber_blue_full_color:
+    case parameters::mode_amber_blue_full_color:
         _output_combobox->setCurrentIndex(21);
         break;
-    case parameters::amber_blue_dubois:
+    case parameters::mode_amber_blue_dubois:
         _output_combobox->setCurrentIndex(22);
         break;
-    case parameters::red_green_monochrome:
+    case parameters::mode_red_green_monochrome:
         _output_combobox->setCurrentIndex(23);
         break;
-    case parameters::red_blue_monochrome:
+    case parameters::mode_red_blue_monochrome:
         _output_combobox->setCurrentIndex(24);
         break;
     }
@@ -418,7 +418,7 @@ void in_out_widget::video_changed()
 {
     if (!_lock)
     {
-        video_frame::stereo_layout_t stereo_layout;
+        parameters::stereo_layout_t stereo_layout;
         bool stereo_layout_swap;
         get_stereo_layout(stereo_layout, stereo_layout_swap);
         send_cmd(command::set_video_stream, _video_combobox->currentIndex());
@@ -443,10 +443,10 @@ void in_out_widget::subtitle_changed()
 
 void in_out_widget::input_changed()
 {
-    video_frame::stereo_layout_t stereo_layout;
+    parameters::stereo_layout_t stereo_layout;
     bool stereo_layout_swap;
     get_stereo_layout(stereo_layout, stereo_layout_swap);
-    if (stereo_layout == video_frame::separate)
+    if (stereo_layout == parameters::layout_separate)
     {
         _lock = true;
         _video_combobox->setCurrentIndex(0);
@@ -464,15 +464,15 @@ void in_out_widget::input_changed()
     parameters::stereo_mode_t stereo_mode;
     bool stereo_mode_swap;
     get_stereo_mode(stereo_mode, stereo_mode_swap);
-    if (stereo_layout == video_frame::mono
-            && !(stereo_mode == parameters::mono_left || stereo_mode == parameters::mono_right))
+    if (stereo_layout == parameters::layout_mono
+            && !(stereo_mode == parameters::mode_mono_left || stereo_mode == parameters::mode_mono_right))
     {
         QString s = _settings->value("Session/2d-stereo-mode", "").toString();
         parameters::stereo_mode_from_string(s.toStdString(), stereo_mode, stereo_mode_swap);
         set_stereo_mode(stereo_mode, stereo_mode_swap);
     }
-    else if (stereo_layout != video_frame::mono
-            && (stereo_mode == parameters::mono_left || stereo_mode == parameters::mono_right))
+    else if (stereo_layout != parameters::layout_mono
+            && (stereo_mode == parameters::mode_mono_left || stereo_mode == parameters::mode_mono_right))
     {
         QString s = _settings->value("Session/3d-stereo-mode", "").toString();
         parameters::stereo_mode_from_string(s.toStdString(), stereo_mode, stereo_mode_swap);
@@ -526,14 +526,14 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
         {
             _subtitle_combobox->addItem(_player->get_media_input().subtitle_stream_name(i).c_str());
         }
-        _video_combobox->setCurrentIndex(init_data.video_stream);
-        _audio_combobox->setCurrentIndex(init_data.audio_stream);
-        _subtitle_combobox->setCurrentIndex(init_data.subtitle_stream + 1);
+        _video_combobox->setCurrentIndex(init_data.params.video_stream());
+        _audio_combobox->setCurrentIndex(init_data.params.audio_stream());
+        _subtitle_combobox->setCurrentIndex(init_data.params.subtitle_stream() + 1);
         // Disable unsupported input modes
         for (int i = 0; i < _input_combobox->count(); i++)
         {
             _input_combobox->setCurrentIndex(i);
-            video_frame::stereo_layout_t layout;
+            parameters::stereo_layout_t layout;
             bool swap;
             get_stereo_layout(layout, swap);
             qobject_cast<QStandardItemModel *>(_input_combobox->model())->item(i)->setEnabled(
@@ -542,11 +542,11 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
         // Disable unsupported output modes
         if (!_player->get_video_output()->supports_stereo())
         {
-            set_stereo_mode(parameters::stereo, false);
+            set_stereo_mode(parameters::mode_stereo, false);
             qobject_cast<QStandardItemModel *>(_output_combobox->model())->item(_output_combobox->currentIndex())->setEnabled(false);
         }
-        set_stereo_layout(init_data.stereo_layout, init_data.stereo_layout_swap);
-        set_stereo_mode(init_data.stereo_mode, init_data.stereo_mode_swap);
+        set_stereo_layout(init_data.params.stereo_layout(), init_data.params.stereo_layout_swap());
+        set_stereo_mode(init_data.params.stereo_mode(), init_data.params.stereo_mode_swap());
     }
     _lock = false;
     if (have_valid_input)
@@ -570,68 +570,68 @@ int in_out_widget::get_subtitle_stream()
     return _subtitle_combobox->currentIndex() - 1;
 }
 
-void in_out_widget::get_stereo_layout(video_frame::stereo_layout_t &stereo_layout, bool &stereo_layout_swap)
+void in_out_widget::get_stereo_layout(parameters::stereo_layout_t &stereo_layout, bool &stereo_layout_swap)
 {
     switch (_input_combobox->currentIndex())
     {
     case 0:
-        stereo_layout = video_frame::mono;
+        stereo_layout = parameters::layout_mono;
         stereo_layout_swap = false;
         break;
     case 1:
-        stereo_layout = video_frame::separate;
+        stereo_layout = parameters::layout_separate;
         stereo_layout_swap = false;
         break;
     case 2:
-        stereo_layout = video_frame::separate;
+        stereo_layout = parameters::layout_separate;
         stereo_layout_swap = true;
         break;
     case 3:
-        stereo_layout = video_frame::alternating;
+        stereo_layout = parameters::layout_alternating;
         stereo_layout_swap = false;
         break;
     case 4:
-        stereo_layout = video_frame::alternating;
+        stereo_layout = parameters::layout_alternating;
         stereo_layout_swap = true;
         break;
     case 5:
-        stereo_layout = video_frame::top_bottom;
+        stereo_layout = parameters::layout_top_bottom;
         stereo_layout_swap = false;
         break;
     case 6:
-        stereo_layout = video_frame::top_bottom_half;
+        stereo_layout = parameters::layout_top_bottom_half;
         stereo_layout_swap = false;
         break;
     case 7:
-        stereo_layout = video_frame::top_bottom;
+        stereo_layout = parameters::layout_top_bottom;
         stereo_layout_swap = true;
         break;
     case 8:
-        stereo_layout = video_frame::top_bottom_half;
+        stereo_layout = parameters::layout_top_bottom_half;
         stereo_layout_swap = true;
         break;
     case 9:
-        stereo_layout = video_frame::left_right;
+        stereo_layout = parameters::layout_left_right;
         stereo_layout_swap = false;
         break;
     case 10:
-        stereo_layout = video_frame::left_right_half;
+        stereo_layout = parameters::layout_left_right_half;
         stereo_layout_swap = false;
         break;
     case 11:
-        stereo_layout = video_frame::left_right;
+        stereo_layout = parameters::layout_left_right;
         stereo_layout_swap = true;
         break;
     case 12:
-        stereo_layout = video_frame::left_right_half;
+        stereo_layout = parameters::layout_left_right_half;
         stereo_layout_swap = true;
         break;
     case 13:
-        stereo_layout = video_frame::even_odd_rows;
+        stereo_layout = parameters::layout_even_odd_rows;
         stereo_layout_swap = false;
         break;
     case 14:
-        stereo_layout = video_frame::even_odd_rows;
+        stereo_layout = parameters::layout_even_odd_rows;
         stereo_layout_swap = true;
         break;
     }
@@ -642,79 +642,79 @@ void in_out_widget::get_stereo_mode(parameters::stereo_mode_t &stereo_mode, bool
     switch (_output_combobox->currentIndex())
     {
     case 0:
-        stereo_mode = parameters::mono_left;
+        stereo_mode = parameters::mode_mono_left;
         break;
     case 1:
-        stereo_mode = parameters::mono_right;
+        stereo_mode = parameters::mode_mono_right;
         break;
     case 2:
-        stereo_mode = parameters::stereo;
+        stereo_mode = parameters::mode_stereo;
         break;
     case 3:
-        stereo_mode = parameters::top_bottom;
+        stereo_mode = parameters::mode_top_bottom;
         break;
     case 4:
-        stereo_mode = parameters::top_bottom_half;
+        stereo_mode = parameters::mode_top_bottom_half;
         break;
     case 5:
-        stereo_mode = parameters::left_right;
+        stereo_mode = parameters::mode_left_right;
         break;
     case 6:
-        stereo_mode = parameters::left_right_half;
+        stereo_mode = parameters::mode_left_right_half;
         break;
     case 7:
-        stereo_mode = parameters::even_odd_rows;
+        stereo_mode = parameters::mode_even_odd_rows;
         break;
     case 8:
-        stereo_mode = parameters::even_odd_columns;
+        stereo_mode = parameters::mode_even_odd_columns;
         break;
     case 9:
-        stereo_mode = parameters::checkerboard;
+        stereo_mode = parameters::mode_checkerboard;
         break;
     case 10:
-        stereo_mode = parameters::hdmi_frame_pack;
+        stereo_mode = parameters::mode_hdmi_frame_pack;
         break;
     case 11:
-        stereo_mode = parameters::red_cyan_monochrome;
+        stereo_mode = parameters::mode_red_cyan_monochrome;
         break;
     case 12:
-        stereo_mode = parameters::red_cyan_half_color;
+        stereo_mode = parameters::mode_red_cyan_half_color;
         break;
     case 13:
-        stereo_mode = parameters::red_cyan_full_color;
+        stereo_mode = parameters::mode_red_cyan_full_color;
         break;
     case 14:
-        stereo_mode = parameters::red_cyan_dubois;
+        stereo_mode = parameters::mode_red_cyan_dubois;
         break;
     case 15:
-        stereo_mode = parameters::green_magenta_monochrome;
+        stereo_mode = parameters::mode_green_magenta_monochrome;
         break;
     case 16:
-        stereo_mode = parameters::green_magenta_half_color;
+        stereo_mode = parameters::mode_green_magenta_half_color;
         break;
     case 17:
-        stereo_mode = parameters::green_magenta_full_color;
+        stereo_mode = parameters::mode_green_magenta_full_color;
         break;
     case 18:
-        stereo_mode = parameters::green_magenta_dubois;
+        stereo_mode = parameters::mode_green_magenta_dubois;
         break;
     case 19:
-        stereo_mode = parameters::amber_blue_monochrome;
+        stereo_mode = parameters::mode_amber_blue_monochrome;
         break;
     case 20:
-        stereo_mode = parameters::amber_blue_half_color;
+        stereo_mode = parameters::mode_amber_blue_half_color;
         break;
     case 21:
-        stereo_mode = parameters::amber_blue_full_color;
+        stereo_mode = parameters::mode_amber_blue_full_color;
         break;
     case 22:
-        stereo_mode = parameters::amber_blue_dubois;
+        stereo_mode = parameters::mode_amber_blue_dubois;
         break;
     case 23:
-        stereo_mode = parameters::red_green_monochrome;
+        stereo_mode = parameters::mode_red_green_monochrome;
         break;
     case 24:
-        stereo_mode = parameters::red_blue_monochrome;
+        stereo_mode = parameters::mode_red_blue_monochrome;
         break;
     }
     stereo_mode_swap = _swap_checkbox->isChecked();
@@ -1507,8 +1507,8 @@ void zoom_dialog::receive_notification(const notification &note)
 }
 
 
-audio_dialog::audio_dialog(player_init_data *init_data, parameters *params, QWidget *parent) : QDialog(parent),
-    _init_data(init_data), _params(params), _lock(false)
+audio_dialog::audio_dialog(parameters *params, QWidget *parent) : QDialog(parent),
+    _params(params), _lock(false)
 {
     setModal(false);
     setWindowTitle(_("Audio Settings"));
@@ -1525,13 +1525,13 @@ audio_dialog::audio_dialog(player_init_data *init_data, parameters *params, QWid
         _device_combobox->addItem(ao.device_name(i).c_str());
     }
     connect(_device_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(device_changed()));
-    if (_init_data->audio_device < 0 || _init_data->audio_device >= _device_combobox->count())
+    if (_params->audio_device() < 0 || _params->audio_device() >= _device_combobox->count())
     {
         _device_combobox->setCurrentIndex(0);
     }
     else
     {
-        _device_combobox->setCurrentIndex(_init_data->audio_device + 1);
+        _device_combobox->setCurrentIndex(_params->audio_device() + 1);
     }
 
     QLabel *delay_label = new QLabel(_("Audio delay (ms):"));
@@ -1558,7 +1558,7 @@ audio_dialog::audio_dialog(player_init_data *init_data, parameters *params, QWid
 
 void audio_dialog::device_changed()
 {
-    _init_data->audio_device = _device_combobox->currentIndex() - 1;
+    _params->set_audio_device(_device_combobox->currentIndex() - 1);
 }
 
 void audio_dialog::delay_changed()
@@ -2272,6 +2272,8 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     {
         parameters session_params;
         session_params.load_session_parameters(saved_session_params.toStdString());
+        if (!_init_data.params.audio_device_is_set() && !session_params.audio_device_is_default())
+            _init_data.params.set_audio_device(session_params.audio_device());
         if (!_init_data.params.audio_delay_is_set() && !session_params.audio_delay_is_default())
             _init_data.params.set_audio_delay(session_params.audio_delay());
         if (!_init_data.params.contrast_is_set() && !session_params.contrast_is_default())
@@ -2311,10 +2313,6 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
         if (!_init_data.params.zoom_is_set() && !session_params.zoom_is_default())
             _init_data.params.set_zoom(session_params.zoom());
     }
-    if (_init_data.audio_device < -1)
-    {
-        _init_data.audio_device = _settings->value("Session/audio-device", QString("-1")).toInt();
-    }
 
     // Central widget, player, and timer
     QWidget *central_widget = new QWidget(this);
@@ -2322,7 +2320,7 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     _video_container_widget = new video_container_widget(central_widget);
     connect(_video_container_widget, SIGNAL(move_event()), this, SLOT(move_event()));
     layout->addWidget(_video_container_widget, 0, 0);
-    _video_output = new video_output_qt(_init_data.benchmark, _video_container_widget);
+    _video_output = new video_output_qt(_init_data.params.benchmark(), _video_container_widget);
     _player = new player_qt_internal(_video_output);
     _timer = new QTimer(this);
     connect(_timer, SIGNAL(timeout()), this, SLOT(playloop_step()));
@@ -2554,58 +2552,66 @@ void main_window::receive_notification(const notification &note)
             // we played it before, and it sets the input/output modes to the
             // current choice.
             _player->close();
-            _init_data.stereo_layout_override = true;
-            _in_out_widget->get_stereo_layout(_init_data.stereo_layout, _init_data.stereo_layout_swap);
-            _init_data.video_stream = _in_out_widget->get_video_stream();
-            _init_data.audio_stream = std::max(0, _in_out_widget->get_audio_stream());
-            _init_data.subtitle_stream = std::max(-1, _in_out_widget->get_subtitle_stream());
-            _init_data.stereo_mode_override = true;
-            _in_out_widget->get_stereo_mode(_init_data.stereo_mode, _init_data.stereo_mode_swap);
+            parameters::stereo_layout_t stereo_layout;
+            bool stereo_layout_swap;
+            _in_out_widget->get_stereo_layout(stereo_layout, stereo_layout_swap);
+            _init_data.params.set_stereo_layout(stereo_layout);
+            _init_data.params.set_stereo_layout_swap(stereo_layout_swap);
+            _init_data.params.set_video_stream(_in_out_widget->get_video_stream());
+            _init_data.params.set_audio_stream(std::max(0, _in_out_widget->get_audio_stream()));
+            _init_data.params.set_subtitle_stream(std::max(-1, _in_out_widget->get_subtitle_stream()));
+            parameters::stereo_mode_t stereo_mode;
+            bool stereo_mode_swap;
+            _in_out_widget->get_stereo_mode(stereo_mode, stereo_mode_swap);
+            _init_data.params.set_stereo_mode(stereo_mode);
+            _init_data.params.set_stereo_mode_swap(stereo_mode_swap);
             if (!open_player())
             {
                 _stop_request = true;
             }
-            // Remember the settings of this video
-            _settings->beginGroup("Video/" + current_file_hash());
-            _settings->setValue("stereo-layout", QString(video_frame::stereo_layout_to_string(_init_data.stereo_layout, _init_data.stereo_layout_swap).c_str()));
-            _settings->setValue("video-stream", QVariant(_init_data.video_stream).toString());
-            _settings->setValue("audio-stream", QVariant(_init_data.audio_stream).toString());
-            _settings->setValue("subtitle-stream", QVariant(_init_data.subtitle_stream).toString());
-            _settings->setValue("crop-aspect-ratio", QVariant(_init_data.params.crop_aspect_ratio()).toString());
-            _settings->setValue("parallax", QVariant(_init_data.params.parallax()).toString());
-            _settings->setValue("ghostbust", QVariant(_init_data.params.ghostbust()).toString());
-            _settings->setValue("subtitle-parallax", QVariant(_init_data.params.subtitle_parallax()).toString());
-            _settings->endGroup();
-            // Remember the 2D or 3D video output mode.
-            _settings->setValue((_init_data.stereo_layout == video_frame::mono ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode"),
-                    QString(parameters::stereo_mode_to_string(_init_data.stereo_mode, _init_data.stereo_mode_swap).c_str()));
             // Update widgets: we're now playing
             _in_out_widget->update(_init_data, true, true);
             _controls_widget->update(_init_data, true, true, _player->get_media_input().duration());
             // Give the keyboard focus to the video widget
             _player->get_video_output()->grab_focus();
         }
+        else
+        {
+            // Remember the settings of this video
+            std::string video_parameters = _init_data.params.save_video_parameters();
+            if (!video_parameters.empty())
+                _settings->setValue("Video/" + current_file_hash(), QString::fromStdString(video_parameters));
+            // Remember the 2D or 3D video output mode.
+            _settings->setValue((_init_data.params.stereo_layout() == parameters::layout_mono
+                        ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode"),
+                    QString::fromStdString(parameters::stereo_mode_to_string(
+                            _init_data.params.stereo_mode(),
+                            _init_data.params.stereo_mode_swap())));
+        }
         break;
 
     case notification::video_stream:
-        s11n::load(current, _init_data.video_stream);
-        _settings->beginGroup("Video/" + current_file_hash());
-        _settings->setValue("video-stream", QVariant(_init_data.video_stream).toString());
-        _settings->endGroup();
+        {
+            int val;
+            s11n::load(current, val);
+            _init_data.params.set_video_stream(val);
+        }
         break;
 
     case notification::audio_stream:
-        s11n::load(current, _init_data.audio_stream);
-        _settings->beginGroup("Video/" + current_file_hash());
-        _settings->setValue("audio-stream", QVariant(_init_data.audio_stream).toString());
-        _settings->endGroup();
+        {
+            int val;
+            s11n::load(current, val);
+            _init_data.params.set_audio_stream(val);
+        }
         break;
 
     case notification::subtitle_stream:
-        s11n::load(current, _init_data.subtitle_stream);
-        _settings->beginGroup("Video/" + current_file_hash());
-        _settings->setValue("subtitle-stream", QVariant(_init_data.subtitle_stream).toString());
-        _settings->endGroup();
+        {
+            int val;
+            s11n::load(current, val);
+            _init_data.params.set_subtitle_stream(val);
+        }
         break;
 
     case notification::contrast:
@@ -2637,9 +2643,6 @@ void main_window::receive_notification(const notification &note)
     case notification::parallax:
         s11n::load(current, value);
         _init_data.params.set_parallax(value);
-        _settings->beginGroup("Video/" + current_file_hash());
-        _settings->setValue("parallax", QVariant(_init_data.params.parallax()).toString());
-        _settings->endGroup();
         break;
 
     case notification::crosstalk:
@@ -2654,9 +2657,6 @@ void main_window::receive_notification(const notification &note)
     case notification::ghostbust:
         s11n::load(current, value);
         _init_data.params.set_ghostbust(value);
-        _settings->beginGroup("Video/" + current_file_hash());
-        _settings->setValue("ghostbust", QVariant(_init_data.params.ghostbust()).toString());
-        _settings->endGroup();
         break;
 
     case notification::subtitle_encoding:
@@ -2699,9 +2699,6 @@ void main_window::receive_notification(const notification &note)
     case notification::subtitle_parallax:
         s11n::load(current, value);
         _init_data.params.set_subtitle_parallax(value);
-        _settings->beginGroup("Video/" + current_file_hash());
-        _settings->setValue("subtitle-parallax", QVariant(_init_data.params.subtitle_parallax()).toString());
-        _settings->endGroup();
         break;
 
     case notification::loop_mode:
@@ -2748,9 +2745,6 @@ void main_window::receive_notification(const notification &note)
     case notification::crop_aspect_ratio:
         s11n::load(current, value);
         _init_data.params.set_crop_aspect_ratio(value);
-        _settings->beginGroup("Video/" + current_file_hash());
-        _settings->setValue("crop-aspect-ratio", QVariant(_init_data.params.crop_aspect_ratio()).toString());
-        _settings->endGroup();
         break;
 
     case notification::audio_volume:
@@ -2822,7 +2816,6 @@ void main_window::closeEvent(QCloseEvent *event)
     // Stop the event and play loop
     _timer->stop();
     // Remember the Session preferences
-    _settings->setValue("Session/audio-device", QVariant(_init_data.audio_device).toString());
     _settings->setValue("Session/parameters", QString::fromStdString(_init_data.params.save_session_parameters()));
     // Remember the Mainwindow state
     _settings->beginGroup("Mainwindow");
@@ -2901,33 +2894,36 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
     if (open_player())
     {
         // Get the settings for this video
-        _settings->beginGroup("Video/" + current_file_hash());
-        QString layout_fallback = QString(video_frame::stereo_layout_to_string(
-                    _player->get_media_input().video_frame_template().stereo_layout,
-                    _player->get_media_input().video_frame_template().stereo_layout_swap).c_str());
-        QString layout_name = _settings->value("stereo-layout", layout_fallback).toString();
-        video_frame::stereo_layout_from_string(layout_name.toStdString(), _init_data.stereo_layout, _init_data.stereo_layout_swap);
-        _init_data.stereo_layout_override = true;
-        _init_data.video_stream = QVariant(_settings->value("video-stream", QVariant(_init_data.video_stream)).toString()).toInt();
-        _init_data.video_stream = std::max(0, std::min(_init_data.video_stream, _player->get_media_input().video_streams() - 1));
-        _init_data.audio_stream = QVariant(_settings->value("audio-stream", QVariant(_init_data.audio_stream)).toString()).toInt();
-        _init_data.audio_stream = std::max(0, std::min(_init_data.audio_stream, _player->get_media_input().audio_streams() - 1));
-        _init_data.subtitle_stream = QVariant(_settings->value("subtitle-stream", QVariant(_init_data.subtitle_stream)).toString()).toInt();
-        _init_data.subtitle_stream = std::max(-1, std::min(_init_data.subtitle_stream, _player->get_media_input().subtitle_streams() - 1));
-        _init_data.params.set_crop_aspect_ratio(QVariant(_settings->value("crop-aspect-ratio", QVariant(_init_data.params.crop_aspect_ratio())).toString()).toFloat());
-        _init_data.params.set_parallax(QVariant(_settings->value("parallax", QVariant(_init_data.params.parallax())).toString()).toFloat());
-        _init_data.params.set_ghostbust(QVariant(_settings->value("ghostbust", QVariant(_init_data.params.ghostbust())).toString()).toFloat());
-        _init_data.params.set_subtitle_parallax(QVariant(_settings->value("subtitle-parallax", QVariant(_init_data.params.parallax())).toString()).toFloat());
-        _settings->endGroup();
+        QString saved_video_parameters = _settings->value("Video/" + current_file_hash(), QString("")).toString();
+        _init_data.params.unset_video_parameters();
+        if (!saved_video_parameters.isEmpty())
+        {
+            _init_data.params.load_video_parameters(saved_video_parameters.toStdString());
+        }
+        if (!_init_data.params.stereo_layout_is_set() && !_init_data.params.stereo_layout_swap_is_set())
+        {
+            _init_data.params.set_stereo_layout(_player->get_media_input().video_frame_template().stereo_layout);
+            _init_data.params.set_stereo_layout_swap(_player->get_media_input().video_frame_template().stereo_layout_swap);
+        }
+        if (_player->get_media_input().video_streams() < _init_data.params.video_stream() + 1)
+            _init_data.params.unset_video_stream();
+        if (_player->get_media_input().audio_streams() < _init_data.params.audio_stream() + 1)
+            _init_data.params.unset_audio_stream();
+        if (_player->get_media_input().subtitle_streams() < _init_data.params.subtitle_stream() + 1)
+            _init_data.params.unset_subtitle_stream();
         // Get stereo mode
         QString mode_fallback = QString(parameters::stereo_mode_to_string(
                     _player->get_parameters().stereo_mode(),
                     _player->get_parameters().stereo_mode_swap()).c_str());
         QString mode_name = _settings->value(
-                (_init_data.stereo_layout == video_frame::mono ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode"),
+                (_player->get_media_input().video_frame_template().stereo_layout == parameters::layout_mono
+                 ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode"),
                 mode_fallback).toString();
-        parameters::stereo_mode_from_string(mode_name.toStdString(), _init_data.stereo_mode, _init_data.stereo_mode_swap);
-        _init_data.stereo_mode_override = true;
+        parameters::stereo_mode_t stereo_mode;
+        bool stereo_mode_swap;
+        parameters::stereo_mode_from_string(mode_name.toStdString(), stereo_mode, stereo_mode_swap);
+        _init_data.params.set_stereo_mode(stereo_mode);
+        _init_data.params.set_stereo_mode_swap(stereo_mode_swap);
         // Update the widget with the new settings
         _in_out_widget->update(_init_data, true, false);
         _controls_widget->update(_init_data, true, false, _player->get_media_input().duration());
@@ -3326,7 +3322,7 @@ void main_window::preferences_audio()
 {
     if (!_audio_dialog)
     {
-        _audio_dialog = new audio_dialog(&_init_data, &_init_data.params, this);
+        _audio_dialog = new audio_dialog(&_init_data.params, this);
     }
     _audio_dialog->show();
     _audio_dialog->raise();
@@ -3501,7 +3497,6 @@ player_qt::~player_qt()
 
 void player_qt::open(const player_init_data &init_data)
 {
-    msg::set_level(init_data.log_level);
     _main_window = new main_window(_settings, init_data);
 }
 

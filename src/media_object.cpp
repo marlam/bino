@@ -484,17 +484,17 @@ void media_object::set_video_frame_template(int index, int width_before_avcodec_
         video_frame_template.chroma_location = video_frame::center;
     }
     // Stereo layout
-    video_frame_template.stereo_layout = video_frame::mono;
+    video_frame_template.stereo_layout = parameters::layout_mono;
     video_frame_template.stereo_layout_swap = false;
     std::string val;
     /* Determine the stereo layout from the resolution.*/
     if (video_frame_template.raw_width / 2 > video_frame_template.raw_height)
     {
-        video_frame_template.stereo_layout = video_frame::left_right;
+        video_frame_template.stereo_layout = parameters::layout_left_right;
     }
     else if (video_frame_template.raw_height > video_frame_template.raw_width)
     {
-        video_frame_template.stereo_layout = video_frame::top_bottom;
+        video_frame_template.stereo_layout = parameters::layout_top_bottom;
     }
     /* Gather hints from the filename extension */
     std::string extension;
@@ -510,12 +510,12 @@ void media_object::set_video_frame_template(int index, int width_before_avcodec_
     if (extension == "mpo")
     {
         /* MPO files are alternating-left-right. */
-        video_frame_template.stereo_layout = video_frame::alternating;
+        video_frame_template.stereo_layout = parameters::layout_alternating;
     }
     else if (extension == "jps" || extension == "pns")
     {
         /* JPS and PNS are side-by-side in right-left mode */
-        video_frame_template.stereo_layout = video_frame::left_right;
+        video_frame_template.stereo_layout = parameters::layout_left_right;
         video_frame_template.stereo_layout_swap = true;
     }
     /* Determine the input mode by looking at the file name.
@@ -537,69 +537,69 @@ void media_object::set_video_frame_template(int index, int width_before_avcodec_
     }
     if (marker == "lr")
     {
-        video_frame_template.stereo_layout = video_frame::left_right;
+        video_frame_template.stereo_layout = parameters::layout_left_right;
         video_frame_template.stereo_layout_swap = false;
     }
     else if (marker == "rl")
     {
-        video_frame_template.stereo_layout = video_frame::left_right;
+        video_frame_template.stereo_layout = parameters::layout_left_right;
         video_frame_template.stereo_layout_swap = true;
     }
     else if (marker == "lrh" || marker == "lrq")
     {
-        video_frame_template.stereo_layout = video_frame::left_right_half;
+        video_frame_template.stereo_layout = parameters::layout_left_right_half;
         video_frame_template.stereo_layout_swap = false;
     }
     else if (marker == "rlh" || marker == "rlq")
     {
-        video_frame_template.stereo_layout = video_frame::left_right_half;
+        video_frame_template.stereo_layout = parameters::layout_left_right_half;
         video_frame_template.stereo_layout_swap = true;
     }
     else if (marker == "tb" || marker == "ab")
     {
-        video_frame_template.stereo_layout = video_frame::top_bottom;
+        video_frame_template.stereo_layout = parameters::layout_top_bottom;
         video_frame_template.stereo_layout_swap = false;
     }
     else if (marker == "bt" || marker == "ba")
     {
-        video_frame_template.stereo_layout = video_frame::top_bottom;
+        video_frame_template.stereo_layout = parameters::layout_top_bottom;
         video_frame_template.stereo_layout_swap = true;
     }
     else if (marker == "tbh" || marker == "abq")
     {
-        video_frame_template.stereo_layout = video_frame::top_bottom_half;
+        video_frame_template.stereo_layout = parameters::layout_top_bottom_half;
         video_frame_template.stereo_layout_swap = false;
     }
     else if (marker == "bth" || marker == "baq")
     {
-        video_frame_template.stereo_layout = video_frame::top_bottom_half;
+        video_frame_template.stereo_layout = parameters::layout_top_bottom_half;
         video_frame_template.stereo_layout_swap = true;
     }
     else if (marker == "eo")
     {
-        video_frame_template.stereo_layout = video_frame::even_odd_rows;
+        video_frame_template.stereo_layout = parameters::layout_even_odd_rows;
         video_frame_template.stereo_layout_swap = false;
         // all image lines are given in this case, and there should be no interpolation [TODO]
     }
     else if (marker == "oe")
     {
-        video_frame_template.stereo_layout = video_frame::even_odd_rows;
+        video_frame_template.stereo_layout = parameters::layout_even_odd_rows;
         video_frame_template.stereo_layout_swap = true;
         // all image lines are given in this case, and there should be no interpolation [TODO]
     }
     else if (marker == "eoq" || marker == "3dir")
     {
-        video_frame_template.stereo_layout = video_frame::even_odd_rows;
+        video_frame_template.stereo_layout = parameters::layout_even_odd_rows;
         video_frame_template.stereo_layout_swap = false;
     }
     else if (marker == "oeq" || marker == "3di")
     {
-        video_frame_template.stereo_layout = video_frame::even_odd_rows;
+        video_frame_template.stereo_layout = parameters::layout_even_odd_rows;
         video_frame_template.stereo_layout_swap = true;
     }
     else if (marker == "2d")
     {
-        video_frame_template.stereo_layout = video_frame::mono;
+        video_frame_template.stereo_layout = parameters::layout_mono;
         video_frame_template.stereo_layout_swap = false;
     }
     /* Check some tags defined at this link: http://www.3dtv.at/Knowhow/StereoWmvSpec_en.aspx
@@ -609,14 +609,14 @@ void media_object::set_video_frame_template(int index, int width_before_avcodec_
     {
         video_frame_template.stereo_layout_swap = (val == "SideBySideRF");
         val = tag_value("StereoscopicHalfWidth");
-        video_frame_template.stereo_layout = (val == "1" ? video_frame::left_right_half : video_frame::left_right);
+        video_frame_template.stereo_layout = (val == "1" ? parameters::layout_left_right_half : parameters::layout_left_right);
 
     }
     else if (val == "OverUnderRT" || val == "OverUnderLT")
     {
         video_frame_template.stereo_layout_swap = (val == "OverUnderRT");
         val = tag_value("StereoscopicHalfHeight");
-        video_frame_template.stereo_layout = (val == "1" ? video_frame::top_bottom_half : video_frame::top_bottom);
+        video_frame_template.stereo_layout = (val == "1" ? parameters::layout_top_bottom_half : parameters::layout_top_bottom);
     }
     /* Check the Matroska StereoMode metadata, which is translated by FFmpeg to a "stereo_mode" tag.
      * This tag is per-track, not per-file!
@@ -635,18 +635,18 @@ void media_object::set_video_frame_template(int index, int width_before_avcodec_
     }
     if (val == "mono")
     {
-        video_frame_template.stereo_layout = video_frame::mono;
+        video_frame_template.stereo_layout = parameters::layout_mono;
         video_frame_template.stereo_layout_swap = false;
     }
     else if (val == "left_right" || val == "right_left")
     {
         if (video_frame_template.raw_width / 2 > video_frame_template.raw_height)
         {
-            video_frame_template.stereo_layout = video_frame::left_right;
+            video_frame_template.stereo_layout = parameters::layout_left_right;
         }
         else
         {
-            video_frame_template.stereo_layout = video_frame::left_right_half;
+            video_frame_template.stereo_layout = parameters::layout_left_right_half;
         }
         video_frame_template.stereo_layout_swap = (val == "right_left");
     }
@@ -654,42 +654,42 @@ void media_object::set_video_frame_template(int index, int width_before_avcodec_
     {
         if (video_frame_template.raw_height > video_frame_template.raw_width)
         {
-            video_frame_template.stereo_layout = video_frame::top_bottom;
+            video_frame_template.stereo_layout = parameters::layout_top_bottom;
         }
         else
         {
-            video_frame_template.stereo_layout = video_frame::top_bottom_half;
+            video_frame_template.stereo_layout = parameters::layout_top_bottom_half;
         }
         video_frame_template.stereo_layout_swap = (val == "bottom_top");
     }
     else if (val == "row_interleaved_lr" || val == "row_interleaved_rl")
     {
-        video_frame_template.stereo_layout = video_frame::even_odd_rows;
+        video_frame_template.stereo_layout = parameters::layout_even_odd_rows;
         video_frame_template.stereo_layout_swap = (val == "row_interleaved_rl");
     }
     else if (val == "block_lr" || val == "block_rl")
     {
-        video_frame_template.stereo_layout = video_frame::alternating;
+        video_frame_template.stereo_layout = parameters::layout_alternating;
         video_frame_template.stereo_layout_swap = (val == "block_rl");
     }
     else if (!val.empty())
     {
         msg::wrn(_("%s video stream %d: Unsupported stereo layout %s."),
                 _url.c_str(), index + 1, str::sanitize(val).c_str());
-        video_frame_template.stereo_layout = video_frame::mono;
+        video_frame_template.stereo_layout = parameters::layout_mono;
         video_frame_template.stereo_layout_swap = false;
     }
     /* Sanity checks. If these fail, use safe fallback */
-    if (((video_frame_template.stereo_layout == video_frame::left_right
-                    || video_frame_template.stereo_layout == video_frame::left_right_half)
+    if (((video_frame_template.stereo_layout == parameters::layout_left_right
+                    || video_frame_template.stereo_layout == parameters::layout_left_right_half)
                 && video_frame_template.raw_width % 2 != 0)
-            || ((video_frame_template.stereo_layout == video_frame::top_bottom
-                    || video_frame_template.stereo_layout == video_frame::top_bottom_half)
+            || ((video_frame_template.stereo_layout == parameters::layout_top_bottom
+                    || video_frame_template.stereo_layout == parameters::layout_top_bottom_half)
                 && video_frame_template.raw_height % 2 != 0)
-            || (video_frame_template.stereo_layout == video_frame::even_odd_rows
+            || (video_frame_template.stereo_layout == parameters::layout_even_odd_rows
                 && video_frame_template.raw_height % 2 != 0))
     {
-        video_frame_template.stereo_layout = video_frame::mono;
+        video_frame_template.stereo_layout = parameters::layout_mono;
         video_frame_template.stereo_layout_swap = false;
     }
     /* Set width and height of a single view */

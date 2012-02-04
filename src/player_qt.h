@@ -85,7 +85,7 @@ private:
     QCheckBox *_swap_checkbox;
     bool _lock;
 
-    void set_stereo_layout(video_frame::stereo_layout_t stereo_layout, bool stereo_layout_swap);
+    void set_stereo_layout(parameters::stereo_layout_t stereo_layout, bool stereo_layout_swap);
     void set_stereo_mode(parameters::stereo_mode_t stereo_mode, bool stereo_mode_swap);
 
 private slots:
@@ -105,7 +105,7 @@ public:
     int get_video_stream();
     int get_audio_stream();
     int get_subtitle_stream();
-    void get_stereo_layout(video_frame::stereo_layout_t &stereo_layout, bool &stereo_layout_swap);
+    void get_stereo_layout(parameters::stereo_layout_t &stereo_layout, bool &stereo_layout_swap);
     void get_stereo_mode(parameters::stereo_mode_t &stereo_mode, bool &stereo_mode_swap);
 
     virtual void receive_notification(const notification &note);
@@ -243,7 +243,6 @@ class audio_dialog : public QDialog, public controller
     Q_OBJECT
 
 private:
-    player_init_data *_init_data;
     parameters *_params;
     bool _lock;
     QComboBox *_device_combobox;
@@ -254,7 +253,7 @@ private slots:
     void delay_changed();
 
 public:
-    audio_dialog(player_init_data *init_data, parameters *params, QWidget *parent);
+    audio_dialog(parameters *params, QWidget *parent);
 
     virtual void receive_notification(const notification &note);
 };

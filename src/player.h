@@ -40,23 +40,8 @@
 class player_init_data : public serializable
 {
 public:
-    msg::level_t log_level;                     // Level of log messages
-    int audio_device;                           // Audio device index, or -1 for default
     device_request dev_request;                 // Request for input device settings
     std::vector<std::string> urls;              // Input media objects
-    int video_stream;                           // Selected video stream
-    int audio_stream;                           // Selected audio stream
-    int subtitle_stream;                        // Selected subtitle stream
-    int swap_interval;                          // locked refresh rate
-    bool benchmark;                             // Benchmark mode?
-    bool fullscreen;                            // Make video fullscreen?
-    bool center;                                // Center video on screen?
-    bool stereo_layout_override;                // Manual input layout override?
-    video_frame::stereo_layout_t stereo_layout; //   Override layout
-    bool stereo_layout_swap;                    //   Override layout swap
-    bool stereo_mode_override;                  // Manual output mode override?
-    parameters::stereo_mode_t stereo_mode;      //   Override mode
-    bool stereo_mode_swap;                      //   Override mode swap
     parameters params;                          // Initial output parameters
 
 public:

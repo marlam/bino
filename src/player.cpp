@@ -42,24 +42,7 @@
 
 
 player_init_data::player_init_data() :
-    log_level(msg::INF),
-    audio_device(-2),
-    dev_request(),
-    urls(),
-    video_stream(0),
-    audio_stream(0),
-    subtitle_stream(-1),
-    swap_interval(1),
-    benchmark(false),
-    fullscreen(false),
-    center(false),
-    stereo_layout_override(false),
-    stereo_layout(video_frame::mono),
-    stereo_layout_swap(false),
-    stereo_mode_override(false),
-    stereo_mode(parameters::mono_left),
-    stereo_mode_swap(false),
-    params()
+    dev_request(), urls(), params()
 {
 }
 
@@ -69,49 +52,15 @@ player_init_data::~player_init_data()
 
 void player_init_data::save(std::ostream &os) const
 {
-    s11n::save(os, static_cast<int>(log_level));
-    s11n::save(os, audio_device);
     s11n::save(os, dev_request);
     s11n::save(os, urls);
-    s11n::save(os, video_stream);
-    s11n::save(os, audio_stream);
-    s11n::save(os, subtitle_stream);
-    s11n::save(os, swap_interval);
-    s11n::save(os, benchmark);
-    s11n::save(os, fullscreen);
-    s11n::save(os, center);
-    s11n::save(os, stereo_layout_override);
-    s11n::save(os, static_cast<int>(stereo_layout));
-    s11n::save(os, stereo_layout_swap);
-    s11n::save(os, stereo_mode_override);
-    s11n::save(os, static_cast<int>(stereo_mode));
-    s11n::save(os, stereo_mode_swap);
     s11n::save(os, params);
 }
 
 void player_init_data::load(std::istream &is)
 {
-    int x;
-    s11n::load(is, x);
-    log_level = static_cast<msg::level_t>(x);
-    s11n::load(is, audio_device);
     s11n::load(is, dev_request);
     s11n::load(is, urls);
-    s11n::load(is, video_stream);
-    s11n::load(is, audio_stream);
-    s11n::load(is, subtitle_stream);
-    s11n::load(is, swap_interval);
-    s11n::load(is, benchmark);
-    s11n::load(is, fullscreen);
-    s11n::load(is, center);
-    s11n::load(is, stereo_layout_override);
-    s11n::load(is, x);
-    stereo_layout = static_cast<video_frame::stereo_layout_t>(x);
-    s11n::load(is, stereo_layout_swap);
-    s11n::load(is, stereo_mode_override);
-    s11n::load(is, x);
-    stereo_mode = static_cast<parameters::stereo_mode_t>(x);
-    s11n::load(is, stereo_mode_swap);
     s11n::load(is, params);
 }
 
@@ -206,9 +155,8 @@ void player::make_master()
 void player::open(const player_init_data &init_data)
 {
     // Initialize basics
-    msg::set_level(init_data.log_level);
-    _benchmark = init_data.benchmark;
-    _swap_interval = init_data.swap_interval;
+    _benchmark = init_data.params.benchmark();
+    _swap_interval = init_data.params.swap_interval();
     reset_playstate();
 
     // Create media input
@@ -218,34 +166,34 @@ void player::open(const player_init_data &init_data)
     {
         throw exc(_("No video streams found."));
     }
-    if (init_data.stereo_layout_override)
+    if (init_data.params.stereo_layout_is_set() || init_data.params.stereo_layout_swap_is_set())
     {
-        if (!_media_input->stereo_layout_is_supported(init_data.stereo_layout, init_data.stereo_layout_swap))
+        if (!_media_input->stereo_layout_is_supported(init_data.params.stereo_layout(), init_data.params.stereo_layout_swap()))
         {
             throw exc(_("Cannot set requested stereo layout: incompatible media."));
         }
-        _media_input->set_stereo_layout(init_data.stereo_layout, init_data.stereo_layout_swap);
+        _media_input->set_stereo_layout(init_data.params.stereo_layout(), init_data.params.stereo_layout_swap());
     }
-    if (_media_input->video_streams() < init_data.video_stream + 1)
+    if (_media_input->video_streams() < init_data.params.video_stream() + 1)
     {
-        throw exc(str::asprintf(_("Video stream %d not found."), init_data.video_stream + 1));
+        throw exc(str::asprintf(_("Video stream %d not found."), init_data.params.video_stream() + 1));
     }
-    _media_input->select_video_stream(init_data.video_stream);
-    if (_media_input->audio_streams() > 0 && _media_input->audio_streams() < init_data.audio_stream + 1)
+    _media_input->select_video_stream(init_data.params.video_stream());
+    if (_media_input->audio_streams() > 0 && _media_input->audio_streams() < init_data.params.audio_stream() + 1)
     {
-        throw exc(str::asprintf(_("Audio stream %d not found."), init_data.audio_stream + 1));
+        throw exc(str::asprintf(_("Audio stream %d not found."), init_data.params.audio_stream() + 1));
     }
     if (_media_input->audio_streams() > 0)
     {
-        _media_input->select_audio_stream(init_data.audio_stream);
+        _media_input->select_audio_stream(init_data.params.audio_stream());
     }
-    if (_media_input->subtitle_streams() > 0 && _media_input->subtitle_streams() < init_data.subtitle_stream + 1)
+    if (_media_input->subtitle_streams() > 0 && _media_input->subtitle_streams() < init_data.params.subtitle_stream() + 1)
     {
-        throw exc(str::asprintf(_("Subtitle stream %d not found."), init_data.subtitle_stream + 1));
+        throw exc(str::asprintf(_("Subtitle stream %d not found."), init_data.params.subtitle_stream() + 1));
     }
-    if (_media_input->subtitle_streams() > 0 && init_data.subtitle_stream >= 0)
+    if (_media_input->subtitle_streams() > 0 && init_data.params.subtitle_stream() >= 0)
     {
-        _media_input->select_subtitle_stream(init_data.subtitle_stream);
+        _media_input->select_subtitle_stream(init_data.params.subtitle_stream());
     }
 
     // Create audio output
@@ -255,7 +203,7 @@ void player::open(const player_init_data &init_data)
     }
     if (_audio_output)
     {
-        _audio_output->init(init_data.audio_device < -1 ? -1 : init_data.audio_device);
+        _audio_output->init(init_data.params.audio_device());
     }
 
     // Create video output
@@ -267,24 +215,19 @@ void player::open(const player_init_data &init_data)
 
     // Initialize output parameters
     _params = init_data.params;
-    if (init_data.stereo_mode_override)
+    if (!init_data.params.stereo_mode_is_set() && !init_data.params.stereo_mode_swap_is_set())
     {
-        _params.set_stereo_mode(init_data.stereo_mode);
-        _params.set_stereo_mode_swap(init_data.stereo_mode_swap);
-    }
-    else
-    {
-        if (_media_input->video_frame_template().stereo_layout == video_frame::mono)
+        if (_media_input->video_frame_template().stereo_layout == parameters::layout_mono)
         {
-            _params.set_stereo_mode(parameters::mono_left);
+            _params.set_stereo_mode(parameters::mode_mono_left);
         }
         else if (_video_output && _video_output->supports_stereo())
         {
-            _params.set_stereo_mode(parameters::stereo);
+            _params.set_stereo_mode(parameters::mode_stereo);
         }
         else
         {
-            _params.set_stereo_mode(parameters::red_cyan_dubois);
+            _params.set_stereo_mode(parameters::mode_red_cyan_dubois);
         }
         _params.set_stereo_mode_swap(false);
     }
@@ -304,11 +247,11 @@ void player::open(const player_init_data &init_data)
                 ? _params.crop_aspect_ratio()
                 : _media_input->video_frame_template().aspect_ratio,
                 _params.stereo_mode());
-        if (init_data.fullscreen)
+        if (_params.fullscreen())
         {
             _video_output->enter_fullscreen(_params.fullscreen_screens());
         }
-        if (init_data.center)
+        if (_params.center())
         {
             _video_output->center();
         }
@@ -789,7 +732,7 @@ void player::receive_cmd(const command &cmd)
         break;
     case command::cycle_video_stream:
         if (_media_input->video_streams() > 1
-                && _media_input->video_frame_template().stereo_layout != video_frame::separate)
+                && _media_input->video_frame_template().stereo_layout != parameters::layout_separate)
         {
             int oldstream = _media_input->selected_video_stream();
             int newstream = oldstream + 1;
@@ -797,6 +740,7 @@ void player::receive_cmd(const command &cmd)
             {
                 newstream = 0;
             }
+            _params.set_video_stream(newstream);
             _media_input->select_video_stream(newstream);
             controller::notify_all(notification::video_stream, oldstream, newstream);
             _seek_request = -1;         // Get position right
@@ -804,7 +748,7 @@ void player::receive_cmd(const command &cmd)
         break;
     case command::set_video_stream:
         if (_media_input->video_streams() > 1
-                && _media_input->video_frame_template().stereo_layout != video_frame::separate)
+                && _media_input->video_frame_template().stereo_layout != parameters::layout_separate)
         {
             int oldstream = _media_input->selected_video_stream();
             int newstream;
@@ -815,6 +759,7 @@ void player::receive_cmd(const command &cmd)
             }
             if (newstream != oldstream)
             {
+                _params.set_video_stream(newstream);
                 _media_input->select_video_stream(newstream);
                 controller::notify_all(notification::video_stream, oldstream, newstream);
                 _seek_request = -1;     // Get position right
@@ -830,6 +775,7 @@ void player::receive_cmd(const command &cmd)
             {
                 newstream = 0;
             }
+            _params.set_audio_stream(newstream);
             _media_input->select_audio_stream(newstream);
             controller::notify_all(notification::audio_stream, oldstream, newstream);
             _seek_request = -1;         // Get position right
@@ -847,6 +793,7 @@ void player::receive_cmd(const command &cmd)
             }
             if (newstream != oldstream)
             {
+                _params.set_audio_stream(newstream);
                 _media_input->select_audio_stream(newstream);
                 controller::notify_all(notification::audio_stream, oldstream, newstream);
                 _seek_request = -1;     // Get position right
@@ -862,6 +809,7 @@ void player::receive_cmd(const command &cmd)
             {
                 newstream = -1;
             }
+            _params.set_subtitle_stream(newstream);
             _media_input->select_subtitle_stream(newstream);
             controller::notify_all(notification::subtitle_stream, oldstream, newstream);
             _seek_request = -1;         // Get position right
@@ -879,6 +827,7 @@ void player::receive_cmd(const command &cmd)
             }
             if (newstream != oldstream)
             {
+                _params.set_subtitle_stream(newstream);
                 _media_input->select_subtitle_stream(newstream);
                 controller::notify_all(notification::subtitle_stream, oldstream, newstream);
                 _seek_request = -1;     // Get position right
@@ -891,8 +840,10 @@ void player::receive_cmd(const command &cmd)
             bool stereo_layout_swap;
             s11n::load(p, stereo_layout);
             s11n::load(p, stereo_layout_swap);
-            _media_input->set_stereo_layout(static_cast<video_frame::stereo_layout_t>(stereo_layout), stereo_layout_swap);
-            if (stereo_layout == video_frame::separate)
+            _params.set_stereo_layout(static_cast<parameters::stereo_layout_t>(stereo_layout));
+            _params.set_stereo_layout_swap(stereo_layout_swap);
+            _media_input->set_stereo_layout(_params.stereo_layout(), _params.stereo_layout_swap());
+            if (stereo_layout == parameters::layout_separate)
             {
                 _seek_request = -1;     // Get position of both streams right
             }

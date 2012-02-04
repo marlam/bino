@@ -550,34 +550,23 @@ int main(int argc, char *argv[])
     bool equalizer = false;
     bool equalizer_flat_screen = true;
     player_init_data init_data;
-    init_data.log_level = msg::level();
+    init_data.params.set_log_level(msg::level());
     if (log_level.value() == "")
-    {
-        init_data.log_level = msg::INF;
-    }
+        init_data.params.set_log_level(msg::INF);
     else if (log_level.value() == "debug")
-    {
-        init_data.log_level = msg::DBG;
-    }
+        init_data.params.set_log_level(msg::DBG);
     else if (log_level.value() == "info")
-    {
-        init_data.log_level = msg::INF;
-    }
+        init_data.params.set_log_level(msg::INF);
     else if (log_level.value() == "warning")
-    {
-        init_data.log_level = msg::WRN;
-    }
+        init_data.params.set_log_level(msg::WRN);
     else if (log_level.value() == "error")
-    {
-        init_data.log_level = msg::ERR;
-    }
+        init_data.params.set_log_level(msg::ERR);
     else if (log_level.value() == "quiet")
-    {
-        init_data.log_level = msg::REQ;
-    }
+        init_data.params.set_log_level(msg::REQ);
+    msg::set_level(init_data.params.log_level());
     if (audio_device.values().size() > 0)
     {
-        init_data.audio_device = audio_device.value() - 1;
+        init_data.params.set_audio_device(audio_device.value() - 1);
     }
     if (device_type.value() == "")
     {
@@ -597,50 +586,54 @@ int main(int argc, char *argv[])
     init_data.dev_request.frame_rate_num = device_frame_rate.value()[0];
     init_data.dev_request.frame_rate_den = device_frame_rate.value()[1];
     init_data.urls = arguments;
-    init_data.video_stream = video.value() - 1;
-    init_data.audio_stream = audio.value() - 1;
-    init_data.subtitle_stream = subtitle.value() - 1;
-    if (input_mode.value() == "")
+    if (video.values().size() > 0)
+        init_data.params.set_video_stream(video.value() - 1);
+    if (audio.values().size() > 0)
+        init_data.params.set_audio_stream(audio.value() - 1);
+    if (subtitle.values().size() > 0)
+        init_data.params.set_subtitle_stream(subtitle.value() - 1);
+    if (!input_mode.value().empty())
     {
-        init_data.stereo_layout_override = false;
+        parameters::stereo_layout_t stereo_layout;
+        bool stereo_layout_swap;
+        parameters::stereo_layout_from_string(input_mode.value(), stereo_layout, stereo_layout_swap);
+        init_data.params.set_stereo_layout(stereo_layout);
+        init_data.params.set_stereo_layout_swap(stereo_layout_swap);
     }
-    else
-    {
-        init_data.stereo_layout_override = true;
-        video_frame::stereo_layout_from_string(input_mode.value(), init_data.stereo_layout, init_data.stereo_layout_swap);
-    }
-    if (video_output_mode.value() == "")
-    {
-        init_data.stereo_mode_override = false;
-    }
-    else if (video_output_mode.value() == "equalizer")
+    if (video_output_mode.value() == "equalizer")
     {
         equalizer = true;
         equalizer_flat_screen = true;
-        init_data.stereo_mode_override = true;
-        init_data.stereo_mode = parameters::mono_left;
-        init_data.stereo_mode_swap = false;
+        init_data.params.set_stereo_mode(parameters::mode_mono_left);
+        init_data.params.set_stereo_mode_swap(false);
     }
     else if (video_output_mode.value() == "equalizer-3d")
     {
         equalizer = true;
         equalizer_flat_screen = false;
-        init_data.stereo_mode_override = true;
-        init_data.stereo_mode = parameters::mono_left;
-        init_data.stereo_mode_swap = false;
+        init_data.params.set_stereo_mode(parameters::mode_mono_left);
+        init_data.params.set_stereo_mode_swap(false);
     }
     else
     {
-        init_data.stereo_mode_override = true;
-        parameters::stereo_mode_from_string(video_output_mode.value(), init_data.stereo_mode, init_data.stereo_mode_swap);
-        init_data.stereo_mode_swap = swap_eyes.value();
+        parameters::stereo_mode_t stereo_mode;
+        bool stereo_mode_swap;
+        parameters::stereo_mode_from_string(video_output_mode.value(), stereo_mode, stereo_mode_swap);
+        init_data.params.set_stereo_mode(stereo_mode);
+        init_data.params.set_stereo_mode_swap(stereo_mode_swap);
     }
     if (swap_eyes.values().size() > 0)
     {
         init_data.params.set_stereo_mode_swap(swap_eyes.value());
     }
-    init_data.center = center.value();
-    init_data.fullscreen = fullscreen.value();
+    if (center.values().size() > 0)
+    {
+        init_data.params.set_center(center.value());
+    }
+    if (fullscreen.values().size() > 0)
+    {
+        init_data.params.set_fullscreen(fullscreen.value());
+    }
     if (fullscreen_screens.values().size() > 0)
     {
         int fs = 0;
@@ -730,15 +723,18 @@ int main(int argc, char *argv[])
     {
         init_data.params.set_ghostbust(ghostbust.value());
     }
-    init_data.benchmark = benchmark.value();
-    if (init_data.benchmark)
+    if (benchmark.values().size() > 0)
     {
-        init_data.swap_interval = 0;
+        init_data.params.set_benchmark(benchmark.value());
+    }
+    if (init_data.params.benchmark())
+    {
+        init_data.params.set_swap_interval(0);
         msg::inf(_("Benchmark mode: audio and time synchronization disabled."));
     }
     if (swap_interval.values().size() > 0)
     {
-        init_data.swap_interval = swap_interval.value();
+        init_data.params.set_swap_interval(swap_interval.value());
     }
     if (loop.values().size() > 0)
     {
@@ -788,10 +784,10 @@ int main(int argc, char *argv[])
             {
                 if (log_level.value() == "")
                 {
-                    init_data.log_level = msg::WRN;         // Be silent by default when the GUI is used
+                    init_data.params.set_log_level(msg::WRN); // Be silent by default when the GUI is used
                 }
-                init_data.fullscreen = false;               // GUI overrides fullscreen setting
-                init_data.center = false;                   // GUI overrides center flag
+                init_data.params.unset_fullscreen();    // GUI overrides fullscreen setting
+                init_data.params.unset_center();        // GUI overrides center flag
                 player = new class player_qt();
             }
             else

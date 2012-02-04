@@ -242,7 +242,7 @@ void media_input::open(const std::vector<std::string> &urls, const device_reques
         int o, s;
         get_video_stream(_active_video_stream, o, s);
         _video_frame = _media_objects[o].video_frame_template(s);
-        _video_frame.stereo_layout = video_frame::separate;
+        _video_frame.stereo_layout = parameters::layout_separate;
     }
     else if (video_streams() > 0)
     {
@@ -311,7 +311,7 @@ void media_input::open(const std::vector<std::string> &urls, const device_reques
     msg::inf(4, _("Duration: %g seconds"), duration() / 1e6f);
     if (video_streams() > 0)
     {
-        msg::inf(4, _("Stereo layout: %s"), video_frame::stereo_layout_to_string(
+        msg::inf(4, _("Stereo layout: %s"), parameters::stereo_layout_to_string(
                     video_frame_template().stereo_layout, video_frame_template().stereo_layout_swap).c_str());
     }
 }
@@ -406,7 +406,7 @@ const subtitle_box &media_input::subtitle_box_template() const
     return _subtitle_box;
 }
 
-bool media_input::stereo_layout_is_supported(video_frame::stereo_layout_t layout, bool) const
+bool media_input::stereo_layout_is_supported(parameters::stereo_layout_t layout, bool) const
 {
     if (video_streams() < 1)
     {
@@ -418,17 +418,17 @@ bool media_input::stereo_layout_is_supported(video_frame::stereo_layout_t layout
     get_video_stream(_active_video_stream, o, s);
     const video_frame &t = _media_objects[o].video_frame_template(s);
     bool supported = true;
-    if (((layout == video_frame::left_right || layout == video_frame::left_right_half) && t.raw_width % 2 != 0)
-            || ((layout == video_frame::top_bottom || layout == video_frame::top_bottom_half) && t.raw_height % 2 != 0)
-            || (layout == video_frame::even_odd_rows && t.raw_height % 2 != 0)
-            || (layout == video_frame::separate && !_supports_stereo_layout_separate))
+    if (((layout == parameters::layout_left_right || layout == parameters::layout_left_right_half) && t.raw_width % 2 != 0)
+            || ((layout == parameters::layout_top_bottom || layout == parameters::layout_top_bottom_half) && t.raw_height % 2 != 0)
+            || (layout == parameters::layout_even_odd_rows && t.raw_height % 2 != 0)
+            || (layout == parameters::layout_separate && !_supports_stereo_layout_separate))
     {
         supported = false;
     }
     return supported;
 }
 
-void media_input::set_stereo_layout(video_frame::stereo_layout_t layout, bool swap)
+void media_input::set_stereo_layout(parameters::stereo_layout_t layout, bool swap)
 {
     assert(stereo_layout_is_supported(layout, swap));
     if (_have_active_video_read)
@@ -452,7 +452,7 @@ void media_input::set_stereo_layout(video_frame::stereo_layout_t layout, bool sw
     _video_frame.set_view_dimensions();
     // Reset active stream in case we switched to or from 'separate'.
     select_video_stream(_active_video_stream);
-    if (layout == video_frame::separate)
+    if (layout == parameters::layout_separate)
     {
         // If we switched the layout to 'separate', then we have to seek to the
         // position of the first video stream, or else the second video stream
@@ -481,7 +481,7 @@ void media_input::select_video_stream(int video_stream)
     }
     assert(video_stream >= 0);
     assert(video_stream < video_streams());
-    if (_video_frame.stereo_layout == video_frame::separate)
+    if (_video_frame.stereo_layout == parameters::layout_separate)
     {
         _active_video_stream = 0;
         for (size_t i = 0; i < _media_objects.size(); i++)
@@ -573,7 +573,7 @@ void media_input::start_video_frame_read()
     {
         return;
     }
-    if (_video_frame.stereo_layout == video_frame::separate)
+    if (_video_frame.stereo_layout == parameters::layout_separate)
     {
         int o0, s0, o1, s1;
         get_video_stream(0, o0, s0);
@@ -586,7 +586,7 @@ void media_input::start_video_frame_read()
         int o, s;
         get_video_stream(_active_video_stream, o, s);
         _media_objects[o].start_video_frame_read(s,
-                _video_frame.stereo_layout == video_frame::alternating ? 2 : 1);
+                _video_frame.stereo_layout == parameters::layout_alternating ? 2 : 1);
     }
     _have_active_video_read = true;
 }
@@ -599,7 +599,7 @@ video_frame media_input::finish_video_frame_read()
         start_video_frame_read();
     }
     video_frame frame;
-    if (_video_frame.stereo_layout == video_frame::separate)
+    if (_video_frame.stereo_layout == parameters::layout_separate)
     {
         int o0, s0, o1, s1;
         get_video_stream(0, o0, s0);

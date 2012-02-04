@@ -27,6 +27,7 @@
 #include <stdint.h>
 
 #include "s11n.h"
+#include "msg.h"
 
 
 class device_request : public serializable
@@ -58,6 +59,158 @@ public:
     // Serialization
     void save(std::ostream &os) const;
     void load(std::istream &is);
+};
+
+class parameters : public serializable
+{
+public:
+
+    // Stereo layout: describes how left and right view are stored
+    typedef enum {
+        layout_mono,           // 1 video source: center view
+        layout_separate,       // 2 video sources: left and right view independent
+        layout_alternating,    // 2 video sources: left and right view consecutively
+        layout_top_bottom,     // 1 video source: left view top, right view bottom, both with full size
+        layout_top_bottom_half,// 1 video source: left view top, right view bottom, both with half size
+        layout_left_right,     // 1 video source: left view left, right view right, both with full size
+        layout_left_right_half,// 1 video source: left view left, right view right, both with half size
+        layout_even_odd_rows   // 1 video source: left view even lines, right view odd lines
+    } stereo_layout_t;
+
+    // Convert the stereo layout to and from a string representation
+    static std::string stereo_layout_to_string(stereo_layout_t stereo_layout, bool stereo_layout_swap);
+    static void stereo_layout_from_string(const std::string &s, stereo_layout_t &stereo_layout, bool &stereo_layout_swap);
+
+    // Stereo mode: the output mode for left and right view
+    typedef enum {
+        mode_stereo,                   // OpenGL quad buffered stereo
+        mode_mono_left,                // Left view only
+        mode_mono_right,               // Right view only
+        mode_top_bottom,               // Left view top, right view bottom
+        mode_top_bottom_half,          // Left view top, right view bottom, half height
+        mode_left_right,               // Left view left, right view right
+        mode_left_right_half,          // Left view left, right view right, half width
+        mode_even_odd_rows,            // Left view even rows, right view odd rows
+        mode_even_odd_columns,         // Left view even columns, right view odd columns
+        mode_checkerboard,             // Checkerboard pattern
+        mode_hdmi_frame_pack,          // HDMI Frame packing (top-bottom separated by 1/49 height)
+        mode_red_cyan_monochrome,      // Red/cyan anaglyph, monochrome method
+        mode_red_cyan_half_color,      // Red/cyan anaglyph, half color method
+        mode_red_cyan_full_color,      // Red/cyan anaglyph, full color method
+        mode_red_cyan_dubois,          // Red/cyan anaglyph, high quality Dubois method
+        mode_green_magenta_monochrome, // Green/magenta anaglyph, monochrome method
+        mode_green_magenta_half_color, // Green/magenta anaglyph, half color method
+        mode_green_magenta_full_color, // Green/magenta anaglyph, full color method
+        mode_green_magenta_dubois,     // Green/magenta anaglyph, high quality Dubois method
+        mode_amber_blue_monochrome,    // Amber/blue anaglyph, monochrome method
+        mode_amber_blue_half_color,    // Amber/blue anaglyph, half color method
+        mode_amber_blue_full_color,    // Amber/blue anaglyph, full color method
+        mode_amber_blue_dubois,        // Amber/blue anaglyph, high quality Dubois method
+        mode_red_green_monochrome,     // Red/green anaglyph, monochrome method
+        mode_red_blue_monochrome,      // Red/blue anaglyph, monochrome method
+    } stereo_mode_t;
+
+    // Convert the stereo mode to and from a string representation
+    static std::string stereo_mode_to_string(stereo_mode_t stereo_mode, bool stereo_mode_swap);
+    static void stereo_mode_from_string(const std::string &s, stereo_mode_t &stereo_mode, bool &stereo_mode_swap);
+
+    typedef enum {
+        no_loop,                        // Do not loop.
+        loop_current,                   // Loop the current media input.
+    } loop_mode_t;
+
+    // Convert the loop mode to and from a string representation
+    static std::string loop_mode_to_string(loop_mode_t loop_mode);
+    static loop_mode_t loop_mode_from_string(const std::string &s);
+
+#define PARAMETER(TYPE, NAME) \
+    private: \
+    TYPE _ ## NAME; \
+    bool _ ## NAME ## _set; \
+    static const TYPE _ ## NAME ## _default; \
+    public: \
+    TYPE NAME() const \
+    { \
+        return _ ## NAME ## _set ? _ ## NAME : _ ## NAME ## _default; \
+    } \
+    void set_ ## NAME(TYPE val) \
+    { \
+        _ ## NAME = val; \
+        _ ## NAME ## _set = true; \
+    } \
+    void unset_ ## NAME() \
+    { \
+        _ ## NAME ## _set = false; \
+    } \
+    bool NAME ## _is_set() const \
+    { \
+        return _ ## NAME ## _set; \
+    } \
+    bool NAME ## _is_default() const \
+    { \
+        return (NAME() >= _ ## NAME ## _default && NAME() <= _ ## NAME ## _default); \
+    }
+
+    // Invariant parameters
+    PARAMETER(msg::level_t, log_level)        // Global log level
+    PARAMETER(bool, benchmark)                // Benchmark mode
+    PARAMETER(int, swap_interval)             // Swap interval
+    // Per-Session parameters
+    PARAMETER(int, audio_device)              // Audio output device index, -1 = default
+    PARAMETER(stereo_mode_t, stereo_mode)     // Stereo mode
+    PARAMETER(bool, stereo_mode_swap)         // Swap left and right view
+    PARAMETER(float, crosstalk_r)             // Crosstalk level for red, 0 .. 1
+    PARAMETER(float, crosstalk_g)             // Crosstalk level for green, 0 .. 1
+    PARAMETER(float, crosstalk_b)             // Crosstalk level for blue, 0 .. 1
+    PARAMETER(int, fullscreen_screens)        // Screens to use in fullscreen mode (bit set), 0=primary screen
+    PARAMETER(bool, fullscreen_flip_left)     // Flip left view vertically in fullscreen mode
+    PARAMETER(bool, fullscreen_flop_left)     // Flop left view horizontally in fullscreen mode
+    PARAMETER(bool, fullscreen_flip_right)    // Flip right view vertically in fullscreen mode
+    PARAMETER(bool, fullscreen_flop_right)    // Flop right view horizontally in fullscreen mode
+    PARAMETER(float, contrast)                // Contrast adjustment, -1 .. +1
+    PARAMETER(float, brightness)              // Brightness adjustment, -1 .. +1
+    PARAMETER(float, hue)                     // Hue adjustment, -1 .. +1
+    PARAMETER(float, saturation)              // Saturation adjustment, -1 .. +1
+    PARAMETER(float, zoom)                    // Zoom, 0 = off (show full video width) .. 1 = full (use full screen height)
+    PARAMETER(loop_mode_t, loop_mode)         // Current loop behaviour.
+    PARAMETER(int64_t, audio_delay)           // Audio delay in microseconds
+    // Per-Video parameters
+    PARAMETER(int, video_stream)              // Video stream index
+    PARAMETER(int, audio_stream)              // Audio stream index, or -1 if there is no audio stream
+    PARAMETER(int, subtitle_stream)           // Subtitle stream index, or -1 to disable subtitles
+    PARAMETER(stereo_layout_t, stereo_layout) // Assume this stereo layout
+    PARAMETER(bool, stereo_layout_swap)       // Assume this stereo layout
+    PARAMETER(float, crop_aspect_ratio)       // Crop the video to this aspect ratio, 0 = don't crop.
+    PARAMETER(float, parallax)                // Parallax adjustment, -1 .. +1
+    PARAMETER(float, ghostbust)               // Amount of crosstalk ghostbusting, 0 .. 1
+    PARAMETER(std::string, subtitle_encoding) // Subtitle encoding, empty means keep default
+    PARAMETER(std::string, subtitle_font)     // Subtitle font name, empty means keep default
+    PARAMETER(int, subtitle_size)             // Subtitle point size, -1 means keep default
+    PARAMETER(float, subtitle_scale)          // Scale factor
+    PARAMETER(uint64_t, subtitle_color)       // Subtitle color in uint32_t bgra32 format, > UINT32_MAX means keep default
+    PARAMETER(float, subtitle_parallax)       // Subtitle parallax adjustment, -1 .. +1
+    // Volatile parameters
+    PARAMETER(bool, fullscreen)               // Fullscreen mode
+    PARAMETER(bool, center)                   // Should the video be centered?
+    PARAMETER(float, audio_volume)            // Audio volume, 0 .. 1
+    PARAMETER(bool, audio_mute)               // Audio mute: -1 = unknown, 0 = off, 1 = on
+
+public:
+    // Constructor
+    parameters();
+
+    // Serialization
+    void save(std::ostream &os) const;
+    void load(std::istream &is);
+
+    // Serialize per-session parameters
+    std::string save_session_parameters() const;
+    void load_session_parameters(const std::string &s);
+
+    // Serialize per-video parameters
+    void unset_video_parameters();
+    std::string save_video_parameters() const;
+    void load_video_parameters(const std::string &s);
 };
 
 class video_frame
@@ -97,19 +250,6 @@ public:
         topleft         // U/V at the corresponding top left Y location
     } chroma_location_t;
 
-    // Stereo layout: describes how left and right view are stored
-    typedef enum
-    {
-        mono,           // 1 video source: center view
-        separate,       // 2 video sources: left and right view independent
-        alternating,    // 2 video sources: left and right view consecutively
-        top_bottom,     // 1 video source: left view top, right view bottom, both with full size
-        top_bottom_half,// 1 video source: left view top, right view bottom, both with half size
-        left_right,     // 1 video source: left view left, right view right, both with full size
-        left_right_half,// 1 video source: left view left, right view right, both with half size
-        even_odd_rows   // 1 video source: left view even lines, right view odd lines
-    } stereo_layout_t;
-
     int raw_width;                      // Width of the data in pixels
     int raw_height;                     // Height of the data in pixels
     float raw_aspect_ratio;             // Aspect ratio of the data
@@ -120,7 +260,7 @@ public:
     color_space_t color_space;          // Color space
     value_range_t value_range;          // Value range
     chroma_location_t chroma_location;  // Chroma sample location
-    stereo_layout_t stereo_layout;      // Stereo layout
+    parameters::stereo_layout_t stereo_layout; // Stereo layout
     bool stereo_layout_swap;            // Whether the stereo layout needs to swap left and right view
     // The data. Note that a frame does not own the data stored in these pointers,
     // so it does not free them on destruction.
@@ -148,10 +288,6 @@ public:
     // Return a string describing the format (layout, color space, value range, chroma location)
     std::string format_info() const;    // Human readable information
     std::string format_name() const;    // Short code
-
-    // Convert the stereo layout to and from a string representation
-    static std::string stereo_layout_to_string(stereo_layout_t stereo_layout, bool stereo_layout_swap);
-    static void stereo_layout_from_string(const std::string &s, stereo_layout_t &stereo_layout, bool &stereo_layout_swap);
 };
 
 class audio_blob
@@ -270,123 +406,6 @@ public:
     // Serialization
     void save(std::ostream &os) const;
     void load(std::istream &is);
-};
-
-class parameters : public serializable
-{
-public:
-    typedef enum {
-        stereo,                         // OpenGL quad buffered stereo
-        mono_left,                      // Left view only
-        mono_right,                     // Right view only
-        top_bottom,                     // Left view top, right view bottom
-        top_bottom_half,                // Left view top, right view bottom, half height
-        left_right,                     // Left view left, right view right
-        left_right_half,                // Left view left, right view right, half width
-        even_odd_rows,                  // Left view even rows, right view odd rows
-        even_odd_columns,               // Left view even columns, right view odd columns
-        checkerboard,                   // Checkerboard pattern
-        hdmi_frame_pack,                // HDMI Frame packing (top-bottom separated by 1/49 height)
-        red_cyan_monochrome,            // Red/cyan anaglyph, monochrome method
-        red_cyan_half_color,            // Red/cyan anaglyph, half color method
-        red_cyan_full_color,            // Red/cyan anaglyph, full color method
-        red_cyan_dubois,                // Red/cyan anaglyph, high quality Dubois method
-        green_magenta_monochrome,       // Green/magenta anaglyph, monochrome method
-        green_magenta_half_color,       // Green/magenta anaglyph, half color method
-        green_magenta_full_color,       // Green/magenta anaglyph, full color method
-        green_magenta_dubois,           // Green/magenta anaglyph, high quality Dubois method
-        amber_blue_monochrome,          // Amber/blue anaglyph, monochrome method
-        amber_blue_half_color,          // Amber/blue anaglyph, half color method
-        amber_blue_full_color,          // Amber/blue anaglyph, full color method
-        amber_blue_dubois,              // Amber/blue anaglyph, high quality Dubois method
-        red_green_monochrome,           // Red/green anaglyph, monochrome method
-        red_blue_monochrome,            // Red/blue anaglyph, monochrome method
-    } stereo_mode_t;
-
-    // Convert the stereo mode to and from a string representation
-    static std::string stereo_mode_to_string(stereo_mode_t stereo_mode, bool stereo_mode_swap);
-    static void stereo_mode_from_string(const std::string &s, stereo_mode_t &stereo_mode, bool &stereo_mode_swap);
-
-    typedef enum {
-        no_loop,                        // Do not loop.
-        loop_current,                   // Loop the current media input.
-    } loop_mode_t;
-
-    // Convert the loop mode to and from a string representation
-    static std::string loop_mode_to_string(loop_mode_t loop_mode);
-    static loop_mode_t loop_mode_from_string(const std::string &s);
-
-#define PARAMETER(TYPE, NAME) \
-    private: \
-    TYPE _ ## NAME; \
-    bool _ ## NAME ## _set; \
-    static const TYPE _ ## NAME ## _default; \
-    public: \
-    TYPE NAME() const \
-    { \
-        return _ ## NAME ## _set ? _ ## NAME : _ ## NAME ## _default; \
-    } \
-    void set_ ## NAME(TYPE val) \
-    { \
-        _ ## NAME = val; \
-        _ ## NAME ## _set = true; \
-    } \
-    bool NAME ## _is_set() const \
-    { \
-        return _ ## NAME ## _set; \
-    } \
-    bool NAME ## _is_default() const \
-    { \
-        return (NAME() >= _ ## NAME ## _default && NAME() <= _ ## NAME ## _default); \
-    }
-
-    // Per-Session parameters
-    PARAMETER(stereo_mode_t, stereo_mode)     // Stereo mode
-    PARAMETER(bool, stereo_mode_swap)         // Swap left and right view
-    PARAMETER(float, crosstalk_r)             // Crosstalk level for red, 0 .. 1
-    PARAMETER(float, crosstalk_g)             // Crosstalk level for green, 0 .. 1
-    PARAMETER(float, crosstalk_b)             // Crosstalk level for blue, 0 .. 1
-    PARAMETER(int, fullscreen_screens)        // Screens to use in fullscreen mode (bit set), 0=primary screen
-    PARAMETER(bool, fullscreen_flip_left)     // Flip left view vertically in fullscreen mode
-    PARAMETER(bool, fullscreen_flop_left)     // Flop left view horizontally in fullscreen mode
-    PARAMETER(bool, fullscreen_flip_right)    // Flip right view vertically in fullscreen mode
-    PARAMETER(bool, fullscreen_flop_right)    // Flop right view horizontally in fullscreen mode
-    PARAMETER(float, contrast)                // Contrast adjustment, -1 .. +1
-    PARAMETER(float, brightness)              // Brightness adjustment, -1 .. +1
-    PARAMETER(float, hue)                     // Hue adjustment, -1 .. +1
-    PARAMETER(float, saturation)              // Saturation adjustment, -1 .. +1
-    PARAMETER(float, zoom)                    // Zoom, 0 = off (show full video width) .. 1 = full (use full screen height)
-    PARAMETER(loop_mode_t, loop_mode)         // Current loop behaviour.
-    PARAMETER(int64_t, audio_delay)           // Audio delay in microseconds
-    // Per-Video parameters
-    PARAMETER(float, crop_aspect_ratio)       // Crop the video to this aspect ratio, 0 = don't crop.
-    PARAMETER(float, parallax)                // Parallax adjustment, -1 .. +1
-    PARAMETER(float, ghostbust)               // Amount of crosstalk ghostbusting, 0 .. 1
-    PARAMETER(std::string, subtitle_encoding) // Subtitle encoding, empty means keep default
-    PARAMETER(std::string, subtitle_font)     // Subtitle font name, empty means keep default
-    PARAMETER(int, subtitle_size)             // Subtitle point size, -1 means keep default
-    PARAMETER(float, subtitle_scale)          // Scale factor
-    PARAMETER(uint64_t, subtitle_color)       // Subtitle color in uint32_t bgra32 format, > UINT32_MAX means keep default
-    PARAMETER(float, subtitle_parallax)       // Subtitle parallax adjustment, -1 .. +1
-    // Volatile parameters
-    PARAMETER(float, audio_volume)            // Audio volume, 0 .. 1
-    PARAMETER(bool, audio_mute)               // Audio mute: -1 = unknown, 0 = off, 1 = on
-
-public:
-    // Constructor
-    parameters();
-
-    // Serialization
-    void save(std::ostream &os) const;
-    void load(std::istream &is);
-
-    // Serialize per-session parameters
-    std::string save_session_parameters() const;
-    void load_session_parameters(const std::string &s);
-
-    // Serialize per-video parameters
-    std::string save_video_parameters() const;
-    void load_video_parameters(const std::string &s);
 };
 
 #endif

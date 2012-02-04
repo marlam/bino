@@ -66,6 +66,735 @@ void device_request::load(std::istream &is)
 }
 
 
+parameters::parameters()
+{
+    // Invariant parameters
+    unset_log_level();
+    unset_benchmark();
+    unset_swap_interval();
+    // Per-Session parameters
+    unset_audio_device();
+    unset_stereo_mode();
+    unset_stereo_mode_swap();
+    unset_crosstalk_r();
+    unset_crosstalk_g();
+    unset_crosstalk_b();
+    unset_fullscreen_screens();
+    unset_fullscreen_flip_left();
+    unset_fullscreen_flop_left();
+    unset_fullscreen_flip_right();
+    unset_fullscreen_flop_right();
+    unset_contrast();
+    unset_brightness();
+    unset_hue();
+    unset_saturation();
+    unset_zoom();
+    unset_loop_mode();
+    unset_audio_delay();
+    // Per-Video parameters
+    unset_video_stream();
+    unset_audio_stream();
+    unset_subtitle_stream();
+    unset_stereo_layout();
+    unset_stereo_layout_swap();
+    unset_crop_aspect_ratio();
+    unset_parallax();
+    unset_ghostbust();
+    unset_subtitle_encoding();
+    unset_subtitle_font();
+    unset_subtitle_size();
+    unset_subtitle_scale();
+    unset_subtitle_color();
+    unset_subtitle_parallax();
+    // Volatile parameters
+    unset_fullscreen();
+    unset_center();
+    unset_audio_volume();
+    unset_audio_mute();
+}
+
+// Invariant parameters
+const msg::level_t parameters::_log_level_default = msg::INF;
+const bool parameters::_benchmark_default = false;
+const int parameters::_swap_interval_default = 1;
+// Per-Session parameter defaults
+const int parameters::_audio_device_default = -1;
+const parameters::stereo_mode_t parameters::_stereo_mode_default = mode_mono_left;
+const bool parameters::_stereo_mode_swap_default = false;
+const float parameters::_crosstalk_r_default = 0.0f;
+const float parameters::_crosstalk_g_default = 0.0f;
+const float parameters::_crosstalk_b_default = 0.0f;
+const int parameters::_fullscreen_screens_default = 0;
+const bool parameters::_fullscreen_flip_left_default = false;
+const bool parameters::_fullscreen_flop_left_default = false;
+const bool parameters::_fullscreen_flip_right_default = false;
+const bool parameters::_fullscreen_flop_right_default = false;
+const float parameters::_contrast_default = 0.0f;
+const float parameters::_brightness_default = 0.0f;
+const float parameters::_hue_default = 0.0f;
+const float parameters::_saturation_default = 0.0f;
+const float parameters::_zoom_default = 0.0f;
+const parameters::loop_mode_t parameters::_loop_mode_default = no_loop;
+const int64_t parameters::_audio_delay_default = 0;
+// Per-Video parameter defaults
+const int parameters::_video_stream_default = 0;
+const int parameters::_audio_stream_default = 0;
+const int parameters::_subtitle_stream_default = -1;
+const parameters::stereo_layout_t parameters::_stereo_layout_default = layout_mono;
+const bool parameters::_stereo_layout_swap_default = false;
+const float parameters::_crop_aspect_ratio_default = 0.0f;
+const float parameters::_parallax_default = 0.0f;
+const float parameters::_ghostbust_default = 0.0f;
+const std::string parameters::_subtitle_encoding_default = "";
+const std::string parameters::_subtitle_font_default = "";
+const int parameters::_subtitle_size_default = -1;
+const float parameters::_subtitle_scale_default = -1.0f;
+const uint64_t parameters::_subtitle_color_default = std::numeric_limits<uint64_t>::max();
+const float parameters::_subtitle_parallax_default = 0.0f;
+// Volatile parameter defaults
+const bool parameters::_fullscreen_default = false;
+const bool parameters::_center_default = false;
+const float parameters::_audio_volume_default = 1.0f;
+const bool parameters::_audio_mute_default = false;
+
+std::string parameters::stereo_layout_to_string(stereo_layout_t stereo_layout, bool stereo_layout_swap)
+{
+    std::string s;
+    switch (stereo_layout) {
+    case layout_mono:
+        s = "mono";
+        break;
+    case layout_separate:
+        s = stereo_layout_swap ? "separate-right-left" : "separate-left-right";
+        break;
+    case layout_alternating:
+        s = stereo_layout_swap ? "alternating-right-left" : "alternating-left-right";
+        break;
+    case layout_top_bottom:
+        s = stereo_layout_swap ? "bottom-top" : "top-bottom";
+        break;
+    case layout_top_bottom_half:
+        s = stereo_layout_swap ? "bottom-top-half" : "top-bottom-half";
+        break;
+    case layout_left_right:
+        s = stereo_layout_swap ? "right-left" : "left-right";
+        break;
+    case layout_left_right_half:
+        s = stereo_layout_swap ? "right-left-half" : "left-right-half";
+        break;
+    case layout_even_odd_rows:
+        s = stereo_layout_swap ? "odd-even-rows" : "even-odd-rows";
+        break;
+    }
+    return s;
+}
+
+void parameters::stereo_layout_from_string(const std::string &s, stereo_layout_t &stereo_layout, bool &stereo_layout_swap)
+{
+    if (s == "mono") {
+        stereo_layout = layout_mono;
+        stereo_layout_swap = false;
+    } else if (s == "separate-right-left") {
+        stereo_layout = layout_separate;
+        stereo_layout_swap = true;
+    } else if (s == "separate-left-right") {
+        stereo_layout = layout_separate;
+        stereo_layout_swap = false;
+    } else if (s == "alternating-right-left") {
+        stereo_layout = layout_alternating;
+        stereo_layout_swap = true;
+    } else if (s == "alternating-left-right") {
+        stereo_layout = layout_alternating;
+        stereo_layout_swap = false;
+    } else if (s == "bottom-top") {
+        stereo_layout = layout_top_bottom;
+        stereo_layout_swap = true;
+    } else if (s == "top-bottom") {
+        stereo_layout = layout_top_bottom;
+        stereo_layout_swap = false;
+    } else if (s == "bottom-top-half") {
+        stereo_layout = layout_top_bottom_half;
+        stereo_layout_swap = true;
+    } else if (s == "top-bottom-half") {
+        stereo_layout = layout_top_bottom_half;
+        stereo_layout_swap = false;
+    } else if (s == "right-left") {
+        stereo_layout = layout_left_right;
+        stereo_layout_swap = true;
+    } else if (s == "left-right") {
+        stereo_layout = layout_left_right;
+        stereo_layout_swap = false;
+    } else if (s == "right-left-half") {
+        stereo_layout = layout_left_right_half;
+        stereo_layout_swap = true;
+    } else if (s == "left-right-half") {
+        stereo_layout = layout_left_right_half;
+        stereo_layout_swap = false;
+    } else if (s == "odd-even-rows") {
+        stereo_layout = layout_even_odd_rows;
+        stereo_layout_swap = true;
+    } else if (s == "even-odd-rows") {
+        stereo_layout = layout_even_odd_rows;
+        stereo_layout_swap = false;
+    } else {
+        // safe fallback
+        stereo_layout = layout_mono;
+        stereo_layout_swap = false;
+    }
+}
+
+std::string parameters::stereo_mode_to_string(stereo_mode_t stereo_mode, bool stereo_mode_swap)
+{
+    std::string s;
+    switch (stereo_mode) {
+    case mode_stereo:
+        s = "stereo";
+        break;
+    case mode_mono_left:
+        s = "mono-left";
+        break;
+    case mode_mono_right:
+        s = "mono-right";
+        break;
+    case mode_top_bottom:
+        s = "top-bottom";
+        break;
+    case mode_top_bottom_half:
+        s = "top-bottom-half";
+        break;
+    case mode_left_right:
+        s = "left-right";
+        break;
+    case mode_left_right_half:
+        s = "left-right-half";
+        break;
+    case mode_even_odd_rows:
+        s = "even-odd-rows";
+        break;
+    case mode_even_odd_columns:
+        s = "even-odd-columns";
+        break;
+    case mode_checkerboard:
+        s = "checkerboard";
+        break;
+    case mode_hdmi_frame_pack:
+        s = "hdmi-frame-pack";
+        break;
+    case mode_red_cyan_monochrome:
+        s = "red-cyan-monochrome";
+        break;
+    case mode_red_cyan_half_color:
+        s = "red-cyan-half-color";
+        break;
+    case mode_red_cyan_full_color:
+        s = "red-cyan-full-color";
+        break;
+    case mode_red_cyan_dubois:
+        s = "red-cyan-dubois";
+        break;
+    case mode_green_magenta_monochrome:
+        s = "green-magenta-monochrome";
+        break;
+    case mode_green_magenta_half_color:
+        s = "green-magenta-half-color";
+        break;
+    case mode_green_magenta_full_color:
+        s = "green-magenta-full-color";
+        break;
+    case mode_green_magenta_dubois:
+        s = "green-magenta-dubois";
+        break;
+    case mode_amber_blue_monochrome:
+        s = "amber-blue-monochrome";
+        break;
+    case mode_amber_blue_half_color:
+        s = "amber-blue-half-color";
+        break;
+    case mode_amber_blue_dubois:
+        s = "amber-blue-dubois";
+        break;
+    case mode_amber_blue_full_color:
+        s = "amber-blue-full-color";
+        break;
+    case mode_red_green_monochrome:
+        s = "red-green-monochrome";
+        break;
+    case mode_red_blue_monochrome:
+        s = "red-blue-monochrome";
+        break;
+    }
+    if (stereo_mode_swap) {
+        s += "-swap";
+    }
+    return s;
+}
+
+void parameters::stereo_mode_from_string(const std::string &s, stereo_mode_t &stereo_mode, bool &stereo_mode_swap)
+{
+    size_t x = s.find_last_of("-");
+    std::string t;
+    if (x != std::string::npos && s.substr(x) == "-swap") {
+        t = s.substr(0, x);
+        stereo_mode_swap = true;
+    } else {
+        t = s;
+        stereo_mode_swap = false;
+    } if (t == "stereo") {
+        stereo_mode = mode_stereo;
+    } else if (t == "mono-left") {
+        stereo_mode = mode_mono_left;
+    } else if (t == "mono-right") {
+        stereo_mode = mode_mono_right;
+    } else if (t == "top-bottom") {
+        stereo_mode = mode_top_bottom;
+    } else if (t == "top-bottom-half") {
+        stereo_mode = mode_top_bottom_half;
+    } else if (t == "left-right") {
+        stereo_mode = mode_left_right;
+    } else if (t == "left-right-half") {
+        stereo_mode = mode_left_right_half;
+    } else if (t == "even-odd-rows") {
+        stereo_mode = mode_even_odd_rows;
+    } else if (t == "even-odd-columns") {
+        stereo_mode = mode_even_odd_columns;
+    } else if (t == "checkerboard") {
+        stereo_mode = mode_checkerboard;
+    } else if (t == "hdmi-frame-pack") {
+        stereo_mode = mode_hdmi_frame_pack;
+    } else if (t == "red-cyan-monochrome") {
+        stereo_mode = mode_red_cyan_monochrome;
+    } else if (t == "red-cyan-half-color") {
+        stereo_mode = mode_red_cyan_half_color;
+    } else if (t == "red-cyan-full-color") {
+        stereo_mode = mode_red_cyan_full_color;
+    } else if (t == "red-cyan-dubois") {
+        stereo_mode = mode_red_cyan_dubois;
+    } else if (t == "green-magenta-monochrome") {
+        stereo_mode = mode_green_magenta_monochrome;
+    } else if (t == "green-magenta-half-color") {
+        stereo_mode = mode_green_magenta_half_color;
+    } else if (t == "green-magenta-full-color") {
+        stereo_mode = mode_green_magenta_full_color;
+    } else if (t == "green-magenta-dubois") {
+        stereo_mode = mode_green_magenta_dubois;
+    } else if (t == "amber-blue-monochrome") {
+        stereo_mode = mode_amber_blue_monochrome;
+    } else if (t == "amber-blue-half-color") {
+        stereo_mode = mode_amber_blue_half_color;
+    } else if (t == "amber-blue-full-color") {
+        stereo_mode = mode_amber_blue_full_color;
+    } else if (t == "amber-blue-dubois") {
+        stereo_mode = mode_amber_blue_dubois;
+    } else if (t == "red-green-monochrome") {
+        stereo_mode = mode_red_green_monochrome;
+    } else if (t == "red-blue-monochrome") {
+        stereo_mode = mode_red_blue_monochrome;
+    } else {
+        // safe fallback
+        stereo_mode = mode_mono_left;
+    }
+}
+
+std::string parameters::loop_mode_to_string(loop_mode_t loop_mode)
+{
+    if (loop_mode == loop_current) {
+        return "loop-current";
+    } else {
+        return "no-loop";
+    }
+}
+
+parameters::loop_mode_t parameters::loop_mode_from_string(const std::string &s)
+{
+    if (s == "loop-current") {
+        return loop_current;
+    } else {
+        return no_loop;
+    }
+}
+
+void parameters::save(std::ostream &os) const
+{
+    // Invariant parameters
+    s11n::save(os, static_cast<int>(_log_level));
+    s11n::save(os, _log_level_set);
+    s11n::save(os, _benchmark);
+    s11n::save(os, _benchmark_set);
+    s11n::save(os, _swap_interval);
+    s11n::save(os, _swap_interval_set);
+    // Per-Session parameters
+    s11n::save(os, _audio_device);
+    s11n::save(os, _audio_device_set);
+    s11n::save(os, static_cast<int>(_stereo_mode));
+    s11n::save(os, _stereo_mode_set);
+    s11n::save(os, _stereo_mode_swap);
+    s11n::save(os, _stereo_mode_swap_set);
+    s11n::save(os, _crosstalk_r);
+    s11n::save(os, _crosstalk_r_set);
+    s11n::save(os, _crosstalk_g);
+    s11n::save(os, _crosstalk_g_set);
+    s11n::save(os, _crosstalk_b);
+    s11n::save(os, _crosstalk_b_set);
+    s11n::save(os, _fullscreen_screens);
+    s11n::save(os, _fullscreen_screens_set);
+    s11n::save(os, _fullscreen_flip_left);
+    s11n::save(os, _fullscreen_flip_left_set);
+    s11n::save(os, _fullscreen_flop_left);
+    s11n::save(os, _fullscreen_flop_left_set);
+    s11n::save(os, _fullscreen_flip_right);
+    s11n::save(os, _fullscreen_flip_right_set);
+    s11n::save(os, _fullscreen_flop_right);
+    s11n::save(os, _fullscreen_flop_right_set);
+    s11n::save(os, _contrast);
+    s11n::save(os, _contrast_set);
+    s11n::save(os, _brightness);
+    s11n::save(os, _brightness_set);
+    s11n::save(os, _hue);
+    s11n::save(os, _hue_set);
+    s11n::save(os, _saturation);
+    s11n::save(os, _saturation_set);
+    s11n::save(os, _zoom);
+    s11n::save(os, _zoom_set);
+    s11n::save(os, static_cast<int>(_loop_mode));
+    s11n::save(os, _loop_mode_set);
+    s11n::save(os, _audio_delay);
+    s11n::save(os, _audio_delay_set);
+    // Per-Video parameters
+    s11n::save(os, _video_stream);
+    s11n::save(os, _video_stream_set);
+    s11n::save(os, _audio_stream);
+    s11n::save(os, _audio_stream_set);
+    s11n::save(os, _subtitle_stream);
+    s11n::save(os, _subtitle_stream_set);
+    s11n::save(os, static_cast<int>(_stereo_layout));
+    s11n::save(os, _stereo_layout_set);
+    s11n::save(os, _stereo_layout_swap);
+    s11n::save(os, _stereo_layout_swap_set);
+    s11n::save(os, _crop_aspect_ratio);
+    s11n::save(os, _crop_aspect_ratio_set);
+    s11n::save(os, _parallax);
+    s11n::save(os, _parallax_set);
+    s11n::save(os, _ghostbust);
+    s11n::save(os, _ghostbust_set);
+    s11n::save(os, _subtitle_encoding);
+    s11n::save(os, _subtitle_encoding_set);
+    s11n::save(os, _subtitle_font);
+    s11n::save(os, _subtitle_font_set);
+    s11n::save(os, _subtitle_size);
+    s11n::save(os, _subtitle_size_set);
+    s11n::save(os, _subtitle_scale);
+    s11n::save(os, _subtitle_scale_set);
+    s11n::save(os, _subtitle_color);
+    s11n::save(os, _subtitle_color_set);
+    s11n::save(os, _subtitle_parallax);
+    s11n::save(os, _subtitle_parallax_set);
+    // Volatile parameters
+    s11n::save(os, _fullscreen);
+    s11n::save(os, _fullscreen_set);
+    s11n::save(os, _center);
+    s11n::save(os, _center_set);
+    s11n::save(os, _audio_volume);
+    s11n::save(os, _audio_volume_set);
+    s11n::save(os, _audio_mute);
+    s11n::save(os, _audio_mute_set);
+}
+
+void parameters::load(std::istream &is)
+{
+    int x;
+    // Invariant parameters
+    s11n::load(is, x); _log_level = static_cast<msg::level_t>(x);
+    s11n::load(is, _log_level_set);
+    s11n::load(is, _benchmark);
+    s11n::load(is, _benchmark_set);
+    s11n::load(is, _swap_interval);
+    s11n::load(is, _swap_interval_set);
+    // Per-Session parameters
+    s11n::load(is, _audio_device);
+    s11n::load(is, _audio_device_set);
+    s11n::load(is, x); _stereo_mode = static_cast<stereo_mode_t>(x);
+    s11n::load(is, _stereo_mode_set);
+    s11n::load(is, _stereo_mode_swap);
+    s11n::load(is, _stereo_mode_swap_set);
+    s11n::load(is, _crosstalk_r);
+    s11n::load(is, _crosstalk_r_set);
+    s11n::load(is, _crosstalk_g);
+    s11n::load(is, _crosstalk_g_set);
+    s11n::load(is, _crosstalk_b);
+    s11n::load(is, _crosstalk_b_set);
+    s11n::load(is, _fullscreen_screens);
+    s11n::load(is, _fullscreen_screens_set);
+    s11n::load(is, _fullscreen_flip_left);
+    s11n::load(is, _fullscreen_flip_left_set);
+    s11n::load(is, _fullscreen_flop_left);
+    s11n::load(is, _fullscreen_flop_left_set);
+    s11n::load(is, _fullscreen_flip_right);
+    s11n::load(is, _fullscreen_flip_right_set);
+    s11n::load(is, _fullscreen_flop_right);
+    s11n::load(is, _fullscreen_flop_right_set);
+    s11n::load(is, _contrast);
+    s11n::load(is, _contrast_set);
+    s11n::load(is, _brightness);
+    s11n::load(is, _brightness_set);
+    s11n::load(is, _hue);
+    s11n::load(is, _hue_set);
+    s11n::load(is, _saturation);
+    s11n::load(is, _saturation_set);
+    s11n::load(is, _zoom);
+    s11n::load(is, _zoom_set);
+    s11n::load(is, x); _loop_mode = static_cast<loop_mode_t>(x);
+    s11n::load(is, _loop_mode_set);
+    s11n::load(is, _audio_delay);
+    s11n::load(is, _audio_delay_set);
+    // Per-Video parameters
+    s11n::load(is, _video_stream);
+    s11n::load(is, _video_stream_set);
+    s11n::load(is, _audio_stream);
+    s11n::load(is, _audio_stream_set);
+    s11n::load(is, _subtitle_stream);
+    s11n::load(is, _subtitle_stream_set);
+    s11n::load(is, x); _stereo_layout = static_cast<stereo_layout_t>(x);
+    s11n::load(is, _stereo_layout_set);
+    s11n::load(is, _stereo_layout_swap);
+    s11n::load(is, _stereo_layout_swap_set);
+    s11n::load(is, _crop_aspect_ratio);
+    s11n::load(is, _crop_aspect_ratio_set);
+    s11n::load(is, _parallax);
+    s11n::load(is, _parallax_set);
+    s11n::load(is, _ghostbust);
+    s11n::load(is, _ghostbust_set);
+    s11n::load(is, _subtitle_encoding);
+    s11n::load(is, _subtitle_encoding_set);
+    s11n::load(is, _subtitle_font);
+    s11n::load(is, _subtitle_font_set);
+    s11n::load(is, _subtitle_size);
+    s11n::load(is, _subtitle_size_set);
+    s11n::load(is, _subtitle_scale);
+    s11n::load(is, _subtitle_scale_set);
+    s11n::load(is, _subtitle_color);
+    s11n::load(is, _subtitle_color_set);
+    s11n::load(is, _subtitle_parallax);
+    s11n::load(is, _subtitle_parallax_set);
+    // Volatile parameters
+    s11n::load(is, _fullscreen);
+    s11n::load(is, _fullscreen_set);
+    s11n::load(is, _center);
+    s11n::load(is, _center_set);
+    s11n::load(is, _audio_volume);
+    s11n::load(is, _audio_volume_set);
+    s11n::load(is, _audio_mute);
+    s11n::load(is, _audio_mute_set);
+}
+
+std::string parameters::save_session_parameters() const
+{
+    std::stringstream oss;
+    if (!audio_device_is_default())
+        s11n::save(oss, "audio_device", audio_device());
+    if (!stereo_mode_is_default() || !stereo_mode_swap_is_default())
+        s11n::save(oss, "stereo_mode", stereo_mode_to_string(stereo_mode(), stereo_mode_swap()));
+    if (!crosstalk_r_is_default())
+        s11n::save(oss, "crosstalk_r", crosstalk_r());
+    if (!crosstalk_g_is_default())
+        s11n::save(oss, "crosstalk_g", crosstalk_g());
+    if (!crosstalk_b_is_default())
+        s11n::save(oss, "crosstalk_b", crosstalk_b());
+    if (!fullscreen_screens_is_default())
+        s11n::save(oss, "fullscreen_screens", fullscreen_screens());
+    if (!fullscreen_flip_left_is_default())
+        s11n::save(oss, "fullscreen_flip_left", fullscreen_flip_left());
+    if (!fullscreen_flop_left_is_default())
+        s11n::save(oss, "fullscreen_flop_left", fullscreen_flop_left());
+    if (!fullscreen_flip_right_is_default())
+        s11n::save(oss, "fullscreen_flip_right", fullscreen_flip_right());
+    if (!fullscreen_flop_right_is_default())
+        s11n::save(oss, "fullscreen_flop_right", fullscreen_flop_right());
+    if (!contrast_is_default())
+        s11n::save(oss, "contrast", contrast());
+    if (!brightness_is_default())
+        s11n::save(oss, "brightness", brightness());
+    if (!hue_is_default())
+        s11n::save(oss, "hue", hue());
+    if (!saturation_is_default())
+        s11n::save(oss, "saturation", saturation());
+    if (!zoom_is_default())
+        s11n::save(oss, "zoom", zoom());
+    if (!loop_mode_is_default())
+        s11n::save(oss, "loop_mode", loop_mode_to_string(loop_mode()));
+    if (!audio_delay_is_default())
+        s11n::save(oss, "audio_delay", audio_delay());
+    return oss.str();
+}
+
+void parameters::load_session_parameters(const std::string &s)
+{
+    std::istringstream iss(s);
+    std::string name, value;
+    while (iss.good()) {
+        s11n::load(iss, name, value);
+        if (name == "audio_device") {
+            s11n::load(value, _audio_device);
+            _audio_device_set = true;
+        } else if (name == "stereo_mode") {
+            std::string s;
+            s11n::load(value, s);
+            stereo_mode_from_string(s, _stereo_mode, _stereo_mode_swap);
+            _stereo_mode_set = true;
+            _stereo_mode_swap_set = true;
+        } else if (name == "crosstalk_r") {
+            s11n::load(value, _crosstalk_r);
+            _crosstalk_r_set = true;
+        } else if (name == "crosstalk_g") {
+            s11n::load(value, _crosstalk_g);
+            _crosstalk_g_set = true;
+        } else if (name == "crosstalk_b") {
+            s11n::load(value, _crosstalk_b);
+            _crosstalk_b_set = true;
+        } else if (name == "fullscreen_screens") {
+            s11n::load(value, _fullscreen_screens);
+            _fullscreen_screens_set = true;
+        } else if (name == "fullscreen_flip_left") {
+            s11n::load(value, _fullscreen_flip_left);
+            _fullscreen_flip_left_set = true;
+        } else if (name == "fullscreen_flop_left") {
+            s11n::load(value, _fullscreen_flop_left);
+            _fullscreen_flop_left_set = true;
+        } else if (name == "fullscreen_flip_right") {
+            s11n::load(value, _fullscreen_flip_right);
+            _fullscreen_flip_right_set = true;
+        } else if (name == "fullscreen_flop_right") {
+            s11n::load(value, _fullscreen_flop_right);
+            _fullscreen_flop_right_set = true;
+        } else if (name == "contrast") {
+            s11n::load(value, _contrast);
+            _contrast_set = true;
+        } else if (name == "brightness") {
+            s11n::load(value, _brightness);
+            _brightness_set = true;
+        } else if (name == "hue") {
+            s11n::load(value, _hue);
+            _hue_set = true;
+        } else if (name == "saturation") {
+            s11n::load(value, _saturation);
+            _saturation_set = true;
+        } else if (name == "zoom") {
+            s11n::load(value, _zoom);
+            _zoom_set = true;
+        } else if (name == "loop_mode") {
+            std::string s;
+            s11n::load(value, s);
+            _loop_mode = loop_mode_from_string(s);
+            _loop_mode_set = true;
+        } else if (name == "audio_delay") {
+            s11n::load(value, _audio_delay);
+            _audio_delay_set = true;
+        }
+    }
+}
+
+void parameters::unset_video_parameters()
+{
+    unset_video_stream();
+    unset_audio_stream();
+    unset_subtitle_stream();
+    unset_stereo_layout();
+    unset_stereo_layout_swap();
+    unset_crop_aspect_ratio();
+    unset_parallax();
+    unset_ghostbust();
+    unset_subtitle_encoding();
+    unset_subtitle_font();
+    unset_subtitle_size();
+    unset_subtitle_scale();
+    unset_subtitle_color();
+    unset_subtitle_parallax();
+}
+
+std::string parameters::save_video_parameters() const
+{
+    std::stringstream oss;
+    if (!video_stream_is_default())
+        s11n::save(oss, "video_stream", _video_stream);
+    if (!audio_stream_is_default())
+        s11n::save(oss, "audio_stream", _audio_stream);
+    if (!subtitle_stream_is_default())
+        s11n::save(oss, "subtitle_stream", _subtitle_stream);
+    if (!stereo_layout_is_default() || !stereo_layout_swap_is_default())
+        s11n::save(oss, "stereo_layout", stereo_layout_to_string(stereo_layout(), stereo_layout_swap()));
+    if (!crop_aspect_ratio_is_default())
+        s11n::save(oss, "crop_aspect_ratio", _crop_aspect_ratio);
+    if (!parallax_is_default())
+        s11n::save(oss, "parallax", _parallax);
+    if (!ghostbust_is_default())
+        s11n::save(oss, "ghostbust", _ghostbust);
+    if (!subtitle_encoding_is_default())
+        s11n::save(oss, "subtitle_encoding", _subtitle_encoding);
+    if (!subtitle_font_is_default())
+        s11n::save(oss, "subtitle_font", _subtitle_font);
+    if (!subtitle_size_is_default())
+        s11n::save(oss, "subtitle_size", _subtitle_size);
+    if (!subtitle_scale_is_default())
+        s11n::save(oss, "subtitle_scale", _subtitle_scale);
+    if (!subtitle_color_is_default())
+        s11n::save(oss, "subtitle_color", _subtitle_color);
+    if (!subtitle_parallax_is_default())
+        s11n::save(oss, "subtitle_parallax", _subtitle_parallax);
+    return oss.str();
+}
+
+void parameters::load_video_parameters(const std::string &s)
+{
+    std::istringstream iss(s);
+    std::string name, value;
+    while (iss.good()) {
+        s11n::load(iss, name, value);
+        if (name == "video_stream") {
+            s11n::load(value, _video_stream);
+            _video_stream_set = true;
+        } else if (name == "audio_stream") {
+            s11n::load(value, _audio_stream);
+            _audio_stream_set = true;
+        } else if (name == "subtitle_stream") {
+            s11n::load(value, _subtitle_stream);
+            _subtitle_stream_set = true;
+        } else if (name == "stereo_layout") {
+            std::string s;
+            s11n::load(value, s);
+            stereo_layout_from_string(s, _stereo_layout, _stereo_layout_swap);
+            _stereo_layout_set = true;
+            _stereo_layout_swap_set = true;
+        } else if (name == "crop_aspect_ratio") {
+            s11n::load(value, _crop_aspect_ratio);
+            _crop_aspect_ratio_set = true;
+        } else if (name == "parallax") {
+            s11n::load(value, _parallax);
+            _parallax_set = true;
+        } else if (name == "ghostbust") {
+            s11n::load(value, _ghostbust);
+            _ghostbust_set = true;
+        } else if (name == "subtitle_encoding") {
+            s11n::load(value, _subtitle_encoding);
+            _subtitle_encoding_set = true;
+        } else if (name == "subtitle_font") {
+            s11n::load(value, _subtitle_font);
+            _subtitle_font_set = true;
+        } else if (name == "subtitle_size") {
+            s11n::load(value, _subtitle_size);
+            _subtitle_size_set = true;
+        } else if (name == "subtitle_scale") {
+            s11n::load(value, _subtitle_scale);
+            _subtitle_scale_set = true;
+        } else if (name == "subtitle_color") {
+            s11n::load(value, _subtitle_color);
+            _subtitle_color_set = true;
+        } else if (name == "subtitle_parallax") {
+            s11n::load(value, _subtitle_parallax);
+            _subtitle_parallax_set = true;
+        }
+    }
+}
+
+
 video_frame::video_frame() :
     raw_width(-1),
     raw_height(-1),
@@ -77,7 +806,7 @@ video_frame::video_frame() :
     color_space(srgb),
     value_range(u8_full),
     chroma_location(center),
-    stereo_layout(mono),
+    stereo_layout(parameters::layout_mono),
     stereo_layout_swap(false),
     presentation_time(std::numeric_limits<int64_t>::min())
 {
@@ -96,148 +825,30 @@ void video_frame::set_view_dimensions()
     width = raw_width;
     height = raw_height;
     aspect_ratio = raw_aspect_ratio;
-    if (stereo_layout == left_right)
+    if (stereo_layout == parameters::layout_left_right)
     {
         width /= 2;
         aspect_ratio /= 2.0f;
     }
-    else if (stereo_layout == left_right_half)
+    else if (stereo_layout == parameters::layout_left_right_half)
     {
         width /= 2;
     }
-    else if (stereo_layout == top_bottom)
+    else if (stereo_layout == parameters::layout_top_bottom)
     {
         height /= 2;
         aspect_ratio *= 2.0f;
     }
-    else if (stereo_layout == top_bottom_half)
+    else if (stereo_layout == parameters::layout_top_bottom_half)
     {
         height /= 2;
     }
-    else if (stereo_layout == even_odd_rows)
+    else if (stereo_layout == parameters::layout_even_odd_rows)
     {
         height /= 2;
         //aspect_ratio *= 2.0f;
         // The only video files I know of which use row-alternating format (those from stereopia.com)
         // do not want this adjustment of aspect ratio.
-    }
-}
-
-std::string video_frame::stereo_layout_to_string(stereo_layout_t stereo_layout, bool stereo_layout_swap)
-{
-    std::string s;
-    switch (stereo_layout)
-    {
-    case mono:
-        s = "mono";
-        break;
-    case separate:
-        s = stereo_layout_swap ? "separate-right-left" : "separate-left-right";
-        break;
-    case alternating:
-        s = stereo_layout_swap ? "alternating-right-left" : "alternating-left-right";
-        break;
-    case top_bottom:
-        s = stereo_layout_swap ? "bottom-top" : "top-bottom";
-        break;
-    case top_bottom_half:
-        s = stereo_layout_swap ? "bottom-top-half" : "top-bottom-half";
-        break;
-    case left_right:
-        s = stereo_layout_swap ? "right-left" : "left-right";
-        break;
-    case left_right_half:
-        s = stereo_layout_swap ? "right-left-half" : "left-right-half";
-        break;
-    case even_odd_rows:
-        s = stereo_layout_swap ? "odd-even-rows" : "even-odd-rows";
-        break;
-    }
-    return s;
-}
-
-void video_frame::stereo_layout_from_string(const std::string &s, stereo_layout_t &stereo_layout, bool &stereo_layout_swap)
-{
-    if (s == "mono")
-    {
-        stereo_layout = mono;
-        stereo_layout_swap = false;
-    }
-    else if (s == "separate-right-left")
-    {
-        stereo_layout = separate;
-        stereo_layout_swap = true;
-    }
-    else if (s == "separate-left-right")
-    {
-        stereo_layout = separate;
-        stereo_layout_swap = false;
-    }
-    else if (s == "alternating-right-left")
-    {
-        stereo_layout = alternating;
-        stereo_layout_swap = true;
-    }
-    else if (s == "alternating-left-right")
-    {
-        stereo_layout = alternating;
-        stereo_layout_swap = false;
-    }
-    else if (s == "bottom-top")
-    {
-        stereo_layout = top_bottom;
-        stereo_layout_swap = true;
-    }
-    else if (s == "top-bottom")
-    {
-        stereo_layout = top_bottom;
-        stereo_layout_swap = false;
-    }
-    else if (s == "bottom-top-half")
-    {
-        stereo_layout = top_bottom_half;
-        stereo_layout_swap = true;
-    }
-    else if (s == "top-bottom-half")
-    {
-        stereo_layout = top_bottom_half;
-        stereo_layout_swap = false;
-    }
-    else if (s == "right-left")
-    {
-        stereo_layout = left_right;
-        stereo_layout_swap = true;
-    }
-    else if (s == "left-right")
-    {
-        stereo_layout = left_right;
-        stereo_layout_swap = false;
-    }
-    else if (s == "right-left-half")
-    {
-        stereo_layout = left_right_half;
-        stereo_layout_swap = true;
-    }
-    else if (s == "left-right-half")
-    {
-        stereo_layout = left_right_half;
-        stereo_layout_swap = false;
-    }
-    else if (s == "odd-even-rows")
-    {
-        stereo_layout = even_odd_rows;
-        stereo_layout_swap = true;
-    }
-    else if (s == "even-odd-rows")
-    {
-        stereo_layout = even_odd_rows;
-        stereo_layout_swap = false;
-    }
-    else
-    {
-        // safe fallback
-        stereo_layout = mono;
-        stereo_layout_swap = false;
     }
 }
 
@@ -380,30 +991,30 @@ void video_frame::copy_plane(int view, int plane, void *buf) const
     }
     switch (stereo_layout)
     {
-    case mono:
+    case parameters::layout_mono:
         src = static_cast<const char *>(data[0][plane]);
         src_row_size = line_size[0][plane];
         src_offset = 0;
         break;
-    case separate:
-    case alternating:
+    case parameters::layout_separate:
+    case parameters::layout_alternating:
         src = static_cast<const char *>(data[view][plane]);
         src_row_size = line_size[view][plane];
         src_offset = 0;
         break;
-    case top_bottom:
-    case top_bottom_half:
+    case parameters::layout_top_bottom:
+    case parameters::layout_top_bottom_half:
         src = static_cast<const char *>(data[0][plane]);
         src_row_size = line_size[0][plane];
         src_offset = view * lines * src_row_size;
         break;
-    case left_right:
-    case left_right_half:
+    case parameters::layout_left_right:
+    case parameters::layout_left_right_half:
         src = static_cast<const char *>(data[0][plane]);
         src_row_size = line_size[0][plane];
         src_offset = view * dst_row_width;
         break;
-    case even_odd_rows:
+    case parameters::layout_even_odd_rows:
         src = static_cast<const char *>(data[0][plane]);
         src_row_size = 2 * line_size[0][plane];
         src_offset = view * line_size[0][plane];
@@ -574,532 +1185,4 @@ void subtitle_box::load(std::istream &is)
     s11n::load(is, images);
     s11n::load(is, presentation_start_time);
     s11n::load(is, presentation_stop_time);
-}
-
-parameters::parameters()
-{
-    // Per-Session parameters
-    _stereo_mode_set = false;
-    _stereo_mode_swap_set = false;
-    _crosstalk_r_set = false;
-    _crosstalk_g_set = false;
-    _crosstalk_b_set = false;
-    _fullscreen_screens_set = false;
-    _fullscreen_flip_left_set = false;
-    _fullscreen_flop_left_set = false;
-    _fullscreen_flip_right_set = false;
-    _fullscreen_flop_right_set = false;
-    _contrast_set = false;
-    _brightness_set = false;
-    _hue_set = false;
-    _saturation_set = false;
-    _zoom_set = false;
-    _loop_mode_set = false;
-    _audio_delay_set = false;
-    // Per-Video parameters
-    _crop_aspect_ratio_set = false;
-    _parallax_set = false;
-    _ghostbust_set = false;
-    _subtitle_encoding_set = false;
-    _subtitle_font_set = false;
-    _subtitle_size_set = false;
-    _subtitle_scale_set = false;
-    _subtitle_color_set = false;
-    _subtitle_parallax_set = false;
-    // Volatile parameters
-    _audio_volume_set = false;
-    _audio_mute_set = false;
-}
-
-// Per-Session parameter defaults
-const parameters::stereo_mode_t parameters::_stereo_mode_default = mono_left;
-const bool parameters::_stereo_mode_swap_default = false;
-const float parameters::_crosstalk_r_default = 0.0f;
-const float parameters::_crosstalk_g_default = 0.0f;
-const float parameters::_crosstalk_b_default = 0.0f;
-const int parameters::_fullscreen_screens_default = 0;
-const bool parameters::_fullscreen_flip_left_default = false;
-const bool parameters::_fullscreen_flop_left_default = false;
-const bool parameters::_fullscreen_flip_right_default = false;
-const bool parameters::_fullscreen_flop_right_default = false;
-const float parameters::_contrast_default = 0.0f;
-const float parameters::_brightness_default = 0.0f;
-const float parameters::_hue_default = 0.0f;
-const float parameters::_saturation_default = 0.0f;
-const float parameters::_zoom_default = 0.0f;
-const parameters::loop_mode_t parameters::_loop_mode_default = no_loop;
-const int64_t parameters::_audio_delay_default = 0;
-// Per-Video parameter defaults
-const float parameters::_crop_aspect_ratio_default = 0.0f;
-const float parameters::_parallax_default = 0.0f;
-const float parameters::_ghostbust_default = 0.0f;
-const std::string parameters::_subtitle_encoding_default = "";
-const std::string parameters::_subtitle_font_default = "";
-const int parameters::_subtitle_size_default = -1;
-const float parameters::_subtitle_scale_default = -1.0f;
-const uint64_t parameters::_subtitle_color_default = std::numeric_limits<uint64_t>::max();
-const float parameters::_subtitle_parallax_default = 0.0f;
-// Volatile parameter defaults
-const float parameters::_audio_volume_default = 1.0f;
-const bool parameters::_audio_mute_default = false;
-
-std::string parameters::stereo_mode_to_string(stereo_mode_t stereo_mode, bool stereo_mode_swap)
-{
-    std::string s;
-    switch (stereo_mode)
-    {
-    case stereo:
-        s = "stereo";
-        break;
-    case mono_left:
-        s = "mono-left";
-        break;
-    case mono_right:
-        s = "mono-right";
-        break;
-    case top_bottom:
-        s = "top-bottom";
-        break;
-    case top_bottom_half:
-        s = "top-bottom-half";
-        break;
-    case left_right:
-        s = "left-right";
-        break;
-    case left_right_half:
-        s = "left-right-half";
-        break;
-    case even_odd_rows:
-        s = "even-odd-rows";
-        break;
-    case even_odd_columns:
-        s = "even-odd-columns";
-        break;
-    case checkerboard:
-        s = "checkerboard";
-        break;
-    case hdmi_frame_pack:
-        s = "hdmi-frame-pack";
-        break;
-    case red_cyan_monochrome:
-        s = "red-cyan-monochrome";
-        break;
-    case red_cyan_half_color:
-        s = "red-cyan-half-color";
-        break;
-    case red_cyan_full_color:
-        s = "red-cyan-full-color";
-        break;
-    case red_cyan_dubois:
-        s = "red-cyan-dubois";
-        break;
-    case green_magenta_monochrome:
-        s = "green-magenta-monochrome";
-        break;
-    case green_magenta_half_color:
-        s = "green-magenta-half-color";
-        break;
-    case green_magenta_full_color:
-        s = "green-magenta-full-color";
-        break;
-    case green_magenta_dubois:
-        s = "green-magenta-dubois";
-        break;
-    case amber_blue_monochrome:
-        s = "amber-blue-monochrome";
-        break;
-    case amber_blue_half_color:
-        s = "amber-blue-half-color";
-        break;
-    case amber_blue_dubois:
-        s = "amber-blue-dubois";
-        break;
-    case amber_blue_full_color:
-        s = "amber-blue-full-color";
-        break;
-    case red_green_monochrome:
-        s = "red-green-monochrome";
-        break;
-    case red_blue_monochrome:
-        s = "red-blue-monochrome";
-        break;
-    }
-    if (stereo_mode_swap)
-    {
-        s += "-swap";
-    }
-    return s;
-}
-
-void parameters::stereo_mode_from_string(const std::string &s, stereo_mode_t &stereo_mode, bool &stereo_mode_swap)
-{
-    size_t x = s.find_last_of("-");
-    std::string t;
-    if (x != std::string::npos && s.substr(x) == "-swap") {
-        t = s.substr(0, x);
-        stereo_mode_swap = true;
-    } else {
-        t = s;
-        stereo_mode_swap = false;
-    } if (t == "stereo") {
-        stereo_mode = stereo;
-    } else if (t == "mono-left") {
-        stereo_mode = mono_left;
-    } else if (t == "mono-right") {
-        stereo_mode = mono_right;
-    } else if (t == "top-bottom") {
-        stereo_mode = top_bottom;
-    } else if (t == "top-bottom-half") {
-        stereo_mode = top_bottom_half;
-    } else if (t == "left-right") {
-        stereo_mode = left_right;
-    } else if (t == "left-right-half") {
-        stereo_mode = left_right_half;
-    } else if (t == "even-odd-rows") {
-        stereo_mode = even_odd_rows;
-    } else if (t == "even-odd-columns") {
-        stereo_mode = even_odd_columns;
-    } else if (t == "checkerboard") {
-        stereo_mode = checkerboard;
-    } else if (t == "hdmi-frame-pack") {
-        stereo_mode = hdmi_frame_pack;
-    } else if (t == "red-cyan-monochrome") {
-        stereo_mode = red_cyan_monochrome;
-    } else if (t == "red-cyan-half-color") {
-        stereo_mode = red_cyan_half_color;
-    } else if (t == "red-cyan-full-color") {
-        stereo_mode = red_cyan_full_color;
-    } else if (t == "red-cyan-dubois") {
-        stereo_mode = red_cyan_dubois;
-    } else if (t == "green-magenta-monochrome") {
-        stereo_mode = green_magenta_monochrome;
-    } else if (t == "green-magenta-half-color") {
-        stereo_mode = green_magenta_half_color;
-    } else if (t == "green-magenta-full-color") {
-        stereo_mode = green_magenta_full_color;
-    } else if (t == "green-magenta-dubois") {
-        stereo_mode = green_magenta_dubois;
-    } else if (t == "amber-blue-monochrome") {
-        stereo_mode = amber_blue_monochrome;
-    } else if (t == "amber-blue-half-color") {
-        stereo_mode = amber_blue_half_color;
-    } else if (t == "amber-blue-full-color") {
-        stereo_mode = amber_blue_full_color;
-    } else if (t == "amber-blue-dubois") {
-        stereo_mode = amber_blue_dubois;
-    } else if (t == "red-green-monochrome") {
-        stereo_mode = red_green_monochrome;
-    } else if (t == "red-blue-monochrome") {
-        stereo_mode = red_blue_monochrome;
-    } else {
-        // safe fallback
-        stereo_mode = mono_left;
-    }
-}
-
-std::string parameters::loop_mode_to_string(loop_mode_t loop_mode)
-{
-    if (loop_mode == loop_current) {
-        return "loop-current";
-    } else {
-        return "no-loop";
-    }
-}
-
-parameters::loop_mode_t parameters::loop_mode_from_string(const std::string &s)
-{
-    if (s == "loop-current") {
-        return loop_current;
-    } else {
-        return no_loop;
-    }
-}
-
-void parameters::save(std::ostream &os) const
-{
-    // Per-Session parameters
-    s11n::save(os, static_cast<int>(_stereo_mode));
-    s11n::save(os, _stereo_mode_set);
-    s11n::save(os, _stereo_mode_swap);
-    s11n::save(os, _stereo_mode_swap_set);
-    s11n::save(os, _crosstalk_r);
-    s11n::save(os, _crosstalk_r_set);
-    s11n::save(os, _crosstalk_g);
-    s11n::save(os, _crosstalk_g_set);
-    s11n::save(os, _crosstalk_b);
-    s11n::save(os, _crosstalk_b_set);
-    s11n::save(os, _fullscreen_screens);
-    s11n::save(os, _fullscreen_screens_set);
-    s11n::save(os, _fullscreen_flip_left);
-    s11n::save(os, _fullscreen_flip_left_set);
-    s11n::save(os, _fullscreen_flop_left);
-    s11n::save(os, _fullscreen_flop_left_set);
-    s11n::save(os, _fullscreen_flip_right);
-    s11n::save(os, _fullscreen_flip_right_set);
-    s11n::save(os, _fullscreen_flop_right);
-    s11n::save(os, _fullscreen_flop_right_set);
-    s11n::save(os, _contrast);
-    s11n::save(os, _contrast_set);
-    s11n::save(os, _brightness);
-    s11n::save(os, _brightness_set);
-    s11n::save(os, _hue);
-    s11n::save(os, _hue_set);
-    s11n::save(os, _saturation);
-    s11n::save(os, _saturation_set);
-    s11n::save(os, _zoom);
-    s11n::save(os, _zoom_set);
-    s11n::save(os, static_cast<int>(_loop_mode));
-    s11n::save(os, _loop_mode_set);
-    s11n::save(os, _audio_delay);
-    s11n::save(os, _audio_delay_set);
-    // Per-Video parameters
-    s11n::save(os, _crop_aspect_ratio);
-    s11n::save(os, _crop_aspect_ratio_set);
-    s11n::save(os, _parallax);
-    s11n::save(os, _parallax_set);
-    s11n::save(os, _ghostbust);
-    s11n::save(os, _ghostbust_set);
-    s11n::save(os, _subtitle_encoding);
-    s11n::save(os, _subtitle_encoding_set);
-    s11n::save(os, _subtitle_font);
-    s11n::save(os, _subtitle_font_set);
-    s11n::save(os, _subtitle_size);
-    s11n::save(os, _subtitle_size_set);
-    s11n::save(os, _subtitle_scale);
-    s11n::save(os, _subtitle_scale_set);
-    s11n::save(os, _subtitle_color);
-    s11n::save(os, _subtitle_color_set);
-    s11n::save(os, _subtitle_parallax);
-    s11n::save(os, _subtitle_parallax_set);
-    // Volatile parameters
-    s11n::save(os, _audio_volume);
-    s11n::save(os, _audio_volume_set);
-    s11n::save(os, _audio_mute);
-    s11n::save(os, _audio_mute_set);
-}
-
-void parameters::load(std::istream &is)
-{
-    int x;
-    // Per-Session parameters
-    s11n::load(is, x); _stereo_mode = static_cast<stereo_mode_t>(x);
-    s11n::load(is, _stereo_mode_set);
-    s11n::load(is, _stereo_mode_swap);
-    s11n::load(is, _stereo_mode_swap_set);
-    s11n::load(is, _crosstalk_r);
-    s11n::load(is, _crosstalk_r_set);
-    s11n::load(is, _crosstalk_g);
-    s11n::load(is, _crosstalk_g_set);
-    s11n::load(is, _crosstalk_b);
-    s11n::load(is, _crosstalk_b_set);
-    s11n::load(is, _fullscreen_screens);
-    s11n::load(is, _fullscreen_screens_set);
-    s11n::load(is, _fullscreen_flip_left);
-    s11n::load(is, _fullscreen_flip_left_set);
-    s11n::load(is, _fullscreen_flop_left);
-    s11n::load(is, _fullscreen_flop_left_set);
-    s11n::load(is, _fullscreen_flip_right);
-    s11n::load(is, _fullscreen_flip_right_set);
-    s11n::load(is, _fullscreen_flop_right);
-    s11n::load(is, _fullscreen_flop_right_set);
-    s11n::load(is, _contrast);
-    s11n::load(is, _contrast_set);
-    s11n::load(is, _brightness);
-    s11n::load(is, _brightness_set);
-    s11n::load(is, _hue);
-    s11n::load(is, _hue_set);
-    s11n::load(is, _saturation);
-    s11n::load(is, _saturation_set);
-    s11n::load(is, _zoom);
-    s11n::load(is, _zoom_set);
-    s11n::load(is, x); _loop_mode = static_cast<loop_mode_t>(x);
-    s11n::load(is, _loop_mode_set);
-    s11n::load(is, _audio_delay);
-    s11n::load(is, _audio_delay_set);
-    // Per-Video parameters
-    s11n::load(is, _crop_aspect_ratio);
-    s11n::load(is, _crop_aspect_ratio_set);
-    s11n::load(is, _parallax);
-    s11n::load(is, _parallax_set);
-    s11n::load(is, _ghostbust);
-    s11n::load(is, _ghostbust_set);
-    s11n::load(is, _subtitle_encoding);
-    s11n::load(is, _subtitle_encoding_set);
-    s11n::load(is, _subtitle_font);
-    s11n::load(is, _subtitle_font_set);
-    s11n::load(is, _subtitle_size);
-    s11n::load(is, _subtitle_size_set);
-    s11n::load(is, _subtitle_scale);
-    s11n::load(is, _subtitle_scale_set);
-    s11n::load(is, _subtitle_color);
-    s11n::load(is, _subtitle_color_set);
-    s11n::load(is, _subtitle_parallax);
-    s11n::load(is, _subtitle_parallax_set);
-    // Volatile parameters
-    s11n::load(is, _audio_volume);
-    s11n::load(is, _audio_volume_set);
-    s11n::load(is, _audio_mute);
-    s11n::load(is, _audio_mute_set);
-}
-
-std::string parameters::save_session_parameters() const
-{
-    std::stringstream oss;
-    if (!stereo_mode_is_default() || !stereo_mode_swap_is_default())
-        s11n::save(oss, "stereo_mode", stereo_mode_to_string(stereo_mode(), stereo_mode_swap()));
-    if (!crosstalk_r_is_default())
-        s11n::save(oss, "crosstalk_r", crosstalk_r());
-    if (!crosstalk_g_is_default())
-        s11n::save(oss, "crosstalk_g", crosstalk_g());
-    if (!crosstalk_b_is_default())
-        s11n::save(oss, "crosstalk_b", crosstalk_b());
-    if (!fullscreen_screens_is_default())
-        s11n::save(oss, "fullscreen_screens", fullscreen_screens());
-    if (!fullscreen_flip_left_is_default())
-        s11n::save(oss, "fullscreen_flip_left", fullscreen_flip_left());
-    if (!fullscreen_flop_left_is_default())
-        s11n::save(oss, "fullscreen_flop_left", fullscreen_flop_left());
-    if (!fullscreen_flip_right_is_default())
-        s11n::save(oss, "fullscreen_flip_right", fullscreen_flip_right());
-    if (!fullscreen_flop_right_is_default())
-        s11n::save(oss, "fullscreen_flop_right", fullscreen_flop_right());
-    if (!contrast_is_default())
-        s11n::save(oss, "contrast", contrast());
-    if (!brightness_is_default())
-        s11n::save(oss, "brightness", brightness());
-    if (!hue_is_default())
-        s11n::save(oss, "hue", hue());
-    if (!saturation_is_default())
-        s11n::save(oss, "saturation", saturation());
-    if (!zoom_is_default())
-        s11n::save(oss, "zoom", zoom());
-    if (!loop_mode_is_default())
-        s11n::save(oss, "loop_mode", loop_mode_to_string(loop_mode()));
-    if (!audio_delay_is_default())
-        s11n::save(oss, "audio_delay", audio_delay());
-    return oss.str();
-}
-
-void parameters::load_session_parameters(const std::string &s)
-{
-    std::istringstream iss(s);
-    std::string name, value;
-    while (iss.good()) {
-        s11n::load(iss, name, value);
-        if (name == "stereo_mode") {
-            std::string s;
-            s11n::load(value, s);
-            stereo_mode_from_string(s, _stereo_mode, _stereo_mode_swap);
-            _stereo_mode_set = true;
-            _stereo_mode_swap_set = true;
-        } else if (name == "crosstalk_r") {
-            s11n::load(value, _crosstalk_r);
-            _crosstalk_r_set = true;
-        } else if (name == "crosstalk_g") {
-            s11n::load(value, _crosstalk_g);
-            _crosstalk_g_set = true;
-        } else if (name == "crosstalk_b") {
-            s11n::load(value, _crosstalk_b);
-            _crosstalk_b_set = true;
-        } else if (name == "fullscreen_screens") {
-            s11n::load(value, _fullscreen_screens);
-            _fullscreen_screens_set = true;
-        } else if (name == "fullscreen_flip_left") {
-            s11n::load(value, _fullscreen_flip_left);
-            _fullscreen_flip_left_set = true;
-        } else if (name == "fullscreen_flop_left") {
-            s11n::load(value, _fullscreen_flop_left);
-            _fullscreen_flop_left_set = true;
-        } else if (name == "fullscreen_flip_right") {
-            s11n::load(value, _fullscreen_flip_right);
-            _fullscreen_flip_right_set = true;
-        } else if (name == "fullscreen_flop_right") {
-            s11n::load(value, _fullscreen_flop_right);
-            _fullscreen_flop_right_set = true;
-        } else if (name == "contrast") {
-            s11n::load(value, _contrast);
-            _contrast_set = true;
-        } else if (name == "brightness") {
-            s11n::load(value, _brightness);
-            _brightness_set = true;
-        } else if (name == "hue") {
-            s11n::load(value, _hue);
-            _hue_set = true;
-        } else if (name == "saturation") {
-            s11n::load(value, _saturation);
-            _saturation_set = true;
-        } else if (name == "zoom") {
-            s11n::load(value, _zoom);
-            _zoom_set = true;
-        } else if (name == "loop_mode") {
-            std::string s;
-            s11n::load(value, s);
-            _loop_mode = loop_mode_from_string(s);
-            _loop_mode_set = true;
-        } else if (name == "audio_delay") {
-            s11n::load(value, _audio_delay);
-            _audio_delay_set = true;
-        }
-    }
-}
-
-std::string parameters::save_video_parameters() const
-{
-    std::stringstream oss;
-    if (!crop_aspect_ratio_is_default())
-        s11n::save(oss, "crop_aspect_ratio", _crop_aspect_ratio);
-    if (!parallax_is_default())
-        s11n::save(oss, "parallax", _parallax);
-    if (!ghostbust_is_default())
-        s11n::save(oss, "ghostbust", _ghostbust);
-    if (!subtitle_encoding_is_default())
-        s11n::save(oss, "subtitle_encoding", _subtitle_encoding);
-    if (!subtitle_font_is_default())
-        s11n::save(oss, "subtitle_font", _subtitle_font);
-    if (!subtitle_size_is_default())
-        s11n::save(oss, "subtitle_size", _subtitle_size);
-    if (!subtitle_scale_is_default())
-        s11n::save(oss, "subtitle_scale", _subtitle_scale);
-    if (!subtitle_color_is_default())
-        s11n::save(oss, "subtitle_color", _subtitle_color);
-    if (!subtitle_parallax_is_default())
-        s11n::save(oss, "subtitle_parallax", _subtitle_parallax);
-    return oss.str();
-}
-
-void parameters::load_video_parameters(const std::string &s)
-{
-    std::istringstream iss(s);
-    std::string name, value;
-    while (iss.good()) {
-        s11n::load(iss, name, value);
-        if (name == "crop_aspect_ratio") {
-            s11n::load(value, _crop_aspect_ratio);
-            _crop_aspect_ratio_set = true;
-        } else if (name == "parallax") {
-            s11n::load(value, _parallax);
-            _parallax_set = true;
-        } else if (name == "ghostbust") {
-            s11n::load(value, _ghostbust);
-            _ghostbust_set = true;
-        } else if (name == "subtitle_encoding") {
-            s11n::load(value, _subtitle_encoding);
-            _subtitle_encoding_set = true;
-        } else if (name == "subtitle_font") {
-            s11n::load(value, _subtitle_font);
-            _subtitle_font_set = true;
-        } else if (name == "subtitle_size") {
-            s11n::load(value, _subtitle_size);
-            _subtitle_size_set = true;
-        } else if (name == "subtitle_scale") {
-            s11n::load(value, _subtitle_scale);
-            _subtitle_scale_set = true;
-        } else if (name == "subtitle_color") {
-            s11n::load(value, _subtitle_color);
-            _subtitle_color_set = true;
-        } else if (name == "subtitle_parallax") {
-            s11n::load(value, _subtitle_parallax);
-            _subtitle_parallax_set = true;
-        }
-    }
 }
