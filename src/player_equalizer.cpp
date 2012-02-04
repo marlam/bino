@@ -544,8 +544,8 @@ public:
             if (frame_template.aspect_ratio >= canvas_aspect_ratio)
             {
                 // need black borders top and bottom
-                float zoom_src_ar = _eq_frame_data.params.zoom * canvas_aspect_ratio
-                    + (1.0f - _eq_frame_data.params.zoom) * frame_template.aspect_ratio;
+                float zoom_src_ar = _eq_frame_data.params.zoom() * canvas_aspect_ratio
+                    + (1.0f - _eq_frame_data.params.zoom()) * frame_template.aspect_ratio;
                 _eq_frame_data.canvas_video_area.w = 1.0f;
                 _eq_frame_data.canvas_video_area.h = canvas_aspect_ratio / zoom_src_ar;
                 _eq_frame_data.canvas_video_area.x = (1.0f - _eq_frame_data.canvas_video_area.w) / 2.0f;

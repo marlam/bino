@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -441,12 +441,12 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
                 || (!subtitle.is_constant() && frame.presentation_time != _input_subtitle_time[index])
                 || width != _input_subtitle_width[index]
                 || height != _input_subtitle_height[index]
-                || params.subtitle_encoding != _input_subtitle_params.subtitle_encoding
-                || params.subtitle_font != _input_subtitle_params.subtitle_font
-                || params.subtitle_size != _input_subtitle_params.subtitle_size
-                || (params.subtitle_scale < _input_subtitle_params.subtitle_scale
-                    || params.subtitle_scale > _input_subtitle_params.subtitle_scale)
-                || params.subtitle_color != _input_subtitle_params.subtitle_color))
+                || params.subtitle_encoding() != _input_subtitle_params.subtitle_encoding()
+                || params.subtitle_font() != _input_subtitle_params.subtitle_font()
+                || params.subtitle_size() != _input_subtitle_params.subtitle_size()
+                || (params.subtitle_scale() < _input_subtitle_params.subtitle_scale()
+                    || params.subtitle_scale() > _input_subtitle_params.subtitle_scale())
+                || params.subtitle_color() != _input_subtitle_params.subtitle_color()))
     {
         // We have a new subtitle or a new video display size or new parameters,
         // therefore we need to render the subtitle into _input_subtitle_tex.
@@ -665,23 +665,23 @@ void video_output::render_init()
 {
     assert(xgl::CheckError(HERE));
     std::string mode_str = (
-            _params.stereo_mode == parameters::even_odd_rows ? "mode_even_odd_rows"
-            : _params.stereo_mode == parameters::even_odd_columns ? "mode_even_odd_columns"
-            : _params.stereo_mode == parameters::checkerboard ? "mode_checkerboard"
-            : _params.stereo_mode == parameters::red_cyan_monochrome ? "mode_red_cyan_monochrome"
-            : _params.stereo_mode == parameters::red_cyan_half_color ? "mode_red_cyan_half_color"
-            : _params.stereo_mode == parameters::red_cyan_full_color ? "mode_red_cyan_full_color"
-            : _params.stereo_mode == parameters::red_cyan_dubois ? "mode_red_cyan_dubois"
-            : _params.stereo_mode == parameters::green_magenta_monochrome ? "mode_green_magenta_monochrome"
-            : _params.stereo_mode == parameters::green_magenta_half_color ? "mode_green_magenta_half_color"
-            : _params.stereo_mode == parameters::green_magenta_full_color ? "mode_green_magenta_full_color"
-            : _params.stereo_mode == parameters::green_magenta_dubois ? "mode_green_magenta_dubois"
-            : _params.stereo_mode == parameters::amber_blue_monochrome ? "mode_amber_blue_monochrome"
-            : _params.stereo_mode == parameters::amber_blue_half_color ? "mode_amber_blue_half_color"
-            : _params.stereo_mode == parameters::amber_blue_full_color ? "mode_amber_blue_full_color"
-            : _params.stereo_mode == parameters::amber_blue_dubois ? "mode_amber_blue_dubois"
-            : _params.stereo_mode == parameters::red_green_monochrome ? "mode_red_green_monochrome"
-            : _params.stereo_mode == parameters::red_blue_monochrome ? "mode_red_blue_monochrome"
+            _params.stereo_mode() == parameters::even_odd_rows ? "mode_even_odd_rows"
+            : _params.stereo_mode() == parameters::even_odd_columns ? "mode_even_odd_columns"
+            : _params.stereo_mode() == parameters::checkerboard ? "mode_checkerboard"
+            : _params.stereo_mode() == parameters::red_cyan_monochrome ? "mode_red_cyan_monochrome"
+            : _params.stereo_mode() == parameters::red_cyan_half_color ? "mode_red_cyan_half_color"
+            : _params.stereo_mode() == parameters::red_cyan_full_color ? "mode_red_cyan_full_color"
+            : _params.stereo_mode() == parameters::red_cyan_dubois ? "mode_red_cyan_dubois"
+            : _params.stereo_mode() == parameters::green_magenta_monochrome ? "mode_green_magenta_monochrome"
+            : _params.stereo_mode() == parameters::green_magenta_half_color ? "mode_green_magenta_half_color"
+            : _params.stereo_mode() == parameters::green_magenta_full_color ? "mode_green_magenta_full_color"
+            : _params.stereo_mode() == parameters::green_magenta_dubois ? "mode_green_magenta_dubois"
+            : _params.stereo_mode() == parameters::amber_blue_monochrome ? "mode_amber_blue_monochrome"
+            : _params.stereo_mode() == parameters::amber_blue_half_color ? "mode_amber_blue_half_color"
+            : _params.stereo_mode() == parameters::amber_blue_full_color ? "mode_amber_blue_full_color"
+            : _params.stereo_mode() == parameters::amber_blue_dubois ? "mode_amber_blue_dubois"
+            : _params.stereo_mode() == parameters::red_green_monochrome ? "mode_red_green_monochrome"
+            : _params.stereo_mode() == parameters::red_blue_monochrome ? "mode_red_blue_monochrome"
             : "mode_onechannel");
     std::string render_fs_src(VIDEO_OUTPUT_RENDER_FS_GLSL_STR);
     str::replace(render_fs_src, "$mode", mode_str);
@@ -698,9 +698,9 @@ void video_output::render_init()
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0,
             GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, &dummy_texture);
-    if (_params.stereo_mode == parameters::even_odd_rows
-            || _params.stereo_mode == parameters::even_odd_columns
-            || _params.stereo_mode == parameters::checkerboard)
+    if (_params.stereo_mode() == parameters::even_odd_rows
+            || _params.stereo_mode() == parameters::even_odd_columns
+            || _params.stereo_mode() == parameters::checkerboard)
     {
         GLubyte even_odd_rows_mask[4] = { 0xff, 0xff, 0x00, 0x00 };
         GLubyte even_odd_columns_mask[4] = { 0xff, 0x00, 0xff, 0x00 };
@@ -714,8 +714,8 @@ void video_output::render_init()
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, 2, 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE,
-                _params.stereo_mode == parameters::even_odd_rows ? even_odd_rows_mask
-                : _params.stereo_mode == parameters::even_odd_columns ? even_odd_columns_mask
+                _params.stereo_mode() == parameters::even_odd_rows ? even_odd_rows_mask
+                : _params.stereo_mode() == parameters::even_odd_columns ? even_odd_columns_mask
                 : checkerboard_mask);
     }
     assert(xgl::CheckError(HERE));
@@ -745,7 +745,7 @@ void video_output::render_deinit()
 
 bool video_output::render_is_compatible()
 {
-    return (_render_last_params.stereo_mode == _params.stereo_mode);
+    return (_render_last_params.stereo_mode() == _params.stereo_mode());
 }
 
 void video_output::activate_next_frame()
@@ -757,7 +757,7 @@ void video_output::activate_next_frame()
 void video_output::set_parameters(const parameters &params)
 {
     _params = params;
-    bool context_needs_stereo = (_params.stereo_mode == parameters::stereo);
+    bool context_needs_stereo = (_params.stereo_mode() == parameters::stereo);
     if (context_needs_stereo != context_is_stereo())
     {
         recreate_context(context_needs_stereo);
@@ -824,11 +824,11 @@ void video_output::display_current_frame(
                 || frame.height != _color_last_frame.height
                 || frame.aspect_ratio < _color_last_frame.aspect_ratio
                 || frame.aspect_ratio > _color_last_frame.aspect_ratio
-                || _render_last_params.stereo_mode != _params.stereo_mode
-                || _render_last_params.crop_aspect_ratio < _params.crop_aspect_ratio
-                || _render_last_params.crop_aspect_ratio > _params.crop_aspect_ratio
-                || _render_last_params.zoom < _params.zoom
-                || _render_last_params.zoom > _params.zoom))
+                || _render_last_params.stereo_mode() != _params.stereo_mode()
+                || _render_last_params.crop_aspect_ratio() < _params.crop_aspect_ratio()
+                || _render_last_params.crop_aspect_ratio() > _params.crop_aspect_ratio()
+                || _render_last_params.zoom() < _params.zoom()
+                || _render_last_params.zoom() > _params.zoom()))
     {
         reshape(width(), height());
     }
@@ -849,18 +849,18 @@ void video_output::display_current_frame(
 
     int left = 0;
     int right = (frame.stereo_layout == video_frame::mono ? 0 : 1);
-    if (_params.stereo_mode_swap)
+    if (_params.stereo_mode_swap())
     {
         std::swap(left, right);
     }
-    if ((_params.stereo_mode == parameters::even_odd_rows
-                || _params.stereo_mode == parameters::checkerboard)
+    if ((_params.stereo_mode() == parameters::even_odd_rows
+                || _params.stereo_mode() == parameters::checkerboard)
             && (pos_y() + viewport[0][1]) % 2 == 0)
     {
         std::swap(left, right);
     }
-    if ((_params.stereo_mode == parameters::even_odd_columns
-                || _params.stereo_mode == parameters::checkerboard)
+    if ((_params.stereo_mode() == parameters::even_odd_columns
+                || _params.stereo_mode() == parameters::checkerboard)
             && (pos_x() + viewport[0][0]) % 2 == 1)
     {
         std::swap(left, right);
@@ -893,11 +893,11 @@ void video_output::display_current_frame(
         glUniform1i(glGetUniformLocation(_color_prg, "u_tex"), 1);
         glUniform1i(glGetUniformLocation(_color_prg, "v_tex"), 2);
     }
-    glUniform1f(glGetUniformLocation(_color_prg, "contrast"), _params.contrast);
-    glUniform1f(glGetUniformLocation(_color_prg, "brightness"), _params.brightness);
-    glUniform1f(glGetUniformLocation(_color_prg, "saturation"), _params.saturation);
-    glUniform1f(glGetUniformLocation(_color_prg, "cos_hue"), std::cos(_params.hue * M_PI));
-    glUniform1f(glGetUniformLocation(_color_prg, "sin_hue"), std::sin(_params.hue * M_PI));
+    glUniform1f(glGetUniformLocation(_color_prg, "contrast"), _params.contrast());
+    glUniform1f(glGetUniformLocation(_color_prg, "brightness"), _params.brightness());
+    glUniform1f(glGetUniformLocation(_color_prg, "saturation"), _params.saturation());
+    glUniform1f(glGetUniformLocation(_color_prg, "cos_hue"), std::cos(_params.hue() * M_PI));
+    glUniform1f(glGetUniformLocation(_color_prg, "sin_hue"), std::sin(_params.hue() * M_PI));
     GLint framebuffer_bak;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &framebuffer_bak);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _color_fbo);
@@ -963,28 +963,28 @@ void video_output::display_current_frame(
     std::memcpy(my_tex_coords, tex_coords, sizeof(my_tex_coords));
     if (fullscreen())
     {
-        if (_params.fullscreen_flip_left)
+        if (_params.fullscreen_flip_left())
         {
             std::swap(my_tex_coords[0][0][0], my_tex_coords[0][3][0]);
             std::swap(my_tex_coords[0][0][1], my_tex_coords[0][3][1]);
             std::swap(my_tex_coords[0][1][0], my_tex_coords[0][2][0]);
             std::swap(my_tex_coords[0][1][1], my_tex_coords[0][2][1]);
         }
-        if (_params.fullscreen_flop_left)
+        if (_params.fullscreen_flop_left())
         {
             std::swap(my_tex_coords[0][0][0], my_tex_coords[0][1][0]);
             std::swap(my_tex_coords[0][0][1], my_tex_coords[0][1][1]);
             std::swap(my_tex_coords[0][3][0], my_tex_coords[0][2][0]);
             std::swap(my_tex_coords[0][3][1], my_tex_coords[0][2][1]);
         }
-        if (_params.fullscreen_flip_right)
+        if (_params.fullscreen_flip_right())
         {
             std::swap(my_tex_coords[1][0][0], my_tex_coords[1][3][0]);
             std::swap(my_tex_coords[1][0][1], my_tex_coords[1][3][1]);
             std::swap(my_tex_coords[1][1][0], my_tex_coords[1][2][0]);
             std::swap(my_tex_coords[1][1][1], my_tex_coords[1][2][1]);
         }
-        if (_params.fullscreen_flop_right)
+        if (_params.fullscreen_flop_right())
         {
             std::swap(my_tex_coords[1][0][0], my_tex_coords[1][1][0]);
             std::swap(my_tex_coords[1][0][1], my_tex_coords[1][1][1]);
@@ -1012,39 +1012,39 @@ void video_output::display_current_frame(
                 ? _input_subtitle_tex[_active_index] : _render_dummy_tex));
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_l"), left);
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_r"), right);
-    glUniform1f(glGetUniformLocation(_render_prg, "parallax"), _params.parallax * 0.05f);
+    glUniform1f(glGetUniformLocation(_render_prg, "parallax"), _params.parallax() * 0.05f);
     glUniform1i(glGetUniformLocation(_render_prg, "subtitle"), 2);
-    glUniform1f(glGetUniformLocation(_render_prg, "subtitle_parallax"), _params.subtitle_parallax * 0.05f);
-    if (_params.stereo_mode != parameters::red_green_monochrome
-            && _params.stereo_mode != parameters::red_cyan_half_color
-            && _params.stereo_mode != parameters::red_cyan_full_color
-            && _params.stereo_mode != parameters::red_cyan_dubois
-            && _params.stereo_mode != parameters::green_magenta_monochrome
-            && _params.stereo_mode != parameters::green_magenta_half_color
-            && _params.stereo_mode != parameters::green_magenta_full_color
-            && _params.stereo_mode != parameters::green_magenta_dubois
-            && _params.stereo_mode != parameters::amber_blue_monochrome
-            && _params.stereo_mode != parameters::amber_blue_half_color
-            && _params.stereo_mode != parameters::amber_blue_full_color
-            && _params.stereo_mode != parameters::amber_blue_dubois
-            && _params.stereo_mode != parameters::red_blue_monochrome
-            && _params.stereo_mode != parameters::red_cyan_monochrome)
+    glUniform1f(glGetUniformLocation(_render_prg, "subtitle_parallax"), _params.subtitle_parallax() * 0.05f);
+    if (_params.stereo_mode() != parameters::red_green_monochrome
+            && _params.stereo_mode() != parameters::red_cyan_half_color
+            && _params.stereo_mode() != parameters::red_cyan_full_color
+            && _params.stereo_mode() != parameters::red_cyan_dubois
+            && _params.stereo_mode() != parameters::green_magenta_monochrome
+            && _params.stereo_mode() != parameters::green_magenta_half_color
+            && _params.stereo_mode() != parameters::green_magenta_full_color
+            && _params.stereo_mode() != parameters::green_magenta_dubois
+            && _params.stereo_mode() != parameters::amber_blue_monochrome
+            && _params.stereo_mode() != parameters::amber_blue_half_color
+            && _params.stereo_mode() != parameters::amber_blue_full_color
+            && _params.stereo_mode() != parameters::amber_blue_dubois
+            && _params.stereo_mode() != parameters::red_blue_monochrome
+            && _params.stereo_mode() != parameters::red_cyan_monochrome)
     {
         glUniform3f(glGetUniformLocation(_render_prg, "crosstalk"),
-                _params.crosstalk_r * _params.ghostbust,
-                _params.crosstalk_g * _params.ghostbust,
-                _params.crosstalk_b * _params.ghostbust);
+                _params.crosstalk_r() * _params.ghostbust(),
+                _params.crosstalk_g() * _params.ghostbust(),
+                _params.crosstalk_b() * _params.ghostbust());
     }
-    if (_params.stereo_mode == parameters::even_odd_rows
-            || _params.stereo_mode == parameters::even_odd_columns
-            || _params.stereo_mode == parameters::checkerboard)
+    if (_params.stereo_mode() == parameters::even_odd_rows
+            || _params.stereo_mode() == parameters::even_odd_columns
+            || _params.stereo_mode() == parameters::checkerboard)
     {
         glUniform1i(glGetUniformLocation(_render_prg, "mask_tex"), 3);
         glUniform1f(glGetUniformLocation(_render_prg, "step_x"), 1.0f / static_cast<float>(viewport[0][2]));
         glUniform1f(glGetUniformLocation(_render_prg, "step_y"), 1.0f / static_cast<float>(viewport[0][3]));
     }
 
-    if (_params.stereo_mode == parameters::stereo)
+    if (_params.stereo_mode() == parameters::stereo)
     {
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
         glDrawBuffer(GL_BACK_LEFT);
@@ -1053,9 +1053,9 @@ void video_output::display_current_frame(
         glDrawBuffer(GL_BACK_RIGHT);
         draw_quad(x, y, w, h, my_tex_coords);
     }
-    else if (_params.stereo_mode == parameters::even_odd_rows
-            || _params.stereo_mode == parameters::even_odd_columns
-            || _params.stereo_mode == parameters::checkerboard)
+    else if (_params.stereo_mode() == parameters::even_odd_rows
+            || _params.stereo_mode() == parameters::even_odd_columns
+            || _params.stereo_mode() == parameters::checkerboard)
     {
         float vpw = static_cast<float>(viewport[0][2]);
         float vph = static_cast<float>(viewport[0][3]);
@@ -1067,40 +1067,40 @@ void video_output::display_current_frame(
         glBindTexture(GL_TEXTURE_2D, _render_mask_tex);
         draw_quad(x, y, w, h, my_tex_coords, more_tex_coords);
     }
-    else if (_params.stereo_mode == parameters::red_cyan_monochrome
-            || _params.stereo_mode == parameters::red_cyan_half_color
-            || _params.stereo_mode == parameters::red_cyan_full_color
-            || _params.stereo_mode == parameters::red_cyan_dubois
-            || _params.stereo_mode == parameters::green_magenta_monochrome
-            || _params.stereo_mode == parameters::green_magenta_half_color
-            || _params.stereo_mode == parameters::green_magenta_full_color
-            || _params.stereo_mode == parameters::green_magenta_dubois
-            || _params.stereo_mode == parameters::amber_blue_monochrome
-            || _params.stereo_mode == parameters::amber_blue_half_color
-            || _params.stereo_mode == parameters::amber_blue_full_color
-            || _params.stereo_mode == parameters::amber_blue_dubois
-            || _params.stereo_mode == parameters::red_green_monochrome
-            || _params.stereo_mode == parameters::red_blue_monochrome)
+    else if (_params.stereo_mode() == parameters::red_cyan_monochrome
+            || _params.stereo_mode() == parameters::red_cyan_half_color
+            || _params.stereo_mode() == parameters::red_cyan_full_color
+            || _params.stereo_mode() == parameters::red_cyan_dubois
+            || _params.stereo_mode() == parameters::green_magenta_monochrome
+            || _params.stereo_mode() == parameters::green_magenta_half_color
+            || _params.stereo_mode() == parameters::green_magenta_full_color
+            || _params.stereo_mode() == parameters::green_magenta_dubois
+            || _params.stereo_mode() == parameters::amber_blue_monochrome
+            || _params.stereo_mode() == parameters::amber_blue_half_color
+            || _params.stereo_mode() == parameters::amber_blue_full_color
+            || _params.stereo_mode() == parameters::amber_blue_dubois
+            || _params.stereo_mode() == parameters::red_green_monochrome
+            || _params.stereo_mode() == parameters::red_blue_monochrome)
     {
         draw_quad(x, y, w, h, my_tex_coords);
     }
-    else if (_params.stereo_mode == parameters::mono_left
+    else if (_params.stereo_mode() == parameters::mono_left
             && !mono_right_instead_of_left)
     {
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
         draw_quad(x, y, w, h, my_tex_coords);
     }
-    else if (_params.stereo_mode == parameters::mono_right
-            || (_params.stereo_mode == parameters::mono_left && mono_right_instead_of_left))
+    else if (_params.stereo_mode() == parameters::mono_right
+            || (_params.stereo_mode() == parameters::mono_left && mono_right_instead_of_left))
     {
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
         draw_quad(x, y, w, h, my_tex_coords);
     }
-    else if (_params.stereo_mode == parameters::left_right
-            || _params.stereo_mode == parameters::left_right_half
-            || _params.stereo_mode == parameters::top_bottom
-            || _params.stereo_mode == parameters::top_bottom_half
-            || _params.stereo_mode == parameters::hdmi_frame_pack)
+    else if (_params.stereo_mode() == parameters::left_right
+            || _params.stereo_mode() == parameters::left_right_half
+            || _params.stereo_mode() == parameters::top_bottom
+            || _params.stereo_mode() == parameters::top_bottom_half
+            || _params.stereo_mode() == parameters::hdmi_frame_pack)
     {
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
         draw_quad(x, y, w, h, my_tex_coords);
@@ -1203,47 +1203,47 @@ void video_output::reshape(int w, int h)
     }
 
     // Compute viewport with the right aspect ratio
-    if (_params.stereo_mode == parameters::left_right
-            || _params.stereo_mode == parameters::left_right_half)
+    if (_params.stereo_mode() == parameters::left_right
+            || _params.stereo_mode() == parameters::left_right_half)
     {
         float dst_w = w / 2;
         float dst_h = h;
         float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
         float src_ar = _frame[_active_index].aspect_ratio;
-        float crop_ar = _params.crop_aspect_ratio;
-        if (_params.stereo_mode == parameters::left_right_half)
+        float crop_ar = _params.crop_aspect_ratio();
+        if (_params.stereo_mode() == parameters::left_right_half)
         {
             src_ar /= 2.0f;
             crop_ar /= 2.0f;
         }
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
                 w / 2, h, dst_w, dst_h, dst_ar,
-                crop_ar, _params.zoom);
+                crop_ar, _params.zoom());
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[1][0] = _viewport[0][0] + w / 2;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }
-    else if (_params.stereo_mode == parameters::top_bottom
-            || _params.stereo_mode == parameters::top_bottom_half)
+    else if (_params.stereo_mode() == parameters::top_bottom
+            || _params.stereo_mode() == parameters::top_bottom_half)
     {
         float dst_w = w;
         float dst_h = h / 2;
         float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
         float src_ar = _frame[_active_index].aspect_ratio;
-        float crop_ar = _params.crop_aspect_ratio;
-        if (_params.stereo_mode == parameters::top_bottom_half)
+        float crop_ar = _params.crop_aspect_ratio();
+        if (_params.stereo_mode() == parameters::top_bottom_half)
         {
             src_ar *= 2.0f;
             crop_ar *= 2.0f;
         }
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
                 w, h / 2, dst_w, dst_h, dst_ar,
-                crop_ar, _params.zoom);
+                crop_ar, _params.zoom());
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[1][1] = _viewport[0][1] + h / 2;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }
-    else if (_params.stereo_mode == parameters::hdmi_frame_pack)
+    else if (_params.stereo_mode() == parameters::hdmi_frame_pack)
     {
         // HDMI frame packing mode has left view top, right view bottom, plus a
         // blank area separating the two. 720p uses 30 blank lines (total: 720
@@ -1259,7 +1259,7 @@ void video_output::reshape(int w, int h)
         float src_ar = _frame[_active_index].aspect_ratio;
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
                 w, (h - blank_lines) / 2, dst_w, dst_h, dst_ar,
-                _params.crop_aspect_ratio, _params.zoom);
+                _params.crop_aspect_ratio(), _params.zoom());
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[1][1] = _viewport[0][1] + (h - blank_lines) / 2 + blank_lines;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
@@ -1272,7 +1272,7 @@ void video_output::reshape(int w, int h)
         float src_ar = _frame[_active_index].aspect_ratio;
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
                 w, h, dst_w, dst_h, dst_ar,
-                _params.crop_aspect_ratio, _params.zoom);
+                _params.crop_aspect_ratio(), _params.zoom());
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }
@@ -1283,7 +1283,7 @@ bool video_output::need_redisplay_on_move()
     // The masking modes must know if the video area starts with an even or
     // odd columns and/or row. If this changes, the display must be updated.
     return (_frame[_active_index].is_valid()
-            && (_render_last_params.stereo_mode == parameters::even_odd_rows
-                || _render_last_params.stereo_mode == parameters::even_odd_columns
-                || _render_last_params.stereo_mode == parameters::checkerboard));
+            && (_render_last_params.stereo_mode() == parameters::even_odd_rows
+                || _render_last_params.stereo_mode() == parameters::even_odd_columns
+                || _render_last_params.stereo_mode() == parameters::checkerboard));
 }

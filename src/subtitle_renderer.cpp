@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2011
+ * Copyright (C) 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Joe <cuchac@email.cz>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
@@ -346,17 +346,17 @@ void subtitle_renderer::set_ass_parameters(const parameters &params)
 {
     std::vector<std::string> overrides;
     overrides.clear();
-    if (params.subtitle_font != "")
+    if (!params.subtitle_font_is_default())
     {
-        overrides.push_back(std::string("Default.Fontname=") + params.subtitle_font);
+        overrides.push_back(std::string("Default.Fontname=") + params.subtitle_font());
     }
-    if (params.subtitle_size > 0)
+    if (!params.subtitle_size_is_default())
     {
-        overrides.push_back(std::string("Default.Fontsize=") + str::from(params.subtitle_size));
+        overrides.push_back(std::string("Default.Fontsize=") + str::from(params.subtitle_size()));
     }
-    if (params.subtitle_color <= std::numeric_limits<uint32_t>::max())
+    if (!params.subtitle_color_is_default())
     {
-        unsigned int color = params.subtitle_color;
+        unsigned int color = params.subtitle_color();
         unsigned int a = 255u - ((color >> 24u) & 0xffu);
         unsigned int r = (color >> 16u) & 0xffu;
         unsigned int g = (color >> 8u) & 0xffu;
@@ -372,7 +372,7 @@ void subtitle_renderer::set_ass_parameters(const parameters &params)
     }
     ass_overrides[overrides.size()] = NULL;
     ass_set_style_overrides(_ass_library, const_cast<char **>(ass_overrides));
-    ass_set_font_scale(_ass_renderer, (params.subtitle_scale >= 0.0f ? params.subtitle_scale : 1.0));
+    ass_set_font_scale(_ass_renderer, (params.subtitle_scale() >= 0.0f ? params.subtitle_scale() : 1.0));
     ass_process_force_style(_ass_track);
 }
 
@@ -398,11 +398,11 @@ void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp
         throw exc(_("Cannot initialize LibASS track."));
     }
     std::string conv_str = box.str;
-    if (params.subtitle_encoding != "")
+    if (params.subtitle_encoding() != "")
     {
         try
         {
-            conv_str = str::convert(box.str, params.subtitle_encoding, "UTF-8");
+            conv_str = str::convert(box.str, params.subtitle_encoding(), "UTF-8");
         }
         catch (std::exception &e)
         {

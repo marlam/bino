@@ -267,27 +267,26 @@ void player::open(const player_init_data &init_data)
 
     // Initialize output parameters
     _params = init_data.params;
-    _params.set_defaults();
     if (init_data.stereo_mode_override)
     {
-        _params.stereo_mode = init_data.stereo_mode;
-        _params.stereo_mode_swap = init_data.stereo_mode_swap;
+        _params.set_stereo_mode(init_data.stereo_mode);
+        _params.set_stereo_mode_swap(init_data.stereo_mode_swap);
     }
     else
     {
         if (_media_input->video_frame_template().stereo_layout == video_frame::mono)
         {
-            _params.stereo_mode = parameters::mono_left;
+            _params.set_stereo_mode(parameters::mono_left);
         }
         else if (_video_output && _video_output->supports_stereo())
         {
-            _params.stereo_mode = parameters::stereo;
+            _params.set_stereo_mode(parameters::stereo);
         }
         else
         {
-            _params.stereo_mode = parameters::red_cyan_dubois;
+            _params.set_stereo_mode(parameters::red_cyan_dubois);
         }
-        _params.stereo_mode_swap = false;
+        _params.set_stereo_mode_swap(false);
     }
 
     // Set initial parameters
@@ -301,13 +300,13 @@ void player::open(const player_init_data &init_data)
         _video_output->set_suitable_size(
                 _media_input->video_frame_template().width,
                 _media_input->video_frame_template().height,
-                _params.crop_aspect_ratio > 0.0f
-                ? _params.crop_aspect_ratio
+                _params.crop_aspect_ratio() > 0.0f
+                ? _params.crop_aspect_ratio()
                 : _media_input->video_frame_template().aspect_ratio,
-                _params.stereo_mode);
+                _params.stereo_mode());
         if (init_data.fullscreen)
         {
-            _video_output->enter_fullscreen(_params.fullscreen_screens);
+            _video_output->enter_fullscreen(_params.fullscreen_screens());
         }
         if (init_data.center)
         {
@@ -535,7 +534,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
             else
             {
                 msg::dbg("End of video stream.");
-                if (_params.loop_mode == parameters::loop_current)
+                if (_params.loop_mode() == parameters::loop_current)
                 {
                     _set_pos_request = 0.0f;
                     *more_steps = true;
@@ -619,7 +618,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
                 if (!blob.is_valid())
                 {
                     msg::dbg("End of audio stream.");
-                    if (_params.loop_mode == parameters::loop_current)
+                    if (_params.loop_mode() == parameters::loop_current)
                     {
                         _set_pos_request = 0.0f;
                         *more_steps = true;
@@ -647,17 +646,17 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
         }
 
         int64_t allowable_sleep = 0;
-        if (_master_time_current + _params.audio_delay
+        if (_master_time_current + _params.audio_delay()
                 >= _video_pos || _benchmark || _media_input->is_device())
         {
             // Output current video frame
             _drop_next_frame = false;
-            if (_master_time_current + _params.audio_delay - _video_pos
+            if (_master_time_current + _params.audio_delay() - _video_pos
                     > _media_input->video_frame_duration() * 75 / 100
                     && !_benchmark && !_media_input->is_device())
             {
                 msg::wrn(_("Video: delay %g seconds; dropping next frame."),
-                        (_master_time_current + _params.audio_delay - _video_pos) / 1e6f);
+                        (_master_time_current + _params.audio_delay() - _video_pos) / 1e6f);
                 _drop_next_frame = true;
             }
             if (!_previous_frame_dropped)
@@ -784,9 +783,9 @@ void player::receive_cmd(const command &cmd)
         /* notify when request is fulfilled */
         break;
     case command::toggle_stereo_mode_swap:
-        _params.stereo_mode_swap = !_params.stereo_mode_swap;
+        _params.set_stereo_mode_swap(!_params.stereo_mode_swap());
         parameters_changed = true;
-        controller::notify_all(notification::stereo_mode_swap, !_params.stereo_mode_swap, _params.stereo_mode_swap);
+        controller::notify_all(notification::stereo_mode_swap, !_params.stereo_mode_swap(), _params.stereo_mode_swap());
         break;
     case command::cycle_video_stream:
         if (_media_input->video_streams() > 1
@@ -905,8 +904,8 @@ void player::receive_cmd(const command &cmd)
             bool stereo_mode_swap;
             s11n::load(p, stereo_mode);
             s11n::load(p, stereo_mode_swap);
-            _params.stereo_mode = static_cast<parameters::stereo_mode_t>(stereo_mode);
-            _params.stereo_mode_swap = stereo_mode_swap;
+            _params.set_stereo_mode(static_cast<parameters::stereo_mode_t>(stereo_mode));
+            _params.set_stereo_mode_swap(stereo_mode_swap);
             parameters_changed = true;
         }
         break;
@@ -914,7 +913,7 @@ void player::receive_cmd(const command &cmd)
         flag = false;
         if (_video_output)
         {
-            flag = _video_output->toggle_fullscreen(_params.fullscreen_screens);
+            flag = _video_output->toggle_fullscreen(_params.fullscreen_screens());
         }
         controller::notify_all(notification::fullscreen, flag, !flag);
         break;
@@ -931,73 +930,73 @@ void player::receive_cmd(const command &cmd)
         break;
     case command::adjust_contrast:
         s11n::load(p, param);
-        oldval = _params.contrast;
-        _params.contrast = std::max(std::min(_params.contrast + param, 1.0f), -1.0f);
+        oldval = _params.contrast();
+        _params.set_contrast(std::max(std::min(_params.contrast() + param, 1.0f), -1.0f));
         parameters_changed = true;
-        controller::notify_all(notification::contrast, oldval, _params.contrast);
+        controller::notify_all(notification::contrast, oldval, _params.contrast());
         break;
     case command::set_contrast:
         s11n::load(p, param);
-        oldval = _params.contrast;
-        _params.contrast = std::max(std::min(param, 1.0f), -1.0f);
+        oldval = _params.contrast();
+        _params.set_contrast(std::max(std::min(param, 1.0f), -1.0f));
         parameters_changed = true;
-        controller::notify_all(notification::contrast, oldval, _params.contrast);
+        controller::notify_all(notification::contrast, oldval, _params.contrast());
         break;
     case command::adjust_brightness:
         s11n::load(p, param);
-        oldval = _params.brightness;
-        _params.brightness = std::max(std::min(_params.brightness + param, 1.0f), -1.0f);
+        oldval = _params.brightness();
+        _params.set_brightness(std::max(std::min(_params.brightness() + param, 1.0f), -1.0f));
         parameters_changed = true;
-        controller::notify_all(notification::brightness, oldval, _params.brightness);
+        controller::notify_all(notification::brightness, oldval, _params.brightness());
         break;
     case command::set_brightness:
         s11n::load(p, param);
-        oldval = _params.brightness;
-        _params.brightness = std::max(std::min(param, 1.0f), -1.0f);
+        oldval = _params.brightness();
+        _params.set_brightness(std::max(std::min(param, 1.0f), -1.0f));
         parameters_changed = true;
-        controller::notify_all(notification::brightness, oldval, _params.brightness);
+        controller::notify_all(notification::brightness, oldval, _params.brightness());
         break;
     case command::adjust_hue:
         s11n::load(p, param);
-        oldval = _params.hue;
-        _params.hue = std::max(std::min(_params.hue + param, 1.0f), -1.0f);
+        oldval = _params.hue();
+        _params.set_hue(std::max(std::min(_params.hue() + param, 1.0f), -1.0f));
         parameters_changed = true;
-        controller::notify_all(notification::hue, oldval, _params.hue);
+        controller::notify_all(notification::hue, oldval, _params.hue());
         break;
     case command::set_hue:
         s11n::load(p, param);
-        oldval = _params.hue;
-        _params.hue = std::max(std::min(param, 1.0f), -1.0f);
+        oldval = _params.hue();
+        _params.set_hue(std::max(std::min(param, 1.0f), -1.0f));
         parameters_changed = true;
-        controller::notify_all(notification::hue, oldval, _params.hue);
+        controller::notify_all(notification::hue, oldval, _params.hue());
         break;
     case command::adjust_saturation:
         s11n::load(p, param);
-        oldval = _params.saturation;
-        _params.saturation = std::max(std::min(_params.saturation + param, 1.0f), -1.0f);
+        oldval = _params.saturation();
+        _params.set_saturation(std::max(std::min(_params.saturation() + param, 1.0f), -1.0f));
         parameters_changed = true;
-        controller::notify_all(notification::saturation, oldval, _params.saturation);
+        controller::notify_all(notification::saturation, oldval, _params.saturation());
         break;
     case command::set_saturation:
         s11n::load(p, param);
-        oldval = _params.saturation;
-        _params.saturation = std::max(std::min(param, 1.0f), -1.0f);
+        oldval = _params.saturation();
+        _params.set_saturation(std::max(std::min(param, 1.0f), -1.0f));
         parameters_changed = true;
-        controller::notify_all(notification::saturation, oldval, _params.saturation);
+        controller::notify_all(notification::saturation, oldval, _params.saturation());
         break;
     case command::adjust_parallax:
         s11n::load(p, param);
-        oldval = _params.parallax;
-        _params.parallax = std::max(std::min(_params.parallax + param, 1.0f), -1.0f);
+        oldval = _params.parallax();
+        _params.set_parallax(std::max(std::min(_params.parallax() + param, 1.0f), -1.0f));
         parameters_changed = true;
-        controller::notify_all(notification::parallax, oldval, _params.parallax);
+        controller::notify_all(notification::parallax, oldval, _params.parallax());
         break;
     case command::set_parallax:
         s11n::load(p, param);
-        oldval = _params.parallax;
-        _params.parallax = std::max(std::min(param, 1.0f), -1.0f);
+        oldval = _params.parallax();
+        _params.set_parallax(std::max(std::min(param, 1.0f), -1.0f));
         parameters_changed = true;
-        controller::notify_all(notification::parallax, oldval, _params.parallax);
+        controller::notify_all(notification::parallax, oldval, _params.parallax());
         break;
     case command::set_crosstalk:
         {
@@ -1006,85 +1005,93 @@ void player::receive_cmd(const command &cmd)
             s11n::load(p, r);
             s11n::load(p, g);
             s11n::load(p, b);
-            s11n::save(oldval, _params.crosstalk_r);
-            s11n::save(oldval, _params.crosstalk_g);
-            s11n::save(oldval, _params.crosstalk_b);
-            _params.crosstalk_r = std::max(std::min(r, 1.0f), 0.0f);
-            _params.crosstalk_g = std::max(std::min(g, 1.0f), 0.0f);
-            _params.crosstalk_b = std::max(std::min(b, 1.0f), 0.0f);
-            s11n::save(newval, _params.crosstalk_r);
-            s11n::save(newval, _params.crosstalk_g);
-            s11n::save(newval, _params.crosstalk_b);
+            s11n::save(oldval, _params.crosstalk_r());
+            s11n::save(oldval, _params.crosstalk_g());
+            s11n::save(oldval, _params.crosstalk_b());
+            _params.set_crosstalk_r(std::max(std::min(r, 1.0f), 0.0f));
+            _params.set_crosstalk_g(std::max(std::min(g, 1.0f), 0.0f));
+            _params.set_crosstalk_b(std::max(std::min(b, 1.0f), 0.0f));
+            s11n::save(newval, _params.crosstalk_r());
+            s11n::save(newval, _params.crosstalk_g());
+            s11n::save(newval, _params.crosstalk_b());
             parameters_changed = true;
             controller::notify_all(notification::crosstalk, oldval.str(), newval.str());
         }
         break;
     case command::adjust_ghostbust:
         s11n::load(p, param);
-        oldval = _params.ghostbust;
-        _params.ghostbust = std::max(std::min(_params.ghostbust + param, 1.0f), 0.0f);
+        oldval = _params.ghostbust();
+        _params.set_ghostbust(std::max(std::min(_params.ghostbust() + param, 1.0f), 0.0f));
         parameters_changed = true;
-        controller::notify_all(notification::ghostbust, oldval, _params.ghostbust);
+        controller::notify_all(notification::ghostbust, oldval, _params.ghostbust());
         break;
     case command::set_ghostbust:
         s11n::load(p, param);
-        oldval = _params.ghostbust;
-        _params.ghostbust = std::max(std::min(param, 1.0f), 0.0f);
+        oldval = _params.ghostbust();
+        _params.set_ghostbust(std::max(std::min(param, 1.0f), 0.0f));
         parameters_changed = true;
-        controller::notify_all(notification::ghostbust, oldval, _params.ghostbust);
+        controller::notify_all(notification::ghostbust, oldval, _params.ghostbust());
         break;
     case command::set_subtitle_encoding:
         {
-            std::string oldenc = _params.subtitle_encoding;
-            s11n::load(p, _params.subtitle_encoding);
+            std::string oldval, newval;
+            oldval = _params.subtitle_encoding();
+            s11n::load(p, newval);
+            _params.set_subtitle_encoding(newval);
             parameters_changed = true;
-            controller::notify_all(notification::subtitle_encoding, oldenc, _params.subtitle_encoding);
+            controller::notify_all(notification::subtitle_encoding, oldval, newval);
             break;
         }
     case command::set_subtitle_font:
         {
-            std::string oldfont = _params.subtitle_font;
-            s11n::load(p, _params.subtitle_font);
+            std::string oldval, newval;
+            oldval = _params.subtitle_font();
+            s11n::load(p, newval);
+            _params.set_subtitle_font(newval);
             parameters_changed = true;
-            controller::notify_all(notification::subtitle_font, oldfont, _params.subtitle_font);
+            controller::notify_all(notification::subtitle_font, oldval, newval);
             break;
         }
     case command::set_subtitle_size:
         {
-            int oldval = _params.subtitle_size;
-            s11n::load(p, _params.subtitle_size);
+            int oldval, newval;
+            oldval = _params.subtitle_size();
+            s11n::load(p, newval);
+            _params.set_subtitle_size(newval);
             parameters_changed = true;
-            controller::notify_all(notification::subtitle_size, oldval, _params.subtitle_size);
+            controller::notify_all(notification::subtitle_size, oldval, newval);
             break;
         }
     case command::set_subtitle_scale:
         s11n::load(p, param);
-        oldval = _params.subtitle_scale;
-        _params.subtitle_scale = std::max(param, 0.0f);
+        oldval = _params.subtitle_scale();
+        _params.set_subtitle_scale(std::max(param, 0.0f));
         parameters_changed = true;
-        controller::notify_all(notification::subtitle_scale, oldval, _params.subtitle_scale);
+        controller::notify_all(notification::subtitle_scale, oldval, _params.subtitle_scale());
         break;
     case command::set_subtitle_color:
         {
-            uint64_t oldval = _params.subtitle_color;
-            s11n::load(p, _params.subtitle_color);
+            uint64_t oldval, newval;
+            oldval = _params.subtitle_color();
+            s11n::load(p, newval);
+            _params.set_subtitle_color(newval);
             parameters_changed = true;
-            controller::notify_all(notification::subtitle_color, oldval, _params.subtitle_color);
+            controller::notify_all(notification::subtitle_color, oldval, newval);
             break;
         }
     case command::adjust_subtitle_parallax:
         s11n::load(p, param);
-        oldval = _params.subtitle_parallax;
-        _params.subtitle_parallax = std::max(std::min(_params.subtitle_parallax + param, 1.0f), -1.0f);
+        oldval = _params.subtitle_parallax();
+        _params.set_subtitle_parallax(std::max(std::min(_params.subtitle_parallax() + param, 1.0f), -1.0f));
         parameters_changed = true;
-        controller::notify_all(notification::parallax, oldval, _params.subtitle_parallax);
+        controller::notify_all(notification::parallax, oldval, _params.subtitle_parallax());
         break;
     case command::set_subtitle_parallax:
         s11n::load(p, param);
-        oldval = _params.subtitle_parallax;
-        _params.subtitle_parallax = std::max(std::min(param, 1.0f), -1.0f);
+        oldval = _params.subtitle_parallax();
+        _params.set_subtitle_parallax(std::max(std::min(param, 1.0f), -1.0f));
         parameters_changed = true;
-        controller::notify_all(notification::subtitle_parallax, oldval, _params.subtitle_parallax);
+        controller::notify_all(notification::subtitle_parallax, oldval, _params.subtitle_parallax());
         break;
     case command::seek:
         s11n::load(p, param);
@@ -1098,100 +1105,112 @@ void player::receive_cmd(const command &cmd)
         break;
     case command::set_loop_mode:
         {
-            int old_loop_mode = static_cast<int>(_params.loop_mode);
-            int loop_mode;
-            s11n::load(p, loop_mode);
-            _params.loop_mode = static_cast<parameters::loop_mode_t>(loop_mode);
+            int oldval, newval;
+            oldval = static_cast<int>(_params.loop_mode());
+            s11n::load(p, newval);
+            _params.set_loop_mode(static_cast<parameters::loop_mode_t>(newval));
             parameters_changed = true;
-            controller::notify_all(notification::loop_mode, old_loop_mode, loop_mode);
+            controller::notify_all(notification::loop_mode, oldval, newval);
         }
         break;
     case command::set_fullscreen_screens:
         {
-            int old_screen = _params.fullscreen_screens;
-            s11n::load(p, _params.fullscreen_screens);
+            int oldval, newval;
+            oldval = _params.fullscreen_screens();
+            s11n::load(p, newval);
+            _params.set_fullscreen_screens(newval);
             parameters_changed = true;
-            controller::notify_all(notification::fullscreen_screens, old_screen, _params.fullscreen_screens);
+            controller::notify_all(notification::fullscreen_screens, oldval, newval);
         }
         break;
     case command::set_fullscreen_flip_left:
         {
-            int old = _params.fullscreen_flip_left;
-            s11n::load(p, _params.fullscreen_flip_left);
+            bool oldval, newval;
+            oldval = _params.fullscreen_flip_left();
+            s11n::load(p, newval);
+            _params.set_fullscreen_flip_left(newval);
             parameters_changed = true;
-            controller::notify_all(notification::fullscreen_flip_left, old, _params.fullscreen_flip_left);
+            controller::notify_all(notification::fullscreen_flip_left, oldval, newval);
         }
         break;
     case command::set_fullscreen_flop_left:
         {
-            int old = _params.fullscreen_flop_left;
-            s11n::load(p, _params.fullscreen_flop_left);
+            bool oldval, newval;
+            oldval = _params.fullscreen_flop_left();
+            s11n::load(p, newval);
+            _params.set_fullscreen_flop_left(newval);
             parameters_changed = true;
-            controller::notify_all(notification::fullscreen_flop_left, old, _params.fullscreen_flop_left);
+            controller::notify_all(notification::fullscreen_flop_left, oldval, newval);
         }
         break;
     case command::set_fullscreen_flip_right:
         {
-            int old = _params.fullscreen_flip_right;
-            s11n::load(p, _params.fullscreen_flip_right);
+            bool oldval, newval;
+            oldval = _params.fullscreen_flip_right();
+            s11n::load(p, newval);
+            _params.set_fullscreen_flip_right(newval);
             parameters_changed = true;
-            controller::notify_all(notification::fullscreen_flip_right, old, _params.fullscreen_flip_right);
+            controller::notify_all(notification::fullscreen_flip_right, oldval, newval);
         }
         break;
     case command::set_fullscreen_flop_right:
         {
-            int old = _params.fullscreen_flop_right;
-            s11n::load(p, _params.fullscreen_flop_right);
+            bool oldval, newval;
+            oldval = _params.fullscreen_flop_right();
+            s11n::load(p, newval);
+            _params.set_fullscreen_flop_right(newval);
             parameters_changed = true;
-            controller::notify_all(notification::fullscreen_flop_right, old, _params.fullscreen_flop_right);
+            controller::notify_all(notification::fullscreen_flop_right, oldval, newval);
         }
         break;
     case command::adjust_zoom:
         s11n::load(p, param);
-        oldval = _params.zoom;
-        _params.zoom = std::max(std::min(_params.zoom + param, 1.0f), 0.0f);
+        oldval = _params.zoom();
+        _params.set_zoom(std::max(std::min(_params.zoom() + param, 1.0f), 0.0f));
         parameters_changed = true;
-        controller::notify_all(notification::zoom, oldval, _params.zoom);
+        controller::notify_all(notification::zoom, oldval, _params.zoom());
         break;
     case command::set_zoom:
         s11n::load(p, param);
-        oldval = _params.zoom;
-        _params.zoom = std::max(std::min(param, 1.0f), 0.0f);
+        oldval = _params.zoom();
+        _params.set_zoom(std::max(std::min(param, 1.0f), 0.0f));
         parameters_changed = true;
-        controller::notify_all(notification::zoom, oldval, _params.zoom);
+        controller::notify_all(notification::zoom, oldval, _params.zoom());
         break;
     case command::set_crop_aspect_ratio:
         s11n::load(p, param);
-        oldval = _params.crop_aspect_ratio;
-        _params.crop_aspect_ratio = (param <= 0.0f ? 0.0f : std::max(std::min(param, 2.39f), 1.0f));
+        oldval = _params.crop_aspect_ratio();
+        _params.set_crop_aspect_ratio((param <= 0.0f ? 0.0f : std::max(std::min(param, 2.39f), 1.0f)));
         parameters_changed = true;
-        controller::notify_all(notification::crop_aspect_ratio, oldval, _params.crop_aspect_ratio);
+        controller::notify_all(notification::crop_aspect_ratio, oldval, _params.crop_aspect_ratio());
         break;
     case command::adjust_audio_volume:
         s11n::load(p, param);
-        oldval = _params.audio_volume;
-        _params.audio_volume = std::max(std::min(_params.audio_volume + param, 1.0f), 0.0f);
+        oldval = _params.audio_volume();
+        _params.set_audio_volume(std::max(std::min(_params.audio_volume() + param, 1.0f), 0.0f));
         parameters_changed = true;
-        controller::notify_all(notification::audio_volume, oldval, _params.audio_volume);
+        controller::notify_all(notification::audio_volume, oldval, _params.audio_volume());
         break;
     case command::set_audio_volume:
         s11n::load(p, param);
-        oldval = _params.audio_volume;
-        _params.audio_volume = std::max(std::min(param, 1.0f), 0.0f);
+        oldval = _params.audio_volume();
+        _params.set_audio_volume(std::max(std::min(param, 1.0f), 0.0f));
         parameters_changed = true;
-        controller::notify_all(notification::audio_volume, oldval, _params.audio_volume);
+        controller::notify_all(notification::audio_volume, oldval, _params.audio_volume());
         break;
     case command::toggle_audio_mute:
-        _params.audio_mute = !_params.audio_mute;
+        _params.set_audio_mute(!_params.audio_mute());
         parameters_changed = true;
-        controller::notify_all(notification::audio_mute, _params.audio_mute ? 0 : 1, _params.audio_mute ? 1 : 0);
+        controller::notify_all(notification::audio_mute, _params.audio_mute() ? 0 : 1, _params.audio_mute() ? 1 : 0);
         break;
     case command::set_audio_delay:
         {
-            int64_t old = _params.audio_delay;
-            s11n::load(p, _params.audio_delay);
+            int64_t oldval, newval;
+            oldval = _params.audio_delay();
+            s11n::load(p, newval);
+            _params.set_audio_delay(newval);
             parameters_changed = true;
-            controller::notify_all(notification::audio_delay, old, _params.audio_delay);
+            controller::notify_all(notification::audio_delay, oldval, newval);
         }
         break;
     }

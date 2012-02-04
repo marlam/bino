@@ -275,9 +275,7 @@ public:
 class parameters : public serializable
 {
 public:
-    // Do not change these enum values without a good reason, because the GUI saves them to a file.
-    typedef enum
-    {
+    typedef enum {
         stereo,                         // OpenGL quad buffered stereo
         mono_left,                      // Left view only
         mono_right,                     // Right view only
@@ -305,54 +303,90 @@ public:
         red_blue_monochrome,            // Red/blue anaglyph, monochrome method
     } stereo_mode_t;
 
-    typedef enum
-    {
-        no_loop,                        // Do not loop.
-        loop_current,                   // Loop the current media input.
-    } loop_mode_t;
-
-    stereo_mode_t stereo_mode;          // Stereo mode
-    bool stereo_mode_swap;              // Swap left and right view
-    float parallax;                     // Parallax adjustment, -1 .. +1
-    float crosstalk_r;                  // Crosstalk level for red, 0 .. 1
-    float crosstalk_g;                  // Crosstalk level for green, 0 .. 1
-    float crosstalk_b;                  // Crosstalk level for blue, 0 .. 1
-    float ghostbust;                    // Amount of crosstalk ghostbusting, 0 .. 1
-    float contrast;                     // Contrast adjustment, -1 .. +1
-    float brightness;                   // Brightness adjustment, -1 .. +1
-    float hue;                          // Hue adjustment, -1 .. +1
-    float saturation;                   // Saturation adjustment, -1 .. +1
-    std::string subtitle_encoding;      // Subtitle encoding, empty means keep default
-    std::string subtitle_font;          // Subtitle font name, empty means keep default
-    int subtitle_size;                  // Subtitle point size, -1 means keep default
-    float subtitle_scale;               // Scale factor
-    uint64_t subtitle_color;            // Subtitle color in uint32_t bgra32 format, > UINT32_MAX means keep default
-    float subtitle_parallax;            // Subtitle parallax adjustment, -1 .. +1
-    loop_mode_t loop_mode;              // Current loop behaviour.
-    int fullscreen_screens;             // Screens to use in fullscreen mode (bit set), 0=primary screen
-    int fullscreen_flip_left;           // Flip left view vertically in fullscreen mode (0/1)
-    int fullscreen_flop_left;           // Flop left view horizontally in fullscreen mode (0/1)
-    int fullscreen_flip_right;          // Flip right view vertically in fullscreen mode (0/1)
-    int fullscreen_flop_right;          // Flop right view horizontally in fullscreen mode (0/1)
-    float zoom;                         // Zoom, 0 = off (show full video width) .. 1 = full (use full screen height)
-    float crop_aspect_ratio;            // Crop the video to this aspect ratio, 0 = don't crop.
-    float audio_volume;                 // Audio volume, 0 .. 1
-    int audio_mute;                     // Audio mute: -1 = unknown, 0 = off, 1 = on
-    int64_t audio_delay;                // Audio delay in microseconds. INT64_MIN means "unspecified".
-
-    // Constructor
-    parameters();
-
-    // Set all uninitialised values to their defaults
-    void set_defaults();
-
     // Convert the stereo mode to and from a string representation
     static std::string stereo_mode_to_string(stereo_mode_t stereo_mode, bool stereo_mode_swap);
     static void stereo_mode_from_string(const std::string &s, stereo_mode_t &stereo_mode, bool &stereo_mode_swap);
 
+    typedef enum {
+        no_loop,                        // Do not loop.
+        loop_current,                   // Loop the current media input.
+    } loop_mode_t;
+
+    // Convert the loop mode to and from a string representation
+    static std::string loop_mode_to_string(loop_mode_t loop_mode);
+    static loop_mode_t loop_mode_from_string(const std::string &s);
+
+#define PARAMETER(TYPE, NAME) \
+    private: \
+    TYPE _ ## NAME; \
+    bool _ ## NAME ## _set; \
+    static const TYPE _ ## NAME ## _default; \
+    public: \
+    TYPE NAME() const \
+    { \
+        return _ ## NAME ## _set ? _ ## NAME : _ ## NAME ## _default; \
+    } \
+    void set_ ## NAME(TYPE val) \
+    { \
+        _ ## NAME = val; \
+        _ ## NAME ## _set = true; \
+    } \
+    bool NAME ## _is_set() const \
+    { \
+        return _ ## NAME ## _set; \
+    } \
+    bool NAME ## _is_default() const \
+    { \
+        return (NAME() >= _ ## NAME ## _default && NAME() <= _ ## NAME ## _default); \
+    }
+
+    // Per-Session parameters
+    PARAMETER(stereo_mode_t, stereo_mode)     // Stereo mode
+    PARAMETER(bool, stereo_mode_swap)         // Swap left and right view
+    PARAMETER(float, crosstalk_r)             // Crosstalk level for red, 0 .. 1
+    PARAMETER(float, crosstalk_g)             // Crosstalk level for green, 0 .. 1
+    PARAMETER(float, crosstalk_b)             // Crosstalk level for blue, 0 .. 1
+    PARAMETER(int, fullscreen_screens)        // Screens to use in fullscreen mode (bit set), 0=primary screen
+    PARAMETER(bool, fullscreen_flip_left)     // Flip left view vertically in fullscreen mode
+    PARAMETER(bool, fullscreen_flop_left)     // Flop left view horizontally in fullscreen mode
+    PARAMETER(bool, fullscreen_flip_right)    // Flip right view vertically in fullscreen mode
+    PARAMETER(bool, fullscreen_flop_right)    // Flop right view horizontally in fullscreen mode
+    PARAMETER(float, contrast)                // Contrast adjustment, -1 .. +1
+    PARAMETER(float, brightness)              // Brightness adjustment, -1 .. +1
+    PARAMETER(float, hue)                     // Hue adjustment, -1 .. +1
+    PARAMETER(float, saturation)              // Saturation adjustment, -1 .. +1
+    PARAMETER(float, zoom)                    // Zoom, 0 = off (show full video width) .. 1 = full (use full screen height)
+    PARAMETER(loop_mode_t, loop_mode)         // Current loop behaviour.
+    PARAMETER(int64_t, audio_delay)           // Audio delay in microseconds
+    // Per-Video parameters
+    PARAMETER(float, crop_aspect_ratio)       // Crop the video to this aspect ratio, 0 = don't crop.
+    PARAMETER(float, parallax)                // Parallax adjustment, -1 .. +1
+    PARAMETER(float, ghostbust)               // Amount of crosstalk ghostbusting, 0 .. 1
+    PARAMETER(std::string, subtitle_encoding) // Subtitle encoding, empty means keep default
+    PARAMETER(std::string, subtitle_font)     // Subtitle font name, empty means keep default
+    PARAMETER(int, subtitle_size)             // Subtitle point size, -1 means keep default
+    PARAMETER(float, subtitle_scale)          // Scale factor
+    PARAMETER(uint64_t, subtitle_color)       // Subtitle color in uint32_t bgra32 format, > UINT32_MAX means keep default
+    PARAMETER(float, subtitle_parallax)       // Subtitle parallax adjustment, -1 .. +1
+    // Volatile parameters
+    PARAMETER(float, audio_volume)            // Audio volume, 0 .. 1
+    PARAMETER(bool, audio_mute)               // Audio mute: -1 = unknown, 0 = off, 1 = on
+
+public:
+    // Constructor
+    parameters();
+
     // Serialization
     void save(std::ostream &os) const;
     void load(std::istream &is);
+
+    // Serialize per-session parameters
+    std::string save_session_parameters() const;
+    void load_session_parameters(const std::string &s);
+
+    // Serialize per-video parameters
+    std::string save_video_parameters() const;
+    void load_video_parameters(const std::string &s);
 };
 
 #endif

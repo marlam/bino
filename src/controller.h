@@ -87,10 +87,10 @@ public:
         set_pos,                        // float (absolute position)
         set_loop_mode,                  // parameters::loop_mode_t
         set_fullscreen_screens,         // int
-        set_fullscreen_flip_left,       // int
-        set_fullscreen_flop_left,       // int
-        set_fullscreen_flip_right,      // int
-        set_fullscreen_flop_right,      // int
+        set_fullscreen_flip_left,       // bool
+        set_fullscreen_flop_left,       // bool
+        set_fullscreen_flip_right,      // bool
+        set_fullscreen_flop_right,      // bool
         adjust_zoom,                    // float (relative adjustment)
         set_zoom,                       // float (absolute value)
         set_crop_aspect_ratio,          // float
@@ -176,14 +176,14 @@ public:
         pos,                    // float
         loop_mode,              // parameters::loop_mode_t
         fullscreen_screens,     // int
-        fullscreen_flip_left,   // int
-        fullscreen_flop_left,   // int
-        fullscreen_flip_right,  // int
-        fullscreen_flop_right,  // int
+        fullscreen_flip_left,   // bool
+        fullscreen_flop_left,   // bool
+        fullscreen_flip_right,  // bool
+        fullscreen_flop_right,  // bool
         zoom,                   // float
         crop_aspect_ratio,      // float
         audio_volume,           // float
-        audio_mute,             // int
+        audio_mute,             // bool
         audio_delay,            // float
     };
     

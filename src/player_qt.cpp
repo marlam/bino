@@ -810,7 +810,7 @@ controls_widget::controls_widget(parameters *params, QSettings *settings,
     _loop_button = new QPushButton(get_icon("media-playlist-repeat"), "");
     _loop_button->setToolTip(_("<p>Toggle loop mode.</p>"));
     _loop_button->setCheckable(true);
-    _loop_button->setChecked(init_data.params.loop_mode != parameters::no_loop);
+    _loop_button->setChecked(init_data.params.loop_mode() != parameters::no_loop);
     connect(_loop_button, SIGNAL(toggled(bool)), this, SLOT(loop_pressed()));
     row1_layout->addWidget(_loop_button, 1, 4);
     row1_layout->addWidget(new QWidget, 1, 5);
@@ -894,13 +894,13 @@ controls_widget::~controls_widget()
 void controls_widget::update_audio_widgets()
 {
     _lock = true;
-    _audio_mute_button->setChecked(_params->audio_mute ? true : false);
+    _audio_mute_button->setChecked(_params->audio_mute());
     _audio_mute_button->setIcon(get_icon(
-                _params->audio_mute ? "audio-volume-muted"
-                : _params->audio_volume < 0.33f ? "audio-volume-low"
-                : _params->audio_volume < 0.66f ? "audio-volume-medium"
+                _params->audio_mute() ? "audio-volume-muted"
+                : _params->audio_volume() < 0.33f ? "audio-volume-low"
+                : _params->audio_volume() < 0.66f ? "audio-volume-medium"
                 : "audio-volume-high"));
-    _audio_volume_slider->setValue(qRound(_params->audio_volume * 1000.0f));
+    _audio_volume_slider->setValue(qRound(_params->audio_volume() * 1000.0f));
     _lock = false;
 }
 
@@ -989,7 +989,7 @@ void controls_widget::seek_slider_changed()
 
 void controls_widget::audio_mute_pressed()
 {
-    _params->audio_mute = _audio_mute_button->isChecked() ? 1 : 0;
+    _params->set_audio_mute(_audio_mute_button->isChecked());
     if (!_lock)
     {
         send_cmd(command::toggle_audio_mute);
@@ -1000,7 +1000,7 @@ void controls_widget::audio_mute_pressed()
 void controls_widget::audio_volume_slider_changed()
 {
     float v = _audio_volume_slider->value() / 1000.0f;
-    _params->audio_volume = v;
+    _params->set_audio_volume(v);
     if (!_lock)
     {
         send_cmd(command::set_audio_volume, v);
@@ -1113,11 +1113,13 @@ void controls_widget::receive_notification(const notification &note)
         }
         break;
     case notification::audio_volume:
-        s11n::load(current, _params->audio_volume);
+        s11n::load(current, value);
+        _params->set_audio_volume(value);
         update_audio_widgets();
         break;
     case notification::audio_mute:
-        s11n::load(current, _params->audio_mute);
+        s11n::load(current, flag);
+        _params->set_audio_mute(flag);
         update_audio_widgets();
         break;
     default:
@@ -1135,44 +1137,44 @@ color_dialog::color_dialog(parameters *params, QWidget *parent) : QDialog(parent
     QLabel *c_label = new QLabel(_("Contrast:"));
     _c_slider = new QSlider(Qt::Horizontal);
     _c_slider->setRange(-1000, 1000);
-    _c_slider->setValue(params->contrast * 1000.0f);
+    _c_slider->setValue(params->contrast() * 1000.0f);
     connect(_c_slider, SIGNAL(valueChanged(int)), this, SLOT(c_slider_changed(int)));
     _c_spinbox = new QDoubleSpinBox();
     _c_spinbox->setRange(-1.0, +1.0);
-    _c_spinbox->setValue(params->contrast);
+    _c_spinbox->setValue(params->contrast());
     _c_spinbox->setDecimals(2);
     _c_spinbox->setSingleStep(0.01);
     connect(_c_spinbox, SIGNAL(valueChanged(double)), this, SLOT(c_spinbox_changed(double)));
     QLabel *b_label = new QLabel(_("Brightness:"));
     _b_slider = new QSlider(Qt::Horizontal);
     _b_slider->setRange(-1000, 1000);
-    _b_slider->setValue(params->brightness * 1000.0f);
+    _b_slider->setValue(params->brightness() * 1000.0f);
     connect(_b_slider, SIGNAL(valueChanged(int)), this, SLOT(b_slider_changed(int)));
     _b_spinbox = new QDoubleSpinBox();
     _b_spinbox->setRange(-1.0, +1.0);
-    _b_spinbox->setValue(params->brightness);
+    _b_spinbox->setValue(params->brightness());
     _b_spinbox->setDecimals(2);
     _b_spinbox->setSingleStep(0.01);
     connect(_b_spinbox, SIGNAL(valueChanged(double)), this, SLOT(b_spinbox_changed(double)));
     QLabel *h_label = new QLabel(_("Hue:"));
     _h_slider = new QSlider(Qt::Horizontal);
     _h_slider->setRange(-1000, 1000);
-    _h_slider->setValue(params->hue * 1000.0f);
+    _h_slider->setValue(params->hue() * 1000.0f);
     connect(_h_slider, SIGNAL(valueChanged(int)), this, SLOT(h_slider_changed(int)));
     _h_spinbox = new QDoubleSpinBox();
     _h_spinbox->setRange(-1.0, +1.0);
-    _h_spinbox->setValue(params->hue);
+    _h_spinbox->setValue(params->hue());
     _h_spinbox->setDecimals(2);
     _h_spinbox->setSingleStep(0.01);
     connect(_h_spinbox, SIGNAL(valueChanged(double)), this, SLOT(h_spinbox_changed(double)));
     QLabel *s_label = new QLabel(_("Saturation:"));
     _s_slider = new QSlider(Qt::Horizontal);
     _s_slider->setRange(-1000, 1000);
-    _s_slider->setValue(params->saturation * 1000.0f);
+    _s_slider->setValue(params->saturation() * 1000.0f);
     connect(_s_slider, SIGNAL(valueChanged(int)), this, SLOT(s_slider_changed(int)));
     _s_spinbox = new QDoubleSpinBox();
     _s_spinbox->setRange(-1.0, +1.0);
-    _s_spinbox->setValue(params->saturation);
+    _s_spinbox->setValue(params->saturation());
     _s_spinbox->setDecimals(2);
     _s_spinbox->setSingleStep(0.01);
     connect(_s_spinbox, SIGNAL(valueChanged(double)), this, SLOT(s_spinbox_changed(double)));
@@ -1201,7 +1203,7 @@ void color_dialog::c_slider_changed(int val)
 {
     if (!_lock)
     {
-        _params->contrast = val / 1000.0f;
+        _params->set_contrast(val / 1000.0f);
         _lock = true;
         _c_spinbox->setValue(val / 1000.0f);
         _lock = false;
@@ -1213,7 +1215,7 @@ void color_dialog::c_spinbox_changed(double val)
 {
     if (!_lock)
     {
-        _params->contrast = val;
+        _params->set_contrast(val);
         _lock = true;
         _c_slider->setValue(val * 1000.0);
         _lock = false;
@@ -1225,7 +1227,7 @@ void color_dialog::b_slider_changed(int val)
 {
     if (!_lock)
     {
-        _params->brightness = val / 1000.0f;
+        _params->set_brightness(val / 1000.0f);
         _lock = true;
         _b_spinbox->setValue(val / 1000.0f);
         _lock = false;
@@ -1237,7 +1239,7 @@ void color_dialog::b_spinbox_changed(double val)
 {
     if (!_lock)
     {
-        _params->brightness = val;
+        _params->set_brightness(val);
         _lock = true;
         _b_slider->setValue(val * 1000.0);
         _lock = false;
@@ -1249,7 +1251,7 @@ void color_dialog::h_slider_changed(int val)
 {
     if (!_lock)
     {
-        _params->hue = val / 1000.0f;
+        _params->set_hue(val / 1000.0f);
         _lock = true;
         _h_spinbox->setValue(val / 1000.0f);
         _lock = false;
@@ -1261,7 +1263,7 @@ void color_dialog::h_spinbox_changed(double val)
 {
     if (!_lock)
     {
-        _params->hue = val;
+        _params->set_hue(val);
         _lock = true;
         _h_slider->setValue(val * 1000.0);
         _lock = false;
@@ -1273,7 +1275,7 @@ void color_dialog::s_slider_changed(int val)
 {
     if (!_lock)
     {
-        _params->saturation = val / 1000.0f;
+        _params->set_saturation(val / 1000.0f);
         _lock = true;
         _s_spinbox->setValue(val / 1000.0f);
         _lock = false;
@@ -1285,7 +1287,7 @@ void color_dialog::s_spinbox_changed(double val)
 {
     if (!_lock)
     {
-        _params->saturation = val;
+        _params->set_saturation(val);
         _lock = true;
         _s_slider->setValue(val * 1000.0);
         _lock = false;
@@ -1349,21 +1351,21 @@ crosstalk_dialog::crosstalk_dialog(parameters *params, QWidget *parent) : QDialo
     QLabel *r_label = new QLabel(_("Red:"));
     _r_spinbox = new QDoubleSpinBox();
     _r_spinbox->setRange(0.0, +1.0);
-    _r_spinbox->setValue(params->crosstalk_r);
+    _r_spinbox->setValue(params->crosstalk_r());
     _r_spinbox->setDecimals(2);
     _r_spinbox->setSingleStep(0.01);
     connect(_r_spinbox, SIGNAL(valueChanged(double)), this, SLOT(spinbox_changed()));
     QLabel *g_label = new QLabel(_("Green:"));
     _g_spinbox = new QDoubleSpinBox();
     _g_spinbox->setRange(0.0, +1.0);
-    _g_spinbox->setValue(params->crosstalk_g);
+    _g_spinbox->setValue(params->crosstalk_g());
     _g_spinbox->setDecimals(2);
     _g_spinbox->setSingleStep(0.01);
     connect(_g_spinbox, SIGNAL(valueChanged(double)), this, SLOT(spinbox_changed()));
     QLabel *b_label = new QLabel(_("Blue:"));
     _b_spinbox = new QDoubleSpinBox();
     _b_spinbox->setRange(0.0, +1.0);
-    _b_spinbox->setValue(params->crosstalk_b);
+    _b_spinbox->setValue(params->crosstalk_b());
     _b_spinbox->setDecimals(2);
     _b_spinbox->setSingleStep(0.01);
     connect(_b_spinbox, SIGNAL(valueChanged(double)), this, SLOT(spinbox_changed()));
@@ -1387,9 +1389,9 @@ void crosstalk_dialog::spinbox_changed()
 {
     if (!_lock)
     {
-        _params->crosstalk_r = _r_spinbox->value();
-        _params->crosstalk_g = _g_spinbox->value();
-        _params->crosstalk_b = _b_spinbox->value();
+        _params->set_crosstalk_r(_r_spinbox->value());
+        _params->set_crosstalk_g(_g_spinbox->value());
+        _params->set_crosstalk_b(_b_spinbox->value());
         std::ostringstream v;
         s11n::save(v, static_cast<float>(_r_spinbox->value()));
         s11n::save(v, static_cast<float>(_g_spinbox->value()));
@@ -1437,12 +1439,12 @@ zoom_dialog::zoom_dialog(parameters *params, QWidget *parent) : QDialog(parent),
     z_label->setToolTip(_("<p>Set the zoom level for videos that are wider than the screen</p>"));
     _z_slider = new QSlider(Qt::Horizontal);
     _z_slider->setRange(0, 1000);
-    _z_slider->setValue(params->zoom * 1000.0f);
+    _z_slider->setValue(params->zoom() * 1000.0f);
     _z_slider->setToolTip(z_label->toolTip());
     connect(_z_slider, SIGNAL(valueChanged(int)), this, SLOT(z_slider_changed(int)));
     _z_spinbox = new QDoubleSpinBox();
     _z_spinbox->setRange(0.0, 1.0);
-    _z_spinbox->setValue(params->zoom);
+    _z_spinbox->setValue(params->zoom());
     _z_spinbox->setDecimals(2);
     _z_spinbox->setSingleStep(0.01);
     _z_spinbox->setToolTip(z_label->toolTip());
@@ -1464,7 +1466,7 @@ void zoom_dialog::z_slider_changed(int val)
 {
     if (!_lock)
     {
-        _params->zoom = val / 1000.0f;
+        _params->set_zoom(val / 1000.0f);
         _lock = true;
         _z_spinbox->setValue(val / 1000.0f);
         _lock = false;
@@ -1476,7 +1478,7 @@ void zoom_dialog::z_spinbox_changed(double val)
 {
     if (!_lock)
     {
-        _params->zoom = val;
+        _params->set_zoom(val);
         _lock = true;
         _z_slider->setValue(val * 1000.0);
         _lock = false;
@@ -1539,7 +1541,7 @@ audio_dialog::audio_dialog(player_init_data *init_data, parameters *params, QWid
     _delay_spinbox->setToolTip(delay_label->toolTip());
     _delay_spinbox->setRange(-10000, +10000);
     _delay_spinbox->setSingleStep(1);
-    _delay_spinbox->setValue(_params->audio_delay / 1000);
+    _delay_spinbox->setValue(_params->audio_delay() / 1000);
     connect(_delay_spinbox, SIGNAL(valueChanged(int)), this, SLOT(delay_changed()));
 
     QPushButton *ok_button = new QPushButton(_("OK"));
@@ -1563,8 +1565,8 @@ void audio_dialog::delay_changed()
 {
     if (!_lock)
     {
-        _params->audio_delay = _delay_spinbox->value() * 1000;
-        send_cmd(command::set_audio_delay, _params->audio_delay);
+        _params->set_audio_delay(_delay_spinbox->value() * 1000);
+        send_cmd(command::set_audio_delay, _params->audio_delay());
     }
 }
 
@@ -1598,7 +1600,7 @@ subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(
 
     _encoding_checkbox = new QCheckBox(_("Encoding:"));
     _encoding_checkbox->setToolTip(_("<p>Set the subtitle character set encoding.</p>"));
-    _encoding_checkbox->setChecked(params->subtitle_encoding != "");
+    _encoding_checkbox->setChecked(!params->subtitle_encoding_is_default());
     connect(_encoding_checkbox, SIGNAL(stateChanged(int)), this, SLOT(encoding_changed()));
     _encoding_combobox = new QComboBox();
     _encoding_combobox->setToolTip(_encoding_checkbox->toolTip());
@@ -1608,46 +1610,46 @@ subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(
         _encoding_combobox->addItem(codec->name(), codec->mibEnum());
     }
     _encoding_combobox->setCurrentIndex(_encoding_combobox->findText(
-                params->subtitle_encoding == "" ? "UTF-8" : params->subtitle_encoding.c_str()));
+                params->subtitle_encoding() == "" ? "UTF-8" : params->subtitle_encoding().c_str()));
     connect(_encoding_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(encoding_changed()));
 
     _font_checkbox = new QCheckBox(_("Override font:"));
     _font_checkbox->setToolTip(_("<p>Override the subtitle font family.</p>"));
-    _font_checkbox->setChecked(params->subtitle_font != "");
+    _font_checkbox->setChecked(!params->subtitle_font_is_default());
     connect(_font_checkbox, SIGNAL(stateChanged(int)), this, SLOT(font_changed()));
     _font_combobox = new QFontComboBox();
     _font_combobox->setToolTip(_font_checkbox->toolTip());
-    _font_combobox->setCurrentFont(QFont(QString(params->subtitle_font == "" ? "sans-serif" : params->subtitle_font.c_str())));
+    _font_combobox->setCurrentFont(QFont(QString(params->subtitle_font() == "" ? "sans-serif" : params->subtitle_font().c_str())));
     connect(_font_combobox, SIGNAL(currentFontChanged(const QFont &)), this, SLOT(font_changed()));
 
     _size_checkbox = new QCheckBox(_("Override font size:"));
     _size_checkbox->setToolTip(_("<p>Override the subtitle font size.</p>"));
-    _size_checkbox->setChecked(params->subtitle_size > 0);
+    _size_checkbox->setChecked(params->subtitle_size() > 0);
     connect(_size_checkbox, SIGNAL(stateChanged(int)), this, SLOT(size_changed()));
     _size_spinbox = new QSpinBox();
     _size_spinbox->setToolTip(_size_checkbox->toolTip());
     _size_spinbox->setRange(1, 999);
-    _size_spinbox->setValue(params->subtitle_size <= 0 ? 12 : params->subtitle_size);
+    _size_spinbox->setValue(params->subtitle_size() <= 0 ? 12 : params->subtitle_size());
     connect(_size_spinbox, SIGNAL(valueChanged(int)), this, SLOT(size_changed()));
 
     _scale_checkbox = new QCheckBox(_("Override scale factor:"));
     _scale_checkbox->setToolTip(_("<p>Override the subtitle scale factor.</p>"));
-    _scale_checkbox->setChecked(params->subtitle_scale >= 0.0f);
+    _scale_checkbox->setChecked(params->subtitle_scale() >= 0.0f);
     connect(_scale_checkbox, SIGNAL(stateChanged(int)), this, SLOT(scale_changed()));
     _scale_spinbox = new QDoubleSpinBox();
     _scale_spinbox->setToolTip(_scale_checkbox->toolTip());
     _scale_spinbox->setRange(0.01, 100.0);
     _scale_spinbox->setSingleStep(0.1);
-    _scale_spinbox->setValue(params->subtitle_scale < 0.0f ? 1.0f : params->subtitle_scale);
+    _scale_spinbox->setValue(params->subtitle_scale() < 0.0f ? 1.0f : params->subtitle_scale());
     connect(_scale_spinbox, SIGNAL(valueChanged(double)), this, SLOT(scale_changed()));
 
     _color_checkbox = new QCheckBox(_("Override color:"));
     _color_checkbox->setToolTip(_("<p>Override the subtitle color.</p>"));
-    _color_checkbox->setChecked(params->subtitle_color <= std::numeric_limits<uint32_t>::max());
+    _color_checkbox->setChecked(params->subtitle_color() <= std::numeric_limits<uint32_t>::max());
     connect(_color_checkbox, SIGNAL(stateChanged(int)), this, SLOT(color_changed()));
     _color_button = new QPushButton();
     _color_button->setToolTip(_color_checkbox->toolTip());
-    set_color_button(params->subtitle_color > std::numeric_limits<uint32_t>::max() ? 0xffffffu : params->subtitle_color);
+    set_color_button(params->subtitle_color() > std::numeric_limits<uint32_t>::max() ? 0xffffffu : params->subtitle_color());
     connect(_color_button, SIGNAL(pressed()), this, SLOT(color_button_pressed()));
 
     QPushButton *ok_button = new QPushButton(_("OK"));
@@ -1737,7 +1739,7 @@ void subtitle_dialog::encoding_changed()
     {
         std::string encoding = _encoding_checkbox->isChecked()
             ? _encoding_combobox->currentText().toStdString() : "";
-        _params->subtitle_encoding = encoding;
+        _params->set_subtitle_encoding(encoding);
         std::ostringstream v;
         s11n::save(v, encoding);
         send_cmd(command::set_subtitle_encoding, v.str());
@@ -1751,7 +1753,7 @@ void subtitle_dialog::font_changed()
         std::string font = _font_checkbox->isChecked()
             ? _font_combobox->currentFont().family().toLocal8Bit().constData()
             : "";
-        _params->subtitle_font = font;
+        _params->set_subtitle_font(font);
         std::ostringstream v;
         s11n::save(v, font);
         send_cmd(command::set_subtitle_font, v.str());
@@ -1763,7 +1765,7 @@ void subtitle_dialog::size_changed()
     if (!_lock)
     {
         int size = _size_checkbox->isChecked() ? _size_spinbox->value() : -1;
-        _params->subtitle_size = size;
+        _params->set_subtitle_size(size);
         std::ostringstream v;
         s11n::save(v, size);
         send_cmd(command::set_subtitle_size, v.str());
@@ -1775,7 +1777,7 @@ void subtitle_dialog::scale_changed()
     if (!_lock)
     {
         float scale = _scale_checkbox->isChecked() ? _scale_spinbox->value() : -1.0f;
-        _params->subtitle_scale = scale;
+        _params->set_subtitle_scale(scale);
         std::ostringstream v;
         s11n::save(v, scale);
         send_cmd(command::set_subtitle_scale, v.str());
@@ -1799,7 +1801,7 @@ void subtitle_dialog::color_changed()
         {
             color = std::numeric_limits<uint64_t>::max();
         }
-        _params->subtitle_color = color;
+        _params->set_subtitle_color(color);
         std::ostringstream v;
         s11n::save(v, color);
         send_cmd(command::set_subtitle_color, v.str());
@@ -1905,7 +1907,7 @@ video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent
     _crop_ar_combobox->addItem(_("4:3"));
     _crop_ar_combobox->addItem(_("5:4"));
     _crop_ar_combobox->addItem(_("1:1"));
-    set_crop_ar(params->crop_aspect_ratio);
+    set_crop_ar(params->crop_aspect_ratio());
     connect(_crop_ar_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(crop_ar_changed()));
 
     QLabel *p_label = new QLabel(_("Parallax:"));
@@ -1914,12 +1916,12 @@ video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent
     _p_slider = new QSlider(Qt::Horizontal);
     _p_slider->setToolTip(p_label->toolTip());
     _p_slider->setRange(-1000, 1000);
-    _p_slider->setValue(params->parallax * 1000.0f);
+    _p_slider->setValue(params->parallax() * 1000.0f);
     connect(_p_slider, SIGNAL(valueChanged(int)), this, SLOT(p_slider_changed(int)));
     _p_spinbox = new QDoubleSpinBox();
     _p_spinbox->setToolTip(p_label->toolTip());
     _p_spinbox->setRange(-1.0, +1.0);
-    _p_spinbox->setValue(params->parallax);
+    _p_spinbox->setValue(params->parallax());
     _p_spinbox->setDecimals(2);
     _p_spinbox->setSingleStep(0.01);
     connect(_p_spinbox, SIGNAL(valueChanged(double)), this, SLOT(p_spinbox_changed(double)));
@@ -1930,12 +1932,12 @@ video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent
     _sp_slider = new QSlider(Qt::Horizontal);
     _sp_slider->setToolTip(sp_label->toolTip());
     _sp_slider->setRange(-1000, 1000);
-    _sp_slider->setValue(params->subtitle_parallax * 1000.0f);
+    _sp_slider->setValue(params->subtitle_parallax() * 1000.0f);
     connect(_sp_slider, SIGNAL(valueChanged(int)), this, SLOT(sp_slider_changed(int)));
     _sp_spinbox = new QDoubleSpinBox();
     _sp_spinbox->setToolTip(sp_label->toolTip());
     _sp_spinbox->setRange(-1.0, +1.0);
-    _sp_spinbox->setValue(params->subtitle_parallax);
+    _sp_spinbox->setValue(params->subtitle_parallax());
     _sp_spinbox->setDecimals(2);
     _sp_spinbox->setSingleStep(0.01);
     connect(_sp_spinbox, SIGNAL(valueChanged(double)), this, SLOT(sp_spinbox_changed(double)));
@@ -1947,12 +1949,12 @@ video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent
     _g_slider = new QSlider(Qt::Horizontal);
     _g_slider->setToolTip(g_label->toolTip());
     _g_slider->setRange(0, 1000);
-    _g_slider->setValue(params->ghostbust * 1000.0f);
+    _g_slider->setValue(params->ghostbust() * 1000.0f);
     connect(_g_slider, SIGNAL(valueChanged(int)), this, SLOT(g_slider_changed(int)));
     _g_spinbox = new QDoubleSpinBox();
     _g_spinbox->setToolTip(g_label->toolTip());
     _g_spinbox->setRange(0.0, +1.0);
-    _g_spinbox->setValue(params->ghostbust);
+    _g_spinbox->setValue(params->ghostbust());
     _g_spinbox->setDecimals(2);
     _g_spinbox->setSingleStep(0.01);
     connect(_g_spinbox, SIGNAL(valueChanged(double)), this, SLOT(g_spinbox_changed(double)));
@@ -1999,8 +2001,8 @@ void video_dialog::crop_ar_changed()
     if (!_lock)
     {
         int i = _crop_ar_combobox->currentIndex();
-        _params->crop_aspect_ratio =
-                ( i == 1 ? 16.0f / 10.0f
+        _params->set_crop_aspect_ratio(
+                  i == 1 ? 16.0f / 10.0f
                 : i == 2 ? 16.0f / 9.0f
                 : i == 3 ? 1.85f
                 : i == 4 ? 2.21f
@@ -2011,7 +2013,7 @@ void video_dialog::crop_ar_changed()
                 : i == 9 ? 5.0f / 4.0f
                 : i == 10 ? 1.0f
                 : 0.0f);
-        send_cmd(command::set_crop_aspect_ratio, _params->crop_aspect_ratio);
+        send_cmd(command::set_crop_aspect_ratio, _params->crop_aspect_ratio());
     }
 }
 
@@ -2019,7 +2021,7 @@ void video_dialog::p_slider_changed(int val)
 {
     if (!_lock)
     {
-        _params->parallax = val / 1000.0f;
+        _params->set_parallax(val / 1000.0f);
         _lock = true;
         _p_spinbox->setValue(val / 1000.0f);
         _lock = false;
@@ -2031,7 +2033,7 @@ void video_dialog::p_spinbox_changed(double val)
 {
     if (!_lock)
     {
-        _params->parallax = val;
+        _params->set_parallax(val);
         _lock = true;
         _p_slider->setValue(val * 1000.0);
         _lock = false;
@@ -2043,7 +2045,7 @@ void video_dialog::sp_slider_changed(int val)
 {
     if (!_lock)
     {
-        _params->subtitle_parallax = val / 1000.0f;
+        _params->set_subtitle_parallax(val / 1000.0f);
         _lock = true;
         _sp_spinbox->setValue(val / 1000.0f);
         _lock = false;
@@ -2055,7 +2057,7 @@ void video_dialog::sp_spinbox_changed(double val)
 {
     if (!_lock)
     {
-        _params->subtitle_parallax = val;
+        _params->set_subtitle_parallax(val);
         _lock = true;
         _sp_slider->setValue(val * 1000.0);
         _lock = false;
@@ -2067,7 +2069,7 @@ void video_dialog::g_slider_changed(int val)
 {
     if (!_lock)
     {
-        _params->ghostbust = val / 1000.0f;
+        _params->set_ghostbust(val / 1000.0f);
         _lock = true;
         _g_spinbox->setValue(val / 1000.0f);
         _lock = false;
@@ -2079,7 +2081,7 @@ void video_dialog::g_spinbox_changed(double val)
 {
     if (!_lock)
     {
-        _params->ghostbust = val;
+        _params->set_ghostbust(val);
         _lock = true;
         _g_slider->setValue(val * 1000.0);
         _lock = false;
@@ -2265,90 +2267,54 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     setWindowIcon(QIcon(":logo/64x64/bino.png"));
 
     // Load preferences
-    _settings->beginGroup("Session");
+    QString saved_session_params = _settings->value("Session/parameters", QString("")).toString();
+    if (!saved_session_params.isEmpty())
+    {
+        parameters session_params;
+        session_params.load_session_parameters(saved_session_params.toStdString());
+        if (!_init_data.params.audio_delay_is_set() && !session_params.audio_delay_is_default())
+            _init_data.params.set_audio_delay(session_params.audio_delay());
+        if (!_init_data.params.contrast_is_set() && !session_params.contrast_is_default())
+            _init_data.params.set_contrast(session_params.contrast());
+        if (!_init_data.params.brightness_is_set() && !session_params.brightness_is_default())
+            _init_data.params.set_brightness(session_params.brightness());
+        if (!_init_data.params.hue_is_set() && !session_params.hue_is_default())
+            _init_data.params.set_hue(session_params.hue());
+        if (!_init_data.params.saturation_is_set() && !session_params.saturation_is_default())
+            _init_data.params.set_saturation(session_params.saturation());
+        if (!_init_data.params.crosstalk_r_is_set() && !session_params.crosstalk_r_is_default())
+            _init_data.params.set_crosstalk_r(session_params.crosstalk_r());
+        if (!_init_data.params.crosstalk_g_is_set() && !session_params.crosstalk_g_is_default())
+            _init_data.params.set_crosstalk_g(session_params.crosstalk_g());
+        if (!_init_data.params.crosstalk_b_is_set() && !session_params.crosstalk_b_is_default())
+            _init_data.params.set_crosstalk_b(session_params.crosstalk_b());
+        if (!_init_data.params.subtitle_encoding_is_set() && !session_params.subtitle_encoding_is_default())
+            _init_data.params.set_subtitle_encoding(session_params.subtitle_encoding());
+        if (!_init_data.params.subtitle_font_is_set() && !session_params.subtitle_font_is_default())
+            _init_data.params.set_subtitle_font(session_params.subtitle_font());
+        if (!_init_data.params.subtitle_size_is_set() && !session_params.subtitle_size_is_default())
+            _init_data.params.set_subtitle_size(session_params.subtitle_size());
+        if (!_init_data.params.subtitle_scale_is_set() && !session_params.subtitle_scale_is_default())
+            _init_data.params.set_subtitle_scale(session_params.subtitle_scale());
+        if (!_init_data.params.subtitle_color_is_set() && !session_params.subtitle_color_is_default())
+            _init_data.params.set_subtitle_color(session_params.subtitle_color());
+        if (!_init_data.params.fullscreen_screens_is_set() && !session_params.fullscreen_screens_is_default())
+            _init_data.params.set_fullscreen_screens(session_params.fullscreen_screens());
+        if (!_init_data.params.fullscreen_flip_left_is_set() && !session_params.fullscreen_flip_left_is_default())
+            _init_data.params.set_fullscreen_flip_left(session_params.fullscreen_flip_left());
+        if (!_init_data.params.fullscreen_flop_left_is_set() && !session_params.fullscreen_flop_left_is_default())
+            _init_data.params.set_fullscreen_flop_left(session_params.fullscreen_flop_left());
+        if (!_init_data.params.fullscreen_flip_right_is_set() && !session_params.fullscreen_flip_right_is_default())
+            _init_data.params.set_fullscreen_flip_right(session_params.fullscreen_flip_right());
+        if (!_init_data.params.fullscreen_flop_right_is_set() && !session_params.fullscreen_flop_right_is_default())
+            _init_data.params.set_fullscreen_flop_right(session_params.fullscreen_flop_right());
+        if (!_init_data.params.zoom_is_set() && !session_params.zoom_is_default())
+            _init_data.params.set_zoom(session_params.zoom());
+    }
     if (_init_data.audio_device < -1)
     {
-        _init_data.audio_device = _settings->value("audio-device", QString("-1")).toInt();
+        _init_data.audio_device = _settings->value("Session/audio-device", QString("-1")).toInt();
     }
-    if (_init_data.params.audio_delay == std::numeric_limits<int64_t>::min())
-    {
-        _init_data.params.audio_delay = _settings->value("audio-delay", QString("0")).toLongLong();
-    }
-    if (!std::isnormal(_init_data.params.contrast))
-    {
-        _init_data.params.contrast = _settings->value("contrast", QString("0")).toFloat();
-    }
-    if (!std::isnormal(_init_data.params.brightness))
-    {
-        _init_data.params.brightness = _settings->value("brightness", QString("0")).toFloat();
-    }
-    if (!std::isnormal(_init_data.params.hue))
-    {
-        _init_data.params.hue = _settings->value("hue", QString("0")).toFloat();
-    }
-    if (!std::isnormal(_init_data.params.saturation))
-    {
-        _init_data.params.saturation = _settings->value("saturation", QString("0")).toFloat();
-    }
-    if (!std::isnormal(_init_data.params.crosstalk_r))
-    {
-        _init_data.params.crosstalk_r = _settings->value("crosstalk_r", QString("0")).toFloat();
-    }
-    if (!std::isnormal(_init_data.params.crosstalk_g))
-    {
-        _init_data.params.crosstalk_g = _settings->value("crosstalk_g", QString("0")).toFloat();
-    }
-    if (!std::isnormal(_init_data.params.crosstalk_b))
-    {
-        _init_data.params.crosstalk_b = _settings->value("crosstalk_b", QString("0")).toFloat();
-    }
-    if (_init_data.params.subtitle_encoding.length() == 1 && _init_data.params.subtitle_encoding[0] == '\0')
-    {
-        _init_data.params.subtitle_encoding = _settings->value("subtitle-encoding", QString(1, '\0')).toString().toLocal8Bit().constData();
-    }
-    if (_init_data.params.subtitle_font.length() == 1 && _init_data.params.subtitle_font[0] == '\0')
-    {
-        _init_data.params.subtitle_font = _settings->value("subtitle-font", QString(1, '\0')).toString().toLocal8Bit().constData();
-    }
-    if (_init_data.params.subtitle_size < 0)
-    {
-        _init_data.params.subtitle_size = _settings->value("subtitle-size", QString("-1")).toInt();
-    }
-    if (_init_data.params.subtitle_scale < 0.0f)
-    {
-        _init_data.params.subtitle_scale = _settings->value("subtitle-scale", QString("-1")).toFloat();
-    }
-    if (_init_data.params.subtitle_color > std::numeric_limits<uint32_t>::max())
-    {
-        _init_data.params.subtitle_color = _settings->value("subtitle-color",
-                QString(str::from(std::numeric_limits<uint64_t>::max()).c_str())).toULongLong();
-    }
-    if (_init_data.params.fullscreen_screens < 0)
-    {
-        _init_data.params.fullscreen_screens = _settings->value("fullscreen-screens", QString("-1")).toInt();
-    }
-    if (_init_data.params.fullscreen_flip_left < 0)
-    {
-        _init_data.params.fullscreen_flip_left = _settings->value("fullscreen-flip-left", QString("-1")).toInt();
-    }
-    if (_init_data.params.fullscreen_flop_left < 0)
-    {
-        _init_data.params.fullscreen_flop_left = _settings->value("fullscreen-flop-left", QString("-1")).toInt();
-    }
-    if (_init_data.params.fullscreen_flip_right < 0)
-    {
-        _init_data.params.fullscreen_flip_right = _settings->value("fullscreen-flip-right", QString("-1")).toInt();
-    }
-    if (_init_data.params.fullscreen_flop_right < 0)
-    {
-        _init_data.params.fullscreen_flop_right = _settings->value("fullscreen-flop-right", QString("-1")).toInt();
-    }
-    if (_init_data.params.zoom < 0.0f)
-    {
-        _init_data.params.zoom = _settings->value("zoom", QString("-1")).toFloat();
-    }
-    _settings->endGroup();
-    _init_data.params.set_defaults();
 
     // Central widget, player, and timer
     QWidget *central_widget = new QWidget(this);
@@ -2575,6 +2541,7 @@ bool main_window::open_player()
 void main_window::receive_notification(const notification &note)
 {
     std::istringstream current(note.current);
+    float value;
     bool flag;
 
     switch (note.type)
@@ -2604,10 +2571,10 @@ void main_window::receive_notification(const notification &note)
             _settings->setValue("video-stream", QVariant(_init_data.video_stream).toString());
             _settings->setValue("audio-stream", QVariant(_init_data.audio_stream).toString());
             _settings->setValue("subtitle-stream", QVariant(_init_data.subtitle_stream).toString());
-            _settings->setValue("crop-aspect-ratio", QVariant(_init_data.params.crop_aspect_ratio).toString());
-            _settings->setValue("parallax", QVariant(_init_data.params.parallax).toString());
-            _settings->setValue("ghostbust", QVariant(_init_data.params.ghostbust).toString());
-            _settings->setValue("subtitle-parallax", QVariant(_init_data.params.subtitle_parallax).toString());
+            _settings->setValue("crop-aspect-ratio", QVariant(_init_data.params.crop_aspect_ratio()).toString());
+            _settings->setValue("parallax", QVariant(_init_data.params.parallax()).toString());
+            _settings->setValue("ghostbust", QVariant(_init_data.params.ghostbust()).toString());
+            _settings->setValue("subtitle-parallax", QVariant(_init_data.params.subtitle_parallax()).toString());
             _settings->endGroup();
             // Remember the 2D or 3D video output mode.
             _settings->setValue((_init_data.stereo_layout == video_frame::mono ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode"),
@@ -2642,70 +2609,98 @@ void main_window::receive_notification(const notification &note)
         break;
 
     case notification::contrast:
-        s11n::load(current, _init_data.params.contrast);
+        s11n::load(current, value);
+        _init_data.params.set_contrast(value);
         break;
 
     case notification::brightness:
-        s11n::load(current, _init_data.params.brightness);
+        s11n::load(current, value);
+        _init_data.params.set_brightness(value);
         break;
 
     case notification::hue:
-        s11n::load(current, _init_data.params.hue);
+        s11n::load(current, value);
+        _init_data.params.set_hue(value);
         break;
 
     case notification::saturation:
-        s11n::load(current, _init_data.params.saturation);
+        s11n::load(current, value);
+        _init_data.params.set_saturation(value);
         break;
 
     case notification::stereo_mode_swap:
-        s11n::load(current, _init_data.params.stereo_mode_swap);
+        s11n::load(current, flag);
+        _init_data.params.set_stereo_mode_swap(flag);
         // TODO: save this is Session/?d-stereo-mode?
         break;
 
     case notification::parallax:
-        s11n::load(current, _init_data.params.parallax);
+        s11n::load(current, value);
+        _init_data.params.set_parallax(value);
         _settings->beginGroup("Video/" + current_file_hash());
-        _settings->setValue("parallax", QVariant(_init_data.params.parallax).toString());
+        _settings->setValue("parallax", QVariant(_init_data.params.parallax()).toString());
         _settings->endGroup();
         break;
 
     case notification::crosstalk:
-        s11n::load(current, _init_data.params.crosstalk_r);
-        s11n::load(current, _init_data.params.crosstalk_g);
-        s11n::load(current, _init_data.params.crosstalk_b);
+        s11n::load(current, value);
+        _init_data.params.set_crosstalk_r(value);
+        s11n::load(current, value);
+        _init_data.params.set_crosstalk_g(value);
+        s11n::load(current, value);
+        _init_data.params.set_crosstalk_b(value);
         break;
 
     case notification::ghostbust:
-        s11n::load(current, _init_data.params.ghostbust);
+        s11n::load(current, value);
+        _init_data.params.set_ghostbust(value);
         _settings->beginGroup("Video/" + current_file_hash());
-        _settings->setValue("ghostbust", QVariant(_init_data.params.ghostbust).toString());
+        _settings->setValue("ghostbust", QVariant(_init_data.params.ghostbust()).toString());
         _settings->endGroup();
         break;
 
     case notification::subtitle_encoding:
-        s11n::load(current, _init_data.params.subtitle_encoding);
+        {
+            std::string val;
+            s11n::load(current, val);
+            _init_data.params.set_subtitle_encoding(val);
+        }
         break;
 
     case notification::subtitle_font:
-        s11n::load(current, _init_data.params.subtitle_font);
+        {
+            std::string val;
+            s11n::load(current, val);
+            _init_data.params.set_subtitle_font(val);
+        }
         break;
 
     case notification::subtitle_size:
-        s11n::load(current, _init_data.params.subtitle_size);
+        {
+            int val;
+            s11n::load(current, val);
+            _init_data.params.set_subtitle_size(val);
+        }
         break;
 
     case notification::subtitle_scale:
-        s11n::load(current, _init_data.params.subtitle_scale);
+        s11n::load(current, value);
+        _init_data.params.set_subtitle_scale(value);
         break;
 
     case notification::subtitle_color:
-        s11n::load(current, _init_data.params.subtitle_color);
+        {
+            uint64_t val;
+            s11n::load(current, val);
+            _init_data.params.set_subtitle_color(val);
+        }
         break;
 
     case notification::subtitle_parallax:
-        s11n::load(current, _init_data.params.subtitle_parallax);
+        s11n::load(current, value);
+        _init_data.params.set_subtitle_parallax(value);
         _settings->beginGroup("Video/" + current_file_hash());
-        _settings->setValue("subtitle-parallax", QVariant(_init_data.params.subtitle_parallax).toString());
+        _settings->setValue("subtitle-parallax", QVariant(_init_data.params.subtitle_parallax()).toString());
         _settings->endGroup();
         break;
 
@@ -2713,51 +2708,67 @@ void main_window::receive_notification(const notification &note)
         {
             int loop_mode;
             s11n::load(current, loop_mode);
-            _init_data.params.loop_mode = static_cast<parameters::loop_mode_t>(loop_mode);
+            _init_data.params.set_loop_mode(static_cast<parameters::loop_mode_t>(loop_mode));
         }
         break;
 
     case notification::fullscreen_screens:
-        s11n::load(current, _init_data.params.fullscreen_screens);
+        {
+            int val;
+            s11n::load(current, val);
+            _init_data.params.set_fullscreen_screens(val);
+        }
         break;
 
     case notification::fullscreen_flip_left:
-        s11n::load(current, _init_data.params.fullscreen_flip_left);
+        s11n::load(current, flag);
+        _init_data.params.set_fullscreen_flip_left(flag);
         break;
 
     case notification::fullscreen_flop_left:
-        s11n::load(current, _init_data.params.fullscreen_flop_left);
+        s11n::load(current, flag);
+        _init_data.params.set_fullscreen_flop_left(flag);
         break;
 
     case notification::fullscreen_flip_right:
-        s11n::load(current, _init_data.params.fullscreen_flip_right);
+        s11n::load(current, flag);
+        _init_data.params.set_fullscreen_flip_right(flag);
         break;
 
     case notification::fullscreen_flop_right:
-        s11n::load(current, _init_data.params.fullscreen_flop_right);
+        s11n::load(current, flag);
+        _init_data.params.set_fullscreen_flop_right(flag);
         break;
 
     case notification::zoom:
-        s11n::load(current, _init_data.params.zoom);
+        s11n::load(current, value);
+        _init_data.params.set_zoom(value);
         break;
 
     case notification::crop_aspect_ratio:
-        s11n::load(current, _init_data.params.crop_aspect_ratio);
+        s11n::load(current, value);
+        _init_data.params.set_crop_aspect_ratio(value);
         _settings->beginGroup("Video/" + current_file_hash());
-        _settings->setValue("crop-aspect-ratio", QVariant(_init_data.params.crop_aspect_ratio).toString());
+        _settings->setValue("crop-aspect-ratio", QVariant(_init_data.params.crop_aspect_ratio()).toString());
         _settings->endGroup();
         break;
 
     case notification::audio_volume:
-        s11n::load(current, _init_data.params.audio_volume);
+        s11n::load(current, value);
+        _init_data.params.set_audio_volume(value);
         break;
 
     case notification::audio_mute:
-        s11n::load(current, _init_data.params.audio_mute);
+        s11n::load(current, flag);
+        _init_data.params.set_audio_mute(flag);
         break;
 
     case notification::audio_delay:
-        s11n::load(current, _init_data.params.audio_delay);
+        {
+            int64_t val;
+            s11n::load(current, val);
+            _init_data.params.set_audio_delay(val);
+        }
         break;
 
     case notification::pause:
@@ -2811,28 +2822,8 @@ void main_window::closeEvent(QCloseEvent *event)
     // Stop the event and play loop
     _timer->stop();
     // Remember the Session preferences
-    _settings->beginGroup("Session");
-    _settings->setValue("audio-device", QVariant(_init_data.audio_device).toString());
-    _settings->setValue("audio-delay", QVariant(static_cast<qlonglong>(_init_data.params.audio_delay)).toString());
-    _settings->setValue("contrast", QVariant(_init_data.params.contrast).toString());
-    _settings->setValue("brightness", QVariant(_init_data.params.brightness).toString());
-    _settings->setValue("hue", QVariant(_init_data.params.hue).toString());
-    _settings->setValue("saturation", QVariant(_init_data.params.saturation).toString());
-    _settings->setValue("crosstalk_r", QVariant(_init_data.params.crosstalk_r).toString());
-    _settings->setValue("crosstalk_g", QVariant(_init_data.params.crosstalk_g).toString());
-    _settings->setValue("crosstalk_b", QVariant(_init_data.params.crosstalk_b).toString());
-    _settings->setValue("subtitle-encoding", QVariant(_init_data.params.subtitle_encoding.c_str()).toString());
-    _settings->setValue("subtitle-font", QVariant(_init_data.params.subtitle_font.c_str()).toString());
-    _settings->setValue("subtitle-size", QVariant(_init_data.params.subtitle_size).toString());
-    _settings->setValue("subtitle-scale", QVariant(_init_data.params.subtitle_scale).toString());
-    _settings->setValue("subtitle-color", QVariant(static_cast<qulonglong>(_init_data.params.subtitle_color)).toString());
-    _settings->setValue("fullscreen-screens", QVariant(_init_data.params.fullscreen_screens).toString());
-    _settings->setValue("fullscreen-flip-left", QVariant(_init_data.params.fullscreen_flip_left).toString());
-    _settings->setValue("fullscreen-flop-left", QVariant(_init_data.params.fullscreen_flop_left).toString());
-    _settings->setValue("fullscreen-flip-right", QVariant(_init_data.params.fullscreen_flip_right).toString());
-    _settings->setValue("fullscreen-flop-right", QVariant(_init_data.params.fullscreen_flop_right).toString());
-    _settings->setValue("zoom", QVariant(_init_data.params.zoom).toString());
-    _settings->endGroup();
+    _settings->setValue("Session/audio-device", QVariant(_init_data.audio_device).toString());
+    _settings->setValue("Session/parameters", QString::fromStdString(_init_data.params.save_session_parameters()));
     // Remember the Mainwindow state
     _settings->beginGroup("Mainwindow");
     _settings->setValue("geometry", saveGeometry());
@@ -2923,22 +2914,20 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
         _init_data.audio_stream = std::max(0, std::min(_init_data.audio_stream, _player->get_media_input().audio_streams() - 1));
         _init_data.subtitle_stream = QVariant(_settings->value("subtitle-stream", QVariant(_init_data.subtitle_stream)).toString()).toInt();
         _init_data.subtitle_stream = std::max(-1, std::min(_init_data.subtitle_stream, _player->get_media_input().subtitle_streams() - 1));
-        _init_data.params.crop_aspect_ratio = QVariant(_settings->value("crop-aspect-ratio", QVariant(_init_data.params.crop_aspect_ratio)).toString()).toFloat();
-        _init_data.params.parallax = QVariant(_settings->value("parallax", QVariant(_init_data.params.parallax)).toString()).toFloat();
-        _init_data.params.ghostbust = QVariant(_settings->value("ghostbust", QVariant(_init_data.params.ghostbust)).toString()).toFloat();
-        _init_data.params.subtitle_parallax = QVariant(_settings->value("subtitle-parallax", QVariant(_init_data.params.parallax)).toString()).toFloat();
+        _init_data.params.set_crop_aspect_ratio(QVariant(_settings->value("crop-aspect-ratio", QVariant(_init_data.params.crop_aspect_ratio())).toString()).toFloat());
+        _init_data.params.set_parallax(QVariant(_settings->value("parallax", QVariant(_init_data.params.parallax())).toString()).toFloat());
+        _init_data.params.set_ghostbust(QVariant(_settings->value("ghostbust", QVariant(_init_data.params.ghostbust())).toString()).toFloat());
+        _init_data.params.set_subtitle_parallax(QVariant(_settings->value("subtitle-parallax", QVariant(_init_data.params.parallax())).toString()).toFloat());
         _settings->endGroup();
         // Get stereo mode
         QString mode_fallback = QString(parameters::stereo_mode_to_string(
-                    _player->get_parameters().stereo_mode,
-                    _player->get_parameters().stereo_mode_swap).c_str());
+                    _player->get_parameters().stereo_mode(),
+                    _player->get_parameters().stereo_mode_swap()).c_str());
         QString mode_name = _settings->value(
                 (_init_data.stereo_layout == video_frame::mono ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode"),
                 mode_fallback).toString();
         parameters::stereo_mode_from_string(mode_name.toStdString(), _init_data.stereo_mode, _init_data.stereo_mode_swap);
         _init_data.stereo_mode_override = true;
-        // Fill in the rest with defaults
-        _init_data.params.set_defaults();
         // Update the widget with the new settings
         _in_out_widget->update(_init_data, true, false);
         _controls_widget->update(_init_data, true, false, _player->get_media_input().duration());
@@ -3213,7 +3202,7 @@ void main_window::preferences_fullscreen()
     std::vector<int> conf_screens;
     for (int i = 0; i < 16; i++)
     {
-        if (_init_data.params.fullscreen_screens & (1 << i))
+        if (_init_data.params.fullscreen_screens() & (1 << i))
         {
             conf_screens.push_back(i);
         }
@@ -3250,10 +3239,10 @@ void main_window::preferences_fullscreen()
         }
         single_btn->setChecked(true);
     }
-    flip_left_box->setChecked(_init_data.params.fullscreen_flip_left);
-    flop_left_box->setChecked(_init_data.params.fullscreen_flop_left);
-    flip_right_box->setChecked(_init_data.params.fullscreen_flip_right);
-    flop_right_box->setChecked(_init_data.params.fullscreen_flop_right);
+    flip_left_box->setChecked(_init_data.params.fullscreen_flip_left());
+    flop_left_box->setChecked(_init_data.params.fullscreen_flop_left());
+    flip_right_box->setChecked(_init_data.params.fullscreen_flip_right());
+    flop_right_box->setChecked(_init_data.params.fullscreen_flop_right());
 
     dlg->exec();
     if (dlg->result() == QDialog::Accepted)
@@ -3262,40 +3251,41 @@ void main_window::preferences_fullscreen()
         {
             if (single_box->currentIndex() == 0)
             {
-                _init_data.params.fullscreen_screens = 0;
+                _init_data.params.set_fullscreen_screens(0);
             }
             else
             {
-                _init_data.params.fullscreen_screens = (1 << (single_box->currentIndex() - 1));
+                _init_data.params.set_fullscreen_screens(1 << (single_box->currentIndex() - 1));
             }
         }
         else if (dual_btn->isChecked())
         {
-            _init_data.params.fullscreen_screens = (1 << dual_box0->currentIndex());
-            _init_data.params.fullscreen_screens |= (1 << dual_box1->currentIndex());
+            _init_data.params.set_fullscreen_screens(
+                    (1 << dual_box0->currentIndex()) | (1 << dual_box1->currentIndex()));
         }
         else
         {
-            _init_data.params.fullscreen_screens = 0;
+            int fss = 0;
             QStringList screens = multi_edt->text().split(',', QString::SkipEmptyParts);
             for (int i = 0; i < screens.size(); i++)
             {
                 int s = str::to<int>(screens[i].toAscii().data());
                 if (s >= 1 && s <= 16)
                 {
-                    _init_data.params.fullscreen_screens |= (1 << (s - 1));
+                    fss |= (1 << (s - 1));
                 }
             }
+            _init_data.params.set_fullscreen_screens(fss);
         }
-        send_cmd(command::set_fullscreen_screens, _init_data.params.fullscreen_screens);
-        _init_data.params.fullscreen_flip_left = flip_left_box->isChecked() ? 1 : 0;
-        send_cmd(command::set_fullscreen_flip_left, _init_data.params.fullscreen_flip_left);
-        _init_data.params.fullscreen_flop_left = flop_left_box->isChecked() ? 1 : 0;
-        send_cmd(command::set_fullscreen_flop_left, _init_data.params.fullscreen_flop_left);
-        _init_data.params.fullscreen_flip_right = flip_right_box->isChecked() ? 1 : 0;
-        send_cmd(command::set_fullscreen_flip_right, _init_data.params.fullscreen_flip_right);
-        _init_data.params.fullscreen_flop_right = flop_right_box->isChecked() ? 1 : 0;
-        send_cmd(command::set_fullscreen_flop_right, _init_data.params.fullscreen_flop_right);
+        send_cmd(command::set_fullscreen_screens, _init_data.params.fullscreen_screens());
+        _init_data.params.set_fullscreen_flip_left(flip_left_box->isChecked());
+        send_cmd(command::set_fullscreen_flip_left, _init_data.params.fullscreen_flip_left());
+        _init_data.params.set_fullscreen_flop_left(flop_left_box->isChecked());
+        send_cmd(command::set_fullscreen_flop_left, _init_data.params.fullscreen_flop_left());
+        _init_data.params.set_fullscreen_flip_right(flip_right_box->isChecked());
+        send_cmd(command::set_fullscreen_flip_right, _init_data.params.fullscreen_flip_right());
+        _init_data.params.set_fullscreen_flop_right(flop_right_box->isChecked());
+        send_cmd(command::set_fullscreen_flop_right, _init_data.params.fullscreen_flop_right());
     }
 }
 

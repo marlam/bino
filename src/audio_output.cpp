@@ -164,8 +164,8 @@ void audio_output::deinit()
 void audio_output::set_parameters(const parameters &params)
 {
     _params = params;
-    float gain = _params.audio_volume;
-    if (_params.audio_mute == 1)
+    float gain = _params.audio_volume();
+    if (_params.audio_mute())
     {
         gain = 0.0f;
     }

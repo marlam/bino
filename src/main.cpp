@@ -297,35 +297,33 @@ int main(int argc, char *argv[])
     options.push_back(&fullscreen_flip_right);
     opt::flag fullscreen_flop_right("fullscreen-flop-right", '\0', opt::optional);
     options.push_back(&fullscreen_flop_right);
-    opt::val<float> zoom("zoom", 'z', opt::optional, 0.0f, 1.0f, parameters().zoom);
+    opt::val<float> zoom("zoom", 'z', opt::optional, 0.0f, 1.0f);
     options.push_back(&zoom);
-    opt::tuple<float> crop_aspect_ratio("crop-aspect-ratio", 'C', opt::optional,
-            0.0f, 100.0f, std::vector<float>(), 2, ":");
+    opt::tuple<float> crop_aspect_ratio("crop-aspect-ratio", 'C', opt::optional, 0.0f, 100.0f, std::vector<float>(), 2, ":");
     options.push_back(&crop_aspect_ratio);
     opt::flag center("center", 'c', opt::optional);
     options.push_back(&center);
-    opt::val<std::string> subtitle_encoding("subtitle-encoding", '\0', opt::optional, parameters().subtitle_encoding);
+    opt::val<std::string> subtitle_encoding("subtitle-encoding", '\0', opt::optional);
     options.push_back(&subtitle_encoding);
-    opt::val<std::string> subtitle_font("subtitle-font", '\0', opt::optional, parameters().subtitle_font);
+    opt::val<std::string> subtitle_font("subtitle-font", '\0', opt::optional);
     options.push_back(&subtitle_font);
-    opt::val<int> subtitle_size("subtitle-size", '\0', opt::optional, 1, 999, parameters().subtitle_size);
+    opt::val<int> subtitle_size("subtitle-size", '\0', opt::optional, 1, 999);
     options.push_back(&subtitle_size);
-    opt::val<float> subtitle_scale("subtitle-scale", '\0', opt::optional, 0.0f, false,
-            std::numeric_limits<float>::max(), true, parameters().subtitle_scale);
+    opt::val<float> subtitle_scale("subtitle-scale", '\0', opt::optional, 0.0f, false, std::numeric_limits<float>::max(), true);
     options.push_back(&subtitle_scale);
     opt::color subtitle_color("subtitle-color", '\0', opt::optional);
     options.push_back(&subtitle_color);
-    opt::val<float> subtitle_parallax("subtitle-parallax", '\0', opt::optional, -1.0f, +1.0f, parameters().subtitle_parallax);
+    opt::val<float> subtitle_parallax("subtitle-parallax", '\0', opt::optional, -1.0f, +1.0f);
     options.push_back(&subtitle_parallax);
-    opt::val<float> parallax("parallax", 'P', opt::optional, -1.0f, +1.0f, parameters().parallax);
+    opt::val<float> parallax("parallax", 'P', opt::optional, -1.0f, +1.0f);
     options.push_back(&parallax);
-    opt::tuple<float> crosstalk("crosstalk", 'C', opt::optional, 0.0f, 1.0f, std::vector<float>(3, parameters().crosstalk_r), 3);
+    opt::tuple<float> crosstalk("crosstalk", 'C', opt::optional, 0.0f, 1.0f, std::vector<float>(), 3);
     options.push_back(&crosstalk);
-    opt::val<float> ghostbust("ghostbust", 'G', opt::optional, 0.0f, 1.0f, parameters().ghostbust);
+    opt::val<float> ghostbust("ghostbust", 'G', opt::optional, 0.0f, 1.0f);
     options.push_back(&ghostbust);
     opt::flag benchmark("benchmark", 'b', opt::optional);
     options.push_back(&benchmark);
-    opt::val<int> swap_interval("swap-interval", '\0', opt::optional, 0, 999, -1);
+    opt::val<int> swap_interval("swap-interval", '\0', opt::optional, 0, 999);
     options.push_back(&swap_interval);
     opt::flag loop("loop", 'l', opt::optional);
     options.push_back(&loop);
@@ -637,35 +635,40 @@ int main(int argc, char *argv[])
         parameters::stereo_mode_from_string(video_output_mode.value(), init_data.stereo_mode, init_data.stereo_mode_swap);
         init_data.stereo_mode_swap = swap_eyes.value();
     }
-    init_data.params.stereo_mode_swap = swap_eyes.value();
+    if (swap_eyes.values().size() > 0)
+    {
+        init_data.params.set_stereo_mode_swap(swap_eyes.value());
+    }
+    init_data.center = center.value();
     init_data.fullscreen = fullscreen.value();
     if (fullscreen_screens.values().size() > 0)
     {
-        init_data.params.fullscreen_screens = 0;
+        int fs = 0;
         for (size_t i = 0; i < fullscreen_screens.value().size(); i++)
         {
-            init_data.params.fullscreen_screens |= (1 << (fullscreen_screens.value()[i] - 1));
+            fs |= (1 << (fullscreen_screens.value()[i] - 1));
         }
+        init_data.params.set_fullscreen_screens(fs);
     }
     if (fullscreen_flip_left.values().size() > 0)
     {
-        init_data.params.fullscreen_flip_left = fullscreen_flip_left.value();
+        init_data.params.set_fullscreen_flip_left(fullscreen_flip_left.value());
     }
     if (fullscreen_flop_left.values().size() > 0)
     {
-        init_data.params.fullscreen_flop_left = fullscreen_flop_left.value();
+        init_data.params.set_fullscreen_flop_left(fullscreen_flop_left.value());
     }
     if (fullscreen_flip_right.values().size() > 0)
     {
-        init_data.params.fullscreen_flip_right = fullscreen_flip_right.value();
+        init_data.params.set_fullscreen_flip_right(fullscreen_flip_right.value());
     }
     if (fullscreen_flop_right.values().size() > 0)
     {
-        init_data.params.fullscreen_flop_right = fullscreen_flop_right.value();
+        init_data.params.set_fullscreen_flop_right(fullscreen_flop_right.value());
     }
     if (zoom.values().size() > 0)
     {
-        init_data.params.zoom = zoom.value();
+        init_data.params.set_zoom(zoom.value());
     }
     if (crop_aspect_ratio.values().size() > 0)
     {
@@ -675,47 +678,72 @@ int main(int argc, char *argv[])
             crop_ar = crop_aspect_ratio.value()[0] / crop_aspect_ratio.value()[1];
             crop_ar = std::min(std::max(crop_ar, 1.0f), 2.39f);
         }
-        init_data.params.crop_aspect_ratio = crop_ar;
+        init_data.params.set_crop_aspect_ratio(crop_ar);
     }
     if (audio_delay.values().size() > 0)
     {
-        init_data.params.audio_delay = audio_delay.value() * 1000;
+        init_data.params.set_audio_delay(audio_delay.value() * 1000);
     }
     if (audio_volume.values().size() > 0)
     {
-        init_data.params.audio_volume = audio_volume.value();
+        init_data.params.set_audio_volume(audio_volume.value());
     }
     if (audio_mute.values().size() > 0)
     {
-        init_data.params.audio_mute = audio_mute.value();
+        init_data.params.set_audio_mute(audio_mute.value());
     }
-    init_data.center = center.value();
-    init_data.params.subtitle_encoding = subtitle_encoding.value();
-    init_data.params.subtitle_font = subtitle_font.value();
-    init_data.params.subtitle_size = subtitle_size.value();
-    init_data.params.subtitle_scale = subtitle_scale.value();
-    if (!subtitle_color.values().empty())
+    if (subtitle_encoding.values().size() > 0)
     {
-        init_data.params.subtitle_color = subtitle_color.value();
+        init_data.params.set_subtitle_encoding(subtitle_encoding.value());
     }
-    init_data.params.subtitle_parallax = subtitle_parallax.value();
-    init_data.params.parallax = parallax.value();
-    init_data.params.crosstalk_r = crosstalk.value()[0];
-    init_data.params.crosstalk_g = crosstalk.value()[1];
-    init_data.params.crosstalk_b = crosstalk.value()[2];
-    init_data.params.ghostbust = ghostbust.value();
+    if (subtitle_font.values().size() > 0)
+    {
+        init_data.params.set_subtitle_font(subtitle_font.value());
+    }
+    if (subtitle_size.values().size() > 0)
+    {
+        init_data.params.set_subtitle_size(subtitle_size.value());
+    }
+    if (subtitle_scale.values().size() > 0)
+    {
+        init_data.params.set_subtitle_scale(subtitle_scale.value());
+    }
+    if (subtitle_color.values().size() > 0)
+    {
+        init_data.params.set_subtitle_color(subtitle_color.value());
+    }
+    if (subtitle_parallax.values().size() > 0)
+    {
+        init_data.params.set_subtitle_parallax(subtitle_parallax.value());
+    }
+    if (parallax.values().size() > 0)
+    {
+        init_data.params.set_parallax(parallax.value());
+    }
+    if (crosstalk.values().size() > 0)
+    {
+        init_data.params.set_crosstalk_r(crosstalk.value()[0]);
+        init_data.params.set_crosstalk_g(crosstalk.value()[1]);
+        init_data.params.set_crosstalk_b(crosstalk.value()[2]);
+    }
+    if (ghostbust.values().size() > 0)
+    {
+        init_data.params.set_ghostbust(ghostbust.value());
+    }
     init_data.benchmark = benchmark.value();
     if (init_data.benchmark)
     {
         init_data.swap_interval = 0;
         msg::inf(_("Benchmark mode: audio and time synchronization disabled."));
     }
-    if (swap_interval.value() >= 0)
+    if (swap_interval.values().size() > 0)
     {
         init_data.swap_interval = swap_interval.value();
     }
-
-    init_data.params.loop_mode = (loop.value() ? parameters::loop_current : parameters::no_loop);
+    if (loop.values().size() > 0)
+    {
+        init_data.params.set_loop_mode(loop.value() ? parameters::loop_current : parameters::no_loop);
+    }
 
 #if HAVE_LIBLIRCCLIENT
     lircclient lirc(PACKAGE, lirc_config.values());
