@@ -2995,6 +2995,7 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
     _init_data.params = params_bak;
     _init_data.dev_request = dev_request;
     _init_data.urls.clear();
+    _init_data.params.unset_video_parameters();
     for (int i = 0; i < filenames.size(); i++)
     {
         _init_data.urls.push_back(filenames[i].toLocal8Bit().constData());
@@ -3003,7 +3004,6 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
     {
         // Get the settings for this video
         QString saved_video_parameters = _settings->value("Video/" + current_file_hash(), QString("")).toString();
-        _init_data.params.unset_video_parameters();
         if (!saved_video_parameters.isEmpty())
         {
             _init_data.params.load_video_parameters(saved_video_parameters.toStdString());
