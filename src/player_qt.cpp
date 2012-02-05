@@ -2313,6 +2313,112 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
         if (!_init_data.params.zoom_is_set() && !session_params.zoom_is_default())
             _init_data.params.set_zoom(session_params.zoom());
     }
+    else
+    {
+        // This code block is only for compatibility with Bino <= 1.2.x:
+        _settings->beginGroup("Session");
+        if (!_init_data.params.audio_device_is_set() && _settings->contains("audio-device"))
+        {
+            _init_data.params.set_audio_device(_settings->value("audio-device").toInt());
+            _settings->remove("audio-device");
+        }
+        if (!_init_data.params.audio_delay_is_set() && _settings->contains("audio-delay"))
+        {
+            _init_data.params.set_audio_delay(_settings->value("audio-delay").toLongLong());
+            _settings->remove("audio-delay");
+        }
+        if (!_init_data.params.contrast_is_set() && _settings->contains("contrast"))
+        {
+            _init_data.params.set_contrast(_settings->value("contrast").toFloat());
+            _settings->remove("contrast");
+        }
+        if (!_init_data.params.brightness_is_set() && _settings->contains("brightness"))
+        {
+            _init_data.params.set_brightness(_settings->value("brightness").toFloat());
+            _settings->remove("brightness");
+        }
+        if (!_init_data.params.hue_is_set() && _settings->contains("hue"))
+        {
+            _init_data.params.set_hue(_settings->value("hue").toFloat());
+            _settings->remove("hue");
+        }
+        if (!_init_data.params.saturation_is_set() && _settings->contains("saturation"))
+        {
+            _init_data.params.set_saturation(_settings->value("saturation").toFloat());
+            _settings->remove("saturation");
+        }
+        if (!_init_data.params.crosstalk_r_is_set() && _settings->contains("crosstalk_r"))
+        {
+            _init_data.params.set_crosstalk_r(_settings->value("crosstalk_r").toFloat());
+            _settings->remove("crosstalk_r");
+        }
+        if (!_init_data.params.crosstalk_g_is_set() && _settings->contains("crosstalk_g"))
+        {
+            _init_data.params.set_crosstalk_g(_settings->value("crosstalk_g").toFloat());
+            _settings->remove("crosstalk_g");
+        }
+        if (!_init_data.params.crosstalk_b_is_set() && _settings->contains("crosstalk_b"))
+        {
+            _init_data.params.set_crosstalk_b(_settings->value("crosstalk_b").toFloat());
+            _settings->remove("crosstalk_b");
+        }
+        if (!_init_data.params.fullscreen_screens_is_set() && _settings->contains("fullscreen-screens"))
+        {
+            _init_data.params.set_fullscreen_screens(_settings->value("fullscreen-screens").toInt());
+            _settings->remove("fullscreen-screens");
+        }
+        if (!_init_data.params.fullscreen_flip_left_is_set() && _settings->contains("fullscreen-flip-left"))
+        {
+            _init_data.params.set_fullscreen_flip_left(_settings->value("fullscreen-flip-left").toInt());
+            _settings->remove("fullscreen-flip-left");
+        }
+        if (!_init_data.params.fullscreen_flop_left_is_set() && _settings->contains("fullscreen-flop-left"))
+        {
+            _init_data.params.set_fullscreen_flop_left(_settings->value("fullscreen-flop-left").toInt());
+            _settings->remove("fullscreen-flop-left");
+        }
+        if (!_init_data.params.fullscreen_flip_right_is_set() && _settings->contains("fullscreen-flip-right"))
+        {
+            _init_data.params.set_fullscreen_flip_right(_settings->value("fullscreen-flip-right").toInt());
+            _settings->remove("fullscreen-flip-right");
+        }
+        if (!_init_data.params.fullscreen_flop_right_is_set() && _settings->contains("fullscreen-flop-right"))
+        {
+            _init_data.params.set_fullscreen_flop_right(_settings->value("fullscreen-flop-right").toInt());
+            _settings->remove("fullscreen-flop-right");
+        }
+        if (!_init_data.params.subtitle_encoding_is_set() && _settings->contains("subtitle-encoding"))
+        {
+            _init_data.params.set_subtitle_encoding(_settings->value("subtitle-encoding").toString().toStdString());
+            _settings->remove("subtitle-encoding");
+        }
+        if (!_init_data.params.subtitle_font_is_set() && _settings->contains("subtitle-font"))
+        {
+            _init_data.params.set_subtitle_font(_settings->value("subtitle-font").toString().toStdString());
+            _settings->remove("subtitle-font");
+        }
+        if (!_init_data.params.subtitle_size_is_set() && _settings->contains("subtitle-size"))
+        {
+            _init_data.params.set_subtitle_size(_settings->value("subtitle-size").toInt());
+            _settings->remove("subtitle-size");
+        }
+        if (!_init_data.params.subtitle_scale_is_set() && _settings->contains("subtitle-scale"))
+        {
+            _init_data.params.set_subtitle_scale(_settings->value("subtitle-scale").toFloat());
+            _settings->remove("subtitle-scale");
+        }
+        if (!_init_data.params.subtitle_color_is_set() && _settings->contains("subtitle-color"))
+        {
+            _init_data.params.set_subtitle_color(_settings->value("subtitle-color").toULongLong());
+            _settings->remove("subtitle-color");
+        }
+        if (!_init_data.params.zoom_is_set() && _settings->contains("zoom"))
+        {
+            _init_data.params.set_zoom(_settings->value("zoom").toFloat());
+            _settings->remove("zoom");
+        }
+        _settings->endGroup();
+    }
 
     // Central widget, player, and timer
     QWidget *central_widget = new QWidget(this);
@@ -2813,6 +2919,8 @@ void main_window::moveEvent(QMoveEvent *)
 
 void main_window::closeEvent(QCloseEvent *event)
 {
+    // Stop the player
+    _player->force_stop();
     // Stop the event and play loop
     _timer->stop();
     // Remember the Session preferences
@@ -2899,6 +3007,53 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
         if (!saved_video_parameters.isEmpty())
         {
             _init_data.params.load_video_parameters(saved_video_parameters.toStdString());
+        }
+        // The following code block is only for compatibility with Bino <= 1.2.x:
+        {
+            _settings->beginGroup("Video/" + current_file_hash());
+            if (!_init_data.params.stereo_layout_is_set()
+                    && !_init_data.params.stereo_layout_swap_is_set()
+                    && _settings->contains("stereo-layout"))
+            {
+                QString layout_name = _settings->value("stereo-layout").toString();
+                parameters::stereo_layout_t stereo_layout;
+                bool stereo_layout_swap;
+                parameters::stereo_layout_from_string(layout_name.toStdString(), stereo_layout, stereo_layout_swap);
+                _init_data.params.set_stereo_layout(stereo_layout);
+                _init_data.params.set_stereo_layout_swap(stereo_layout_swap);
+                _settings->remove("stereo-layout");
+            }
+            if (!_init_data.params.video_stream_is_set() && _settings->contains("video-stream"))
+            {
+                _init_data.params.set_video_stream(_settings->value("video-stream").toInt());
+                _settings->remove("video-stream");
+            }
+            if (!_init_data.params.audio_stream_is_set() && _settings->contains("audio-stream"))
+            {
+                _init_data.params.set_audio_stream(_settings->value("audio-stream").toInt());
+                _settings->remove("audio-stream");
+            }
+            if (!_init_data.params.subtitle_stream_is_set() && _settings->contains("subtitle-stream"))
+            {
+                _init_data.params.set_subtitle_stream(_settings->value("subtitle-stream").toInt());
+                _settings->remove("subtitle-stream");
+            }
+            if (!_init_data.params.parallax_is_set() && _settings->contains("parallax"))
+            {
+                _init_data.params.set_parallax(_settings->value("parallax").toFloat());
+                _settings->remove("parallax");
+            }
+            if (!_init_data.params.ghostbust_is_set() && _settings->contains("ghostbust"))
+            {
+                _init_data.params.set_ghostbust(_settings->value("ghostbust").toFloat());
+                _settings->remove("ghostbust");
+            }
+            if (!_init_data.params.subtitle_parallax_is_set() && _settings->contains("subtitle-parallax"))
+            {
+                _init_data.params.set_subtitle_parallax(_settings->value("subtitle-parallax").toFloat());
+                _settings->remove("subtitle-parallax");
+            }
+            _settings->endGroup();
         }
         if (!_init_data.params.stereo_layout_is_set() && !_init_data.params.stereo_layout_swap_is_set())
         {
