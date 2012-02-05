@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008, 2009, 2010, 2011
+ * Copyright (C) 2008, 2009, 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -644,7 +644,7 @@ void s11n::load(const std::string& s, std::string& x)
         return;
     const char *sc = s.c_str();
     size_t i = 0;
-    while (i < s.length() - 1) {
+    while (i < s.length()) {
         x.append(1, dec_char(sc, i));
     }
 }

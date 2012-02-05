@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010, 2011
+ * Copyright (C) 2009, 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -388,6 +388,15 @@ namespace str
         {
             return str::asprintf("%.1f mm", length * 1000.0);
         }
+    }
+
+    std::string human_readable_geodetic(double lat, double lon, double elev)
+    {
+        std::string s = str::asprintf("lat %.6f lon %.6f",
+                180.0 / M_PI * lat, 180.0 / M_PI * lon);
+        if (elev < 0.0 || elev > 0.0)
+            s += " elev " + human_readable_length(elev);
+        return s;
     }
 
     std::string human_readable_time(int64_t microseconds)

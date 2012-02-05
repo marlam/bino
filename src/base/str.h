@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010, 2011
+ * Copyright (C) 2009, 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -93,6 +93,7 @@ namespace str
     /* Convert various values to human readable strings */
     std::string human_readable_memsize(const uintmax_t size);
     std::string human_readable_length(const double length);
+    std::string human_readable_geodetic(double lat, double lon, double elev);
     std::string human_readable_time(int64_t microseconds);
 
     /* Get the name of the user's character set */
