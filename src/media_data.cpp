@@ -96,7 +96,6 @@ parameters::parameters()
     unset_subtitle_size();
     unset_subtitle_scale();
     unset_subtitle_color();
-    unset_subtitle_parallax();
     // Per-Video parameters
     unset_video_stream();
     unset_audio_stream();
@@ -106,6 +105,7 @@ parameters::parameters()
     unset_crop_aspect_ratio();
     unset_parallax();
     unset_ghostbust();
+    unset_subtitle_parallax();
     // Volatile parameters
     unset_fullscreen();
     unset_center();
@@ -141,7 +141,6 @@ const std::string parameters::_subtitle_font_default = "";
 const int parameters::_subtitle_size_default = -1;
 const float parameters::_subtitle_scale_default = -1.0f;
 const uint64_t parameters::_subtitle_color_default = std::numeric_limits<uint64_t>::max();
-const float parameters::_subtitle_parallax_default = 0.0f;
 // Per-Video parameter defaults
 const int parameters::_video_stream_default = 0;
 const int parameters::_audio_stream_default = 0;
@@ -151,6 +150,7 @@ const bool parameters::_stereo_layout_swap_default = false;
 const float parameters::_crop_aspect_ratio_default = 0.0f;
 const float parameters::_parallax_default = 0.0f;
 const float parameters::_ghostbust_default = 0.0f;
+const float parameters::_subtitle_parallax_default = 0.0f;
 // Volatile parameter defaults
 const bool parameters::_fullscreen_default = false;
 const bool parameters::_center_default = false;
@@ -469,8 +469,6 @@ void parameters::save(std::ostream &os) const
     s11n::save(os, _subtitle_scale_set);
     s11n::save(os, _subtitle_color);
     s11n::save(os, _subtitle_color_set);
-    s11n::save(os, _subtitle_parallax);
-    s11n::save(os, _subtitle_parallax_set);
     // Per-Video parameters
     s11n::save(os, _video_stream);
     s11n::save(os, _video_stream_set);
@@ -488,6 +486,8 @@ void parameters::save(std::ostream &os) const
     s11n::save(os, _parallax_set);
     s11n::save(os, _ghostbust);
     s11n::save(os, _ghostbust_set);
+    s11n::save(os, _subtitle_parallax);
+    s11n::save(os, _subtitle_parallax_set);
     // Volatile parameters
     s11n::save(os, _fullscreen);
     s11n::save(os, _fullscreen_set);
@@ -556,8 +556,6 @@ void parameters::load(std::istream &is)
     s11n::load(is, _subtitle_scale_set);
     s11n::load(is, _subtitle_color);
     s11n::load(is, _subtitle_color_set);
-    s11n::load(is, _subtitle_parallax);
-    s11n::load(is, _subtitle_parallax_set);
     // Per-Video parameters
     s11n::load(is, _video_stream);
     s11n::load(is, _video_stream_set);
@@ -575,6 +573,8 @@ void parameters::load(std::istream &is)
     s11n::load(is, _parallax_set);
     s11n::load(is, _ghostbust);
     s11n::load(is, _ghostbust_set);
+    s11n::load(is, _subtitle_parallax);
+    s11n::load(is, _subtitle_parallax_set);
     // Volatile parameters
     s11n::load(is, _fullscreen);
     s11n::load(is, _fullscreen_set);
@@ -633,8 +633,6 @@ std::string parameters::save_session_parameters() const
         s11n::save(oss, "subtitle_scale", _subtitle_scale);
     if (!subtitle_color_is_default())
         s11n::save(oss, "subtitle_color", _subtitle_color);
-    if (!subtitle_parallax_is_default())
-        s11n::save(oss, "subtitle_parallax", _subtitle_parallax);
     return oss.str();
 }
 
@@ -715,9 +713,6 @@ void parameters::load_session_parameters(const std::string &s)
         } else if (name == "subtitle_color") {
             s11n::load(value, _subtitle_color);
             _subtitle_color_set = true;
-        } else if (name == "subtitle_parallax") {
-            s11n::load(value, _subtitle_parallax);
-            _subtitle_parallax_set = true;
         }
     }
 }
@@ -732,6 +727,7 @@ void parameters::unset_video_parameters()
     unset_crop_aspect_ratio();
     unset_parallax();
     unset_ghostbust();
+    unset_subtitle_parallax();
 }
 
 std::string parameters::save_video_parameters() const
@@ -751,6 +747,8 @@ std::string parameters::save_video_parameters() const
         s11n::save(oss, "parallax", _parallax);
     if (!ghostbust_is_default())
         s11n::save(oss, "ghostbust", _ghostbust);
+    if (!subtitle_parallax_is_default())
+        s11n::save(oss, "subtitle_parallax", _subtitle_parallax);
     return oss.str();
 }
 
@@ -784,6 +782,9 @@ void parameters::load_video_parameters(const std::string &s)
         } else if (name == "ghostbust") {
             s11n::load(value, _ghostbust);
             _ghostbust_set = true;
+        } else if (name == "subtitle_parallax") {
+            s11n::load(value, _subtitle_parallax);
+            _subtitle_parallax_set = true;
         }
     }
 }

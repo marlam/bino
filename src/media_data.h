@@ -179,7 +179,6 @@ public:
     PARAMETER(int, subtitle_size)             // Subtitle point size, -1 means keep default
     PARAMETER(float, subtitle_scale)          // Scale factor
     PARAMETER(uint64_t, subtitle_color)       // Subtitle color in uint32_t bgra32 format, > UINT32_MAX means keep default
-    PARAMETER(float, subtitle_parallax)       // Subtitle parallax adjustment, -1 .. +1
     // Per-Video parameters
     PARAMETER(int, video_stream)              // Video stream index
     PARAMETER(int, audio_stream)              // Audio stream index, or -1 if there is no audio stream
@@ -189,6 +188,7 @@ public:
     PARAMETER(float, crop_aspect_ratio)       // Crop the video to this aspect ratio, 0 = don't crop.
     PARAMETER(float, parallax)                // Parallax adjustment, -1 .. +1
     PARAMETER(float, ghostbust)               // Amount of crosstalk ghostbusting, 0 .. 1
+    PARAMETER(float, subtitle_parallax)       // Subtitle parallax adjustment, -1 .. +1
     // Volatile parameters
     PARAMETER(bool, fullscreen)               // Fullscreen mode
     PARAMETER(bool, center)                   // Should the video be centered?
