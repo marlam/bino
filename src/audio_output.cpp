@@ -81,14 +81,14 @@ void audio_output::init(int i)
 {
     if (!_initialized)
     {
-        if (i == -1)
+        if (i < 0)
         {
             if (!(_device = alcOpenDevice(NULL)))
             {
                 throw exc(_("No OpenAL device available."));
             }
         }
-        else if (i < -1 || i >= static_cast<int>(_devices.size()))
+        else if (i >= static_cast<int>(_devices.size()))
         {
             throw exc(str::asprintf(_("OpenAL device '%s' is not available."), _("unknown")));
         }

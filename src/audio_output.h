@@ -79,7 +79,7 @@ public:
     /* Return the name of OpenAL device i. */
     const std::string &device_name(int i) const;
 
-    /* Initialize the audio device i for output. If i is -1, the default device
+    /* Initialize the audio device i for output. If i is < 0, the default device
      * will be used. Throw an exception if this fails. */
     void init(int i = -1);
     /* Deinitialize the audio device. */
