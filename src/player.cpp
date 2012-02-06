@@ -725,11 +725,6 @@ void player::receive_cmd(const command &cmd)
         _quit_request = true;
         /* notify when request is fulfilled */
         break;
-    case command::toggle_stereo_mode_swap:
-        _params.set_stereo_mode_swap(!_params.stereo_mode_swap());
-        parameters_changed = true;
-        controller::notify_all(notification::stereo_mode_swap, !_params.stereo_mode_swap(), _params.stereo_mode_swap());
-        break;
     case command::cycle_video_stream:
         if (_media_input->video_streams() > 1
                 && _media_input->video_frame_template().stereo_layout != parameters::layout_separate)
@@ -836,29 +831,53 @@ void player::receive_cmd(const command &cmd)
         break;
     case command::set_stereo_layout:
         {
-            int stereo_layout;
-            bool stereo_layout_swap;
-            s11n::load(p, stereo_layout);
-            s11n::load(p, stereo_layout_swap);
-            _params.set_stereo_layout(static_cast<parameters::stereo_layout_t>(stereo_layout));
-            _params.set_stereo_layout_swap(stereo_layout_swap);
+            int oldval = _params.stereo_layout();
+            int newval;
+            s11n::load(p, newval);
+            _params.set_stereo_layout(static_cast<parameters::stereo_layout_t>(newval));
             _media_input->set_stereo_layout(_params.stereo_layout(), _params.stereo_layout_swap());
-            if (stereo_layout == parameters::layout_separate)
+            if (newval == parameters::layout_separate)
             {
                 _seek_request = -1;     // Get position of both streams right
             }
+            parameters_changed = true;
+            controller::notify_all(notification::stereo_layout, oldval, newval);
+        }
+        break;
+    case command::set_stereo_layout_swap:
+        {
+            bool oldval = _params.stereo_layout_swap();
+            bool newval;
+            s11n::load(p, newval);
+            _params.set_stereo_layout_swap(newval);
+            parameters_changed = true;
+            controller::notify_all(notification::stereo_layout_swap, oldval, newval);
         }
         break;
     case command::set_stereo_mode:
         {
-            int stereo_mode;
-            bool stereo_mode_swap;
-            s11n::load(p, stereo_mode);
-            s11n::load(p, stereo_mode_swap);
-            _params.set_stereo_mode(static_cast<parameters::stereo_mode_t>(stereo_mode));
-            _params.set_stereo_mode_swap(stereo_mode_swap);
+            int oldval = _params.stereo_mode();
+            int newval;
+            s11n::load(p, newval);
+            _params.set_stereo_mode(static_cast<parameters::stereo_mode_t>(newval));
             parameters_changed = true;
+            controller::notify_all(notification::stereo_mode, oldval, newval);
         }
+        break;
+    case command::set_stereo_mode_swap:
+        {
+            bool oldval = _params.stereo_mode_swap();
+            bool newval;
+            s11n::load(p, newval);
+            _params.set_stereo_mode_swap(newval);
+            parameters_changed = true;
+            controller::notify_all(notification::stereo_mode_swap, oldval, newval);
+        }
+        break;
+    case command::toggle_stereo_mode_swap:
+        _params.set_stereo_mode_swap(!_params.stereo_mode_swap());
+        parameters_changed = true;
+        controller::notify_all(notification::stereo_mode_swap, !_params.stereo_mode_swap(), _params.stereo_mode_swap());
         break;
     case command::toggle_fullscreen:
         flag = false;

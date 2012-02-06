@@ -58,8 +58,10 @@ public:
         set_audio_stream,               // int
         cycle_subtitle_stream,          // no parameters
         set_subtitle_stream,            // int
-        set_stereo_layout,              // video_frame::stereo_layout, bool
-        set_stereo_mode,                // parameters::stereo_mode, bool
+        set_stereo_layout,              // video_frame::stereo_layout
+        set_stereo_layout_swap,         // bool
+        set_stereo_mode,                // parameters::stereo_mode
+        set_stereo_mode_swap,           // bool
         toggle_stereo_mode_swap,        // no parameters
         toggle_fullscreen,              // no parameters
         center,                         // no parameters
@@ -155,8 +157,9 @@ public:
         video_stream,           // int
         audio_stream,           // int
         subtitle_stream,        // int
-        stereo_layout,          // video_frame::stereo_layout, bool
-        stereo_mode,            // parameters::stereo_mode, bool
+        stereo_layout,          // video_frame::stereo_layout
+        stereo_layout_swap,     // bool
+        stereo_mode,            // parameters::stereo_mode
         stereo_mode_swap,       // bool
         fullscreen,             // bool
         center,                 // bool

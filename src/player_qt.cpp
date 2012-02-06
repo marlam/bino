@@ -457,10 +457,8 @@ void in_out_widget::input_changed()
     {
         _video_combobox->setEnabled(true);
     }
-    std::ostringstream oss;
-    s11n::save(oss, static_cast<int>(stereo_layout));
-    s11n::save(oss, stereo_layout_swap);
-    send_cmd(command::set_stereo_layout, oss.str());
+    send_cmd(command::set_stereo_layout, static_cast<int>(stereo_layout));
+    send_cmd(command::set_stereo_layout_swap, stereo_layout_swap);
     parameters::stereo_mode_t stereo_mode;
     bool stereo_mode_swap;
     get_stereo_mode(stereo_mode, stereo_mode_swap);
@@ -485,10 +483,8 @@ void in_out_widget::output_changed()
     parameters::stereo_mode_t stereo_mode;
     bool stereo_mode_swap;
     get_stereo_mode(stereo_mode, stereo_mode_swap);
-    std::ostringstream oss;
-    s11n::save(oss, static_cast<int>(stereo_mode));
-    s11n::save(oss, stereo_mode_swap);
-    send_cmd(command::set_stereo_mode, oss.str());
+    send_cmd(command::set_stereo_mode, static_cast<int>(stereo_mode));
+    send_cmd(command::set_stereo_mode_swap, stereo_mode_swap);
 }
 
 void in_out_widget::swap_changed()
@@ -2740,10 +2736,30 @@ void main_window::receive_notification(const notification &note)
         _init_data.params.set_saturation(value);
         break;
 
+    case notification::stereo_layout:
+        {
+            int m;
+            s11n::load(current, m);
+            _init_data.params.set_stereo_layout(static_cast<parameters::stereo_layout_t>(m));
+        }
+        break;
+
+    case notification::stereo_layout_swap:
+        s11n::load(current, flag);
+        _init_data.params.set_stereo_layout_swap(flag);
+        break;
+
+    case notification::stereo_mode:
+        {
+            int m;
+            s11n::load(current, m);
+            _init_data.params.set_stereo_mode(static_cast<parameters::stereo_mode_t>(m));
+        }
+        break;
+
     case notification::stereo_mode_swap:
         s11n::load(current, flag);
         _init_data.params.set_stereo_mode_swap(flag);
-        // TODO: save this is Session/?d-stereo-mode?
         break;
 
     case notification::parallax:
@@ -2872,8 +2888,6 @@ void main_window::receive_notification(const notification &note)
         break;
 
     case notification::pause:
-    case notification::stereo_layout:
-    case notification::stereo_mode:
     case notification::fullscreen:
     case notification::center:
     case notification::pos:
