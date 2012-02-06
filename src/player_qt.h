@@ -322,6 +322,7 @@ private slots:
 
 public:
     video_dialog(parameters *params, QWidget *parent);
+    void update();
 
     virtual void receive_notification(const notification &note);
 };

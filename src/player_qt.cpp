@@ -1903,7 +1903,6 @@ video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent
     _crop_ar_combobox->addItem(_("4:3"));
     _crop_ar_combobox->addItem(_("5:4"));
     _crop_ar_combobox->addItem(_("1:1"));
-    set_crop_ar(params->crop_aspect_ratio());
     connect(_crop_ar_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(crop_ar_changed()));
 
     QLabel *p_label = new QLabel(_("Parallax:"));
@@ -1912,12 +1911,10 @@ video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent
     _p_slider = new QSlider(Qt::Horizontal);
     _p_slider->setToolTip(p_label->toolTip());
     _p_slider->setRange(-1000, 1000);
-    _p_slider->setValue(params->parallax() * 1000.0f);
     connect(_p_slider, SIGNAL(valueChanged(int)), this, SLOT(p_slider_changed(int)));
     _p_spinbox = new QDoubleSpinBox();
     _p_spinbox->setToolTip(p_label->toolTip());
     _p_spinbox->setRange(-1.0, +1.0);
-    _p_spinbox->setValue(params->parallax());
     _p_spinbox->setDecimals(2);
     _p_spinbox->setSingleStep(0.01);
     connect(_p_spinbox, SIGNAL(valueChanged(double)), this, SLOT(p_spinbox_changed(double)));
@@ -1928,12 +1925,10 @@ video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent
     _sp_slider = new QSlider(Qt::Horizontal);
     _sp_slider->setToolTip(sp_label->toolTip());
     _sp_slider->setRange(-1000, 1000);
-    _sp_slider->setValue(params->subtitle_parallax() * 1000.0f);
     connect(_sp_slider, SIGNAL(valueChanged(int)), this, SLOT(sp_slider_changed(int)));
     _sp_spinbox = new QDoubleSpinBox();
     _sp_spinbox->setToolTip(sp_label->toolTip());
     _sp_spinbox->setRange(-1.0, +1.0);
-    _sp_spinbox->setValue(params->subtitle_parallax());
     _sp_spinbox->setDecimals(2);
     _sp_spinbox->setSingleStep(0.01);
     connect(_sp_spinbox, SIGNAL(valueChanged(double)), this, SLOT(sp_spinbox_changed(double)));
@@ -1945,12 +1940,10 @@ video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent
     _g_slider = new QSlider(Qt::Horizontal);
     _g_slider->setToolTip(g_label->toolTip());
     _g_slider->setRange(0, 1000);
-    _g_slider->setValue(params->ghostbust() * 1000.0f);
     connect(_g_slider, SIGNAL(valueChanged(int)), this, SLOT(g_slider_changed(int)));
     _g_spinbox = new QDoubleSpinBox();
     _g_spinbox->setToolTip(g_label->toolTip());
     _g_spinbox->setRange(0.0, +1.0);
-    _g_spinbox->setValue(params->ghostbust());
     _g_spinbox->setDecimals(2);
     _g_spinbox->setSingleStep(0.01);
     connect(_g_spinbox, SIGNAL(valueChanged(double)), this, SLOT(g_spinbox_changed(double)));
@@ -1972,11 +1965,25 @@ video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent
     layout->addWidget(_g_spinbox, 3, 2);
     layout->addWidget(ok_button, 4, 0, 1, 3);
     setLayout(layout);
+
+    update();
+}
+
+void video_dialog::update()
+{
+    _lock = true;
+    set_crop_ar(_params->crop_aspect_ratio());
+    _p_slider->setValue(_params->parallax() * 1000.0f);
+    _p_spinbox->setValue(_params->parallax());
+    _sp_slider->setValue(_params->subtitle_parallax() * 1000.0f);
+    _sp_spinbox->setValue(_params->subtitle_parallax());
+    _g_slider->setValue(_params->ghostbust() * 1000.0f);
+    _g_spinbox->setValue(_params->ghostbust());
+    _lock = false;
 }
 
 void video_dialog::set_crop_ar(float value)
 {
-    _lock = true;
     _crop_ar_combobox->setCurrentIndex(
               ( std::abs(value - 16.0f / 10.0f) < 0.01f ? 1
               : std::abs(value - 16.0f / 9.0f)  < 0.01f ? 2
@@ -1989,7 +1996,6 @@ void video_dialog::set_crop_ar(float value)
               : std::abs(value - 5.0f / 4.0f)   < 0.01f ? 9
               : std::abs(value - 1.0f)          < 0.01f ? 10
               : 0));
-    _lock = false;
 }
 
 void video_dialog::crop_ar_changed()
@@ -2094,7 +2100,9 @@ void video_dialog::receive_notification(const notification &note)
     {
     case notification::crop_aspect_ratio:
         s11n::load(current, value);
+        _lock = true;
         set_crop_ar(value);
+        _lock = false;
         break;
     case notification::parallax:
         s11n::load(current, value);
@@ -3010,6 +3018,8 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
     _init_data.dev_request = dev_request;
     _init_data.urls.clear();
     _init_data.params.unset_video_parameters();
+    if (_video_dialog)
+        _video_dialog->update();
     for (int i = 0; i < filenames.size(); i++)
     {
         _init_data.urls.push_back(filenames[i].toLocal8Bit().constData());
