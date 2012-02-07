@@ -387,127 +387,124 @@ int main(int argc, char *argv[])
     {
         if (msg::file() == stderr)
             msg::set_file(stdout);
-        /* TRANSLATORS: This is the --help text. Translate only the description,
-           not the option names. Please keep a proper indentation with spaces, and
-           keep the line length limited. */
-        msg::req_txt(_("Usage:\n"
-                    "  %s [option...] [file...]\n"
-                    "\n"
-                    "Options:\n"
-                    "  --help                   Print help.\n"
-                    "  --version                Print version.\n"
-                    "  -n|--no-gui              Do not use the GUI, just show a plain window.\n"
-                    "  --log-file=FILE          Append all log messages to the given file.\n"
-                    "  -L|--log-level=LEVEL     Set log level (debug/info/warning/error/quiet).\n"
-                    "  --list-audio-devices     Print a list of known audio devices and exit.\n"
-                    "  -A|--audio-device=N      Use audio device number N (N=0 is the default).\n"
-                    "  -D|--audio-delay=D       Delay audio by D milliseconds. Default is 0.\n"
-                    "  -V|--audio-volume=V      Set audio volume (0 to 1). Default is 1.\n"
-                    "  -m|--audio-mute          Mute audio.\n"
-                    "  --device-type=TYPE       Type of input device: default, firewire, x11.\n"
-                    "  --device-frame-size=WxH  Request frame size WxH from input device.\n"
-                    "  --device-frame-rate=N/D  Request frame rate N/D from input device.\n"
-                    "  --lirc-config=FILE       Use the given LIRC configuration file. This\n"
-                    "                           option can be used more than once.\n"
-                    "  -v|--video=STREAM        Select video stream (1-n, depending on input).\n"
-                    "  -a|--audio=STREAM        Select audio stream (1-n, depending on input).\n"
-                    "  -s|--subtitle=STREAM     Select subtitle stream (0-n, dep. on input).\n"
-                    "  -i|--input=TYPE          Select input type (default autodetect):\n"
-                    "    mono                     Single view.\n"
-                    "    separate-left-right      Left/right separate streams, left first.\n"
-                    "    separate-right-left      Left/right separate streams, right first.\n"
-                    "    alternating-left-right   Left/right alternating, left first.\n"
-                    "    alternating-right-left   Left/right alternating, right first.\n"
-                    "    top-bottom               Left top, right bottom.\n"
-                    "    top-bottom-half          Left top, right bottom, half height.\n"
-                    "    bottom-top               Left bottom, right top.\n"
-                    "    bottom-top-half          Left bottom, right top, half height.\n"
-                    "    left-right               Left left, right right.\n"
-                    "    left-right-half          Left left, right right, half width.\n"
-                    "    right-left               Left right, right left.\n"
-                    "    right-left-half          Left right, right left, half width.\n"
-                    "    even-odd-rows            Left even rows, right odd rows.\n"
-                    "    odd-even-rows            Left odd rows, right even rows.\n"
-                    "  -o|--output=TYPE         Select output type:\n"
-                    "    mono-left                Only left.\n"
-                    "    mono-right               Only right.\n"
-                    "    top-bottom               Left top, right bottom.\n"
-                    "    top-bottom-half          Left top, right bottom, half height.\n"
-                    "    left-right               Left left, right right.\n"
-                    "    left-right-half          Left left, right right, half width.\n"
-                    "    even-odd-rows            Left even rows, right odd rows.\n"
-                    "    even-odd-columns         Left even columns, right odd columns.\n"
-                    "    checkerboard             Left and right in checkerboard pattern.\n"
-                    "    hdmi-frame-pack          HDMI frame packing mode.\n"
-                    "    red-cyan-monochrome      Red/cyan anaglyph, monochrome method.\n"
-                    "    red-cyan-half-color      Red/cyan anaglyph, half color method.\n"
-                    "    red-cyan-full-color      Red/cyan anaglyph, full color method.\n"
-                    "    red-cyan-dubois          Red/cyan anaglyph, Dubois method.\n"
-                    "    green-magenta-monochrome Green/magenta anaglyph, monochrome method.\n"
-                    "    green-magenta-half-color Green/magenta anaglyph, half color method.\n"
-                    "    green-magenta-full-color Green/magenta anaglyph, full color method.\n"
-                    "    green-magenta-dubois     Green/magenta anaglyph, Dubois method.\n"
-                    "    amber-blue-monochrome    Amber/blue anaglyph, monochrome method.\n"
-                    "    amber-blue-half-color    Amber/blue anaglyph, half color method.\n"
-                    "    amber-blue-full-color    Amber/blue anaglyph, full color method.\n"
-                    "    amber-blue-dubois        Amber/blue anaglyph, Dubois method.\n"
-                    "    red-green-monochrome     Red/green anaglyph, monochrome method.\n"
-                    "    red-blue-monochrome      Red/blue anaglyph, monochrome method.\n"
-                    "    stereo                   OpenGL quad-buffered stereo.\n"
-                    "    equalizer                Multi-display via Equalizer (2D setup).\n"
-                    "    equalizer-3d             Multi-display via Equalizer (3D setup).\n"
-                    "  -S|--swap-eyes           Swap left/right view.\n"
-                    "  -f|--fullscreen          Fullscreen.\n"
-                    "  --fullscreen-screens=    Use the listed screens in fullscreen mode.\n"
-                    "     [S0[,S1[,...]]]       Screen numbers start with 1. The default\n"
-                    "                           (empty list) is to use the primary screen.\n"
-                    "  --fullscreen-flip-left   Flip left view vertically when fullscreen.\n"
-                    "  --fullscreen-flop-left   Flop left view horizontally when fullscreen.\n"
-                    "  --fullscreen-flip-right  Flip right view vertically when fullscreen.\n"
-                    "  --fullscreen-flop-right  Flop right view horizontally when fullscreen.\n"
-                    "  -z|--zoom=Z              Set zoom for wide videos (0=off to 1=full).\n"
-                    "  -C|--crop=W:H            Crop video to given aspect ratio (0:0=off).\n"
-                    "  -c|--center              Center window on screen.\n"
-                    "  --subtitle-encoding=ENC  Set subtitle encoding.\n"
-                    "  --subtitle-font=FONT     Set subtitle font name.\n"
-                    "  --subtitle-size=N        Set subtitle font size.\n"
-                    "  --subtitle-scale=S       Set subtitle scale factor.\n"
-                    "  --subtitle-color=COLOR   Set subtitle color, in [AA]RRGGBB format.\n"
-                    "  --subtitle-parallax=VAL  Subtitle parallax adjustment (-1 to +1).\n"
-                    "  -P|--parallax=VAL        Parallax adjustment (-1 to +1).\n"
-                    "  -C|--crosstalk=VAL       Crosstalk leak level (0 to 1); comma-separated\n"
-                    "                           values for the R,G,B channels.\n"
-                    "  -G|--ghostbust=VAL       Amount of ghostbusting to apply (0 to 1).\n"
-                    "  -b|--benchmark           Benchmark mode (no audio, show fps).\n"
-                    "  --swap-interval=D        Frame rate divisor relative to display refresh\n"
-                    "                           rate, default 0 for benchmark, 1 otherwise.\n"
-                    "  -l|--loop                Loop the input media.\n"
-                    "\n"
-                    "Interactive control:\n"
-                    "  ESC                      Leave fullscreen mode, or quit.\n"
-                    "  q                        Quit.\n"
-                    "  p or SPACE               Pause / unpause.\n"
-                    "  f                        Toggle fullscreen.\n"
-                    "  c                        Center window.\n"
-                    "  e                        Swap left/right eye.\n"
-                    "  v                        Cycle through available video streams.\n"
-                    "  a                        Cycle through available audio streams.\n"
-                    "  s                        Cycle through available subtitle streams.\n"
-                    "  1, 2                     Adjust contrast.\n"
-                    "  3, 4                     Adjust brightness.\n"
-                    "  5, 6                     Adjust hue.\n"
-                    "  7, 8                     Adjust saturation.\n"
-                    "  [, ]                     Adjust parallax.\n"
-                    "  (, )                     Adjust ghostbusting.\n"
-                    "  <, >                     Adjust zoom for wide videos.\n"
-                    "  /, *                     Adjust audio volume.\n"
-                    "  m                        Toggle audio mute.\n"
-                    "  left, right              Seek 10 seconds backward / forward.\n"
-                    "  up, down                 Seek 1 minute backward / forward.\n"
-                    "  page up, page down       Seek 10 minutes backward / forward.\n"
-                    "  Mouse click              Seek according to horizontal click position.\n"
-                    "  Media keys               Media keys should work as expected."),
-                program_name);
+        /* TRANSLATORS: This is the --help text. Please keep the line length limited.
+         * The --help output should look good with a line width of 80 characters. */
+        msg::req_txt(std::string(_("Usage:")) + '\n'
+                + "  " + program_name + ' ' + "[option...] [file...]" + "\n\n"
+                + _("Options:") + '\n'
+                + "  --help                   " + _("Print help.") + '\n'
+                + "  --version                " + _("Print version.") + '\n'
+                + "  -n|--no-gui              " + _("Do not use the GUI, just show a plain window.") + '\n'
+                + "  --log-file=FILE          " + _("Append all log messages to the given file.") + '\n'
+                + "  -L|--log-level=LEVEL     " + _("Set log level (debug/info/warning/error/quiet).") + '\n'
+                + "  --list-audio-devices     " + _("Print a list of known audio devices and exit.") + '\n'
+                + "  -A|--audio-device=N      " + _("Use audio device number N (N=0 is the default).") + '\n'
+                + "  -D|--audio-delay=D       " + _("Delay audio by D milliseconds. Default is 0.") + '\n'
+                + "  -V|--audio-volume=V      " + _("Set audio volume (0 to 1). Default is 1.") + '\n'
+                + "  -m|--audio-mute          " + _("Mute audio.") + '\n'
+                + "  --device-type=TYPE       " + _("Type of input device: default, firewire, x11.") + '\n'
+                + "  --device-frame-size=WxH  " + _("Request frame size WxH from input device.") + '\n'
+                + "  --device-frame-rate=N/D  " + _("Request frame rate N/D from input device.") + '\n'
+                + "  --lirc-config=FILE       " + _("Use the given LIRC configuration file.") + '\n'
+                + "                           " + _("This option can be used more than once.") + '\n'
+                + "  -v|--video=STREAM        " + _("Select video stream (1-n, depending on input).") + '\n'
+                + "  -a|--audio=STREAM        " + _("Select audio stream (1-n, depending on input).") + '\n'
+                + "  -s|--subtitle=STREAM     " + _("Select subtitle stream (0-n, dep. on input).") + '\n'
+                + "  -i|--input=TYPE          " + _("Select input type (default autodetect):") + '\n'
+                + "    mono                     " + _("Single view.") + '\n'
+                + "    separate-left-right      " + _("Left/right separate streams, left first.") + '\n'
+                + "    separate-right-left      " + _("Left/right separate streams, right first.") + '\n'
+                + "    alternating-left-right   " + _("Left/right alternating, left first.") + '\n'
+                + "    alternating-right-left   " + _("Left/right alternating, right first.") + '\n'
+                + "    top-bottom               " + _("Left top, right bottom.") + '\n'
+                + "    top-bottom-half          " + _("Left top, right bottom, half height.") + '\n'
+                + "    bottom-top               " + _("Left bottom, right top.") + '\n'
+                + "    bottom-top-half          " + _("Left bottom, right top, half height.") + '\n'
+                + "    left-right               " + _("Left left, right right.") + '\n'
+                + "    left-right-half          " + _("Left left, right right, half width.") + '\n'
+                + "    right-left               " + _("Left right, right left.") + '\n'
+                + "    right-left-half          " + _("Left right, right left, half width.") + '\n'
+                + "    even-odd-rows            " + _("Left even rows, right odd rows.") + '\n'
+                + "    odd-even-rows            " + _("Left odd rows, right even rows.") + '\n'
+                + "  -o|--output=TYPE         " + _("Select output type:") + '\n'
+                + "    mono-left                " + _("Only left.") + '\n'
+                + "    mono-right               " + _("Only right.") + '\n'
+                + "    top-bottom               " + _("Left top, right bottom.") + '\n'
+                + "    top-bottom-half          " + _("Left top, right bottom, half height.") + '\n'
+                + "    left-right               " + _("Left left, right right.") + '\n'
+                + "    left-right-half          " + _("Left left, right right, half width.") + '\n'
+                + "    even-odd-rows            " + _("Left even rows, right odd rows.") + '\n'
+                + "    even-odd-columns         " + _("Left even columns, right odd columns.") + '\n'
+                + "    checkerboard             " + _("Left and right in checkerboard pattern.") + '\n'
+                + "    hdmi-frame-pack          " + _("HDMI frame packing mode.") + '\n'
+                + "    red-cyan-monochrome      " + _("Red/cyan anaglyph, monochrome method.") + '\n'
+                + "    red-cyan-half-color      " + _("Red/cyan anaglyph, half color method.") + '\n'
+                + "    red-cyan-full-color      " + _("Red/cyan anaglyph, full color method.") + '\n'
+                + "    red-cyan-dubois          " + _("Red/cyan anaglyph, Dubois method.") + '\n'
+                + "    green-magenta-monochrome " + _("Green/magenta anaglyph, monochrome method.") + '\n'
+                + "    green-magenta-half-color " + _("Green/magenta anaglyph, half color method.") + '\n'
+                + "    green-magenta-full-color " + _("Green/magenta anaglyph, full color method.") + '\n'
+                + "    green-magenta-dubois     " + _("Green/magenta anaglyph, Dubois method.") + '\n'
+                + "    amber-blue-monochrome    " + _("Amber/blue anaglyph, monochrome method.") + '\n'
+                + "    amber-blue-half-color    " + _("Amber/blue anaglyph, half color method.") + '\n'
+                + "    amber-blue-full-color    " + _("Amber/blue anaglyph, full color method.") + '\n'
+                + "    amber-blue-dubois        " + _("Amber/blue anaglyph, Dubois method.") + '\n'
+                + "    red-green-monochrome     " + _("Red/green anaglyph, monochrome method.") + '\n'
+                + "    red-blue-monochrome      " + _("Red/blue anaglyph, monochrome method.") + '\n'
+                + "    stereo                   " + _("OpenGL quad-buffered stereo.") + '\n'
+                + "    equalizer                " + _("Multi-display via Equalizer (2D setup).") + '\n'
+                + "    equalizer-3d             " + _("Multi-display via Equalizer (3D setup).") + '\n'
+                + "  -S|--swap-eyes           " + _("Swap left/right view.") + '\n'
+                + "  -f|--fullscreen          " + _("Fullscreen.") + '\n'
+                + "  --fullscreen-screens=    " + _("Use the listed screens in fullscreen mode.") + '\n'
+                + "     [S0[,S1[,...]]]       " + _("Screen numbers start with 1.") + '\n'
+                + "                           " + _("An empty list defaults to the primary screen.") + '\n'
+                + "  --fullscreen-flip-left   " + _("Flip left view vertically when fullscreen.") + '\n'
+                + "  --fullscreen-flop-left   " + _("Flop left view horizontally when fullscreen.") + '\n'
+                + "  --fullscreen-flip-right  " + _("Flip right view vertically when fullscreen.") + '\n'
+                + "  --fullscreen-flop-right  " + _("Flop right view horizontally when fullscreen.") + '\n'
+                + "  -z|--zoom=Z              " + _("Set zoom for wide videos (0=off to 1=full).") + '\n'
+                + "  -C|--crop=W:H            " + _("Crop video to given aspect ratio (0:0=off).") + '\n'
+                + "  -c|--center              " + _("Center window on screen.") + '\n'
+                + "  --subtitle-encoding=ENC  " + _("Set subtitle encoding.") + '\n'
+                + "  --subtitle-font=FONT     " + _("Set subtitle font name.") + '\n'
+                + "  --subtitle-size=N        " + _("Set subtitle font size.") + '\n'
+                + "  --subtitle-scale=S       " + _("Set subtitle scale factor.") + '\n'
+                + "  --subtitle-color=COLOR   " + _("Set subtitle color, in [AA]RRGGBB format.") + '\n'
+                + "  --subtitle-parallax=VAL  " + _("Subtitle parallax adjustment (-1 to +1).") + '\n'
+                + "  -P|--parallax=VAL        " + _("Parallax adjustment (-1 to +1).") + '\n'
+                + "  -C|--crosstalk=VAL       " + _("Crosstalk leak level (0 to 1).") + '\n'
+                + "                           " + _("Comma-separated values for R,G,B.") + '\n'
+                + "  -G|--ghostbust=VAL       " + _("Amount of ghostbusting to apply (0 to 1).") + '\n'
+                + "  -b|--benchmark           " + _("Benchmark mode (no audio, show fps).") + '\n'
+                + "  --swap-interval=D        " + _("Frame rate divisor for display refresh rate.") + '\n'
+                + "                           " + _("Default is 0 for benchmark mode, 1 otherwise.") + '\n'
+                + "  -l|--loop                " + _("Loop the input media.") + '\n'
+                + '\n'
+                + _("Interactive control:") + '\n'
+                + "  ESC                      " + _("Leave fullscreen mode, or quit.") + '\n'
+                + "  q                        " + _("Quit.") + '\n'
+                + "  p or SPACE               " + _("Pause / unpause.") + '\n'
+                + "  f                        " + _("Toggle fullscreen.") + '\n'
+                + "  c                        " + _("Center window.") + '\n'
+                + "  e                        " + _("Swap left/right eye.") + '\n'
+                + "  v                        " + _("Cycle through available video streams.") + '\n'
+                + "  a                        " + _("Cycle through available audio streams.") + '\n'
+                + "  s                        " + _("Cycle through available subtitle streams.") + '\n'
+                + "  1, 2                     " + _("Adjust contrast.") + '\n'
+                + "  3, 4                     " + _("Adjust brightness.") + '\n'
+                + "  5, 6                     " + _("Adjust hue.") + '\n'
+                + "  7, 8                     " + _("Adjust saturation.") + '\n'
+                + "  [, ]                     " + _("Adjust parallax.") + '\n'
+                + "  (, )                     " + _("Adjust ghostbusting.") + '\n'
+                + "  <, >                     " + _("Adjust zoom for wide videos.") + '\n'
+                + "  /, *                     " + _("Adjust audio volume.") + '\n'
+                + "  m                        " + _("Toggle audio mute.") + '\n'
+                + "  left, right              " + _("Seek 10 seconds backward / forward.") + '\n'
+                + "  up, down                 " + _("Seek 1 minute backward / forward.") + '\n'
+                + "  page up, page down       " + _("Seek 10 minutes backward / forward.") + '\n'
+                + "  Mouse click              " + _("Seek according to horizontal click position.") + '\n'
+                + "  Media keys               " + _("Media keys should work as expected."));
     }
     if (list_audio_devices.value())
     {
