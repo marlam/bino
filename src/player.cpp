@@ -589,17 +589,18 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
         }
 
         int64_t allowable_sleep = 0;
-        if (_master_time_current + _params.audio_delay()
-                >= _video_pos || _benchmark || _media_input->is_device())
+        if (_master_time_current + _params.audio_delay() >= _video_pos ||
+            _benchmark || _media_input->is_device())
         {
             // Output current video frame
             _drop_next_frame = false;
-            if (_master_time_current + _params.audio_delay() - _video_pos
-                    > _media_input->video_frame_duration() * 75 / 100
-                    && !_benchmark && !_media_input->is_device())
+            const int64_t delay = _master_time_current + _params.audio_delay() - _video_pos;
+            if ( delay > _media_input->video_frame_duration() * 75 / 100 &&
+                 !_benchmark && !_media_input->is_device())
             {
-                msg::wrn(_("Video: delay %g seconds; dropping next frame."),
-                        (_master_time_current + _params.audio_delay() - _video_pos) / 1e6f);
+                msg::wrn(_("Video: delay %g seconds/%g frames; dropping next frame."),
+                         float(delay) / 1e6f, 
+                         float(delay) / float(_media_input->video_frame_duration()));
                 _drop_next_frame = true;
             }
             if (!_previous_frame_dropped)

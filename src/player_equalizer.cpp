@@ -830,6 +830,7 @@ protected:
         }
         // Map our InitData instance to the master instance
         eq_config *config = static_cast<eq_config *>(getConfig());
+        config->setLatency( 0 );
         if (!config->mapObject(&init_data, init_id))
         {
             setError(ERROR_MAP_INITDATA_FAILED);
@@ -965,6 +966,14 @@ public:
     }
 
 protected:
+    virtual bool configInit(const eq::uint128_t &init_id)
+    {
+        // https://github.com/Eyescale/Equalizer/issues/81
+        if( getIAttribute( IATTR_HINT_SWAPSYNC ) != eq::ON )
+            setIAttribute( IATTR_HINT_SWAPSYNC, eq::OFF );
+        return eq::Window::configInit( init_id );
+    }
+
     virtual bool configInitGL(const eq::uint128_t &init_id)
     {
         msg::dbg(HERE);
