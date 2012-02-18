@@ -44,7 +44,7 @@ extern "C"
 #include <QGLWidget>
 
 #if HAVE_LIBEQUALIZER
-#include <eq/eq.h>
+#  include <eq/eq.h>
 #endif
 
 #include "gettext.h"
