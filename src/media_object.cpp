@@ -847,7 +847,8 @@ void media_object::open(const std::string &url, const device_request &dev_reques
     {
         _ffmpeg->format_ctx->streams[i]->discard = AVDISCARD_ALL;        // ignore by default; user must activate streams
         AVCodecContext *codec_ctx = _ffmpeg->format_ctx->streams[i]->codec;
-        AVCodec *codec = NULL;
+        AVCodec *codec = (codec_ctx->codec_id == CODEC_ID_TEXT
+                ? NULL : avcodec_find_decoder(codec_ctx->codec_id));
         // XXX: Sometimes the reported width and height for a video stream change after avcodec_open(),
         // but the original values seem to be correct. This seems to happen mostly with 1920x1080 video
         // that later is reported as 1920x1088, which results in a gray bar displayed at the bottom of
@@ -855,25 +856,28 @@ void media_object::open(const std::string &url, const device_request &dev_reques
         // them later in set_video_frame_template().
         int width_before_avcodec_open = codec_ctx->width;
         int height_before_avcodec_open = codec_ctx->height;
-        if (_ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+        if (codec_ctx->codec_type == AVMEDIA_TYPE_VIDEO)
         {
             // Activate multithreaded decoding. This must be done before opening the codec; see
             // http://lists.gnu.org/archive/html/bino-list/2011-08/msg00019.html
             codec_ctx->thread_count = video_decoding_threads();
+            // Set CODEC_FLAG_EMU_EDGE in the same situations in which ffplay sets it.
+            // I don't know what exactly this does, but it is necessary to fix the problem
+            // described in this thread: http://lists.nongnu.org/archive/html/bino-list/2012-02/msg00039.html
+            if (codec_ctx->lowres || (codec && (codec->capabilities & CODEC_CAP_DR1)))
+                codec_ctx->flags |= CODEC_FLAG_EMU_EDGE;
         }
         // Find and open the codec. CODEC_ID_TEXT is a special case: it has no decoder since it is unencoded raw data.
-        if (_ffmpeg->format_ctx->streams[i]->codec->codec_id != CODEC_ID_TEXT
-                && (!(codec = avcodec_find_decoder(_ffmpeg->format_ctx->streams[i]->codec->codec_id))
-                    || (e = avcodec_open(codec_ctx, codec)) < 0))
+        if (codec_ctx->codec_id != CODEC_ID_TEXT && (!codec || (e = avcodec_open(codec_ctx, codec)) < 0))
         {
             msg::wrn(_("%s stream %d: Cannot open %s: %s"), _url.c_str(), i,
-                    _ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO ? _("video codec")
-                    : _ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO ? _("audio codec")
-                    : _ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_SUBTITLE ? _("subtitle codec")
+                    codec_ctx->codec_type == AVMEDIA_TYPE_VIDEO ? _("video codec")
+                    : codec_ctx->codec_type == AVMEDIA_TYPE_AUDIO ? _("audio codec")
+                    : codec_ctx->codec_type == AVMEDIA_TYPE_SUBTITLE ? _("subtitle codec")
                     : _("data"),
                     codec ? my_av_strerror(e).c_str() : _("codec not supported"));
         }
-        else if (_ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+        else if (codec_ctx->codec_type == AVMEDIA_TYPE_VIDEO)
         {
             _ffmpeg->video_streams.push_back(i);
             int j = _ffmpeg->video_streams.size() - 1;
@@ -937,7 +941,7 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             }
             _ffmpeg->video_last_timestamps.push_back(std::numeric_limits<int64_t>::min());
         }
-        else if (_ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO)
+        else if (codec_ctx->codec_type == AVMEDIA_TYPE_AUDIO)
         {
             _ffmpeg->audio_streams.push_back(i);
             int j = _ffmpeg->audio_streams.size() - 1;
@@ -958,7 +962,7 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             _ffmpeg->audio_buffers.push_back(std::vector<unsigned char>());
             _ffmpeg->audio_last_timestamps.push_back(std::numeric_limits<int64_t>::min());
         }
-        else if (_ffmpeg->format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_SUBTITLE)
+        else if (codec_ctx->codec_type == AVMEDIA_TYPE_SUBTITLE)
         {
             _ffmpeg->subtitle_streams.push_back(i);
             int j = _ffmpeg->subtitle_streams.size() - 1;
