@@ -693,16 +693,16 @@ public:
             case eq::KC_RIGHT:
                 _controller.send_cmd(command::seek, +10.0f);
                 break;
-            case eq::KC_UP:
+            case eq::KC_DOWN:
                 _controller.send_cmd(command::seek, -60.0f);
                 break;
-            case eq::KC_DOWN:
+            case eq::KC_UP:
                 _controller.send_cmd(command::seek, +60.0f);
                 break;
-            case eq::KC_PAGE_UP:
+            case eq::KC_PAGE_DOWN:
                 _controller.send_cmd(command::seek, -600.0f);
                 break;
-            case eq::KC_PAGE_DOWN:
+            case eq::KC_PAGE_UP:
                 _controller.send_cmd(command::seek, +600.0f);
                 break;
             }

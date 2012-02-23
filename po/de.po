@@ -818,7 +818,7 @@ msgstr "Links/rechts, halbe Breite"
 
 #: src/player_qt.cpp:201
 msgid "Right/left"
-msgstr "Rechst/links"
+msgstr "Rechts/links"
 
 #: src/player_qt.cpp:202
 msgid "Right/left, half width"

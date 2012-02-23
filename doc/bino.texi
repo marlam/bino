@@ -890,9 +890,9 @@ Adjust audio volume.
 Toggle audio mute.
 @item LEFT, RIGHT
 Seek 10 seconds backward / forward.
-@item UP, DOWN
+@item DOWN, UP
 Seek 1 minute backward / forward.
-@item PAGE UP, PAGE DOWN
+@item PAGE DOWN, PAGE UP
 Seek 10 minutes backward / forward.
 @item Mouse click
 Seek according to the horizontal click position.

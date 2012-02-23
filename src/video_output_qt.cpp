@@ -242,16 +242,16 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Right:
         _vo->send_cmd(command::seek, +10.0f);
         break;
-    case Qt::Key_Up:
+    case Qt::Key_Down:
         _vo->send_cmd(command::seek, -60.0f);
         break;
-    case Qt::Key_Down:
+    case Qt::Key_Up:
         _vo->send_cmd(command::seek, +60.0f);
         break;
-    case Qt::Key_PageUp:
+    case Qt::Key_PageDown:
         _vo->send_cmd(command::seek, -600.0f);
         break;
-    case Qt::Key_PageDown:
+    case Qt::Key_PageUp:
         _vo->send_cmd(command::seek, +600.0f);
         break;
     default:

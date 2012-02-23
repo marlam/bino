@@ -501,8 +501,8 @@ int main(int argc, char *argv[])
                 + "  /, *                     " + _("Adjust audio volume.") + '\n'
                 + "  m                        " + _("Toggle audio mute.") + '\n'
                 + "  left, right              " + _("Seek 10 seconds backward / forward.") + '\n'
-                + "  up, down                 " + _("Seek 1 minute backward / forward.") + '\n'
-                + "  page up, page down       " + _("Seek 10 minutes backward / forward.") + '\n'
+                + "  down, up                 " + _("Seek 1 minute backward / forward.") + '\n'
+                + "  page down, page up       " + _("Seek 10 minutes backward / forward.") + '\n'
                 + "  Mouse click              " + _("Seek according to horizontal click position.") + '\n'
                 + "  Media keys               " + _("Media keys should work as expected."));
     }

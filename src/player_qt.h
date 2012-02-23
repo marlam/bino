@@ -392,7 +392,7 @@ private slots:
     void move_event();
     void playloop_step();
     void file_open();
-    void file_open_url();
+    void file_open_urls();
     void file_open_device();
     void preferences_fullscreen();
     void preferences_colors();

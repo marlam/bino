@@ -2450,10 +2450,10 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     file_open_act->setIcon(get_icon("document-open"));
     connect(file_open_act, SIGNAL(triggered()), this, SLOT(file_open()));
     file_menu->addAction(file_open_act);
-    QAction *file_open_url_act = new QAction(_("Open &URL..."), this);
-    file_open_url_act->setIcon(get_icon("document-open"));
-    connect(file_open_url_act, SIGNAL(triggered()), this, SLOT(file_open_url()));
-    file_menu->addAction(file_open_url_act);
+    QAction *file_open_urls_act = new QAction(_("Open &URL(s)..."), this);
+    file_open_urls_act->setIcon(get_icon("document-open"));
+    connect(file_open_urls_act, SIGNAL(triggered()), this, SLOT(file_open_urls()));
+    file_menu->addAction(file_open_urls_act);
     QAction *file_open_device_act = new QAction(_("Open &device..."), this);
     file_open_device_act->setIcon(get_icon("camera-web"));
     connect(file_open_device_act, SIGNAL(triggered()), this, SLOT(file_open_device()));
@@ -3166,12 +3166,14 @@ void main_window::file_open()
     update_recent_file_actions();
 }
 
-void main_window::file_open_url()
+void main_window::file_open_urls()
 {
     QDialog *url_dialog = new QDialog(this);
-    url_dialog->setWindowTitle(_("Open URL"));
-    QLabel *url_label = new QLabel(_("URL:"));
+    url_dialog->setWindowTitle(_("Open URL(s)"));
+    QLabel *url_label = new QLabel(_("URL(s):"));
+    url_label->setToolTip(_("<p>Enter one or more space separated URLs.</p>"));
     QLineEdit *url_edit = new QLineEdit("");
+    url_edit->setToolTip(url_label->toolTip());
     url_edit->setMinimumWidth(256);
     QPushButton *cancel_btn = new QPushButton(_("Cancel"));
     QPushButton *ok_btn = new QPushButton(_("OK"));
@@ -3189,8 +3191,7 @@ void main_window::file_open_url()
     if (url_dialog->result() == QDialog::Accepted
             && !url_edit->text().isEmpty())
     {
-        QString url = url_edit->text();
-        open(QStringList(url));
+        open(url_edit->text().split(" ", QString::SkipEmptyParts));
     }
 }
 
@@ -3579,8 +3580,8 @@ void main_window::help_keyboard()
                 "<tr><td>m</td><td>Toggle audio mute</td></tr>"
                 "<tr><td>&lt;, &gt;</td><td>Adjust zoom</td></tr>"
                 "<tr><td>left, right</td><td>Seek 10 seconds backward / forward</td></tr>"
-                "<tr><td>up, down</td><td>Seek 1 minute backward / forward</td></tr>"
-                "<tr><td>page up, page down</td><td>Seek 10 minutes backward / forward</td></tr>"
+                "<tr><td>down, up</td><td>Seek 1 minute backward / forward</td></tr>"
+                "<tr><td>page down, page up</td><td>Seek 10 minutes backward / forward</td></tr>"
                 "<tr><td>Media keys</td><td>Media keys should work as expected</td></tr>"
                 "</table>"
                 "</p>"));
