@@ -3580,8 +3580,8 @@ void main_window::help_keyboard()
                 "<tr><td>m</td><td>Toggle audio mute</td></tr>"
                 "<tr><td>&lt;, &gt;</td><td>Adjust zoom</td></tr>"
                 "<tr><td>left, right</td><td>Seek 10 seconds backward / forward</td></tr>"
-                "<tr><td>up, down</td><td>Seek 1 minute backward / forward</td></tr>"
-                "<tr><td>page up, page down</td><td>Seek 10 minutes backward / forward</td></tr>"
+                "<tr><td>down, up</td><td>Seek 1 minute backward / forward</td></tr>"
+                "<tr><td>page down, page up</td><td>Seek 10 minutes backward / forward</td></tr>"
                 "<tr><td>Media keys</td><td>Media keys should work as expected</td></tr>"
                 "</table>"
                 "</p>"));
