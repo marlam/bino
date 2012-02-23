@@ -966,13 +966,6 @@ public:
     }
 
 protected:
-    virtual bool configInit(const eq::uint128_t &init_id)
-    {
-        // https://github.com/Eyescale/Equalizer/issues/81
-        if( getIAttribute( IATTR_HINT_SWAPSYNC ) != eq::ON )
-            setIAttribute( IATTR_HINT_SWAPSYNC, eq::OFF );
-        return eq::Window::configInit( init_id );
-    }
 
     virtual bool configInitGL(const eq::uint128_t &init_id)
     {
@@ -1001,6 +994,13 @@ protected:
         msg::dbg(HERE);
         return eq::Window::configExitGL();
     }
+
+    virtual void swapBuffers()
+        {
+            eq_node *node = static_cast<eq_node *>(getNode());
+            if (node->frame_data.display_frame)
+                eq::Window::swapBuffers();
+        }
 };
 
 /*
@@ -1078,12 +1078,6 @@ protected:
         glGetIntegerv(GL_VIEWPORT, viewport);
         _video_output.display_current_frame(mono_right_instead_of_left, quad_x, quad_y, quad_w, quad_h,
                 viewport, node->frame_data.tex_coords);
-
-        // Statistics Overlay
-        if (node->frame_data.display_statistics)
-        {
-            drawStatistics();
-        }
     }
 
     virtual void frameStart(const eq::uint128_t &, const uint32_t frame_number)
@@ -1109,9 +1103,12 @@ protected:
         startFrame(frame_number);
     }
 
-    virtual void frameFinish(const eq::uint128_t &, const uint32_t frame_number)
+    void frameViewFinish( const eq::uint128_t& id )
     {
-        releaseFrame(frame_number);
+        eq_node *node = static_cast<eq_node *>(getNode());
+        if (node->frame_data.display_statistics)
+            drawStatistics();
+        eq::Channel::frameViewFinish( id );
     }
 };
 
