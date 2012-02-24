@@ -1401,6 +1401,7 @@ void video_decode_thread::run()
     for (int raw_frame = 0; raw_frame < _raw_frames; raw_frame++)
     {
         int frame_finished = 0;
+read_frame:
         do
         {
             bool empty;
@@ -1445,6 +1446,13 @@ void video_decode_thread::run()
                     &(_ffmpeg->video_packets[_video_stream]));
         }
         while (!frame_finished);
+        if (_ffmpeg->video_frames[_video_stream]->width != _ffmpeg->video_frame_templates[_video_stream].raw_width
+                || _ffmpeg->video_frames[_video_stream]->height != _ffmpeg->video_frame_templates[_video_stream].raw_height)
+        {
+            msg::wrn(_("%s video stream %d: Dropping %dx%d frame"), _url.c_str(), _video_stream + 1, 
+                    _ffmpeg->video_frames[_video_stream]->width, _ffmpeg->video_frames[_video_stream]->height);
+            goto read_frame;
+        }
 
         if (_frame.layout == video_frame::bgra32)
         {
