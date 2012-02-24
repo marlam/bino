@@ -611,7 +611,7 @@ int main(int argc, char *argv[])
         init_data.params.set_stereo_mode(parameters::mode_mono_left);
         init_data.params.set_stereo_mode_swap(false);
     }
-    else
+    else if (video_output_mode.value() != "")
     {
         parameters::stereo_mode_t stereo_mode;
         bool stereo_mode_swap;
