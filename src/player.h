@@ -29,63 +29,19 @@
 #include "msg.h"
 #include "s11n.h"
 
-#include "media_data.h"
-#include "media_input.h"
-#include "audio_output.h"
-#include "video_output.h"
+#include "dispatch.h"
 
-
-/* The player_init_data contains everything that a player needs to start. */
-
-class player_init_data : public serializable
-{
-public:
-    device_request dev_request;                 // Request for input device settings
-    std::vector<std::string> urls;              // Input media objects
-    parameters params;                          // Initial per-video output parameters
-
-public:
-    player_init_data();
-    ~player_init_data();
-
-    // Serialization
-    void save(std::ostream &os) const;
-    void load(std::istream &is);
-};
 
 /*
  * The player class.
- *
- * A player handles the input and determines the next actions.
- * It receives commands from a controller, reacts on them, and then sends
- * notifications to the controllers to inform them about any state changes.
  */
 
 class player
 {
-public:
-    enum type
-    {
-        master,         // Only the master player receives commands from controllers
-        slave           // Slave players do not receive commands
-    };
-
 private:
-
-    /* Input and output objects */
-
-    media_input *_media_input;                  // The media input
-    audio_output *_audio_output;                // Audio output
-    video_output *_video_output;                // Video output
-
     /* Current state */
 
-    // The current output parameters
-    parameters _params;
-
     // Benchmark mode
-    bool _benchmark;                            // Is benchmark mode active?
-    int _swap_interval;                         // 0 in benchmark mode
     int _frames_shown;                          // Frames shown since last reset
     int64_t _fps_mark_time;                     // Time when _frames_shown was reset to zero
 
@@ -137,77 +93,40 @@ protected:
     subtitle_box _current_subtitle_box;
     subtitle_box _next_subtitle_box;
 
-    // Create and destroy video and audio output (overridable by subclasses)
-    virtual video_output *create_video_output();
-    virtual void destroy_video_output(video_output *vo);
-    virtual audio_output *create_audio_output();
-    virtual void destroy_audio_output(audio_output *ao);
-
-    // Make this player the master player
-    void make_master();
-
     // Execute one step and indicate required actions. Returns the number of microseconds
     // that the caller may sleep before starting the next step.
     int64_t step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
-
-    // Execute one step and immediately take required actions. Return true if more steps are required.
-    bool run_step();
-
-    // Get the media input for potential changes
-    media_input &get_media_input_nonconst()
-    {
-        return *_media_input;
-    }
 
 public:
     /* Constructor/destructor.
      * Only a single player instance can exist. The constructor throws an
      * exception if and only if it detects that this instance already exists. */
-    player(type t = master);
-    virtual ~player();
+    player();
+    ~player();
 
     /* Open a player. */
-    virtual void open(const player_init_data &init_data);
-
-    /* Get information about input and output parameters */
-    bool has_media_input() const
-    {
-        return _media_input;
-    }
-    const media_input &get_media_input() const
-    {
-        return *_media_input;
-    }
-    const parameters &get_parameters() const
-    {
-        return _params;
-    }
-
-    virtual const video_output* get_video_output() const
-    {
-        return _video_output;
-    }
-
-    /* Run the player. It will take care of all interaction. This function
-     * returns when the user quits the player. */
-    virtual void run();
+    void open();
 
     /* Close the player and clean up. */
-    virtual void close();
+    void close();
+
+    // Execute one step and immediately take required actions. Return true if more steps are required.
+    bool run_step();
 
     /* Dispatch interface. TODO: remove this */
     void quit_request();
     void set_pause(bool p);
     void seek(int64_t offset);
     void set_pos(float pos);
+
     int set_video_stream(int s);
     int set_audio_stream(int s);
     int set_subtitle_stream(int s);
-    void set_stereo_layout(parameters::stereo_layout_t stereo_layout);
-    void set_stereo_layout_swap(bool swap);
     bool set_fullscreen(bool fs);
     void center();
-    void trigger_video_output_update();
+    
+    void set_stereo_layout(parameters::stereo_layout_t stereo_layout);
+    void set_stereo_layout_swap(bool swap);
 
     float get_pos() const;
 };

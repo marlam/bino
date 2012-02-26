@@ -50,9 +50,8 @@
 #include "msg.h"
 #include "opt.h"
 
-#include "controller.h"
-#include "player.h"
-#include "player_qt.h"
+#include "dispatch.h"
+#include "audio_output.h"
 #if HAVE_LIBEQUALIZER
 # include "player_equalizer.h"
 #endif
@@ -546,6 +545,18 @@ int main(int argc, char *argv[])
 #endif
 
     /* Find invariant parameters, required for dispatch initialization */
+    bool dispatch_equalizer = false;
+    bool dispatch_equalizer_3d = false;
+    if (audio_device.is_set())
+        controller::send_cmd(command::set_audio_device, audio_device.value() - 1);
+    if (video_output_mode.value() == "equalizer") {
+        dispatch_equalizer = true;
+        dispatch_equalizer_3d = false;
+    } else if (video_output_mode.value() == "equalizer-3d") {
+        dispatch_equalizer = true;
+        dispatch_equalizer_3d = true;
+    }
+    bool dispatch_gui = !no_gui.value();
     msg::level_t dispatch_log_level = msg::level();
     if (log_level.value() == "")
         dispatch_log_level = msg::INF;
@@ -565,7 +576,9 @@ int main(int argc, char *argv[])
         dispatch_swap_interval = swap_interval.value();
 
     /* Create the central dispatch */
-    dispatch global_dispatch(false, dispatch_log_level, dispatch_benchmark, dispatch_swap_interval);
+    dispatch global_dispatch(dispatch_equalizer, dispatch_equalizer_3d, false,
+            dispatch_gui, have_display, dispatch_log_level,
+            dispatch_benchmark, dispatch_swap_interval);
     if (dispatch_benchmark)
         msg::inf(_("Benchmark mode: audio and time synchronization disabled."));
 
@@ -644,34 +657,34 @@ int main(int argc, char *argv[])
         controller::send_cmd(command::toggle_audio_mute);
 
     /* Gather initial player data: input URLs and per-video parameters */
-    player_init_data init_data;
+    open_input_data input_data;
     if (device_type.value() == "") {
-        init_data.dev_request.device =
+        input_data.dev_request.device =
             (arguments.size() == 1 && arguments[0].substr(0, 5) == "/dev/"
              ? device_request::sys_default : device_request::no_device);
     } else {
-        init_data.dev_request.device =
+        input_data.dev_request.device =
             (device_type.value() == "firewire" ? device_request::firewire
              : device_type.value() == "x11" ? device_request::x11
              : device_request::sys_default);
     }
-    init_data.dev_request.width = device_frame_size.value()[0];
-    init_data.dev_request.height = device_frame_size.value()[1];
-    init_data.dev_request.frame_rate_num = device_frame_rate.value()[0];
-    init_data.dev_request.frame_rate_den = device_frame_rate.value()[1];
-    init_data.urls = arguments;
+    input_data.dev_request.width = device_frame_size.value()[0];
+    input_data.dev_request.height = device_frame_size.value()[1];
+    input_data.dev_request.frame_rate_num = device_frame_rate.value()[0];
+    input_data.dev_request.frame_rate_den = device_frame_rate.value()[1];
+    input_data.urls = arguments;
     if (video.is_set() > 0)
-        init_data.params.set_video_stream(video.value() - 1);
+        input_data.params.set_video_stream(video.value() - 1);
     if (audio.is_set() > 0)
-        init_data.params.set_audio_stream(audio.value() - 1);
+        input_data.params.set_audio_stream(audio.value() - 1);
     if (subtitle.is_set() > 0)
-        init_data.params.set_subtitle_stream(subtitle.value() - 1);
+        input_data.params.set_subtitle_stream(subtitle.value() - 1);
     if (input_mode.is_set()) {
         parameters::stereo_layout_t stereo_layout;
         bool stereo_layout_swap;
         parameters::stereo_layout_from_string(input_mode.value(), stereo_layout, stereo_layout_swap);
-        init_data.params.set_stereo_layout(stereo_layout);
-        init_data.params.set_stereo_layout_swap(stereo_layout_swap);
+        input_data.params.set_stereo_layout(stereo_layout);
+        input_data.params.set_stereo_layout_swap(stereo_layout_swap);
     }
     if (crop_aspect_ratio.is_set()) {
         float crop_ar = 0.0f;
@@ -679,84 +692,51 @@ int main(int argc, char *argv[])
             crop_ar = crop_aspect_ratio.value()[0] / crop_aspect_ratio.value()[1];
             crop_ar = std::min(std::max(crop_ar, 1.0f), 2.39f);
         }
-        init_data.params.set_crop_aspect_ratio(crop_ar);
+        input_data.params.set_crop_aspect_ratio(crop_ar);
     }
     if (parallax.is_set())
-        init_data.params.set_parallax(parallax.value());
+        input_data.params.set_parallax(parallax.value());
     if (ghostbust.is_set())
-        init_data.params.set_ghostbust(ghostbust.value());
+        input_data.params.set_ghostbust(ghostbust.value());
     if (subtitle_parallax.is_set())
-        init_data.params.set_subtitle_parallax(subtitle_parallax.value());
-
-#if HAVE_LIBLIRCCLIENT
-    lircclient lirc(PACKAGE, lirc_config.values());
-    try
-    {
-        lirc.init();
-    }
-    catch (std::exception &e)
-    {
-        msg::wrn("%s", e.what());
-    }
-#else
-    if (lirc_config.values().size() > 0)
-    {
-        msg::wrn(_("This version of Bino was compiled without support for LIRC."));
-    }
-#endif
+        input_data.params.set_subtitle_parallax(subtitle_parallax.value());
 
     int retval = 0;
-    player *player = NULL;
-    try
-    {
-        if (equalizer)
-        {
-#if HAVE_LIBEQUALIZER
-            if (arguments.size() == 0)
-            {
-                throw exc(_("No video to play."));
-            }
-            player = new class player_equalizer(&argc, argv, equalizer_flat_screen);
+    try {
+        global_dispatch.init();
+        if (input_data.urls.size() > 0) {
+            std::ostringstream v;
+            s11n::save(v, input_data);
+            controller::send_cmd(command::open, v.str());
+            controller::send_cmd(command::toggle_play);
+        }
+#if HAVE_LIBLIRCCLIENT
+        lircclient lirc(PACKAGE, lirc_config.values());
+        try {
+            lirc.init();
+        }
+        catch (std::exception& e) {
+            msg::wrn("%s", e.what());
+        }
 #else
-            throw exc(_("This version of Bino was compiled without support for Equalizer."));
+        if (lirc_config.is_set > 0) {
+            msg::wrn(_("This version of Bino was compiled without support for LIRC."));
+        }
 #endif
+        if (dispatch_equalizer) {
+            assert(0);  // TODO: main loop
+        } else {
+            QApplication::exec();
         }
-        else
-        {
-            if (!have_display)
-            {
-                throw exc(_("Cannot connect to X server."));
-            }
-            else if (!no_gui.value())
-            {
-                player = new class player_qt();
-            }
-            else
-            {
-                if (arguments.size() == 0)
-                {
-                    throw exc(_("No video to play."));
-                }
-                player = new class player();
-            }
-        }
-        player->open(init_data);
-        player->run();
+#if HAVE_LIBLIRCCLIENT
+        lirc.deinit();
+#endif
+        global_dispatch.deinit();
     }
-    catch (std::exception &e)
-    {
+    catch (std::exception& e) {
         msg::err("%s", e.what());
         retval = 1;
     }
-    if (player)
-    {
-        try { player->close(); } catch (...) {}
-        delete player;
-    }
-
-#if HAVE_LIBLIRCCLIENT
-    lirc.deinit();
-#endif
 
     delete qt_app;
 

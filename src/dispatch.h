@@ -19,35 +19,58 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONTROLLER_H
-#define CONTROLLER_H
+#ifndef DISPATCH_H
+#define DISPATCH_H
 
 #include <string>
 #include <sstream>
 #include <stdint.h>
 
 #include "s11n.h"
+#include "thread.h"
 
 #include "media_data.h"
 
-class player;
+class gui;
+class audio_output;
+class video_output;
 class media_input;
+class player;
 
 
-/* A controller can send commands to the player (e.g. "pause", "seek",
- * "adjust colors", ...). The player then reacts on this command, and sends
+/* The open_init_data class contains everything that is needed to open
+ * a media input. */
+
+class open_input_data : public serializable
+{
+public:
+    device_request dev_request;    // Request for input device settings
+    std::vector<std::string> urls; // Input media objects
+    parameters params;             // Initial per-video output parameters
+                                   // (other parameter fields are ignored)
+public:
+    open_input_data();
+
+    // Serialization
+    void save(std::ostream &os) const;
+    void load(std::istream &is);
+};
+
+
+/* A controller can send commands to the dispatch (e.g. "pause", "seek",
+ * "adjust colors", ...). The dispatch then reacts on this command, and sends
  * a notification to all controllers afterwards. The controllers may react
  * on the notification or ignore it.
  *
  * For example, the video output controller may notice that the user pressed the
- * 'p' key to pause the video. So it sends the "pause" command to the player.
- * The player updates its state accordingly, and notifies all controllers that
+ * 'p' key to pause the video. So it sends the "pause" command to the dispatch.
+ * The dipatch updates its state accordingly, and notifies all controllers that
  * the video is now paused. The video output could use this notification to display
  * a pause symbol on screen, and the audio output controller may play a pause jingle
  * (however, in the case of pause, both currently simply ignore the notification).
  */
 
-// A command that can be sent to the player by a controller.
+// A command that can be sent to the dispatch by a controller.
 
 class command
 {
@@ -56,6 +79,8 @@ public:
     {
         noop,                           // no parameters
         // Play state
+        open,                           // open_input_data
+        close,                          // no parameters
         toggle_play,                    // no parameters
         toggle_pause,                   // no parameters
         seek,                           // float (relative adjustment)
@@ -172,7 +197,10 @@ public:
     enum type
     {
         noop,
+        quit,
         // Play state
+        open,
+        close,
         play,
         pause,
         pos,
@@ -255,7 +283,20 @@ public:
 class dispatch
 {
 private:
+    const bool _eq;
+    const bool _eq_3d;
     const bool _eq_slave_node;
+    const bool _gui_mode;
+    const bool _have_display;
+    // Objects
+    class gui* _gui;
+    class audio_output* _audio_output;
+    class video_output* _video_output;
+    class media_input* _media_input;
+    class player* _player;
+    std::vector<controller*> _controllers;
+    unsigned int _controllers_version;
+    mutex _controllers_mutex;
     // Parameters
     class parameters _parameters;
     // State
@@ -263,38 +304,47 @@ private:
     bool _pausing;
     float _position;
 
+    void force_stop();
+
     void visit_all_controllers(int action, const notification& note) const;
-    static void notify_all(const notification& note);
+    void notify_all(const notification& note);
 
 public:
-    dispatch(bool eq_slave_node, msg::level_t log_level, bool benchmark, int swap_interval) throw ();
+    dispatch(bool equalizer, bool equalizer_3d, bool equalizer_slave_node,
+            bool gui, bool have_display, msg::level_t log_level,
+            bool benchmark, int swap_interval) throw ();
     virtual ~dispatch();
+
+    void register_controller(controller* c);
+    void deregister_controller(controller* c);
+
+    void init();
+    void deinit();
+
+    static void step();
 
     /* Process events for all controllers */
     static void process_all_events();
 
-    /* Get/set the global player object */
-    static player* get_global_player();
-    static void set_global_player(player* p);
-
-    /* Interface for the player. TODO: remove this! */
-    static void set_playing(bool p);
-    static void set_pausing(bool p);
-    static void set_position(float pos);
-
-    /* Helper interface for the GUI. TODO: remove this! */
-    static void set_video_parameters(const class parameters& p);
-
     /* Access parameters and state (read-only) */
     static const class parameters& parameters();
-    static const class media_input* media_input();      // NULL if no input is opened
+    static const class audio_output* audio_output();    // NULL if not available
     static const class video_output* video_output();    // NULL if not available
+    static const class media_input* media_input();      // NULL if no input is opened
     static bool playing();
     static bool pausing();
     static float position();
 
     /* Receive a command from a controller. */
-    static void receive_cmd(const command& cmd);
+    void receive_cmd(const command& cmd);
+
+    /* Interface for the player. TODO: remove this! */
+    class audio_output* get_audio_output(); // NULL if not available
+    class video_output* get_video_output(); // NULL if not available
+    class media_input* get_media_input();   // NULL if not available
+    void set_playing(bool p);
+    void set_pausing(bool p);
+    void set_position(float pos);
 };
 
 #endif

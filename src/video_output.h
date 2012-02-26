@@ -30,7 +30,7 @@
 
 #include "media_data.h"
 #include "subtitle_renderer.h"
-#include "controller.h"
+#include "dispatch.h"
 
 
 class video_output : public controller
@@ -110,7 +110,6 @@ protected:
 
     void clear();                               // Clear the video area
     void reshape(int w, int h);                 // Call this when the video area was resized
-    bool need_redisplay_on_move();              // Whether we need to redisplay if the video area moved
 
     /* Display the current frame.
      * The first version is used by Equalizer, which needs to set some special properties.
@@ -169,8 +168,6 @@ public:
     void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
     /* Switch to the next frame (make it the current one) */
     void activate_next_frame();
-    /* Set display parameters. */
-    void set_parameters(const parameters &params);
 };
 
 #endif

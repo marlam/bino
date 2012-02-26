@@ -26,7 +26,7 @@
 
 #include <lirc/lirc_client.h>
 
-#include "controller.h"
+#include "dispatch.h"
 
 
 class lircclient : public controller

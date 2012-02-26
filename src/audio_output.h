@@ -33,8 +33,7 @@
 #  include <AL/alc.h>
 #endif
 
-#include "media_data.h"
-#include "controller.h"
+#include "dispatch.h"
 
 
 class audio_output : public controller

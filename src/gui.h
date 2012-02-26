@@ -39,33 +39,9 @@
 #include <QGroupBox>
 #include <QStackedWidget>
 
-#include "controller.h"
+#include "dispatch.h"
 #include "video_output_qt.h"
-#include "player.h"
 
-
-class player_qt_internal : public player, public controller
-{
-private:
-    video_output_qt *_video_output_qt;
-
-protected:
-    virtual video_output *create_video_output();
-    virtual void destroy_video_output(video_output *vo);
-
-public:
-    player_qt_internal(video_output_qt *video_output);
-    virtual ~player_qt_internal();
-
-    virtual const video_output* get_video_output() const
-    {
-        return _video_output_qt;
-    }
-
-    bool playloop_step();
-    void force_stop();
-    void move_event();
-};
 
 class in_out_widget : public QWidget, public controller
 {
@@ -73,7 +49,6 @@ class in_out_widget : public QWidget, public controller
 
 private:
     QSettings *_settings;
-    const player_qt_internal *_player;
     QComboBox *_video_combobox;
     QComboBox *_audio_combobox;
     QComboBox *_subtitle_combobox;
@@ -94,7 +69,7 @@ private slots:
     void swap_changed();
 
 public:
-    in_out_widget(QSettings *settings, const player_qt_internal *player, QWidget *parent);
+    in_out_widget(QSettings *settings, QWidget *parent);
     virtual ~in_out_widget();
 
     void update();
@@ -350,7 +325,6 @@ class main_window : public QMainWindow, public controller
 private:
     QSettings *_settings;
     video_container_widget *_video_container_widget;
-    video_output_qt *_video_output;
     in_out_widget *_in_out_widget;
     controls_widget *_controls_widget;
     color_dialog *_color_dialog;
@@ -359,10 +333,8 @@ private:
     audio_dialog *_audio_dialog;
     subtitle_dialog *_subtitle_dialog;
     video_dialog *_video_dialog;
-    player_qt_internal *_player;
     QTimer *_timer;
-    player_init_data _init_data;
-    bool _stop_request;
+    std::vector<std::string> _now_playing;
 
     int _max_recent_files;
     QList<QAction *> _recent_file_actions;
@@ -370,14 +342,11 @@ private:
     QAction *_clear_recent_separator;
     QAction *_clear_recent_files_act;
 
-    QString current_file_hash();
-    bool open_player();
     void open(QStringList urls, const device_request &dev_request = device_request());
     void update_recent_file_actions();
     QString stripped_name(const QStringList & filenames);
 
 private slots:
-    void move_event();
     void playloop_step();
     void file_open();
     void file_open_urls();
@@ -400,35 +369,35 @@ private slots:
 protected:
     void dragEnterEvent(QDragEnterEvent *event);
     void dropEvent(QDropEvent *event);
-    void moveEvent(QMoveEvent *event);
     void closeEvent(QCloseEvent *event);
     bool eventFilter(QObject *obj, QEvent *event);
 
 public:
-    main_window(QSettings *settings, const player_init_data &init_data);
+    main_window(QSettings *settings);
     virtual ~main_window();
+
+    video_container_widget* container_widget()
+    {
+        return _video_container_widget;
+    }
 
     virtual void receive_notification(const notification &note);
 };
 
-class player_qt : public player
+class gui
 {
 private:
     main_window *_main_window;
     QSettings *_settings;
 
 public:
-    player_qt();
-    virtual ~player_qt();
+    gui();
+    ~gui();
 
-    QSettings *settings()
+    class video_container_widget* container_widget()
     {
-        return _settings;
+        return _main_window->container_widget();
     }
-
-    virtual void open(const player_init_data &init_data);
-    virtual void run();
-    virtual void close();
 };
 
 #endif

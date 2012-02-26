@@ -325,6 +325,13 @@ static int next_multiple_of_4(int x)
 
 void video_output::prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle)
 {
+    _params = dispatch::parameters();
+    bool context_needs_stereo = (_params.stereo_mode() == parameters::mode_stereo);
+    if (context_needs_stereo != context_is_stereo())
+    {
+        recreate_context(context_needs_stereo);
+        _color_last_frame = video_frame();
+    }
     assert(xgl::CheckError(HERE));
     int index = (_active_index == 0 ? 1 : 0);
     if (!frame.is_valid())
@@ -751,18 +758,6 @@ bool video_output::render_is_compatible()
 void video_output::activate_next_frame()
 {
     _active_index = (_active_index == 0 ? 1 : 0);
-    trigger_update();
-}
-
-void video_output::set_parameters(const parameters &params)
-{
-    _params = params;
-    bool context_needs_stereo = (_params.stereo_mode() == parameters::mode_stereo);
-    if (context_needs_stereo != context_is_stereo())
-    {
-        recreate_context(context_needs_stereo);
-        _color_last_frame = video_frame();
-    }
     trigger_update();
 }
 
@@ -1276,14 +1271,4 @@ void video_output::reshape(int w, int h)
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }
-}
-
-bool video_output::need_redisplay_on_move()
-{
-    // The masking modes must know if the video area starts with an even or
-    // odd columns and/or row. If this changes, the display must be updated.
-    return (_frame[_active_index].is_valid()
-            && (_render_last_params.stereo_mode() == parameters::mode_even_odd_rows
-                || _render_last_params.stereo_mode() == parameters::mode_even_odd_columns
-                || _render_last_params.stereo_mode() == parameters::mode_checkerboard));
 }

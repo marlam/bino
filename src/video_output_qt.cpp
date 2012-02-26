@@ -73,14 +73,6 @@ video_output_qt_widget::~video_output_qt_widget()
 {
 }
 
-void video_output_qt_widget::move_event()
-{
-    if (_vo->need_redisplay_on_move())
-    {
-        update();
-    }
-}
-
 void video_output_qt_widget::paintGL()
 {
     try
@@ -100,11 +92,6 @@ void video_output_qt_widget::paintGL()
 void video_output_qt_widget::resizeGL(int w, int h)
 {
     _vo->reshape(w, h);
-}
-
-void video_output_qt_widget::moveEvent(QMoveEvent *)
-{
-    move_event();
 }
 
 void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
@@ -293,6 +280,32 @@ video_container_widget::video_container_widget(QWidget *parent) : QWidget(parent
     setAutoFillBackground(true);
 }
 
+void video_container_widget::start_timer()
+{
+    _timer = new QTimer(this);
+    connect(_timer, SIGNAL(timeout()), this, SLOT(playloop_step()));
+    _timer->start(0);
+}
+
+void video_container_widget::playloop_step()
+{
+    try {
+        dispatch::step();
+        dispatch::process_all_events();
+    }
+    catch (std::exception& e) {
+        send_cmd(command::close);
+        QMessageBox::critical(this, "Error", e.what());
+    }
+}
+
+void video_container_widget::receive_notification(const notification& note)
+{
+    if (_timer && note.type == notification::quit) {
+        QApplication::quit();
+    }
+}
+
 void video_container_widget::set_recommended_size(int w, int h)
 {
     _w = w;
@@ -304,11 +317,6 @@ QSize video_container_widget::sizeHint() const
     return QSize(_w, _h);
 }
 
-void video_container_widget::moveEvent(QMoveEvent *)
-{
-    emit move_event();
-}
-
 void video_container_widget::closeEvent(QCloseEvent *)
 {
     send_cmd(command::toggle_play);
@@ -317,7 +325,7 @@ void video_container_widget::closeEvent(QCloseEvent *)
 
 /* The video_output_qt class */
 
-video_output_qt::video_output_qt(const int swap_interval, video_container_widget *container_widget) :
+video_output_qt::video_output_qt(video_container_widget *container_widget) :
     video_output(),
     _container_widget(container_widget),
     _container_is_external(container_widget != NULL),
@@ -326,9 +334,10 @@ video_output_qt::video_output_qt(const int swap_interval, video_container_widget
     if (!_container_widget)
     {
         _container_widget = new video_container_widget(NULL);
+        _container_widget->start_timer();
     }
     _format.setDoubleBuffer(true);
-    _format.setSwapInterval(swap_interval);
+    _format.setSwapInterval(dispatch::parameters().swap_interval());
     _format.setStereo(false);
 }
 
@@ -439,7 +448,6 @@ void video_output_qt::create_widget()
         QMessageBox::critical(_widget, _("Error"), _("Cannot get valid OpenGL context."));
         std::exit(1);
     }
-    QObject::connect(_container_widget, SIGNAL(move_event()), _widget, SLOT(move_event()));
     if ((_format.doubleBuffer() && !_widget->format().doubleBuffer())
             || (_format.stereo() && !_widget->format().stereo()))
     {
@@ -500,7 +508,8 @@ void video_output_qt::recreate_context(bool stereo)
 
 void video_output_qt::trigger_update()
 {
-    _widget->update();
+    if (_widget)
+        _widget->update();
 }
 
 void video_output_qt::trigger_resize(int w, int h)
@@ -567,14 +576,6 @@ void video_output_qt::resume_screensaver()
 #elif defined(Q_WS_MAC)
     /* TODO */
 #endif
-}
-
-void video_output_qt::move_event()
-{
-    if (_widget)
-    {
-        _widget->move_event();
-    }
 }
 
 void video_output_qt::grab_focus()

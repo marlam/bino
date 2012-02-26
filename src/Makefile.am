@@ -13,14 +13,14 @@ bino_SOURCES = \
 	media_data.h media_data.cpp \
 	media_object.h media_object.cpp \
 	media_input.h media_input.cpp \
-	controller.h controller.cpp \
+	dispatch.h dispatch.cpp \
         video_output.h video_output.cpp \
         video_output_qt.h video_output_qt.cpp \
 	xgl.h xgl.cpp \
         subtitle_renderer.h subtitle_renderer.cpp \
 	audio_output.h audio_output.cpp \
 	player.h player.cpp \
-	player_qt.h player_qt.cpp \
+	gui.h gui.cpp \
 	lib_versions.h lib_versions.cpp \
 	main.cpp
 
@@ -108,7 +108,7 @@ qt_resources-rcc.cpp: $(filter %.png,$(EXTRA_DIST)) ../AUTHORS ../COPYING
 nodist_bino_SOURCES = \
 	qt_resources.qrc \
 	qt_resources-rcc.cpp \
-	player_qt-moc.cpp \
+	gui-moc.cpp \
 	video_output_qt-moc.cpp \
 	video_output_color.fs.glsl.h \
 	video_output_render.fs.glsl.h

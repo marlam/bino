@@ -26,6 +26,7 @@
 #include <QWidget>
 #include <QGLWidget>
 #include <QGLFormat>
+#include <QTimer>
 
 #include "video_output.h"
 
@@ -45,37 +46,33 @@ public:
     video_output_qt_widget(video_output_qt *vo, const QGLFormat &format, QWidget *parent = NULL);
     ~video_output_qt_widget();
 
-public slots:
-    void move_event();
-
 protected:
     virtual void paintGL();
     virtual void resizeGL(int width, int height);
-    virtual void moveEvent(QMoveEvent *event);
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
     virtual void mouseDoubleClickEvent(QMouseEvent *event);
     virtual void focusOutEvent(QFocusEvent *event);
 };
 
-/* Public interface. You can use this as a video container widget, to
- * conveniently catch move events and pass them to the video output, as
- * described below (but note that you still must catch move events for
- * parent widgets yourself). */
+/* Public interface */
 
 class video_container_widget : public QWidget, public controller
 {
     Q_OBJECT
     int _w, _h;
+    QTimer *_timer;
+private slots:
+    void playloop_step();
 public:
     video_container_widget(QWidget *parent = NULL);
+    void start_timer();
     void set_recommended_size(int w, int h);
 signals:
-    void move_event();
 protected:
     virtual QSize sizeHint() const;
-    virtual void moveEvent(QMoveEvent *event);
     virtual void closeEvent(QCloseEvent *event);
+    virtual void receive_notification(const notification& note);
 };
 
 /* Public interface. See the video_output documentation. */
@@ -104,17 +101,10 @@ protected:
 public:
     /* Constructor, Destructor */
     /* If a container widget is given, then it is assumed that this widget is
-     * part of another widget (e.g. a main window). In this case, you also need
-     * to use the move_event() function; see below. If no container widget is
+     * part of another widget (e.g. a main window). If no container widget is
      * given, we will use our own, and it will be a top-level window. */
-    video_output_qt(const int swap_interval, video_container_widget *container_widget = NULL);
+    video_output_qt(video_container_widget *container_widget = NULL);
     virtual ~video_output_qt();
-
-    /* If you give a container element to the constructor, you have to call
-     * this function for every move events that the container widget or its
-     * parent widgets receive. This is required for the masking output modes
-     * (even-odd-*, checkerboard). */
-    void move_event();
 
     /* Grab the keyboard focus for the video widget, to enable keyboard shortcuts */
     void grab_focus();
