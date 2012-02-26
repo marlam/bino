@@ -961,7 +961,7 @@ void video_output::display_current_frame(
     // Apply fullscreen flipping/flopping
     float my_tex_coords[2][4][2];
     std::memcpy(my_tex_coords, tex_coords, sizeof(my_tex_coords));
-    if (fullscreen())
+    if (dispatch::parameters().fullscreen())
     {
         if (_params.fullscreen_flip_left())
         {

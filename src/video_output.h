@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -154,15 +154,13 @@ public:
     virtual int height() = 0;                   // in pixels
     virtual int pos_x() = 0;                    // in pixels
     virtual int pos_y() = 0;                    // in pixels
-    virtual bool fullscreen() = 0;              // whether the video area is in fullscreen mode
 
     /* Center video area on screen */
     virtual void center() = 0;
 
     /* Enter/exit fullscreen mode */
-    virtual void enter_fullscreen(int screen) = 0;
+    virtual void enter_fullscreen() = 0;
     virtual void exit_fullscreen() = 0;
-    virtual bool toggle_fullscreen(int screen) = 0;
 
     /* Process window system events (if applicable) */
     virtual void process_events() = 0;
@@ -173,9 +171,6 @@ public:
     void activate_next_frame();
     /* Set display parameters. */
     void set_parameters(const parameters &params);
-
-    /* Receive a notification from the player. */
-    virtual void receive_notification(const notification &note) = 0;
 };
 
 #endif

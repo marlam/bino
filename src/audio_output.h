@@ -64,11 +64,11 @@ private:
     int64_t _ext_timer_at_last_timestamp;
     int64_t _last_reported_timestamp;
 
-    // Parameters
-    parameters _params;
-
     // Get an OpenAL source format for the audio data in blob (or throw an exception)
     ALenum get_al_format(const audio_blob &blob);
+
+    // Set source parameters
+    void set_source_parameters();
 
 public:
     audio_output();
@@ -84,9 +84,6 @@ public:
     void init(int i = -1);
     /* Deinitialize the audio device. */
     void deinit();
-
-    /* Set parameters. */
-    void set_parameters(const parameters &params);
 
     /* To play audio, do the following:
      * - First, call required_initial_data_size() to find out the initial amount
@@ -112,6 +109,9 @@ public:
 
     /* Stop audio playback, and flush all buffers. */
     void stop();
+
+    /* Receive a notification from the dispatch. */
+    virtual void receive_notification(const notification& note);
 };
 
 #endif

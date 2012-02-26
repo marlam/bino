@@ -227,6 +227,24 @@ namespace s11n
     }
 
     // TODO: add more STL containers as needed
+
+    // Convenience wrappers: directly return a loaded value
+
+    template<typename T>
+    T load(std::istream& is)
+    {
+        T x;
+        load(is, x);
+        return x;
+    }
+
+    template<typename T>
+    T load(const std::string& s)
+    {
+        T x;
+        load(s, x);
+        return x;
+    }
 };
 
 #endif

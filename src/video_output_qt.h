@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -87,9 +87,6 @@ private:
     bool _container_is_external;
     video_output_qt_widget *_widget;
     QGLFormat _format;
-    bool _fullscreen;
-    bool _playing;
-    bool _pausing;
 
     void create_widget();
     void mouse_set_pos(float dest);
@@ -134,16 +131,12 @@ public:
     virtual int height();
     virtual int pos_x();
     virtual int pos_y();
-    virtual bool fullscreen();
 
     virtual void center();
-    virtual void enter_fullscreen(int screens);
+    virtual void enter_fullscreen();
     virtual void exit_fullscreen();
-    virtual bool toggle_fullscreen(int screens);
 
     virtual void process_events();
-
-    virtual void receive_notification(const notification &note);
 
     friend class video_output_qt_widget;
 };

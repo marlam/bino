@@ -42,7 +42,7 @@ class player_init_data : public serializable
 public:
     device_request dev_request;                 // Request for input device settings
     std::vector<std::string> urls;              // Input media objects
-    parameters params;                          // Initial output parameters
+    parameters params;                          // Initial per-video output parameters
 
 public:
     player_init_data();
@@ -120,7 +120,7 @@ private:
     /* Helper functions */
 
     // Normalize an input position to [0,1]
-    float normalize_pos(int64_t pos);
+    float normalize_pos(int64_t pos) const;
 
     // Set the current subtitle from the next subtitle
     void set_current_subtitle_box();
@@ -183,6 +183,11 @@ public:
         return _params;
     }
 
+    virtual const video_output* get_video_output() const
+    {
+        return _video_output;
+    }
+
     /* Run the player. It will take care of all interaction. This function
      * returns when the user quits the player. */
     virtual void run();
@@ -190,8 +195,21 @@ public:
     /* Close the player and clean up. */
     virtual void close();
 
-    /* Receive a command from a controller. */
-    virtual void receive_cmd(const command &cmd);
+    /* Dispatch interface. TODO: remove this */
+    void quit_request();
+    void set_pause(bool p);
+    void seek(int64_t offset);
+    void set_pos(float pos);
+    int set_video_stream(int s);
+    int set_audio_stream(int s);
+    int set_subtitle_stream(int s);
+    void set_stereo_layout(parameters::stereo_layout_t stereo_layout);
+    void set_stereo_layout_swap(bool swap);
+    bool set_fullscreen(bool fs);
+    void center();
+    void trigger_video_output_update();
+
+    float get_pos() const;
 };
 
 #endif

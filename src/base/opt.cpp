@@ -198,6 +198,10 @@ namespace opt
                 }
                 error = true;
             }
+            else
+            {
+                options[optval]->mark_as_set();
+            }
             if (typeid(*(options[optval])) == typeid(info))
             {
                 info_option_was_seen = true;

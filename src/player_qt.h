@@ -47,8 +47,7 @@
 class player_qt_internal : public player, public controller
 {
 private:
-    bool _playing;
-    video_output_qt *_video_output;
+    video_output_qt *_video_output_qt;
 
 protected:
     virtual video_output *create_video_output();
@@ -58,13 +57,11 @@ public:
     player_qt_internal(video_output_qt *video_output);
     virtual ~player_qt_internal();
 
-    virtual void receive_cmd(const command &cmd);
+    virtual const video_output* get_video_output() const
+    {
+        return _video_output_qt;
+    }
 
-    virtual void receive_notification(const notification &note);
-
-    const video_output_qt *get_video_output() const;
-    video_output_qt *get_video_output();
-    bool is_playing() const;
     bool playloop_step();
     void force_stop();
     void move_event();
@@ -100,7 +97,7 @@ public:
     in_out_widget(QSettings *settings, const player_qt_internal *player, QWidget *parent);
     virtual ~in_out_widget();
 
-    void update(const player_init_data &init_data, bool have_valid_input, bool playing);
+    void update();
 
     int get_video_stream();
     int get_audio_stream();
@@ -116,7 +113,6 @@ class controls_widget : public QWidget, public controller
     Q_OBJECT
 
 private:
-    parameters *_params;
     int64_t _input_duration;
     bool _lock;
     QSettings *_settings;
@@ -136,7 +132,6 @@ private:
     QLabel *_pos_label;
     QPushButton *_audio_mute_button;
     QSlider *_audio_volume_slider;
-    bool _playing;
 
 private:
     void update_audio_widgets();
@@ -159,10 +154,10 @@ private slots:
     void audio_volume_slider_changed();
 
 public:
-    controls_widget(parameters *params, QSettings *settings, const player_init_data &init_data, QWidget *parent);
+    controls_widget(QSettings *settings, QWidget *parent);
     virtual ~controls_widget();
 
-    void update(const player_init_data &init_data, bool have_valid_input, bool playing, int64_t input_duration);
+    void update();
     virtual void receive_notification(const notification &note);
 };
 
@@ -171,7 +166,6 @@ class color_dialog : public QDialog, public controller
     Q_OBJECT
 
 private:
-    parameters *_params;
     bool _lock;
     QDoubleSpinBox *_c_spinbox;
     QSlider *_c_slider;
@@ -193,7 +187,7 @@ private slots:
     void s_spinbox_changed(double val);
 
 public:
-    color_dialog(parameters *params, QWidget *parent);
+    color_dialog(QWidget *parent);
 
     virtual void receive_notification(const notification &note);
 };
@@ -203,7 +197,6 @@ class crosstalk_dialog : public QDialog, public controller
     Q_OBJECT
 
 private:
-    parameters *_params;
     bool _lock;
     QDoubleSpinBox *_r_spinbox;
     QDoubleSpinBox *_g_spinbox;
@@ -213,7 +206,7 @@ private slots:
     void spinbox_changed();
 
 public:
-    crosstalk_dialog(parameters *params, QWidget *parent);
+    crosstalk_dialog(QWidget *parent);
 
     virtual void receive_notification(const notification &note);
 };
@@ -223,7 +216,6 @@ class zoom_dialog : public QDialog, public controller
     Q_OBJECT
 
 private:
-    parameters *_params;
     bool _lock;
     QDoubleSpinBox *_z_spinbox;
     QSlider *_z_slider;
@@ -233,7 +225,7 @@ private slots:
     void z_spinbox_changed(double val);
 
 public:
-    zoom_dialog(parameters *params, QWidget *parent);
+    zoom_dialog(QWidget *parent);
 
     virtual void receive_notification(const notification &note);
 };
@@ -243,7 +235,6 @@ class audio_dialog : public QDialog, public controller
     Q_OBJECT
 
 private:
-    parameters *_params;
     bool _lock;
     QComboBox *_device_combobox;
     QSpinBox *_delay_spinbox;
@@ -253,7 +244,7 @@ private slots:
     void delay_changed();
 
 public:
-    audio_dialog(parameters *params, QWidget *parent);
+    audio_dialog(QWidget *parent);
 
     virtual void receive_notification(const notification &note);
 };
@@ -263,7 +254,6 @@ class subtitle_dialog: public QDialog, public controller
     Q_OBJECT
 
 private:
-    parameters *_params;
     bool _lock;
     QCheckBox *_encoding_checkbox;
     QComboBox *_encoding_combobox;
@@ -289,7 +279,7 @@ private slots:
     void color_changed();
 
 public:
-    subtitle_dialog(parameters *params, QWidget *parent);
+    subtitle_dialog(QWidget *parent);
 
     virtual void receive_notification(const notification &note);
 };
@@ -299,7 +289,6 @@ class video_dialog : public QDialog, public controller
     Q_OBJECT
 
 private:
-    parameters *_params;
     bool _lock;
     QComboBox *_crop_ar_combobox;
     QDoubleSpinBox *_p_spinbox;
@@ -321,7 +310,7 @@ private slots:
     void g_spinbox_changed(double val);
 
 public:
-    video_dialog(parameters *params, QWidget *parent);
+    video_dialog(QWidget *parent);
     void update();
 
     virtual void receive_notification(const notification &note);
@@ -373,7 +362,6 @@ private:
     player_qt_internal *_player;
     QTimer *_timer;
     player_init_data _init_data;
-    const player_init_data _init_data_template;
     bool _stop_request;
 
     int _max_recent_files;

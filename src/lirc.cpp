@@ -41,9 +41,7 @@ lircclient::lircclient(
     controller(),
     _client_name(client_name),
     _conf_files(conf_files),
-    _initialized(false),
-    _playing(false),
-    _pausing(false)
+    _initialized(false)
 {
 }
 
@@ -103,27 +101,6 @@ void lircclient::deinit()
         lirc_freeconfig(_config);
         lirc_deinit();
         _initialized = false;
-    }
-}
-
-void lircclient::receive_notification(const notification &note)
-{
-    std::istringstream current(note.current);
-
-    switch (note.type)
-    {
-    case notification::play:
-        s11n::load(current, _playing);
-        if (!_playing)
-        {
-            _pausing = false;
-        }
-        break;
-    case notification::pause:
-        s11n::load(current, _pausing);
-        break;
-    default:
-        break;
     }
 }
 
@@ -243,11 +220,11 @@ bool lircclient::get_command(const std::string &s, command &c)
     /* The following commands need access to state. */
     else if (t == "play")
     {
-        if (!_playing)
+        if (!dispatch::playing())
         {
             c = command(command::toggle_play);
         }
-        else if (_pausing)
+        else if (dispatch::pausing())
         {
             c = command(command::toggle_pause);
         }
@@ -258,7 +235,7 @@ bool lircclient::get_command(const std::string &s, command &c)
     }
     else if (t == "pause")
     {
-        if (_playing && !_pausing)
+        if (dispatch::playing() && !dispatch::pausing())
         {
             c = command(command::toggle_pause);
         }
@@ -269,7 +246,7 @@ bool lircclient::get_command(const std::string &s, command &c)
     }
     else if (t == "stop")
     {
-        if (_playing)
+        if (dispatch::playing())
         {
             c = command(command::toggle_play);
         }

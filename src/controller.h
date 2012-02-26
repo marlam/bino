@@ -28,6 +28,11 @@
 
 #include "s11n.h"
 
+#include "media_data.h"
+
+class player;
+class media_input;
+
 
 /* A controller can send commands to the player (e.g. "pause", "seek",
  * "adjust colors", ...). The player then reacts on this command, and sends
@@ -50,21 +55,22 @@ public:
     enum type
     {
         noop,                           // no parameters
+        // Play state
         toggle_play,                    // no parameters
         toggle_pause,                   // no parameters
-        cycle_video_stream,             // no parameters
-        set_video_stream,               // int
-        cycle_audio_stream,             // no parameters
-        set_audio_stream,               // int
-        cycle_subtitle_stream,          // no parameters
-        set_subtitle_stream,            // int
-        set_stereo_layout,              // video_frame::stereo_layout
-        set_stereo_layout_swap,         // bool
+        seek,                           // float (relative adjustment)
+        set_pos,                        // float (absolute position)
+        // Per-Session parameters
+        set_audio_device,               // int
         set_stereo_mode,                // parameters::stereo_mode
         set_stereo_mode_swap,           // bool
         toggle_stereo_mode_swap,        // no parameters
-        toggle_fullscreen,              // no parameters
-        center,                         // no parameters
+        set_crosstalk,                  // 3 floats (absolute values)
+        set_fullscreen_screens,         // int
+        set_fullscreen_flip_left,       // bool
+        set_fullscreen_flop_left,       // bool
+        set_fullscreen_flip_right,      // bool
+        set_fullscreen_flop_right,      // bool
         adjust_contrast,                // float (relative adjustment)
         set_contrast,                   // float (absolute value)
         adjust_brightness,              // float (relative adjustment)
@@ -73,33 +79,37 @@ public:
         set_hue,                        // float (absolute value)
         adjust_saturation,              // float (relative adjustment)
         set_saturation,                 // float (absolute value)
-        adjust_parallax,                // float (relative adjustment)
-        set_parallax,                   // float (absolute value)
-        set_crosstalk,                  // 3 floats (absolute values)
-        adjust_ghostbust,               // float (relative adjustment)
-        set_ghostbust,                  // float (absolute value)
+        adjust_zoom,                    // float (relative adjustment)
+        set_zoom,                       // float (absolute value)
+        set_loop_mode,                  // parameters::loop_mode_t
+        set_audio_delay,                // float (absolute value)
         set_subtitle_encoding,          // string (encoding name)
         set_subtitle_font,              // string (font name)
         set_subtitle_size,              // int
         set_subtitle_scale,             // float
         set_subtitle_color,             // uint64_t
+        // Per-Video parameters
+        cycle_video_stream,             // no parameters
+        set_video_stream,               // int
+        cycle_audio_stream,             // no parameters
+        set_audio_stream,               // int
+        cycle_subtitle_stream,          // no parameters
+        set_subtitle_stream,            // int
+        set_stereo_layout,              // video_frame::stereo_layout
+        set_stereo_layout_swap,         // bool
+        set_crop_aspect_ratio,          // float
+        adjust_parallax,                // float (relative adjustment)
+        set_parallax,                   // float (absolute value)
+        adjust_ghostbust,               // float (relative adjustment)
+        set_ghostbust,                  // float (absolute value)
         adjust_subtitle_parallax,       // float (relative adjustment)
         set_subtitle_parallax,          // float (absolute value)
-        seek,                           // float (relative adjustment)
-        set_pos,                        // float (absolute position)
-        set_loop_mode,                  // parameters::loop_mode_t
-        set_fullscreen_screens,         // int
-        set_fullscreen_flip_left,       // bool
-        set_fullscreen_flop_left,       // bool
-        set_fullscreen_flip_right,      // bool
-        set_fullscreen_flop_right,      // bool
-        adjust_zoom,                    // float (relative adjustment)
-        set_zoom,                       // float (absolute value)
-        set_crop_aspect_ratio,          // float
+        // Volatile parameters
+        toggle_fullscreen,              // no parameters
+        center,                         // no parameters
         adjust_audio_volume,            // float (relative adjustment)
         set_audio_volume,               // float (absolute value)
         toggle_audio_mute,              // no parameters
-        set_audio_delay,                // float (absolute value)
     };
     
     type type;
@@ -139,130 +149,77 @@ public:
         param = oss.str();
     }
 
+    command(enum type t, uint64_t p) :
+        type(t)
+    {
+        std::ostringstream oss;
+        s11n::save(oss, p);
+        param = oss.str();
+    }
+
     command(enum type t, const std::string &p) :
         type(t), param(p)
     {
     }
 };
 
-// A notification that can be sent to controllers by the player.
+// A notification that can be sent to controllers by the dispatch.
+// It signals that the corresponding value has changed.
 
 class notification
 {
 public:
     enum type
     {
-        play,                   // bool
-        pause,                  // bool
-        video_stream,           // int
-        audio_stream,           // int
-        subtitle_stream,        // int
-        stereo_layout,          // video_frame::stereo_layout
-        stereo_layout_swap,     // bool
-        stereo_mode,            // parameters::stereo_mode
-        stereo_mode_swap,       // bool
-        fullscreen,             // bool
-        center,                 // bool
-        contrast,               // float
-        brightness,             // float
-        hue,                    // float
-        saturation,             // float
-        parallax,               // float
-        crosstalk,              // 3 floats
-        ghostbust,              // float
-        subtitle_encoding,      // string
-        subtitle_font,          // string
-        subtitle_size,          // int
-        subtitle_scale,         // float
-        subtitle_color,         // uint64_t
-        subtitle_parallax,      // float
-        pos,                    // float
-        loop_mode,              // parameters::loop_mode_t
-        fullscreen_screens,     // int
-        fullscreen_flip_left,   // bool
-        fullscreen_flop_left,   // bool
-        fullscreen_flip_right,  // bool
-        fullscreen_flop_right,  // bool
-        zoom,                   // float
-        crop_aspect_ratio,      // float
-        audio_volume,           // float
-        audio_mute,             // bool
-        audio_delay,            // float
+        noop,
+        // Play state
+        play,
+        pause,
+        pos,
+        // Per-Session parameters
+        audio_device,
+        stereo_mode,
+        stereo_mode_swap,
+        crosstalk,
+        fullscreen_screens,
+        fullscreen_flip_left,
+        fullscreen_flop_left,
+        fullscreen_flip_right,
+        fullscreen_flop_right,
+        contrast,
+        brightness,
+        hue,
+        saturation,
+        zoom,
+        loop_mode,
+        audio_delay,
+        subtitle_encoding,
+        subtitle_font,
+        subtitle_size,
+        subtitle_scale,
+        subtitle_color,
+        // Per-Video parameters
+        video_stream,
+        audio_stream,
+        subtitle_stream,
+        stereo_layout,
+        stereo_layout_swap,
+        crop_aspect_ratio,
+        parallax,
+        ghostbust,
+        subtitle_parallax,
+        // Volatile parameters
+        fullscreen,
+        center,
+        audio_volume,
+        audio_mute,
     };
-    
-    type type;
-    std::string previous;       // previous value of the state indicated by type
-    std::string current;        // current value of the state indicated by type
 
-    notification(enum type t) :
-        type(t)
-    {
-    }
+    const enum type type;
 
-    notification(enum type t, bool p, bool c) :
-        type(t)
+public:
+    notification(enum type t) : type(t)
     {
-        std::ostringstream ossp;
-        s11n::save(ossp, p);
-        previous = ossp.str();
-        std::ostringstream ossc;
-        s11n::save(ossc, c);
-        current = ossc.str();
-    }
-
-    notification(enum type t, int p, int c) :
-        type(t)
-    {
-        std::ostringstream ossp;
-        s11n::save(ossp, p);
-        previous = ossp.str();
-        std::ostringstream ossc;
-        s11n::save(ossc, c);
-        current = ossc.str();
-    }
-
-    notification(enum type t, float p, float c) :
-        type(t)
-    {
-        std::ostringstream ossp;
-        s11n::save(ossp, p);
-        previous = ossp.str();
-        std::ostringstream ossc;
-        s11n::save(ossc, c);
-        current = ossc.str();
-    }
-
-    notification(enum type t, int64_t p, int64_t c) :
-        type(t)
-    {
-        std::ostringstream ossp;
-        s11n::save(ossp, p);
-        previous = ossp.str();
-        std::ostringstream ossc;
-        s11n::save(ossc, c);
-        current = ossc.str();
-    }
-
-    notification(enum type t, uint64_t p, uint64_t c) :
-        type(t)
-    {
-        std::ostringstream ossp;
-        s11n::save(ossp, p);
-        previous = ossp.str();
-        std::ostringstream ossc;
-        s11n::save(ossc, c);
-        current = ossc.str();
-    }
-
-    notification(enum type t, const std::string &p, const std::string &c) :
-        type(t)
-    {
-        std::ostringstream ossp;
-        s11n::save(ossp, p);
-        previous = ossp.str();
-        std::ostringstream ossc;
-        s11n::save(ossc, c);
-        current = ossc.str();
     }
 };
 
@@ -270,44 +227,74 @@ public:
 
 class controller
 {
-private:
-    static void visit_all_controllers(int action, const notification &note);
-
 public:
     controller() throw ();
     virtual ~controller();
 
     /* The controller uses this function to send a command to the player. */
-    void send_cmd(const command &cmd);
+    static void send_cmd(const command& cmd);
     // Convenience wrappers:
-    void send_cmd(enum command::type t) { send_cmd(command(t)); }
-    void send_cmd(enum command::type t, int p) { send_cmd(command(t, p)); }
-    void send_cmd(enum command::type t, float p) { send_cmd(command(t, p)); }
-    void send_cmd(enum command::type t, int64_t p) { send_cmd(command(t, p)); }
-    void send_cmd(enum command::type t, const std::string &p) { send_cmd(command(t, p)); }
+    static void send_cmd(enum command::type t) { send_cmd(command(t)); }
+    static void send_cmd(enum command::type t, int p) { send_cmd(command(t, p)); }
+    static void send_cmd(enum command::type t, float p) { send_cmd(command(t, p)); }
+    static void send_cmd(enum command::type t, int64_t p) { send_cmd(command(t, p)); }
+    static void send_cmd(enum command::type t, uint64_t p) { send_cmd(command(t, p)); }
+    static void send_cmd(enum command::type t, const std::string& p) { send_cmd(command(t, p)); }
 
     /* The controller receives notifications via this function. The default
      * implementation simply ignores the notification. */
-    virtual void receive_notification(const notification &note);
+    virtual void receive_notification(const notification& note);
 
     /* The controller is asked to process events via this function. The default
      * implementation simply does nothing. */
     virtual void process_events();
+};
 
-    /* The following functions can be used by command dispatchers to handle all
-     * controller-related tasks: managing the global player object, and notifying
-     * registered controllers. */
-    static void *get_global_player();
-    static void set_global_player(void *p);
+// The dispatch (singleton).
+
+class dispatch
+{
+private:
+    const bool _eq_slave_node;
+    // Parameters
+    class parameters _parameters;
+    // State
+    bool _playing;
+    bool _pausing;
+    float _position;
+
+    void visit_all_controllers(int action, const notification& note) const;
+    static void notify_all(const notification& note);
+
+public:
+    dispatch(bool eq_slave_node, msg::level_t log_level, bool benchmark, int swap_interval) throw ();
+    virtual ~dispatch();
+
+    /* Process events for all controllers */
     static void process_all_events();
-    static void notify_all(const notification &note);
-    // Convenience wrappers:
-    static void notify_all(enum notification::type t, bool p, bool c) { notify_all(notification(t, p, c)); }
-    static void notify_all(enum notification::type t, int p, int c) { notify_all(notification(t, p, c)); }
-    static void notify_all(enum notification::type t, float p, float c) { notify_all(notification(t, p, c)); }
-    static void notify_all(enum notification::type t, int64_t p, int64_t c) { notify_all(notification(t, p, c)); }
-    static void notify_all(enum notification::type t, uint64_t p, uint64_t c) { notify_all(notification(t, p, c)); }
-    static void notify_all(enum notification::type t, const std::string &p, const std::string &c) { notify_all(notification(t, p, c)); }
+
+    /* Get/set the global player object */
+    static player* get_global_player();
+    static void set_global_player(player* p);
+
+    /* Interface for the player. TODO: remove this! */
+    static void set_playing(bool p);
+    static void set_pausing(bool p);
+    static void set_position(float pos);
+
+    /* Helper interface for the GUI. TODO: remove this! */
+    static void set_video_parameters(const class parameters& p);
+
+    /* Access parameters and state (read-only) */
+    static const class parameters& parameters();
+    static const class media_input* media_input();      // NULL if no input is opened
+    static const class video_output* video_output();    // NULL if not available
+    static bool playing();
+    static bool pausing();
+    static float position();
+
+    /* Receive a command from a controller. */
+    static void receive_cmd(const command& cmd);
 };
 
 #endif

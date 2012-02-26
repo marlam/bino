@@ -88,8 +88,8 @@ static QIcon get_icon(const QString &name)
 }
 
 
-player_qt_internal::player_qt_internal(video_output_qt *video_output) :
-    player(player::master), _playing(false), _video_output(video_output)
+player_qt_internal::player_qt_internal(video_output_qt *video_output_qt) :
+    player(player::master), _video_output_qt(video_output_qt)
 {
 }
 
@@ -99,48 +99,12 @@ player_qt_internal::~player_qt_internal()
 
 video_output *player_qt_internal::create_video_output()
 {
-    return _video_output;
+    return _video_output_qt;
 }
 
 void player_qt_internal::destroy_video_output(video_output *)
 {
     // do nothing; we reuse our video output later
-}
-
-void player_qt_internal::receive_cmd(const command &cmd)
-{
-    if (cmd.type == command::toggle_play && has_media_input() && !_playing)
-    {
-        controller::notify_all(notification::play, false, true);
-    }
-    else if (_playing)
-    {
-        player::receive_cmd(cmd);
-    }
-}
-
-void player_qt_internal::receive_notification(const notification &note)
-{
-    if (note.type == notification::play)
-    {
-        std::istringstream iss(note.current);
-        s11n::load(iss, _playing);
-    }
-}
-
-const video_output_qt *player_qt_internal::get_video_output() const
-{
-    return _video_output;
-}
-
-video_output_qt *player_qt_internal::get_video_output()
-{
-    return _video_output;
-}
-
-bool player_qt_internal::is_playing() const
-{
-    return _playing;
 }
 
 bool player_qt_internal::playloop_step()
@@ -150,15 +114,13 @@ bool player_qt_internal::playloop_step()
 
 void player_qt_internal::force_stop()
 {
-    controller::notify_all(notification::play, false, false);
+    if (dispatch::playing())
+        send_cmd(command::toggle_play);
 }
 
 void player_qt_internal::move_event()
 {
-    if (_video_output)
-    {
-        _video_output->move_event();
-    }
+    _video_output_qt->move_event();
 }
 
 
@@ -495,36 +457,37 @@ void in_out_widget::swap_changed()
     }
 }
 
-void in_out_widget::update(const player_init_data &init_data, bool have_valid_input, bool playing)
+void in_out_widget::update()
 {
+    const media_input *mi = dispatch::media_input();
     _lock = true;
-    _video_combobox->setEnabled(have_valid_input);
-    _audio_combobox->setEnabled(have_valid_input);
-    _subtitle_combobox->setEnabled(have_valid_input);
-    _input_combobox->setEnabled(have_valid_input);
-    _output_combobox->setEnabled(have_valid_input);
-    _swap_checkbox->setEnabled(have_valid_input);
+    _video_combobox->setEnabled(mi);
+    _audio_combobox->setEnabled(mi);
+    _subtitle_combobox->setEnabled(mi);
+    _input_combobox->setEnabled(mi);
+    _output_combobox->setEnabled(mi);
+    _swap_checkbox->setEnabled(mi);
     _video_combobox->clear();
     _audio_combobox->clear();
     _subtitle_combobox->clear();
-    if (have_valid_input)
+    if (mi)
     {
-        for (int i = 0; i < _player->get_media_input().video_streams(); i++)
+        for (int i = 0; i < mi->video_streams(); i++)
         {
-            _video_combobox->addItem(_player->get_media_input().video_stream_name(i).c_str());
+            _video_combobox->addItem(mi->video_stream_name(i).c_str());
         }
-        for (int i = 0; i < _player->get_media_input().audio_streams(); i++)
+        for (int i = 0; i < mi->audio_streams(); i++)
         {
-            _audio_combobox->addItem(_player->get_media_input().audio_stream_name(i).c_str());
+            _audio_combobox->addItem(mi->audio_stream_name(i).c_str());
         }
         _subtitle_combobox->addItem(_("Off"));
-        for (int i = 0; i < _player->get_media_input().subtitle_streams(); i++)
+        for (int i = 0; i < mi->subtitle_streams(); i++)
         {
-            _subtitle_combobox->addItem(_player->get_media_input().subtitle_stream_name(i).c_str());
+            _subtitle_combobox->addItem(mi->subtitle_stream_name(i).c_str());
         }
-        _video_combobox->setCurrentIndex(init_data.params.video_stream());
-        _audio_combobox->setCurrentIndex(init_data.params.audio_stream());
-        _subtitle_combobox->setCurrentIndex(init_data.params.subtitle_stream() + 1);
+        _video_combobox->setCurrentIndex(dispatch::parameters().video_stream());
+        _audio_combobox->setCurrentIndex(dispatch::parameters().audio_stream());
+        _subtitle_combobox->setCurrentIndex(dispatch::parameters().subtitle_stream() + 1);
         // Disable unsupported input modes
         for (int i = 0; i < _input_combobox->count(); i++)
         {
@@ -533,22 +496,18 @@ void in_out_widget::update(const player_init_data &init_data, bool have_valid_in
             bool swap;
             get_stereo_layout(layout, swap);
             qobject_cast<QStandardItemModel *>(_input_combobox->model())->item(i)->setEnabled(
-                    _player->get_media_input().stereo_layout_is_supported(layout, swap));
+                    mi->stereo_layout_is_supported(layout, swap));
         }
         // Disable unsupported output modes
-        if (!_player->get_video_output()->supports_stereo())
+        if (!dispatch::video_output() || !dispatch::video_output()->supports_stereo())
         {
             set_stereo_mode(parameters::mode_stereo, false);
             qobject_cast<QStandardItemModel *>(_output_combobox->model())->item(_output_combobox->currentIndex())->setEnabled(false);
         }
-        set_stereo_layout(init_data.params.stereo_layout(), init_data.params.stereo_layout_swap());
-        set_stereo_mode(init_data.params.stereo_mode(), init_data.params.stereo_mode_swap());
+        set_stereo_layout(dispatch::parameters().stereo_layout(), dispatch::parameters().stereo_layout_swap());
+        set_stereo_mode(dispatch::parameters().stereo_mode(), dispatch::parameters().stereo_mode_swap());
     }
     _lock = false;
-    if (have_valid_input)
-    {
-        receive_notification(notification(notification::play, !playing, playing));
-    }
 }
 
 int in_out_widget::get_video_stream()
@@ -718,45 +677,30 @@ void in_out_widget::get_stereo_mode(parameters::stereo_mode_t &stereo_mode, bool
 
 void in_out_widget::receive_notification(const notification &note)
 {
-    std::istringstream current(note.current);
-    int stream;
-    bool flag;
-
+    _lock = true;
     switch (note.type)
     {
     case notification::video_stream:
-        s11n::load(current, stream);
-        _lock = true;
-        _video_combobox->setCurrentIndex(stream);
-        _lock = false;
+        _video_combobox->setCurrentIndex(dispatch::parameters().video_stream());
         break;
     case notification::audio_stream:
-        s11n::load(current, stream);
-        _lock = true;
-        _audio_combobox->setCurrentIndex(stream);
-        _lock = false;
+        _audio_combobox->setCurrentIndex(dispatch::parameters().audio_stream());
         break;
     case notification::subtitle_stream:
-        s11n::load(current, stream);
-        _lock = true;
-        _subtitle_combobox->setCurrentIndex(stream + 1);
-        _lock = false;
+        _subtitle_combobox->setCurrentIndex(dispatch::parameters().subtitle_stream() + 1);
         break;
     case notification::stereo_mode_swap:
-        s11n::load(current, flag);
-        _lock = true;
-        _swap_checkbox->setChecked(flag);
-        _lock = false;
+        _swap_checkbox->setChecked(dispatch::parameters().stereo_mode_swap());
         break;
     default:
         break;
     }
+    _lock = false;
 }
 
 
-controls_widget::controls_widget(parameters *params, QSettings *settings,
-        const player_init_data &init_data, QWidget *parent)
-    : QWidget(parent), _params(params), _lock(false), _settings(settings), _playing(false)
+controls_widget::controls_widget(QSettings *settings, QWidget *parent)
+    : QWidget(parent), _lock(false), _settings(settings)
 {
     QGridLayout *row0_layout = new QGridLayout;
     _seek_slider = new QSlider(Qt::Horizontal);
@@ -806,7 +750,7 @@ controls_widget::controls_widget(parameters *params, QSettings *settings,
     _loop_button = new QPushButton(get_icon("media-playlist-repeat"), "");
     _loop_button->setToolTip(_("<p>Toggle loop mode.</p>"));
     _loop_button->setCheckable(true);
-    _loop_button->setChecked(init_data.params.loop_mode() != parameters::no_loop);
+    _loop_button->setChecked(dispatch::parameters().loop_mode() != parameters::no_loop);
     connect(_loop_button, SIGNAL(toggled(bool)), this, SLOT(loop_pressed()));
     row1_layout->addWidget(_loop_button, 1, 4);
     row1_layout->addWidget(new QWidget, 1, 5);
@@ -890,19 +834,19 @@ controls_widget::~controls_widget()
 void controls_widget::update_audio_widgets()
 {
     _lock = true;
-    _audio_mute_button->setChecked(_params->audio_mute());
+    _audio_mute_button->setChecked(dispatch::parameters().audio_mute());
     _audio_mute_button->setIcon(get_icon(
-                _params->audio_mute() ? "audio-volume-muted"
-                : _params->audio_volume() < 0.33f ? "audio-volume-low"
-                : _params->audio_volume() < 0.66f ? "audio-volume-medium"
+                dispatch::parameters().audio_mute() ? "audio-volume-muted"
+                : dispatch::parameters().audio_volume() < 0.33f ? "audio-volume-low"
+                : dispatch::parameters().audio_volume() < 0.66f ? "audio-volume-medium"
                 : "audio-volume-high"));
-    _audio_volume_slider->setValue(qRound(_params->audio_volume() * 1000.0f));
+    _audio_volume_slider->setValue(qRound(dispatch::parameters().audio_volume() * 1000.0f));
     _lock = false;
 }
 
 void controls_widget::play_pressed()
 {
-    if (_playing)
+    if (dispatch::playing())
     {
         send_cmd(command::toggle_pause);
     }
@@ -985,35 +929,29 @@ void controls_widget::seek_slider_changed()
 
 void controls_widget::audio_mute_pressed()
 {
-    _params->set_audio_mute(_audio_mute_button->isChecked());
     if (!_lock)
     {
         send_cmd(command::toggle_audio_mute);
     }
-    update_audio_widgets();
 }
 
 void controls_widget::audio_volume_slider_changed()
 {
-    float v = _audio_volume_slider->value() / 1000.0f;
-    _params->set_audio_volume(v);
     if (!_lock)
     {
-        send_cmd(command::set_audio_volume, v);
+        send_cmd(command::set_audio_volume, _audio_volume_slider->value() / 1000.0f);
     }
-    update_audio_widgets();
 }
 
-void controls_widget::update(const player_init_data &, bool have_valid_input, bool playing, int64_t input_duration)
+void controls_widget::update()
 {
-    if (have_valid_input)
+    if (dispatch::media_input())
     {
         _play_button->setDefault(true);
         _play_button->setFocus();
         _loop_button->setEnabled(true);
         _fullscreen_button->setEnabled(true);
-        receive_notification(notification(notification::play, !playing, playing));
-        _input_duration = input_duration;
+        _input_duration = dispatch::media_input()->duration();
         std::string hr_duration = str::human_readable_time(_input_duration);
         _pos_label->setText((hr_duration + '/' + hr_duration).c_str());
         _pos_label->setMinimumSize(_pos_label->minimumSizeHint());
@@ -1021,7 +959,6 @@ void controls_widget::update(const player_init_data &, bool have_valid_input, bo
     }
     else
     {
-        _playing = false;
         _play_button->setEnabled(false);
         _pause_button->setEnabled(false);
         _stop_button->setEnabled(false);
@@ -1044,78 +981,62 @@ void controls_widget::update(const player_init_data &, bool have_valid_input, bo
 
 void controls_widget::receive_notification(const notification &note)
 {
-    std::istringstream current(note.current);
-    bool flag;
-    float value;
+    bool b;
 
     switch (note.type)
     {
     case notification::play:
-        s11n::load(current, flag);
-        _playing = flag;
-        _play_button->setEnabled(!flag);
-        _pause_button->setEnabled(flag);
-        _stop_button->setEnabled(flag);
-        if (flag)
-        {
-            _lock = true;
-            parameters::loop_mode_t loop_mode = _loop_button->isChecked()
-                ? parameters::loop_current : parameters::no_loop;
-            send_cmd(command::set_loop_mode, static_cast<int>(loop_mode));
-            _lock = false;
-        }
-        if (flag && _fullscreen_button->isChecked())
+        b = dispatch::playing();
+        _play_button->setEnabled(!b);
+        _pause_button->setEnabled(b);
+        _stop_button->setEnabled(b);
+        if (b && _fullscreen_button->isChecked() && !dispatch::parameters().fullscreen())
         {
             _lock = true;
             send_cmd(command::toggle_fullscreen);
             _lock = false;
         }
-        _center_button->setEnabled(flag);
-        _bbb_button->setEnabled(flag);
-        _bb_button->setEnabled(flag);
-        _b_button->setEnabled(flag);
-        _f_button->setEnabled(flag);
-        _ff_button->setEnabled(flag);
-        _fff_button->setEnabled(flag);
-        _seek_slider->setEnabled(flag);
-        _pos_label->setEnabled(flag);
-        if (!flag)
+        _center_button->setEnabled(b);
+        _bbb_button->setEnabled(b);
+        _bb_button->setEnabled(b);
+        _b_button->setEnabled(b);
+        _f_button->setEnabled(b);
+        _ff_button->setEnabled(b);
+        _fff_button->setEnabled(b);
+        _seek_slider->setEnabled(b);
+        _pos_label->setEnabled(b);
+        if (!b)
         {
             _seek_slider->setValue(0);
             _pos_label->setText(str::human_readable_time(_input_duration).c_str());
         }
         break;
     case notification::pause:
-        s11n::load(current, flag);
-        _play_button->setEnabled(flag);
-        _pause_button->setEnabled(!flag);
+        b = dispatch::pausing();
+        _play_button->setEnabled(b);
+        _pause_button->setEnabled(!b);
         break;
     case notification::fullscreen:
-        s11n::load(current, flag);
         _lock = true;
-        _fullscreen_button->setChecked(!flag);
+        _fullscreen_button->setChecked(dispatch::parameters().fullscreen());
         _lock = false;
         break;
     case notification::pos:
         if (!_seek_slider->isSliderDown())
         {
             _lock = true;
-            s11n::load(current, value);
-            _seek_slider->setValue(qRound(value * 2000.0f));
+            float p = dispatch::position();
+            _seek_slider->setValue(qRound(p * 2000.0f));
             _pos_label->setText((str::human_readable_time(
-                            static_cast<int64_t>(value * 1000.0f) * _input_duration / 1000)
+                            static_cast<int64_t>(p * 1000.0f) * _input_duration / 1000)
                         + '/' + str::human_readable_time(_input_duration)).c_str());
             _lock = false;
         }
         break;
     case notification::audio_volume:
-        s11n::load(current, value);
-        _params->set_audio_volume(value);
         update_audio_widgets();
         break;
     case notification::audio_mute:
-        s11n::load(current, flag);
-        _params->set_audio_mute(flag);
         update_audio_widgets();
         break;
     default:
@@ -1124,8 +1045,7 @@ void controls_widget::receive_notification(const notification &note)
 }
 
 
-color_dialog::color_dialog(parameters *params, QWidget *parent) : QDialog(parent),
-    _params(params), _lock(false)
+color_dialog::color_dialog(QWidget *parent) : QDialog(parent), _lock(false)
 {
     setModal(false);
     setWindowTitle(_("Display Color Adjustments"));
@@ -1133,44 +1053,44 @@ color_dialog::color_dialog(parameters *params, QWidget *parent) : QDialog(parent
     QLabel *c_label = new QLabel(_("Contrast:"));
     _c_slider = new QSlider(Qt::Horizontal);
     _c_slider->setRange(-1000, 1000);
-    _c_slider->setValue(params->contrast() * 1000.0f);
+    _c_slider->setValue(dispatch::parameters().contrast() * 1000.0f);
     connect(_c_slider, SIGNAL(valueChanged(int)), this, SLOT(c_slider_changed(int)));
     _c_spinbox = new QDoubleSpinBox();
     _c_spinbox->setRange(-1.0, +1.0);
-    _c_spinbox->setValue(params->contrast());
+    _c_spinbox->setValue(dispatch::parameters().contrast());
     _c_spinbox->setDecimals(2);
     _c_spinbox->setSingleStep(0.01);
     connect(_c_spinbox, SIGNAL(valueChanged(double)), this, SLOT(c_spinbox_changed(double)));
     QLabel *b_label = new QLabel(_("Brightness:"));
     _b_slider = new QSlider(Qt::Horizontal);
     _b_slider->setRange(-1000, 1000);
-    _b_slider->setValue(params->brightness() * 1000.0f);
+    _b_slider->setValue(dispatch::parameters().brightness() * 1000.0f);
     connect(_b_slider, SIGNAL(valueChanged(int)), this, SLOT(b_slider_changed(int)));
     _b_spinbox = new QDoubleSpinBox();
     _b_spinbox->setRange(-1.0, +1.0);
-    _b_spinbox->setValue(params->brightness());
+    _b_spinbox->setValue(dispatch::parameters().brightness());
     _b_spinbox->setDecimals(2);
     _b_spinbox->setSingleStep(0.01);
     connect(_b_spinbox, SIGNAL(valueChanged(double)), this, SLOT(b_spinbox_changed(double)));
     QLabel *h_label = new QLabel(_("Hue:"));
     _h_slider = new QSlider(Qt::Horizontal);
     _h_slider->setRange(-1000, 1000);
-    _h_slider->setValue(params->hue() * 1000.0f);
+    _h_slider->setValue(dispatch::parameters().hue() * 1000.0f);
     connect(_h_slider, SIGNAL(valueChanged(int)), this, SLOT(h_slider_changed(int)));
     _h_spinbox = new QDoubleSpinBox();
     _h_spinbox->setRange(-1.0, +1.0);
-    _h_spinbox->setValue(params->hue());
+    _h_spinbox->setValue(dispatch::parameters().hue());
     _h_spinbox->setDecimals(2);
     _h_spinbox->setSingleStep(0.01);
     connect(_h_spinbox, SIGNAL(valueChanged(double)), this, SLOT(h_spinbox_changed(double)));
     QLabel *s_label = new QLabel(_("Saturation:"));
     _s_slider = new QSlider(Qt::Horizontal);
     _s_slider->setRange(-1000, 1000);
-    _s_slider->setValue(params->saturation() * 1000.0f);
+    _s_slider->setValue(dispatch::parameters().saturation() * 1000.0f);
     connect(_s_slider, SIGNAL(valueChanged(int)), this, SLOT(s_slider_changed(int)));
     _s_spinbox = new QDoubleSpinBox();
     _s_spinbox->setRange(-1.0, +1.0);
-    _s_spinbox->setValue(params->saturation());
+    _s_spinbox->setValue(dispatch::parameters().saturation());
     _s_spinbox->setDecimals(2);
     _s_spinbox->setSingleStep(0.01);
     connect(_s_spinbox, SIGNAL(valueChanged(double)), this, SLOT(s_spinbox_changed(double)));
@@ -1198,132 +1118,77 @@ color_dialog::color_dialog(parameters *params, QWidget *parent) : QDialog(parent
 void color_dialog::c_slider_changed(int val)
 {
     if (!_lock)
-    {
-        _params->set_contrast(val / 1000.0f);
-        _lock = true;
-        _c_spinbox->setValue(val / 1000.0f);
-        _lock = false;
         send_cmd(command::set_contrast, val / 1000.0f);
-    }
 }
 
 void color_dialog::c_spinbox_changed(double val)
 {
     if (!_lock)
-    {
-        _params->set_contrast(val);
-        _lock = true;
-        _c_slider->setValue(val * 1000.0);
-        _lock = false;
         send_cmd(command::set_contrast, static_cast<float>(val));
-    }
 }
 
 void color_dialog::b_slider_changed(int val)
 {
     if (!_lock)
-    {
-        _params->set_brightness(val / 1000.0f);
-        _lock = true;
-        _b_spinbox->setValue(val / 1000.0f);
-        _lock = false;
         send_cmd(command::set_brightness, val / 1000.0f);
-    }
 }
 
 void color_dialog::b_spinbox_changed(double val)
 {
     if (!_lock)
-    {
-        _params->set_brightness(val);
-        _lock = true;
-        _b_slider->setValue(val * 1000.0);
-        _lock = false;
         send_cmd(command::set_brightness, static_cast<float>(val));
-    }
 }
 
 void color_dialog::h_slider_changed(int val)
 {
     if (!_lock)
-    {
-        _params->set_hue(val / 1000.0f);
-        _lock = true;
-        _h_spinbox->setValue(val / 1000.0f);
-        _lock = false;
         send_cmd(command::set_hue, val / 1000.0f);
-    }
 }
 
 void color_dialog::h_spinbox_changed(double val)
 {
     if (!_lock)
-    {
-        _params->set_hue(val);
-        _lock = true;
-        _h_slider->setValue(val * 1000.0);
-        _lock = false;
         send_cmd(command::set_hue, static_cast<float>(val));
-    }
 }
 
 void color_dialog::s_slider_changed(int val)
 {
     if (!_lock)
-    {
-        _params->set_saturation(val / 1000.0f);
-        _lock = true;
-        _s_spinbox->setValue(val / 1000.0f);
-        _lock = false;
         send_cmd(command::set_saturation, val / 1000.0f);
-    }
 }
 
 void color_dialog::s_spinbox_changed(double val)
 {
     if (!_lock)
-    {
-        _params->set_saturation(val);
-        _lock = true;
-        _s_slider->setValue(val * 1000.0);
-        _lock = false;
         send_cmd(command::set_saturation, static_cast<float>(val));
-    }
 }
 
 void color_dialog::receive_notification(const notification &note)
 {
-    std::istringstream current(note.current);
-    float value;
-
     switch (note.type)
     {
     case notification::contrast:
-        s11n::load(current, value);
         _lock = true;
-        _c_slider->setValue(value * 1000.0f);
-        _c_spinbox->setValue(value);
+        _c_slider->setValue(dispatch::parameters().contrast() * 1000.0f);
+        _c_spinbox->setValue(dispatch::parameters().contrast());
         _lock = false;
         break;
     case notification::brightness:
-        s11n::load(current, value);
         _lock = true;
-        _b_slider->setValue(value * 1000.0f);
-        _b_spinbox->setValue(value);
+        _b_slider->setValue(dispatch::parameters().brightness() * 1000.0f);
+        _b_spinbox->setValue(dispatch::parameters().brightness());
         _lock = false;
         break;
     case notification::hue:
-        s11n::load(current, value);
         _lock = true;
-        _h_slider->setValue(value * 1000.0f);
-        _h_spinbox->setValue(value);
+        _h_slider->setValue(dispatch::parameters().hue() * 1000.0f);
+        _h_spinbox->setValue(dispatch::parameters().hue());
         _lock = false;
         break;
     case notification::saturation:
-        s11n::load(current, value);
         _lock = true;
-        _s_slider->setValue(value * 1000.0f);
-        _s_spinbox->setValue(value);
+        _s_slider->setValue(dispatch::parameters().saturation() * 1000.0f);
+        _s_spinbox->setValue(dispatch::parameters().saturation());
         _lock = false;
         break;
     default:
@@ -1333,8 +1198,7 @@ void color_dialog::receive_notification(const notification &note)
 }
 
 
-crosstalk_dialog::crosstalk_dialog(parameters *params, QWidget *parent) : QDialog(parent),
-    _params(params), _lock(false)
+crosstalk_dialog::crosstalk_dialog(QWidget *parent) : QDialog(parent), _lock(false)
 {
     setModal(false);
     setWindowTitle(_("Display Crosstalk Calibration"));
@@ -1347,21 +1211,21 @@ crosstalk_dialog::crosstalk_dialog(parameters *params, QWidget *parent) : QDialo
     QLabel *r_label = new QLabel(_("Red:"));
     _r_spinbox = new QDoubleSpinBox();
     _r_spinbox->setRange(0.0, +1.0);
-    _r_spinbox->setValue(params->crosstalk_r());
+    _r_spinbox->setValue(dispatch::parameters().crosstalk_r());
     _r_spinbox->setDecimals(2);
     _r_spinbox->setSingleStep(0.01);
     connect(_r_spinbox, SIGNAL(valueChanged(double)), this, SLOT(spinbox_changed()));
     QLabel *g_label = new QLabel(_("Green:"));
     _g_spinbox = new QDoubleSpinBox();
     _g_spinbox->setRange(0.0, +1.0);
-    _g_spinbox->setValue(params->crosstalk_g());
+    _g_spinbox->setValue(dispatch::parameters().crosstalk_g());
     _g_spinbox->setDecimals(2);
     _g_spinbox->setSingleStep(0.01);
     connect(_g_spinbox, SIGNAL(valueChanged(double)), this, SLOT(spinbox_changed()));
     QLabel *b_label = new QLabel(_("Blue:"));
     _b_spinbox = new QDoubleSpinBox();
     _b_spinbox->setRange(0.0, +1.0);
-    _b_spinbox->setValue(params->crosstalk_b());
+    _b_spinbox->setValue(dispatch::parameters().crosstalk_b());
     _b_spinbox->setDecimals(2);
     _b_spinbox->setSingleStep(0.01);
     connect(_b_spinbox, SIGNAL(valueChanged(double)), this, SLOT(spinbox_changed()));
@@ -1385,9 +1249,6 @@ void crosstalk_dialog::spinbox_changed()
 {
     if (!_lock)
     {
-        _params->set_crosstalk_r(_r_spinbox->value());
-        _params->set_crosstalk_g(_g_spinbox->value());
-        _params->set_crosstalk_b(_b_spinbox->value());
         std::ostringstream v;
         s11n::save(v, static_cast<float>(_r_spinbox->value()));
         s11n::save(v, static_cast<float>(_g_spinbox->value()));
@@ -1398,19 +1259,13 @@ void crosstalk_dialog::spinbox_changed()
 
 void crosstalk_dialog::receive_notification(const notification &note)
 {
-    std::istringstream current(note.current);
-    float r, g, b;
-
     switch (note.type)
     {
     case notification::crosstalk:
-        s11n::load(current, r);
-        s11n::load(current, g);
-        s11n::load(current, b);
         _lock = true;
-        _r_spinbox->setValue(r);
-        _g_spinbox->setValue(g);
-        _b_spinbox->setValue(b);
+        _r_spinbox->setValue(dispatch::parameters().crosstalk_r());
+        _g_spinbox->setValue(dispatch::parameters().crosstalk_g());
+        _b_spinbox->setValue(dispatch::parameters().crosstalk_b());
         _lock = false;
         break;
     default:
@@ -1420,8 +1275,7 @@ void crosstalk_dialog::receive_notification(const notification &note)
 }
 
 
-zoom_dialog::zoom_dialog(parameters *params, QWidget *parent) : QDialog(parent),
-    _params(params), _lock(false)
+zoom_dialog::zoom_dialog(QWidget *parent) : QDialog(parent), _lock(false)
 {
     setModal(false);
     setWindowTitle(_("Zoom for wide videos"));
@@ -1435,12 +1289,12 @@ zoom_dialog::zoom_dialog(parameters *params, QWidget *parent) : QDialog(parent),
     z_label->setToolTip(_("<p>Set the zoom level for videos that are wider than the screen</p>"));
     _z_slider = new QSlider(Qt::Horizontal);
     _z_slider->setRange(0, 1000);
-    _z_slider->setValue(params->zoom() * 1000.0f);
+    _z_slider->setValue(dispatch::parameters().zoom() * 1000.0f);
     _z_slider->setToolTip(z_label->toolTip());
     connect(_z_slider, SIGNAL(valueChanged(int)), this, SLOT(z_slider_changed(int)));
     _z_spinbox = new QDoubleSpinBox();
     _z_spinbox->setRange(0.0, 1.0);
-    _z_spinbox->setValue(params->zoom());
+    _z_spinbox->setValue(dispatch::parameters().zoom());
     _z_spinbox->setDecimals(2);
     _z_spinbox->setSingleStep(0.01);
     _z_spinbox->setToolTip(z_label->toolTip());
@@ -1461,39 +1315,23 @@ zoom_dialog::zoom_dialog(parameters *params, QWidget *parent) : QDialog(parent),
 void zoom_dialog::z_slider_changed(int val)
 {
     if (!_lock)
-    {
-        _params->set_zoom(val / 1000.0f);
-        _lock = true;
-        _z_spinbox->setValue(val / 1000.0f);
-        _lock = false;
         send_cmd(command::set_zoom, val / 1000.0f);
-    }
 }
 
 void zoom_dialog::z_spinbox_changed(double val)
 {
     if (!_lock)
-    {
-        _params->set_zoom(val);
-        _lock = true;
-        _z_slider->setValue(val * 1000.0);
-        _lock = false;
         send_cmd(command::set_zoom, static_cast<float>(val));
-    }
 }
 
 void zoom_dialog::receive_notification(const notification &note)
 {
-    std::istringstream current(note.current);
-    float value;
-
     switch (note.type)
     {
     case notification::zoom:
-        s11n::load(current, value);
         _lock = true;
-        _z_slider->setValue(value * 1000.0f);
-        _z_spinbox->setValue(value);
+        _z_slider->setValue(dispatch::parameters().zoom() * 1000.0f);
+        _z_spinbox->setValue(dispatch::parameters().zoom());
         _lock = false;
         break;
     default:
@@ -1503,8 +1341,7 @@ void zoom_dialog::receive_notification(const notification &note)
 }
 
 
-audio_dialog::audio_dialog(parameters *params, QWidget *parent) : QDialog(parent),
-    _params(params), _lock(false)
+audio_dialog::audio_dialog(QWidget *parent) : QDialog(parent), _lock(false)
 {
     setModal(false);
     setWindowTitle(_("Audio Settings"));
@@ -1521,13 +1358,14 @@ audio_dialog::audio_dialog(parameters *params, QWidget *parent) : QDialog(parent
         _device_combobox->addItem(ao.device_name(i).c_str());
     }
     connect(_device_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(device_changed()));
-    if (_params->audio_device() < 0 || _params->audio_device() >= _device_combobox->count())
+    if (dispatch::parameters().audio_device() < 0
+            || dispatch::parameters().audio_device() >= _device_combobox->count())
     {
         _device_combobox->setCurrentIndex(0);
     }
     else
     {
-        _device_combobox->setCurrentIndex(_params->audio_device() + 1);
+        _device_combobox->setCurrentIndex(dispatch::parameters().audio_device() + 1);
     }
 
     QLabel *delay_label = new QLabel(_("Audio delay (ms):"));
@@ -1537,7 +1375,7 @@ audio_dialog::audio_dialog(parameters *params, QWidget *parent) : QDialog(parent
     _delay_spinbox->setToolTip(delay_label->toolTip());
     _delay_spinbox->setRange(-10000, +10000);
     _delay_spinbox->setSingleStep(1);
-    _delay_spinbox->setValue(_params->audio_delay() / 1000);
+    _delay_spinbox->setValue(dispatch::parameters().audio_delay() / 1000);
     connect(_delay_spinbox, SIGNAL(valueChanged(int)), this, SLOT(delay_changed()));
 
     QPushButton *ok_button = new QPushButton(_("OK"));
@@ -1554,29 +1392,28 @@ audio_dialog::audio_dialog(parameters *params, QWidget *parent) : QDialog(parent
 
 void audio_dialog::device_changed()
 {
-    _params->set_audio_device(_device_combobox->currentIndex() - 1);
+    if (!_lock)
+        send_cmd(command::set_audio_device, _device_combobox->currentIndex() - 1);
 }
 
 void audio_dialog::delay_changed()
 {
     if (!_lock)
-    {
-        _params->set_audio_delay(_delay_spinbox->value() * 1000);
-        send_cmd(command::set_audio_delay, _params->audio_delay());
-    }
+        send_cmd(command::set_audio_delay, _delay_spinbox->value() * 1000);
 }
 
 void audio_dialog::receive_notification(const notification &note)
 {
-    std::istringstream current(note.current);
-    int64_t value;
-
     switch (note.type)
     {
-    case notification::audio_delay:
-        s11n::load(current, value);
+    case notification::audio_device:
         _lock = true;
-        _delay_spinbox->setValue(value / 1000);
+        _device_combobox->setCurrentIndex(dispatch::parameters().audio_device() + 1);
+        _lock = false;
+        break;
+    case notification::audio_delay:
+        _lock = true;
+        _delay_spinbox->setValue(dispatch::parameters().audio_delay() / 1000);
         _lock = false;
         break;
     default:
@@ -1586,8 +1423,7 @@ void audio_dialog::receive_notification(const notification &note)
 }
 
 
-subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(parent),
-    _params(params), _lock(false)
+subtitle_dialog::subtitle_dialog(QWidget *parent) : QDialog(parent), _lock(false)
 {
     setModal(false);
     setWindowTitle(_("Subtitle Settings"));
@@ -1596,7 +1432,7 @@ subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(
 
     _encoding_checkbox = new QCheckBox(_("Encoding:"));
     _encoding_checkbox->setToolTip(_("<p>Set the subtitle character set encoding.</p>"));
-    _encoding_checkbox->setChecked(!params->subtitle_encoding_is_default());
+    _encoding_checkbox->setChecked(!dispatch::parameters().subtitle_encoding_is_default());
     connect(_encoding_checkbox, SIGNAL(stateChanged(int)), this, SLOT(encoding_changed()));
     _encoding_combobox = new QComboBox();
     _encoding_combobox->setToolTip(_encoding_checkbox->toolTip());
@@ -1606,46 +1442,51 @@ subtitle_dialog::subtitle_dialog(parameters *params, QWidget *parent) : QDialog(
         _encoding_combobox->addItem(codec->name(), codec->mibEnum());
     }
     _encoding_combobox->setCurrentIndex(_encoding_combobox->findText(
-                params->subtitle_encoding() == "" ? "UTF-8" : params->subtitle_encoding().c_str()));
+                dispatch::parameters().subtitle_encoding() == ""
+                ? "UTF-8" : dispatch::parameters().subtitle_encoding().c_str()));
     connect(_encoding_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(encoding_changed()));
 
     _font_checkbox = new QCheckBox(_("Override font:"));
     _font_checkbox->setToolTip(_("<p>Override the subtitle font family.</p>"));
-    _font_checkbox->setChecked(!params->subtitle_font_is_default());
+    _font_checkbox->setChecked(!dispatch::parameters().subtitle_font_is_default());
     connect(_font_checkbox, SIGNAL(stateChanged(int)), this, SLOT(font_changed()));
     _font_combobox = new QFontComboBox();
     _font_combobox->setToolTip(_font_checkbox->toolTip());
-    _font_combobox->setCurrentFont(QFont(QString(params->subtitle_font() == "" ? "sans-serif" : params->subtitle_font().c_str())));
+    _font_combobox->setCurrentFont(QFont(QString(dispatch::parameters().subtitle_font() == ""
+                    ? "sans-serif" : dispatch::parameters().subtitle_font().c_str())));
     connect(_font_combobox, SIGNAL(currentFontChanged(const QFont &)), this, SLOT(font_changed()));
 
     _size_checkbox = new QCheckBox(_("Override font size:"));
     _size_checkbox->setToolTip(_("<p>Override the subtitle font size.</p>"));
-    _size_checkbox->setChecked(params->subtitle_size() > 0);
+    _size_checkbox->setChecked(dispatch::parameters().subtitle_size() > 0);
     connect(_size_checkbox, SIGNAL(stateChanged(int)), this, SLOT(size_changed()));
     _size_spinbox = new QSpinBox();
     _size_spinbox->setToolTip(_size_checkbox->toolTip());
     _size_spinbox->setRange(1, 999);
-    _size_spinbox->setValue(params->subtitle_size() <= 0 ? 12 : params->subtitle_size());
+    _size_spinbox->setValue(dispatch::parameters().subtitle_size() <= 0
+            ? 12 : dispatch::parameters().subtitle_size());
     connect(_size_spinbox, SIGNAL(valueChanged(int)), this, SLOT(size_changed()));
 
     _scale_checkbox = new QCheckBox(_("Override scale factor:"));
     _scale_checkbox->setToolTip(_("<p>Override the subtitle scale factor.</p>"));
-    _scale_checkbox->setChecked(params->subtitle_scale() >= 0.0f);
+    _scale_checkbox->setChecked(dispatch::parameters().subtitle_scale() >= 0.0f);
     connect(_scale_checkbox, SIGNAL(stateChanged(int)), this, SLOT(scale_changed()));
     _scale_spinbox = new QDoubleSpinBox();
     _scale_spinbox->setToolTip(_scale_checkbox->toolTip());
     _scale_spinbox->setRange(0.01, 100.0);
     _scale_spinbox->setSingleStep(0.1);
-    _scale_spinbox->setValue(params->subtitle_scale() < 0.0f ? 1.0f : params->subtitle_scale());
+    _scale_spinbox->setValue(dispatch::parameters().subtitle_scale() < 0.0f
+            ? 1.0f : dispatch::parameters().subtitle_scale());
     connect(_scale_spinbox, SIGNAL(valueChanged(double)), this, SLOT(scale_changed()));
 
     _color_checkbox = new QCheckBox(_("Override color:"));
     _color_checkbox->setToolTip(_("<p>Override the subtitle color.</p>"));
-    _color_checkbox->setChecked(params->subtitle_color() <= std::numeric_limits<uint32_t>::max());
+    _color_checkbox->setChecked(dispatch::parameters().subtitle_color() <= std::numeric_limits<uint32_t>::max());
     connect(_color_checkbox, SIGNAL(stateChanged(int)), this, SLOT(color_changed()));
     _color_button = new QPushButton();
     _color_button->setToolTip(_color_checkbox->toolTip());
-    set_color_button(params->subtitle_color() > std::numeric_limits<uint32_t>::max() ? 0xffffffu : params->subtitle_color());
+    set_color_button(dispatch::parameters().subtitle_color() > std::numeric_limits<uint32_t>::max()
+            ? 0xffffffu : dispatch::parameters().subtitle_color());
     connect(_color_button, SIGNAL(pressed()), this, SLOT(color_button_pressed()));
 
     QPushButton *ok_button = new QPushButton(_("OK"));
@@ -1735,7 +1576,6 @@ void subtitle_dialog::encoding_changed()
     {
         std::string encoding = _encoding_checkbox->isChecked()
             ? _encoding_combobox->currentText().toStdString() : "";
-        _params->set_subtitle_encoding(encoding);
         std::ostringstream v;
         s11n::save(v, encoding);
         send_cmd(command::set_subtitle_encoding, v.str());
@@ -1749,7 +1589,6 @@ void subtitle_dialog::font_changed()
         std::string font = _font_checkbox->isChecked()
             ? _font_combobox->currentFont().family().toLocal8Bit().constData()
             : "";
-        _params->set_subtitle_font(font);
         std::ostringstream v;
         s11n::save(v, font);
         send_cmd(command::set_subtitle_font, v.str());
@@ -1759,25 +1598,14 @@ void subtitle_dialog::font_changed()
 void subtitle_dialog::size_changed()
 {
     if (!_lock)
-    {
-        int size = _size_checkbox->isChecked() ? _size_spinbox->value() : -1;
-        _params->set_subtitle_size(size);
-        std::ostringstream v;
-        s11n::save(v, size);
-        send_cmd(command::set_subtitle_size, v.str());
-    }
+        send_cmd(command::set_subtitle_size, _size_checkbox->isChecked() ? _size_spinbox->value() : -1);
 }
 
 void subtitle_dialog::scale_changed()
 {
     if (!_lock)
-    {
-        float scale = _scale_checkbox->isChecked() ? _scale_spinbox->value() : -1.0f;
-        _params->set_subtitle_scale(scale);
-        std::ostringstream v;
-        s11n::save(v, scale);
-        send_cmd(command::set_subtitle_scale, v.str());
-    }
+        send_cmd(command::set_subtitle_scale, _scale_checkbox->isChecked()
+                ? static_cast<float>(_scale_spinbox->value()) : -1.0f);
 }
 
 void subtitle_dialog::color_changed()
@@ -1797,23 +1625,17 @@ void subtitle_dialog::color_changed()
         {
             color = std::numeric_limits<uint64_t>::max();
         }
-        _params->set_subtitle_color(color);
-        std::ostringstream v;
-        s11n::save(v, color);
-        send_cmd(command::set_subtitle_color, v.str());
+        send_cmd(command::set_subtitle_color, color);
     }
 }
 
 void subtitle_dialog::receive_notification(const notification &note)
 {
-    std::istringstream current(note.current);
-
     switch (note.type)
     {
     case notification::subtitle_encoding:
         {
-            std::string encoding;
-            s11n::load(current, encoding);
+            std::string encoding = dispatch::parameters().subtitle_encoding();
             _lock = true;
             _encoding_checkbox->setChecked(encoding != "");
             if (encoding != "")
@@ -1825,8 +1647,7 @@ void subtitle_dialog::receive_notification(const notification &note)
         break;
     case notification::subtitle_font:
         {
-            std::string font;
-            s11n::load(current, font);
+            std::string font = dispatch::parameters().subtitle_font();
             _lock = true;
             _font_checkbox->setChecked(font != "");
             if (font != "")
@@ -1838,8 +1659,7 @@ void subtitle_dialog::receive_notification(const notification &note)
         break;
     case notification::subtitle_size:
         {
-            int size;
-            s11n::load(current, size);
+            int size = dispatch::parameters().subtitle_size();
             _lock = true;
             _size_checkbox->setChecked(size > 0);
             if (size > 0)
@@ -1851,8 +1671,7 @@ void subtitle_dialog::receive_notification(const notification &note)
         break;
     case notification::subtitle_scale:
         {
-            float scale;
-            s11n::load(current, scale);
+            float scale = dispatch::parameters().subtitle_scale();
             _lock = true;
             _scale_checkbox->setChecked(scale >= 0.0f);
             if (scale >= 0.0f)
@@ -1864,8 +1683,7 @@ void subtitle_dialog::receive_notification(const notification &note)
         break;
     case notification::subtitle_color:
         {
-            uint64_t color;
-            s11n::load(current, color);
+            uint64_t color = dispatch::parameters().subtitle_color();
             _lock = true;
             _color_checkbox->setChecked(color <= std::numeric_limits<uint32_t>::max());
             if (color <= std::numeric_limits<uint32_t>::max())
@@ -1882,8 +1700,7 @@ void subtitle_dialog::receive_notification(const notification &note)
 }
 
 
-video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent),
-    _params(params), _lock(false)
+video_dialog::video_dialog(QWidget *parent) : QDialog(parent), _lock(false)
 {
     setModal(false);
     setWindowTitle(_("Video Settings"));
@@ -1972,13 +1789,13 @@ video_dialog::video_dialog(parameters *params, QWidget *parent) : QDialog(parent
 void video_dialog::update()
 {
     _lock = true;
-    set_crop_ar(_params->crop_aspect_ratio());
-    _p_slider->setValue(_params->parallax() * 1000.0f);
-    _p_spinbox->setValue(_params->parallax());
-    _sp_slider->setValue(_params->subtitle_parallax() * 1000.0f);
-    _sp_spinbox->setValue(_params->subtitle_parallax());
-    _g_slider->setValue(_params->ghostbust() * 1000.0f);
-    _g_spinbox->setValue(_params->ghostbust());
+    set_crop_ar(dispatch::parameters().crop_aspect_ratio());
+    _p_slider->setValue(dispatch::parameters().parallax() * 1000.0f);
+    _p_spinbox->setValue(dispatch::parameters().parallax());
+    _sp_slider->setValue(dispatch::parameters().subtitle_parallax() * 1000.0f);
+    _sp_spinbox->setValue(dispatch::parameters().subtitle_parallax());
+    _g_slider->setValue(dispatch::parameters().ghostbust() * 1000.0f);
+    _g_spinbox->setValue(dispatch::parameters().ghostbust());
     _lock = false;
 }
 
@@ -2003,127 +1820,67 @@ void video_dialog::crop_ar_changed()
     if (!_lock)
     {
         int i = _crop_ar_combobox->currentIndex();
-        _params->set_crop_aspect_ratio(
-                  i == 1 ? 16.0f / 10.0f
-                : i == 2 ? 16.0f / 9.0f
-                : i == 3 ? 1.85f
-                : i == 4 ? 2.21f
-                : i == 5 ? 2.35f
-                : i == 6 ? 2.39f
-                : i == 7 ? 5.0f / 3.0f
-                : i == 8 ? 4.0f / 3.0f
-                : i == 9 ? 5.0f / 4.0f
-                : i == 10 ? 1.0f
-                : 0.0f);
-        send_cmd(command::set_crop_aspect_ratio, _params->crop_aspect_ratio());
+        float ar =
+              i == 1 ? 16.0f / 10.0f
+            : i == 2 ? 16.0f / 9.0f
+            : i == 3 ? 1.85f
+            : i == 4 ? 2.21f
+            : i == 5 ? 2.35f
+            : i == 6 ? 2.39f
+            : i == 7 ? 5.0f / 3.0f
+            : i == 8 ? 4.0f / 3.0f
+            : i == 9 ? 5.0f / 4.0f
+            : i == 10 ? 1.0f
+            : 0.0f;
+        send_cmd(command::set_crop_aspect_ratio, ar);
     }
 }
 
 void video_dialog::p_slider_changed(int val)
 {
     if (!_lock)
-    {
-        _params->set_parallax(val / 1000.0f);
-        _lock = true;
-        _p_spinbox->setValue(val / 1000.0f);
-        _lock = false;
         send_cmd(command::set_parallax, val / 1000.0f);
-    }
 }
 
 void video_dialog::p_spinbox_changed(double val)
 {
     if (!_lock)
-    {
-        _params->set_parallax(val);
-        _lock = true;
-        _p_slider->setValue(val * 1000.0);
-        _lock = false;
         send_cmd(command::set_parallax, static_cast<float>(val));
-    }
 }
 
 void video_dialog::sp_slider_changed(int val)
 {
     if (!_lock)
-    {
-        _params->set_subtitle_parallax(val / 1000.0f);
-        _lock = true;
-        _sp_spinbox->setValue(val / 1000.0f);
-        _lock = false;
         send_cmd(command::set_subtitle_parallax, val / 1000.0f);
-    }
 }
 
 void video_dialog::sp_spinbox_changed(double val)
 {
     if (!_lock)
-    {
-        _params->set_subtitle_parallax(val);
-        _lock = true;
-        _sp_slider->setValue(val * 1000.0);
-        _lock = false;
         send_cmd(command::set_subtitle_parallax, static_cast<float>(val));
-    }
 }
 
 void video_dialog::g_slider_changed(int val)
 {
     if (!_lock)
-    {
-        _params->set_ghostbust(val / 1000.0f);
-        _lock = true;
-        _g_spinbox->setValue(val / 1000.0f);
-        _lock = false;
         send_cmd(command::set_ghostbust, val / 1000.0f);
-    }
 }
 
 void video_dialog::g_spinbox_changed(double val)
 {
     if (!_lock)
-    {
-        _params->set_ghostbust(val);
-        _lock = true;
-        _g_slider->setValue(val * 1000.0);
-        _lock = false;
         send_cmd(command::set_ghostbust, static_cast<float>(val));
-    }
 }
 
 void video_dialog::receive_notification(const notification &note)
 {
-    std::istringstream current(note.current);
-    float value;
-
     switch (note.type)
     {
     case notification::crop_aspect_ratio:
-        s11n::load(current, value);
-        _lock = true;
-        set_crop_ar(value);
-        _lock = false;
-        break;
     case notification::parallax:
-        s11n::load(current, value);
-        _lock = true;
-        _p_slider->setValue(value * 1000.0f);
-        _p_spinbox->setValue(value);
-        _lock = false;
-        break;
     case notification::subtitle_parallax:
-        s11n::load(current, value);
-        _lock = true;
-        _sp_slider->setValue(value * 1000.0f);
-        _sp_spinbox->setValue(value);
-        _lock = false;
-        break;
     case notification::ghostbust:
-        s11n::load(current, value);
-        _lock = true;
-        _g_slider->setValue(value * 1000.0f);
-        _g_spinbox->setValue(value);
-        _lock = false;
+        update();
         break;
     default:
         /* not handled */
@@ -2262,7 +2019,6 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     _video_dialog(NULL),
     _player(NULL),
     _init_data(init_data),
-    _init_data_template(init_data),
     _stop_request(false),
     _max_recent_files(5)
 {
@@ -2276,149 +2032,156 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     {
         parameters session_params;
         session_params.load_session_parameters(saved_session_params.toStdString());
-        if (!_init_data.params.audio_device_is_set() && !session_params.audio_device_is_default())
-            _init_data.params.set_audio_device(session_params.audio_device());
-        if (!_init_data.params.audio_delay_is_set() && !session_params.audio_delay_is_default())
-            _init_data.params.set_audio_delay(session_params.audio_delay());
-        if (!_init_data.params.contrast_is_set() && !session_params.contrast_is_default())
-            _init_data.params.set_contrast(session_params.contrast());
-        if (!_init_data.params.brightness_is_set() && !session_params.brightness_is_default())
-            _init_data.params.set_brightness(session_params.brightness());
-        if (!_init_data.params.hue_is_set() && !session_params.hue_is_default())
-            _init_data.params.set_hue(session_params.hue());
-        if (!_init_data.params.saturation_is_set() && !session_params.saturation_is_default())
-            _init_data.params.set_saturation(session_params.saturation());
-        if (!_init_data.params.crosstalk_r_is_set() && !session_params.crosstalk_r_is_default())
-            _init_data.params.set_crosstalk_r(session_params.crosstalk_r());
-        if (!_init_data.params.crosstalk_g_is_set() && !session_params.crosstalk_g_is_default())
-            _init_data.params.set_crosstalk_g(session_params.crosstalk_g());
-        if (!_init_data.params.crosstalk_b_is_set() && !session_params.crosstalk_b_is_default())
-            _init_data.params.set_crosstalk_b(session_params.crosstalk_b());
-        if (!_init_data.params.subtitle_encoding_is_set() && !session_params.subtitle_encoding_is_default())
-            _init_data.params.set_subtitle_encoding(session_params.subtitle_encoding());
-        if (!_init_data.params.subtitle_font_is_set() && !session_params.subtitle_font_is_default())
-            _init_data.params.set_subtitle_font(session_params.subtitle_font());
-        if (!_init_data.params.subtitle_size_is_set() && !session_params.subtitle_size_is_default())
-            _init_data.params.set_subtitle_size(session_params.subtitle_size());
-        if (!_init_data.params.subtitle_scale_is_set() && !session_params.subtitle_scale_is_default())
-            _init_data.params.set_subtitle_scale(session_params.subtitle_scale());
-        if (!_init_data.params.subtitle_color_is_set() && !session_params.subtitle_color_is_default())
-            _init_data.params.set_subtitle_color(session_params.subtitle_color());
-        if (!_init_data.params.fullscreen_screens_is_set() && !session_params.fullscreen_screens_is_default())
-            _init_data.params.set_fullscreen_screens(session_params.fullscreen_screens());
-        if (!_init_data.params.fullscreen_flip_left_is_set() && !session_params.fullscreen_flip_left_is_default())
-            _init_data.params.set_fullscreen_flip_left(session_params.fullscreen_flip_left());
-        if (!_init_data.params.fullscreen_flop_left_is_set() && !session_params.fullscreen_flop_left_is_default())
-            _init_data.params.set_fullscreen_flop_left(session_params.fullscreen_flop_left());
-        if (!_init_data.params.fullscreen_flip_right_is_set() && !session_params.fullscreen_flip_right_is_default())
-            _init_data.params.set_fullscreen_flip_right(session_params.fullscreen_flip_right());
-        if (!_init_data.params.fullscreen_flop_right_is_set() && !session_params.fullscreen_flop_right_is_default())
-            _init_data.params.set_fullscreen_flop_right(session_params.fullscreen_flop_right());
-        if (!_init_data.params.zoom_is_set() && !session_params.zoom_is_default())
-            _init_data.params.set_zoom(session_params.zoom());
+        if (!dispatch::parameters().audio_device_is_set() && !session_params.audio_device_is_default())
+            send_cmd(command::set_audio_device, session_params.audio_device());
+        if (!dispatch::parameters().audio_delay_is_set() && !session_params.audio_delay_is_default())
+            send_cmd(command::set_audio_delay, session_params.audio_delay());
+        if (!dispatch::parameters().contrast_is_set() && !session_params.contrast_is_default())
+            send_cmd(command::set_contrast, session_params.contrast());
+        if (!dispatch::parameters().brightness_is_set() && !session_params.brightness_is_default())
+            send_cmd(command::set_brightness, session_params.brightness());
+        if (!dispatch::parameters().hue_is_set() && !session_params.hue_is_default())
+            send_cmd(command::set_hue, session_params.hue());
+        if (!dispatch::parameters().saturation_is_set() && !session_params.saturation_is_default())
+            send_cmd(command::set_saturation, session_params.saturation());
+        if (!dispatch::parameters().crosstalk_r_is_set()
+                && !dispatch::parameters().crosstalk_g_is_set()
+                && !dispatch::parameters().crosstalk_b_is_set()
+                && !(session_params.crosstalk_r_is_default()
+                    && session_params.crosstalk_g_is_default()
+                    && session_params.crosstalk_b_is_default())) {
+            std::ostringstream v;
+            s11n::save(v, session_params.crosstalk_r());
+            s11n::save(v, session_params.crosstalk_g());
+            s11n::save(v, session_params.crosstalk_b());
+            send_cmd(command::set_crosstalk, v.str());
+        }
+        if (!dispatch::parameters().subtitle_encoding_is_set() && !session_params.subtitle_encoding_is_default())
+            send_cmd(command::set_subtitle_encoding, session_params.subtitle_encoding());
+        if (!dispatch::parameters().subtitle_font_is_set() && !session_params.subtitle_font_is_default())
+            send_cmd(command::set_subtitle_font, session_params.subtitle_font());
+        if (!dispatch::parameters().subtitle_size_is_set() && !session_params.subtitle_size_is_default())
+            send_cmd(command::set_subtitle_size, session_params.subtitle_size());
+        if (!dispatch::parameters().subtitle_scale_is_set() && !session_params.subtitle_scale_is_default())
+            send_cmd(command::set_subtitle_scale, session_params.subtitle_scale());
+        if (!dispatch::parameters().subtitle_color_is_set() && !session_params.subtitle_color_is_default())
+            send_cmd(command::set_subtitle_color, session_params.subtitle_color());
+        if (!dispatch::parameters().fullscreen_screens_is_set() && !session_params.fullscreen_screens_is_default())
+            send_cmd(command::set_fullscreen_screens, session_params.fullscreen_screens());
+        if (!dispatch::parameters().fullscreen_flip_left_is_set() && !session_params.fullscreen_flip_left_is_default())
+            send_cmd(command::set_fullscreen_flip_left, session_params.fullscreen_flip_left());
+        if (!dispatch::parameters().fullscreen_flop_left_is_set() && !session_params.fullscreen_flop_left_is_default())
+            send_cmd(command::set_fullscreen_flop_left, session_params.fullscreen_flop_left());
+        if (!dispatch::parameters().fullscreen_flip_right_is_set() && !session_params.fullscreen_flip_right_is_default())
+            send_cmd(command::set_fullscreen_flip_right, session_params.fullscreen_flip_right());
+        if (!dispatch::parameters().fullscreen_flop_right_is_set() && !session_params.fullscreen_flop_right_is_default())
+            send_cmd(command::set_fullscreen_flop_right, session_params.fullscreen_flop_right());
+        if (!dispatch::parameters().zoom_is_set() && !session_params.zoom_is_default())
+            send_cmd(command::set_zoom, session_params.zoom());
     }
     else
     {
         // This code block is only for compatibility with Bino <= 1.2.x:
         _settings->beginGroup("Session");
-        if (!_init_data.params.audio_device_is_set() && _settings->contains("audio-device"))
+        if (!dispatch::parameters().audio_device_is_set() && _settings->contains("audio-device"))
         {
-            _init_data.params.set_audio_device(_settings->value("audio-device").toInt());
+            send_cmd(command::set_audio_device, _settings->value("audio-device").toInt());
             _settings->remove("audio-device");
         }
-        if (!_init_data.params.audio_delay_is_set() && _settings->contains("audio-delay"))
+        if (!dispatch::parameters().audio_delay_is_set() && _settings->contains("audio-delay"))
         {
-            _init_data.params.set_audio_delay(_settings->value("audio-delay").toLongLong());
+            send_cmd(command::set_audio_delay, static_cast<int64_t>(_settings->value("audio-delay").toLongLong()));
             _settings->remove("audio-delay");
         }
-        if (!_init_data.params.contrast_is_set() && _settings->contains("contrast"))
+        if (!dispatch::parameters().contrast_is_set() && _settings->contains("contrast"))
         {
-            _init_data.params.set_contrast(_settings->value("contrast").toFloat());
+            send_cmd(command::set_contrast, _settings->value("contrast").toFloat());
             _settings->remove("contrast");
         }
-        if (!_init_data.params.brightness_is_set() && _settings->contains("brightness"))
+        if (!dispatch::parameters().brightness_is_set() && _settings->contains("brightness"))
         {
-            _init_data.params.set_brightness(_settings->value("brightness").toFloat());
+            send_cmd(command::set_brightness, _settings->value("brightness").toFloat());
             _settings->remove("brightness");
         }
-        if (!_init_data.params.hue_is_set() && _settings->contains("hue"))
+        if (!dispatch::parameters().hue_is_set() && _settings->contains("hue"))
         {
-            _init_data.params.set_hue(_settings->value("hue").toFloat());
+            send_cmd(command::set_hue, _settings->value("hue").toFloat());
             _settings->remove("hue");
         }
-        if (!_init_data.params.saturation_is_set() && _settings->contains("saturation"))
+        if (!dispatch::parameters().saturation_is_set() && _settings->contains("saturation"))
         {
-            _init_data.params.set_saturation(_settings->value("saturation").toFloat());
+            send_cmd(command::set_saturation, _settings->value("saturation").toFloat());
             _settings->remove("saturation");
         }
-        if (!_init_data.params.crosstalk_r_is_set() && _settings->contains("crosstalk_r"))
+        if (!dispatch::parameters().crosstalk_r_is_set()
+                && !dispatch::parameters().crosstalk_g_is_set()
+                && !dispatch::parameters().crosstalk_b_is_set()
+                && _settings->contains("crosstalk_r")
+                && _settings->contains("crosstalk_g")
+                && _settings->contains("crosstalk_b"))
         {
-            _init_data.params.set_crosstalk_r(_settings->value("crosstalk_r").toFloat());
+            std::ostringstream v;
+            s11n::save(v, _settings->value("crosstalk_r").toFloat());
+            s11n::save(v, _settings->value("crosstalk_g").toFloat());
+            s11n::save(v, _settings->value("crosstalk_b").toFloat());
+            send_cmd(command::set_crosstalk, v.str());
             _settings->remove("crosstalk_r");
-        }
-        if (!_init_data.params.crosstalk_g_is_set() && _settings->contains("crosstalk_g"))
-        {
-            _init_data.params.set_crosstalk_g(_settings->value("crosstalk_g").toFloat());
             _settings->remove("crosstalk_g");
-        }
-        if (!_init_data.params.crosstalk_b_is_set() && _settings->contains("crosstalk_b"))
-        {
-            _init_data.params.set_crosstalk_b(_settings->value("crosstalk_b").toFloat());
             _settings->remove("crosstalk_b");
         }
-        if (!_init_data.params.fullscreen_screens_is_set() && _settings->contains("fullscreen-screens"))
+        if (!dispatch::parameters().fullscreen_screens_is_set() && _settings->contains("fullscreen-screens"))
         {
-            _init_data.params.set_fullscreen_screens(_settings->value("fullscreen-screens").toInt());
+            send_cmd(command::set_fullscreen_screens, _settings->value("fullscreen-screens").toInt());
             _settings->remove("fullscreen-screens");
         }
-        if (!_init_data.params.fullscreen_flip_left_is_set() && _settings->contains("fullscreen-flip-left"))
+        if (!dispatch::parameters().fullscreen_flip_left_is_set() && _settings->contains("fullscreen-flip-left"))
         {
-            _init_data.params.set_fullscreen_flip_left(_settings->value("fullscreen-flip-left").toInt());
+            send_cmd(command::set_fullscreen_flip_left, _settings->value("fullscreen-flip-left").toInt());
             _settings->remove("fullscreen-flip-left");
         }
-        if (!_init_data.params.fullscreen_flop_left_is_set() && _settings->contains("fullscreen-flop-left"))
+        if (!dispatch::parameters().fullscreen_flop_left_is_set() && _settings->contains("fullscreen-flop-left"))
         {
-            _init_data.params.set_fullscreen_flop_left(_settings->value("fullscreen-flop-left").toInt());
+            send_cmd(command::set_fullscreen_flop_left, _settings->value("fullscreen-flop-left").toInt());
             _settings->remove("fullscreen-flop-left");
         }
-        if (!_init_data.params.fullscreen_flip_right_is_set() && _settings->contains("fullscreen-flip-right"))
+        if (!dispatch::parameters().fullscreen_flip_right_is_set() && _settings->contains("fullscreen-flip-right"))
         {
-            _init_data.params.set_fullscreen_flip_right(_settings->value("fullscreen-flip-right").toInt());
+            send_cmd(command::set_fullscreen_flip_right, _settings->value("fullscreen-flip-right").toInt());
             _settings->remove("fullscreen-flip-right");
         }
-        if (!_init_data.params.fullscreen_flop_right_is_set() && _settings->contains("fullscreen-flop-right"))
+        if (!dispatch::parameters().fullscreen_flop_right_is_set() && _settings->contains("fullscreen-flop-right"))
         {
-            _init_data.params.set_fullscreen_flop_right(_settings->value("fullscreen-flop-right").toInt());
+            send_cmd(command::set_fullscreen_flop_right, _settings->value("fullscreen-flop-right").toInt());
             _settings->remove("fullscreen-flop-right");
         }
-        if (!_init_data.params.subtitle_encoding_is_set() && _settings->contains("subtitle-encoding"))
+        if (!dispatch::parameters().subtitle_encoding_is_set() && _settings->contains("subtitle-encoding"))
         {
-            _init_data.params.set_subtitle_encoding(_settings->value("subtitle-encoding").toString().toStdString());
+            send_cmd(command::set_subtitle_encoding, _settings->value("subtitle-encoding").toString().toStdString());
             _settings->remove("subtitle-encoding");
         }
-        if (!_init_data.params.subtitle_font_is_set() && _settings->contains("subtitle-font"))
+        if (!dispatch::parameters().subtitle_font_is_set() && _settings->contains("subtitle-font"))
         {
-            _init_data.params.set_subtitle_font(_settings->value("subtitle-font").toString().toStdString());
+            send_cmd(command::set_subtitle_font, _settings->value("subtitle-font").toString().toStdString());
             _settings->remove("subtitle-font");
         }
-        if (!_init_data.params.subtitle_size_is_set() && _settings->contains("subtitle-size"))
+        if (!dispatch::parameters().subtitle_size_is_set() && _settings->contains("subtitle-size"))
         {
-            _init_data.params.set_subtitle_size(_settings->value("subtitle-size").toInt());
+            send_cmd(command::set_subtitle_size, _settings->value("subtitle-size").toInt());
             _settings->remove("subtitle-size");
         }
-        if (!_init_data.params.subtitle_scale_is_set() && _settings->contains("subtitle-scale"))
+        if (!dispatch::parameters().subtitle_scale_is_set() && _settings->contains("subtitle-scale"))
         {
-            _init_data.params.set_subtitle_scale(_settings->value("subtitle-scale").toFloat());
+            send_cmd(command::set_subtitle_scale, _settings->value("subtitle-scale").toFloat());
             _settings->remove("subtitle-scale");
         }
-        if (!_init_data.params.subtitle_color_is_set() && _settings->contains("subtitle-color"))
+        if (!dispatch::parameters().subtitle_color_is_set() && _settings->contains("subtitle-color"))
         {
-            _init_data.params.set_subtitle_color(_settings->value("subtitle-color").toULongLong());
+            send_cmd(command::set_subtitle_color, static_cast<uint64_t>(_settings->value("subtitle-color").toULongLong()));
             _settings->remove("subtitle-color");
         }
-        if (!_init_data.params.zoom_is_set() && _settings->contains("zoom"))
+        if (!dispatch::parameters().zoom_is_set() && _settings->contains("zoom"))
         {
-            _init_data.params.set_zoom(_settings->value("zoom").toFloat());
+            send_cmd(command::set_zoom, _settings->value("zoom").toFloat());
             _settings->remove("zoom");
         }
         _settings->endGroup();
@@ -2430,13 +2193,13 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     _video_container_widget = new video_container_widget(central_widget);
     connect(_video_container_widget, SIGNAL(move_event()), this, SLOT(move_event()));
     layout->addWidget(_video_container_widget, 0, 0);
-    _video_output = new video_output_qt(_init_data.params.benchmark(), _video_container_widget);
+    _video_output = new video_output_qt(dispatch::parameters().swap_interval(), _video_container_widget);
     _player = new player_qt_internal(_video_output);
     _timer = new QTimer(this);
     connect(_timer, SIGNAL(timeout()), this, SLOT(playloop_step()));
     _in_out_widget = new in_out_widget(_settings, _player, central_widget);
     layout->addWidget(_in_out_widget, 1, 0);
-    _controls_widget = new controls_widget(&_init_data.params, _settings, _init_data, central_widget);
+    _controls_widget = new controls_widget(_settings, central_widget);
     layout->addWidget(_controls_widget, 2, 0);
     layout->setRowStretch(0, 1);
     layout->setColumnStretch(0, 1);
@@ -2537,8 +2300,8 @@ main_window::main_window(QSettings *settings, const player_init_data &init_data)
     setAcceptDrops(true);
 
     // Update widget contents
-    _in_out_widget->update(_init_data, false, false);
-    _controls_widget->update(_init_data, false, false, -1);
+    _in_out_widget->update();
+    _controls_widget->update();
 
     // Restore Mainwindow state
     _settings->beginGroup("Mainwindow");
@@ -2648,14 +2411,10 @@ bool main_window::open_player()
 
 void main_window::receive_notification(const notification &note)
 {
-    std::istringstream current(note.current);
-    float value;
-    bool flag;
-
+#if 0
     switch (note.type)
     {
     case notification::play:
-        s11n::load(current, flag);
         if (flag)
         {
             // Close and re-open the player. This resets the video state in case
@@ -2683,7 +2442,7 @@ void main_window::receive_notification(const notification &note)
             _in_out_widget->update(_init_data, true, true);
             _controls_widget->update(_init_data, true, true, _player->get_media_input().duration());
             // Give the keyboard focus to the video widget
-            _player->get_video_output()->grab_focus();
+            _video_output()->grab_focus();
         }
         else
         {
@@ -2699,209 +2458,8 @@ void main_window::receive_notification(const notification &note)
                             _init_data.params.stereo_mode_swap())));
         }
         break;
-
-    case notification::video_stream:
-        {
-            int val;
-            s11n::load(current, val);
-            _init_data.params.set_video_stream(val);
-        }
-        break;
-
-    case notification::audio_stream:
-        {
-            int val;
-            s11n::load(current, val);
-            _init_data.params.set_audio_stream(val);
-        }
-        break;
-
-    case notification::subtitle_stream:
-        {
-            int val;
-            s11n::load(current, val);
-            _init_data.params.set_subtitle_stream(val);
-        }
-        break;
-
-    case notification::contrast:
-        s11n::load(current, value);
-        _init_data.params.set_contrast(value);
-        break;
-
-    case notification::brightness:
-        s11n::load(current, value);
-        _init_data.params.set_brightness(value);
-        break;
-
-    case notification::hue:
-        s11n::load(current, value);
-        _init_data.params.set_hue(value);
-        break;
-
-    case notification::saturation:
-        s11n::load(current, value);
-        _init_data.params.set_saturation(value);
-        break;
-
-    case notification::stereo_layout:
-        {
-            int m;
-            s11n::load(current, m);
-            _init_data.params.set_stereo_layout(static_cast<parameters::stereo_layout_t>(m));
-        }
-        break;
-
-    case notification::stereo_layout_swap:
-        s11n::load(current, flag);
-        _init_data.params.set_stereo_layout_swap(flag);
-        break;
-
-    case notification::stereo_mode:
-        {
-            int m;
-            s11n::load(current, m);
-            _init_data.params.set_stereo_mode(static_cast<parameters::stereo_mode_t>(m));
-        }
-        break;
-
-    case notification::stereo_mode_swap:
-        s11n::load(current, flag);
-        _init_data.params.set_stereo_mode_swap(flag);
-        break;
-
-    case notification::parallax:
-        s11n::load(current, value);
-        _init_data.params.set_parallax(value);
-        break;
-
-    case notification::crosstalk:
-        s11n::load(current, value);
-        _init_data.params.set_crosstalk_r(value);
-        s11n::load(current, value);
-        _init_data.params.set_crosstalk_g(value);
-        s11n::load(current, value);
-        _init_data.params.set_crosstalk_b(value);
-        break;
-
-    case notification::ghostbust:
-        s11n::load(current, value);
-        _init_data.params.set_ghostbust(value);
-        break;
-
-    case notification::subtitle_encoding:
-        {
-            std::string val;
-            s11n::load(current, val);
-            _init_data.params.set_subtitle_encoding(val);
-        }
-        break;
-
-    case notification::subtitle_font:
-        {
-            std::string val;
-            s11n::load(current, val);
-            _init_data.params.set_subtitle_font(val);
-        }
-        break;
-
-    case notification::subtitle_size:
-        {
-            int val;
-            s11n::load(current, val);
-            _init_data.params.set_subtitle_size(val);
-        }
-        break;
-
-    case notification::subtitle_scale:
-        s11n::load(current, value);
-        _init_data.params.set_subtitle_scale(value);
-        break;
-
-    case notification::subtitle_color:
-        {
-            uint64_t val;
-            s11n::load(current, val);
-            _init_data.params.set_subtitle_color(val);
-        }
-        break;
-
-    case notification::subtitle_parallax:
-        s11n::load(current, value);
-        _init_data.params.set_subtitle_parallax(value);
-        break;
-
-    case notification::loop_mode:
-        {
-            int loop_mode;
-            s11n::load(current, loop_mode);
-            _init_data.params.set_loop_mode(static_cast<parameters::loop_mode_t>(loop_mode));
-        }
-        break;
-
-    case notification::fullscreen_screens:
-        {
-            int val;
-            s11n::load(current, val);
-            _init_data.params.set_fullscreen_screens(val);
-        }
-        break;
-
-    case notification::fullscreen_flip_left:
-        s11n::load(current, flag);
-        _init_data.params.set_fullscreen_flip_left(flag);
-        break;
-
-    case notification::fullscreen_flop_left:
-        s11n::load(current, flag);
-        _init_data.params.set_fullscreen_flop_left(flag);
-        break;
-
-    case notification::fullscreen_flip_right:
-        s11n::load(current, flag);
-        _init_data.params.set_fullscreen_flip_right(flag);
-        break;
-
-    case notification::fullscreen_flop_right:
-        s11n::load(current, flag);
-        _init_data.params.set_fullscreen_flop_right(flag);
-        break;
-
-    case notification::zoom:
-        s11n::load(current, value);
-        _init_data.params.set_zoom(value);
-        break;
-
-    case notification::crop_aspect_ratio:
-        s11n::load(current, value);
-        _init_data.params.set_crop_aspect_ratio(value);
-        break;
-
-    case notification::audio_volume:
-        s11n::load(current, value);
-        _init_data.params.set_audio_volume(value);
-        break;
-
-    case notification::audio_mute:
-        s11n::load(current, flag);
-        _init_data.params.set_audio_mute(flag);
-        break;
-
-    case notification::audio_delay:
-        {
-            int64_t val;
-            s11n::load(current, val);
-            _init_data.params.set_audio_delay(val);
-        }
-        break;
-
-    case notification::pause:
-    case notification::fullscreen:
-    case notification::center:
-    case notification::pos:
-        /* currently not handled */
-        break;
     }
+#endif
 }
 
 void main_window::dragEnterEvent(QDragEnterEvent *event)
@@ -2980,14 +2538,14 @@ void main_window::move_event()
 
 void main_window::playloop_step()
 {
-    if (_player->is_playing() && _stop_request)
+    if (dispatch::playing() && _stop_request)
     {
         _player->force_stop();
-        _in_out_widget->update(_init_data, false, false);
-        _controls_widget->update(_init_data, false, false, -1);
+        _in_out_widget->update();
+        _controls_widget->update();
         _stop_request = false;
     }
-    else if (_player->is_playing() && !_stop_request)
+    else if (dispatch::playing() && !_stop_request)
     {
         try
         {
@@ -3003,7 +2561,7 @@ void main_window::playloop_step()
     else
     {
         /* Process controller events. When we're playing, the player does this. */
-        controller::process_all_events();
+        dispatch::process_all_events();
         usleep(5000);   // don't busy loop for controller events
     }
 }
@@ -3012,14 +2570,9 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
 {
     _player->force_stop();
     _player->close();
-    parameters params_bak = _init_data.params;
-    _init_data = _init_data_template;
-    _init_data.params = params_bak;
     _init_data.dev_request = dev_request;
     _init_data.urls.clear();
     _init_data.params.unset_video_parameters();
-    if (_video_dialog)
-        _video_dialog->update();
     for (int i = 0; i < filenames.size(); i++)
     {
         _init_data.urls.push_back(filenames[i].toLocal8Bit().constData());
@@ -3032,12 +2585,11 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
         {
             _init_data.params.load_video_parameters(saved_video_parameters.toStdString());
         }
-        // The following code block is only for compatibility with Bino <= 1.2.x:
+        else
         {
+            // This code block is only for compatibility with Bino <= 1.2.x:
             _settings->beginGroup("Video/" + current_file_hash());
-            if (!_init_data.params.stereo_layout_is_set()
-                    && !_init_data.params.stereo_layout_swap_is_set()
-                    && _settings->contains("stereo-layout"))
+            if (!_settings->contains("stereo-layout"))
             {
                 QString layout_name = _settings->value("stereo-layout").toString();
                 parameters::stereo_layout_t stereo_layout;
@@ -3047,72 +2599,74 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
                 _init_data.params.set_stereo_layout_swap(stereo_layout_swap);
                 _settings->remove("stereo-layout");
             }
-            if (!_init_data.params.video_stream_is_set() && _settings->contains("video-stream"))
+            if (!_settings->contains("video-stream"))
             {
                 _init_data.params.set_video_stream(_settings->value("video-stream").toInt());
                 _settings->remove("video-stream");
             }
-            if (!_init_data.params.audio_stream_is_set() && _settings->contains("audio-stream"))
+            if (!_settings->contains("audio-stream"))
             {
                 _init_data.params.set_audio_stream(_settings->value("audio-stream").toInt());
                 _settings->remove("audio-stream");
             }
-            if (!_init_data.params.subtitle_stream_is_set() && _settings->contains("subtitle-stream"))
+            if (!_settings->contains("subtitle-stream"))
             {
                 _init_data.params.set_subtitle_stream(_settings->value("subtitle-stream").toInt());
                 _settings->remove("subtitle-stream");
             }
-            if (!_init_data.params.parallax_is_set() && _settings->contains("parallax"))
+            if (!_settings->contains("parallax"))
             {
                 _init_data.params.set_parallax(_settings->value("parallax").toFloat());
                 _settings->remove("parallax");
             }
-            if (!_init_data.params.ghostbust_is_set() && _settings->contains("ghostbust"))
+            if (!_settings->contains("ghostbust"))
             {
                 _init_data.params.set_ghostbust(_settings->value("ghostbust").toFloat());
                 _settings->remove("ghostbust");
             }
-            if (!_init_data.params.subtitle_parallax_is_set() && _settings->contains("subtitle-parallax"))
+            if (!_settings->contains("subtitle-parallax"))
             {
                 _init_data.params.set_subtitle_parallax(_settings->value("subtitle-parallax").toFloat());
                 _settings->remove("subtitle-parallax");
             }
             _settings->endGroup();
         }
-        if (!_init_data.params.stereo_layout_is_set() && !_init_data.params.stereo_layout_swap_is_set())
+        /* TODO: this block needs to be replaced with 'send_cmd(command::open, _init_data)'
+         * once that is implemented:
+         * ----> */
+        dispatch::set_video_parameters(_init_data.params);      // TODO: this function must go!
+        if (!dispatch::parameters().stereo_layout_is_set() && !dispatch::parameters().stereo_layout_swap_is_set())
         {
-            _init_data.params.set_stereo_layout(_player->get_media_input().video_frame_template().stereo_layout);
-            _init_data.params.set_stereo_layout_swap(_player->get_media_input().video_frame_template().stereo_layout_swap);
+            send_cmd(command::set_stereo_layout, dispatch::media_input()->video_frame_template().stereo_layout);
+            send_cmd(command::set_stereo_layout_swap, dispatch::media_input()->video_frame_template().stereo_layout_swap);
         }
-        if (_player->get_media_input().video_streams() < _init_data.params.video_stream() + 1)
-            _init_data.params.unset_video_stream();
-        if (_player->get_media_input().audio_streams() < _init_data.params.audio_stream() + 1)
-            _init_data.params.unset_audio_stream();
-        if (_player->get_media_input().subtitle_streams() < _init_data.params.subtitle_stream() + 1)
-            _init_data.params.unset_subtitle_stream();
+        // Make sure the streams exist (the command will be checked for this)
+        send_cmd(command::set_video_stream, dispatch::parameters().video_stream());
+        send_cmd(command::set_audio_stream, dispatch::parameters().audio_stream());
+        send_cmd(command::set_subtitle_stream, dispatch::parameters().subtitle_stream());
+        /* <---- */
         // Get stereo mode
         QString mode_fallback = QString(parameters::stereo_mode_to_string(
-                    _player->get_parameters().stereo_mode(),
-                    _player->get_parameters().stereo_mode_swap()).c_str());
+                    dispatch::parameters().stereo_mode(), dispatch::parameters().stereo_mode_swap()).c_str());
         QString mode_name = _settings->value(
-                (_player->get_media_input().video_frame_template().stereo_layout == parameters::layout_mono
+                (dispatch::media_input()->video_frame_template().stereo_layout == parameters::layout_mono
                  ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode"),
                 mode_fallback).toString();
         parameters::stereo_mode_t stereo_mode;
         bool stereo_mode_swap;
         parameters::stereo_mode_from_string(mode_name.toStdString(), stereo_mode, stereo_mode_swap);
-        _init_data.params.set_stereo_mode(stereo_mode);
-        _init_data.params.set_stereo_mode_swap(stereo_mode_swap);
+        send_cmd(command::set_stereo_mode, stereo_mode);
+        send_cmd(command::set_stereo_mode_swap, stereo_mode_swap);
         // Update the widget with the new settings
-        _in_out_widget->update(_init_data, true, false);
-        _controls_widget->update(_init_data, true, false, _player->get_media_input().duration());
+        _in_out_widget->update();
+        _controls_widget->update();
         // Automatically start playing
         send_cmd(command::toggle_play);
     }
     else
     {
-        _in_out_widget->update(_init_data, false, false);
-        _controls_widget->update(_init_data, false, false, -1);
+        _in_out_widget->update();
+        _controls_widget->update();
     }
 }
 
@@ -3469,7 +3023,7 @@ void main_window::preferences_colors()
 {
     if (!_color_dialog)
     {
-        _color_dialog = new color_dialog(&_init_data.params, this);
+        _color_dialog = new color_dialog(this);
     }
     _color_dialog->show();
     _color_dialog->raise();
@@ -3480,7 +3034,7 @@ void main_window::preferences_crosstalk()
 {
     if (!_crosstalk_dialog)
     {
-        _crosstalk_dialog = new crosstalk_dialog(&_init_data.params, this);
+        _crosstalk_dialog = new crosstalk_dialog(this);
     }
     _crosstalk_dialog->show();
     _crosstalk_dialog->raise();
@@ -3491,7 +3045,7 @@ void main_window::preferences_zoom()
 {
     if (!_zoom_dialog)
     {
-        _zoom_dialog = new zoom_dialog(&_init_data.params, this);
+        _zoom_dialog = new zoom_dialog(this);
     }
     _zoom_dialog->show();
     _zoom_dialog->raise();
@@ -3502,7 +3056,7 @@ void main_window::preferences_audio()
 {
     if (!_audio_dialog)
     {
-        _audio_dialog = new audio_dialog(&_init_data.params, this);
+        _audio_dialog = new audio_dialog(this);
     }
     _audio_dialog->show();
     _audio_dialog->raise();
@@ -3513,7 +3067,7 @@ void main_window::preferences_subtitle()
 {
     if (!_subtitle_dialog)
     {
-        _subtitle_dialog = new subtitle_dialog(&_init_data.params, this);
+        _subtitle_dialog = new subtitle_dialog(this);
     }
     _subtitle_dialog->show();
     _subtitle_dialog->raise();
@@ -3524,7 +3078,7 @@ void main_window::preferences_video()
 {
     if (!_video_dialog)
     {
-        _video_dialog = new video_dialog(&_init_data.params, this);
+        _video_dialog = new video_dialog(this);
     }
     _video_dialog->show();
     _video_dialog->raise();

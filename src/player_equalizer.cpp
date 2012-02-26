@@ -220,7 +220,7 @@ public:
     int pos_y() { return 0; }
     bool fullscreen() { return false; }
     void center() { }
-    void enter_fullscreen(int) { }
+    void enter_fullscreen() { }
     void exit_fullscreen() { }
     bool toggle_fullscreen(int) { return false; }
     bool has_events() { return false; }

@@ -161,21 +161,6 @@ void audio_output::deinit()
     }
 }
 
-void audio_output::set_parameters(const parameters &params)
-{
-    _params = params;
-    float gain = _params.audio_volume();
-    if (_params.audio_mute())
-    {
-        gain = 0.0f;
-    }
-    alSourcef(_source, AL_GAIN, gain);
-    if (alGetError() != AL_NO_ERROR)
-    {
-        throw exc(_("Cannot set OpenAL audio volume."));
-    }
-}
-
 size_t audio_output::required_initial_data_size() const
 {
     return _num_buffers * _buffer_size;
@@ -371,6 +356,20 @@ ALenum audio_output::get_al_format(const audio_blob &blob)
     return format;
 }
 
+void audio_output::set_source_parameters()
+{
+    float gain = dispatch::parameters().audio_volume();
+    if (dispatch::parameters().audio_mute())
+    {
+        gain = 0.0f;
+    }
+    alSourcef(_source, AL_GAIN, gain);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        throw exc(_("Cannot set OpenAL audio volume."));
+    }
+}
+
 void audio_output::data(const audio_blob &blob)
 {
     assert(blob.data);
@@ -378,6 +377,7 @@ void audio_output::data(const audio_blob &blob)
     msg::dbg(std::string("Buffering ") + str::from(blob.size) + " bytes of audio data.");
     if (_state == 0)
     {
+        set_source_parameters();
         // Initial buffering
         assert(blob.size == _num_buffers * _buffer_size);
         char *data = static_cast<char *>(blob.data);
@@ -479,4 +479,14 @@ void audio_output::stop()
         alGetSourcei(_source, AL_BUFFERS_PROCESSED, &processed_buffers);
     }
     _state = 0;
+}
+
+void audio_output::receive_notification(const notification& note)
+{
+    if (_initialized
+            && (note.type == notification::audio_volume
+                || note.type == notification::audio_mute))
+    {
+        set_source_parameters();
+    }
 }

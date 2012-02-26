@@ -50,6 +50,7 @@
 #include "msg.h"
 #include "opt.h"
 
+#include "controller.h"
 #include "player.h"
 #include "player_qt.h"
 #if HAVE_LIBEQUALIZER
@@ -544,35 +545,111 @@ int main(int argc, char *argv[])
     }
 #endif
 
+    /* Find invariant parameters, required for dispatch initialization */
+    msg::level_t dispatch_log_level = msg::level();
+    if (log_level.value() == "")
+        dispatch_log_level = msg::INF;
+    else if (log_level.value() == "debug")
+        dispatch_log_level = msg::DBG;
+    else if (log_level.value() == "info")
+        dispatch_log_level = msg::INF;
+    else if (log_level.value() == "warning")
+        dispatch_log_level = msg::WRN;
+    else if (log_level.value() == "error")
+        dispatch_log_level = msg::ERR;
+    else if (log_level.value() == "quiet")
+        dispatch_log_level = msg::REQ;
+    bool dispatch_benchmark = benchmark.value();
+    int dispatch_swap_interval = dispatch_benchmark ? 0 : 1;
+    if (swap_interval.is_set())
+        dispatch_swap_interval = swap_interval.value();
+
+    /* Create the central dispatch */
+    dispatch global_dispatch(false, dispatch_log_level, dispatch_benchmark, dispatch_swap_interval);
+    if (dispatch_benchmark)
+        msg::inf(_("Benchmark mode: audio and time synchronization disabled."));
+
+    /* Set session parameters */
     bool equalizer = false;
     bool equalizer_flat_screen = true;
-    player_init_data init_data;
-    init_data.params.set_log_level(msg::level());
-    if (log_level.value() == "")
-        init_data.params.set_log_level(msg::INF);
-    else if (log_level.value() == "debug")
-        init_data.params.set_log_level(msg::DBG);
-    else if (log_level.value() == "info")
-        init_data.params.set_log_level(msg::INF);
-    else if (log_level.value() == "warning")
-        init_data.params.set_log_level(msg::WRN);
-    else if (log_level.value() == "error")
-        init_data.params.set_log_level(msg::ERR);
-    else if (log_level.value() == "quiet")
-        init_data.params.set_log_level(msg::REQ);
-    msg::set_level(init_data.params.log_level());
-    if (audio_device.values().size() > 0)
-    {
-        init_data.params.set_audio_device(audio_device.value() - 1);
+    if (audio_device.is_set())
+        controller::send_cmd(command::set_audio_device, audio_device.value() - 1);
+    if (video_output_mode.is_set()) {
+        if (video_output_mode.value() == "equalizer") {
+            equalizer = true;
+            equalizer_flat_screen = true;
+            controller::send_cmd(command::set_stereo_mode, static_cast<int>(parameters::mode_mono_left));
+            controller::send_cmd(command::set_stereo_mode_swap, false);
+        } else if (video_output_mode.value() == "equalizer-3d") {
+            equalizer = true;
+            equalizer_flat_screen = false;
+            controller::send_cmd(command::set_stereo_mode, static_cast<int>(parameters::mode_mono_left));
+            controller::send_cmd(command::set_stereo_mode_swap, false);
+        } else {
+            parameters::stereo_mode_t stereo_mode;
+            bool stereo_mode_swap;
+            parameters::stereo_mode_from_string(video_output_mode.value(), stereo_mode, stereo_mode_swap);
+            controller::send_cmd(command::set_stereo_mode, static_cast<int>(stereo_mode));
+            controller::send_cmd(command::set_stereo_mode_swap, stereo_mode_swap);
+        }
     }
-    if (device_type.value() == "")
-    {
+    if (swap_eyes.is_set())
+        controller::send_cmd(command::set_stereo_mode_swap, swap_eyes.value());
+    if (crosstalk.is_set()) {
+        std::ostringstream v;
+        s11n::save(v, crosstalk.value()[0]);
+        s11n::save(v, crosstalk.value()[1]);
+        s11n::save(v, crosstalk.value()[2]);
+        controller::send_cmd(command::set_crosstalk, v.str());
+    }
+    if (fullscreen_screens.is_set()) {
+        int fs = 0;
+        for (size_t i = 0; i < fullscreen_screens.value().size(); i++)
+            fs |= (1 << (fullscreen_screens.value()[i] - 1));
+        controller::send_cmd(command::set_fullscreen_screens, fs);
+    }
+    if (fullscreen_flip_left.is_set())
+        controller::send_cmd(command::set_fullscreen_flip_left, fullscreen_flip_left.value());
+    if (fullscreen_flop_left.is_set())
+        controller::send_cmd(command::set_fullscreen_flop_left, fullscreen_flop_left.value());
+    if (fullscreen_flip_right.is_set())
+        controller::send_cmd(command::set_fullscreen_flip_right, fullscreen_flip_right.value());
+    if (fullscreen_flop_right.is_set())
+        controller::send_cmd(command::set_fullscreen_flop_right, fullscreen_flop_right.value());
+    if (zoom.is_set())
+        controller::send_cmd(command::set_zoom, zoom.value());
+    if (loop.is_set())
+        controller::send_cmd(command::set_loop_mode, loop.value() ? parameters::loop_current : parameters::no_loop);
+    if (audio_delay.is_set())
+        controller::send_cmd(command::set_audio_delay, audio_delay.value() * 1000);
+    if (subtitle_encoding.is_set())
+        controller::send_cmd(command::set_subtitle_encoding, subtitle_encoding.value());
+    if (subtitle_font.is_set())
+        controller::send_cmd(command::set_subtitle_font, subtitle_font.value());
+    if (subtitle_size.is_set())
+        controller::send_cmd(command::set_subtitle_size, subtitle_size.value());
+    if (subtitle_scale.is_set())
+        controller::send_cmd(command::set_subtitle_scale, subtitle_scale.value());
+    if (subtitle_color.is_set())
+        controller::send_cmd(command::set_subtitle_color, static_cast<uint64_t>(subtitle_color.value()));
+
+    /* Set volatile parameters */
+    if (fullscreen.is_set() && fullscreen.value())
+        controller::send_cmd(command::toggle_fullscreen);
+    if (center.is_set())
+        controller::send_cmd(command::center);
+    if (audio_volume.is_set())
+        controller::send_cmd(command::set_audio_volume, audio_volume.value());
+    if (audio_mute.is_set() && audio_mute.value())
+        controller::send_cmd(command::toggle_audio_mute);
+
+    /* Gather initial player data: input URLs and per-video parameters */
+    player_init_data init_data;
+    if (device_type.value() == "") {
         init_data.dev_request.device =
             (arguments.size() == 1 && arguments[0].substr(0, 5) == "/dev/"
              ? device_request::sys_default : device_request::no_device);
-    }
-    else
-    {
+    } else {
         init_data.dev_request.device =
             (device_type.value() == "firewire" ? device_request::firewire
              : device_type.value() == "x11" ? device_request::x11
@@ -583,160 +660,33 @@ int main(int argc, char *argv[])
     init_data.dev_request.frame_rate_num = device_frame_rate.value()[0];
     init_data.dev_request.frame_rate_den = device_frame_rate.value()[1];
     init_data.urls = arguments;
-    if (video.values().size() > 0)
+    if (video.is_set() > 0)
         init_data.params.set_video_stream(video.value() - 1);
-    if (audio.values().size() > 0)
+    if (audio.is_set() > 0)
         init_data.params.set_audio_stream(audio.value() - 1);
-    if (subtitle.values().size() > 0)
+    if (subtitle.is_set() > 0)
         init_data.params.set_subtitle_stream(subtitle.value() - 1);
-    if (!input_mode.value().empty())
-    {
+    if (input_mode.is_set()) {
         parameters::stereo_layout_t stereo_layout;
         bool stereo_layout_swap;
         parameters::stereo_layout_from_string(input_mode.value(), stereo_layout, stereo_layout_swap);
         init_data.params.set_stereo_layout(stereo_layout);
         init_data.params.set_stereo_layout_swap(stereo_layout_swap);
     }
-    if (video_output_mode.value() == "equalizer")
-    {
-        equalizer = true;
-        equalizer_flat_screen = true;
-        init_data.params.set_stereo_mode(parameters::mode_mono_left);
-        init_data.params.set_stereo_mode_swap(false);
-    }
-    else if (video_output_mode.value() == "equalizer-3d")
-    {
-        equalizer = true;
-        equalizer_flat_screen = false;
-        init_data.params.set_stereo_mode(parameters::mode_mono_left);
-        init_data.params.set_stereo_mode_swap(false);
-    }
-    else if (video_output_mode.value() != "")
-    {
-        parameters::stereo_mode_t stereo_mode;
-        bool stereo_mode_swap;
-        parameters::stereo_mode_from_string(video_output_mode.value(), stereo_mode, stereo_mode_swap);
-        init_data.params.set_stereo_mode(stereo_mode);
-        init_data.params.set_stereo_mode_swap(stereo_mode_swap);
-    }
-    if (swap_eyes.values().size() > 0)
-    {
-        init_data.params.set_stereo_mode_swap(swap_eyes.value());
-    }
-    if (center.values().size() > 0)
-    {
-        init_data.params.set_center(center.value());
-    }
-    if (fullscreen.values().size() > 0)
-    {
-        init_data.params.set_fullscreen(fullscreen.value());
-    }
-    if (fullscreen_screens.values().size() > 0)
-    {
-        int fs = 0;
-        for (size_t i = 0; i < fullscreen_screens.value().size(); i++)
-        {
-            fs |= (1 << (fullscreen_screens.value()[i] - 1));
-        }
-        init_data.params.set_fullscreen_screens(fs);
-    }
-    if (fullscreen_flip_left.values().size() > 0)
-    {
-        init_data.params.set_fullscreen_flip_left(fullscreen_flip_left.value());
-    }
-    if (fullscreen_flop_left.values().size() > 0)
-    {
-        init_data.params.set_fullscreen_flop_left(fullscreen_flop_left.value());
-    }
-    if (fullscreen_flip_right.values().size() > 0)
-    {
-        init_data.params.set_fullscreen_flip_right(fullscreen_flip_right.value());
-    }
-    if (fullscreen_flop_right.values().size() > 0)
-    {
-        init_data.params.set_fullscreen_flop_right(fullscreen_flop_right.value());
-    }
-    if (zoom.values().size() > 0)
-    {
-        init_data.params.set_zoom(zoom.value());
-    }
-    if (crop_aspect_ratio.values().size() > 0)
-    {
+    if (crop_aspect_ratio.is_set()) {
         float crop_ar = 0.0f;
-        if (crop_aspect_ratio.value()[0] > 0.0f && crop_aspect_ratio.value()[1] > 0.0f)
-        {
+        if (crop_aspect_ratio.value()[0] > 0.0f && crop_aspect_ratio.value()[1] > 0.0f) {
             crop_ar = crop_aspect_ratio.value()[0] / crop_aspect_ratio.value()[1];
             crop_ar = std::min(std::max(crop_ar, 1.0f), 2.39f);
         }
         init_data.params.set_crop_aspect_ratio(crop_ar);
     }
-    if (audio_delay.values().size() > 0)
-    {
-        init_data.params.set_audio_delay(audio_delay.value() * 1000);
-    }
-    if (audio_volume.values().size() > 0)
-    {
-        init_data.params.set_audio_volume(audio_volume.value());
-    }
-    if (audio_mute.values().size() > 0)
-    {
-        init_data.params.set_audio_mute(audio_mute.value());
-    }
-    if (subtitle_encoding.values().size() > 0)
-    {
-        init_data.params.set_subtitle_encoding(subtitle_encoding.value());
-    }
-    if (subtitle_font.values().size() > 0)
-    {
-        init_data.params.set_subtitle_font(subtitle_font.value());
-    }
-    if (subtitle_size.values().size() > 0)
-    {
-        init_data.params.set_subtitle_size(subtitle_size.value());
-    }
-    if (subtitle_scale.values().size() > 0)
-    {
-        init_data.params.set_subtitle_scale(subtitle_scale.value());
-    }
-    if (subtitle_color.values().size() > 0)
-    {
-        init_data.params.set_subtitle_color(subtitle_color.value());
-    }
-    if (subtitle_parallax.values().size() > 0)
-    {
-        init_data.params.set_subtitle_parallax(subtitle_parallax.value());
-    }
-    if (parallax.values().size() > 0)
-    {
+    if (parallax.is_set())
         init_data.params.set_parallax(parallax.value());
-    }
-    if (crosstalk.values().size() > 0)
-    {
-        init_data.params.set_crosstalk_r(crosstalk.value()[0]);
-        init_data.params.set_crosstalk_g(crosstalk.value()[1]);
-        init_data.params.set_crosstalk_b(crosstalk.value()[2]);
-    }
-    if (ghostbust.values().size() > 0)
-    {
+    if (ghostbust.is_set())
         init_data.params.set_ghostbust(ghostbust.value());
-    }
-    if (benchmark.values().size() > 0)
-    {
-        init_data.params.set_benchmark(benchmark.value());
-    }
-    if (init_data.params.benchmark())
-    {
-        init_data.params.set_swap_interval(0);
-        msg::inf(_("Benchmark mode: audio and time synchronization disabled."));
-    }
-    if (swap_interval.values().size() > 0)
-    {
-        init_data.params.set_swap_interval(swap_interval.value());
-    }
-    if (loop.values().size() > 0)
-    {
-        init_data.params.set_loop_mode(loop.value() ? parameters::loop_current : parameters::no_loop);
-    }
+    if (subtitle_parallax.is_set())
+        init_data.params.set_subtitle_parallax(subtitle_parallax.value());
 
 #if HAVE_LIBLIRCCLIENT
     lircclient lirc(PACKAGE, lirc_config.values());
@@ -779,12 +729,6 @@ int main(int argc, char *argv[])
             }
             else if (!no_gui.value())
             {
-                if (log_level.value() == "")
-                {
-                    init_data.params.set_log_level(msg::WRN); // Be silent by default when the GUI is used
-                }
-                init_data.params.unset_fullscreen();    // GUI overrides fullscreen setting
-                init_data.params.unset_center();        // GUI overrides center flag
                 player = new class player_qt();
             }
             else

@@ -109,7 +109,7 @@ void video_output_qt_widget::moveEvent(QMoveEvent *)
 
 void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
 {
-    if (_vo->_container_is_external && !_vo->_playing)
+    if (_vo->_container_is_external && !dispatch::playing())
     {
         QGLWidget::keyPressEvent(event);
         return;
@@ -120,7 +120,7 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
         // ESC should stop playback, unless we're in fullscreen mode.
         // In that case, it should simply leave fullscreen mode, since
         // this is what most users expect.
-        if (_vo->_fullscreen)
+        if (dispatch::parameters().fullscreen())
         {
             _vo->send_cmd(command::toggle_fullscreen);
         }
@@ -153,13 +153,13 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
         break;
 #if QT_VERSION >= 0x040700
     case Qt::Key_MediaPlay:
-        if (_vo->_pausing)
+        if (dispatch::pausing())
         {
             _vo->send_cmd(command::toggle_pause);
         }
         break;
     case Qt::Key_MediaPause:
-        if (!_vo->_pausing)
+        if (!dispatch::pausing())
         {
             _vo->send_cmd(command::toggle_pause);
         }
@@ -321,10 +321,7 @@ video_output_qt::video_output_qt(const int swap_interval, video_container_widget
     video_output(),
     _container_widget(container_widget),
     _container_is_external(container_widget != NULL),
-    _widget(NULL),
-    _fullscreen(false),
-    _playing(false),
-    _pausing(false)
+    _widget(NULL)
 {
     if (!_container_widget)
     {
@@ -380,7 +377,7 @@ int64_t video_output_qt::wait_for_subtitle_renderer()
     exc init_exception;
     QDialog *mbox = NULL;
     // Show a dialog only in GUI mode
-    if (_container_is_external && !_fullscreen)
+    if (_container_is_external && !dispatch::parameters().fullscreen())
     {
         mbox = new QDialog(_container_widget);
         mbox->setModal(true);
@@ -518,12 +515,12 @@ void video_output_qt::trigger_resize(int w, int h)
 
 void video_output_qt::mouse_set_pos(float dest)
 {
-    if (_fullscreen || _container_is_external)
+    if (dispatch::parameters().fullscreen() || _container_is_external)
     {
         // Disabled in fullscreen and GUI mode
         return;
     }
-    if (_playing)
+    if (dispatch::playing())
     {
         send_cmd(command::set_pos, dest);
     }
@@ -536,7 +533,7 @@ void video_output_qt::mouse_toggle_fullscreen()
         // Disabled in non-GUI mode
         return;
     }
-    if (_playing)
+    if (dispatch::playing())
     {
         send_cmd(command::toggle_fullscreen);
     }
@@ -643,14 +640,9 @@ int video_output_qt::pos_y()
     return _widget->mapToGlobal(QPoint(0, 0)).y();
 }
 
-bool video_output_qt::fullscreen()
-{
-    return _fullscreen;
-}
-
 void video_output_qt::center()
 {
-    if (!_fullscreen)
+    if (!dispatch::parameters().fullscreen())
     {
         // Move the window, not the widget, so that this also works inside the GUI.
         int dest_screen_pos_x = (screen_width() - width()) / 2;
@@ -664,11 +656,11 @@ void video_output_qt::center()
     }
 }
 
-void video_output_qt::enter_fullscreen(int screens)
+void video_output_qt::enter_fullscreen()
 {
-    if (!_fullscreen)
+    int screens = dispatch::parameters().fullscreen_screens();
+    if (!dispatch::parameters().fullscreen())
     {
-        _fullscreen = true;
         if (_container_is_external)
         {
             _container_widget->setWindowFlags(Qt::Window);
@@ -738,27 +730,13 @@ void video_output_qt::enter_fullscreen(int screens)
     }
 }
 
-bool video_output_qt::toggle_fullscreen(int screens)
-{
-    if (_fullscreen)
-    {
-        exit_fullscreen();
-    }
-    else
-    {
-        enter_fullscreen(screens);
-    }
-    return _fullscreen;
-}
-
 void video_output_qt::exit_fullscreen()
 {
-    if (_fullscreen)
+    if (dispatch::parameters().fullscreen())
     {
         // Resume the screensaver before disabling fullscreen, so that our window ID
         // still represents the fullscreen window and was the same when suspending the screensaver.
         resume_screensaver();
-        _fullscreen = false;
         if (_container_is_external)
         {
             _container_widget->setWindowFlags(Qt::Widget);
@@ -778,20 +756,4 @@ void video_output_qt::process_events()
 {
     QApplication::sendPostedEvents();
     QApplication::processEvents();
-}
-
-void video_output_qt::receive_notification(const notification &note)
-{
-    if (note.type == notification::play)
-    {
-        std::istringstream current(note.current);
-        s11n::load(current, _playing);
-    }
-    else if (note.type == notification::pause)
-    {
-        std::istringstream current(note.current);
-        s11n::load(current, _pausing);
-    }
-    /* More is currently not implemented.
-     * In the future, an on-screen display might show hints about what happened. */
 }
