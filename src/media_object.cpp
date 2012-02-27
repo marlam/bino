@@ -1446,6 +1446,7 @@ read_frame:
                     &(_ffmpeg->video_packets[_video_stream]));
         }
         while (!frame_finished);
+#if LIBAVCODEC_VERSION_MAJOR >= 53 && LIBAVCODEC_VERSION_MINOR >= 8
         if (_ffmpeg->video_frames[_video_stream]->width != _ffmpeg->video_frame_templates[_video_stream].raw_width
                 || _ffmpeg->video_frames[_video_stream]->height != _ffmpeg->video_frame_templates[_video_stream].raw_height)
         {
@@ -1453,7 +1454,7 @@ read_frame:
                     _ffmpeg->video_frames[_video_stream]->width, _ffmpeg->video_frames[_video_stream]->height);
             goto read_frame;
         }
-
+#endif
         if (_frame.layout == video_frame::bgra32)
         {
             sws_scale(_ffmpeg->video_sws_ctxs[_video_stream],
