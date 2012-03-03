@@ -370,48 +370,58 @@ void in_out_widget::subtitle_changed()
 
 void in_out_widget::input_changed()
 {
-    parameters::stereo_layout_t stereo_layout;
-    bool stereo_layout_swap;
-    get_stereo_layout(stereo_layout, stereo_layout_swap);
-    if (stereo_layout == parameters::layout_separate)
+    if (!_lock)
     {
-        _lock = true;
-        _video_combobox->setCurrentIndex(0);
-        _video_combobox->setEnabled(false);
-        _lock = false;
-    }
-    else
-    {
-        _video_combobox->setEnabled(true);
-    }
-    send_cmd(command::set_stereo_layout, static_cast<int>(stereo_layout));
-    send_cmd(command::set_stereo_layout_swap, stereo_layout_swap);
-    parameters::stereo_mode_t stereo_mode;
-    bool stereo_mode_swap;
-    get_stereo_mode(stereo_mode, stereo_mode_swap);
-    if (stereo_layout == parameters::layout_mono
-            && !(stereo_mode == parameters::mode_mono_left || stereo_mode == parameters::mode_mono_right))
-    {
-        QString s = _settings->value("Session/2d-stereo-mode", "").toString();
-        parameters::stereo_mode_from_string(s.toStdString(), stereo_mode, stereo_mode_swap);
-        set_stereo_mode(stereo_mode, stereo_mode_swap);
-    }
-    else if (stereo_layout != parameters::layout_mono
-            && (stereo_mode == parameters::mode_mono_left || stereo_mode == parameters::mode_mono_right))
-    {
-        QString s = _settings->value("Session/3d-stereo-mode", "").toString();
-        parameters::stereo_mode_from_string(s.toStdString(), stereo_mode, stereo_mode_swap);
-        set_stereo_mode(stereo_mode, stereo_mode_swap);
+        parameters::stereo_layout_t stereo_layout;
+        bool stereo_layout_swap;
+        get_stereo_layout(stereo_layout, stereo_layout_swap);
+        if (stereo_layout == parameters::layout_separate)
+        {
+            _lock = true;
+            _video_combobox->setCurrentIndex(0);
+            _video_combobox->setEnabled(false);
+            _lock = false;
+        }
+        else
+        {
+            _video_combobox->setEnabled(true);
+        }
+        send_cmd(command::set_stereo_layout, static_cast<int>(stereo_layout));
+        send_cmd(command::set_stereo_layout_swap, stereo_layout_swap);
+        parameters::stereo_mode_t stereo_mode;
+        bool stereo_mode_swap;
+        get_stereo_mode(stereo_mode, stereo_mode_swap);
+        if (stereo_layout == parameters::layout_mono
+                && !(stereo_mode == parameters::mode_mono_left || stereo_mode == parameters::mode_mono_right))
+        {
+            QString s = _settings->value("Session/2d-stereo-mode", "").toString();
+            parameters::stereo_mode_from_string(s.toStdString(), stereo_mode, stereo_mode_swap);
+            _lock = true;
+            set_stereo_mode(stereo_mode, stereo_mode_swap);
+            _lock = false;
+        }
+        else if (stereo_layout != parameters::layout_mono
+                && (stereo_mode == parameters::mode_mono_left || stereo_mode == parameters::mode_mono_right))
+        {
+            QString s = _settings->value("Session/3d-stereo-mode", "").toString();
+            parameters::stereo_mode_from_string(s.toStdString(), stereo_mode, stereo_mode_swap);
+            _lock = true;
+            set_stereo_mode(stereo_mode, stereo_mode_swap);
+            _lock = false;
+        }
     }
 }
 
 void in_out_widget::output_changed()
 {
-    parameters::stereo_mode_t stereo_mode;
-    bool stereo_mode_swap;
-    get_stereo_mode(stereo_mode, stereo_mode_swap);
-    send_cmd(command::set_stereo_mode, static_cast<int>(stereo_mode));
-    send_cmd(command::set_stereo_mode_swap, stereo_mode_swap);
+    if (!_lock)
+    {
+        parameters::stereo_mode_t stereo_mode;
+        bool stereo_mode_swap;
+        get_stereo_mode(stereo_mode, stereo_mode_swap);
+        send_cmd(command::set_stereo_mode, static_cast<int>(stereo_mode));
+        send_cmd(command::set_stereo_mode_swap, stereo_mode_swap);
+    }
 }
 
 void in_out_widget::swap_changed()
@@ -2350,6 +2360,12 @@ void main_window::receive_notification(const notification &note)
         break;
     case notification::play:
         if (dispatch::playing()) {
+            // Force a size adjustment of the main window
+            _video_container_widget->hide();
+            _video_container_widget->show();
+            adjustSize();
+            // Give focus to video widget
+            _video_container_widget->grab_focus();
             // Remember what we're playing
             _now_playing.clear();
             assert(dispatch::media_input());

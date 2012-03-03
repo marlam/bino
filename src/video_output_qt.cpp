@@ -70,6 +70,7 @@ gl_thread::gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widge
     _activate_next_frame(false),
     _resize(false), _w(-1), _h(-1),
     _prepare_next_frame(false),
+    _recreate_context(false),
     _failure(false)
 {
     for (int i = 0; i < 2; i++) {
@@ -144,6 +145,12 @@ void gl_thread::prepare_next_frame(const video_frame &frame, const subtitle_box 
     _prepare_next_mutex.unlock();
 }
 
+void gl_thread::recreate_context(bool stereo)
+{
+    _recreate_context = true;
+    _recreate_context_stereo = stereo;
+}
+
 void gl_thread::run()
 {
     try {
@@ -191,6 +198,10 @@ void video_output_qt_widget::check_gl_thread()
         stop_rendering();
         QMessageBox::critical(this, _("Error"), _gl_thread.exception().what());
         _vo->send_cmd(command::toggle_play);
+    } else if (_gl_thread.recreate_context()) {
+        stop_rendering();
+        _vo->recreate_context(_gl_thread.recreate_context_stereo());
+        start_rendering();
     }
 }
 
@@ -205,16 +216,6 @@ void video_output_qt_widget::stop_rendering()
     _gl_thread.stop();
     _gl_thread.wait();
     _timer.stop();
-}
-
-void video_output_qt_widget::activate_next_frame()
-{
-    _gl_thread.activate_next_frame();
-}
-
-void video_output_qt_widget::prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle)
-{
-    _gl_thread.prepare_next_frame(frame, subtitle);
 }
 
 void video_output_qt_widget::resizeEvent(QResizeEvent* event)
@@ -445,6 +446,11 @@ void video_container_widget::set_recommended_size(int w, int h)
     _h = h;
 }
 
+void video_container_widget::grab_focus()
+{
+    childAt(0, 0)->setFocus(Qt::OtherFocusReason);
+}
+
 QSize video_container_widget::sizeHint() const
 {
     return QSize(_w, _h);
@@ -637,20 +643,20 @@ bool video_output_qt::context_is_stereo()
 
 void video_output_qt::recreate_context(bool stereo)
 {
-    deinit();
-    _format.setStereo(stereo);
-    init();
-    clear();
+    if (QThread::currentThread() == _widget->gl_thread()) {
+        _widget->gl_thread()->recreate_context(stereo);
+    } else {
+        deinit();
+        _format.setStereo(stereo);
+        init();
+    }
 }
 
 void video_output_qt::trigger_resize(int w, int h)
 {
     _container_widget->set_recommended_size(w, h);
     _container_widget->updateGeometry();
-    if (!_container_is_external)
-    {
-        _container_widget->adjustSize();
-    }
+    _container_widget->adjustSize();
 }
 
 void video_output_qt::mouse_set_pos(float dest)
@@ -707,14 +713,6 @@ void video_output_qt::resume_screensaver()
 #elif defined(Q_WS_MAC)
     /* TODO */
 #endif
-}
-
-void video_output_qt::grab_focus()
-{
-    if (_widget)
-    {
-        _widget->setFocus(Qt::OtherFocusReason);
-    }
 }
 
 bool video_output_qt::supports_stereo() const
@@ -855,7 +853,7 @@ void video_output_qt::enter_fullscreen()
             XFlush(QX11Info::display());
 #endif
         }
-        grab_focus();
+        _container_widget->grab_focus();
         // Suspend the screensaver after going fullscreen, so that our window ID
         // represents the fullscreen window. We need to have the same ID for resume.
         suspend_screensaver();
@@ -881,7 +879,7 @@ void video_output_qt::exit_fullscreen()
         _container_widget->setWindowState(_widget->windowState() & ~Qt::WindowFullScreen);
         _container_widget->setCursor(Qt::ArrowCursor);
         _container_widget->show();
-        grab_focus();
+        _container_widget->grab_focus();
         _fullscreen = false;
     }
 }
@@ -895,11 +893,11 @@ void video_output_qt::process_events()
 void video_output_qt::prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle)
 {
     if (_widget)
-        _widget->prepare_next_frame(frame, subtitle);
+        _widget->gl_thread()->prepare_next_frame(frame, subtitle);
 }
 
 void video_output_qt::activate_next_frame()
 {
     if (_widget)
-        _widget->activate_next_frame();
+        _widget->gl_thread()->activate_next_frame();
 }

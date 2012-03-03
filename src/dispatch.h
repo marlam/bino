@@ -298,6 +298,7 @@ private:
     unsigned int _controllers_version;
     mutex _controllers_mutex;
     // Parameters
+    open_input_data _input_data;
     class parameters _parameters;
     // State
     bool _playing;

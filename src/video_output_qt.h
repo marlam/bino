@@ -54,6 +54,8 @@ private:
     size_t _next_line_size[2][3];
     subtitle_box _next_subtitle;
     mutex _prepare_next_mutex;
+    bool _recreate_context;
+    bool _recreate_context_stereo;
     bool _failure;
     exc _e;
 
@@ -63,9 +65,18 @@ public:
     void activate_next_frame();
     void resize(int w, int h);
     void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
+    void recreate_context(bool stereo);
     void run();
     void stop();
 
+    bool recreate_context()
+    {
+        return _recreate_context;
+    }
+    bool recreate_context_stereo()
+    {
+        return _recreate_context_stereo;
+    }
     bool failure() const
     {
         return _failure;
@@ -81,7 +92,7 @@ class video_output_qt_widget : public QGLWidget
     Q_OBJECT
 private:
     video_output_qt *_vo;
-    gl_thread _gl_thread;
+    class gl_thread _gl_thread;
     QTimer _timer;
 
 private slots:
@@ -92,8 +103,10 @@ public:
 
     void start_rendering();
     void stop_rendering();
-    void activate_next_frame();
-    void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
+    class gl_thread* gl_thread()
+    {
+        return &_gl_thread;
+    }
 
 protected:
     virtual void resizeEvent(QResizeEvent* event);
@@ -117,6 +130,7 @@ public:
     video_container_widget(QWidget *parent = NULL);
     void start_timer();
     void set_recommended_size(int w, int h);
+    void grab_focus();
 signals:
 protected:
     virtual QSize sizeHint() const;
@@ -154,9 +168,6 @@ public:
      * given, we will use our own, and it will be a top-level window. */
     video_output_qt(video_container_widget *container_widget = NULL);
     virtual ~video_output_qt();
-
-    /* Grab the keyboard focus for the video widget, to enable keyboard shortcuts */
-    void grab_focus();
 
     virtual void init();
     virtual int64_t wait_for_subtitle_renderer();
