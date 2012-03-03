@@ -441,15 +441,17 @@ void dispatch::receive_cmd(const command& cmd)
             notify_all(notification::parallax);
             notify_all(notification::ghostbust);
             notify_all(notification::subtitle_parallax);
-            if (_media_input->video_frame_template().stereo_layout == parameters::layout_mono)
-                _parameters.set_stereo_mode(parameters::mode_mono_left);
-            else if (_video_output && _video_output->supports_stereo())
-                _parameters.set_stereo_mode(parameters::mode_stereo);
-            else
-                _parameters.set_stereo_mode(parameters::mode_red_cyan_dubois);
-            _parameters.set_stereo_mode_swap(false);
-            notify_all(notification::stereo_mode);
-            notify_all(notification::stereo_mode_swap);
+            if (!_parameters.stereo_mode_is_set()) {
+                if (_media_input->video_frame_template().stereo_layout == parameters::layout_mono)
+                    _parameters.set_stereo_mode(parameters::mode_mono_left);
+                else if (_video_output && _video_output->supports_stereo())
+                    _parameters.set_stereo_mode(parameters::mode_stereo);
+                else
+                    _parameters.set_stereo_mode(parameters::mode_red_cyan_dubois);
+                _parameters.set_stereo_mode_swap(false);
+                notify_all(notification::stereo_mode);
+                notify_all(notification::stereo_mode_swap);
+            }
             // Set initial parameters
             if (_video_output) {
                 _video_output->set_suitable_size(
@@ -703,17 +705,21 @@ void dispatch::receive_cmd(const command& cmd)
     // Volatile parameters
     case command::toggle_fullscreen:
         {
-            bool fs = false;
-            if (_video_output) {
-                if (_parameters.fullscreen()) {
+            if (playing()) {
+                bool fs = false;
+                if (_video_output) {
+                    if (_parameters.fullscreen()) {
                     _video_output->exit_fullscreen();
                     fs = false;
-                } else {
-                    _video_output->enter_fullscreen();
-                    fs = true;
+                    } else {
+                        _video_output->enter_fullscreen();
+                        fs = true;
+                    }
                 }
+                _parameters.set_fullscreen(fs);
+            } else {
+                _parameters.set_fullscreen(!_parameters.fullscreen());
             }
-            _parameters.set_fullscreen(fs);
             notify_all(notification::fullscreen);
         }
         break;

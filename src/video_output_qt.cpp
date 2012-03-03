@@ -30,6 +30,8 @@ static GLEWContext* glewGetContext() { return &_glewContext; }
 
 #include <cmath>
 #include <cstdlib>
+#include <cerrno>
+#include <cstring>
 #include <unistd.h>
 
 #include <QApplication>
@@ -60,38 +62,169 @@ static GLEWContext* glewGetContext() { return &_glewContext; }
 #include "lib_versions.h"
 
 
+/* The GL thread */
+
+gl_thread::gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widget) :
+    _vo_qt(vo_qt), _vo_qt_widget(vo_qt_widget),
+    _render(true),
+    _activate_next_frame(false),
+    _resize(false), _w(-1), _h(-1),
+    _prepare_next_frame(false),
+    _failure(false)
+{
+    for (int i = 0; i < 2; i++) {
+        for (int p = 0; p < 3; p++) {
+            _next_data[i][p] = NULL;
+            _next_line_size[i][p] = 0;
+        }
+    }
+}
+
+gl_thread::~gl_thread()
+{
+    for (int i = 0; i < 2; i++) {
+        for (int p = 0; p < 3; p++) {
+            std::free(_next_data[i][p]);
+        }
+    }
+}
+
+void gl_thread::stop()
+{
+    _render = false;
+}
+
+void gl_thread::activate_next_frame()
+{
+    _activate_next_frame = true;
+}
+
+void gl_thread::resize(int w, int h)
+{
+    _resize = true;
+    _w = w;
+    _h = h;
+}
+
+void gl_thread::prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle)
+{
+    _prepare_next_mutex.lock();
+    _prepare_next_frame = true;
+    _next_subtitle = subtitle;
+    _next_frame = frame;
+    // Copy the data because the decoder can overwrite the buffers at any time
+    try {
+        if (_next_frame.is_valid()) {
+            for (int i = 0; i < 2; i++) {
+                for (int p = 0; p < 3; p++) {
+                    size_t height = _next_frame.raw_height;
+                    if (_next_frame.layout == video_frame::yuv420p && p > 0)
+                        height /= 2;
+                    size_t data_size = height * _next_frame.line_size[i][p];
+                    if (_next_line_size[i][p] != _next_frame.line_size[i][p]) {
+                        _next_data[i][p] = std::realloc(_next_data[i][p], data_size);
+                        if (data_size > 0 && !_next_data[i][p]) {
+                            throw exc(ENOMEM);
+                        }
+                        _next_line_size[i][p] = _next_frame.line_size[i][p];
+                    }
+                    if (data_size > 0) {
+                        std::memcpy(_next_data[i][p], _next_frame.data[i][p], data_size);
+                    }
+                    _next_frame.data[i][p] = _next_data[i][p];
+                }
+            }
+        }
+    }
+    catch (std::exception& e) {
+        _failure = true;
+        _render = false;
+        _e = e;
+    }
+    _prepare_next_mutex.unlock();
+}
+
+void gl_thread::run()
+{
+    try {
+        while (_render) {
+            _vo_qt_widget->makeCurrent();
+            if (_activate_next_frame) {
+                _vo_qt->video_output::activate_next_frame();
+                _activate_next_frame = false;
+            }
+            if (_resize) {
+                _vo_qt->reshape(_w, _h);
+                _resize = false;
+            }
+            _vo_qt->display_current_frame();
+            if (_prepare_next_frame) {
+                _prepare_next_mutex.lock();
+                _vo_qt->video_output::prepare_next_frame(_next_frame, _next_subtitle);
+                _prepare_next_frame = false;
+                _prepare_next_mutex.unlock();
+            }
+            _vo_qt_widget->swapBuffers();
+        }
+    }
+    catch (std::exception& e) {
+        _failure = true;
+        _render = false;
+        _e = e;
+    }
+}
+
 /* The GL widget */
 
 video_output_qt_widget::video_output_qt_widget(
         video_output_qt *vo, const QGLFormat &format, QWidget *parent) :
-    QGLWidget(format, parent), _vo(vo)
+    QGLWidget(format, parent), _vo(vo), _gl_thread(vo, this)
 {
+    setAutoBufferSwap(false);
     setFocusPolicy(Qt::StrongFocus);
+    connect(&_timer, SIGNAL(timeout()), this, SLOT(check_gl_thread()));
 }
 
-video_output_qt_widget::~video_output_qt_widget()
+void video_output_qt_widget::check_gl_thread()
 {
-}
-
-void video_output_qt_widget::paintGL()
-{
-    try
-    {
-        _vo->display_current_frame();
-    }
-    catch (std::exception &e)
-    {
-        QMessageBox::critical(this, _("Error"), e.what());
-        // Disable further output and stop the player
-        _vo->prepare_next_frame(video_frame(), subtitle_box());
-        _vo->activate_next_frame();
+    if (_gl_thread.failure()) {
+        stop_rendering();
+        QMessageBox::critical(this, _("Error"), _gl_thread.exception().what());
         _vo->send_cmd(command::toggle_play);
     }
 }
 
-void video_output_qt_widget::resizeGL(int w, int h)
+void video_output_qt_widget::start_rendering()
 {
-    _vo->reshape(w, h);
+    _gl_thread.start();
+    _timer.start(0);
+}
+
+void video_output_qt_widget::stop_rendering()
+{
+    _gl_thread.stop();
+    _gl_thread.wait();
+    _timer.stop();
+}
+
+void video_output_qt_widget::activate_next_frame()
+{
+    _gl_thread.activate_next_frame();
+}
+
+void video_output_qt_widget::prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle)
+{
+    _gl_thread.prepare_next_frame(frame, subtitle);
+}
+
+void video_output_qt_widget::resizeEvent(QResizeEvent* event)
+{
+    _gl_thread.resize(event->size().width(), event->size().height());
+}
+
+void video_output_qt_widget::paintEvent(QPaintEvent*)
+{
+    // Handled by _gl_thread
 }
 
 void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
@@ -329,7 +462,8 @@ video_output_qt::video_output_qt(video_container_widget *container_widget) :
     video_output(),
     _container_widget(container_widget),
     _container_is_external(container_widget != NULL),
-    _widget(NULL)
+    _widget(NULL),
+    _fullscreen(false)
 {
     if (!_container_widget)
     {
@@ -373,6 +507,9 @@ void video_output_qt::init()
         // Initialize GL things
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
+        // Start rendering
+        _widget->doneCurrent();
+        _widget->start_rendering();
     }
 }
 
@@ -432,9 +569,9 @@ void video_output_qt::deinit()
 {
     if (_widget)
     {
+        _widget->stop_rendering();
         _widget->makeCurrent();
         video_output::deinit();
-        _widget->doneCurrent();
         delete _widget;
         _widget = NULL;
     }
@@ -504,12 +641,6 @@ void video_output_qt::recreate_context(bool stereo)
     _format.setStereo(stereo);
     init();
     clear();
-}
-
-void video_output_qt::trigger_update()
-{
-    if (_widget)
-        _widget->update();
 }
 
 void video_output_qt::trigger_resize(int w, int h)
@@ -659,9 +790,9 @@ void video_output_qt::center()
 
 void video_output_qt::enter_fullscreen()
 {
-    int screens = dispatch::parameters().fullscreen_screens();
-    if (!dispatch::parameters().fullscreen())
+    if (!_fullscreen)
     {
+        int screens = dispatch::parameters().fullscreen_screens();
         if (_container_is_external)
         {
             _container_widget->setWindowFlags(Qt::Window);
@@ -728,12 +859,13 @@ void video_output_qt::enter_fullscreen()
         // Suspend the screensaver after going fullscreen, so that our window ID
         // represents the fullscreen window. We need to have the same ID for resume.
         suspend_screensaver();
+        _fullscreen = true;
     }
 }
 
 void video_output_qt::exit_fullscreen()
 {
-    if (dispatch::parameters().fullscreen())
+    if (_fullscreen)
     {
         // Resume the screensaver before disabling fullscreen, so that our window ID
         // still represents the fullscreen window and was the same when suspending the screensaver.
@@ -750,6 +882,7 @@ void video_output_qt::exit_fullscreen()
         _container_widget->setCursor(Qt::ArrowCursor);
         _container_widget->show();
         grab_focus();
+        _fullscreen = false;
     }
 }
 
@@ -757,4 +890,16 @@ void video_output_qt::process_events()
 {
     QApplication::sendPostedEvents();
     QApplication::processEvents();
+}
+
+void video_output_qt::prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle)
+{
+    if (_widget)
+        _widget->prepare_next_frame(frame, subtitle);
+}
+
+void video_output_qt::activate_next_frame()
+{
+    if (_widget)
+        _widget->activate_next_frame();
 }

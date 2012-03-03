@@ -27,6 +27,9 @@
 #include <QGLWidget>
 #include <QGLFormat>
 #include <QTimer>
+#include <QThread>
+
+#include "thread.h"
 
 #include "video_output.h"
 
@@ -34,21 +37,67 @@
 /* Internal interface */
 
 class video_output_qt;
+class video_output_qt_widget;
+
+class gl_thread : public QThread
+{
+private:
+    video_output_qt* _vo_qt;
+    video_output_qt_widget* _vo_qt_widget;
+    bool _render;
+    bool _activate_next_frame;
+    bool _resize;
+    int _w, _h;
+    bool _prepare_next_frame;
+    video_frame _next_frame;
+    void* _next_data[2][3];
+    size_t _next_line_size[2][3];
+    subtitle_box _next_subtitle;
+    mutex _prepare_next_mutex;
+    bool _failure;
+    exc _e;
+
+public:
+    gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widget);
+    ~gl_thread();
+    void activate_next_frame();
+    void resize(int w, int h);
+    void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
+    void run();
+    void stop();
+
+    bool failure() const
+    {
+        return _failure;
+    }
+    const exc& exception() const
+    {
+        return _e;
+    }
+};
 
 class video_output_qt_widget : public QGLWidget
 {
     Q_OBJECT
-
 private:
     video_output_qt *_vo;
+    gl_thread _gl_thread;
+    QTimer _timer;
+
+private slots:
+    void check_gl_thread();
 
 public:
     video_output_qt_widget(video_output_qt *vo, const QGLFormat &format, QWidget *parent = NULL);
-    ~video_output_qt_widget();
+
+    void start_rendering();
+    void stop_rendering();
+    void activate_next_frame();
+    void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
 
 protected:
-    virtual void paintGL();
-    virtual void resizeGL(int width, int height);
+    virtual void resizeEvent(QResizeEvent* event);
+    virtual void paintEvent(QPaintEvent* event);
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
     virtual void mouseDoubleClickEvent(QMouseEvent *event);
@@ -84,6 +133,7 @@ private:
     bool _container_is_external;
     video_output_qt_widget *_widget;
     QGLFormat _format;
+    bool _fullscreen;
 
     void create_widget();
     void mouse_set_pos(float dest);
@@ -95,7 +145,6 @@ protected:
     virtual void make_context_current();
     virtual bool context_is_stereo();
     virtual void recreate_context(bool stereo);
-    virtual void trigger_update();
     virtual void trigger_resize(int w, int h);
 
 public:
@@ -128,6 +177,10 @@ public:
 
     virtual void process_events();
 
+    virtual void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
+    virtual void activate_next_frame();
+
+    friend class gl_thread;
     friend class video_output_qt_widget;
 };
 

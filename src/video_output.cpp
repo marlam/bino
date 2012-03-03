@@ -142,9 +142,8 @@ void video_output::deinit()
 {
     if (_initialized)
     {
-        make_context_current();
-        assert(xgl::CheckError(HERE));
         clear();
+        assert(xgl::CheckError(HERE));
         input_deinit(0);
         input_deinit(1);
         color_deinit();
@@ -325,21 +324,13 @@ static int next_multiple_of_4(int x)
 
 void video_output::prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle)
 {
-    _params = dispatch::parameters();
-    bool context_needs_stereo = (_params.stereo_mode() == parameters::mode_stereo);
-    if (context_needs_stereo != context_is_stereo())
-    {
-        recreate_context(context_needs_stereo);
-        _color_last_frame = video_frame();
-    }
-    assert(xgl::CheckError(HERE));
     int index = (_active_index == 0 ? 1 : 0);
     if (!frame.is_valid())
     {
         _frame[index] = frame;
         return;
     }
-    make_context_current();
+    assert(xgl::CheckError(HERE));
     if (!input_is_compatible(index, frame))
     {
         input_deinit(index);
@@ -758,7 +749,6 @@ bool video_output::render_is_compatible()
 void video_output::activate_next_frame()
 {
     _active_index = (_active_index == 0 ? 1 : 0);
-    trigger_update();
 }
 
 static void draw_quad(float x, float y, float w, float h,
@@ -805,8 +795,6 @@ void video_output::display_current_frame(
         const GLint viewport[2][4],
         const float tex_coords[2][4][2])
 {
-    make_context_current();
-    assert(xgl::CheckError(HERE));
     clear();
     const video_frame &frame = _frame[_active_index];
     if (!frame.is_valid())
@@ -814,6 +802,13 @@ void video_output::display_current_frame(
         return;
     }
 
+    _params = dispatch::parameters();
+    bool context_needs_stereo = (_params.stereo_mode() == parameters::mode_stereo);
+    if (context_needs_stereo != context_is_stereo())
+    {
+        recreate_context(context_needs_stereo);
+        _color_last_frame = video_frame();
+    }
     if (!keep_viewport
             && (frame.width != _color_last_frame.width
                 || frame.height != _color_last_frame.height
@@ -827,6 +822,7 @@ void video_output::display_current_frame(
     {
         reshape(width(), height());
     }
+    assert(xgl::CheckError(HERE));
     if (!_color_prg || !color_is_compatible(frame))
     {
         color_deinit();
@@ -1112,7 +1108,6 @@ void video_output::display_current_frame(
 
 void video_output::clear()
 {
-    make_context_current();
     assert(xgl::CheckError(HERE));
     if (context_is_stereo())
     {
@@ -1179,7 +1174,6 @@ static void compute_viewport_and_tex_coords(int vp[4], float tc[4][2],
 
 void video_output::reshape(int w, int h)
 {
-    make_context_current();
     // Clear
     _viewport[0][0] = 0;
     _viewport[0][1] = 0;

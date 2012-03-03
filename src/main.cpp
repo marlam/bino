@@ -42,6 +42,9 @@
 #include <QApplication>
 #include <QtGlobal>
 #include <QTextCodec>
+#ifdef Q_WS_X11
+# include <X11/Xlib.h>
+#endif
 
 #include "gettext.h"
 #define _(string) gettext(string)
@@ -177,6 +180,9 @@ int main(int argc, char *argv[])
 #ifdef Q_WS_X11
     const char *display = getenv("DISPLAY");
     bool have_display = (display && display[0] != '\0');
+    if (have_display) {
+        XInitThreads();
+    }
 #else
     bool have_display = true;
 #endif

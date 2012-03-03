@@ -105,7 +105,6 @@ protected:
     virtual void make_context_current() = 0;    // Make sure our OpenGL context is current
     virtual bool context_is_stereo() = 0;       // Is our current OpenGL context a stereo context?
     virtual void recreate_context(bool stereo) = 0;     // Recreate an OpenGL context and make it current
-    virtual void trigger_update() = 0;          // Trigger a redraw (i.e. make GL context current and call display())
     virtual void trigger_resize(int w, int h) = 0;      // Trigger a resize the video area
 
     void clear();                               // Clear the video area
@@ -165,9 +164,9 @@ public:
     virtual void process_events() = 0;
     
     /* Prepare a new frame for display. */
-    void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
+    virtual void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
     /* Switch to the next frame (make it the current one) */
-    void activate_next_frame();
+    virtual void activate_next_frame();
 };
 
 #endif
