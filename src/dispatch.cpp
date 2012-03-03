@@ -485,7 +485,7 @@ void dispatch::receive_cmd(const command& cmd)
                         _parameters.stereo_mode());
                 if (_parameters.fullscreen())
                     _video_output->enter_fullscreen();
-                if (_parameters.center())
+                if (_parameters.center() && !_gui_mode)
                     _video_output->center();
             }
             if (_eq) {
