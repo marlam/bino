@@ -71,6 +71,16 @@ if test "$ndebug" = "1"; then
 fi
 
 dnl Feature checks needed by the base module
+AC_MSG_CHECKING([for GCC atomic builtins])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],
+    [[int b, x = 0; b = __sync_bool_compare_and_swap(&x, 0, 1);]])],
+    HAVE_GCC_ATOMIC_BUILTINS=1, HAVE_GCC_ATOMIC_BUILTINS=0)
+if test "$HAVE_GCC_ATOMIC_BUILTINS" = "1"; then
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
+    AC_MSG_ERROR([GCC atomic builtins not found. Please use a newer compiler.])
+fi
 AC_CHECK_DECLS([optreset], [#include <getopt.h>])
 AC_SEARCH_LIBS([clock_gettime], [rt])
 AC_SEARCH_LIBS([pthread_create], [pthread])
