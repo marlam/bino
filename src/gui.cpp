@@ -2359,6 +2359,8 @@ void main_window::receive_notification(const notification &note)
         QApplication::quit();
         break;
     case notification::play:
+        _in_out_widget->update();
+        _controls_widget->update();
         if (dispatch::playing()) {
             // Force a size adjustment of the main window
             _video_container_widget->hide();
@@ -2525,9 +2527,6 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
     parameters::stereo_mode_from_string(mode_name.toStdString(), stereo_mode, stereo_mode_swap);
     send_cmd(command::set_stereo_mode, stereo_mode);
     send_cmd(command::set_stereo_mode_swap, stereo_mode_swap);
-    // Update the widget with the new settings
-    _in_out_widget->update();
-    _controls_widget->update();
     // Automatically start playing
     send_cmd(command::toggle_play);
 }
