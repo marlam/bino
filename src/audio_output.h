@@ -4,6 +4,7 @@
  * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Gabriele Greco <gabrielegreco@gmail.com>
+ * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,12 +26,12 @@
 #include <vector>
 #include <string>
 
-#ifdef __APPLE__
-#  include <OpenAL/al.h>
-#  include <OpenAL/alc.h>
-#else
+#if !defined(__APPLE__) || defined(HAVE_AL_AL_H)
 #  include <AL/al.h>
 #  include <AL/alc.h>
+#else
+#  include <OpenAL/al.h>
+#  include <OpenAL/alc.h>
 #endif
 
 #include "dispatch.h"

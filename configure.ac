@@ -6,6 +6,7 @@ dnl This file is part of bino, a 3D video player.
 dnl
 dnl Copyright (C) 2010, 2011, 2012
 dnl Martin Lambers <marlam@marlam.de>
+dnl Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
 dnl
 dnl This program is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -132,7 +133,12 @@ AC_DEFINE_UNQUOTED([LIBASS_PKGCONFIG_VERSION], [$LIBASS_PKGCONFIG_VERSION], [lib
 
 dnl OpenAL
 PKG_CHECK_MODULES([libopenal], [openal >= 0.0], [HAVE_LIBOPENAL=1], [HAVE_LIBOPENAL=0])
-if test "$HAVE_LIBOPENAL" != "1"; then
+if test "$HAVE_LIBOPENAL" = "1"; then
+    CPPFLAGS_BAK="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS $libopenal_CFLAGS"
+    AC_CHECK_HEADERS([AL/al.h])
+    CPPFLAGS="$CPPFLAGS_BAK"
+else
     AC_MSG_WARN([required library libopenal not found:])
     AC_MSG_WARN([$libopenal_PKG_ERRORS])
     AC_MSG_WARN([libopenal is provided by OpenAL; Debian package: libopenal-dev])
