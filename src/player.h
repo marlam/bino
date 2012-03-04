@@ -93,10 +93,6 @@ protected:
     subtitle_box _current_subtitle_box;
     subtitle_box _next_subtitle_box;
 
-    // Execute one step and indicate required actions. Returns the number of microseconds
-    // that the caller may sleep before starting the next step.
-    int64_t step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
-
 public:
     /* Constructor/destructor.
      * Only a single player instance can exist. The constructor throws an
@@ -105,10 +101,14 @@ public:
     ~player();
 
     /* Open a player. */
-    void open();
+    virtual void open();
 
     /* Close the player and clean up. */
-    void close();
+    virtual void close();
+
+    // Execute one step and indicate required actions. Returns the number of microseconds
+    // that the caller may sleep before starting the next step.
+    int64_t step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
 
     // Execute one step and immediately take required actions. Return true if more steps are required.
     bool run_step();
@@ -129,6 +129,16 @@ public:
     void set_stereo_layout_swap(bool swap);
 
     float get_pos() const;
+
+    /* Equalizer interface. */
+    const video_frame& get_video_frame() const
+    {
+        return _video_frame;
+    }
+    const subtitle_box& get_subtitle_box() const
+    {
+        return _current_subtitle_box;
+    }
 };
 
 #endif

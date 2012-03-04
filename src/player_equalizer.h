@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Stefan Eilemann <eile@eyescale.ch>
  *
@@ -27,21 +27,24 @@
 
 #include "player.h"
 
+class eq_node_factory;
+class eq_config;
 
 class player_equalizer : public player
 {
 private:
-    void *_node_factory;
-    void *_config;
+    eq_node_factory* _node_factory;
+    eq_config* _config;
     bool _flat_screen;
 
 public:
-    player_equalizer(int *argc, char *argv[], bool flat_screen);
+    player_equalizer(int* argc, char* argv[], bool flat_screen);
     virtual ~player_equalizer();
 
-    virtual void open(const player_init_data &init_data);
-    virtual void run();
+    virtual void open();
     virtual void close();
+
+    static void mainloop();
 };
 
 #endif

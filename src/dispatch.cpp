@@ -28,6 +28,7 @@
 #include "exc.h"
 #include "dbg.h"
 #include "msg.h"
+#include "str.h"
 #include "timer.h"
 #include "thread.h"
 
@@ -36,6 +37,9 @@
 #include "video_output_qt.h"
 #include "media_input.h"
 #include "player.h"
+#if HAVE_LIBEQUALIZER
+# include "player_equalizer.h"
+#endif
 #include "dispatch.h"
 
 
@@ -92,9 +96,11 @@ void controller::process_events()
 }
 
 
-dispatch::dispatch(bool equalizer, bool equalizer_3d, bool equalizer_slave_node,
+dispatch::dispatch(int* argc, char** argv,
+        bool equalizer, bool equalizer_3d, bool equalizer_slave_node,
         bool gui, bool have_display, msg::level_t log_level,
         bool benchmark, int swap_interval) throw () :
+    _argc(argc), _argv(argv),
     _eq(equalizer), _eq_3d(equalizer_3d), _eq_slave_node(equalizer_slave_node),
     _gui_mode(gui), _have_display(have_display),
     _gui(NULL), _audio_output(NULL), _video_output(NULL), _media_input(NULL), _player(NULL),
@@ -145,11 +151,6 @@ void dispatch::init()
     if (_eq) {
         if (!_eq_slave_node && !_parameters.benchmark())
             _audio_output = new class audio_output;
-#if HAVE_LIBEQUALIZER
-        _player = new class player_equalizer(&argc, argv, equalizer_flat_screen);
-#else
-        throw exc(_("This version of Bino was compiled without support for Equalizer."));
-#endif
     } else if (!_have_display) {
         throw exc(_("Cannot connect to X server."));
     } else if (_gui_mode) {
@@ -269,6 +270,16 @@ class video_output* dispatch::get_video_output()
 class media_input* dispatch::get_media_input()
 {
     return _media_input;
+}
+
+class open_input_data* dispatch::get_input_data()
+{
+    return &_input_data;
+}
+
+class player* dispatch::get_player()
+{
+    return _player;
 }
 
 void dispatch::set_playing(bool p)
@@ -477,7 +488,15 @@ void dispatch::receive_cmd(const command& cmd)
                 if (_parameters.center())
                     _video_output->center();
             }
-            _player = new player;
+            if (_eq) {
+#if HAVE_LIBEQUALIZER
+                _player = new class player_equalizer(_argc, _argv, !_eq_3d);
+#else
+                throw exc(_("This version of Bino was compiled without support for Equalizer."));
+#endif
+            } else {
+                _player = new player;
+            }
             _player->open();
             _playing = true;
             notify_all(notification::play);
@@ -740,4 +759,25 @@ void dispatch::receive_cmd(const command& cmd)
         notify_all(notification::audio_mute);
         break;
     }
+}
+
+std::string dispatch::save_state() const
+{
+    std::ostringstream oss;
+    s11n::save(oss, _input_data);
+    s11n::save(oss, _parameters);
+    s11n::save(oss, _playing);
+    s11n::save(oss, _pausing);
+    s11n::save(oss, _position);
+    return oss.str();
+}
+
+void dispatch::load_state(const std::string& s)
+{
+    std::istringstream iss(s);
+    s11n::load(iss, _input_data);
+    s11n::load(iss, _parameters);
+    s11n::load(iss, _playing);
+    s11n::load(iss, _pausing);
+    s11n::load(iss, _position);
 }

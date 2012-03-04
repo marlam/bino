@@ -283,6 +283,8 @@ public:
 class dispatch
 {
 private:
+    int* _argc;
+    char** _argv;
     const bool _eq;
     const bool _eq_3d;
     const bool _eq_slave_node;
@@ -311,7 +313,8 @@ private:
     void notify_all(const notification& note);
 
 public:
-    dispatch(bool equalizer, bool equalizer_3d, bool equalizer_slave_node,
+    dispatch(int* argc, char** argv,
+            bool equalizer, bool equalizer_3d, bool equalizer_slave_node,
             bool gui, bool have_display, msg::level_t log_level,
             bool benchmark, int swap_interval) throw ();
     virtual ~dispatch();
@@ -346,6 +349,12 @@ public:
     void set_playing(bool p);
     void set_pausing(bool p);
     void set_position(float pos);
+
+    /* Interface for Equalizer. */
+    class open_input_data* get_input_data();
+    class player* get_player();
+    std::string save_state() const;
+    void load_state(const std::string& s);
 };
 
 #endif

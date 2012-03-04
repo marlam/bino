@@ -553,16 +553,18 @@ int main(int argc, char *argv[])
     /* Find invariant parameters, required for dispatch initialization */
     bool dispatch_equalizer = false;
     bool dispatch_equalizer_3d = false;
+    bool dispatch_gui = !no_gui.value();
     if (audio_device.is_set())
         controller::send_cmd(command::set_audio_device, audio_device.value() - 1);
     if (video_output_mode.value() == "equalizer") {
         dispatch_equalizer = true;
         dispatch_equalizer_3d = false;
+        dispatch_gui = false;
     } else if (video_output_mode.value() == "equalizer-3d") {
         dispatch_equalizer = true;
         dispatch_equalizer_3d = true;
+        dispatch_gui = false;
     }
-    bool dispatch_gui = !no_gui.value();
     msg::level_t dispatch_log_level = msg::level();
     if (log_level.value() == "")
         dispatch_log_level = msg::INF;
@@ -582,26 +584,21 @@ int main(int argc, char *argv[])
         dispatch_swap_interval = swap_interval.value();
 
     /* Create the central dispatch */
-    dispatch global_dispatch(dispatch_equalizer, dispatch_equalizer_3d, false,
+    dispatch global_dispatch(&argc, argv,
+            dispatch_equalizer, dispatch_equalizer_3d, false,
             dispatch_gui, have_display, dispatch_log_level,
             dispatch_benchmark, dispatch_swap_interval);
     if (dispatch_benchmark)
         msg::inf(_("Benchmark mode: audio and time synchronization disabled."));
 
     /* Set session parameters */
-    bool equalizer = false;
-    bool equalizer_flat_screen = true;
     if (audio_device.is_set())
         controller::send_cmd(command::set_audio_device, audio_device.value() - 1);
     if (video_output_mode.is_set()) {
         if (video_output_mode.value() == "equalizer") {
-            equalizer = true;
-            equalizer_flat_screen = true;
             controller::send_cmd(command::set_stereo_mode, static_cast<int>(parameters::mode_mono_left));
             controller::send_cmd(command::set_stereo_mode_swap, false);
         } else if (video_output_mode.value() == "equalizer-3d") {
-            equalizer = true;
-            equalizer_flat_screen = false;
             controller::send_cmd(command::set_stereo_mode, static_cast<int>(parameters::mode_mono_left));
             controller::send_cmd(command::set_stereo_mode_swap, false);
         } else {
@@ -715,6 +712,8 @@ int main(int argc, char *argv[])
             s11n::save(v, input_data);
             controller::send_cmd(command::open, v.str());
             controller::send_cmd(command::toggle_play);
+        } else if (!dispatch_gui) {
+            throw exc(_("No video to play."));
         }
 #if HAVE_LIBLIRCCLIENT
         lircclient lirc(PACKAGE, lirc_config.values());
@@ -730,7 +729,7 @@ int main(int argc, char *argv[])
         }
 #endif
         if (dispatch_equalizer) {
-            assert(0);  // TODO: main loop
+            player_equalizer::mainloop();
         } else {
             QApplication::exec();
         }
