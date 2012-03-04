@@ -90,9 +90,9 @@ gl_thread::~gl_thread()
     }
 }
 
-void gl_thread::stop()
+void gl_thread::set_render(bool r)
 {
-    _render = false;
+    _render = r;
 }
 
 void gl_thread::activate_next_frame()
@@ -155,21 +155,24 @@ void gl_thread::run()
 {
     try {
         while (_render) {
+            assert(_vo_qt_widget->context()->isValid());
             _vo_qt_widget->makeCurrent();
-            if (_activate_next_frame) {
-                _vo_qt->video_output::activate_next_frame();
-                _activate_next_frame = false;
-            }
-            if (_resize) {
-                _vo_qt->reshape(_w, _h);
-                _resize = false;
-            }
-            _vo_qt->display_current_frame();
-            if (_prepare_next_frame) {
-                _prepare_next_mutex.lock();
-                _vo_qt->video_output::prepare_next_frame(_next_frame, _next_subtitle);
-                _prepare_next_frame = false;
-                _prepare_next_mutex.unlock();
+            if (QGLContext::currentContext() == _vo_qt_widget->context()) {
+                if (_activate_next_frame) {
+                    _vo_qt->video_output::activate_next_frame();
+                    _activate_next_frame = false;
+                }
+                if (_resize) {
+                    _vo_qt->reshape(_w, _h);
+                    _resize = false;
+                }
+                _vo_qt->display_current_frame();
+                if (_prepare_next_frame) {
+                    _prepare_next_mutex.lock();
+                    _vo_qt->video_output::prepare_next_frame(_next_frame, _next_subtitle);
+                    _prepare_next_frame = false;
+                    _prepare_next_mutex.unlock();
+                }
             }
             _vo_qt_widget->swapBuffers();
         }
@@ -207,13 +210,14 @@ void video_output_qt_widget::check_gl_thread()
 
 void video_output_qt_widget::start_rendering()
 {
+    _gl_thread.set_render(true);
     _gl_thread.start();
     _timer.start(0);
 }
 
 void video_output_qt_widget::stop_rendering()
 {
-    _gl_thread.stop();
+    _gl_thread.set_render(false);
     _gl_thread.wait();
     _timer.stop();
 }
@@ -223,18 +227,8 @@ void video_output_qt_widget::resizeEvent(QResizeEvent* event)
     _gl_thread.resize(event->size().width(), event->size().height());
 }
 
-void video_output_qt_widget::paintEvent(QPaintEvent*)
-{
-    // Handled by _gl_thread
-}
-
 void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
 {
-    if (_vo->_container_is_external && !dispatch::playing())
-    {
-        QGLWidget::keyPressEvent(event);
-        return;
-    }
     switch (event->key())
     {
     case Qt::Key_Escape:
@@ -790,6 +784,7 @@ void video_output_qt::enter_fullscreen()
 {
     if (!_fullscreen)
     {
+        _widget->stop_rendering();
         int screens = dispatch::parameters().fullscreen_screens();
         if (_container_is_external)
         {
@@ -858,6 +853,7 @@ void video_output_qt::enter_fullscreen()
         // represents the fullscreen window. We need to have the same ID for resume.
         suspend_screensaver();
         _fullscreen = true;
+        _widget->start_rendering();
     }
 }
 
@@ -865,6 +861,7 @@ void video_output_qt::exit_fullscreen()
 {
     if (_fullscreen)
     {
+        _widget->stop_rendering();
         // Resume the screensaver before disabling fullscreen, so that our window ID
         // still represents the fullscreen window and was the same when suspending the screensaver.
         resume_screensaver();
@@ -881,6 +878,7 @@ void video_output_qt::exit_fullscreen()
         _container_widget->show();
         _container_widget->grab_focus();
         _fullscreen = false;
+        _widget->start_rendering();
     }
 }
 

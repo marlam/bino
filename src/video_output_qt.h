@@ -28,8 +28,7 @@
 #include <QGLFormat>
 #include <QTimer>
 #include <QThread>
-
-#include "thread.h"
+#include <QMutex>
 
 #include "video_output.h"
 
@@ -53,7 +52,7 @@ private:
     void* _next_data[2][3];
     size_t _next_line_size[2][3];
     subtitle_box _next_subtitle;
-    mutex _prepare_next_mutex;
+    QMutex _prepare_next_mutex;
     bool _recreate_context;
     bool _recreate_context_stereo;
     bool _failure;
@@ -67,7 +66,7 @@ public:
     void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
     void recreate_context(bool stereo);
     void run();
-    void stop();
+    void set_render(bool r);
 
     bool recreate_context()
     {
@@ -109,8 +108,8 @@ public:
     }
 
 protected:
+    virtual void paintEvent(QPaintEvent*) {};
     virtual void resizeEvent(QResizeEvent* event);
-    virtual void paintEvent(QPaintEvent* event);
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
     virtual void mouseDoubleClickEvent(QMouseEvent *event);
