@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
     options.push_back(&fullscreen_flop_right);
     opt::val<float> zoom("zoom", 'z', opt::optional, 0.0f, 1.0f);
     options.push_back(&zoom);
-    opt::tuple<float> crop_aspect_ratio("crop-aspect-ratio", 'C', opt::optional, 0.0f, 100.0f, std::vector<float>(), 2, ":");
+    opt::tuple<float> crop_aspect_ratio("crop", 'C', opt::optional, 0.0f, 100.0f, std::vector<float>(), 2, ":");
     options.push_back(&crop_aspect_ratio);
     opt::flag center("center", 'c', opt::optional);
     options.push_back(&center);
@@ -323,9 +323,9 @@ int main(int argc, char *argv[])
     options.push_back(&subtitle_parallax);
     opt::val<float> parallax("parallax", 'P', opt::optional, -1.0f, +1.0f);
     options.push_back(&parallax);
-    opt::tuple<float> crosstalk("crosstalk", 'C', opt::optional, 0.0f, 1.0f, std::vector<float>(), 3);
+    opt::tuple<float> crosstalk("crosstalk", '\0', opt::optional, 0.0f, 1.0f, std::vector<float>(), 3);
     options.push_back(&crosstalk);
-    opt::val<float> ghostbust("ghostbust", 'G', opt::optional, 0.0f, 1.0f);
+    opt::val<float> ghostbust("ghostbust", '\0', opt::optional, 0.0f, 1.0f);
     options.push_back(&ghostbust);
     opt::flag benchmark("benchmark", 'b', opt::optional);
     options.push_back(&benchmark);
@@ -479,9 +479,9 @@ int main(int argc, char *argv[])
                 + "  --subtitle-color=COLOR   " + _("Set subtitle color, in [AA]RRGGBB format.") + '\n'
                 + "  --subtitle-parallax=VAL  " + _("Subtitle parallax adjustment (-1 to +1).") + '\n'
                 + "  -P|--parallax=VAL        " + _("Parallax adjustment (-1 to +1).") + '\n'
-                + "  -C|--crosstalk=VAL       " + _("Crosstalk leak level (0 to 1).") + '\n'
+                + "  --crosstalk=VAL          " + _("Crosstalk leak level (0 to 1).") + '\n'
                 + "                           " + _("Comma-separated values for R,G,B.") + '\n'
-                + "  -G|--ghostbust=VAL       " + _("Amount of ghostbusting to apply (0 to 1).") + '\n'
+                + "  --ghostbust=VAL          " + _("Amount of ghostbusting to apply (0 to 1).") + '\n'
                 + "  -b|--benchmark           " + _("Benchmark mode (no audio, show fps).") + '\n'
                 + "  --swap-interval=D        " + _("Frame rate divisor for display refresh rate.") + '\n'
                 + "                           " + _("Default is 0 for benchmark mode, 1 otherwise.") + '\n'

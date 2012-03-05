@@ -193,11 +193,9 @@ Subtitle parallax adjustment (-1 to +1).
 @item -P
 @itemx --parallax=@var{VAL}
 Parallax adjustment (-1 to +1).
-@item -C
-@itemx --crosstalk=@var{VAL}
+@item --crosstalk=@var{VAL}
 Crosstalk leak level (0 to 1). Comma-separated values for the R,G,B channels.
-@item -G
-@itemx --ghostbust=@var{VAL}
+@item --ghostbust=@var{VAL}
 Amount of crosstalk ghostbusting to apply (0 to 1).
 @item -b
 @itemx --benchmark
