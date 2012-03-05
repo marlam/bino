@@ -21,6 +21,9 @@
 #include <typeinfo>
 #include <limits>
 #include <cstring>
+#ifndef NDEBUG
+# include <set>
+#endif
 
 #include "gettext.h"
 #define _(string) gettext(string)
@@ -30,6 +33,7 @@
 #undef required_argument
 #undef optional_argument
 
+#include "dbg.h"
 #include "msg.h"
 #include "opt.h"
 
@@ -64,6 +68,21 @@ namespace opt
                 shortopt_count++;
             }
         }
+#ifndef NDEBUG
+        /* Sanity check: are all short and long options unique? */
+        {
+            std::set<char> shortopt_set;
+            std::set<std::string> longopt_set;
+            for (size_t i = 0; i < options.size(); i++)
+            {
+                if (options[i]->shortname() != '\0')
+                    shortopt_set.insert(options[i]->shortname());
+                longopt_set.insert(options[i]->longname());
+            }
+            assert(longopt_set.size() == static_cast<size_t>(longopt_count));
+            assert(shortopt_set.size() == static_cast<size_t>(shortopt_count));
+        }
+#endif
         /* Construct an array of type 'struct option', 'longopts', and a short
          * option description string 'shortopts' for use with getopt_long().
          * The indices of options in the given array 'options' and the constructed
