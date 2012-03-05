@@ -724,12 +724,16 @@ int main(int argc, char *argv[])
             msg::wrn("%s", e.what());
         }
 #else
-        if (lirc_config.is_set > 0) {
+        if (lirc_config.is_set()) {
             msg::wrn(_("This version of Bino was compiled without support for LIRC."));
         }
 #endif
         if (dispatch_equalizer) {
+#if HAVE_LIBEQUALIZER
             player_equalizer::mainloop();
+#else
+            msg::err(_("This version of Bino was compiled without support for Equalizer."));
+#endif
         } else {
             QApplication::exec();
         }
