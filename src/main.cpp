@@ -706,15 +706,7 @@ int main(int argc, char *argv[])
 
     int retval = 0;
     try {
-        global_dispatch.init();
-        if (input_data.urls.size() > 0) {
-            std::ostringstream v;
-            s11n::save(v, input_data);
-            controller::send_cmd(command::open, v.str());
-            controller::send_cmd(command::toggle_play);
-        } else if (!dispatch_gui) {
-            throw exc(_("No video to play."));
-        }
+        global_dispatch.init(input_data);
 #if HAVE_LIBLIRCCLIENT
         lircclient lirc(PACKAGE, lirc_config.values());
         try {

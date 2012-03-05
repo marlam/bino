@@ -2672,70 +2672,75 @@ void main_window::playloop_step()
 
 void main_window::open(QStringList filenames, const device_request &dev_request)
 {
-    open_input_data input_data;
-    input_data.dev_request = dev_request;
-    for (int i = 0; i < filenames.size(); i++) {
-        input_data.urls.push_back(filenames[i].toLocal8Bit().constData());
+    try {
+        open_input_data input_data;
+        input_data.dev_request = dev_request;
+        for (int i = 0; i < filenames.size(); i++) {
+            input_data.urls.push_back(filenames[i].toLocal8Bit().constData());
+        }
+        // Get the settings for this video
+        QString saved_video_parameters = _settings->value("Video/" + urls_hash(input_data.urls), QString("")).toString();
+        if (!saved_video_parameters.isEmpty()) {
+            input_data.params.load_video_parameters(saved_video_parameters.toStdString());
+        } else {
+            // This code block is only for compatibility with Bino <= 1.2.x:
+            _settings->beginGroup("Video/" + urls_hash(input_data.urls));
+            if (!_settings->contains("stereo-layout")) {
+                QString layout_name = _settings->value("stereo-layout").toString();
+                parameters::stereo_layout_t stereo_layout;
+                bool stereo_layout_swap;
+                parameters::stereo_layout_from_string(layout_name.toStdString(), stereo_layout, stereo_layout_swap);
+                input_data.params.set_stereo_layout(stereo_layout);
+                input_data.params.set_stereo_layout_swap(stereo_layout_swap);
+                _settings->remove("stereo-layout");
+            }
+            if (!_settings->contains("video-stream")) {
+                input_data.params.set_video_stream(_settings->value("video-stream").toInt());
+                _settings->remove("video-stream");
+            }
+            if (!_settings->contains("audio-stream")) {
+                input_data.params.set_audio_stream(_settings->value("audio-stream").toInt());
+                _settings->remove("audio-stream");
+            }
+            if (!_settings->contains("subtitle-stream")) {
+                input_data.params.set_subtitle_stream(_settings->value("subtitle-stream").toInt());
+                _settings->remove("subtitle-stream");
+            }
+            if (!_settings->contains("parallax")) {
+                input_data.params.set_parallax(_settings->value("parallax").toFloat());
+                _settings->remove("parallax");
+            }
+            if (!_settings->contains("ghostbust")) {
+                input_data.params.set_ghostbust(_settings->value("ghostbust").toFloat());
+                _settings->remove("ghostbust");
+            }
+            if (!_settings->contains("subtitle-parallax")) {
+                input_data.params.set_subtitle_parallax(_settings->value("subtitle-parallax").toFloat());
+                _settings->remove("subtitle-parallax");
+            }
+            _settings->endGroup();
+        }
+        std::ostringstream v;
+        s11n::save(v, input_data);
+        controller::send_cmd(command::open, v.str());
+        // Get stereo mode
+        QString mode_fallback = QString(parameters::stereo_mode_to_string(
+                    dispatch::parameters().stereo_mode(), dispatch::parameters().stereo_mode_swap()).c_str());
+        QString mode_name = _settings->value(
+                (dispatch::media_input()->video_frame_template().stereo_layout == parameters::layout_mono
+                 ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode"),
+                mode_fallback).toString();
+        parameters::stereo_mode_t stereo_mode;
+        bool stereo_mode_swap;
+        parameters::stereo_mode_from_string(mode_name.toStdString(), stereo_mode, stereo_mode_swap);
+        send_cmd(command::set_stereo_mode, stereo_mode);
+        send_cmd(command::set_stereo_mode_swap, stereo_mode_swap);
+        // Automatically start playing
+        send_cmd(command::toggle_play);
     }
-    // Get the settings for this video
-    QString saved_video_parameters = _settings->value("Video/" + urls_hash(input_data.urls), QString("")).toString();
-    if (!saved_video_parameters.isEmpty()) {
-        input_data.params.load_video_parameters(saved_video_parameters.toStdString());
-    } else {
-        // This code block is only for compatibility with Bino <= 1.2.x:
-        _settings->beginGroup("Video/" + urls_hash(input_data.urls));
-        if (!_settings->contains("stereo-layout")) {
-            QString layout_name = _settings->value("stereo-layout").toString();
-            parameters::stereo_layout_t stereo_layout;
-            bool stereo_layout_swap;
-            parameters::stereo_layout_from_string(layout_name.toStdString(), stereo_layout, stereo_layout_swap);
-            input_data.params.set_stereo_layout(stereo_layout);
-            input_data.params.set_stereo_layout_swap(stereo_layout_swap);
-            _settings->remove("stereo-layout");
-        }
-        if (!_settings->contains("video-stream")) {
-            input_data.params.set_video_stream(_settings->value("video-stream").toInt());
-            _settings->remove("video-stream");
-        }
-        if (!_settings->contains("audio-stream")) {
-            input_data.params.set_audio_stream(_settings->value("audio-stream").toInt());
-            _settings->remove("audio-stream");
-        }
-        if (!_settings->contains("subtitle-stream")) {
-            input_data.params.set_subtitle_stream(_settings->value("subtitle-stream").toInt());
-            _settings->remove("subtitle-stream");
-        }
-        if (!_settings->contains("parallax")) {
-            input_data.params.set_parallax(_settings->value("parallax").toFloat());
-            _settings->remove("parallax");
-        }
-        if (!_settings->contains("ghostbust")) {
-            input_data.params.set_ghostbust(_settings->value("ghostbust").toFloat());
-            _settings->remove("ghostbust");
-        }
-        if (!_settings->contains("subtitle-parallax")) {
-            input_data.params.set_subtitle_parallax(_settings->value("subtitle-parallax").toFloat());
-            _settings->remove("subtitle-parallax");
-        }
-        _settings->endGroup();
+    catch (std::exception& e) {
+        QMessageBox::critical(this, "Error", e.what());
     }
-    std::ostringstream v;
-    s11n::save(v, input_data);
-    controller::send_cmd(command::open, v.str());
-    // Get stereo mode
-    QString mode_fallback = QString(parameters::stereo_mode_to_string(
-                dispatch::parameters().stereo_mode(), dispatch::parameters().stereo_mode_swap()).c_str());
-    QString mode_name = _settings->value(
-            (dispatch::media_input()->video_frame_template().stereo_layout == parameters::layout_mono
-             ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode"),
-            mode_fallback).toString();
-    parameters::stereo_mode_t stereo_mode;
-    bool stereo_mode_swap;
-    parameters::stereo_mode_from_string(mode_name.toStdString(), stereo_mode, stereo_mode_swap);
-    send_cmd(command::set_stereo_mode, stereo_mode);
-    send_cmd(command::set_stereo_mode_swap, stereo_mode_swap);
-    // Automatically start playing
-    send_cmd(command::toggle_play);
 }
 
 void main_window::file_open()
@@ -3110,4 +3115,14 @@ gui::~gui()
 {
     delete _main_window;
     delete _settings;
+}
+
+void gui::open(const open_input_data& input_data)
+{
+     if (input_data.urls.size() > 0) {
+         QStringList urls;
+         for (size_t i = 0; i < input_data.urls.size(); i++)
+             urls.push_back(QFile::decodeName(input_data.urls[i].c_str()));
+         _main_window->open(urls, input_data.dev_request);
+     }
 }

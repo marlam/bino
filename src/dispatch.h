@@ -322,7 +322,7 @@ public:
     void register_controller(controller* c);
     void deregister_controller(controller* c);
 
-    void init();
+    void init(const open_input_data& input_data);
     void deinit();
 
     static void step();

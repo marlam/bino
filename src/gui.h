@@ -380,7 +380,6 @@ private:
     QAction *_clear_recent_separator;
     QAction *_clear_recent_files_act;
 
-    void open(QStringList urls, const device_request &dev_request = device_request());
     void update_recent_file_actions();
     QString stripped_name(const QStringList & filenames);
 
@@ -414,6 +413,7 @@ public:
     main_window(QSettings *settings);
     virtual ~main_window();
 
+    void open(QStringList urls, const device_request &dev_request = device_request());
     video_container_widget* container_widget()
     {
         return _video_container_widget;
@@ -431,6 +431,8 @@ private:
 public:
     gui();
     ~gui();
+
+    void open(const open_input_data& input_data);
 
     class video_container_widget* container_widget()
     {

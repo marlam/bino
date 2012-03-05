@@ -146,7 +146,7 @@ void dispatch::deregister_controller(controller* c)
     _controllers_mutex.unlock();
 }
 
-void dispatch::init()
+void dispatch::init(const open_input_data& input_data)
 {
     if (_eq) {
         if (!_eq_slave_node && !_parameters.benchmark())
@@ -158,10 +158,18 @@ void dispatch::init()
         if (!_parameters.benchmark())
             _audio_output = new class audio_output;
         _video_output = new video_output_qt(_gui->container_widget());
+        if (input_data.urls.size() > 0)
+            _gui->open(input_data);
     } else {
+        if (input_data.urls.size() == 0)
+            throw exc(_("No video to play."));
         if (!_parameters.benchmark())
             _audio_output = new class audio_output;
         _video_output = new video_output_qt();
+        std::ostringstream v;
+        s11n::save(v, input_data);
+        controller::send_cmd(command::open, v.str());
+        controller::send_cmd(command::toggle_play);
     }
 }
 
@@ -380,10 +388,22 @@ void dispatch::receive_cmd(const command& cmd)
         force_stop();
         s11n::load(p, _input_data);
         // Create media input
-        _media_input = new class media_input;
-        _media_input->open(_input_data.urls, _input_data.dev_request);
-        if (_media_input->video_streams() == 0) {
-            throw exc(_("No video streams found."));
+        try {
+            _media_input = new class media_input;
+            _media_input->open(_input_data.urls, _input_data.dev_request);
+            if (_media_input->video_streams() == 0) {
+                throw exc(_("No video streams found."));
+            }
+        }
+        catch (exc& e) {
+            delete _media_input;
+            _media_input = NULL;
+            throw e;
+        }
+        catch (std::exception& e) {
+            delete _media_input;
+            _media_input = NULL;
+            throw e;
         }
         break;
     case command::close:
