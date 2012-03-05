@@ -51,6 +51,8 @@
 #include <QDesktopServices>
 #include <QDoubleSpinBox>
 #include <QSpinBox>
+#include <QCheckBox>
+#include <QFontComboBox>
 #include <QStandardItemModel>
 #include <QTextBrowser>
 #include <QTabWidget>
@@ -62,6 +64,9 @@
 #include <QDesktopWidget>
 #include <QRadioButton>
 #include <QRegExpValidator>
+#include <QSettings>
+#include <QGroupBox>
+#include <QStackedWidget>
 
 #include "gettext.h"
 #define _(string) gettext(string)
@@ -1013,6 +1018,207 @@ void controls_widget::receive_notification(const notification &note)
         break;
     case notification::audio_mute:
         update_audio_widgets();
+        break;
+    default:
+        break;
+    }
+}
+
+
+fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent), _lock(false)
+{
+    _n = QApplication::desktop()->screenCount();
+
+    setModal(false);
+    setWindowTitle(_("Fullscreen/Multiscreen Settings"));
+
+    QLabel* lbl = new QLabel(_("Configure fullscreen mode:"));
+    lbl->setToolTip(_("<p>Select the screens to use in fullscreen mode.</p>"));
+
+    _single_btn = new QRadioButton(_("Single screen:"));
+    _single_btn->setToolTip(_("<p>Use a single screen for fullscreen mode.</p>"));
+    _single_box = new QComboBox();
+    _single_box->setToolTip(_single_btn->toolTip());
+    _single_box->addItem(_("Primary screen"));
+    if (_n > 1) {
+        for (int i = 0; i < _n; i++)
+            _single_box->addItem(str::asprintf(_("Screen %d"), i + 1).c_str());
+    }
+    connect(_single_btn, SIGNAL(toggled(bool)), this, SLOT(screens_changed()));
+    connect(_single_box, SIGNAL(currentIndexChanged(int)), this, SLOT(screens_changed()));
+
+    _dual_btn = new QRadioButton(_("Dual screen:"));
+    _dual_btn->setToolTip(_("<p>Use two screens for fullscreen mode.</p>"));
+    _dual_box0 = new QComboBox();
+    _dual_box0->setToolTip(_dual_btn->toolTip());
+    _dual_box1 = new QComboBox();
+    _dual_box1->setToolTip(_dual_btn->toolTip());
+    if (_n > 1) {
+        for (int i = 0; i < _n; i++) {
+            _dual_box0->addItem(str::asprintf(_("Screen %d"), i + 1).c_str());
+            _dual_box1->addItem(str::asprintf(_("Screen %d"), i + 1).c_str());
+        }
+    }
+    connect(_dual_btn, SIGNAL(toggled(bool)), this, SLOT(screens_changed()));
+    connect(_dual_box0, SIGNAL(currentIndexChanged(int)), this, SLOT(screens_changed()));
+    connect(_dual_box1, SIGNAL(currentIndexChanged(int)), this, SLOT(screens_changed()));
+
+    _multi_btn = new QRadioButton(_("Multi screen:"));
+    _multi_btn->setToolTip(_("<p>Use multiple screens for fullscreen mode.</p>"));
+    _multi_edt = new QLineEdit();
+    _multi_edt->setToolTip(_("<p>Comma-separated list of screens to use for fullscreen mode.</p>"));
+    _multi_edt->setValidator(new QRegExpValidator(QRegExp("\\d{1,2}(,\\d{1,2}){0,15}"), 0));
+    connect(_multi_btn, SIGNAL(toggled(bool)), this, SLOT(screens_changed()));
+    connect(_multi_edt, SIGNAL(editingFinished()), this, SLOT(screens_changed()));
+
+    QLabel* lbl2 = new QLabel(_("When in fullscreen mode,"));
+    lbl2->setToolTip(_("<p>Set special left/right view handling for fullscreen mode.</p>"));
+
+    _flip_left_box = new QCheckBox(_("flip left view vertically."));
+    _flip_left_box->setToolTip(lbl2->toolTip());
+    _flop_left_box = new QCheckBox(_("flop left view horizontally."));
+    _flop_left_box->setToolTip(lbl2->toolTip());
+    _flip_right_box = new QCheckBox(_("flip right view vertically."));
+    _flip_right_box->setToolTip(lbl2->toolTip());
+    _flop_right_box = new QCheckBox(_("flop right view horizontally."));
+    _flop_right_box->setToolTip(lbl2->toolTip());
+    connect(_flip_left_box, SIGNAL(toggled(bool)), this, SLOT(flip_left_changed()));
+    connect(_flop_left_box, SIGNAL(toggled(bool)), this, SLOT(flop_left_changed()));
+    connect(_flip_right_box, SIGNAL(toggled(bool)), this, SLOT(flip_right_changed()));
+    connect(_flop_right_box, SIGNAL(toggled(bool)), this, SLOT(flop_right_changed()));
+
+    QPushButton* ok_btn = new QPushButton(_("OK"));
+    connect(ok_btn, SIGNAL(pressed()), this, SLOT(close()));
+
+    QGridLayout *layout0 = new QGridLayout();
+    layout0->addWidget(lbl, 0, 0, 1, 3);
+    layout0->addWidget(_single_btn, 1, 0);
+    layout0->addWidget(_single_box, 1, 1, 1, 2);
+    layout0->addWidget(_dual_btn, 2, 0);
+    layout0->addWidget(_dual_box0, 2, 1);
+    layout0->addWidget(_dual_box1, 2, 2);
+    layout0->addWidget(_multi_btn, 3, 0);
+    layout0->addWidget(_multi_edt, 3, 1, 1, 2);
+    layout0->addWidget(lbl2, 4, 0, 1, 3);
+    layout0->addWidget(_flip_left_box, 5, 0, 1, 3);
+    layout0->addWidget(_flop_left_box, 6, 0, 1, 3);
+    layout0->addWidget(_flip_right_box, 7, 0, 1, 3);
+    layout0->addWidget(_flop_right_box, 8, 0, 1, 3);
+    QGridLayout *layout1 = new QGridLayout();
+    layout1->addWidget(ok_btn, 0, 0);
+    QGridLayout *layout = new QGridLayout();
+    layout->addLayout(layout0, 0, 0);
+    layout->addLayout(layout1, 1, 0);
+    setLayout(layout);
+
+    update();
+}
+
+void fullscreen_dialog::update()
+{
+    _lock = true;
+    if (_n < 3) {
+        _multi_btn->setEnabled(false);
+        _multi_edt->setEnabled(false);
+    } else {
+        _multi_edt->setText("1,2,3");
+    }
+    if (_n < 2) {
+        _dual_btn->setEnabled(false);
+        _dual_box0->setEnabled(false);
+        _dual_box1->setEnabled(false);
+    } else {
+        _dual_box0->setCurrentIndex(0);
+        _dual_box1->setCurrentIndex(1);
+    }
+    std::vector<int> conf_screens;
+    for (int i = 0; i < 16; i++)
+        if (dispatch::parameters().fullscreen_screens() & (1 << i))
+            conf_screens.push_back(i);
+    if (conf_screens.size() >= 3 && _n >= 3) {
+        QString screen_list;
+        for (size_t i = 0; i < conf_screens.size(); i++) {
+            screen_list += str::from(conf_screens[i] + 1).c_str();
+            if (i < conf_screens.size() - 1)
+                screen_list += ',';
+        }
+        _multi_btn->setChecked(true);
+        _multi_edt->setText(screen_list);
+    } else if (conf_screens.size() == 2 && _n >= 2) {
+        _dual_box0->setCurrentIndex(conf_screens[0]);
+        _dual_box1->setCurrentIndex(conf_screens[1]);
+        _dual_btn->setChecked(true);
+    } else {
+        if (conf_screens.size() > 0 && conf_screens[0] < _n)
+            _single_box->setCurrentIndex(conf_screens[0] + 1);
+        else
+            _single_box->setCurrentIndex(0);
+        _single_btn->setChecked(true);
+    }
+    _flip_left_box->setChecked(dispatch::parameters().fullscreen_flip_left());
+    _flop_left_box->setChecked(dispatch::parameters().fullscreen_flop_left());
+    _flip_right_box->setChecked(dispatch::parameters().fullscreen_flip_right());
+    _flop_right_box->setChecked(dispatch::parameters().fullscreen_flop_right());
+    _lock = false;
+}
+
+void fullscreen_dialog::screens_changed()
+{
+    if (_lock)
+        return;
+    if (_single_btn->isChecked()) {
+        if (_single_box->currentIndex() == 0)
+            send_cmd(command::set_fullscreen_screens, 0);
+        else
+            send_cmd(command::set_fullscreen_screens, 1 << (_single_box->currentIndex() - 1));
+    } else if (_dual_btn->isChecked()) {
+        send_cmd(command::set_fullscreen_screens,
+                (1 << _dual_box0->currentIndex()) | (1 << _dual_box1->currentIndex()));
+    } else {
+        int fss = 0;
+        QStringList screens = _multi_edt->text().split(',', QString::SkipEmptyParts);
+        for (int i = 0; i < screens.size(); i++) {
+            int s = str::to<int>(screens[i].toAscii().data());
+            if (s >= 1 && s <= 16)
+                fss |= (1 << (s - 1));
+        }
+        send_cmd(command::set_fullscreen_screens, fss);
+    }
+}
+
+void fullscreen_dialog::flip_left_changed()
+{
+    if (!_lock)
+        send_cmd(command::set_fullscreen_flip_left, _flip_left_box->isChecked());
+}
+
+void fullscreen_dialog::flop_left_changed()
+{
+    if (!_lock)
+        send_cmd(command::set_fullscreen_flop_left, _flop_left_box->isChecked());
+}
+
+void fullscreen_dialog::flip_right_changed()
+{
+    if (!_lock)
+        send_cmd(command::set_fullscreen_flip_right, _flip_right_box->isChecked());
+}
+
+void fullscreen_dialog::flop_right_changed()
+{
+    if (!_lock)
+        send_cmd(command::set_fullscreen_flop_right, _flop_right_box->isChecked());
+}
+
+void fullscreen_dialog::receive_notification(const notification& note)
+{
+    switch (note.type) {
+    case notification::fullscreen_screens:
+    case notification::fullscreen_flip_left:
+    case notification::fullscreen_flop_left:
+    case notification::fullscreen_flip_right:
+    case notification::fullscreen_flop_right:
+        update();
         break;
     default:
         break;
@@ -1986,6 +2192,7 @@ void open_device_dialog::request(QString &device, device_request &dev_request)
 
 main_window::main_window(QSettings *settings) :
     _settings(settings),
+    _fullscreen_dialog(NULL),
     _color_dialog(NULL),
     _crosstalk_dialog(NULL),
     _zoom_dialog(NULL),
@@ -2686,193 +2893,11 @@ void main_window::file_open_device()
 
 void main_window::preferences_fullscreen()
 {
-    int n = QApplication::desktop()->screenCount();
-
-    QDialog *dlg = new QDialog(this);
-    dlg->setWindowTitle(_("Fullscreen/Multiscreen Settings"));
-
-    QLabel *lbl = new QLabel(_("Configure fullscreen mode:"));
-    lbl->setToolTip(_("<p>Select the screens to use in fullscreen mode.</p>"));
-
-    QRadioButton *single_btn = new QRadioButton(_("Single screen:"));
-    single_btn->setToolTip(_("<p>Use a single screen for fullscreen mode.</p>"));
-    QComboBox *single_box = new QComboBox();
-    single_box->setToolTip(single_btn->toolTip());
-    single_box->addItem(_("Primary screen"));
-    if (n > 1)
-    {
-        for (int i = 0; i < n; i++)
-        {
-            single_box->addItem(str::asprintf(_("Screen %d"), i + 1).c_str());
-        }
-    }
-
-    QRadioButton *dual_btn = new QRadioButton(_("Dual screen:"));
-    dual_btn->setToolTip(_("<p>Use two screens for fullscreen mode.</p>"));
-    QComboBox *dual_box0 = new QComboBox();
-    dual_box0->setToolTip(dual_btn->toolTip());
-    QComboBox *dual_box1 = new QComboBox();
-    dual_box1->setToolTip(dual_btn->toolTip());
-    if (n > 1)
-    {
-        for (int i = 0; i < n; i++)
-        {
-            dual_box0->addItem(str::asprintf(_("Screen %d"), i + 1).c_str());
-            dual_box1->addItem(str::asprintf(_("Screen %d"), i + 1).c_str());
-        }
-    }
-
-    QRadioButton *multi_btn = new QRadioButton(_("Multi screen:"));
-    multi_btn->setToolTip(_("<p>Use multiple screens for fullscreen mode.</p>"));
-    QLineEdit *multi_edt = new QLineEdit();
-    multi_edt->setToolTip(_("<p>Comma-separated list of screens to use for fullscreen mode.</p>"));
-    QRegExp rx("\\d{1,2}(,\\d{1,2}){0,15}");
-    multi_edt->setValidator(new QRegExpValidator(rx, 0));
-
-    QLabel *lbl2 = new QLabel(_("When in fullscreen mode,"));
-    lbl2->setToolTip(_("<p>Set special left/right view handling for fullscreen mode.</p>"));
-
-    QCheckBox *flip_left_box = new QCheckBox(_("flip left view vertically."));
-    flip_left_box->setToolTip(lbl2->toolTip());
-    QCheckBox *flop_left_box = new QCheckBox(_("flop left view horizontally."));
-    flop_left_box->setToolTip(lbl2->toolTip());
-    QCheckBox *flip_right_box = new QCheckBox(_("flip right view vertically."));
-    flip_right_box->setToolTip(lbl2->toolTip());
-    QCheckBox *flop_right_box = new QCheckBox(_("flop right view horizontally."));
-    flop_right_box->setToolTip(lbl2->toolTip());
-
-    QPushButton *cancel_btn = new QPushButton(_("Cancel"));
-    QPushButton *ok_btn = new QPushButton(_("OK"));
-    ok_btn->setDefault(true);
-    connect(cancel_btn, SIGNAL(pressed()), dlg, SLOT(reject()));
-    connect(ok_btn, SIGNAL(pressed()), dlg, SLOT(accept()));
-
-    QGridLayout *layout0 = new QGridLayout();
-    layout0->addWidget(lbl, 0, 0, 1, 3);
-    layout0->addWidget(single_btn, 1, 0);
-    layout0->addWidget(single_box, 1, 1, 1, 2);
-    layout0->addWidget(dual_btn, 2, 0);
-    layout0->addWidget(dual_box0, 2, 1);
-    layout0->addWidget(dual_box1, 2, 2);
-    layout0->addWidget(multi_btn, 3, 0);
-    layout0->addWidget(multi_edt, 3, 1, 1, 2);
-    layout0->addWidget(lbl2, 4, 0, 1, 3);
-    layout0->addWidget(flip_left_box, 5, 0, 1, 3);
-    layout0->addWidget(flop_left_box, 6, 0, 1, 3);
-    layout0->addWidget(flip_right_box, 7, 0, 1, 3);
-    layout0->addWidget(flop_right_box, 8, 0, 1, 3);
-    QGridLayout *layout1 = new QGridLayout();
-    layout1->addWidget(cancel_btn, 0, 0);
-    layout1->addWidget(ok_btn, 0, 1);
-    QGridLayout *layout = new QGridLayout();
-    layout->addLayout(layout0, 0, 0);
-    layout->addLayout(layout1, 1, 0);
-    dlg->setLayout(layout);
-
-    // Set initial values from fullscreen_screens value
-    if (n < 3)
-    {
-        multi_btn->setEnabled(false);
-        multi_edt->setEnabled(false);
-    }
-    else
-    {
-        multi_edt->setText("1,2,3");
-    }
-    if (n < 2)
-    {
-        dual_btn->setEnabled(false);
-        dual_box0->setEnabled(false);
-        dual_box1->setEnabled(false);
-    }
-    else
-    {
-        dual_box0->setCurrentIndex(0);
-        dual_box1->setCurrentIndex(1);
-    }
-    std::vector<int> conf_screens;
-    for (int i = 0; i < 16; i++)
-    {
-        if (dispatch::parameters().fullscreen_screens() & (1 << i))
-        {
-            conf_screens.push_back(i);
-        }
-    }
-    if (conf_screens.size() >= 3 && n >= 3)
-    {
-        QString screen_list;
-        for (size_t i = 0; i < conf_screens.size(); i++)
-        {
-            screen_list += str::from(conf_screens[i] + 1).c_str();
-            if (i < conf_screens.size() - 1)
-            {
-                screen_list += ',';
-            }
-        }
-        multi_btn->setChecked(true);
-        multi_edt->setText(screen_list);
-    }
-    else if (conf_screens.size() == 2 && n >= 2)
-    {
-        dual_box0->setCurrentIndex(conf_screens[0]);
-        dual_box1->setCurrentIndex(conf_screens[1]);
-        dual_btn->setChecked(true);
-    }
-    else
-    {
-        if (conf_screens.size() > 0 && conf_screens[0] < n)
-        {
-            single_box->setCurrentIndex(conf_screens[0] + 1);
-        }
-        else
-        {
-            single_box->setCurrentIndex(0);
-        }
-        single_btn->setChecked(true);
-    }
-    flip_left_box->setChecked(dispatch::parameters().fullscreen_flip_left());
-    flop_left_box->setChecked(dispatch::parameters().fullscreen_flop_left());
-    flip_right_box->setChecked(dispatch::parameters().fullscreen_flip_right());
-    flop_right_box->setChecked(dispatch::parameters().fullscreen_flop_right());
-
-    dlg->exec();
-    if (dlg->result() == QDialog::Accepted)
-    {
-        if (single_btn->isChecked())
-        {
-            if (single_box->currentIndex() == 0)
-            {
-                send_cmd(command::set_fullscreen_screens, 0);
-            }
-            else
-            {
-                send_cmd(command::set_fullscreen_screens, 1 << (single_box->currentIndex() - 1));
-            }
-        }
-        else if (dual_btn->isChecked())
-        {
-            send_cmd(command::set_fullscreen_screens, 
-                    (1 << dual_box0->currentIndex()) | (1 << dual_box1->currentIndex()));
-        }
-        else
-        {
-            int fss = 0;
-            QStringList screens = multi_edt->text().split(',', QString::SkipEmptyParts);
-            for (int i = 0; i < screens.size(); i++)
-            {
-                int s = str::to<int>(screens[i].toAscii().data());
-                if (s >= 1 && s <= 16)
-                {
-                    fss |= (1 << (s - 1));
-                }
-            }
-            send_cmd(command::set_fullscreen_screens, fss);
-        }
-        send_cmd(command::set_fullscreen_flip_left, flip_left_box->isChecked());
-        send_cmd(command::set_fullscreen_flop_left, flop_left_box->isChecked());
-        send_cmd(command::set_fullscreen_flip_right, flip_right_box->isChecked());
-        send_cmd(command::set_fullscreen_flop_right, flop_right_box->isChecked());
-    }
+    if (!_fullscreen_dialog)
+        _fullscreen_dialog = new fullscreen_dialog(this);
+    _fullscreen_dialog->show();
+    _fullscreen_dialog->raise();
+    _fullscreen_dialog->activateWindow();
 }
 
 void main_window::preferences_colors()

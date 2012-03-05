@@ -26,22 +26,25 @@
 
 #include <QMainWindow>
 #include <QWidget>
-#include <QComboBox>
-#include <QPushButton>
-#include <QLabel>
-#include <QDoubleSpinBox>
-#include <QSpinBox>
-#include <QCheckBox>
-#include <QFontComboBox>
-#include <QTimer>
-#include <QSettings>
 #include <QDialog>
-#include <QGroupBox>
-#include <QStackedWidget>
 
 #include "dispatch.h"
 #include "video_output_qt.h"
 
+class QLabel;
+class QComboBox;
+class QPushButton;
+class QDoubleSpinBox;
+class QSpinBox;
+class QCheckBox;
+class QFontComboBox;
+class QSettings;
+class QGroupBox;
+class QSlider;
+class QRadioButton;
+class QLineEdit;
+class QStackedWidget;
+class QTimer;
 
 class in_out_widget : public QWidget, public controller
 {
@@ -134,6 +137,40 @@ public:
 
     void update();
     virtual void receive_notification(const notification &note);
+};
+
+class fullscreen_dialog : public QDialog, public controller
+{
+    Q_OBJECT
+
+private:
+    bool _lock;
+    int _n;
+    QRadioButton* _single_btn;
+    QComboBox* _single_box;
+    QRadioButton* _dual_btn;
+    QComboBox* _dual_box0;
+    QComboBox* _dual_box1;
+    QRadioButton* _multi_btn;
+    QLineEdit* _multi_edt;
+    QCheckBox* _flip_left_box;
+    QCheckBox* _flop_left_box;
+    QCheckBox* _flip_right_box;
+    QCheckBox* _flop_right_box;
+
+    void update();
+
+private slots:
+    void screens_changed();
+    void flip_left_changed();
+    void flop_left_changed();
+    void flip_right_changed();
+    void flop_right_changed();
+
+public:
+    fullscreen_dialog(QWidget* parent);
+
+    virtual void receive_notification(const notification& note);
 };
 
 class color_dialog : public QDialog, public controller
@@ -327,6 +364,7 @@ private:
     video_container_widget *_video_container_widget;
     in_out_widget *_in_out_widget;
     controls_widget *_controls_widget;
+    fullscreen_dialog *_fullscreen_dialog;
     color_dialog *_color_dialog;
     crosstalk_dialog *_crosstalk_dialog;
     zoom_dialog *_zoom_dialog;
