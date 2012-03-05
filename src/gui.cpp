@@ -2177,7 +2177,7 @@ main_window::main_window(QSettings *settings) :
 
     // Menus
     QMenu *file_menu = menuBar()->addMenu(_("&File"));
-    QAction *file_open_act = new QAction(_("&Open..."), this);
+    QAction *file_open_act = new QAction(_("&Open file(s)..."), this);
     file_open_act->setShortcut(QKeySequence::Open);
     file_open_act->setIcon(get_icon("document-open"));
     connect(file_open_act, SIGNAL(triggered()), this, SLOT(file_open()));
