@@ -477,43 +477,52 @@ public:
         _eq_frame_data.dispatch_state = global_dispatch->save_state();
         // Find region of canvas to use, depending on the video aspect ratio and zoom level
         float aspect_ratio = dispatch::media_input()->video_frame_template().aspect_ratio;
+        float crop_aspect_ratio = dispatch::parameters().crop_aspect_ratio();
         float canvas_aspect_ratio = _eq_init_data.canvas_width / _eq_init_data.canvas_height;
-        if (_eq_init_data.flat_screen)
-        {
-            if (aspect_ratio >= canvas_aspect_ratio)
-            {
+        float zoom = dispatch::parameters().zoom();
+        if (_eq_init_data.flat_screen) {
+            _eq_frame_data.tex_coords[0][0] = 0.0f;
+            _eq_frame_data.tex_coords[0][1] = 0.0f;
+            _eq_frame_data.tex_coords[1][0] = 1.0f;
+            _eq_frame_data.tex_coords[1][1] = 0.0f;
+            _eq_frame_data.tex_coords[2][0] = 1.0f;
+            _eq_frame_data.tex_coords[2][1] = 1.0f;
+            _eq_frame_data.tex_coords[3][0] = 0.0f;
+            _eq_frame_data.tex_coords[3][1] = 1.0f;
+            if (crop_aspect_ratio > 0.0f) {
+                if (aspect_ratio >= crop_aspect_ratio) {
+                    float cutoff = (1.0f - crop_aspect_ratio / aspect_ratio) / 2.0f;
+                    _eq_frame_data.tex_coords[0][0] += cutoff;
+                    _eq_frame_data.tex_coords[1][0] -= cutoff;
+                    _eq_frame_data.tex_coords[2][0] -= cutoff;
+                    _eq_frame_data.tex_coords[3][0] += cutoff;
+                } else {
+                    float cutoff = (1.0f - aspect_ratio / crop_aspect_ratio) / 2.0f;
+                    _eq_frame_data.tex_coords[0][1] += cutoff;
+                    _eq_frame_data.tex_coords[1][1] += cutoff;
+                    _eq_frame_data.tex_coords[2][1] -= cutoff;
+                    _eq_frame_data.tex_coords[3][1] -= cutoff;
+                }
+                aspect_ratio = crop_aspect_ratio;
+            }
+            if (aspect_ratio >= canvas_aspect_ratio) {
                 // need black borders top and bottom
-                float zoom_src_ar = dispatch::parameters().zoom() * canvas_aspect_ratio
-                    + (1.0f - dispatch::parameters().zoom()) * aspect_ratio;
+                float zoom_aspect_ratio = zoom * canvas_aspect_ratio + (1.0f - zoom) * aspect_ratio;
                 _eq_frame_data.canvas_video_area.w = 1.0f;
-                _eq_frame_data.canvas_video_area.h = canvas_aspect_ratio / zoom_src_ar;
+                _eq_frame_data.canvas_video_area.h = canvas_aspect_ratio / zoom_aspect_ratio;
                 _eq_frame_data.canvas_video_area.x = (1.0f - _eq_frame_data.canvas_video_area.w) / 2.0f;
                 _eq_frame_data.canvas_video_area.y = (1.0f - _eq_frame_data.canvas_video_area.h) / 2.0f;
-                float cutoff = (1.0f - zoom_src_ar / aspect_ratio) / 2.0f;
-                _eq_frame_data.tex_coords[0][0] = cutoff;
-                _eq_frame_data.tex_coords[0][1] = 0.0f;
-                _eq_frame_data.tex_coords[1][0] = 1.0f - cutoff;
-                _eq_frame_data.tex_coords[1][1] = 0.0f;
-                _eq_frame_data.tex_coords[2][0] = 1.0f - cutoff;
-                _eq_frame_data.tex_coords[2][1] = 1.0f;
-                _eq_frame_data.tex_coords[3][0] = cutoff;
-                _eq_frame_data.tex_coords[3][1] = 1.0f;
-            }
-            else
-            {
+                float cutoff = (1.0f - zoom_aspect_ratio / aspect_ratio) / 2.0f;
+                _eq_frame_data.tex_coords[0][0] += cutoff;
+                _eq_frame_data.tex_coords[1][0] -= cutoff;
+                _eq_frame_data.tex_coords[2][0] -= cutoff;
+                _eq_frame_data.tex_coords[3][0] += cutoff;
+            } else {
                 // need black borders left and right
                 _eq_frame_data.canvas_video_area.w = aspect_ratio / canvas_aspect_ratio;
                 _eq_frame_data.canvas_video_area.h = 1.0f;
                 _eq_frame_data.canvas_video_area.x = (1.0f - _eq_frame_data.canvas_video_area.w) / 2.0f;
                 _eq_frame_data.canvas_video_area.y = (1.0f - _eq_frame_data.canvas_video_area.h) / 2.0f;
-                _eq_frame_data.tex_coords[0][0] = 0.0f;
-                _eq_frame_data.tex_coords[0][1] = 0.0f;
-                _eq_frame_data.tex_coords[1][0] = 1.0f;
-                _eq_frame_data.tex_coords[1][1] = 0.0f;
-                _eq_frame_data.tex_coords[2][0] = 1.0f;
-                _eq_frame_data.tex_coords[2][1] = 1.0f;
-                _eq_frame_data.tex_coords[3][0] = 0.0f;
-                _eq_frame_data.tex_coords[3][1] = 1.0f;
             }
         }
         else
