@@ -1168,7 +1168,7 @@ void fullscreen_dialog::update()
     _inhibit_screensaver_box->setChecked(dispatch::parameters().fullscreen_inhibit_screensaver());
 #else
     _inhibit_screensaver_box->setChecked(false);
-    _inhibit_screensaver_box->disable();
+    _inhibit_screensaver_box->setEnabled(false);
 #endif
     _lock = false;
 }
