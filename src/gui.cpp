@@ -2572,9 +2572,8 @@ void main_window::receive_notification(const notification &note)
             // Force a size adjustment of the main window
             _video_container_widget->hide();
             _video_container_widget->show();
+            _video_container_widget->raise();
             adjustSize();
-            // Give focus to video widget
-            _video_container_widget->grab_focus();
             // Remember what we're playing
             _now_playing.clear();
             assert(dispatch::media_input());

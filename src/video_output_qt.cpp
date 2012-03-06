@@ -429,7 +429,9 @@ void video_container_widget::playloop_step()
 
 void video_container_widget::receive_notification(const notification& note)
 {
-    if (_timer && note.type == notification::quit) {
+    if (note.type == notification::play && dispatch::playing()) {
+        grab_focus();
+    } else if (note.type == notification::quit && _timer) {
         QApplication::quit();
     }
 }
@@ -876,16 +878,11 @@ void video_output_qt::exit_fullscreen()
         _container_widget->setWindowState(_widget->windowState() & ~Qt::WindowFullScreen);
         _container_widget->setCursor(Qt::ArrowCursor);
         _container_widget->show();
+        _container_widget->raise();
         _container_widget->grab_focus();
         _fullscreen = false;
         _widget->start_rendering();
     }
-}
-
-void video_output_qt::process_events()
-{
-    QApplication::sendPostedEvents();
-    QApplication::processEvents();
 }
 
 void video_output_qt::prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle)
@@ -898,4 +895,17 @@ void video_output_qt::activate_next_frame()
 {
     if (_widget)
         _widget->gl_thread()->activate_next_frame();
+}
+
+void video_output_qt::process_events()
+{
+    QApplication::sendPostedEvents();
+    QApplication::processEvents();
+}
+
+void video_output_qt::receive_notification(const notification& note)
+{
+    if (note.type == notification::play && !dispatch::playing()) {
+        exit_fullscreen();
+    }
 }

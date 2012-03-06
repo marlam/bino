@@ -196,10 +196,13 @@ void dispatch::step()
     if (global_dispatch->_playing) {
         bool more = global_dispatch->_player->run_step();
         if (!more) {
-            global_dispatch->force_stop();
+            global_dispatch->_playing = false;
+            global_dispatch->_pausing = false;
             global_dispatch->notify_all(notification::play);            
             if (!global_dispatch->_gui_mode) {
                 global_dispatch->notify_all(notification::quit);
+            } else {
+                global_dispatch->force_stop();
             }
         }
     }

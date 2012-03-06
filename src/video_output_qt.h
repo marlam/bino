@@ -185,10 +185,11 @@ public:
     virtual void enter_fullscreen();
     virtual void exit_fullscreen();
 
-    virtual void process_events();
-
     virtual void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
     virtual void activate_next_frame();
+
+    virtual void process_events();
+    virtual void receive_notification(const notification& note);
 
     friend class gl_thread;
     friend class video_output_qt_widget;
