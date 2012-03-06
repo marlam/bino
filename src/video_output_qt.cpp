@@ -465,7 +465,8 @@ video_output_qt::video_output_qt(video_container_widget *container_widget) :
     _container_widget(container_widget),
     _container_is_external(container_widget != NULL),
     _widget(NULL),
-    _fullscreen(false)
+    _fullscreen(false),
+    _screensaver_inhibited(false)
 {
     if (!_container_widget)
     {
@@ -853,7 +854,10 @@ void video_output_qt::enter_fullscreen()
         _container_widget->grab_focus();
         // Suspend the screensaver after going fullscreen, so that our window ID
         // represents the fullscreen window. We need to have the same ID for resume.
-        suspend_screensaver();
+        if (dispatch::parameters().fullscreen_inhibit_screensaver()) {
+            suspend_screensaver();
+            _screensaver_inhibited = true;
+        }
         _fullscreen = true;
         _widget->start_rendering();
     }
@@ -866,7 +870,10 @@ void video_output_qt::exit_fullscreen()
         _widget->stop_rendering();
         // Resume the screensaver before disabling fullscreen, so that our window ID
         // still represents the fullscreen window and was the same when suspending the screensaver.
-        resume_screensaver();
+        if (_screensaver_inhibited) {
+            resume_screensaver();
+            _screensaver_inhibited = false;
+        }
         if (_container_is_external)
         {
             _container_widget->setWindowFlags(Qt::Widget);

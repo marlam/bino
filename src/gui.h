@@ -157,6 +157,7 @@ private:
     QCheckBox* _flop_left_box;
     QCheckBox* _flip_right_box;
     QCheckBox* _flop_right_box;
+    QCheckBox* _inhibit_screensaver_box;
 
     void update();
 
@@ -166,6 +167,7 @@ private slots:
     void flop_left_changed();
     void flip_right_changed();
     void flop_right_changed();
+    void inhibit_screensaver_changed();
 
 public:
     fullscreen_dialog(QWidget* parent);

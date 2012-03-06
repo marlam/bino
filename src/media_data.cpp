@@ -84,6 +84,7 @@ parameters::parameters()
     unset_fullscreen_flop_left();
     unset_fullscreen_flip_right();
     unset_fullscreen_flop_right();
+    unset_fullscreen_inhibit_screensaver();
     unset_contrast();
     unset_brightness();
     unset_hue();
@@ -129,6 +130,7 @@ const bool parameters::_fullscreen_flip_left_default = false;
 const bool parameters::_fullscreen_flop_left_default = false;
 const bool parameters::_fullscreen_flip_right_default = false;
 const bool parameters::_fullscreen_flop_right_default = false;
+const bool parameters::_fullscreen_inhibit_screensaver_default = true;
 const float parameters::_contrast_default = 0.0f;
 const float parameters::_brightness_default = 0.0f;
 const float parameters::_hue_default = 0.0f;
@@ -445,6 +447,8 @@ void parameters::save(std::ostream &os) const
     s11n::save(os, _fullscreen_flip_right_set);
     s11n::save(os, _fullscreen_flop_right);
     s11n::save(os, _fullscreen_flop_right_set);
+    s11n::save(os, _fullscreen_inhibit_screensaver);
+    s11n::save(os, _fullscreen_inhibit_screensaver_set);
     s11n::save(os, _contrast);
     s11n::save(os, _contrast_set);
     s11n::save(os, _brightness);
@@ -532,6 +536,8 @@ void parameters::load(std::istream &is)
     s11n::load(is, _fullscreen_flip_right_set);
     s11n::load(is, _fullscreen_flop_right);
     s11n::load(is, _fullscreen_flop_right_set);
+    s11n::load(is, _fullscreen_inhibit_screensaver);
+    s11n::load(is, _fullscreen_inhibit_screensaver_set);
     s11n::load(is, _contrast);
     s11n::load(is, _contrast_set);
     s11n::load(is, _brightness);
@@ -609,6 +615,8 @@ std::string parameters::save_session_parameters() const
         s11n::save(oss, "fullscreen_flip_right", fullscreen_flip_right());
     if (!fullscreen_flop_right_is_default())
         s11n::save(oss, "fullscreen_flop_right", fullscreen_flop_right());
+    if (!fullscreen_inhibit_screensaver_is_default())
+        s11n::save(oss, "fullscreen_inhibit_screensaver", fullscreen_inhibit_screensaver());
     if (!contrast_is_default())
         s11n::save(oss, "contrast", contrast());
     if (!brightness_is_default())
@@ -675,6 +683,9 @@ void parameters::load_session_parameters(const std::string &s)
         } else if (name == "fullscreen_flop_right") {
             s11n::load(value, _fullscreen_flop_right);
             _fullscreen_flop_right_set = true;
+        } else if (name == "fullscreen_inhibit_screensaver") {
+            s11n::load(value, _fullscreen_inhibit_screensaver);
+            _fullscreen_inhibit_screensaver_set = true;
         } else if (name == "contrast") {
             s11n::load(value, _contrast);
             _contrast_set = true;

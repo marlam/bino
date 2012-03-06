@@ -1087,6 +1087,10 @@ fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent), _lock(f
     connect(_flip_right_box, SIGNAL(toggled(bool)), this, SLOT(flip_right_changed()));
     connect(_flop_right_box, SIGNAL(toggled(bool)), this, SLOT(flop_right_changed()));
 
+    _inhibit_screensaver_box = new QCheckBox(_("inhibit the screensaver"));
+    _inhibit_screensaver_box->setToolTip(_("<p>Inhibit the screensaver during fullscreen playback.</p>"));
+    connect(_inhibit_screensaver_box, SIGNAL(toggled(bool)), this, SLOT(inhibit_screensaver_changed()));
+
     QPushButton* ok_btn = new QPushButton(_("OK"));
     connect(ok_btn, SIGNAL(pressed()), this, SLOT(close()));
 
@@ -1104,6 +1108,7 @@ fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent), _lock(f
     layout0->addWidget(_flop_left_box, 6, 0, 1, 3);
     layout0->addWidget(_flip_right_box, 7, 0, 1, 3);
     layout0->addWidget(_flop_right_box, 8, 0, 1, 3);
+    layout0->addWidget(_inhibit_screensaver_box, 9, 0, 1, 3);
     QGridLayout *layout1 = new QGridLayout();
     layout1->addWidget(ok_btn, 0, 0);
     QGridLayout *layout = new QGridLayout();
@@ -1159,6 +1164,12 @@ void fullscreen_dialog::update()
     _flop_left_box->setChecked(dispatch::parameters().fullscreen_flop_left());
     _flip_right_box->setChecked(dispatch::parameters().fullscreen_flip_right());
     _flop_right_box->setChecked(dispatch::parameters().fullscreen_flop_right());
+#ifdef Q_WS_X11
+    _inhibit_screensaver_box->setChecked(dispatch::parameters().fullscreen_inhibit_screensaver());
+#else
+    _inhibit_screensaver_box->setChecked(false);
+    _inhibit_screensaver_box->disable();
+#endif
     _lock = false;
 }
 
@@ -1210,6 +1221,12 @@ void fullscreen_dialog::flop_right_changed()
         send_cmd(command::set_fullscreen_flop_right, _flop_right_box->isChecked());
 }
 
+void fullscreen_dialog::inhibit_screensaver_changed()
+{
+    if (!_lock)
+        send_cmd(command::set_fullscreen_inhibit_screensaver, _inhibit_screensaver_box->isChecked());
+}
+
 void fullscreen_dialog::receive_notification(const notification& note)
 {
     switch (note.type) {
@@ -1218,6 +1235,7 @@ void fullscreen_dialog::receive_notification(const notification& note)
     case notification::fullscreen_flop_left:
     case notification::fullscreen_flip_right:
     case notification::fullscreen_flop_right:
+    case notification::fullscreen_inhibit_screensaver:
         update();
         break;
     default:
@@ -2255,6 +2273,8 @@ main_window::main_window(QSettings *settings) :
             send_cmd(command::set_fullscreen_flip_right, session_params.fullscreen_flip_right());
         if (!dispatch::parameters().fullscreen_flop_right_is_set() && !session_params.fullscreen_flop_right_is_default())
             send_cmd(command::set_fullscreen_flop_right, session_params.fullscreen_flop_right());
+        if (!dispatch::parameters().fullscreen_inhibit_screensaver_is_set() && !session_params.fullscreen_inhibit_screensaver_is_default())
+            send_cmd(command::set_fullscreen_inhibit_screensaver, session_params.fullscreen_inhibit_screensaver());
         if (!dispatch::parameters().zoom_is_set() && !session_params.zoom_is_default())
             send_cmd(command::set_zoom, session_params.zoom());
     }

@@ -585,6 +585,10 @@ void dispatch::receive_cmd(const command& cmd)
         _parameters.set_fullscreen_flop_right(s11n::load<bool>(p));
         notify_all(notification::fullscreen_flop_right);
         break;
+    case command::set_fullscreen_inhibit_screensaver:
+        _parameters.set_fullscreen_inhibit_screensaver(s11n::load<bool>(p));
+        notify_all(notification::fullscreen_inhibit_screensaver);
+        break;
     case command::adjust_contrast:
         _parameters.set_contrast(clamp(_parameters.contrast() + s11n::load<float>(p), -1.0f, +1.0f));
         notify_all(notification::contrast);

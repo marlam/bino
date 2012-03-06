@@ -167,6 +167,7 @@ public:
     PARAMETER(bool, fullscreen_flop_left)     // Flop left view horizontally in fullscreen mode
     PARAMETER(bool, fullscreen_flip_right)    // Flip right view vertically in fullscreen mode
     PARAMETER(bool, fullscreen_flop_right)    // Flop right view horizontally in fullscreen mode
+    PARAMETER(bool, fullscreen_inhibit_screensaver)     // Inhibit screensaver when in fullscreen mode
     PARAMETER(float, contrast)                // Contrast adjustment, -1 .. +1
     PARAMETER(float, brightness)              // Brightness adjustment, -1 .. +1
     PARAMETER(float, hue)                     // Hue adjustment, -1 .. +1
