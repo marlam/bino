@@ -638,10 +638,16 @@ int main(int argc, char *argv[])
         controller::send_cmd(command::set_loop_mode, loop.value() ? parameters::loop_current : parameters::no_loop);
     if (audio_delay.is_set())
         controller::send_cmd(command::set_audio_delay, audio_delay.value() * 1000);
-    if (subtitle_encoding.is_set())
-        controller::send_cmd(command::set_subtitle_encoding, subtitle_encoding.value());
-    if (subtitle_font.is_set())
-        controller::send_cmd(command::set_subtitle_font, subtitle_font.value());
+    if (subtitle_encoding.is_set()) {
+        std::ostringstream v;
+        s11n::save(v, subtitle_encoding.value());
+        controller::send_cmd(command::set_subtitle_encoding, v.str());
+    }
+    if (subtitle_font.is_set()) {
+        std::ostringstream v;
+        s11n::save(v, subtitle_font.value());
+        controller::send_cmd(command::set_subtitle_font, v.str());
+    }
     if (subtitle_size.is_set())
         controller::send_cmd(command::set_subtitle_size, subtitle_size.value());
     if (subtitle_scale.is_set())

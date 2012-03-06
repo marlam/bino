@@ -2253,10 +2253,16 @@ main_window::main_window(QSettings *settings) :
             s11n::save(v, session_params.crosstalk_b());
             send_cmd(command::set_crosstalk, v.str());
         }
-        if (!dispatch::parameters().subtitle_encoding_is_set() && !session_params.subtitle_encoding_is_default())
-            send_cmd(command::set_subtitle_encoding, session_params.subtitle_encoding());
-        if (!dispatch::parameters().subtitle_font_is_set() && !session_params.subtitle_font_is_default())
-            send_cmd(command::set_subtitle_font, session_params.subtitle_font());
+        if (!dispatch::parameters().subtitle_encoding_is_set() && !session_params.subtitle_encoding_is_default()) {
+            std::ostringstream v;
+            s11n::save(v, session_params.subtitle_encoding());
+            send_cmd(command::set_subtitle_encoding, v.str());
+        }
+        if (!dispatch::parameters().subtitle_font_is_set() && !session_params.subtitle_font_is_default()) {
+            std::ostringstream v;
+            s11n::save(v, session_params.subtitle_font());
+            send_cmd(command::set_subtitle_font, v.str());
+        }
         if (!dispatch::parameters().subtitle_size_is_set() && !session_params.subtitle_size_is_default())
             send_cmd(command::set_subtitle_size, session_params.subtitle_size());
         if (!dispatch::parameters().subtitle_scale_is_set() && !session_params.subtitle_scale_is_default())
@@ -2355,12 +2361,16 @@ main_window::main_window(QSettings *settings) :
         }
         if (!dispatch::parameters().subtitle_encoding_is_set() && _settings->contains("subtitle-encoding"))
         {
-            send_cmd(command::set_subtitle_encoding, _settings->value("subtitle-encoding").toString().toStdString());
+            std::ostringstream v;
+            s11n::save(v, _settings->value("subtitle-encoding").toString().toStdString());
+            send_cmd(command::set_subtitle_encoding, v.str());
             _settings->remove("subtitle-encoding");
         }
         if (!dispatch::parameters().subtitle_font_is_set() && _settings->contains("subtitle-font"))
         {
-            send_cmd(command::set_subtitle_font, _settings->value("subtitle-font").toString().toStdString());
+            std::ostringstream v;
+            s11n::save(v, _settings->value("subtitle-font").toString().toStdString());
+            send_cmd(command::set_subtitle_font, v.str());
             _settings->remove("subtitle-font");
         }
         if (!dispatch::parameters().subtitle_size_is_set() && _settings->contains("subtitle-size"))
