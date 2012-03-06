@@ -31,12 +31,12 @@ extern "C"
 
 #include <ass/ass.h>
 
-#ifdef __APPLE__
-#  include <OpenAL/al.h>
-#  include <OpenAL/alc.h>
-#else
+#if !defined(__APPLE__) || defined(HAVE_AL_AL_H)
 #  include <AL/al.h>
 #  include <AL/alc.h>
+#else
+#  include <OpenAL/al.h>
+#  include <OpenAL/alc.h>
 #endif
 
 #include <GL/glew.h>
