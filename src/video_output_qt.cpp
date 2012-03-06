@@ -34,6 +34,7 @@ static GLEWContext* glewGetContext() { return &_glewContext; }
 #include <cstring>
 #include <unistd.h>
 
+#include <QCoreApplication>
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QGridLayout>
