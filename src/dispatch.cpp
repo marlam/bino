@@ -161,11 +161,13 @@ void dispatch::init(const open_input_data& input_data)
         if (input_data.urls.size() > 0)
             _gui->open(input_data);
     } else {
-        if (input_data.urls.size() == 0)
-            throw exc(_("No video to play."));
         if (!_parameters.benchmark())
             _audio_output = new class audio_output;
         _video_output = new video_output_qt();
+    }
+    if ((_eq && !_eq_slave_node) || !_gui_mode) {
+        if (input_data.urls.size() == 0)
+            throw exc(_("No video to play."));
         std::ostringstream v;
         s11n::save(v, input_data);
         controller::send_cmd(command::open, v.str());
