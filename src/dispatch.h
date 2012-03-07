@@ -201,7 +201,6 @@ public:
         quit,
         // Play state
         open,
-        close,
         play,
         pause,
         pos,

@@ -391,6 +391,7 @@ void dispatch::receive_cmd(const command& cmd)
     // Play state
     case command::open:
         force_stop();
+        notify_all(notification::play);
         s11n::load(p, _input_data);
         // Create media input
         try {
@@ -410,10 +411,12 @@ void dispatch::receive_cmd(const command& cmd)
             _media_input = NULL;
             throw e;
         }
+        notify_all(notification::open);
         break;
     case command::close:
         force_stop();
-        notify_all(notification::close);
+        notify_all(notification::play);
+        notify_all(notification::open);
         break;
     case command::toggle_play:
         if (playing()) {
@@ -488,7 +491,6 @@ void dispatch::receive_cmd(const command& cmd)
                 notify_all(notification::stereo_mode);
                 notify_all(notification::stereo_mode_swap);
             }
-            notify_all(notification::open);
             // Initialize audio output
             if (_media_input->audio_streams() > 0 && _audio_output) {
                 _audio_output->deinit();
