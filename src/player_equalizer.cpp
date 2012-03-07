@@ -140,6 +140,7 @@ private:
 protected:
     int video_display_width() { return screen_width() * _canvas_video_area_w; }
     int video_display_height() { return screen_height() * _canvas_video_area_h; }
+    GLEWContext* glewGetContext() { return const_cast<GLEWContext*>(_channel->getWindow()->glewGetContext()); }
     void make_context_current() { _channel->getWindow()->makeCurrent(); }
     bool context_is_stereo() { return false; }
     void recreate_context(bool) { }

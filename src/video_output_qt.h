@@ -159,6 +159,9 @@ private:
     void resume_screensaver();
 
 protected:
+#ifdef GLEW_MX
+    virtual GLEWContext* glewGetContext();
+#endif
     virtual void make_context_current();
     virtual bool context_is_stereo();
     virtual void recreate_context(bool stereo);

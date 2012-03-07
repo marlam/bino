@@ -21,4 +21,3 @@ src/player_equalizer.cpp
 src/subtitle_renderer.cpp
 src/video_output.cpp
 src/video_output_qt.cpp
-src/xgl.cpp

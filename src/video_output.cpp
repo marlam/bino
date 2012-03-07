@@ -41,7 +41,6 @@
 #include "video_output.h"
 #include "video_output_color.fs.glsl.h"
 #include "video_output_render.fs.glsl.h"
-#include "xgl.h"
 
 
 /* Video output overview:
@@ -129,6 +128,189 @@ video_output::~video_output()
 {
 }
 
+/**
+ * \param where     Location of the check.
+ * \returns         True.
+ *
+ * Checks if a GL error occured.
+ * If an error occured, an appropriate exception is thrown.\n
+ * The purpose of the return value is to be able to put this function
+ * into an assert statement.
+ */
+bool video_output::xglCheckError(const std::string& where)
+{
+    GLenum e = glGetError();
+    if (e != GL_NO_ERROR) {
+        std::string pfx = (where.length() > 0 ? where + ": " : "");
+        throw exc(pfx + str::asprintf(_("OpenGL error 0x%04X."), static_cast<unsigned int>(e)));
+        // Don't use gluErrorString(e) here to avoid depending on libGLU just for this
+        return false;
+    }
+    return true;
+}
+
+static void xglKillCrlf(char* str)
+{
+    size_t l = std::strlen(str);
+    if (l > 0 && str[l - 1] == '\n')
+        str[--l] = '\0';
+    if (l > 0 && str[l - 1] == '\r')
+        str[l - 1] = '\0';
+}
+
+/**
+ * \param name      Name of the shader. Can be an arbitrary string.
+ * \param type      GL_VERTEX_SHADER or GL_FRAGMENT_SHADER.
+ * \param src       The source code of the shader.
+ * \returns         The GL shader object.
+ *
+ * Creates a GL shader object. The \a name of the shader is only used
+ * for error reporting purposes. If compilation fails, an exception is thrown.
+ */
+GLuint video_output::xglCompileShader(const std::string& name, GLenum type, const std::string& src)
+{
+    msg::dbg("Compiling %s shader %s.", type == GL_VERTEX_SHADER ? "vertex" : "fragment", name.c_str());
+
+    // XXX: Work around a bad bad bug in the free OpenGL drivers for ATI cards on Ubuntu
+    // 10.10: the compilation of shader source depends on the locale, and gives wrong
+    // results e.g. in de_DE.UTF-8. So we backup the locale, set it to "C", and restore
+    // the backup after compilation.
+    std::string locale_backup = setlocale(LC_ALL, NULL);
+    setlocale(LC_ALL, "C");
+
+    GLuint shader = glCreateShader(type);
+    const GLchar* glsrc = src.c_str();
+    glShaderSource(shader, 1, &glsrc, NULL);
+    glCompileShader(shader);
+
+    setlocale(LC_ALL, locale_backup.c_str());
+
+    std::string log;
+    GLint e, l;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &e);
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &l);
+    if (l > 0) {
+        char* tmplog = new char[l];
+        glGetShaderInfoLog(shader, l, NULL, tmplog);
+        xglKillCrlf(tmplog);
+        log = std::string(tmplog);
+        delete[] tmplog;
+    } else {
+        log = std::string("");
+    }
+
+    if (e == GL_TRUE && log.length() > 0) {
+        msg::wrn(_("OpenGL %s '%s': compiler warning:"),
+                type == GL_VERTEX_SHADER ? _("vertex shader") : _("fragment shader"),
+                name.c_str());
+        msg::wrn_txt("%s", log.c_str());
+    } else if (e != GL_TRUE) {
+        std::string when = str::asprintf(_("OpenGL %s '%s': compilation failed."),
+                type == GL_VERTEX_SHADER ? _("vertex shader") : _("fragment shader"),
+                name.c_str());
+        std::string what = str::asprintf("\n%s", log.length() > 0 ? log.c_str() : _("unknown error"));
+        throw exc(str::asprintf(_("%s: %s"), when.c_str(), what.c_str()));
+    }
+    return shader;
+}
+
+/**
+ * \param vshader   A vertex shader, or 0.
+ * \param fshader   A fragment shader, or 0.
+ * \returns         The GL program object.
+ *
+ * Creates a GL program object.
+ */
+GLuint video_output::xglCreateProgram(GLuint vshader, GLuint fshader)
+{
+    assert(vshader != 0 || fshader != 0);
+    GLuint program = glCreateProgram();
+    if (vshader != 0)
+        glAttachShader(program, vshader);
+    if (fshader != 0)
+        glAttachShader(program, fshader);
+    return program;
+}
+
+/**
+ * \param name              Name of the program. Can be an arbitrary string.
+ * \param vshader_src       Source of the vertex shader, or an empty string.
+ * \param fshader_src       Source of the fragment shader, or an empty string.
+ * \returns                 The GL program object.
+ *
+ * Creates a GL program object. The \a name of the program is only used
+ * for error reporting purposes.
+ */
+GLuint video_output::xglCreateProgram(const std::string& name,
+        const std::string& vshader_src, const std::string& fshader_src)
+{
+    GLuint vshader = 0, fshader = 0;
+    if (vshader_src.length() > 0)
+        vshader = xglCompileShader(name, GL_VERTEX_SHADER, vshader_src);
+    if (fshader_src.length() > 0)
+        fshader = xglCompileShader(name, GL_FRAGMENT_SHADER, fshader_src);
+    return xglCreateProgram(vshader, fshader);
+}
+
+/**
+ * \param name      Name of the program. Can be an arbitrary string.
+ * \param prg       The GL program object.
+ * \returns         The relinked GL program object.
+ *
+ * Links a GL program object. The \a name of the program is only used
+ * for error reporting purposes. If linking fails, an exception is thrown.
+ */
+void video_output::xglLinkProgram(const std::string& name, const GLuint prg)
+{
+    msg::dbg("Linking OpenGL program %s.", name.c_str());
+
+    glLinkProgram(prg);
+
+    std::string log;
+    GLint e, l;
+    glGetProgramiv(prg, GL_LINK_STATUS, &e);
+    glGetProgramiv(prg, GL_INFO_LOG_LENGTH, &l);
+    if (l > 0) {
+        char *tmplog = new char[l];
+        glGetProgramInfoLog(prg, l, NULL, tmplog);
+        xglKillCrlf(tmplog);
+        log = std::string(tmplog);
+        delete[] tmplog;
+    } else {
+        log = std::string("");
+    }
+
+    if (e == GL_TRUE && log.length() > 0) {
+        msg::wrn(_("OpenGL program '%s': linker warning:"), name.c_str());
+        msg::wrn_txt("%s", log.c_str());
+    } else if (e != GL_TRUE) {
+        std::string when = str::asprintf(_("OpenGL program '%s': linking failed."), name.c_str());
+        std::string what = str::asprintf("\n%s", log.length() > 0 ? log.c_str() : _("unknown error"));
+        throw exc(when + ": " + what);
+    }
+}
+
+/**
+ * \param program   The program.
+ *
+ * Deletes a GL program and all its associated shaders. Does nothing if
+ * \a program is not a valid program.
+ */
+void video_output::xglDeleteProgram(GLuint program)
+{
+    if (glIsProgram(program)) {
+        GLint shader_count;
+        glGetProgramiv(program, GL_ATTACHED_SHADERS, &shader_count);
+        GLuint* shaders = new GLuint[shader_count];
+        glGetAttachedShaders(program, shader_count, NULL, shaders);
+        for (int i = 0; i < shader_count; i++)
+            glDeleteShader(shaders[i]);
+        delete[] shaders;
+        glDeleteProgram(program);
+    }
+}
+
+
 void video_output::init()
 {
     if (!_initialized)
@@ -143,12 +325,12 @@ void video_output::deinit()
     if (_initialized)
     {
         clear();
-        assert(xgl::CheckError(HERE));
+        assert(xglCheckError(HERE));
         input_deinit(0);
         input_deinit(1);
         color_deinit();
         render_deinit();
-        assert(xgl::CheckError(HERE));
+        assert(xglCheckError(HERE));
         _initialized = false;
     }
 }
@@ -188,7 +370,7 @@ void video_output::set_suitable_size(int width, int height, float ar, parameters
 
 void video_output::input_init(int index, const video_frame &frame)
 {
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
     glGenBuffers(1, &_input_pbo);
     glGenFramebuffersEXT(1, &_input_fbo);
     if (frame.layout == video_frame::bgra32)
@@ -258,7 +440,7 @@ void video_output::input_init(int index, const video_frame &frame)
                     0, GL_LUMINANCE, type, NULL);
         }
     }
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
 }
 
 bool video_output::input_is_compatible(int index, const video_frame &current_frame)
@@ -274,7 +456,7 @@ bool video_output::input_is_compatible(int index, const video_frame &current_fra
 
 void video_output::input_deinit(int index)
 {
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
     glDeleteBuffers(1, &_input_pbo);
     _input_pbo = 0;
     glDeleteFramebuffersEXT(1, &_input_fbo);
@@ -314,7 +496,7 @@ void video_output::input_deinit(int index)
     _input_yuv_chroma_width_divisor[index] = 0;
     _input_yuv_chroma_height_divisor[index] = 0;
     _frame[index] = video_frame();
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
 }
 
 static int next_multiple_of_4(int x)
@@ -330,7 +512,7 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
         _frame[index] = frame;
         return;
     }
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
     if (!input_is_compatible(index, frame))
     {
         input_deinit(index);
@@ -395,7 +577,7 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
             glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
         }
     }
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
     // In the common case, the video display width and height do not change
     // between preparing a frame and rendering it, so it is benefical to update
     // to subtitle texture in this function (because other threads can do other
@@ -417,7 +599,7 @@ int video_output::video_display_height()
 
 void video_output::update_subtitle_tex(int index, const video_frame &frame, const subtitle_box &subtitle, const parameters &params)
 {
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
     int width = 0;
     int height = 0;
     if (subtitle.is_valid())
@@ -511,12 +693,12 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
     _input_subtitle_height[index] = height;
     _input_subtitle_time[index] = frame.presentation_time;
     _input_subtitle_params = params;
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
 }
 
 void video_output::color_init(const video_frame &frame)
 {
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
     glGenFramebuffersEXT(1, &_color_fbo);
     std::string layout_str;
     std::string color_space_str;
@@ -609,8 +791,8 @@ void video_output::color_init(const video_frame &frame)
     str::replace(color_fs_src, "$chroma_offset_x", chroma_offset_x_str);
     str::replace(color_fs_src, "$chroma_offset_y", chroma_offset_y_str);
     str::replace(color_fs_src, "$storage", storage_str);
-    _color_prg = xgl::CreateProgram("video_output_color", "", "", color_fs_src);
-    xgl::LinkProgram("video_output_color", _color_prg);
+    _color_prg = xglCreateProgram("video_output_color", "", color_fs_src);
+    xglLinkProgram("video_output_color", _color_prg);
     for (int i = 0; i < (frame.stereo_layout == parameters::layout_mono ? 1 : 2); i++)
     {
         glGenTextures(1, &(_color_tex[i]));
@@ -623,17 +805,17 @@ void video_output::color_init(const video_frame &frame)
                 storage_str == "storage_srgb" ? GL_SRGB8 : GL_RGB16,
                 frame.width, frame.height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
     }
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
 }
 
 void video_output::color_deinit()
 {
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
     glDeleteFramebuffersEXT(1, &_color_fbo);
     _color_fbo = 0;
     if (_color_prg != 0)
     {
-        xgl::DeleteProgram(_color_prg);
+        xglDeleteProgram(_color_prg);
         _color_prg = 0;
     }
     for (int i = 0; i < 2; i++)
@@ -645,7 +827,7 @@ void video_output::color_deinit()
         }
     }
     _color_last_frame = video_frame();
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
 }
 
 bool video_output::color_is_compatible(const video_frame &current_frame)
@@ -661,7 +843,7 @@ bool video_output::color_is_compatible(const video_frame &current_frame)
 
 void video_output::render_init()
 {
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
     std::string mode_str = (
             _params.stereo_mode() == parameters::mode_even_odd_rows ? "mode_even_odd_rows"
             : _params.stereo_mode() == parameters::mode_even_odd_columns ? "mode_even_odd_columns"
@@ -683,8 +865,8 @@ void video_output::render_init()
             : "mode_onechannel");
     std::string render_fs_src(VIDEO_OUTPUT_RENDER_FS_GLSL_STR);
     str::replace(render_fs_src, "$mode", mode_str);
-    _render_prg = xgl::CreateProgram("video_output_render", "", "", render_fs_src);
-    xgl::LinkProgram("video_output_render", _render_prg);
+    _render_prg = xglCreateProgram("video_output_render", "", render_fs_src);
+    xglLinkProgram("video_output_render", _render_prg);
     uint32_t dummy_texture = 0;
     glGenTextures(1, &_render_dummy_tex);
     glBindTexture(GL_TEXTURE_2D, _render_dummy_tex);
@@ -716,15 +898,15 @@ void video_output::render_init()
                 : _params.stereo_mode() == parameters::mode_even_odd_columns ? even_odd_columns_mask
                 : checkerboard_mask);
     }
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
 }
 
 void video_output::render_deinit()
 {
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
     if (_render_prg != 0)
     {
-        xgl::DeleteProgram(_render_prg);
+        xglDeleteProgram(_render_prg);
         _render_prg = 0;
     }
     if (_render_dummy_tex != 0)
@@ -738,7 +920,7 @@ void video_output::render_deinit()
         _render_mask_tex = 0;
     }
     _render_last_params = parameters();
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
 }
 
 bool video_output::render_is_compatible()
@@ -751,9 +933,9 @@ void video_output::activate_next_frame()
     _active_index = (_active_index == 0 ? 1 : 0);
 }
 
-static void draw_quad(float x, float y, float w, float h,
-        const float tex_coords[2][4][2] = NULL,
-        const float more_tex_coords[4][2] = NULL)
+void video_output::draw_quad(float x, float y, float w, float h,
+        const float tex_coords[2][4][2],
+        const float more_tex_coords[4][2])
 {
     const float (*my_tex_coords)[4][2] = (tex_coords ? tex_coords : full_tex_coords);
 
@@ -829,7 +1011,7 @@ void video_output::display_current_frame(
     {
         reshape(width(), height());
     }
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
     if (!_color_prg || !color_is_compatible(frame))
     {
         color_deinit();
@@ -1106,7 +1288,7 @@ void video_output::display_current_frame(
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
         draw_quad(x, y, w, h, my_tex_coords);
     }
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
     glUseProgram(0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -1115,7 +1297,7 @@ void video_output::display_current_frame(
 
 void video_output::clear()
 {
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
     if (context_is_stereo())
     {
         glDrawBuffer(GL_BACK_LEFT);
@@ -1127,7 +1309,7 @@ void video_output::clear()
     {
         glClear(GL_COLOR_BUFFER_BIT);
     }
-    assert(xgl::CheckError(HERE));
+    assert(xglCheckError(HERE));
 }
 
 static void compute_viewport_and_tex_coords(int vp[4], float tc[4][2],

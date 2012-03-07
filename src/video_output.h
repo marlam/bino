@@ -76,6 +76,19 @@ private:
     float _tex_coords[2][4][2];
 
 private:
+    // GL Helper functions
+    bool xglCheckError(const std::string& where = std::string());
+    GLuint xglCompileShader(const std::string& name, GLenum type, const std::string& src);
+    GLuint xglCreateProgram(GLuint vshader, GLuint fshader);
+    GLuint xglCreateProgram(const std::string& name,
+            const std::string& vshader_src, const std::string& fshader_src);
+    void xglLinkProgram(const std::string& name, const GLuint prg);
+    void xglDeleteProgram(GLuint prg);
+
+    void draw_quad(float x, float y, float w, float h,
+            const float tex_coords[2][4][2] = NULL,
+            const float more_tex_coords[4][2] = NULL);
+
     // Step 1: initialize/deinitialize, and check if reinitialization is necessary
     void input_init(int index, const video_frame &frame);
     void input_deinit(int index);
@@ -95,6 +108,10 @@ private:
 
 protected:
     subtitle_renderer _subtitle_renderer;
+
+#ifdef GLEW_MX
+    virtual GLEWContext* glewGetContext() = 0;
+#endif
 
     // Get total size of the video display area. For single window output, this
     // is the same as the current viewport. The Equalizer video output can override

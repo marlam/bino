@@ -23,10 +23,6 @@
 #include "config.h"
 
 #include <GL/glew.h>
-#ifdef GLEW_MX
-static GLEWContext _glewContext;
-static GLEWContext* glewGetContext() { return &_glewContext; }
-#endif
 
 #include <cmath>
 #include <cstdlib>
@@ -631,6 +627,14 @@ void video_output_qt::create_widget()
     _container_widget->raise();
     process_events();
 }
+
+#ifdef GLEW_MX
+GLEWContext* video_output_qt::glewGetContext()
+{
+    static GLEWContext glew_context;
+    return &glew_context;
+}
+#endif
 
 void video_output_qt::make_context_current()
 {

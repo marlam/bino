@@ -14,10 +14,9 @@ bino_SOURCES = \
 	media_object.h media_object.cpp \
 	media_input.h media_input.cpp \
 	dispatch.h dispatch.cpp \
-        video_output.h video_output.cpp \
-        video_output_qt.h video_output_qt.cpp \
-	xgl.h xgl.cpp \
-        subtitle_renderer.h subtitle_renderer.cpp \
+	video_output.h video_output.cpp \
+	video_output_qt.h video_output_qt.cpp \
+	subtitle_renderer.h subtitle_renderer.cpp \
 	audio_output.h audio_output.cpp \
 	player.h player.cpp \
 	gui.h gui.cpp \
