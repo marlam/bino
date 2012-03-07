@@ -367,8 +367,13 @@ void dispatch::force_stop()
         _player = NULL;
     }
     if (_media_input) {
+        // close, reopen, and reinitialize media input
         _media_input->close();
         _media_input->open(_input_data.urls, _input_data.dev_request);
+        _media_input->set_stereo_layout(_parameters.stereo_layout(), _parameters.stereo_layout_swap());
+        _media_input->select_video_stream(_parameters.video_stream());
+        _media_input->select_audio_stream(_parameters.audio_stream());
+        _media_input->select_subtitle_stream(_parameters.subtitle_stream());
     }
     if (_video_output) {
         _video_output->deinit();
@@ -411,6 +416,70 @@ void dispatch::receive_cmd(const command& cmd)
             _media_input = NULL;
             throw e;
         }
+        _parameters.unset_video_parameters();
+        // Initialize media input and associated parameters
+        if (_input_data.params.stereo_layout_is_set() || _input_data.params.stereo_layout_swap_is_set()) {
+            if (!_media_input->stereo_layout_is_supported(_input_data.params.stereo_layout(), _input_data.params.stereo_layout_swap())) {
+                throw exc(_("Cannot set requested stereo layout: incompatible media."));
+            }
+            _media_input->set_stereo_layout(_input_data.params.stereo_layout(),
+                    _input_data.params.stereo_layout_swap());
+            _parameters.set_stereo_layout(_input_data.params.stereo_layout());
+            _parameters.set_stereo_layout_swap(_input_data.params.stereo_layout_swap());
+        } else {
+            _media_input->set_stereo_layout(_media_input->video_frame_template().stereo_layout,
+                    _media_input->video_frame_template().stereo_layout_swap);
+            _parameters.set_stereo_layout(_media_input->video_frame_template().stereo_layout);
+            _parameters.set_stereo_layout_swap(_media_input->video_frame_template().stereo_layout_swap);
+        }
+        notify_all(notification::stereo_layout);
+        notify_all(notification::stereo_layout_swap);
+        if (_media_input->video_streams() < _input_data.params.video_stream() + 1) {
+            throw exc(str::asprintf(_("Video stream %d not found."), _input_data.params.video_stream() + 1));
+        }
+        _media_input->select_video_stream(_input_data.params.video_stream());
+        _parameters.set_video_stream(_input_data.params.video_stream());
+        notify_all(notification::video_stream);
+        if (_media_input->audio_streams() > 0 && _media_input->audio_streams() < _input_data.params.audio_stream() + 1) {
+            throw exc(str::asprintf(_("Audio stream %d not found."), _input_data.params.audio_stream() + 1));
+        }
+        if (_media_input->audio_streams() > 0) {
+            _media_input->select_audio_stream(_input_data.params.audio_stream());
+            _parameters.set_audio_stream(_input_data.params.audio_stream());
+        }
+        notify_all(notification::audio_stream);
+        if (_media_input->subtitle_streams() > 0 && _media_input->subtitle_streams() < _input_data.params.subtitle_stream() + 1) {
+            throw exc(str::asprintf(_("Subtitle stream %d not found."), _input_data.params.subtitle_stream() + 1));
+        }
+        if (_media_input->subtitle_streams() > 0 && _input_data.params.subtitle_stream() >= 0) {
+            _media_input->select_subtitle_stream(_input_data.params.subtitle_stream());
+            _parameters.set_subtitle_stream(_input_data.params.subtitle_stream());
+        }
+        notify_all(notification::subtitle_stream);
+        // Initialize remaining parameters
+        if (_input_data.params.crop_aspect_ratio_is_set())
+            _parameters.set_crop_aspect_ratio(_input_data.params.crop_aspect_ratio());
+        notify_all(notification::crop_aspect_ratio);
+        if (_input_data.params.parallax_is_set())
+            _parameters.set_parallax(_input_data.params.parallax());
+        notify_all(notification::parallax);
+        if (_input_data.params.ghostbust_is_set())
+            _parameters.set_ghostbust(_input_data.params.ghostbust());
+        notify_all(notification::ghostbust);
+        if (_input_data.params.subtitle_parallax_is_set())
+            _parameters.set_subtitle_parallax(_input_data.params.subtitle_parallax());
+        notify_all(notification::subtitle_parallax);
+        if (!_parameters.stereo_mode_is_set()) {
+            if (_media_input->video_frame_template().stereo_layout == parameters::layout_mono)
+                _parameters.set_stereo_mode(parameters::mode_mono_left);
+            else if (_video_output && _video_output->supports_stereo())
+                _parameters.set_stereo_mode(parameters::mode_stereo);
+            else
+                _parameters.set_stereo_mode(parameters::mode_red_cyan_dubois);
+            _parameters.set_stereo_mode_swap(false);
+        }
+        notify_all(notification::stereo_mode);
+        notify_all(notification::stereo_mode_swap);
         notify_all(notification::open);
         break;
     case command::close:
@@ -424,73 +493,6 @@ void dispatch::receive_cmd(const command& cmd)
             _player->quit_request();
             /* notify when request is fulfilled */
         } else if (_media_input) {
-            // Initialize media input
-            if (_input_data.params.stereo_layout_is_set() || _input_data.params.stereo_layout_swap_is_set()) {
-                if (!_media_input->stereo_layout_is_supported(_input_data.params.stereo_layout(), _input_data.params.stereo_layout_swap())) {
-                    throw exc(_("Cannot set requested stereo layout: incompatible media."));
-                }
-                _media_input->set_stereo_layout(_input_data.params.stereo_layout(), _input_data.params.stereo_layout_swap());
-            }
-            if (_media_input->video_streams() < _input_data.params.video_stream() + 1) {
-                throw exc(str::asprintf(_("Video stream %d not found."), _input_data.params.video_stream() + 1));
-            }
-            _media_input->select_video_stream(_input_data.params.video_stream());
-            if (_media_input->audio_streams() > 0 && _media_input->audio_streams() < _input_data.params.audio_stream() + 1) {
-                throw exc(str::asprintf(_("Audio stream %d not found."), _input_data.params.audio_stream() + 1));
-            }
-            if (_media_input->audio_streams() > 0) {
-                _media_input->select_audio_stream(_input_data.params.audio_stream());
-            }
-            if (_media_input->subtitle_streams() > 0 && _media_input->subtitle_streams() < _input_data.params.subtitle_stream() + 1) {
-                throw exc(str::asprintf(_("Subtitle stream %d not found."), _input_data.params.subtitle_stream() + 1));
-            }
-            if (_media_input->subtitle_streams() > 0 && _input_data.params.subtitle_stream() >= 0) {
-                _media_input->select_subtitle_stream(_input_data.params.subtitle_stream());
-            }
-            // Initialize parameters
-            _parameters.unset_video_parameters();
-            if (_input_data.params.video_stream_is_set())
-                _parameters.set_video_stream(_input_data.params.video_stream());
-            if (_input_data.params.audio_stream_is_set())
-                _parameters.set_audio_stream(_input_data.params.video_stream());
-            if (_input_data.params.subtitle_stream_is_set())
-                _parameters.set_subtitle_stream(_input_data.params.video_stream());
-            if (_input_data.params.stereo_layout_is_set())
-                _parameters.set_stereo_layout(_input_data.params.stereo_layout());
-            if (_input_data.params.stereo_layout_swap_is_set())
-                _parameters.set_stereo_layout_swap(_input_data.params.stereo_layout_swap());
-            if (!_parameters.stereo_layout_is_set() && !_parameters.stereo_layout_swap_is_set()) {
-                _parameters.set_stereo_layout(_media_input->video_frame_template().stereo_layout);
-                _parameters.set_stereo_layout_swap(_media_input->video_frame_template().stereo_layout_swap);
-            }
-            if (_input_data.params.crop_aspect_ratio_is_set())
-                _parameters.set_crop_aspect_ratio(_input_data.params.crop_aspect_ratio());
-            if (_input_data.params.parallax_is_set())
-                _parameters.set_parallax(_input_data.params.parallax());
-            if (_input_data.params.ghostbust_is_set())
-                _parameters.set_ghostbust(_input_data.params.ghostbust());
-            if (_input_data.params.subtitle_parallax_is_set())
-                _parameters.set_subtitle_parallax(_input_data.params.subtitle_parallax());
-            notify_all(notification::video_stream);
-            notify_all(notification::audio_stream);
-            notify_all(notification::subtitle_stream);
-            notify_all(notification::stereo_layout);
-            notify_all(notification::stereo_layout_swap);
-            notify_all(notification::crop_aspect_ratio);
-            notify_all(notification::parallax);
-            notify_all(notification::ghostbust);
-            notify_all(notification::subtitle_parallax);
-            if (!_parameters.stereo_mode_is_set()) {
-                if (_media_input->video_frame_template().stereo_layout == parameters::layout_mono)
-                    _parameters.set_stereo_mode(parameters::mode_mono_left);
-                else if (_video_output && _video_output->supports_stereo())
-                    _parameters.set_stereo_mode(parameters::mode_stereo);
-                else
-                    _parameters.set_stereo_mode(parameters::mode_red_cyan_dubois);
-                _parameters.set_stereo_mode_swap(false);
-                notify_all(notification::stereo_mode);
-                notify_all(notification::stereo_mode_swap);
-            }
             // Initialize audio output
             if (_media_input->audio_streams() > 0 && _audio_output) {
                 _audio_output->deinit();
