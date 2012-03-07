@@ -996,7 +996,7 @@ void video_output::display_current_frame(
     if (context_needs_stereo != context_is_stereo())
     {
         recreate_context(context_needs_stereo);
-        _color_last_frame = video_frame();
+        return;
     }
     if (!keep_viewport
             && (frame.width != _color_last_frame.width

@@ -68,7 +68,6 @@ gl_thread::gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widge
     _resize(false),
     _prepare_next_frame(false),
     _have_prepared_frame(false),
-    _recreate_context(false),
     _failure(false)
 {
     for (int i = 0; i < 2; i++) {
@@ -143,12 +142,6 @@ void gl_thread::prepare_next_frame(const video_frame &frame, const subtitle_box 
     _prepare_next_frame = true;
 }
 
-void gl_thread::recreate_context(bool stereo)
-{
-    _recreate_context_stereo = stereo;
-    _recreate_context = true;
-}
-
 void gl_thread::run()
 {
     try {
@@ -201,10 +194,6 @@ void video_output_qt_widget::check_gl_thread()
         stop_rendering();
         QMessageBox::critical(this, _("Error"), _gl_thread.exception().what());
         _vo->send_cmd(command::toggle_play);
-    } else if (_gl_thread.recreate_context()) {
-        stop_rendering();
-        _vo->recreate_context(_gl_thread.recreate_context_stereo());
-        start_rendering();
     }
 }
 
@@ -466,7 +455,9 @@ video_output_qt::video_output_qt(video_container_widget *container_widget) :
     _container_is_external(container_widget != NULL),
     _widget(NULL),
     _fullscreen(false),
-    _screensaver_inhibited(false)
+    _screensaver_inhibited(false),
+    _recreate_context(false),
+    _recreate_context_stereo(false)
 {
     if (!_container_widget)
     {
@@ -648,13 +639,11 @@ bool video_output_qt::context_is_stereo()
 
 void video_output_qt::recreate_context(bool stereo)
 {
-    if (QThread::currentThread() == _widget->gl_thread()) {
-        _widget->gl_thread()->recreate_context(stereo);
-    } else {
-        deinit();
-        _format.setStereo(stereo);
-        init();
-    }
+    // This was called from the GL thread (from inside video_output).
+    // The request will be handled the next time process_events() is run,
+    // because it involves destroying the current GL context and thread.
+    _recreate_context = true;
+    _recreate_context_stereo = stereo;
 }
 
 void video_output_qt::trigger_resize(int w, int h)
@@ -914,6 +903,14 @@ void video_output_qt::activate_next_frame()
 
 void video_output_qt::process_events()
 {
+    if (_recreate_context) {
+        // To prevent recursion, we must unset this flag first: deinit() and init()
+        // cause more calls to process_events().
+        _recreate_context = false;
+        deinit();
+        _format.setStereo(_recreate_context_stereo);
+        init();
+    }
     QApplication::sendPostedEvents();
     QApplication::processEvents();
 }

@@ -54,8 +54,6 @@ private:
     size_t _next_line_size[2][3];
     subtitle_box _next_subtitle;
     QMutex _prepare_next_mutex;
-    bool _recreate_context;
-    bool _recreate_context_stereo;
     bool _failure;
     exc _e;
 
@@ -67,18 +65,9 @@ public:
     void activate_next_frame();
     void resize(int w, int h);
     void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
-    void recreate_context(bool stereo);
 
     void run();
 
-    bool recreate_context()
-    {
-        return _recreate_context;
-    }
-    bool recreate_context_stereo()
-    {
-        return _recreate_context_stereo;
-    }
     bool failure() const
     {
         return _failure;
@@ -151,6 +140,8 @@ private:
     QGLFormat _format;
     bool _fullscreen;
     bool _screensaver_inhibited;
+    bool _recreate_context;
+    bool _recreate_context_stereo;
 
     void create_widget();
     void mouse_set_pos(float dest);
