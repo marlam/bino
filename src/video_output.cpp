@@ -802,6 +802,13 @@ void video_output::display_current_frame(
         return;
     }
 
+    /* debug: make sure the current frame is always newer than the last one
+    static int64_t last_timestamp = -1000;
+    int64_t timestamp = frame.presentation_time;
+    assert(timestamp >= last_timestamp);
+    last_timestamp = timestamp;
+    */
+
     _params = dispatch::parameters();
     bool context_needs_stereo = (_params.stereo_mode() == parameters::mode_stereo);
     if (context_needs_stereo != context_is_stereo())

@@ -48,6 +48,7 @@ private:
     bool _resize;
     int _w, _h;
     bool _prepare_next_frame;
+    bool _have_prepared_frame;
     video_frame _next_frame;
     void* _next_data[2][3];
     size_t _next_line_size[2][3];
