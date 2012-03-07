@@ -2714,7 +2714,7 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
         } else {
             // This code block is only for compatibility with Bino <= 1.2.x:
             _settings->beginGroup("Video/" + urls_hash(input_data.urls));
-            if (!_settings->contains("stereo-layout")) {
+            if (_settings->contains("stereo-layout")) {
                 QString layout_name = _settings->value("stereo-layout").toString();
                 parameters::stereo_layout_t stereo_layout;
                 bool stereo_layout_swap;
@@ -2723,27 +2723,27 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
                 input_data.params.set_stereo_layout_swap(stereo_layout_swap);
                 _settings->remove("stereo-layout");
             }
-            if (!_settings->contains("video-stream")) {
+            if (_settings->contains("video-stream")) {
                 input_data.params.set_video_stream(_settings->value("video-stream").toInt());
                 _settings->remove("video-stream");
             }
-            if (!_settings->contains("audio-stream")) {
+            if (_settings->contains("audio-stream")) {
                 input_data.params.set_audio_stream(_settings->value("audio-stream").toInt());
                 _settings->remove("audio-stream");
             }
-            if (!_settings->contains("subtitle-stream")) {
+            if (_settings->contains("subtitle-stream")) {
                 input_data.params.set_subtitle_stream(_settings->value("subtitle-stream").toInt());
                 _settings->remove("subtitle-stream");
             }
-            if (!_settings->contains("parallax")) {
+            if (_settings->contains("parallax")) {
                 input_data.params.set_parallax(_settings->value("parallax").toFloat());
                 _settings->remove("parallax");
             }
-            if (!_settings->contains("ghostbust")) {
+            if (_settings->contains("ghostbust")) {
                 input_data.params.set_ghostbust(_settings->value("ghostbust").toFloat());
                 _settings->remove("ghostbust");
             }
-            if (!_settings->contains("subtitle-parallax")) {
+            if (_settings->contains("subtitle-parallax")) {
                 input_data.params.set_subtitle_parallax(_settings->value("subtitle-parallax").toFloat());
                 _settings->remove("subtitle-parallax");
             }
