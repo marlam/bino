@@ -415,7 +415,8 @@ public:
     main_window(QSettings *settings);
     virtual ~main_window();
 
-    void open(QStringList urls, const device_request &dev_request = device_request());
+    void open(QStringList urls, const device_request &dev_request = device_request(),
+            const parameters& initial_params = parameters());
     video_container_widget* container_widget()
     {
         return _video_container_widget;

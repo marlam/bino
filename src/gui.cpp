@@ -2699,7 +2699,9 @@ void main_window::playloop_step()
     }
 }
 
-void main_window::open(QStringList filenames, const device_request &dev_request)
+void main_window::open(QStringList filenames,
+        const device_request &dev_request,
+        const parameters& initial_params)
 {
     try {
         open_input_data input_data;
@@ -2749,6 +2751,27 @@ void main_window::open(QStringList filenames, const device_request &dev_request)
             }
             _settings->endGroup();
         }
+        // Allow the initial parameters to override our remembered per-video parameters.
+        // This is intended to be used to enforce command line parameters.
+        if (initial_params.video_stream_is_set())
+            input_data.params.set_video_stream(initial_params.video_stream());
+        if (initial_params.audio_stream_is_set())
+            input_data.params.set_audio_stream(initial_params.audio_stream());
+        if (initial_params.subtitle_stream_is_set())
+            input_data.params.set_subtitle_stream(initial_params.subtitle_stream());
+        if (initial_params.stereo_layout_is_set())
+            input_data.params.set_stereo_layout(initial_params.stereo_layout());
+        if (initial_params.stereo_layout_swap_is_set())
+            input_data.params.set_stereo_layout_swap(initial_params.stereo_layout_swap());
+        if (initial_params.crop_aspect_ratio_is_set())
+            input_data.params.set_crop_aspect_ratio(initial_params.crop_aspect_ratio());
+        if (initial_params.parallax_is_set())
+            input_data.params.set_parallax(initial_params.parallax());
+        if (initial_params.ghostbust_is_set())
+            input_data.params.set_ghostbust(initial_params.ghostbust());
+        if (initial_params.subtitle_parallax_is_set())
+            input_data.params.set_subtitle_parallax(initial_params.subtitle_parallax());
+        // Now open the input data
         std::ostringstream v;
         s11n::save(v, input_data);
         controller::send_cmd(command::open, v.str());
@@ -3152,6 +3175,6 @@ void gui::open(const open_input_data& input_data)
          QStringList urls;
          for (size_t i = 0; i < input_data.urls.size(); i++)
              urls.push_back(QFile::decodeName(input_data.urls[i].c_str()));
-         _main_window->open(urls, input_data.dev_request);
+         _main_window->open(urls, input_data.dev_request, input_data.params);
      }
 }
