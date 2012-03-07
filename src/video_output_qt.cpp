@@ -67,9 +67,9 @@ static GLEWContext* glewGetContext() { return &_glewContext; }
 
 gl_thread::gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widget) :
     _vo_qt(vo_qt), _vo_qt_widget(vo_qt_widget),
-    _render(true),
+    _render(false),
     _activate_next_frame(false),
-    _resize(false), _w(-1), _h(-1),
+    _resize(false),
     _prepare_next_frame(false),
     _have_prepared_frame(false),
     _recreate_context(false),
@@ -104,9 +104,9 @@ void gl_thread::activate_next_frame()
 
 void gl_thread::resize(int w, int h)
 {
-    _resize = true;
     _w = w;
     _h = h;
+    _resize = true;
 }
 
 void gl_thread::prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle)
@@ -139,9 +139,9 @@ void gl_thread::prepare_next_frame(const video_frame &frame, const subtitle_box 
         }
     }
     catch (std::exception& e) {
-        _failure = true;
-        _render = false;
         _e = e;
+        _render = false;
+        _failure = true;
     }
     _prepare_next_mutex.unlock();
     _prepare_next_frame = true;
@@ -149,8 +149,8 @@ void gl_thread::prepare_next_frame(const video_frame &frame, const subtitle_box 
 
 void gl_thread::recreate_context(bool stereo)
 {
-    _recreate_context = true;
     _recreate_context_stereo = stereo;
+    _recreate_context = true;
 }
 
 void gl_thread::run()
@@ -162,8 +162,8 @@ void gl_thread::run()
             if (QGLContext::currentContext() == _vo_qt_widget->context()) {
                 if (_activate_next_frame && _have_prepared_frame) {
                     _vo_qt->video_output::activate_next_frame();
-                    _activate_next_frame = false;
                     _have_prepared_frame = false;
+                    _activate_next_frame = false;
                 }
                 if (_resize) {
                     _vo_qt->reshape(_w, _h);
@@ -182,9 +182,9 @@ void gl_thread::run()
         }
     }
     catch (std::exception& e) {
-        _failure = true;
-        _render = false;
         _e = e;
+        _render = false;
+        _failure = true;
     }
 }
 

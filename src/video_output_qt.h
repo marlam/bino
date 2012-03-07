@@ -62,12 +62,14 @@ private:
 public:
     gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widget);
     ~gl_thread();
+
+    void set_render(bool r);
     void activate_next_frame();
     void resize(int w, int h);
     void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
     void recreate_context(bool stereo);
+
     void run();
-    void set_render(bool r);
 
     bool recreate_context()
     {
