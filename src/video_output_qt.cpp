@@ -906,6 +906,7 @@ void video_output_qt::process_events()
     if (_recreate_context) {
         // To prevent recursion, we must unset this flag first: deinit() and init()
         // cause more calls to process_events().
+        _widget->stop_rendering();
         _recreate_context = false;
         deinit();
         _format.setStereo(_recreate_context_stereo);
