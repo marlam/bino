@@ -141,6 +141,9 @@ protected:
 class video_output_qt : public video_output
 {
 private:
+#ifdef GLEW_MX
+    GLEWContext _glew_context;
+#endif
     int _screen_width, _screen_height;
     float _screen_pixel_aspect_ratio;
     video_container_widget *_container_widget;
@@ -160,7 +163,7 @@ private:
 
 protected:
 #ifdef GLEW_MX
-    virtual GLEWContext* glewGetContext();
+    virtual GLEWContext* glewGetContext() const;
 #endif
     virtual void make_context_current();
     virtual bool context_is_stereo() const;

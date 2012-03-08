@@ -77,17 +77,17 @@ private:
 
 private:
     // GL Helper functions
-    static bool xglCheckError(const std::string& where = std::string());
-    static GLuint xglCompileShader(const std::string& name, GLenum type, const std::string& src);
-    static GLuint xglCreateProgram(GLuint vshader, GLuint fshader);
-    static GLuint xglCreateProgram(const std::string& name,
-            const std::string& vshader_src, const std::string& fshader_src);
-    static void xglLinkProgram(const std::string& name, const GLuint prg);
-    static void xglDeleteProgram(GLuint prg);
+    bool xglCheckError(const std::string& where = std::string()) const;
+    GLuint xglCompileShader(const std::string& name, GLenum type, const std::string& src) const;
+    GLuint xglCreateProgram(GLuint vshader, GLuint fshader) const;
+    GLuint xglCreateProgram(const std::string& name,
+            const std::string& vshader_src, const std::string& fshader_src) const;
+    void xglLinkProgram(const std::string& name, const GLuint prg) const;
+    void xglDeleteProgram(GLuint prg) const;
 
-    static void draw_quad(float x, float y, float w, float h,
+    void draw_quad(float x, float y, float w, float h,
             const float tex_coords[2][4][2] = NULL,
-            const float more_tex_coords[4][2] = NULL);
+            const float more_tex_coords[4][2] = NULL) const;
 
     // Step 1: initialize/deinitialize, and check if reinitialization is necessary
     void input_init(int index, const video_frame &frame);
@@ -110,7 +110,7 @@ protected:
     subtitle_renderer _subtitle_renderer;
 
 #ifdef GLEW_MX
-    virtual GLEWContext* glewGetContext() = 0;
+    virtual GLEWContext* glewGetContext() const = 0;
 #endif
 
     // Get total size of the video display area. For single window output, this

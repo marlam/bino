@@ -137,7 +137,7 @@ video_output::~video_output()
  * The purpose of the return value is to be able to put this function
  * into an assert statement.
  */
-bool video_output::xglCheckError(const std::string& where)
+bool video_output::xglCheckError(const std::string& where) const
 {
     GLenum e = glGetError();
     if (e != GL_NO_ERROR) {
@@ -167,7 +167,7 @@ static void xglKillCrlf(char* str)
  * Creates a GL shader object. The \a name of the shader is only used
  * for error reporting purposes. If compilation fails, an exception is thrown.
  */
-GLuint video_output::xglCompileShader(const std::string& name, GLenum type, const std::string& src)
+GLuint video_output::xglCompileShader(const std::string& name, GLenum type, const std::string& src) const
 {
     msg::dbg("Compiling %s shader %s.", type == GL_VERTEX_SHADER ? "vertex" : "fragment", name.c_str());
 
@@ -221,7 +221,7 @@ GLuint video_output::xglCompileShader(const std::string& name, GLenum type, cons
  *
  * Creates a GL program object.
  */
-GLuint video_output::xglCreateProgram(GLuint vshader, GLuint fshader)
+GLuint video_output::xglCreateProgram(GLuint vshader, GLuint fshader) const
 {
     assert(vshader != 0 || fshader != 0);
     GLuint program = glCreateProgram();
@@ -242,7 +242,7 @@ GLuint video_output::xglCreateProgram(GLuint vshader, GLuint fshader)
  * for error reporting purposes.
  */
 GLuint video_output::xglCreateProgram(const std::string& name,
-        const std::string& vshader_src, const std::string& fshader_src)
+        const std::string& vshader_src, const std::string& fshader_src) const
 {
     GLuint vshader = 0, fshader = 0;
     if (vshader_src.length() > 0)
@@ -260,7 +260,7 @@ GLuint video_output::xglCreateProgram(const std::string& name,
  * Links a GL program object. The \a name of the program is only used
  * for error reporting purposes. If linking fails, an exception is thrown.
  */
-void video_output::xglLinkProgram(const std::string& name, const GLuint prg)
+void video_output::xglLinkProgram(const std::string& name, const GLuint prg) const
 {
     msg::dbg("Linking OpenGL program %s.", name.c_str());
 
@@ -296,7 +296,7 @@ void video_output::xglLinkProgram(const std::string& name, const GLuint prg)
  * Deletes a GL program and all its associated shaders. Does nothing if
  * \a program is not a valid program.
  */
-void video_output::xglDeleteProgram(GLuint program)
+void video_output::xglDeleteProgram(GLuint program) const
 {
     if (glIsProgram(program)) {
         GLint shader_count;
@@ -935,7 +935,7 @@ void video_output::activate_next_frame()
 
 void video_output::draw_quad(float x, float y, float w, float h,
         const float tex_coords[2][4][2],
-        const float more_tex_coords[4][2])
+        const float more_tex_coords[4][2]) const
 {
     const float (*my_tex_coords)[4][2] = (tex_coords ? tex_coords : full_tex_coords);
 
