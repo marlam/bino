@@ -77,15 +77,15 @@ private:
 
 private:
     // GL Helper functions
-    bool xglCheckError(const std::string& where = std::string());
-    GLuint xglCompileShader(const std::string& name, GLenum type, const std::string& src);
-    GLuint xglCreateProgram(GLuint vshader, GLuint fshader);
-    GLuint xglCreateProgram(const std::string& name,
+    static bool xglCheckError(const std::string& where = std::string());
+    static GLuint xglCompileShader(const std::string& name, GLenum type, const std::string& src);
+    static GLuint xglCreateProgram(GLuint vshader, GLuint fshader);
+    static GLuint xglCreateProgram(const std::string& name,
             const std::string& vshader_src, const std::string& fshader_src);
-    void xglLinkProgram(const std::string& name, const GLuint prg);
-    void xglDeleteProgram(GLuint prg);
+    static void xglLinkProgram(const std::string& name, const GLuint prg);
+    static void xglDeleteProgram(GLuint prg);
 
-    void draw_quad(float x, float y, float w, float h,
+    static void draw_quad(float x, float y, float w, float h,
             const float tex_coords[2][4][2] = NULL,
             const float more_tex_coords[4][2] = NULL);
 
@@ -116,16 +116,27 @@ protected:
     // Get total size of the video display area. For single window output, this
     // is the same as the current viewport. The Equalizer video output can override
     // this function.
-    virtual int video_display_width();
-    virtual int video_display_height();
+    virtual int video_display_width() const;
+    virtual int video_display_height() const;
 
     virtual void make_context_current() = 0;    // Make sure our OpenGL context is current
-    virtual bool context_is_stereo() = 0;       // Is our current OpenGL context a stereo context?
+    virtual bool context_is_stereo() const = 0; // Is our current OpenGL context a stereo context?
     virtual void recreate_context(bool stereo) = 0;     // Recreate an OpenGL context and make it current
     virtual void trigger_resize(int w, int h) = 0;      // Trigger a resize the video area
 
-    void clear();                               // Clear the video area
+    void clear() const;                         // Clear the video area
     void reshape(int w, int h);                 // Call this when the video area was resized
+
+    /* Get screen properties (fixed) */
+    virtual int screen_width() const = 0;       // in pixels
+    virtual int screen_height() const = 0;      // in pixels
+    virtual float screen_pixel_aspect_ratio() const = 0;// the aspect ratio of a pixel on screen
+
+    /* Get current video area properties */
+    virtual int width() const = 0;              // in pixels
+    virtual int height() const = 0;             // in pixels
+    virtual int pos_x() const = 0;              // in pixels
+    virtual int pos_y() const = 0;              // in pixels
 
     /* Display the current frame.
      * The first version is used by Equalizer, which needs to set some special properties.
@@ -158,17 +169,6 @@ public:
 
     /* Get capabilities */
     virtual bool supports_stereo() const = 0;   // Is OpenGL quad buffered stereo available?
-
-    /* Get screen properties (fixed) */
-    virtual int screen_width() = 0;             // in pixels
-    virtual int screen_height() = 0;            // in pixels
-    virtual float screen_pixel_aspect_ratio() = 0;      // the aspect ratio of a pixel on screen
-
-    /* Get current video area properties */
-    virtual int width() = 0;                    // in pixels
-    virtual int height() = 0;                   // in pixels
-    virtual int pos_x() = 0;                    // in pixels
-    virtual int pos_y() = 0;                    // in pixels
 
     /* Center video area on screen */
     virtual void center() = 0;

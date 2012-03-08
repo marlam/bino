@@ -138,11 +138,23 @@ private:
     float _canvas_video_area_h;
 
 protected:
-    int video_display_width() { return screen_width() * _canvas_video_area_w; }
-    int video_display_height() { return screen_height() * _canvas_video_area_h; }
+    int video_display_width() const { return screen_width() * _canvas_video_area_w; }
+    int video_display_height() const { return screen_height() * _canvas_video_area_h; }
+    int screen_width() const { return _channel->getPixelViewport().w / _channel->getViewport().w; }
+    int screen_height() const { return _channel->getPixelViewport().h / _channel->getViewport().h; }
+    float screen_pixel_aspect_ratio() const
+    {
+        float pixels_per_unit_x = _channel->getPixelViewport().w / (_canvas_width * _channel->getViewport().w);
+        float pixels_per_unit_y = _channel->getPixelViewport().h / (_canvas_height * _channel->getViewport().h);
+        return pixels_per_unit_y / pixels_per_unit_x;
+    }
+    int width() const { return _channel->getPixelViewport().w; }
+    int height() const { return _channel->getPixelViewport().h; }
+    int pos_x() const { return 0; }
+    int pos_y() const { return 0; }
     GLEWContext* glewGetContext() { return const_cast<GLEWContext*>(_channel->getWindow()->glewGetContext()); }
     void make_context_current() { _channel->getWindow()->makeCurrent(); }
-    bool context_is_stereo() { return false; }
+    bool context_is_stereo() const { return false; }
     void recreate_context(bool) { }
     void trigger_resize(int, int) { }
 
@@ -168,18 +180,6 @@ public:
         return 0;
     }
     bool supports_stereo() const { return false; }
-    int screen_width() { return _channel->getPixelViewport().w / _channel->getViewport().w; }
-    int screen_height() { return _channel->getPixelViewport().h / _channel->getViewport().h; }
-    float screen_pixel_aspect_ratio()
-    {
-        float pixels_per_unit_x = _channel->getPixelViewport().w / (_canvas_width * _channel->getViewport().w);
-        float pixels_per_unit_y = _channel->getPixelViewport().h / (_canvas_height * _channel->getViewport().h);
-        return pixels_per_unit_y / pixels_per_unit_x;
-    }
-    int width() { return _channel->getPixelViewport().w; }
-    int height() { return _channel->getPixelViewport().h; }
-    int pos_x() { return 0; }
-    int pos_y() { return 0; }
     void center() { }
     void enter_fullscreen() { }
     void exit_fullscreen() { }

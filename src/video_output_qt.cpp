@@ -181,15 +181,42 @@ void gl_thread::run()
 
 video_output_qt_widget::video_output_qt_widget(
         video_output_qt *vo, const QGLFormat &format, QWidget *parent) :
-    QGLWidget(format, parent), _vo(vo), _gl_thread(vo, this)
+    QGLWidget(format, parent), _vo(vo), _gl_thread(vo, this),
+    _width(0), _height(0), _pos_x(0), _pos_y(0)
 {
     setAutoBufferSwap(false);
     setFocusPolicy(Qt::StrongFocus);
     connect(&_timer, SIGNAL(timeout()), this, SLOT(check_gl_thread()));
 }
 
+int video_output_qt_widget::vo_width() const
+{
+    return _width;
+}
+
+int video_output_qt_widget::vo_height() const
+{
+    return _height;
+}
+
+int video_output_qt_widget::vo_pos_x() const
+{
+    return _pos_x;
+}
+
+int video_output_qt_widget::vo_pos_y() const
+{
+    return _pos_y;
+}
+
 void video_output_qt_widget::check_gl_thread()
 {
+    // XXX We need to know our current position on the screen (global pixel coordinates).
+    // Querying our position in vo_pos_*() does not work since that function is called
+    // from the GL thread and mapToGlocal() seems to block for some strange reason.
+    // Therefore we record our current position here.
+    _pos_x = mapToGlobal(QPoint(0, 0)).x();
+    _pos_y = mapToGlobal(QPoint(0, 0)).y();
     if (_gl_thread.failure()) {
         stop_rendering();
         QMessageBox::critical(this, _("Error"), _gl_thread.exception().what());
@@ -215,7 +242,9 @@ void video_output_qt_widget::stop_rendering()
 
 void video_output_qt_widget::resizeEvent(QResizeEvent* event)
 {
-    _gl_thread.resize(event->size().width(), event->size().height());
+    _width = event->size().width();
+    _height = event->size().height();
+    _gl_thread.resize(_width, _height);
 }
 
 void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
@@ -469,6 +498,20 @@ video_output_qt::video_output_qt(video_container_widget *container_widget) :
     _format.setDoubleBuffer(true);
     _format.setSwapInterval(dispatch::parameters().swap_interval());
     _format.setStereo(false);
+    // Save some constant values into member variables
+    // so that we don't have to call Qt functions when the GL thread
+    // calls our screen_*() functions.
+    _screen_width = QApplication::desktop()->screenGeometry().width();
+    _screen_height = QApplication::desktop()->screenGeometry().height();
+    _screen_pixel_aspect_ratio =
+        static_cast<float>(QApplication::desktop()->logicalDpiY())
+        / static_cast<float>(QApplication::desktop()->logicalDpiX());
+    if (std::fabs(_screen_pixel_aspect_ratio - 1.0f) < 0.03f) {
+        // This screen most probably has square pixels, and the difference to 1.0
+        // is only due to slightly inaccurate measurements and rounding. Force
+        // 1.0 so that the user gets expected results.
+        _screen_pixel_aspect_ratio = 1.0f;
+    }
 }
 
 video_output_qt::~video_output_qt()
@@ -634,7 +677,7 @@ void video_output_qt::make_context_current()
     _widget->makeCurrent();
 }
 
-bool video_output_qt::context_is_stereo()
+bool video_output_qt::context_is_stereo() const
 {
     return (_format.stereo());
 }
@@ -721,49 +764,39 @@ bool video_output_qt::supports_stereo() const
     return ret;
 }
 
-int video_output_qt::screen_width()
+int video_output_qt::screen_width() const
 {
-    return QApplication::desktop()->screenGeometry().width();
+    return _screen_width;
 }
 
-int video_output_qt::screen_height()
+int video_output_qt::screen_height() const
 {
-    return QApplication::desktop()->screenGeometry().height();
+    return _screen_height;
 }
 
-float video_output_qt::screen_pixel_aspect_ratio()
+float video_output_qt::screen_pixel_aspect_ratio() const
 {
-    float screen_pixel_ar =
-        static_cast<float>(QApplication::desktop()->logicalDpiY())
-        / static_cast<float>(QApplication::desktop()->logicalDpiX());
-    if (std::fabs(screen_pixel_ar - 1.0f) < 0.03f)
-    {
-        // This screen most probably has square pixels, and the difference to 1.0
-        // is only due to slightly inaccurate measurements and rounding. Force
-        // 1.0 so that the user gets expected results.
-        screen_pixel_ar = 1.0f;
-    }
-    return screen_pixel_ar;
+    return _screen_pixel_aspect_ratio;
 }
 
-int video_output_qt::width()
+int video_output_qt::width() const
 {
-    return _widget->width();
+    return _widget->vo_width();
 }
 
-int video_output_qt::height()
+int video_output_qt::height() const
 {
-    return _widget->height();
+    return _widget->vo_height();
 }
 
-int video_output_qt::pos_x()
+int video_output_qt::pos_x() const
 {
-    return _widget->mapToGlobal(QPoint(0, 0)).x();
+    return _widget->vo_pos_x();
 }
 
-int video_output_qt::pos_y()
+int video_output_qt::pos_y() const
 {
-    return _widget->mapToGlobal(QPoint(0, 0)).y();
+    return _widget->vo_pos_y();
 }
 
 void video_output_qt::center()

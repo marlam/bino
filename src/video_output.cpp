@@ -585,13 +585,13 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
     update_subtitle_tex(index, frame, subtitle, _params);
 }
 
-int video_output::video_display_width()
+int video_output::video_display_width() const
 {
     assert(_viewport[0][2] > 0);
     return _viewport[0][2];
 }
 
-int video_output::video_display_height()
+int video_output::video_display_height() const
 {
     assert(_viewport[0][3] > 0);
     return _viewport[0][3];
@@ -1295,7 +1295,7 @@ void video_output::display_current_frame(
     glDisable(GL_TEXTURE_2D);
 }
 
-void video_output::clear()
+void video_output::clear() const
 {
     assert(xglCheckError(HERE));
     if (context_is_stereo())

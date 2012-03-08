@@ -85,12 +85,19 @@ private:
     video_output_qt *_vo;
     class gl_thread _gl_thread;
     QTimer _timer;
+    int _width, _height;
+    int _pos_x, _pos_y;
 
 private slots:
     void check_gl_thread();
 
 public:
     video_output_qt_widget(video_output_qt *vo, const QGLFormat &format, QWidget *parent = NULL);
+
+    int vo_width() const;
+    int vo_height() const;
+    int vo_pos_x() const;
+    int vo_pos_y() const;
 
     void start_rendering();
     void stop_rendering();
@@ -134,6 +141,8 @@ protected:
 class video_output_qt : public video_output
 {
 private:
+    int _screen_width, _screen_height;
+    float _screen_pixel_aspect_ratio;
     video_container_widget *_container_widget;
     bool _container_is_external;
     video_output_qt_widget *_widget;
@@ -154,9 +163,17 @@ protected:
     virtual GLEWContext* glewGetContext();
 #endif
     virtual void make_context_current();
-    virtual bool context_is_stereo();
+    virtual bool context_is_stereo() const;
     virtual void recreate_context(bool stereo);
     virtual void trigger_resize(int w, int h);
+
+    virtual int screen_width() const;
+    virtual int screen_height() const;
+    virtual float screen_pixel_aspect_ratio() const;
+    virtual int width() const;
+    virtual int height() const;
+    virtual int pos_x() const;
+    virtual int pos_y() const;
 
 public:
     /* Constructor, Destructor */
@@ -171,13 +188,6 @@ public:
     virtual void deinit();
 
     virtual bool supports_stereo() const;
-    virtual int screen_width();
-    virtual int screen_height();
-    virtual float screen_pixel_aspect_ratio();
-    virtual int width();
-    virtual int height();
-    virtual int pos_x();
-    virtual int pos_y();
 
     virtual void center();
     virtual void enter_fullscreen();
