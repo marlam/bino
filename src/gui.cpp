@@ -1911,16 +1911,16 @@ video_dialog::video_dialog(QWidget *parent) : QDialog(parent), _lock(false)
     _crop_ar_combobox = new QComboBox();
     _crop_ar_combobox->setToolTip(crop_ar_label->toolTip());
     _crop_ar_combobox->addItem(_("Do not crop"));
-    _crop_ar_combobox->addItem(_("16:10"));
-    _crop_ar_combobox->addItem(_("16:9"));
-    _crop_ar_combobox->addItem(_("1.85:1"));
-    _crop_ar_combobox->addItem(_("2.21:1"));
-    _crop_ar_combobox->addItem(_("2.35:1"));
-    _crop_ar_combobox->addItem(_("2.39:1"));
-    _crop_ar_combobox->addItem(_("5:3"));
-    _crop_ar_combobox->addItem(_("4:3"));
-    _crop_ar_combobox->addItem(_("5:4"));
-    _crop_ar_combobox->addItem(_("1:1"));
+    _crop_ar_combobox->addItem("16:10");
+    _crop_ar_combobox->addItem("16:9");
+    _crop_ar_combobox->addItem("1.85:1");
+    _crop_ar_combobox->addItem("2.21:1");
+    _crop_ar_combobox->addItem("2.35:1");
+    _crop_ar_combobox->addItem("2.39:1");
+    _crop_ar_combobox->addItem("5:3");
+    _crop_ar_combobox->addItem("4:3");
+    _crop_ar_combobox->addItem("5:4");
+    _crop_ar_combobox->addItem("1:1");
     connect(_crop_ar_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(crop_ar_changed()));
 
     QLabel *p_label = new QLabel(_("Parallax:"));
@@ -3056,33 +3056,31 @@ void main_window::help_website()
 void main_window::help_keyboard()
 {
     QMessageBox::information(this, _("Keyboard Shortcuts"),
-            /* TRANSLATORS: This is a HTML table, shown under Help->Keyboard Shortcuts.
-               Please make sure that your translation formats properly. */
-            _("<p>Keyboard control:<br>"
-                "<table>"
-                "<tr><td>q or ESC</td><td>Stop</td></tr>"
-                "<tr><td>p or SPACE</td><td>Pause / unpause</td></tr>"
-                "<tr><td>f</td><td>Toggle fullscreen</td></tr>"
-                "<tr><td>c</td><td>Center window</td></tr>"
-                "<tr><td>e</td><td>Swap left/right eye</td></tr>"
-                "<tr><td>v</td><td>Cycle through available video streams</td></tr>"
-                "<tr><td>a</td><td>Cycle through available audio streams</td></tr>"
-                "<tr><td>s</td><td>Cycle through available subtitle streams</td></tr>"
-                "<tr><td>1, 2</td><td>Adjust contrast</td></tr>"
-                "<tr><td>3, 4</td><td>Adjust brightness</td></tr>"
-                "<tr><td>5, 6</td><td>Adjust hue</td></tr>"
-                "<tr><td>7, 8</td><td>Adjust saturation</td></tr>"
-                "<tr><td>[, ]</td><td>Adjust parallax</td></tr>"
-                "<tr><td>(, )</td><td>Adjust ghostbusting</td></tr>"
-                "<tr><td>/, *</td><td>Adjust audio volume</td></tr>"
-                "<tr><td>m</td><td>Toggle audio mute</td></tr>"
-                "<tr><td>&lt;, &gt;</td><td>Adjust zoom</td></tr>"
-                "<tr><td>left, right</td><td>Seek 10 seconds backward / forward</td></tr>"
-                "<tr><td>down, up</td><td>Seek 1 minute backward / forward</td></tr>"
-                "<tr><td>page down, page up</td><td>Seek 10 minutes backward / forward</td></tr>"
-                "<tr><td>Media keys</td><td>Media keys should work as expected</td></tr>"
-                "</table>"
-                "</p>"));
+            QString("<p>") + _("Keyboard control:") + "<br>"
+            "<table>"
+            "<tr><td>q, ESC</td><td>" + _("Stop.") + "</td></tr>"
+            "<tr><td>p / SPACE</td><td>" + _("Pause / unpause.") + "</td></tr>"
+            "<tr><td>f</td><td>" + _("Toggle fullscreen.") + "</td></tr>"
+            "<tr><td>c</td><td>" + _("Center window.") + "</td></tr>"
+            "<tr><td>e</td><td>" + _("Swap left/right eye.") + "</td></tr>"
+            "<tr><td>v</td><td>" + _("Cycle through available video streams.") + "</td></tr>"
+            "<tr><td>a</td><td>" + _("Cycle through available audio streams.") + "</td></tr>"
+            "<tr><td>s</td><td>" + _("Cycle through available subtitle streams.") + "</td></tr>"
+            "<tr><td>1, 2</td><td>" + _("Adjust contrast.") + "</td></tr>"
+            "<tr><td>3, 4</td><td>" + _("Adjust brightness.") + "</td></tr>"
+            "<tr><td>5, 6</td><td>" + _("Adjust hue.") + "</td></tr>"
+            "<tr><td>7, 8</td><td>" + _("Adjust saturation.") + "</td></tr>"
+            "<tr><td>[, ]</td><td>" + _("Adjust parallax.") + "</td></tr>"
+            "<tr><td>(, )</td><td>" + _("Adjust ghostbusting.") + "</td></tr>"
+            "<tr><td>&lt;, &gt;</td><td>" + _("Adjust zoom for wide videos.") + "</td></tr>"
+            "<tr><td>/, *</td><td>" + _("Adjust audio volume.") + "</td></tr>"
+            "<tr><td>m</td><td>" + _("Toggle audio mute.") + "</td></tr>"
+            "<tr><td>left, right</td><td>" + _("Seek 10 seconds backward / forward.") + "</td></tr>"
+            "<tr><td>down, up</td><td>" + _("Seek 1 minute backward / forward.") + "</td></tr>"
+            "<tr><td>page down, page up</td><td>" + _("Seek 10 minutes backward / forward.") + "</td></tr>"
+            "<tr><td>Media keys</td><td>" + _("Media keys should work as expected.") + "</td></tr>"
+            "</table>"
+            "</p>");
 }
 
 void main_window::help_about()

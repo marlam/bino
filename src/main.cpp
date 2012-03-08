@@ -490,7 +490,7 @@ int main(int argc, char *argv[])
                 + _("Interactive control:") + '\n'
                 + "  ESC                      " + _("Leave fullscreen mode, or quit.") + '\n'
                 + "  q                        " + _("Quit.") + '\n'
-                + "  p or SPACE               " + _("Pause / unpause.") + '\n'
+                + "  p / SPACE                " + _("Pause / unpause.") + '\n'
                 + "  f                        " + _("Toggle fullscreen.") + '\n'
                 + "  c                        " + _("Center window.") + '\n'
                 + "  e                        " + _("Swap left/right eye.") + '\n'
