@@ -372,8 +372,10 @@ void dispatch::force_stop()
         _media_input->open(_input_data.urls, _input_data.dev_request);
         _media_input->set_stereo_layout(_parameters.stereo_layout(), _parameters.stereo_layout_swap());
         _media_input->select_video_stream(_parameters.video_stream());
-        _media_input->select_audio_stream(_parameters.audio_stream());
-        _media_input->select_subtitle_stream(_parameters.subtitle_stream());
+        if (_media_input->audio_streams() > 0)
+            _media_input->select_audio_stream(_parameters.audio_stream());
+        if (_media_input->subtitle_streams() > 0 && _parameters.subtitle_stream() >= 0)
+            _media_input->select_subtitle_stream(_parameters.subtitle_stream());
     }
     if (_video_output) {
         _video_output->deinit();
