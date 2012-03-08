@@ -932,6 +932,8 @@ void controls_widget::update()
         _loop_button->setEnabled(true);
         _fullscreen_button->setEnabled(true);
         _input_duration = dispatch::media_input()->duration();
+        if (_input_duration < 0)
+            _input_duration = 0;
         std::string hr_duration = str::human_readable_time(_input_duration);
         _pos_label->setText((hr_duration + '/' + hr_duration).c_str());
         _pos_label->setMinimumSize(_pos_label->minimumSizeHint());
