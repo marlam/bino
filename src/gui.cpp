@@ -2776,17 +2776,21 @@ void main_window::open(QStringList filenames,
         s11n::save(v, input_data);
         controller::send_cmd(command::open, v.str());
         // Get stereo mode
-        QString mode_fallback = QString(parameters::stereo_mode_to_string(
-                    dispatch::parameters().stereo_mode(), dispatch::parameters().stereo_mode_swap()).c_str());
-        QString mode_name = _settings->value(
-                (dispatch::media_input()->video_frame_template().stereo_layout == parameters::layout_mono
-                 ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode"),
-                mode_fallback).toString();
-        parameters::stereo_mode_t stereo_mode;
-        bool stereo_mode_swap;
-        parameters::stereo_mode_from_string(mode_name.toStdString(), stereo_mode, stereo_mode_swap);
-        send_cmd(command::set_stereo_mode, stereo_mode);
-        send_cmd(command::set_stereo_mode_swap, stereo_mode_swap);
+        bool mono = (dispatch::media_input()->video_frame_template().stereo_layout == parameters::layout_mono);
+        if (initial_params.stereo_mode_is_set()) {
+            send_cmd(command::set_stereo_mode, initial_params.stereo_mode());
+            send_cmd(command::set_stereo_mode_swap, initial_params.stereo_mode_swap());
+        } else if (_settings->contains(mono ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode")) {
+            parameters::stereo_mode_t stereo_mode;
+            bool stereo_mode_swap;
+            QString mode_name = _settings->value(
+                    mono ? "Session/2d-stereo-mode" : "Session/3d-stereo-mode").toString();
+            parameters::stereo_mode_from_string(mode_name.toStdString(), stereo_mode, stereo_mode_swap);
+            if (initial_params.stereo_mode_swap_is_set())
+                stereo_mode_swap = initial_params.stereo_mode_swap();
+            send_cmd(command::set_stereo_mode, stereo_mode);
+            send_cmd(command::set_stereo_mode_swap, stereo_mode_swap);
+        }
         // Automatically start playing
         send_cmd(command::toggle_play);
     }
@@ -3175,6 +3179,11 @@ void gui::open(const open_input_data& input_data)
          QStringList urls;
          for (size_t i = 0; i < input_data.urls.size(); i++)
              urls.push_back(QFile::decodeName(input_data.urls[i].c_str()));
-         _main_window->open(urls, input_data.dev_request, input_data.params);
+         parameters initial_params = input_data.params;
+         if (dispatch::parameters().stereo_mode_is_set())
+             initial_params.set_stereo_mode(dispatch::parameters().stereo_mode());
+         if (dispatch::parameters().stereo_mode_swap_is_set())
+             initial_params.set_stereo_mode_swap(dispatch::parameters().stereo_mode_swap());
+         _main_window->open(urls, input_data.dev_request, initial_params);
      }
 }
