@@ -199,6 +199,7 @@ void video_output_qt_widget::check_gl_thread()
 
 void video_output_qt_widget::start_rendering()
 {
+    QApplication::syncX();
     _gl_thread.set_render(true);
     _gl_thread.start();
     _timer.start(0);
@@ -209,6 +210,7 @@ void video_output_qt_widget::stop_rendering()
     _gl_thread.set_render(false);
     _gl_thread.wait();
     _timer.stop();
+    QApplication::syncX();
 }
 
 void video_output_qt_widget::resizeEvent(QResizeEvent* event)
