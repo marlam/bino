@@ -184,6 +184,8 @@ public:
     virtual void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
     /* Switch to the next frame (make it the current one) */
     virtual void activate_next_frame();
+    /* Get an estimation of when the next frame will appear on screen */
+    virtual int64_t time_to_next_frame_presentation() const;
 };
 
 #endif

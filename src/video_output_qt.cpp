@@ -90,6 +90,8 @@ gl_thread::~gl_thread()
 void gl_thread::set_render(bool r)
 {
     _render = r;
+    _pti = 0;
+    _ptc = 0;
 }
 
 void gl_thread::activate_next_frame()
@@ -168,6 +170,15 @@ void gl_thread::run()
                 }
             }
             _vo_qt_widget->swapBuffers();
+            // When the buffer swap returns, the current frame is just now presented on screen.
+            _pt_mutex.lock();
+            _pt[_pti] = timer::get_microseconds(timer::monotonic);
+            _pti++;
+            if (_pti >= _pts)
+                _pti = 0;
+            if (_ptc < _pts)
+                _ptc++;
+            _pt_mutex.unlock();
         }
     }
     catch (std::exception& e) {
@@ -175,6 +186,30 @@ void gl_thread::run()
         _render = false;
         _failure = true;
     }
+}
+
+int64_t gl_thread::time_to_next_frame_presentation()
+{
+    if (_ptc < _pts)    // no reliable data yet; assume immediate display
+        return 0;
+    _pt_mutex.lock();
+    int last_pti = _pti == 0 ? _pts - 1 : _pti - 1;
+    int64_t last_pt = _pt[last_pti];
+    int64_t presentation_duration = 0;
+    for (int i = 0; i < _pts - 1; i++) {
+        int cpti = _pti - i - 1;
+        if (cpti < 0)
+            cpti += _pts;
+        int ppti = cpti - 1;
+        if (ppti < 0)
+            ppti = _pts - 1;
+        assert(_pt[cpti] - _pt[ppti] >= 0);
+        presentation_duration += _pt[cpti] - _pt[ppti];
+    }
+    presentation_duration /= _pts - 1;
+    _pt_mutex.unlock();
+    int64_t now = timer::get_microseconds(timer::monotonic);
+    return last_pt + presentation_duration - now;
 }
 
 /* The GL widget */
@@ -933,6 +968,11 @@ void video_output_qt::activate_next_frame()
 {
     if (_widget)
         _widget->gl_thread()->activate_next_frame();
+}
+
+int64_t video_output_qt::time_to_next_frame_presentation() const
+{
+    return (_widget ? _widget->gl_thread()->time_to_next_frame_presentation() : 0);
 }
 
 void video_output_qt::process_events()

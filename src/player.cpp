@@ -406,14 +406,19 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
         }
 
         int64_t allowable_sleep = 0;
-        if (_master_time_current + dispatch::parameters().audio_delay() >= _video_pos ||
-            dispatch::parameters().benchmark() || global_dispatch->get_media_input()->is_device())
+        int64_t next_frame_presentation_time = _master_time_current + dispatch::parameters().audio_delay();
+        if (dispatch::video_output())
+            next_frame_presentation_time += dispatch::video_output()->time_to_next_frame_presentation();
+        if (next_frame_presentation_time >= _video_pos
+                || dispatch::parameters().benchmark()
+                || global_dispatch->get_media_input()->is_device())
         {
             // Output current video frame
             _drop_next_frame = false;
-            const int64_t delay = _master_time_current + dispatch::parameters().audio_delay() - _video_pos;
-            if ( delay > global_dispatch->get_media_input()->video_frame_duration() * 75 / 100 &&
-                 !dispatch::parameters().benchmark() && !global_dispatch->get_media_input()->is_device())
+            int64_t delay = next_frame_presentation_time - _video_pos;
+            if (delay > global_dispatch->get_media_input()->video_frame_duration() * 75 / 100
+                    && !dispatch::parameters().benchmark()
+                    && !global_dispatch->get_media_input()->is_device())
             {
                 msg::wrn(_("Video: delay %g seconds/%g frames; dropping next frame."),
                          float(delay) / 1e6f, 
@@ -441,7 +446,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
         }
         else
         {
-            allowable_sleep = _video_pos - _master_time_current;
+            allowable_sleep = _video_pos - next_frame_presentation_time;
             if (allowable_sleep < 100)
             {
                 allowable_sleep = 0;

@@ -30,6 +30,8 @@
 #include <QThread>
 #include <QMutex>
 
+#include "thread.h"
+
 #include "video_output.h"
 
 
@@ -53,9 +55,16 @@ private:
     void* _next_data[2][3];
     size_t _next_line_size[2][3];
     subtitle_box _next_subtitle;
-    QMutex _prepare_next_mutex;
+    mutex _prepare_next_mutex;
     bool _failure;
     exc _e;
+
+    // For estimation of next display frame presentation time
+    mutex _pt_mutex;
+    static const int _pts = 5;
+    int64_t _pt[_pts];
+    int _ptc;
+    int _pti;
 
 public:
     gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widget);
@@ -65,6 +74,8 @@ public:
     void activate_next_frame();
     void resize(int w, int h);
     void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
+
+    int64_t time_to_next_frame_presentation();
 
     void run();
 
@@ -198,6 +209,7 @@ public:
 
     virtual void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
     virtual void activate_next_frame();
+    virtual int64_t time_to_next_frame_presentation() const;
 
     virtual void process_events();
     virtual void receive_notification(const notification& note);

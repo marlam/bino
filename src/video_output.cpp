@@ -1455,3 +1455,8 @@ void video_output::reshape(int w, int h)
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }
 }
+
+int64_t video_output::time_to_next_frame_presentation() const
+{
+    return 0;
+}
