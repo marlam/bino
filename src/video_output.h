@@ -109,9 +109,7 @@ private:
 protected:
     subtitle_renderer _subtitle_renderer;
 
-#ifdef GLEW_MX
     virtual GLEWContext* glewGetContext() const = 0;
-#endif
 
     // Get total size of the video display area. For single window output, this
     // is the same as the current viewport. The Equalizer video output can override

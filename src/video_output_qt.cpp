@@ -699,12 +699,10 @@ void video_output_qt::create_widget()
     process_events();
 }
 
-#ifdef GLEW_MX
 GLEWContext* video_output_qt::glewGetContext() const
 {
     return const_cast<GLEWContext*>(&_glew_context);
 }
-#endif
 
 void video_output_qt::make_context_current()
 {
