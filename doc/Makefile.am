@@ -1,3 +1,10 @@
+# Copyright (C) 2010, 2011, 2012
+# Martin Lambers <marlam@marlam.de>
+#
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and this
+# notice are preserved. This file is offered as-is, without any warranty.
+
 man_MANS = bino.1
 
 info_TEXINFOS = bino.texi
@@ -18,6 +25,8 @@ ICONS_LOCAL = \
 	input-layout-right-left-half.png \
 	input-layout-even-odd-rows.png \
 	input-layout-odd-even-rows.png \
+	output-type-stereo.png \
+	output-type-alternating.png \
 	output-type-mono-left.png \
 	output-type-mono-right.png \
 	output-type-top-bottom.png \
@@ -32,8 +41,7 @@ ICONS_LOCAL = \
 	output-type-green-magenta.png \
 	output-type-amber-blue.png \
 	output-type-red-green.png \
-	output-type-red-blue.png \
-	output-type-stereo.png
+	output-type-red-blue.png
 
 input-layout-%.png:
 	$(LN_S) $(top_srcdir)/src/icons-local/$@

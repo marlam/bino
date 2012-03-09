@@ -39,6 +39,8 @@ ICONS_LOCAL_IPE = \
 	icons-local/input-layout-right-left-half.ipe \
 	icons-local/input-layout-even-odd-rows.ipe \
 	icons-local/input-layout-odd-even-rows.ipe \
+	icons-local/output-type-stereo.ipe \
+	icons-local/output-type-alternating.ipe \
 	icons-local/output-type-mono-left.ipe \
 	icons-local/output-type-mono-right.ipe \
 	icons-local/output-type-top-bottom.ipe \
@@ -53,8 +55,7 @@ ICONS_LOCAL_IPE = \
 	icons-local/output-type-green-magenta.ipe \
 	icons-local/output-type-amber-blue.ipe \
 	icons-local/output-type-red-green.ipe \
-	icons-local/output-type-red-blue.ipe \
-	icons-local/output-type-stereo.ipe
+	icons-local/output-type-red-blue.ipe
 
 ICONS = \
 	icons/application-exit.png \

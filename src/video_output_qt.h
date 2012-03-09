@@ -30,6 +30,10 @@
 #include <QThread>
 #include <QMutex>
 
+#ifdef Q_WS_X11
+# include <GL/glxew.h>
+#endif
+
 #include "thread.h"
 
 #include "video_output.h"
@@ -69,6 +73,10 @@ private:
 public:
     gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widget);
     ~gl_thread();
+
+#ifdef Q_WS_X11
+    GLXEWContext* glxewGetContext() const;
+#endif
 
     void set_render(bool r);
     void activate_next_frame();
@@ -152,7 +160,11 @@ protected:
 class video_output_qt : public video_output
 {
 private:
+#ifdef Q_WS_X11
+    GLXEWContext _glxew_context;
+#endif
     GLEWContext _glew_context;
+    bool _supports_alternating;
     int _screen_width, _screen_height;
     float _screen_pixel_aspect_ratio;
     video_container_widget *_container_widget;
@@ -171,6 +183,9 @@ private:
     void resume_screensaver();
 
 protected:
+#ifdef Q_WS_X11
+    GLXEWContext* glxewGetContext() const;
+#endif
     virtual GLEWContext* glewGetContext() const;
     virtual void make_context_current();
     virtual bool context_is_stereo() const;
@@ -198,6 +213,7 @@ public:
     virtual void deinit();
 
     virtual bool supports_stereo() const;
+    virtual bool supports_alternating() const;
 
     virtual void center();
     virtual void enter_fullscreen();

@@ -252,6 +252,9 @@ std::string parameters::stereo_mode_to_string(stereo_mode_t stereo_mode, bool st
     case mode_stereo:
         s = "stereo";
         break;
+    case mode_alternating:
+        s = "alternating";
+        break;
     case mode_mono_left:
         s = "mono-left";
         break;
@@ -343,6 +346,8 @@ void parameters::stereo_mode_from_string(const std::string &s, stereo_mode_t &st
         stereo_mode_swap = false;
     } if (t == "stereo") {
         stereo_mode = mode_stereo;
+    } else if (t == "alternating") {
+        stereo_mode = mode_alternating;
     } else if (t == "mono-left") {
         stereo_mode = mode_mono_left;
     } else if (t == "mono-right") {

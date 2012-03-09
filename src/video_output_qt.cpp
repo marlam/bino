@@ -44,6 +44,7 @@
 #ifdef Q_WS_X11
 # include <QX11Info>
 # include <X11/Xlib.h>
+# include <GL/glxew.h>
 #endif
 
 #include "gettext.h"
@@ -86,6 +87,13 @@ gl_thread::~gl_thread()
         }
     }
 }
+
+#ifdef Q_WS_X11
+GLXEWContext* gl_thread::glxewGetContext() const
+{
+    return _vo_qt->glxewGetContext();
+}
+#endif
 
 void gl_thread::set_render(bool r)
 {
@@ -151,6 +159,10 @@ void gl_thread::run()
             assert(_vo_qt_widget->context()->isValid());
             _vo_qt_widget->makeCurrent();
             if (QGLContext::currentContext() == _vo_qt_widget->context()) {
+                if (dispatch::parameters().stereo_mode() == parameters::mode_alternating
+                        && !_vo_qt->supports_alternating()) {
+                    throw exc(_("Alternating mode is not supported on this system."));
+                }
                 if (_activate_next_frame && _have_prepared_frame) {
                     _vo_qt->video_output::activate_next_frame();
                     _have_prepared_frame = false;
@@ -160,7 +172,15 @@ void gl_thread::run()
                     _vo_qt->reshape(_w, _h);
                     _resize = false;
                 }
-                _vo_qt->display_current_frame();
+                int64_t display_frameno = 0;
+#ifdef Q_WS_X11
+                if (GLXEW_SGI_video_sync) {
+                    GLuint counter;
+                    if (glXGetVideoSyncSGI(&counter) == 0)
+                        display_frameno = counter;
+                }
+#endif
+                _vo_qt->display_current_frame(display_frameno);
                 if (_prepare_next_frame) {
                     _prepare_next_mutex.lock();
                     _vo_qt->video_output::prepare_next_frame(_next_frame, _next_subtitle);
@@ -517,6 +537,7 @@ void video_container_widget::closeEvent(QCloseEvent *)
 
 video_output_qt::video_output_qt(video_container_widget *container_widget) :
     video_output(),
+    _supports_alternating(false),
     _container_widget(container_widget),
     _container_is_external(container_widget != NULL),
     _widget(NULL),
@@ -566,6 +587,12 @@ void video_output_qt::init()
         _widget->makeCurrent();
         set_opengl_versions();
         GLenum err = glewInit();
+#ifdef Q_WS_X11
+        if (err == GLEW_OK)
+        {
+            err = glxewInit();
+        }
+#endif
         if (err != GLEW_OK)
         {
             throw exc(str::asprintf(_("Cannot initialize GLEW: %s"),
@@ -576,6 +603,12 @@ void video_output_qt::init()
             throw exc(std::string(_("This OpenGL implementation does not support "
                             "OpenGL 2.1 and framebuffer objects.")));
         }
+#if defined(Q_WS_X11)
+        if (GLXEW_SGI_video_sync)
+        {
+            _supports_alternating = true;
+        }
+#endif
         video_output::init();
         video_output::clear();
         // Initialize GL things
@@ -699,6 +732,13 @@ void video_output_qt::create_widget()
     process_events();
 }
 
+#ifdef Q_WS_X11
+GLXEWContext* video_output_qt::glxewGetContext() const
+{
+    return const_cast<GLXEWContext*>(&_glxew_context);
+}
+#endif
+
 GLEWContext* video_output_qt::glewGetContext() const
 {
     return const_cast<GLEWContext*>(&_glew_context);
@@ -794,6 +834,11 @@ bool video_output_qt::supports_stereo() const
     bool ret = tmpwidget->format().stereo();
     delete tmpwidget;
     return ret;
+}
+
+bool video_output_qt::supports_alternating() const
+{
+    return _supports_alternating;
 }
 
 int video_output_qt::screen_width() const

@@ -7,7 +7,7 @@
 .\" Copying and distribution of this file, with or without modification, are
 .\" permitted in any medium without royalty provided the copyright notice and this
 .\" notice are preserved. This file is offered as-is, without any warranty.
-.TH Bino 1 2012-01
+.TH Bino 1 2012-03
 .SH NAME
 Bino - a 3D video player with multi-display support.
 .SH SYNOPSIS
@@ -124,6 +124,10 @@ mono
 .IP "\-o|\-\-output=\fITYPE\fP"
 Select output type.
 .RS
+.IP "\fIstereo\fP"
+OpenGL quad\-buffer stereo.
+.IP "\fIalternating\fP"
+Left and right view alternating.
 .IP "\fImono\-left\fP"
 Left view only.
 .IP "\fImono\-right\fP"
@@ -174,8 +178,6 @@ Amber/blue anaglyph, high-quality Dubois method.
 Red/green anaglyph, monochrome method.
 .IP "\fIred\-blue\-monochrome\fP"
 Red/blue anaglyph, monochrome method.
-.IP "\fIstereo\fP"
-OpenGL quad\-buffer stereo.
 .IP "\fIequalizer\fP"
 Multi-display OpenGL via Equalizer with a 2D canvas setup.
 .IP "\fIequalizer\-3d\fP"

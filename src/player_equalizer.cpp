@@ -180,6 +180,7 @@ public:
         return 0;
     }
     bool supports_stereo() const { return false; }
+    bool supports_alternating() const { return false; }
     void center() { }
     void enter_fullscreen() { }
     void exit_fullscreen() { }
@@ -223,7 +224,7 @@ public:
         GLint vp[2][4];
         std::memcpy(vp[0], viewport, 4 * sizeof(int));
         std::memcpy(vp[1], viewport, 4 * sizeof(int));
-        video_output::display_current_frame(true, mono_right_instead_of_left,
+        video_output::display_current_frame(0, true, mono_right_instead_of_left,
                 x, y, w, h, vp, my_tex_coords);
     }
 };

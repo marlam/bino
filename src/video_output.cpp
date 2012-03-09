@@ -972,6 +972,7 @@ void video_output::draw_quad(float x, float y, float w, float h,
 }
 
 void video_output::display_current_frame(
+        int64_t display_frameno,
         bool keep_viewport, bool mono_right_instead_of_left,
         float x, float y, float w, float h,
         const GLint viewport[2][4],
@@ -1264,14 +1265,15 @@ void video_output::display_current_frame(
     {
         draw_quad(x, y, w, h, my_tex_coords);
     }
-    else if (_params.stereo_mode() == parameters::mode_mono_left
-            && !mono_right_instead_of_left)
+    else if ((_params.stereo_mode() == parameters::mode_mono_left && !mono_right_instead_of_left)
+            || (_params.stereo_mode() == parameters::mode_alternating && display_frameno % 2 == 0))
     {
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
         draw_quad(x, y, w, h, my_tex_coords);
     }
     else if (_params.stereo_mode() == parameters::mode_mono_right
-            || (_params.stereo_mode() == parameters::mode_mono_left && mono_right_instead_of_left))
+            || (_params.stereo_mode() == parameters::mode_mono_left && mono_right_instead_of_left)
+            || (_params.stereo_mode() == parameters::mode_alternating && display_frameno % 2 == 1))
     {
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 1.0f);
         draw_quad(x, y, w, h, my_tex_coords);

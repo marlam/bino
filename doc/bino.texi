@@ -374,6 +374,12 @@ stereo if the graphics card supports it, otherwise red/cyan anaglyph glasses.
 @section Supported Output Techniques
 
 @table @var
+@item stereo
+OpenGL quad-buffer stereo.@*
+@image{output-type-stereo,,,,png}
+@item alternating
+Left and right view alternating.@*
+@image{output-type-alternating,,,,png}
 @item mono-left
 Left view only.@*
 @image{output-type-mono-left,,,,png}
@@ -450,9 +456,6 @@ Red/green anaglyph glasses, monochrome method.@*
 @item red-blue-monochrome
 Red/blue anaglyph glasses, monochrome method.@*
 @image{output-type-red-blue,,,,png}
-@item stereo
-OpenGL quad-buffer stereo.@*
-@image{output-type-stereo,,,,png}
 @item equalizer
 Multi-display OpenGL via Equalizer with a 2D canvas setup.@*
 @item equalizer-3d

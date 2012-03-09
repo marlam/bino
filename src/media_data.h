@@ -84,6 +84,7 @@ public:
     // Stereo mode: the output mode for left and right view
     typedef enum {
         mode_stereo,                   // OpenGL quad buffered stereo
+        mode_alternating,              // Left and right view alternating
         mode_mono_left,                // Left view only
         mode_mono_right,               // Right view only
         mode_top_bottom,               // Left view top, right view bottom

@@ -260,6 +260,8 @@ int main(int argc, char *argv[])
     opt::val<int> subtitle("subtitle", 's', opt::optional, 0, 999, 0);
     options.push_back(&subtitle);
     std::vector<std::string> video_output_modes;
+    video_output_modes.push_back("stereo");
+    video_output_modes.push_back("alternating");
     video_output_modes.push_back("mono-left");
     video_output_modes.push_back("mono-right");
     video_output_modes.push_back("top-bottom");
@@ -284,7 +286,6 @@ int main(int argc, char *argv[])
     video_output_modes.push_back("amber-blue-dubois");
     video_output_modes.push_back("red-green-monochrome");
     video_output_modes.push_back("red-blue-monochrome");
-    video_output_modes.push_back("stereo");
     video_output_modes.push_back("equalizer");
     video_output_modes.push_back("equalizer-3d");
     opt::val<std::string> video_output_mode("output", 'o', opt::optional, video_output_modes, "");
@@ -433,6 +434,8 @@ int main(int argc, char *argv[])
                 + "    even-odd-rows            " + _("Left even rows, right odd rows.") + '\n'
                 + "    odd-even-rows            " + _("Left odd rows, right even rows.") + '\n'
                 + "  -o|--output=TYPE         " + _("Select output type:") + '\n'
+                + "    stereo                   " + _("OpenGL quad-buffered stereo.") + '\n'
+                + "    alternating              " + _("Left and right view alternating.") + '\n'
                 + "    mono-left                " + _("Only left.") + '\n'
                 + "    mono-right               " + _("Only right.") + '\n'
                 + "    top-bottom               " + _("Left top, right bottom.") + '\n'
@@ -457,7 +460,6 @@ int main(int argc, char *argv[])
                 + "    amber-blue-dubois        " + _("Amber/blue anaglyph, Dubois method.") + '\n'
                 + "    red-green-monochrome     " + _("Red/green anaglyph, monochrome method.") + '\n'
                 + "    red-blue-monochrome      " + _("Red/blue anaglyph, monochrome method.") + '\n'
-                + "    stereo                   " + _("OpenGL quad-buffered stereo.") + '\n'
                 + "    equalizer                " + _("Multi-display via Equalizer (2D setup).") + '\n'
                 + "    equalizer-3d             " + _("Multi-display via Equalizer (3D setup).") + '\n'
                 + "  -S|--swap-eyes           " + _("Swap left/right view.") + '\n'

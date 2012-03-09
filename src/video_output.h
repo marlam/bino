@@ -140,12 +140,12 @@ protected:
      * The first version is used by Equalizer, which needs to set some special properties.
      * The second version is for everyone else.
      * TODO: This function needs to handle interlaced frames! */
-    void display_current_frame(bool keep_viewport, bool mono_right_instead_of_left,
+    void display_current_frame(int64_t display_frameno, bool keep_viewport, bool mono_right_instead_of_left,
             float x, float y, float w, float h,
             const GLint viewport[2][4], const float tex_coords[2][4][2]);
-    void display_current_frame()
+    void display_current_frame(int64_t display_frameno = 0)
     {
-        display_current_frame(false, false, -1.0f, -1.0f, 2.0f, 2.0f, _viewport, _tex_coords);
+        display_current_frame(display_frameno, false, false, -1.0f, -1.0f, 2.0f, 2.0f, _viewport, _tex_coords);
     }
 
 public:
@@ -166,7 +166,8 @@ public:
     void set_suitable_size(int w, int h, float ar, parameters::stereo_mode_t stereo_mode);
 
     /* Get capabilities */
-    virtual bool supports_stereo() const = 0;   // Is OpenGL quad buffered stereo available?
+    virtual bool supports_stereo() const = 0;           // Is OpenGL quad buffered stereo available?
+    virtual bool supports_alternating() const = 0;      // Is alternating left/right supported?
 
     /* Center video area on screen */
     virtual void center() = 0;
