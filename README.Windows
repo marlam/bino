@@ -5,22 +5,23 @@ environment (http://www.nongnu.org/mingw-cross-env). This is because
 Mingw-cross-env not only provides a recent version of gcc as a cross compiler,
 but also all required libraries, and the nsis package to build an installer.
 
-Mingw-cross-env version 2.22 will provide the required up-to-date libraries, but
-this version is not yet released at the time of writing. In the meantime, you
-can use development revision 1955:
-$ hg clone -r 1955 http://hg.savannah.nongnu.org/hgweb/mingw-cross-env
+The current development version of Mingw-cross-env should work fine. Revision
+2271 is known to work as of 2012-03-11, so we recommend to use that version.
 
-The following is known to work with Mingw-cross-env installed in /path/to/mce:
+Use the following steps to build Bino using a Mingw-cross-env installation in
+/path/to/mingw-cross-env:
 
 1. Build the required Mingw-cross-env packages:
 
-   $ cd /path/to/mce
+   $ cd /path/to
+   $ hg clone -r 2271 http://hg.savannah.nongnu.org/hgweb/mingw-cross-env
+   $ cd mingw-cross-env
    $ make gettext pthreads ffmpeg libass openal glew qt nsis
 
    (If you do not need to build a Bino installer package, you can skip nsis).
 
    Add Mingw-cross-env to your PATH:
-   $ export PATH="/path/to/mce/usr/bin:$PATH"
+   $ export PATH="/path/to/mingw-cross-env/usr/bin:$PATH"
 
 2. Build Bino
 
