@@ -167,7 +167,6 @@ public:
 
     /* Get capabilities */
     virtual bool supports_stereo() const = 0;           // Is OpenGL quad buffered stereo available?
-    virtual bool supports_alternating() const = 0;      // Is alternating left/right supported?
 
     /* Center video area on screen */
     virtual void center() = 0;

@@ -180,7 +180,6 @@ public:
         return 0;
     }
     bool supports_stereo() const { return false; }
-    bool supports_alternating() const { return false; }
     void center() { }
     void enter_fullscreen() { }
     void exit_fullscreen() { }

@@ -488,11 +488,6 @@ void in_out_widget::update()
             set_stereo_mode(parameters::mode_stereo, false);
             qobject_cast<QStandardItemModel *>(_output_combobox->model())->item(_output_combobox->currentIndex())->setEnabled(false);
         }
-        if (!dispatch::video_output() || !dispatch::video_output()->supports_alternating())
-        {
-            set_stereo_mode(parameters::mode_alternating, false);
-            qobject_cast<QStandardItemModel *>(_output_combobox->model())->item(_output_combobox->currentIndex())->setEnabled(false);
-        }
         set_stereo_layout(dispatch::parameters().stereo_layout(), dispatch::parameters().stereo_layout_swap());
         set_stereo_mode(dispatch::parameters().stereo_mode(), dispatch::parameters().stereo_mode_swap());
     }

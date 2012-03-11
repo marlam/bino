@@ -63,6 +63,9 @@ private:
     bool _failure;
     exc _e;
 
+    // The display frame number
+    int64_t _display_frameno;
+
     // For estimation of next display frame presentation time
     mutex _pt_mutex;
     static const int _pts = 5;
@@ -164,7 +167,6 @@ private:
     GLXEWContext _glxew_context;
 #endif
     GLEWContext _glew_context;
-    bool _supports_alternating;
     int _screen_width, _screen_height;
     float _screen_pixel_aspect_ratio;
     video_container_widget *_container_widget;
@@ -213,7 +215,6 @@ public:
     virtual void deinit();
 
     virtual bool supports_stereo() const;
-    virtual bool supports_alternating() const;
 
     virtual void center();
     virtual void enter_fullscreen();
