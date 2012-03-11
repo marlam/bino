@@ -1,9 +1,12 @@
-New in version 1.4.0:
+New in the next stable version:
+- Support for the new output mode "Left/right view alternating", also known
+  as "frame sequential".
 - Better support for audio control. Volume, mute, and delay can be adjusted,
   and the output device can be selected.
-- Support for high precision color input and output (30 bits per pixel).
-- Support for the MPO, JPS, and PNS file formats for stereoscopic images.
 - An adjustable zoom mode for videos that are wider than the screen.
+- Support for the MPO, JPS, and PNS file formats for stereoscopic images.
+- Support for high precision color input and output (30 bits per pixel).
+- Better audio/video synchronization.
 - Support for a "Recent Files" section in the File menu.
 - Support for multimedia keyboards.
 - Various user interface tweaks.
