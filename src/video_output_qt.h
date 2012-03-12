@@ -189,7 +189,6 @@ protected:
     GLXEWContext* glxewGetContext() const;
 #endif
     virtual GLEWContext* glewGetContext() const;
-    virtual void make_context_current();
     virtual bool context_is_stereo() const;
     virtual void recreate_context(bool stereo);
     virtual void trigger_resize(int w, int h);

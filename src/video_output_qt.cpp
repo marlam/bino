@@ -156,36 +156,35 @@ void gl_thread::prepare_next_frame(const video_frame &frame, const subtitle_box 
 void gl_thread::run()
 {
     try {
+        assert(_vo_qt_widget->context()->isValid());
+        _vo_qt_widget->makeCurrent();
+        assert(QGLContext::currentContext() == _vo_qt_widget->context());
         while (_render) {
-            assert(_vo_qt_widget->context()->isValid());
-            _vo_qt_widget->makeCurrent();
-            if (QGLContext::currentContext() == _vo_qt_widget->context()) {
-                if (_activate_next_frame && _have_prepared_frame) {
-                    _vo_qt->video_output::activate_next_frame();
-                    _have_prepared_frame = false;
-                    _activate_next_frame = false;
-                }
-                if (_resize) {
-                    _vo_qt->reshape(_w, _h);
-                    _resize = false;
-                }
+            if (_activate_next_frame && _have_prepared_frame) {
+                _vo_qt->video_output::activate_next_frame();
+                _have_prepared_frame = false;
+                _activate_next_frame = false;
+            }
+            if (_resize) {
+                _vo_qt->reshape(_w, _h);
+                _resize = false;
+            }
 #ifdef Q_WS_X11
-                GLuint counter;
-                if (GLXEW_SGI_video_sync && glXGetVideoSyncSGI(&counter) == 0)
-                    _display_frameno = counter;
-                else
-                    _display_frameno++;
-#else
+            GLuint counter;
+            if (GLXEW_SGI_video_sync && glXGetVideoSyncSGI(&counter) == 0)
+                _display_frameno = counter;
+            else
                 _display_frameno++;
+#else
+            _display_frameno++;
 #endif
-                _vo_qt->display_current_frame(_display_frameno);
-                if (_prepare_next_frame) {
-                    _prepare_next_mutex.lock();
-                    _vo_qt->video_output::prepare_next_frame(_next_frame, _next_subtitle);
-                    _prepare_next_mutex.unlock();
-                    _prepare_next_frame = false;
-                    _have_prepared_frame = true;
-                }
+            _vo_qt->display_current_frame(_display_frameno);
+            if (_prepare_next_frame) {
+                _prepare_next_mutex.lock();
+                _vo_qt->video_output::prepare_next_frame(_next_frame, _next_subtitle);
+                _prepare_next_mutex.unlock();
+                _prepare_next_frame = false;
+                _have_prepared_frame = true;
             }
             _vo_qt_widget->swapBuffers();
             // When the buffer swap returns, the current frame is just now presented on screen.
@@ -204,6 +203,7 @@ void gl_thread::run()
         _render = false;
         _failure = true;
     }
+    _vo_qt_widget->doneCurrent();
 }
 
 int64_t gl_thread::time_to_next_frame_presentation()
@@ -733,11 +733,6 @@ GLXEWContext* video_output_qt::glxewGetContext() const
 GLEWContext* video_output_qt::glewGetContext() const
 {
     return const_cast<GLEWContext*>(&_glew_context);
-}
-
-void video_output_qt::make_context_current()
-{
-    _widget->makeCurrent();
 }
 
 bool video_output_qt::context_is_stereo() const

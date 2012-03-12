@@ -117,7 +117,6 @@ protected:
     virtual int video_display_width() const;
     virtual int video_display_height() const;
 
-    virtual void make_context_current() = 0;    // Make sure our OpenGL context is current
     virtual bool context_is_stereo() const = 0; // Is our current OpenGL context a stereo context?
     virtual void recreate_context(bool stereo) = 0;     // Recreate an OpenGL context and make it current
     virtual void trigger_resize(int w, int h) = 0;      // Trigger a resize the video area

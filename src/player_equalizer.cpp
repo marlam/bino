@@ -153,7 +153,6 @@ protected:
     int pos_x() const { return 0; }
     int pos_y() const { return 0; }
     GLEWContext* glewGetContext() const { return const_cast<GLEWContext*>(_channel->getWindow()->glewGetContext()); }
-    void make_context_current() { _channel->getWindow()->makeCurrent(); }
     bool context_is_stereo() const { return false; }
     void recreate_context(bool) { }
     void trigger_resize(int, int) { }
