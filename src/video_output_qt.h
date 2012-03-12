@@ -129,11 +129,13 @@ public:
     }
 
 protected:
-#if QT_VERSION < 0x040800
+#ifdef Q_WS_X11
+# if QT_VERSION < 0x040800
     /* Work around a bug in Qt < 4.8: On a hide event, the GLWidget calls
      * makeCurrent() and glFinish(), but this interferes with our GL thread.
      * This has been fixed in Qt 4.8. */
     virtual bool event(QEvent* e) { return QWidget::event(e); }
+# endif
 #endif
     virtual void paintEvent(QPaintEvent*) {}
     virtual void resizeEvent(QResizeEvent* event);
