@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010-2011
+ * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  *
@@ -128,12 +128,13 @@ vec3 blend_subtitle(vec3 rgb, vec4 sub)
 
 void main()
 {
+    vec3 l, r;
     vec3 srgb;
 
 #if defined(mode_onechannel)
 
-    vec3 l = blend_subtitle(tex_l(gl_TexCoord[0].xy), sub_l(gl_TexCoord[0].xy));
-    vec3 r = blend_subtitle(tex_r(gl_TexCoord[1].xy), sub_r(gl_TexCoord[1].xy));
+    l = blend_subtitle(tex_l(gl_TexCoord[0].xy), sub_l(gl_TexCoord[0].xy));
+    r = blend_subtitle(tex_r(gl_TexCoord[1].xy), sub_r(gl_TexCoord[1].xy));
     srgb = rgb_to_srgb(ghostbust(mix(l, r, channel), mix(r, l, channel)));
 
 #elif defined(mode_even_odd_rows) || defined(mode_even_odd_columns) || defined(mode_checkerboard)
@@ -194,8 +195,8 @@ void main()
     // This method depends on the characteristics of the display device and the anaglyph glasses.
     // According to the author, the matrices below are intended to be applied to linear RGB values,
     // and are designed for CRT displays.
-    vec3 l = blend_subtitle(tex_l(gl_TexCoord[0].xy), sub_l(gl_TexCoord[0].xy));
-    vec3 r = blend_subtitle(tex_r(gl_TexCoord[1].xy), sub_r(gl_TexCoord[1].xy));
+    l = blend_subtitle(tex_l(gl_TexCoord[0].xy), sub_l(gl_TexCoord[0].xy));
+    r = blend_subtitle(tex_r(gl_TexCoord[1].xy), sub_r(gl_TexCoord[1].xy));
 # if defined(mode_red_cyan_dubois)
     // Source of this matrix: http://www.site.uottawa.ca/~edubois/anaglyph/LeastSquaresHowToPhotoshop.pdf
     mat3 m0 = mat3(
@@ -231,8 +232,8 @@ void main()
 
 #else // lower quality anaglyph methods
 
-    vec3 l = rgb_to_srgb(blend_subtitle(tex_l(gl_TexCoord[0].xy), sub_l(gl_TexCoord[0].xy)));
-    vec3 r = rgb_to_srgb(blend_subtitle(tex_r(gl_TexCoord[1].xy), sub_r(gl_TexCoord[1].xy)));
+    l = rgb_to_srgb(blend_subtitle(tex_l(gl_TexCoord[0].xy), sub_l(gl_TexCoord[0].xy)));
+    r = rgb_to_srgb(blend_subtitle(tex_r(gl_TexCoord[1].xy), sub_r(gl_TexCoord[1].xy)));
 # if defined(mode_red_cyan_monochrome)
     srgb = vec3(srgb_to_lum(l), srgb_to_lum(r), srgb_to_lum(r));
 # elif defined(mode_red_cyan_half_color)
