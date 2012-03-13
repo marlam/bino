@@ -714,10 +714,8 @@ void video_output_qt::create_widget()
     container_layout->setColumnStretch(0, 1);
     delete _container_widget->layout();
     _container_widget->setLayout(container_layout);
-    _container_widget->updateGeometry();
-    _widget->show();
-    _container_widget->show();
-    _container_widget->raise();
+    if (!_container_is_external)
+        _container_widget->show();
     process_events();
 }
 
@@ -751,7 +749,10 @@ void video_output_qt::trigger_resize(int w, int h)
 {
     _container_widget->set_recommended_size(w, h);
     _container_widget->updateGeometry();
-    _container_widget->adjustSize();
+    // Process events to propagate the information that the geometry needs updating.
+    process_events();
+    if (!_container_is_external)
+        _container_widget->adjustSize();
 }
 
 void video_output_qt::mouse_set_pos(float dest)

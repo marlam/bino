@@ -2609,9 +2609,6 @@ void main_window::receive_notification(const notification &note)
         _controls_widget->update();
         if (dispatch::playing()) {
             // Force a size adjustment of the main window
-            _video_container_widget->hide();
-            _video_container_widget->show();
-            _video_container_widget->raise();
             adjustSize();
             // Remember what we're playing
             _now_playing.clear();
