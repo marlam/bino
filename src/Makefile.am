@@ -121,7 +121,7 @@ DEFS += -DHTMLDIR=\"$(htmldir)\" -DLOCALEDIR=\"$(localedir)\"
 
 AM_CPPFLAGS = -I$(top_srcdir)/src/base \
 	$(libavformat_CFLAGS) $(libavdevice_CFLAGS) $(libswscale_CFLAGS) $(libass_CFLAGS) \
-	$(libopenal_CFLAGS) $(libgl_CFLAGS) $(libglewmx_CFLAGS) $(libqtopengl_CFLAGS)
+	$(libopenal_CFLAGS) $(libgl_CFLAGS) $(libglewmx_CFLAGS) -DGLEW_MX $(libqtopengl_CFLAGS)
 
 bino_LDADD = $(top_builddir)/src/base/libbase.a $(LIBINTL) $(LIBICONV) \
 	$(libavformat_LIBS) $(libavdevice_LIBS) $(libswscale_LIBS) $(libass_LIBS) \
