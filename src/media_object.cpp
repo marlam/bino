@@ -766,6 +766,9 @@ void media_object::open(const std::string &url, const device_request &dev_reques
     _url = url;
     _is_device = dev_request.is_device();
     _ffmpeg = new struct ffmpeg_stuff;
+    _ffmpeg->format_ctx = NULL;
+    _ffmpeg->have_active_audio_stream = false;
+    _ffmpeg->pos = 0;
     _ffmpeg->reader = new read_thread(_url, _is_device, _ffmpeg);
     int e;
 
