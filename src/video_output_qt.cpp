@@ -957,7 +957,7 @@ void video_output_qt::exit_fullscreen()
                 & ~Qt::X11BypassWindowManagerHint
                 & ~Qt::FramelessWindowHint
                 & ~Qt::WindowStaysOnTopHint);
-        _container_widget->setWindowState(_widget->windowState() & ~Qt::WindowFullScreen);
+        _container_widget->setWindowState(_container_widget->windowState() & ~Qt::WindowFullScreen);
         _container_widget->setCursor(Qt::ArrowCursor);
         if (!_container_is_external)
             _container_widget->setGeometry(_geom);
