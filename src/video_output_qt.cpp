@@ -912,7 +912,7 @@ void video_output_qt::enter_fullscreen()
         if (screen_count > 1)
             new_window_flags |= Qt::X11BypassWindowManagerHint;
         _container_widget->setWindowFlags(new_window_flags);
-        _container_widget->setWindowState(_widget->windowState() | Qt::WindowFullScreen);
+        _container_widget->setWindowState(_container_widget->windowState() | Qt::WindowFullScreen);
         _container_widget->setGeometry(geom);
         _container_widget->setCursor(Qt::BlankCursor);
         _container_widget->show();
