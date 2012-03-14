@@ -875,6 +875,10 @@ void video_output_qt::center()
 void video_output_qt::enter_fullscreen()
 {
     if (!_fullscreen) {
+        // If the container is a window, we save its geometry here so that
+        // we can restore it later.
+        if (!_container_is_external)
+            _geom = _container_widget->geometry();
         // If the container is not yet a window, but embedded in the main window,
         // we need to make it a window now.
         if (_container_is_external)
@@ -883,19 +887,18 @@ void video_output_qt::enter_fullscreen()
         int screens = dispatch::parameters().fullscreen_screens();
         int screen_count = 0;
         QRect geom;
-        if (screens == 0) {
+        for (int i = 0; i < std::min(QApplication::desktop()->screenCount(), 16); i++) {
+            if (screens & (1 << i)) {
+                if (geom.isNull())
+                    geom = QApplication::desktop()->screenGeometry(i);
+                else
+                    geom = geom.united(QApplication::desktop()->screenGeometry(i));
+                screen_count++;
+            }
+        }
+        if (geom.isNull()) {
             // Use default screen
             geom = QApplication::desktop()->screenGeometry(-1);
-        } else {
-            for (int i = 0; i < std::min(QApplication::desktop()->screenCount(), 16); i++) {
-                if (screens & (1 << i)) {
-                    if (geom.isNull())
-                        geom = QApplication::desktop()->screenGeometry(i);
-                    else
-                        geom = geom.united(QApplication::desktop()->screenGeometry(i));
-                    screen_count++;
-                }
-            }
         }
         Qt::WindowFlags new_window_flags =
             _container_widget->windowFlags()
@@ -906,7 +909,7 @@ void video_output_qt::enter_fullscreen()
         // the window manager would always restrict the fullscreen window to one screen.
         // Note: it may be better to set _NET_WM_FULLSCREEN_MONITORS ourselves, but that
         // would also require the window manager to support this extension...
-        if (screen_count > 0)
+        if (screen_count > 1)
             new_window_flags |= Qt::X11BypassWindowManagerHint;
         _container_widget->setWindowFlags(new_window_flags);
         _container_widget->setWindowState(_widget->windowState() | Qt::WindowFullScreen);
@@ -921,9 +924,11 @@ void video_output_qt::enter_fullscreen()
          * does not work for me (Ubuntu 11.04 Gnome-2D desktop). This is a workaround. */
         /* Note that using X11 functions directly means that we have to link with libX11
          * explicitly; see configure.ac. */
-        QApplication::syncX();      // just for safety; not sure if it is necessary
-        XSetInputFocus(QX11Info::display(), _container_widget->winId(), RevertToParent, CurrentTime);
-        XFlush(QX11Info::display());
+        if (new_window_flags & Qt::X11BypassWindowManagerHint) {
+            QApplication::syncX();      // just for safety; not sure if it is necessary
+            XSetInputFocus(QX11Info::display(), _container_widget->winId(), RevertToParent, CurrentTime);
+            XFlush(QX11Info::display());
+        }
 #endif
         _container_widget->grab_focus();
         // Suspend the screensaver after going fullscreen, so that our window ID
@@ -954,6 +959,8 @@ void video_output_qt::exit_fullscreen()
                 & ~Qt::WindowStaysOnTopHint);
         _container_widget->setWindowState(_widget->windowState() & ~Qt::WindowFullScreen);
         _container_widget->setCursor(Qt::ArrowCursor);
+        if (!_container_is_external)
+            _container_widget->setGeometry(_geom);
         _container_widget->show();
         _container_widget->raise();
         _container_widget->grab_focus();

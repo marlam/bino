@@ -182,6 +182,7 @@ private:
     video_output_qt_widget *_widget;
     QGLFormat _format;
     bool _fullscreen;
+    QRect _geom;
     bool _screensaver_inhibited;
     bool _recreate_context;
     bool _recreate_context_stereo;
