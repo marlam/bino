@@ -144,8 +144,6 @@ class fullscreen_dialog : public QDialog, public controller
     Q_OBJECT
 
 private:
-    bool _lock;
-    int _n;
     QRadioButton* _single_btn;
     QComboBox* _single_box;
     QRadioButton* _dual_btn;
@@ -159,20 +157,9 @@ private:
     QCheckBox* _flop_right_box;
     QCheckBox* _inhibit_screensaver_box;
 
-    void update();
-
-private slots:
-    void screens_changed();
-    void flip_left_changed();
-    void flop_left_changed();
-    void flip_right_changed();
-    void flop_right_changed();
-    void inhibit_screensaver_changed();
-
 public:
     fullscreen_dialog(QWidget* parent);
-
-    virtual void receive_notification(const notification& note);
+    void closeEvent(QCloseEvent* e);
 };
 
 class color_dialog : public QDialog, public controller

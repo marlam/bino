@@ -1034,9 +1034,14 @@ void controls_widget::receive_notification(const notification &note)
 }
 
 
-fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent), _lock(false)
+fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent)
 {
-    _n = QApplication::desktop()->screenCount();
+    const int screen_count = QApplication::desktop()->screenCount();
+
+    /* Create the dialog. This dialog differs from other dialogs (e.g. the color
+     * dialog) in that its settings only take effect when the dialog is closed,
+     * and not immediately. This is necessary to allow the user full flexibility
+     * in defining the screens used in fullscreen mode. */
 
     setModal(false);
     setWindowTitle(_("Fullscreen/Multiscreen Settings"));
@@ -1049,12 +1054,10 @@ fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent), _lock(f
     _single_box = new QComboBox();
     _single_box->setToolTip(_single_btn->toolTip());
     _single_box->addItem(_("Primary screen"));
-    if (_n > 1) {
-        for (int i = 0; i < _n; i++)
+    if (screen_count > 1) {
+        for (int i = 0; i < screen_count; i++)
             _single_box->addItem(str::asprintf(_("Screen %d"), i + 1).c_str());
     }
-    connect(_single_btn, SIGNAL(toggled(bool)), this, SLOT(screens_changed()));
-    connect(_single_box, SIGNAL(currentIndexChanged(int)), this, SLOT(screens_changed()));
 
     _dual_btn = new QRadioButton(_("Dual screen:"));
     _dual_btn->setToolTip(_("<p>Use two screens for fullscreen mode.</p>"));
@@ -1062,23 +1065,18 @@ fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent), _lock(f
     _dual_box0->setToolTip(_dual_btn->toolTip());
     _dual_box1 = new QComboBox();
     _dual_box1->setToolTip(_dual_btn->toolTip());
-    if (_n > 1) {
-        for (int i = 0; i < _n; i++) {
+    if (screen_count > 1) {
+        for (int i = 0; i < screen_count; i++) {
             _dual_box0->addItem(str::asprintf(_("Screen %d"), i + 1).c_str());
             _dual_box1->addItem(str::asprintf(_("Screen %d"), i + 1).c_str());
         }
     }
-    connect(_dual_btn, SIGNAL(toggled(bool)), this, SLOT(screens_changed()));
-    connect(_dual_box0, SIGNAL(currentIndexChanged(int)), this, SLOT(screens_changed()));
-    connect(_dual_box1, SIGNAL(currentIndexChanged(int)), this, SLOT(screens_changed()));
 
     _multi_btn = new QRadioButton(_("Multi screen:"));
     _multi_btn->setToolTip(_("<p>Use multiple screens for fullscreen mode.</p>"));
     _multi_edt = new QLineEdit();
     _multi_edt->setToolTip(_("<p>Comma-separated list of screens to use for fullscreen mode.</p>"));
     _multi_edt->setValidator(new QRegExpValidator(QRegExp("\\d{1,2}(,\\d{1,2}){0,15}"), 0));
-    connect(_multi_btn, SIGNAL(toggled(bool)), this, SLOT(screens_changed()));
-    connect(_multi_edt, SIGNAL(editingFinished()), this, SLOT(screens_changed()));
 
     QLabel* lbl2 = new QLabel(_("When in fullscreen mode,"));
     lbl2->setToolTip(_("<p>Set special left/right view handling for fullscreen mode.</p>"));
@@ -1091,14 +1089,9 @@ fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent), _lock(f
     _flip_right_box->setToolTip(lbl2->toolTip());
     _flop_right_box = new QCheckBox(_("flop right view horizontally."));
     _flop_right_box->setToolTip(lbl2->toolTip());
-    connect(_flip_left_box, SIGNAL(toggled(bool)), this, SLOT(flip_left_changed()));
-    connect(_flop_left_box, SIGNAL(toggled(bool)), this, SLOT(flop_left_changed()));
-    connect(_flip_right_box, SIGNAL(toggled(bool)), this, SLOT(flip_right_changed()));
-    connect(_flop_right_box, SIGNAL(toggled(bool)), this, SLOT(flop_right_changed()));
 
     _inhibit_screensaver_box = new QCheckBox(_("inhibit the screensaver"));
     _inhibit_screensaver_box->setToolTip(_("<p>Inhibit the screensaver during fullscreen playback.</p>"));
-    connect(_inhibit_screensaver_box, SIGNAL(toggled(bool)), this, SLOT(inhibit_screensaver_changed()));
 
     QPushButton* ok_btn = new QPushButton(_("OK"));
     connect(ok_btn, SIGNAL(pressed()), this, SLOT(close()));
@@ -1125,19 +1118,15 @@ fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent), _lock(f
     layout->addLayout(layout1, 1, 0);
     setLayout(layout);
 
-    update();
-}
+    /* Fill in the current settings */
 
-void fullscreen_dialog::update()
-{
-    _lock = true;
-    if (_n < 3) {
+    if (screen_count < 3) {
         _multi_btn->setEnabled(false);
         _multi_edt->setEnabled(false);
     } else {
         _multi_edt->setText("1,2,3");
     }
-    if (_n < 2) {
+    if (screen_count < 2) {
         _dual_btn->setEnabled(false);
         _dual_box0->setEnabled(false);
         _dual_box1->setEnabled(false);
@@ -1149,7 +1138,7 @@ void fullscreen_dialog::update()
     for (int i = 0; i < 16; i++)
         if (dispatch::parameters().fullscreen_screens() & (1 << i))
             conf_screens.push_back(i);
-    if (conf_screens.size() >= 3 && _n >= 3) {
+    if (conf_screens.size() >= 3 && screen_count >= 3) {
         QString screen_list;
         for (size_t i = 0; i < conf_screens.size(); i++) {
             screen_list += str::from(conf_screens[i] + 1).c_str();
@@ -1158,12 +1147,12 @@ void fullscreen_dialog::update()
         }
         _multi_btn->setChecked(true);
         _multi_edt->setText(screen_list);
-    } else if (conf_screens.size() == 2 && _n >= 2) {
+    } else if (conf_screens.size() == 2 && screen_count >= 2) {
         _dual_box0->setCurrentIndex(conf_screens[0]);
         _dual_box1->setCurrentIndex(conf_screens[1]);
         _dual_btn->setChecked(true);
     } else {
-        if (conf_screens.size() > 0 && conf_screens[0] < _n)
+        if (conf_screens.size() > 0 && conf_screens[0] < screen_count)
             _single_box->setCurrentIndex(conf_screens[0] + 1);
         else
             _single_box->setCurrentIndex(0);
@@ -1179,13 +1168,13 @@ void fullscreen_dialog::update()
     _inhibit_screensaver_box->setChecked(false);
     _inhibit_screensaver_box->setEnabled(false);
 #endif
-    _lock = false;
 }
 
-void fullscreen_dialog::screens_changed()
+void fullscreen_dialog::closeEvent(QCloseEvent* e)
 {
-    if (_lock)
-        return;
+    /* Activate the settings chosen in the dialog, then close. */
+
+    // fullscreen_screens
     if (_single_btn->isChecked()) {
         if (_single_box->currentIndex() == 0)
             send_cmd(command::set_fullscreen_screens, 0);
@@ -1204,52 +1193,15 @@ void fullscreen_dialog::screens_changed()
         }
         send_cmd(command::set_fullscreen_screens, fss);
     }
-}
+    // flip/flop settings
+    send_cmd(command::set_fullscreen_flip_left, _flip_left_box->isChecked());
+    send_cmd(command::set_fullscreen_flop_left, _flop_left_box->isChecked());
+    send_cmd(command::set_fullscreen_flip_right, _flip_right_box->isChecked());
+    send_cmd(command::set_fullscreen_flop_right, _flop_right_box->isChecked());
+    // inhibit_screensaver
+    send_cmd(command::set_fullscreen_inhibit_screensaver, _inhibit_screensaver_box->isChecked());
 
-void fullscreen_dialog::flip_left_changed()
-{
-    if (!_lock)
-        send_cmd(command::set_fullscreen_flip_left, _flip_left_box->isChecked());
-}
-
-void fullscreen_dialog::flop_left_changed()
-{
-    if (!_lock)
-        send_cmd(command::set_fullscreen_flop_left, _flop_left_box->isChecked());
-}
-
-void fullscreen_dialog::flip_right_changed()
-{
-    if (!_lock)
-        send_cmd(command::set_fullscreen_flip_right, _flip_right_box->isChecked());
-}
-
-void fullscreen_dialog::flop_right_changed()
-{
-    if (!_lock)
-        send_cmd(command::set_fullscreen_flop_right, _flop_right_box->isChecked());
-}
-
-void fullscreen_dialog::inhibit_screensaver_changed()
-{
-    if (!_lock)
-        send_cmd(command::set_fullscreen_inhibit_screensaver, _inhibit_screensaver_box->isChecked());
-}
-
-void fullscreen_dialog::receive_notification(const notification& note)
-{
-    switch (note.type) {
-    case notification::fullscreen_screens:
-    case notification::fullscreen_flip_left:
-    case notification::fullscreen_flop_left:
-    case notification::fullscreen_flip_right:
-    case notification::fullscreen_flop_right:
-    case notification::fullscreen_inhibit_screensaver:
-        update();
-        break;
-    default:
-        break;
-    }
+    e->accept();
 }
 
 
