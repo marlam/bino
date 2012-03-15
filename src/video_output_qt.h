@@ -50,16 +50,14 @@ private:
     video_output_qt* _vo_qt;
     video_output_qt_widget* _vo_qt_widget;
     bool _render;
-    bool _activate_next_frame;
     bool _resize;
     int _w, _h;
-    bool _prepare_next_frame;
-    bool _have_prepared_frame;
+    mutex _action_mutex;
+    condition _action_cond;
+    bool _action_activate;
+    bool _action_prepare;
     video_frame _next_frame;
-    void* _next_data[2][3];
-    size_t _next_line_size[2][3];
     subtitle_box _next_subtitle;
-    mutex _prepare_next_mutex;
     bool _failure;
     exc _e;
 
@@ -75,15 +73,14 @@ private:
 
 public:
     gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widget);
-    ~gl_thread();
 
 #ifdef Q_WS_X11
     GLXEWContext* glxewGetContext() const;
 #endif
 
     void set_render(bool r);
-    void activate_next_frame();
     void resize(int w, int h);
+    void activate_next_frame();
     void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
 
     int64_t time_to_next_frame_presentation();

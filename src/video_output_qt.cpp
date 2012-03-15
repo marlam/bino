@@ -65,27 +65,11 @@
 gl_thread::gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widget) :
     _vo_qt(vo_qt), _vo_qt_widget(vo_qt_widget),
     _render(false),
-    _activate_next_frame(false),
     _resize(false),
-    _prepare_next_frame(false),
-    _have_prepared_frame(false),
+    _action_activate(false),
+    _action_prepare(false),
     _failure(false)
 {
-    for (int i = 0; i < 2; i++) {
-        for (int p = 0; p < 3; p++) {
-            _next_data[i][p] = NULL;
-            _next_line_size[i][p] = 0;
-        }
-    }
-}
-
-gl_thread::~gl_thread()
-{
-    for (int i = 0; i < 2; i++) {
-        for (int p = 0; p < 3; p++) {
-            std::free(_next_data[i][p]);
-        }
-    }
 }
 
 #ifdef Q_WS_X11
@@ -103,11 +87,6 @@ void gl_thread::set_render(bool r)
     _ptc = 0;
 }
 
-void gl_thread::activate_next_frame()
-{
-    _activate_next_frame = true;
-}
-
 void gl_thread::resize(int w, int h)
 {
     _w = w;
@@ -115,42 +94,22 @@ void gl_thread::resize(int w, int h)
     _resize = true;
 }
 
+void gl_thread::activate_next_frame()
+{
+    _action_mutex.lock();
+    _action_activate = true;
+    _action_cond.wait(_action_mutex);
+    _action_mutex.unlock();
+}
+
 void gl_thread::prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle)
 {
-    _prepare_next_mutex.lock();
+    _action_mutex.lock();
     _next_subtitle = subtitle;
     _next_frame = frame;
-    // Copy the data because the decoder can overwrite the buffers at any time
-    try {
-        if (_next_frame.is_valid()) {
-            for (int i = 0; i < 2; i++) {
-                for (int p = 0; p < 3; p++) {
-                    size_t height = _next_frame.raw_height;
-                    if (_next_frame.layout == video_frame::yuv420p && p > 0)
-                        height /= 2;
-                    size_t data_size = height * _next_frame.line_size[i][p];
-                    if (_next_line_size[i][p] != _next_frame.line_size[i][p]) {
-                        _next_data[i][p] = std::realloc(_next_data[i][p], data_size);
-                        if (data_size > 0 && !_next_data[i][p]) {
-                            throw exc(ENOMEM);
-                        }
-                        _next_line_size[i][p] = _next_frame.line_size[i][p];
-                    }
-                    if (data_size > 0) {
-                        std::memcpy(_next_data[i][p], _next_frame.data[i][p], data_size);
-                    }
-                    _next_frame.data[i][p] = _next_data[i][p];
-                }
-            }
-        }
-    }
-    catch (std::exception& e) {
-        _e = e;
-        _render = false;
-        _failure = true;
-    }
-    _prepare_next_mutex.unlock();
-    _prepare_next_frame = true;
+    _action_prepare = true;
+    _action_cond.wait(_action_mutex);
+    _action_mutex.unlock();
 }
 
 void gl_thread::run()
@@ -160,10 +119,17 @@ void gl_thread::run()
         _vo_qt_widget->makeCurrent();
         assert(QGLContext::currentContext() == _vo_qt_widget->context());
         while (_render) {
-            if (_activate_next_frame && _have_prepared_frame) {
-                _vo_qt->video_output::activate_next_frame();
-                _have_prepared_frame = false;
-                _activate_next_frame = false;
+            if (_action_mutex.trylock()) {
+                if (_action_activate) {
+                    _vo_qt->video_output::activate_next_frame();
+                    _action_activate = false;
+                    _action_cond.wake_one();
+                } else if (_action_prepare) {
+                    _vo_qt->video_output::prepare_next_frame(_next_frame, _next_subtitle);
+                    _action_prepare = false;
+                    _action_cond.wake_one();
+                }
+                _action_mutex.unlock();
             }
             if (_resize) {
                 _vo_qt->reshape(_w, _h);
@@ -179,13 +145,6 @@ void gl_thread::run()
             _display_frameno++;
 #endif
             _vo_qt->display_current_frame(_display_frameno);
-            if (_prepare_next_frame) {
-                _prepare_next_mutex.lock();
-                _vo_qt->video_output::prepare_next_frame(_next_frame, _next_subtitle);
-                _prepare_next_mutex.unlock();
-                _prepare_next_frame = false;
-                _have_prepared_frame = true;
-            }
             _vo_qt_widget->swapBuffers();
             // When the buffer swap returns, the current frame is just now presented on screen.
             _pt_mutex.lock();
