@@ -67,6 +67,7 @@ void player::reset_playstate()
     _drop_next_frame = false;
     _previous_frame_dropped = false;
     _in_pause = false;
+    _recently_seeked = false;
     _quit_request = false;
     _pause_request = false;
     _seek_request = 0;
@@ -259,12 +260,20 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
             _current_pos = _video_pos;
         }
         global_dispatch->set_position(normalize_pos(_current_pos));
-        _need_frame_now = false;
-        _need_frame_soon = true;
-        _previous_frame_dropped = false;
-        *more_steps = true;
-        *prep_frame = true;
         set_current_subtitle_box();
+        _recently_seeked = true;
+        *prep_frame = true;
+        *more_steps = true;
+        return 0;
+    }
+    else if (_recently_seeked)
+    {
+        _recently_seeked = false;
+        _need_frame_now = true;
+        _need_frame_soon = false;
+        _previous_frame_dropped = false;
+        *display_frame = true;
+        *more_steps = true;
         return 0;
     }
     else if (_pause_request)

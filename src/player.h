@@ -53,6 +53,7 @@ private:
     bool _drop_next_frame;                      // Do we need to drop the next video frame (to catch up)?
     bool _previous_frame_dropped;               // Did we drop the previous video frame?
     bool _in_pause;                             // Are we in pause mode?
+    bool _recently_seeked;                      // We did not yet display a video frame after the last seek.
 
     // Requests made by controller commands
     bool _quit_request;                         // Request to quit
