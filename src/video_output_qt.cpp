@@ -833,71 +833,62 @@ void video_output_qt::center()
 
 void video_output_qt::enter_fullscreen()
 {
-    if (!_fullscreen)
-    {
-        int screens = dispatch::parameters().fullscreen_screens();
+    if (!_fullscreen) {
+        // If the container is a window, we save its geometry here so that
+        // we can restore it later.
+        if (!_container_is_external)
+            _geom = _container_widget->geometry();
+        // If the container is not yet a window, but embedded in the main window,
+        // we need to make it a window now.
         if (_container_is_external)
-        {
             _container_widget->setWindowFlags(Qt::Window);
-        }
         // Determine combined geometry of the chosen screens.
-        QRect geom(0, 0, 0, 0);
+        int screens = dispatch::parameters().fullscreen_screens();
         int screen_count = 0;
-        for (int i = 0; i < std::min(QApplication::desktop()->screenCount(), 16); i++)
-        {
-            if (screens & (1 << i))
-            {
-                if (screen_count == 0)
-                {
+        QRect geom;
+        for (int i = 0; i < std::min(QApplication::desktop()->screenCount(), 16); i++) {
+            if (screens & (1 << i)) {
+                if (geom.isNull())
                     geom = QApplication::desktop()->screenGeometry(i);
-                }
                 else
-                {
                     geom = geom.united(QApplication::desktop()->screenGeometry(i));
-                }
                 screen_count++;
             }
         }
-        if (screen_count <= 1)
-        {
-            // The single screen case is supported by Qt.
-            _container_widget->setWindowState(_widget->windowState() | Qt::WindowFullScreen);
-            if (screen_count == 1)
-            {
-                // Set the chosen screen
-                _container_widget->setGeometry(geom);
-            }
-            _container_widget->setCursor(Qt::BlankCursor);
-            _container_widget->show();
+        if (geom.isNull()) {
+            // Use default screen
+            geom = QApplication::desktop()->screenGeometry(-1);
         }
-        else
-        {
-            // In the dual and multi screen cases we need to bypass the window manager
-            // on X11 because Qt does not support _NET_WM_FULLSCREEN_MONITORS, and thus
-            // the window manager would always restrict the fullscreen window to one screen.
-            // Note: it may be better to set _NET_WM_FULLSCREEN_MONITORS ourselves, but that
-            // would also require the window manager to support this extension...
-            _container_widget->setWindowFlags(_container_widget->windowFlags()
-                    | Qt::X11BypassWindowManagerHint
-                    | Qt::FramelessWindowHint
-                    | Qt::WindowStaysOnTopHint);
-            _container_widget->setWindowState(_widget->windowState() | Qt::WindowFullScreen);
-            _container_widget->setGeometry(geom);
-            _container_widget->setCursor(Qt::BlankCursor);
-            _container_widget->show();
-            _container_widget->raise();
-            _container_widget->activateWindow();
+        Qt::WindowFlags new_window_flags =
+            _container_widget->windowFlags()
+            | Qt::FramelessWindowHint
+            | Qt::WindowStaysOnTopHint;
+        // In the dual and multi screen cases we need to bypass the window manager
+        // on X11 because Qt does not support _NET_WM_FULLSCREEN_MONITORS, and thus
+        // the window manager would always restrict the fullscreen window to one screen.
+        // Note: it may be better to set _NET_WM_FULLSCREEN_MONITORS ourselves, but that
+        // would also require the window manager to support this extension...
+        if (screen_count > 1)
+            new_window_flags |= Qt::X11BypassWindowManagerHint;
+        _container_widget->setWindowFlags(new_window_flags);
+        _container_widget->setWindowState(_container_widget->windowState() | Qt::WindowFullScreen);
+        _container_widget->setGeometry(geom);
+        _container_widget->setCursor(Qt::BlankCursor);
+        _container_widget->show();
+        _container_widget->raise();
+        _container_widget->activateWindow();
 #ifdef Q_WS_X11
-            /* According to the Qt documentation, it should be sufficient to call activateWindow()
-             * to make a X11 window active when using Qt::X11BypassWindowManagerHint, but this
-             * does not work for me (Ubuntu 11.04 Gnome-2D desktop). This is a workaround. */
-            /* Note that using X11 functions directly means that we have to link with libX11
-             * explicitly; see configure.ac. */
+        /* According to the Qt documentation, it should be sufficient to call activateWindow()
+         * to make a X11 window active when using Qt::X11BypassWindowManagerHint, but this
+         * does not work for me (Ubuntu 11.04 Gnome-2D desktop). This is a workaround. */
+        /* Note that using X11 functions directly means that we have to link with libX11
+         * explicitly; see configure.ac. */
+        if (new_window_flags & Qt::X11BypassWindowManagerHint) {
             QApplication::syncX();      // just for safety; not sure if it is necessary
             XSetInputFocus(QX11Info::display(), _container_widget->winId(), RevertToParent, CurrentTime);
             XFlush(QX11Info::display());
-#endif
         }
+#endif
         _container_widget->grab_focus();
         // Suspend the screensaver after going fullscreen, so that our window ID
         // represents the fullscreen window. We need to have the same ID for resume.
@@ -911,24 +902,24 @@ void video_output_qt::enter_fullscreen()
 
 void video_output_qt::exit_fullscreen()
 {
-    if (_fullscreen)
-    {
+    if (_fullscreen) {
         // Resume the screensaver before disabling fullscreen, so that our window ID
         // still represents the fullscreen window and was the same when suspending the screensaver.
         if (_screensaver_inhibited) {
             resume_screensaver();
             _screensaver_inhibited = false;
         }
+        // Re-embed the container widget into the main window if necessary
         if (_container_is_external)
-        {
             _container_widget->setWindowFlags(Qt::Widget);
-        }
         _container_widget->setWindowFlags(_container_widget->windowFlags()
                 & ~Qt::X11BypassWindowManagerHint
                 & ~Qt::FramelessWindowHint
                 & ~Qt::WindowStaysOnTopHint);
-        _container_widget->setWindowState(_widget->windowState() & ~Qt::WindowFullScreen);
+        _container_widget->setWindowState(_container_widget->windowState() & ~Qt::WindowFullScreen);
         _container_widget->setCursor(Qt::ArrowCursor);
+        if (!_container_is_external)
+            _container_widget->setGeometry(_geom);
         _container_widget->show();
         _container_widget->raise();
         _container_widget->grab_focus();
