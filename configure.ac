@@ -217,9 +217,9 @@ AC_DEFINE_UNQUOTED([HAVE_LIBEQUALIZER], [$HAVE_LIBEQUALIZER], [Have Equalizer?])
 AM_CONDITIONAL([HAVE_LIBEQUALIZER], [test "$HAVE_LIBEQUALIZER" = "1"])
 
 dnl glewmx
-PKG_CHECK_MODULES([libglewmx], [glewmx >= 1.5.0], [HAVE_LIBGLEWMX=1], [HAVE_LIBGLEWMX=0])
+PKG_CHECK_MODULES([libglewmx], [glewmx >= 1.6.0], [HAVE_LIBGLEWMX=1], [HAVE_LIBGLEWMX=0])
 if test "$HAVE_LIBGLEWMX" != "1"; then
-    AC_MSG_WARN([required library libglewmx >= 1.5.0 not found:])
+    AC_MSG_WARN([required library libglewmx >= 1.6.0 not found:])
     AC_MSG_WARN([$libglewmx_PKG_ERRORS])
     AC_MSG_WARN([libglewmx is provided by glew; Debian package: libglewmx-dev])
 fi
