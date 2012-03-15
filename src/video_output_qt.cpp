@@ -119,18 +119,18 @@ void gl_thread::run()
         _vo_qt_widget->makeCurrent();
         assert(QGLContext::currentContext() == _vo_qt_widget->context());
         while (_render) {
-            if (_action_mutex.trylock()) {
-                if (_action_activate) {
-                    _vo_qt->video_output::activate_next_frame();
-                    _action_activate = false;
-                    _action_cond.wake_one();
-                } else if (_action_prepare) {
-                    _vo_qt->video_output::prepare_next_frame(_next_frame, _next_subtitle);
-                    _action_prepare = false;
-                    _action_cond.wake_one();
-                }
-                _action_mutex.unlock();
+            _action_mutex.lock();
+            if (_action_activate) {
+                _vo_qt->video_output::activate_next_frame();
+                _action_activate = false;
+                _action_cond.wake_one();
             }
+            if (_action_prepare) {
+                _vo_qt->video_output::prepare_next_frame(_next_frame, _next_subtitle);
+                _action_prepare = false;
+                _action_cond.wake_one();
+            }
+            _action_mutex.unlock();
             if (_resize) {
                 _vo_qt->reshape(_w, _h);
                 _resize = false;
