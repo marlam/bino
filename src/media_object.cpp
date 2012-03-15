@@ -1862,15 +1862,7 @@ void media_object::seek(int64_t dest_pos)
     }
     // Stop reading packets
     _ffmpeg->reader->finish();
-    // Seek
-    int e = av_seek_frame(_ffmpeg->format_ctx, -1,
-            dest_pos * AV_TIME_BASE / 1000000,
-            dest_pos < _ffmpeg->pos ?  AVSEEK_FLAG_BACKWARD : 0);
-    if (e < 0)
-    {
-        msg::err(_("%s: Seeking failed."), _url.c_str());
-    }
-    // Throw away all queued packets
+    // Throw away all queued packets and buffered data
     for (size_t i = 0; i < _ffmpeg->video_streams.size(); i++)
     {
         avcodec_flush_buffers(_ffmpeg->format_ctx->streams[_ffmpeg->video_streams[i]]->codec);
@@ -1918,6 +1910,14 @@ void media_object::seek(int64_t dest_pos)
         _ffmpeg->subtitle_last_timestamps[i] = std::numeric_limits<int64_t>::min();
     }
     _ffmpeg->pos = std::numeric_limits<int64_t>::min();
+    // Seek
+    int e = av_seek_frame(_ffmpeg->format_ctx, -1,
+            dest_pos * AV_TIME_BASE / 1000000,
+            dest_pos < _ffmpeg->pos ?  AVSEEK_FLAG_BACKWARD : 0);
+    if (e < 0)
+    {
+        msg::err(_("%s: Seeking failed."), _url.c_str());
+    }
     // Restart packet reading
     _ffmpeg->reader->reset();
     _ffmpeg->reader->start();
