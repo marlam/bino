@@ -3011,6 +3011,8 @@ void main_window::help_website()
 
 void main_window::help_keyboard()
 {
+    // A list of keyboard shortcuts. Keep the translatable strings in sync with
+    // the --help output in main.cpp, to reduce the burden for translators.
     QMessageBox::information(this, _("Keyboard Shortcuts"),
             QString("<p>") + _("Keyboard control:") + "<br>"
             "<table>"
@@ -3031,6 +3033,7 @@ void main_window::help_keyboard()
             "<tr><td>&lt;, &gt;</td><td>" + _("Adjust zoom for wide videos.") + "</td></tr>"
             "<tr><td>/, *</td><td>" + _("Adjust audio volume.") + "</td></tr>"
             "<tr><td>m</td><td>" + _("Toggle audio mute.") + "</td></tr>"
+            "<tr><td>.</td><td>" + _("Step a single video frame forward.") + "</td></tr>"
             "<tr><td>left, right</td><td>" + _("Seek 10 seconds backward / forward.") + "</td></tr>"
             "<tr><td>down, up</td><td>" + _("Seek 1 minute backward / forward.") + "</td></tr>"
             "<tr><td>page down, page up</td><td>" + _("Seek 10 minutes backward / forward.") + "</td></tr>"

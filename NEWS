@@ -7,6 +7,7 @@ New in the next stable version:
 - Support for the MPO, JPS, and PNS file formats for stereoscopic images.
 - Support for high precision color input and output (30 bits per pixel).
 - Better audio/video synchronization.
+- Support for single-frame stepping.
 - Support for a "Recent Files" section in the File menu.
 - Support for multimedia keyboards.
 - Various user interface tweaks.

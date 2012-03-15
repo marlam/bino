@@ -889,6 +889,8 @@ Adjust zoom for videos that are wider than the screen.
 Adjust audio volume.
 @item m
 Toggle audio mute.
+@item .
+Step a single video frame forward.
 @item LEFT, RIGHT
 Seek 10 seconds backward / forward.
 @item DOWN, UP

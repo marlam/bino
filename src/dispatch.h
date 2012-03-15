@@ -83,6 +83,7 @@ public:
         close,                          // no parameters
         toggle_play,                    // no parameters
         toggle_pause,                   // no parameters
+        step,                           // no parameters
         seek,                           // float (relative adjustment)
         set_pos,                        // float (absolute position)
         // Per-Session parameters

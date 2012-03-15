@@ -576,6 +576,9 @@ public:
             case 'p':
                 controller::send_cmd(command::toggle_pause);
                 break;
+            case '.':
+                controller::send_cmd(command::step);
+                break;
             case 'v':
                 /* TODO: cycling video streams is currently not supported with Equalizer.
                  * We would have to cycle the streams in all node players, and thus communicate

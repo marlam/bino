@@ -538,6 +538,10 @@ void dispatch::receive_cmd(const command& cmd)
             _player->set_pause(!pausing());
         /* notify when request is fulfilled */
         break;
+    case command::step:
+        if (_player)
+            _player->set_step(true);
+        break;
     case command::seek:
         if (_player)
             _player->seek(s11n::load<float>(p) * 1e6f);

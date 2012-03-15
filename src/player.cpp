@@ -70,6 +70,7 @@ void player::reset_playstate()
     _recently_seeked = false;
     _quit_request = false;
     _pause_request = false;
+    _step_request = false;
     _seek_request = 0;
     _set_pos_request = -1.0f;
     _video_frame = video_frame();
@@ -427,7 +428,8 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
             int64_t delay = next_frame_presentation_time - _video_pos;
             if (delay > global_dispatch->get_media_input()->video_frame_duration() * 75 / 100
                     && !dispatch::parameters().benchmark()
-                    && !global_dispatch->get_media_input()->is_device())
+                    && !global_dispatch->get_media_input()->is_device()
+                    && !_step_request)
             {
                 msg::wrn(_("Video: delay %g seconds/%g frames; dropping next frame."),
                          float(delay) / 1e6f, 
@@ -437,6 +439,8 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
             if (!_previous_frame_dropped)
             {
                 *display_frame = true;
+                if (_step_request)
+                    _pause_request = true;
                 if (dispatch::parameters().benchmark())
                 {
                     _frames_shown++;
@@ -519,6 +523,15 @@ void player::quit_request()
 void player::set_pause(bool p)
 {
     _pause_request = p;
+    if (!p)
+        _step_request = false;
+}
+
+void player::set_step(bool s)
+{
+    _step_request = s;
+    if (s)
+        _pause_request = false;
 }
 
 void player::seek(int64_t offset)

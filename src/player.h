@@ -58,6 +58,7 @@ private:
     // Requests made by controller commands
     bool _quit_request;                         // Request to quit
     bool _pause_request;                        // Request to go into pause mode
+    bool _step_request;                         // Request for single-frame stepping mode
     int64_t _seek_request;                      // Request to seek relative to the current position
     float _set_pos_request;                     // Request to seek to the absolute position (normalized 0..1)
 
@@ -117,6 +118,7 @@ public:
     /* Dispatch interface. TODO: remove this */
     void quit_request();
     void set_pause(bool p);
+    void set_step(bool s);
     void seek(int64_t offset);
     void set_pos(float pos);
 

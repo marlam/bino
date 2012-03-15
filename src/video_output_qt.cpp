@@ -310,6 +310,9 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
         }
         break;
 #endif
+    case Qt::Key_Period:
+        _vo->send_cmd(command::step);
+        break;
     case Qt::Key_V:
         _vo->send_cmd(command::cycle_video_stream);
         break;

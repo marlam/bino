@@ -508,6 +508,7 @@ int main(int argc, char *argv[])
                 + "  <, >                     " + _("Adjust zoom for wide videos.") + '\n'
                 + "  /, *                     " + _("Adjust audio volume.") + '\n'
                 + "  m                        " + _("Toggle audio mute.") + '\n'
+                + "  .                        " + _("Step a single video frame forward.") + '\n'
                 + "  left, right              " + _("Seek 10 seconds backward / forward.") + '\n'
                 + "  down, up                 " + _("Seek 1 minute backward / forward.") + '\n'
                 + "  page down, page up       " + _("Seek 10 minutes backward / forward.") + '\n'
