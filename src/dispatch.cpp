@@ -21,6 +21,7 @@
 #include "config.h"
 
 #include <vector>
+#include <unistd.h>
 
 #include "gettext.h"
 #define _(string) gettext(string)
@@ -205,6 +206,8 @@ void dispatch::step()
                 global_dispatch->force_stop();
             }
         }
+    } else {
+        usleep(1000);
     }
 }
 
