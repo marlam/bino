@@ -68,9 +68,10 @@ namespace atomic
 
     /* The following are convenience functions implemented on top of the above
      * basic atomic operations. */
-    template<typename T> T fetch(T* ptr) { return fetch_and_add(ptr, static_cast<T>(0)); }
-    template<typename T> T increment(T* ptr) { return add_and_fetch(ptr, static_cast<T>(1)); }
-    template<typename T> T decrement(T* ptr) { return sub_and_fetch(ptr, static_cast<T>(1)); }
+    template<typename T> T fetch_and_inc(T* ptr) { return fetch_and_add(ptr, static_cast<T>(1)); }
+    template<typename T> T inc_and_fetch(T* ptr) { return add_and_fetch(ptr, static_cast<T>(1)); }
+    template<typename T> T fetch_and_dec(T* ptr) { return fetch_and_sub(ptr, static_cast<T>(1)); }
+    template<typename T> T dec_and_fetch(T* ptr) { return sub_and_fetch(ptr, static_cast<T>(1)); }
 }
 
 
@@ -96,6 +97,33 @@ public:
     bool trylock();
     // Unlock the mutex
     void unlock();
+
+    friend class condition;
+};
+
+
+/*
+ * Wait condition
+ */
+
+class condition
+{
+private:
+    static const pthread_cond_t _cond_initializer;
+    pthread_cond_t _cond;
+
+public:
+    // Constructor / Destructor
+    condition();
+    condition(const condition& c);
+    ~condition();
+
+    // Wait for the condition. The calling thread must have the mutex locked.
+    void wait(mutex& m);
+    // Wake one thread that waits on the condition.
+    void wake_one();
+    // Wake all threads that wait on the condition.
+    void wake_all();
 };
 
 

@@ -23,6 +23,7 @@
 #include <cstring>
 #include <new>
 #if HAVE_BACKTRACE
+# include <cstdio>
 # include <execinfo.h>
 #endif
 #if __GNUG__
@@ -78,6 +79,53 @@ namespace dbg
         std::set_new_handler(oom_abort);
     }
 
+#ifndef NDEBUG
+# if HAVE_BACKTRACE
+    static char *get_file_and_line(
+            const char *executable, size_t executable_len,
+            const char *addr, size_t addr_len)
+    {
+        /* "addr2line -e EXECUTABLE ADDR" */
+        size_t cmd_len = 9 + 4 + executable_len + 1 + addr_len;
+        char *cmd_buf = static_cast<char*>(malloc(cmd_len + 1));
+        if (!cmd_buf)
+        {
+            return NULL;
+        }
+        strcpy(cmd_buf, "addr2line -e ");
+        strncat(cmd_buf, executable, executable_len);
+        strcat(cmd_buf, " ");
+        strncat(cmd_buf, addr, addr_len);
+        FILE *f = popen(cmd_buf, "r");
+        free(cmd_buf);
+        if (!f)
+        {
+            return NULL;
+        }
+        char line_buf[512];
+        if (!fgets(line_buf, 512, f))
+        {
+            pclose(f);
+            return NULL;
+        }
+        if (pclose(f) != 0)
+        {
+            return NULL;
+        }
+        char *p = strchr(line_buf, '\n');
+        if (p)
+        {
+            *p = '\0';
+        }
+        if (strcmp(line_buf, "??:0") == 0)
+        {
+            return NULL;
+        }
+        return strdup(line_buf);
+    }
+# endif
+#endif
+
     void backtrace()
     {
 #ifndef NDEBUG
@@ -99,11 +147,36 @@ namespace dbg
             strings = backtrace_symbols(array, size);
             for (int i = 0; i < size; i++)
             {
+                char *p;
+                char *executable = NULL;
+                size_t executable_len = 0;
+                char *addr = NULL;
+                size_t addr_len = 0;
+                executable = strings[i];
+                p = strchr(strings[i], '(');
+                if (p)
+                {
+                    executable_len = p - strings[i];
+                }
+                p = strchr(strings[i], '[');
+                if (p)
+                {
+                    addr = p + 1;
+                    p = strchr(addr, ']');
+                    if (p)
+                    {
+                        addr_len = p - addr;
+                    }
+                }
+                char *file_and_line = NULL;
+                if (executable && executable_len > 0 && addr && addr_len > 0)
+                {
+                    file_and_line = get_file_and_line(executable, executable_len, addr, addr_len);
+                }
 #  if __GNUG__
                 int status;
-                char *p, *q;
+                char *q;
                 char *realname = NULL;
-
                 p = strchr(strings[i], '(');
                 if (p)
                 {
@@ -119,16 +192,21 @@ namespace dbg
                 if (realname && status == 0)
                 {
                     *p = '\0';
-                    msg::err("    %s%s%s", strings[i], realname, q);
+                    msg::err(4, "%s%s%s", strings[i], realname, q);
                 }
                 else
                 {
-                    msg::err("    %s", strings[i]);
+                    msg::err(4, "%s", strings[i]);
                 }
                 free(realname);
 #  else
-                msg::err("    %s", strings[i]);
+                msg::err(4, "%s", strings[i]);
 #  endif
+                if (file_and_line)
+                {
+                    msg::err(8, "at %s", file_and_line);
+                    free(file_and_line);
+                }
             }
             free(strings);
         }

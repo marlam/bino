@@ -57,8 +57,6 @@ class exc : public std::exception
         std::string _str;
         int _sys_errno;
 
-        void create(const char *when, int sys_errno, const char *what) throw ();
-
     public:
         exc() throw ();
         exc(const std::string &what, int sys_errno = 0) throw ();

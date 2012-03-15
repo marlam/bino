@@ -18,6 +18,7 @@
 
 #include "config.h"
 
+#include <cerrno>
 #include <cstring>
 #include <pthread.h>
 #include <sched.h>
@@ -25,8 +26,6 @@
 #include "gettext.h"
 #define _(string) gettext(string)
 
-#include "dbg.h"
-#include "str.h"
 #include "thread.h"
 
 
@@ -36,7 +35,8 @@ mutex::mutex() : _mutex(_mutex_initializer)
 {
     int e = pthread_mutex_init(&_mutex, NULL);
     if (e != 0)
-        throw exc(str::asprintf(_("Cannot initialize mutex: %s"), std::strerror(e)), e);
+        throw exc(std::string(_("System function failed: "))
+                + "pthread_mutex_init(): " + std::strerror(e), e);
 }
 
 mutex::mutex(const mutex&) : _mutex(_mutex_initializer)
@@ -45,7 +45,8 @@ mutex::mutex(const mutex&) : _mutex(_mutex_initializer)
     // Instead, we create a new one. This allows easier use of mutexes in STL containers.
     int e = pthread_mutex_init(&_mutex, NULL);
     if (e != 0)
-        throw exc(str::asprintf(_("Cannot initialize mutex: %s"), std::strerror(e)), e);
+        throw exc(std::string(_("System function failed: "))
+                + "pthread_mutex_init(): " + std::strerror(e), e);
 }
 
 mutex::~mutex()
@@ -57,7 +58,8 @@ void mutex::lock()
 {
     int e = pthread_mutex_lock(&_mutex);
     if (e != 0)
-        throw exc(str::asprintf(_("Cannot lock mutex: %s"), std::strerror(e)), e);
+        throw exc(std::string(_("System function failed: "))
+                + "pthread_mutex_lock(): " + std::strerror(e), e);
 }
 
 bool mutex::trylock()
@@ -69,7 +71,58 @@ void mutex::unlock()
 {
     int e = pthread_mutex_unlock(&_mutex);
     if (e != 0)
-        throw exc(str::asprintf(_("Cannot unlock mutex: %s"), std::strerror(e)), e);
+        throw exc(std::string(_("System function failed: "))
+                + "pthread_mutex_unlock(): " + std::strerror(e), e);
+}
+
+
+const pthread_cond_t condition::_cond_initializer = PTHREAD_COND_INITIALIZER;
+
+condition::condition() : _cond(_cond_initializer)
+{
+    int e = pthread_cond_init(&_cond, NULL);
+    if (e != 0)
+        throw exc(std::string(_("System function failed: "))
+                + "pthread_cond_init(): " + std::strerror(e), e);
+}
+
+condition::condition(const condition&) : _cond(_cond_initializer)
+{
+    // You cannot have multiple copies of the same condition.
+    // Instead, we create a new one. This allows easier use of conditions in STL containers.
+    int e = pthread_cond_init(&_cond, NULL);
+    if (e != 0)
+        throw exc(std::string(_("System function failed: "))
+                + "pthread_cond_init(): " + std::strerror(e), e);
+}
+
+condition::~condition()
+{
+    (void)pthread_cond_destroy(&_cond);
+}
+
+void condition::wait(mutex& m)
+{
+    int e = pthread_cond_wait(&_cond, &m._mutex);
+    if (e != 0)
+        throw exc(std::string(_("System function failed: "))
+                + "pthread_cond_wait(): " + std::strerror(e), e);
+}
+
+void condition::wake_one()
+{
+    int e = pthread_cond_signal(&_cond);
+    if (e != 0)
+        throw exc(std::string(_("System function failed: "))
+                + "pthread_cond_signal(): " + std::strerror(e), e);
+}
+
+void condition::wake_all()
+{
+    int e = pthread_cond_broadcast(&_cond);
+    if (e != 0)
+        throw exc(std::string(_("System function failed: "))
+                + "pthread_cond_broadcast(): " + std::strerror(e), e);
 }
 
 
@@ -148,13 +201,15 @@ void thread::start(int priority)
             }
             e = e || pthread_attr_setschedparam(&priority_thread_attr, &param);
             if (e != 0) {
-                throw exc(str::asprintf(_("Cannot create thread: %s"), std::strerror(e)), e);
+                throw exc(std::string(_("System function failed: "))
+                        + "pthread_attr_*(): " + std::strerror(e), e);
             }
             thread_attr = &priority_thread_attr;
         }
         e = pthread_create(&__thread_id, thread_attr, __run, this);
         if (e != 0) {
-            throw exc(str::asprintf(_("Cannot create thread: %s"), std::strerror(e)), e);
+            throw exc(std::string(_("System function failed: "))
+                    + "pthread_create(): " + std::strerror(e), e);
         }
         __joinable = true;
     }
@@ -167,7 +222,8 @@ void thread::wait()
         int e = pthread_join(__thread_id, NULL);
         if (e != 0) {
             __wait_mutex.unlock();
-            throw exc(str::asprintf(_("Cannot join with thread: %s"), std::strerror(e)), e);
+            throw exc(std::string(_("System function failed: "))
+                    + "pthread_join(): " + std::strerror(e), e);
         }
     }
     __wait_mutex.unlock();
@@ -186,7 +242,8 @@ void thread::cancel()
     int e = pthread_cancel(__thread_id);
     if (e != 0) {
         __wait_mutex.unlock();
-        throw exc(str::asprintf(_("Cannot cancel thread: %s"), std::strerror(e)), e);
+        throw exc(std::string(_("System function failed: "))
+                + "pthread_cancel(): " + std::strerror(e), e);
     }
     __wait_mutex.unlock();
 }
