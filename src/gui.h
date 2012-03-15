@@ -115,20 +115,20 @@ private:
     void update_audio_widgets();
 
 private slots:
-    void play_pressed();
-    void pause_pressed();
-    void stop_pressed();
-    void loop_pressed();
-    void fullscreen_pressed();
-    void center_pressed();
-    void bbb_pressed();
-    void bb_pressed();
-    void b_pressed();
-    void f_pressed();
-    void ff_pressed();
-    void fff_pressed();
+    void play_clicked();
+    void pause_clicked();
+    void stop_clicked();
+    void loop_clicked();
+    void fullscreen_clicked();
+    void center_clicked();
+    void bbb_clicked();
+    void bb_clicked();
+    void b_clicked();
+    void f_clicked();
+    void ff_clicked();
+    void fff_clicked();
     void seek_slider_changed();
-    void audio_mute_pressed();
+    void audio_mute_clicked();
     void audio_volume_slider_changed();
 
 public:
@@ -272,7 +272,7 @@ private:
     void set_color_button(uint32_t c);
 
 private slots:
-    void color_button_pressed();
+    void color_button_clicked();
     void encoding_changed();
     void font_changed();
     void size_changed();
