@@ -467,7 +467,8 @@ public:
                 && _eq_frame_data.seek_to == -1
                 && !_eq_frame_data.prep_frame
                 && !_eq_frame_data.drop_frame
-                && !_eq_frame_data.display_frame);
+                && !_eq_frame_data.display_frame
+                && !dispatch::pausing());
         if (!more_steps)
         {
             this->exit();
