@@ -3044,78 +3044,81 @@ void main_window::help_keyboard()
 
 void main_window::help_about()
 {
-    QDialog *dialog = new QDialog(this);
-    dialog->setModal(true);
-    dialog->setWindowTitle(str::asprintf(_("About %s"), PACKAGE_NAME).c_str());
+    static QDialog* dialog = NULL;
 
-    QLabel *logo = new QLabel();
-    logo->setPixmap(QPixmap(":logo/bino_logo.png").scaledToHeight(128, Qt::SmoothTransformation));
-    QLabel *spacer = new QLabel();
-    spacer->setMinimumWidth(16);
-    QLabel *title = new QLabel(str::asprintf(_("The %s 3D video player"), PACKAGE_NAME).c_str());
+    if (!dialog) {
+        dialog = new QDialog(this);
+        dialog->setWindowTitle(str::asprintf(_("About %s"), PACKAGE_NAME).c_str());
 
-    QTextBrowser *about_text = new QTextBrowser(this);
-    about_text->setOpenExternalLinks(true);
-    about_text->setText(str::asprintf(_(
-                    "<p>%s version %s.</p>"
-                    "<p>Copyright (C) 2012 the Bino developers.</p>"
-                    "<p>This is free software. You may redistribute copies of it "
-                    "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
-                    "GNU General Public License</a>. "
-                    "There is NO WARRANTY, to the extent permitted by law.</p>"
-                    "<p>See <a href=\"%s\">%s</a> for more information on this software.</p>"),
-                PACKAGE_NAME, VERSION, PACKAGE_URL, PACKAGE_URL).c_str());
+        QLabel* logo = new QLabel();
+        logo->setPixmap(QPixmap(":logo/bino_logo.png").scaledToHeight(128, Qt::SmoothTransformation));
+        QLabel* spacer = new QLabel();
+        spacer->setMinimumWidth(16);
+        QLabel* title = new QLabel(str::asprintf(_("The %s 3D video player"), PACKAGE_NAME).c_str());
 
-    QTextBrowser *libs_text = new QTextBrowser(this);
-    libs_text->setOpenExternalLinks(true);
-    libs_text->setWordWrapMode(QTextOption::NoWrap);
-    QString libs_blurb = QString(str::asprintf("<p>%s<ul><li>%s</li></ul></p>", _("Platform:"), PLATFORM).c_str());
-    libs_blurb += QString("<p>") + QString(_("Libraries used:"));
-    std::vector<std::string> libs = lib_versions(true);
-    for (size_t i = 0; i < libs.size(); i++)
-    {
-        libs_blurb += libs[i].c_str();
+        QTextBrowser* about_text = new QTextBrowser(this);
+        about_text->setOpenExternalLinks(true);
+        about_text->setText(str::asprintf(_(
+                        "<p>%s version %s.</p>"
+                        "<p>Copyright (C) 2012 the Bino developers.</p>"
+                        "<p>This is free software. You may redistribute copies of it "
+                        "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
+                        "GNU General Public License</a>. "
+                        "There is NO WARRANTY, to the extent permitted by law.</p>"
+                        "<p>See <a href=\"%s\">%s</a> for more information on this software.</p>"),
+                    PACKAGE_NAME, VERSION, PACKAGE_URL, PACKAGE_URL).c_str());
+
+        QTextBrowser* libs_text = new QTextBrowser(this);
+        libs_text->setOpenExternalLinks(true);
+        libs_text->setWordWrapMode(QTextOption::NoWrap);
+        QString libs_blurb = QString(str::asprintf("<p>%s<ul><li>%s</li></ul></p>", _("Platform:"), PLATFORM).c_str());
+        libs_blurb += QString("<p>") + QString(_("Libraries used:"));
+        std::vector<std::string> libs = lib_versions(true);
+        for (size_t i = 0; i < libs.size(); i++)
+            libs_blurb += libs[i].c_str();
+        libs_blurb += QString("</p>");
+        libs_text->setText(libs_blurb);
+
+        QTextBrowser* team_text = new QTextBrowser(this);
+        team_text->setOpenExternalLinks(false);
+        team_text->setWordWrapMode(QTextOption::NoWrap);
+        QFile team_file(":AUTHORS");
+        team_file.open(QIODevice::ReadOnly | QIODevice::Text);
+        team_text->setText(QTextCodec::codecForName("UTF-8")->toUnicode(team_file.readAll()));
+
+        QTextBrowser* license_text = new QTextBrowser(this);
+        license_text->setOpenExternalLinks(false);
+        license_text->setWordWrapMode(QTextOption::NoWrap);
+        QFile license_file(":LICENSE");
+        license_file.open(QIODevice::ReadOnly | QIODevice::Text);
+        license_text->setText(license_file.readAll());
+
+        QTabWidget* tab_widget = new QTabWidget();
+        tab_widget->addTab(about_text, _("About"));
+        tab_widget->addTab(libs_text, _("Libraries"));
+        tab_widget->addTab(team_text, _("Team"));
+        tab_widget->addTab(license_text, _("License"));
+
+        QPushButton* ok_btn = new QPushButton(_("OK"));
+        connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
+
+        QGridLayout* layout = new QGridLayout();
+        layout->addWidget(logo, 0, 0);
+        layout->addWidget(spacer, 0, 1);
+        layout->addWidget(title, 0, 2, 1, 2);
+        layout->addWidget(spacer, 0, 4);
+        layout->addWidget(tab_widget, 1, 0, 1, 5);
+        layout->addWidget(ok_btn, 2, 3, 1, 2);
+        layout->setColumnStretch(1, 1);
+        layout->setColumnStretch(4, 1);
+        layout->setRowStretch(1, 1);
+        dialog->setLayout(layout);
+        about_text->setMinimumWidth(384);
     }
-    libs_blurb += QString("</p>");
-    libs_text->setText(libs_blurb);
 
-    QTextBrowser *team_text = new QTextBrowser(this);
-    team_text->setOpenExternalLinks(false);
-    team_text->setWordWrapMode(QTextOption::NoWrap);
-    QFile team_file(":AUTHORS");
-    team_file.open(QIODevice::ReadOnly | QIODevice::Text);
-    team_text->setText(QTextCodec::codecForName("UTF-8")->toUnicode(team_file.readAll()));
-
-    QTextBrowser *license_text = new QTextBrowser(this);
-    license_text->setOpenExternalLinks(false);
-    license_text->setWordWrapMode(QTextOption::NoWrap);
-    QFile license_file(":LICENSE");
-    license_file.open(QIODevice::ReadOnly | QIODevice::Text);
-    license_text->setText(license_file.readAll());
-
-    QTabWidget *tab_widget = new QTabWidget();
-    tab_widget->addTab(about_text, _("About"));
-    tab_widget->addTab(libs_text, _("Libraries"));
-    tab_widget->addTab(team_text, _("Team"));
-    tab_widget->addTab(license_text, _("License"));
-
-    QPushButton *ok_btn = new QPushButton(_("OK"));
-    connect(ok_btn, SIGNAL(clicked()), dialog, SLOT(accept()));
-
-    QGridLayout *layout = new QGridLayout();
-    layout->addWidget(logo, 0, 0);
-    layout->addWidget(spacer, 0, 1);
-    layout->addWidget(title, 0, 2, 1, 2);
-    layout->addWidget(spacer, 0, 4);
-    layout->addWidget(tab_widget, 1, 0, 1, 5);
-    layout->addWidget(ok_btn, 2, 3, 1, 2);
-    layout->setColumnStretch(1, 1);
-    layout->setColumnStretch(4, 1);
-    layout->setRowStretch(1, 1);
-    dialog->setLayout(layout);
-    about_text->setMinimumWidth(384);
-
-    dialog->exec();
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
 }
 
 gui::gui()
