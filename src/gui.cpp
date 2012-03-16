@@ -2476,6 +2476,11 @@ main_window::main_window(QSettings *settings) :
     restoreState(_settings->value("windowstate").toByteArray());
     _settings->endGroup();
 
+#ifdef Q_WS_MAC
+    // Since this is a single-window app, don't let the user close the main window on OS X
+    setWindowFlags(Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint);
+#endif
+
     // Show window. Must happen before opening initial files!
     show();
     raise();
