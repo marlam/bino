@@ -3016,35 +3016,42 @@ void main_window::help_website()
 
 void main_window::help_keyboard()
 {
-    // A list of keyboard shortcuts. Keep the translatable strings in sync with
-    // the --help output in main.cpp, to reduce the burden for translators.
-    QMessageBox::information(this, _("Keyboard Shortcuts"),
-            QString("<p>") + _("Keyboard control:") + "<br>"
-            "<table>"
-            "<tr><td>q, ESC</td><td>" + _("Stop.") + "</td></tr>"
-            "<tr><td>p / SPACE</td><td>" + _("Pause / unpause.") + "</td></tr>"
-            "<tr><td>f</td><td>" + _("Toggle fullscreen.") + "</td></tr>"
-            "<tr><td>c</td><td>" + _("Center window.") + "</td></tr>"
-            "<tr><td>e</td><td>" + _("Swap left/right eye.") + "</td></tr>"
-            "<tr><td>v</td><td>" + _("Cycle through available video streams.") + "</td></tr>"
-            "<tr><td>a</td><td>" + _("Cycle through available audio streams.") + "</td></tr>"
-            "<tr><td>s</td><td>" + _("Cycle through available subtitle streams.") + "</td></tr>"
-            "<tr><td>1, 2</td><td>" + _("Adjust contrast.") + "</td></tr>"
-            "<tr><td>3, 4</td><td>" + _("Adjust brightness.") + "</td></tr>"
-            "<tr><td>5, 6</td><td>" + _("Adjust hue.") + "</td></tr>"
-            "<tr><td>7, 8</td><td>" + _("Adjust saturation.") + "</td></tr>"
-            "<tr><td>[, ]</td><td>" + _("Adjust parallax.") + "</td></tr>"
-            "<tr><td>(, )</td><td>" + _("Adjust ghostbusting.") + "</td></tr>"
-            "<tr><td>&lt;, &gt;</td><td>" + _("Adjust zoom for wide videos.") + "</td></tr>"
-            "<tr><td>/, *</td><td>" + _("Adjust audio volume.") + "</td></tr>"
-            "<tr><td>m</td><td>" + _("Toggle audio mute.") + "</td></tr>"
-            "<tr><td>.</td><td>" + _("Step a single video frame forward.") + "</td></tr>"
-            "<tr><td>left, right</td><td>" + _("Seek 10 seconds backward / forward.") + "</td></tr>"
-            "<tr><td>down, up</td><td>" + _("Seek 1 minute backward / forward.") + "</td></tr>"
-            "<tr><td>page down, page up</td><td>" + _("Seek 10 minutes backward / forward.") + "</td></tr>"
-            "<tr><td>Media keys</td><td>" + _("Media keys should work as expected.") + "</td></tr>"
-            "</table>"
-            "</p>");
+    static QMessageBox* msgbox = NULL;
+    if (!msgbox) {
+        msgbox = new QMessageBox(QMessageBox::Information, _("Keyboard Shortcuts"),
+                // A list of keyboard shortcuts. Keep the translatable strings in sync with
+                // the --help output in main.cpp, to reduce the burden for translators.
+                QString("<p>") + _("Keyboard control:") + "<br>"
+                "<table>"
+                "<tr><td>q, ESC</td><td>" + _("Stop.") + "</td></tr>"
+                "<tr><td>p / SPACE</td><td>" + _("Pause / unpause.") + "</td></tr>"
+                "<tr><td>f</td><td>" + _("Toggle fullscreen.") + "</td></tr>"
+                "<tr><td>c</td><td>" + _("Center window.") + "</td></tr>"
+                "<tr><td>e</td><td>" + _("Swap left/right eye.") + "</td></tr>"
+                "<tr><td>v</td><td>" + _("Cycle through available video streams.") + "</td></tr>"
+                "<tr><td>a</td><td>" + _("Cycle through available audio streams.") + "</td></tr>"
+                "<tr><td>s</td><td>" + _("Cycle through available subtitle streams.") + "</td></tr>"
+                "<tr><td>1, 2</td><td>" + _("Adjust contrast.") + "</td></tr>"
+                "<tr><td>3, 4</td><td>" + _("Adjust brightness.") + "</td></tr>"
+                "<tr><td>5, 6</td><td>" + _("Adjust hue.") + "</td></tr>"
+                "<tr><td>7, 8</td><td>" + _("Adjust saturation.") + "</td></tr>"
+                "<tr><td>[, ]</td><td>" + _("Adjust parallax.") + "</td></tr>"
+                "<tr><td>(, )</td><td>" + _("Adjust ghostbusting.") + "</td></tr>"
+                "<tr><td>&lt;, &gt;</td><td>" + _("Adjust zoom for wide videos.") + "</td></tr>"
+                "<tr><td>/, *</td><td>" + _("Adjust audio volume.") + "</td></tr>"
+                "<tr><td>m</td><td>" + _("Toggle audio mute.") + "</td></tr>"
+                "<tr><td>.</td><td>" + _("Step a single video frame forward.") + "</td></tr>"
+                "<tr><td>left, right</td><td>" + _("Seek 10 seconds backward / forward.") + "</td></tr>"
+                "<tr><td>down, up</td><td>" + _("Seek 1 minute backward / forward.") + "</td></tr>"
+                "<tr><td>page down, page up</td><td>" + _("Seek 10 minutes backward / forward.") + "</td></tr>"
+                "<tr><td>Media keys</td><td>" + _("Media keys should work as expected.") + "</td></tr>"
+                "</table>"
+                "</p>", QMessageBox::Ok, this);
+        msgbox->setModal(false);
+    }
+    msgbox->show();
+    msgbox->raise();
+    msgbox->activateWindow();
 }
 
 void main_window::help_about()
