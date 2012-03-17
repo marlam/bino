@@ -73,7 +73,6 @@ private slots:
 
 public:
     in_out_widget(QSettings *settings, QWidget *parent);
-    virtual ~in_out_widget();
 
     void update();
 
@@ -133,7 +132,6 @@ private slots:
 
 public:
     controls_widget(QSettings *settings, QWidget *parent);
-    virtual ~controls_widget();
 
     void update();
     virtual void receive_notification(const notification &note);

@@ -225,10 +225,8 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent) :
     _input_combobox->setEnabled(false);
     _output_combobox->setEnabled(false);
     _swap_checkbox->setEnabled(false);
-}
 
-in_out_widget::~in_out_widget()
-{
+    update();
 }
 
 void in_out_widget::set_stereo_layout(parameters::stereo_layout_t stereo_layout, bool stereo_layout_swap)
@@ -667,6 +665,10 @@ void in_out_widget::receive_notification(const notification &note)
     _lock = true;
     switch (note.type)
     {
+    case notification::open:
+    case notification::play:
+        update();
+        break;
     case notification::video_stream:
         _video_combobox->setCurrentIndex(dispatch::parameters().video_stream());
         break;
@@ -811,11 +813,8 @@ controls_widget::controls_widget(QSettings *settings, QWidget *parent)
     _seek_slider->setEnabled(false);
     _pos_label->setEnabled(false);
 
+    update();
     update_audio_widgets();
-}
-
-controls_widget::~controls_widget()
-{
 }
 
 void controls_widget::update_audio_widgets()
@@ -974,6 +973,9 @@ void controls_widget::receive_notification(const notification &note)
 
     switch (note.type)
     {
+    case notification::open:
+        update();
+        break;
     case notification::play:
         b = dispatch::playing();
         _play_button->setEnabled(!b);
@@ -2466,10 +2468,6 @@ main_window::main_window(QSettings *settings) :
     // Handle Drop events
     setAcceptDrops(true);
 
-    // Update widget contents
-    _in_out_widget->update();
-    _controls_widget->update();
-
     // Restore Mainwindow state
     _settings->beginGroup("Mainwindow");
     restoreGeometry(_settings->value("geometry").toByteArray());
@@ -2562,8 +2560,6 @@ void main_window::receive_notification(const notification &note)
         QApplication::quit();
         break;
     case notification::play:
-        _in_out_widget->update();
-        _controls_widget->update();
         if (dispatch::playing()) {
             // Force a size adjustment of the main window
             adjustSize();
