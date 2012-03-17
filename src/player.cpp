@@ -54,8 +54,10 @@ float player::normalize_pos(int64_t pos) const
 {
     double pos_min = _start_pos + global_dispatch->get_media_input()->initial_skip();
     double pos_max = pos_min + global_dispatch->get_media_input()->duration();
-    double npos = (pos_max > pos_min ? (static_cast<double>(pos) - pos_min) / (pos_max - pos_min) : 0.0f);
-    return npos;
+    if (pos_max > pos_min && pos >= pos_min && pos <= pos_max)
+        return (pos - pos_min) / (pos_max - pos_min);
+    else
+        return 0.0f;
 }
 
 void player::reset_playstate()
