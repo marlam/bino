@@ -576,8 +576,13 @@ int player::set_subtitle_stream(int s)
 void player::set_stereo_layout(parameters::stereo_layout_t stereo_layout)
 {
     global_dispatch->get_media_input()->set_stereo_layout(stereo_layout, dispatch::parameters().stereo_layout_swap());
-    if (stereo_layout == parameters::layout_separate)
-        _seek_request = -1;     // Get position of both streams right
+    // If the new layout is layout_separate, then seek to synchronize both video streams.
+    // If we're pausing, then seek to reload the current frame (or a near frame) and
+    // trigger an update of the display.
+    // In other cases, we can just continue to read our video and the display will
+    // update with the next frame.
+    if (stereo_layout == parameters::layout_separate || dispatch::pausing())
+        _seek_request = -1;
 }
 
 void player::set_stereo_layout_swap(bool swap)
