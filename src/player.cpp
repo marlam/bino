@@ -29,6 +29,7 @@
 #define _(string) gettext(string)
 
 #include "exc.h"
+#include "dbg.h"
 #include "str.h"
 #include "msg.h"
 #include "timer.h"
@@ -548,28 +549,31 @@ void player::set_pos(float pos)
 
 int player::set_video_stream(int s)
 {
-    if (s < 0 || s >= global_dispatch->get_media_input()->video_streams())
-        s = 0;
+    assert(dispatch::media_input())
+    assert(s >= 0 && s < dispatch::media_input()->video_streams());
     global_dispatch->get_media_input()->select_video_stream(s);
-    _seek_request = -1; // Get position right
+    if (dispatch::playing())
+        _seek_request = -1; // Get position right
     return s;
 }
 
 int player::set_audio_stream(int s)
 {
-    if (s < 0 || s >= global_dispatch->get_media_input()->audio_streams())
-        s = 0;
+    assert(dispatch::media_input())
+    assert(s >= 0 && s < dispatch::media_input()->audio_streams());
     global_dispatch->get_media_input()->select_audio_stream(s);
-    _seek_request = -1; // Get position right
+    if (dispatch::playing())
+        _seek_request = -1; // Get position right
     return s;
 }
 
 int player::set_subtitle_stream(int s)
 {
-    if (s < -1 || s >= global_dispatch->get_media_input()->subtitle_streams())
-        s = -1;
+    assert(dispatch::media_input())
+    assert(s >= -1 && s < dispatch::media_input()->subtitle_streams());
     global_dispatch->get_media_input()->select_subtitle_stream(s);
-    _seek_request = -1; // Get position right
+    if (dispatch::playing())
+        _seek_request = -1; // Get position right
     return s;
 }
 

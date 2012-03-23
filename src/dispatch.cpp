@@ -672,49 +672,58 @@ void dispatch::receive_cmd(const command& cmd)
         break;
     // Per-Video parameters
     case command::cycle_video_stream:
-        if (_player && _media_input->video_streams() > 1
+        if (_media_input && _media_input->video_streams() > 1
                 && parameters().stereo_layout() != parameters::layout_separate) {
             int s = parameters().video_stream() + 1;
             if (s >= _media_input->video_streams())
                 s = 0;
-            _parameters.set_video_stream(_player->set_video_stream(s));
+            s = _player->set_video_stream(s);
+            _parameters.set_video_stream(s);
             notify_all(notification::video_stream);
         }
         break;
     case command::set_video_stream:
-        if (_player && _media_input->video_streams() > 1
+        if (_media_input && _media_input->video_streams() > 1
                 && parameters().stereo_layout() != parameters::layout_separate) {
-            _parameters.set_video_stream(_player->set_video_stream(s11n::load<int>(p)));
+            int s = s11n::load<int>(p);
+            s = _player->set_video_stream(s);
+            _parameters.set_video_stream(s);
             notify_all(notification::video_stream);
         }
         break;
     case command::cycle_audio_stream:
-        if (_player && _media_input->audio_streams() > 1) {
+        if (_media_input && _media_input->audio_streams() > 1) {
             int s = parameters().audio_stream() + 1;
             if (s >= _media_input->audio_streams())
                 s = 0;
-            _parameters.set_audio_stream(_player->set_audio_stream(s));
+            s = _player->set_audio_stream(s);
+            _parameters.set_audio_stream(s);
             notify_all(notification::audio_stream);
         }
         break;
     case command::set_audio_stream:
-        if (_player && _media_input->audio_streams() > 1) {
-            _parameters.set_audio_stream(_player->set_audio_stream(s11n::load<int>(p)));
+        if (_media_input && _media_input->audio_streams() > 1) {
+            int s = s11n::load<int>(p);
+            s = _player->set_audio_stream(s);
+            _parameters.set_audio_stream(s);
             notify_all(notification::audio_stream);
         }
         break;
     case command::cycle_subtitle_stream:
-        if (_player && _media_input->subtitle_streams() > 0) {
+        if (_media_input && _media_input->subtitle_streams() > 0) {
             int s = parameters().subtitle_stream() + 1;
             if (s >= _media_input->subtitle_streams())
                 s = -1;
-            _parameters.set_subtitle_stream(_player->set_subtitle_stream(s));
+            s = _player->set_subtitle_stream(s);
+            _parameters.set_subtitle_stream(s);
             notify_all(notification::subtitle_stream);
         }
         break;
     case command::set_subtitle_stream:
-        if (_player && _media_input->subtitle_streams() > 0) {
-            _parameters.set_subtitle_stream(_player->set_subtitle_stream(s11n::load<int>(p)));
+        if (_media_input && _media_input->subtitle_streams() > 0) {
+            int s = s11n::load<int>(p);
+            s = _player->set_subtitle_stream(s);
+            _parameters.set_subtitle_stream(s);
             notify_all(notification::subtitle_stream);
         }
         break;

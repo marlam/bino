@@ -505,6 +505,15 @@ void media_input::select_video_stream(int video_stream)
             }
         }
     }
+    // Re-set video frame template
+    parameters::stereo_layout_t stereo_layout_bak = _video_frame.stereo_layout;
+    bool stereo_layout_swap_bak = _video_frame.stereo_layout_swap;
+    int o, s;
+    get_video_stream(_active_video_stream, o, s);
+    _video_frame = _media_objects[o].video_frame_template(s);
+    _video_frame.stereo_layout = stereo_layout_bak;
+    _video_frame.stereo_layout_swap = stereo_layout_swap_bak;
+    _video_frame.set_view_dimensions();
 }
 
 void media_input::select_audio_stream(int audio_stream)
@@ -533,6 +542,8 @@ void media_input::select_audio_stream(int audio_stream)
             _media_objects[i].audio_stream_set_active(j, (i == static_cast<size_t>(o) && j == s));
         }
     }
+    // Re-set audio blob template
+    _audio_blob = _media_objects[o].audio_blob_template(s);
 }
 
 void media_input::select_subtitle_stream(int subtitle_stream)
@@ -564,6 +575,11 @@ void media_input::select_subtitle_stream(int subtitle_stream)
             _media_objects[i].subtitle_stream_set_active(j, (i == static_cast<size_t>(o) && j == s));
         }
     }
+    // Re-set subtitle box template
+    if (_active_subtitle_stream >= 0)
+        _subtitle_box = _media_objects[o].subtitle_box_template(s);
+    else
+        _subtitle_box = subtitle_box();
 }
 
 void media_input::start_video_frame_read()
