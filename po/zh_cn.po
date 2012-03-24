@@ -1,0 +1,1812 @@
+# Copyright (C) 2011 The Bino developers
+# This file is distributed under the same license as the Bino package.
+# 玉堂白鹤 <squeeze@189.cn>\n
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: bino 1.2.1\n"
+"Report-Msgid-Bugs-To: bino-list@nongnu.org\n"
+"POT-Creation-Date: 2012-03-22 22:04+0100\n"
+"PO-Revision-Date: 2012-03-22 21:28+0800\n"
+"Last-Translator: 玉堂白鹤 <yjwork@189.cn>\n"
+"Language-Team: \n"
+"Language: zh_cn\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/base/dbg.cpp:49
+#, c-format
+msgid "Caught signal %d (%s). Aborting."
+msgstr "捕捉到信号 %d (%s)。中断。"
+
+#: src/base/dbg.cpp:56
+msgid "Unexpected exception."
+msgstr "未预料例外。"
+
+#. TRANSLATORS: %s will be a mail address.
+#: src/base/dbg.cpp:221
+#, c-format
+msgid "Report bugs to <%s>."
+msgstr "报告错误至 <%s>。"
+
+#: src/base/exc.cpp:52 src/base/exc.cpp:70 src/base/exc.cpp:104
+#, c-format
+msgid "Exception: %s"
+msgstr "例外: %s"
+
+#: src/base/opt.cpp:168
+#, c-format
+msgid "Invalid option %s."
+msgstr "无效选项 %s 。"
+
+#: src/base/opt.cpp:172
+#, c-format
+msgid "Option --%s does not take an argument."
+msgstr "选项 ​​ --%s 不附带参数。"
+
+#: src/base/opt.cpp:177
+#, c-format
+msgid "Invalid option -%c."
+msgstr "无效选项  -%c。"
+
+#: src/base/opt.cpp:186
+#, c-format
+msgid "Option --%s requires an argument."
+msgstr "选项  --%s 需要一个参数。"
+
+#: src/base/opt.cpp:191
+#, c-format
+msgid "Option -%c requires an argument."
+msgstr "选项  -%c 需要一个参数。"
+
+#: src/base/opt.cpp:212
+#, c-format
+msgid "Invalid argument for -%c."
+msgstr "无效参数 -%c 。"
+
+#: src/base/opt.cpp:216
+#, c-format
+msgid "Invalid argument for --%s."
+msgstr "无效参数 --%s 。"
+
+#: src/base/opt.cpp:239
+#, c-format
+msgid "Option --%s (-%c) is mandatory."
+msgstr ""
+
+#: src/base/opt.cpp:243
+#, c-format
+msgid "Option --%s is mandatory."
+msgstr ""
+
+#: src/base/opt.cpp:257
+msgid "Too few arguments."
+msgstr "参数太少。"
+
+#: src/base/opt.cpp:262
+msgid "Too many arguments."
+msgstr "参数太多。"
+
+#: src/base/str.cpp:236
+#, c-format
+msgid "Cannot convert string to %s."
+msgstr "不能转换字符串 %s 。"
+
+#: src/base/str.cpp:455 src/base/str.cpp:473 src/base/str.cpp:483
+#: src/base/str.cpp:494 src/base/str.cpp:499
+#, c-format
+msgid "Cannot convert %s to %s."
+msgstr "不能转换 %s 到 %s 。"
+
+#: src/base/thread.cpp:38 src/base/thread.cpp:48 src/base/thread.cpp:61
+#: src/base/thread.cpp:74 src/base/thread.cpp:85 src/base/thread.cpp:95
+#: src/base/thread.cpp:108 src/base/thread.cpp:116 src/base/thread.cpp:124
+#: src/base/thread.cpp:204 src/base/thread.cpp:211 src/base/thread.cpp:225
+#: src/base/thread.cpp:245
+msgid "System function failed: "
+msgstr ""
+
+#: src/base/timer.cpp:63 src/base/timer.cpp:72 src/base/timer.cpp:81
+msgid "Cannot get time."
+msgstr "无法获取时间。"
+
+#: src/audio_output.cpp:88
+msgid "No OpenAL device available."
+msgstr "没有可用的OpenAL的设备。"
+
+#: src/audio_output.cpp:93 src/audio_output.cpp:99
+#, c-format
+msgid "OpenAL device '%s' is not available."
+msgstr "OpenAL 设备 '%s' 不可用。"
+
+#: src/audio_output.cpp:93 src/lib_versions.cpp:121 src/lib_versions.cpp:158
+#: src/media_data.cpp:1067 src/media_data.cpp:1090 src/media_data.cpp:1128
+#: src/media_data.cpp:1133
+msgid "unknown"
+msgstr "未知"
+
+#: src/audio_output.cpp:106
+msgid "No OpenAL context available."
+msgstr ""
+
+#: src/audio_output.cpp:117
+msgid "Cannot create OpenAL buffers."
+msgstr "不能创建 OpenAL 缓冲区。"
+
+#: src/audio_output.cpp:126
+msgid "Cannot create OpenAL source."
+msgstr "不能创建 OpenAL 源。"
+
+#: src/audio_output.cpp:139
+msgid "Cannot set OpenAL source parameters."
+msgstr "不能设置 OpenAL 源参数。"
+
+#: src/audio_output.cpp:193
+msgid "Cannot check OpenAL source state."
+msgstr "不能检查 OpenAL源状态。"
+
+#: src/audio_output.cpp:200
+msgid "Cannot restart OpenAL source playback."
+msgstr ""
+
+#: src/audio_output.cpp:353
+#, c-format
+msgid "No OpenAL format available for audio data format %s."
+msgstr "没有可用 OpenAL 音频数据格式 %s。"
+
+#: src/audio_output.cpp:369
+msgid "Cannot set OpenAL audio volume."
+msgstr "不能设置 OpenAL 音频音量。"
+
+#: src/audio_output.cpp:395
+msgid "Cannot buffer initial OpenAL data."
+msgstr ""
+
+#: src/audio_output.cpp:409
+msgid "Cannot buffer OpenAL data."
+msgstr ""
+
+#: src/audio_output.cpp:434
+msgid "Cannot start OpenAL source playback."
+msgstr ""
+
+#: src/audio_output.cpp:448
+msgid "Cannot pause OpenAL source playback."
+msgstr ""
+
+#: src/audio_output.cpp:457
+msgid "Cannot unpause OpenAL source playback."
+msgstr ""
+
+#: src/audio_output.cpp:466
+msgid "Cannot stop OpenAL source playback."
+msgstr ""
+
+#: src/audio_output.cpp:477
+msgid "Cannot unqueue OpenAL source buffers."
+msgstr ""
+
+#: src/dispatch.cpp:156
+msgid "Cannot connect to X server."
+msgstr ""
+
+#: src/dispatch.cpp:171
+msgid "No video to play."
+msgstr "无视频可播放。"
+
+#: src/dispatch.cpp:411 src/player_equalizer.cpp:84
+msgid "No video streams found."
+msgstr "没有视频流被发现。"
+
+#: src/dispatch.cpp:428
+msgid "Cannot set requested stereo layout: incompatible media."
+msgstr ""
+
+#: src/dispatch.cpp:443
+#, c-format
+msgid "Video stream %d not found."
+msgstr "没有找到视频流 %d 。"
+
+#: src/dispatch.cpp:449
+#, c-format
+msgid "Audio stream %d not found."
+msgstr "没有找到音频流 %d 。"
+
+#: src/dispatch.cpp:457
+#, c-format
+msgid "Subtitle stream %d not found."
+msgstr "没有找到字幕 %d 。"
+
+#: src/dispatch.cpp:529 src/main.cpp:736
+msgid "This version of Bino was compiled without support for Equalizer."
+msgstr "此 Bino 版本未编译支持 Equalizer 。"
+
+#: src/gui.cpp:101
+msgid "Video:"
+msgstr "视频:"
+
+#: src/gui.cpp:102
+msgid "<p>Select the video stream.</p>"
+msgstr "<p>选择视频流。</p>"
+
+#: src/gui.cpp:108
+msgid "Audio:"
+msgstr "音频:"
+
+#: src/gui.cpp:109
+msgid "<p>Select the audio stream.</p>"
+msgstr "<p>选择音频流。</p>"
+
+#: src/gui.cpp:115
+msgid "Subtitle:"
+msgstr "字幕:"
+
+#: src/gui.cpp:116
+msgid "<p>Select the subtitle stream.</p>"
+msgstr "<p>选择字幕流。</p>"
+
+#: src/gui.cpp:127 src/media_input.cpp:277
+msgid "Input:"
+msgstr "输入:"
+
+#: src/gui.cpp:128
+msgid "<p>Set the 3D layout of the video stream.</p>"
+msgstr "<p>设置 3D 视频流布局。 </p>"
+
+#: src/gui.cpp:132
+msgid "2D"
+msgstr "2D"
+
+#: src/gui.cpp:133
+msgid "Separate streams, left first"
+msgstr "独立流，左优先"
+
+#: src/gui.cpp:134
+msgid "Separate streams, right first"
+msgstr "独立流，右优先"
+
+#: src/gui.cpp:135
+msgid "Alternating, left first"
+msgstr "交替，左优先"
+
+#: src/gui.cpp:136
+msgid "Alternating, right first"
+msgstr "交替，右优先"
+
+#: src/gui.cpp:137 src/gui.cpp:161
+msgid "Top/bottom"
+msgstr "上/下"
+
+#: src/gui.cpp:138 src/gui.cpp:162
+msgid "Top/bottom, half height"
+msgstr "上/下，半高度"
+
+#: src/gui.cpp:139
+msgid "Bottom/top"
+msgstr "下/上"
+
+#: src/gui.cpp:140
+msgid "Bottom/top, half height"
+msgstr "下/上，半高度"
+
+#: src/gui.cpp:141 src/gui.cpp:163
+msgid "Left/right"
+msgstr "左/右"
+
+#: src/gui.cpp:142 src/gui.cpp:164
+msgid "Left/right, half width"
+msgstr "左/右，半宽度"
+
+#: src/gui.cpp:143
+msgid "Right/left"
+msgstr "右/左"
+
+#: src/gui.cpp:144
+msgid "Right/left, half width"
+msgstr "右/左，半宽度"
+
+#: src/gui.cpp:145 src/gui.cpp:165
+msgid "Even/odd rows"
+msgstr "Even/odd rows"
+
+#: src/gui.cpp:146
+msgid "Odd/even rows"
+msgstr "Odd/even rows"
+
+#: src/gui.cpp:152
+msgid "Output:"
+msgstr "输出:"
+
+#: src/gui.cpp:153
+msgid "<p>Set the 3D output type for your display.</p>"
+msgstr "<p>设置您需要显示的 3D 格式。 </p>"
+
+#: src/gui.cpp:157
+msgid "Left view"
+msgstr "左视图"
+
+#: src/gui.cpp:158
+msgid "Right view"
+msgstr "右视图"
+
+#: src/gui.cpp:159
+msgid "OpenGL stereo"
+msgstr "OpenGL 立体"
+
+#: src/gui.cpp:160
+msgid "Left/right view alternating"
+msgstr "左/右视图交替"
+
+#: src/gui.cpp:166
+msgid "Even/odd columns"
+msgstr "Even/odd columns"
+
+#: src/gui.cpp:167
+msgid "Checkerboard pattern"
+msgstr "Checkerboard pattern"
+
+#: src/gui.cpp:168
+msgid "HDMI frame packing mode"
+msgstr "HDMI 帧包装模式"
+
+#: src/gui.cpp:169
+msgid "Red/cyan glasses, monochrome method"
+msgstr "红/青眼镜，单色"
+
+#: src/gui.cpp:170
+msgid "Red/cyan glasses, half-color method"
+msgstr "红/青眼镜，半彩"
+
+#: src/gui.cpp:171
+msgid "Red/cyan glasses, full-color method"
+msgstr "红/青眼镜，全彩"
+
+#: src/gui.cpp:172
+msgid "Red/cyan glasses, high-quality Dubois method"
+msgstr "红/青眼镜，高品质 Dubois 算法"
+
+#: src/gui.cpp:173
+msgid "Green/magenta glasses, monochrome method"
+msgstr "绿/洋红眼镜，单色"
+
+#: src/gui.cpp:174
+msgid "Green/magenta glasses, half-color method"
+msgstr "绿/洋红眼镜，半彩"
+
+#: src/gui.cpp:175
+msgid "Green/magenta glasses, full-color method"
+msgstr "绿/洋红眼镜，全彩"
+
+#: src/gui.cpp:176
+msgid "Green/magenta glasses, high-quality Dubois method"
+msgstr "绿/洋红眼镜，高品质 Dubois 算法"
+
+#: src/gui.cpp:177
+msgid "Amber/blue glasses, monochrome method"
+msgstr "黄/蓝眼镜，单色"
+
+#: src/gui.cpp:178
+msgid "Amber/blue glasses, half-color method"
+msgstr "黄/蓝眼镜，半彩"
+
+#: src/gui.cpp:179
+msgid "Amber/blue glasses, full-color method"
+msgstr "黄/蓝眼镜，全彩"
+
+#: src/gui.cpp:180
+msgid "Amber/blue glasses, high-quality Dubois method"
+msgstr "黄/蓝眼镜，高品质 Dubois 算法"
+
+#: src/gui.cpp:181
+msgid "Red/green glasses, monochrome method"
+msgstr "红/绿眼镜，单色"
+
+#: src/gui.cpp:182
+msgid "Red/blue glasses, monochrome method"
+msgstr "红/蓝眼镜，单色"
+
+#: src/gui.cpp:186
+msgid "Swap left/right"
+msgstr "左右互换"
+
+#: src/gui.cpp:187
+msgid ""
+"<p>Swap the left and right view. Use this if the 3D effect seems wrong.</p>"
+msgstr "<p>调换左右视频观看。如果您觉得 3D 效果看起来不对，请使用它。</P>"
+
+#: src/gui.cpp:465
+msgid "Off"
+msgstr "关闭"
+
+#: src/gui.cpp:696
+msgid ""
+"<p>This slider shows the progress during video playback, and can be used to "
+"seek in the video.</p>"
+msgstr "<p>此滑块显示视频播放的进度，并可以用来定位视频。</p>"
+
+#: src/gui.cpp:703
+msgid "<p>Elapsed / total time.</p>"
+msgstr "<p>已播/总时间。</p>"
+
+#: src/gui.cpp:710
+msgid "<p>Toggle audio mute.</p>"
+msgstr "<p>静音切换。</p>"
+
+#: src/gui.cpp:715
+msgid "<p>Adjust audio volume.</p>"
+msgstr "<p>音量调节。</p>"
+
+#: src/gui.cpp:727
+msgid "<p>Play.</p>"
+msgstr "<p>播放。</p>"
+
+#: src/gui.cpp:731
+msgid "<p>Pause.</p>"
+msgstr "<p>暂停。</p>"
+
+#: src/gui.cpp:735
+msgid "<p>Stop.</p>"
+msgstr "<p>停止。</p>"
+
+#: src/gui.cpp:740
+msgid "<p>Toggle loop mode.</p>"
+msgstr "<p>切换循环模式。</p>"
+
+#: src/gui.cpp:747
+msgid ""
+"<p>Switch to fullscreen mode. You can leave fullscreen mode by pressing the "
+"f key.</p>"
+msgstr "<p>切换至全屏模式。如果您想退出全屏模式请按 F 键。</p>"
+
+#: src/gui.cpp:753
+msgid "<p>Center the video area on your screen.</p>"
+msgstr "<p>把视频区放在您屏幕的中间。</p>"
+
+#: src/gui.cpp:760
+msgid "<p>Seek backward 10 minutes.</p>"
+msgstr "<p>后退10分钟。</p>"
+
+#: src/gui.cpp:765
+msgid "<p>Seek backward 1 minute.</p>"
+msgstr "<p>后退1分钟</p>"
+
+#: src/gui.cpp:771
+msgid "<p>Seek backward 10 seconds.</p>"
+msgstr "<p>后退10秒。</p>"
+
+#: src/gui.cpp:777
+msgid "<p>Seek forward 10 seconds.</p>"
+msgstr "<p>前进10秒。</p>"
+
+#: src/gui.cpp:782
+msgid "<p>Seek forward 1 minute.</p>"
+msgstr "<p>前进一分钟。</p>"
+
+#: src/gui.cpp:788
+msgid "<p>Seek forward 10 minutes.</p>"
+msgstr "<p>前进10分钟。</p>"
+
+#: src/gui.cpp:1049
+msgid "Fullscreen/Multiscreen Settings"
+msgstr "全屏/多屏设置"
+
+#: src/gui.cpp:1051
+msgid "Configure fullscreen mode:"
+msgstr "配置全屏模式:"
+
+#: src/gui.cpp:1052
+msgid "<p>Select the screens to use in fullscreen mode.</p>"
+msgstr "<p>选择全屏模式使用的屏幕。</p>"
+
+#: src/gui.cpp:1054
+msgid "Single screen:"
+msgstr "单一屏幕:"
+
+#: src/gui.cpp:1055
+msgid "<p>Use a single screen for fullscreen mode.</p>"
+msgstr "<p>使用单屏的全屏模式。</p>"
+
+#: src/gui.cpp:1058
+msgid "Primary screen"
+msgstr "主屏幕"
+
+#: src/gui.cpp:1061 src/gui.cpp:1072 src/gui.cpp:1073
+#, c-format
+msgid "Screen %d"
+msgstr "屏幕 %d"
+
+#: src/gui.cpp:1064
+msgid "Dual screen:"
+msgstr "双屏幕:"
+
+#: src/gui.cpp:1065
+msgid "<p>Use two screens for fullscreen mode.</p>"
+msgstr "<p>使用双屏的全屏模式。</p>"
+
+#: src/gui.cpp:1077
+msgid "Multi screen:"
+msgstr "多屏幕:"
+
+#: src/gui.cpp:1078
+msgid "<p>Use multiple screens for fullscreen mode.</p>"
+msgstr "<p>使用多屏的全屏模式。</p>"
+
+#: src/gui.cpp:1080
+msgid "<p>Comma-separated list of screens to use for fullscreen mode.</p>"
+msgstr "<p>使用全屏模式的屏幕列表，逗号分割。</p>"
+
+#: src/gui.cpp:1083
+msgid "When in fullscreen mode,"
+msgstr "当处于全屏模式时，"
+
+#: src/gui.cpp:1084
+msgid "<p>Set special left/right view handling for fullscreen mode.</p>"
+msgstr "<p>设置特殊的左/右视图处理</p>"
+
+#: src/gui.cpp:1086
+msgid "flip left view vertically."
+msgstr "垂直翻转左视图。"
+
+#: src/gui.cpp:1088
+msgid "flop left view horizontally."
+msgstr "水平翻转左视图。"
+
+#: src/gui.cpp:1090
+msgid "flip right view vertically."
+msgstr "垂直翻转右视图。"
+
+#: src/gui.cpp:1092
+msgid "flop right view horizontally."
+msgstr "水平翻转右视图。"
+
+#: src/gui.cpp:1095
+msgid "inhibit the screensaver"
+msgstr "禁止屏幕保护程序"
+
+#: src/gui.cpp:1096
+msgid "<p>Inhibit the screensaver during fullscreen playback.</p>"
+msgstr "<p>在全屏播放时禁止屏保</P>"
+
+#: src/gui.cpp:1098 src/gui.cpp:1260 src/gui.cpp:1395 src/gui.cpp:1465
+#: src/gui.cpp:1543 src/gui.cpp:1654 src/gui.cpp:1930 src/gui.cpp:2110
+#: src/gui.cpp:2774 src/gui.cpp:2821 src/gui.cpp:3110
+msgid "OK"
+msgstr "确定"
+
+#: src/gui.cpp:1213
+msgid "Display Color Adjustments"
+msgstr "显示色彩调整"
+
+#: src/gui.cpp:1215
+msgid "Contrast:"
+msgstr "对比度:"
+
+#: src/gui.cpp:1226
+msgid "Brightness:"
+msgstr "亮度:"
+
+#: src/gui.cpp:1237
+msgid "Hue:"
+msgstr "色调:"
+
+#: src/gui.cpp:1248
+msgid "Saturation:"
+msgstr "饱和度:"
+
+#: src/gui.cpp:1366
+msgid "Display Crosstalk Calibration"
+msgstr ""
+
+#. TRANSLATORS: Please keep the lines short using <br> where necessary.
+#: src/gui.cpp:1369
+msgid ""
+"<p>Please read the manual to find out<br>how to measure the crosstalk "
+"levels<br>of your display.</p>"
+msgstr "<p>请仔细阅读手册，找出如何来<br>平衡您的显示器的失真程度。</p>"
+
+#: src/gui.cpp:1373
+msgid "Red:"
+msgstr "红:"
+
+#: src/gui.cpp:1380
+msgid "Green:"
+msgstr "绿:"
+
+#: src/gui.cpp:1387
+msgid "Blue:"
+msgstr "蓝:"
+
+#: src/gui.cpp:1443
+msgid "Zoom for wide videos"
+msgstr "宽视频缩放"
+
+#: src/gui.cpp:1446
+#, fuzzy
+msgid ""
+"<p>Set zoom level for videos that<br>are wider than the screen:<br>0: Show "
+"full video width.<br>1: Use full screen height.</p"
+msgstr ""
+"<p>设置视频宽度超过<br>屏幕时的缩放值:<br>0:显示完整视频的宽度。<br>1:显示完"
+"整视频的高度。</p>"
+
+#: src/gui.cpp:1450
+msgid "Zoom:"
+msgstr "缩放:"
+
+#: src/gui.cpp:1451
+msgid "<p>Set the zoom level for videos that are wider than the screen</p>"
+msgstr "<p>设置视频宽度超过屏幕时的缩放值</p>"
+
+#: src/gui.cpp:1509
+msgid "Audio Settings"
+msgstr "音频设置"
+
+#: src/gui.cpp:1511
+msgid "Audio device:"
+msgstr "音频设备:"
+
+#: src/gui.cpp:1512
+msgid ""
+"<p>Select the audio device.<br>This will take effect for the next started "
+"video.</p>"
+msgstr "<p>选择音频设备。<br>在下一次开始播放时生效</p>。"
+
+#: src/gui.cpp:1516 src/gui.cpp:2065
+msgid "Default"
+msgstr "默认"
+
+#: src/gui.cpp:1533
+msgid "Audio delay (ms):"
+msgstr "音频延迟 (毫秒):"
+
+#: src/gui.cpp:1534
+msgid ""
+"<p>Set an audio delay, in milliseconds.<br>This is useful if audio and video "
+"are not in sync.</p>"
+msgstr ""
+"<p>设置音频的延迟，以毫秒为单位。<br>如果音频和视频不同步的话，非常有用。</p>"
+
+#: src/gui.cpp:1591
+msgid "Subtitle Settings"
+msgstr "字幕设置"
+
+#: src/gui.cpp:1593
+msgid "<p>These settings apply to soft subtitles, but not to bitmaps.</p>"
+msgstr ""
+
+#: src/gui.cpp:1595
+msgid "Encoding:"
+msgstr "编码:"
+
+#: src/gui.cpp:1596
+msgid "<p>Set the subtitle character set encoding.</p>"
+msgstr "<p>设置字幕的字符编码</p>"
+
+#: src/gui.cpp:1611
+msgid "Override font:"
+msgstr "重载字体:"
+
+#: src/gui.cpp:1612
+msgid "<p>Override the subtitle font family.</p>"
+msgstr "<p>重载字幕字体名称。</p>"
+
+#: src/gui.cpp:1621
+msgid "Override font size:"
+msgstr "重载字体大小:"
+
+#: src/gui.cpp:1622
+msgid "<p>Override the subtitle font size.</p>"
+msgstr "<p>重载字幕字体大小。</p>"
+
+#: src/gui.cpp:1632
+msgid "Override scale factor:"
+msgstr "重载比例:"
+
+#: src/gui.cpp:1633
+msgid "<p>Override the subtitle scale factor.</p>"
+msgstr "<p>重载字幕比例。</p>"
+
+#: src/gui.cpp:1644
+msgid "Override color:"
+msgstr "重载颜色:"
+
+#: src/gui.cpp:1645
+msgid "<p>Override the subtitle color.</p>"
+msgstr "<p>重载字幕颜色。</p>"
+
+#: src/gui.cpp:1868
+msgid "Video Settings"
+msgstr "视频设置"
+
+#: src/gui.cpp:1870
+msgid "Crop to aspect ratio:"
+msgstr "裁剪为长宽比:"
+
+#: src/gui.cpp:1871
+msgid ""
+"<p>Set the real aspect ratio of the video, so that borders can be cropped.</"
+"p>"
+msgstr ""
+
+#: src/gui.cpp:1874
+msgid "Do not crop"
+msgstr "不裁剪"
+
+#: src/gui.cpp:1887
+msgid "Parallax:"
+msgstr "视差："
+
+#: src/gui.cpp:1888
+msgid ""
+"<p>Adjust parallax, from -1 to +1. This changes the separation of left and "
+"right view, and thus the perceived distance of the scene.</p>"
+msgstr "<p>调整视差，从-1到+1。通过左右视图的距离改变，改变现场的感知距离</p>"
+
+#: src/gui.cpp:1901
+msgid "Subtitle parallax:"
+msgstr "字幕视差:"
+
+#: src/gui.cpp:1902
+msgid ""
+"<p>Adjust subtitle parallax, from -1 to +1. This changes the perceived "
+"distance of the subtitles.</p>"
+msgstr "<p>调整字幕视差，从 -1 到 +1。将改变字幕的感知距离。</p>"
+
+#: src/gui.cpp:1915
+msgid "Ghostbusting:"
+msgstr "鬼影(残影):"
+
+#: src/gui.cpp:1916
+msgid ""
+"<p>Set the amount of crosstalk ghostbusting, from 0 to 1. You need to set "
+"the crosstalk levels of your display first. Note that crosstalk ghostbusting "
+"does not work with anaglyph glasses.</p>"
+msgstr ""
+
+#: src/gui.cpp:2061
+msgid "Open device"
+msgstr "打开设备"
+
+#: src/gui.cpp:2064
+msgid "<p>Choose a device type.</p>"
+msgstr "<p>选择设备类型。</p>"
+
+#: src/gui.cpp:2066 src/media_object.cpp:801
+msgid "Firewire"
+msgstr "火线"
+
+#: src/gui.cpp:2067 src/media_object.cpp:802
+msgid "X11"
+msgstr "X11"
+
+#: src/gui.cpp:2069 src/gui.cpp:2072
+msgid "<p>Choose a device.</p>"
+msgstr "<p>选择设备。</p>"
+
+#: src/gui.cpp:2075
+msgid "<p>Set the X11 device string. Refer to the manual for details.</p>"
+msgstr "<p>设置X11的设备字符串。详细信息，请参阅手册</p>"
+
+#: src/gui.cpp:2084
+msgid "Request frame size"
+msgstr ""
+
+#: src/gui.cpp:2085
+msgid ""
+"<p>Request a specific frame size from the device, e.g. 640x480. The device "
+"must support this frame size. Some devices require a frame size to be "
+"selected.</p>"
+msgstr ""
+
+#: src/gui.cpp:2096
+msgid "Request frame rate"
+msgstr ""
+
+#: src/gui.cpp:2097
+msgid ""
+"<p>Request a specific frame rate from the device, e.g. 25/1. The device must "
+"support this frame rate. Some devices require a frame rate to be selected.</"
+"p>"
+msgstr ""
+
+#: src/gui.cpp:2108 src/gui.cpp:2820
+msgid "Cancel"
+msgstr "取消"
+
+#: src/gui.cpp:2379
+msgid "&File"
+msgstr "文件(&F)"
+
+#: src/gui.cpp:2380
+msgid "&Open file(s)..."
+msgstr "打开文件(&O)..."
+
+#: src/gui.cpp:2385
+msgid "Open &URL(s)..."
+msgstr "打开链接(&U)..."
+
+#: src/gui.cpp:2389
+msgid "Open &device..."
+msgstr "打开设备(&D)"
+
+#: src/gui.cpp:2404
+msgid "&Clear recent files"
+msgstr "清除最近文件(&C)"
+
+#: src/gui.cpp:2412
+msgid "&Quit..."
+msgstr "退出(&Q)..."
+
+#: src/gui.cpp:2418
+msgid "&Preferences"
+msgstr "首选项(&P)"
+
+#: src/gui.cpp:2421
+msgid "&Fullscreen Settings..."
+msgstr "全屏设置(&F)..."
+
+#: src/gui.cpp:2424
+msgid "Display &Color Adjustments..."
+msgstr "显示色彩调整(&C)..."
+
+#: src/gui.cpp:2427
+msgid "Display Cross&talk Calibration..."
+msgstr "显示串扰校准(&T)..."
+
+#: src/gui.cpp:2431
+msgid "&Zoom for wide videos..."
+msgstr "宽视频缩放(&Z)..."
+
+#: src/gui.cpp:2435
+msgid "&Audio Settings..."
+msgstr "音频设置(&A)..."
+
+#: src/gui.cpp:2439
+msgid "&Subtitle Settings..."
+msgstr "字幕设置(&S)..."
+
+#: src/gui.cpp:2443
+msgid "Current &Video Settings..."
+msgstr "当前视频设置(&V)"
+
+#: src/gui.cpp:2446
+msgid "&Help"
+msgstr "帮助(&H)"
+
+#: src/gui.cpp:2447
+msgid "&Manual..."
+msgstr "手册(&M)"
+
+#: src/gui.cpp:2452
+msgid "&Website..."
+msgstr "网站(&W)"
+
+#: src/gui.cpp:2456
+msgid "&Keyboard Shortcuts"
+msgstr "快捷方式(&K)"
+
+#: src/gui.cpp:2460
+msgid "&About"
+msgstr "关于(&A)"
+
+#: src/gui.cpp:2767
+msgid "Tip"
+msgstr "提示"
+
+#: src/gui.cpp:2770
+msgid ""
+"<p>You can select and open multiple files at once.</p><p>This is useful for "
+"example if you have extra subtitle files,<br>or if left and right view are "
+"stored in separate files.</p>"
+msgstr ""
+
+#: src/gui.cpp:2773
+msgid "Do not show this message again."
+msgstr "不再显示该信息。"
+
+#: src/gui.cpp:2790
+msgid "Open files"
+msgstr "打开文件"
+
+#: src/gui.cpp:2814
+msgid "Open URL(s)"
+msgstr "打开链接"
+
+#: src/gui.cpp:2815
+msgid "URL(s):"
+msgstr "链接地址:"
+
+#: src/gui.cpp:2816
+msgid "<p>Enter one or more space separated URLs.</p>"
+msgstr "<p>输入一个或多个空格分隔的链接地址</p>"
+
+#: src/gui.cpp:3001 src/gui.cpp:3009 src/video_output_qt.cpp:234
+#: src/video_output_qt.cpp:643 src/video_output_qt.cpp:664
+msgid "Error"
+msgstr "错误"
+
+#: src/gui.cpp:3001
+msgid "Cannot open manual."
+msgstr "不能打开手册。"
+
+#: src/gui.cpp:3009
+msgid "Cannot open website."
+msgstr "不能打开网站。"
+
+#: src/gui.cpp:3017
+msgid "Keyboard Shortcuts"
+msgstr "键盘快捷键"
+
+#: src/gui.cpp:3020
+msgid "Keyboard control:"
+msgstr "键盘控制:"
+
+#: src/gui.cpp:3022
+msgid "Stop."
+msgstr "停止。"
+
+#: src/gui.cpp:3023 src/main.cpp:495
+msgid "Pause / unpause."
+msgstr "暂停/恢复"
+
+#: src/gui.cpp:3024 src/main.cpp:496
+msgid "Toggle fullscreen."
+msgstr "切换全屏。"
+
+#: src/gui.cpp:3025 src/main.cpp:497
+msgid "Center window."
+msgstr "中置窗口。"
+
+#: src/gui.cpp:3026 src/main.cpp:498
+msgid "Swap left/right eye."
+msgstr "切换左右眼。"
+
+#: src/gui.cpp:3027 src/main.cpp:499
+msgid "Cycle through available video streams."
+msgstr "切换视频流。"
+
+#: src/gui.cpp:3028 src/main.cpp:500
+msgid "Cycle through available audio streams."
+msgstr "切换音频流。"
+
+#: src/gui.cpp:3029 src/main.cpp:501
+msgid "Cycle through available subtitle streams."
+msgstr "切换字幕流。"
+
+#: src/gui.cpp:3030 src/main.cpp:502
+msgid "Adjust contrast."
+msgstr "调整对比度。"
+
+#: src/gui.cpp:3031 src/main.cpp:503
+msgid "Adjust brightness."
+msgstr "调整亮度。"
+
+#: src/gui.cpp:3032 src/main.cpp:504
+msgid "Adjust hue."
+msgstr "调整色调。"
+
+#: src/gui.cpp:3033 src/main.cpp:505
+msgid "Adjust saturation."
+msgstr "调整饱和度。"
+
+#: src/gui.cpp:3034 src/main.cpp:506
+msgid "Adjust parallax."
+msgstr "调整视差。"
+
+#: src/gui.cpp:3035 src/main.cpp:507
+msgid "Adjust ghostbusting."
+msgstr "调整鬼影(残影)。"
+
+#: src/gui.cpp:3036 src/main.cpp:508
+msgid "Adjust zoom for wide videos."
+msgstr "调整宽视频缩放。"
+
+#: src/gui.cpp:3037 src/main.cpp:509
+msgid "Adjust audio volume."
+msgstr "调整音量。"
+
+#: src/gui.cpp:3038 src/main.cpp:510
+msgid "Toggle audio mute."
+msgstr "切换静音。"
+
+#: src/gui.cpp:3039 src/main.cpp:511
+msgid "Step a single video frame forward."
+msgstr "逐帧播放。"
+
+#: src/gui.cpp:3040 src/main.cpp:512
+msgid "Seek 10 seconds backward / forward."
+msgstr "后退/前进 10 秒。"
+
+#: src/gui.cpp:3041 src/main.cpp:513
+msgid "Seek 1 minute backward / forward."
+msgstr "后退/前进 1 分钟。"
+
+#: src/gui.cpp:3042 src/main.cpp:514
+msgid "Seek 10 minutes backward / forward."
+msgstr "后退/前进 10 分钟。"
+
+#: src/gui.cpp:3043 src/main.cpp:516
+msgid "Media keys should work as expected."
+msgstr ""
+
+#: src/gui.cpp:3059
+#, c-format
+msgid "About %s"
+msgstr "关于 %s"
+
+#: src/gui.cpp:3065
+#, c-format
+msgid "The %s 3D video player"
+msgstr "%s 3D视频播放器"
+
+#: src/gui.cpp:3070
+#, c-format
+msgid ""
+"<p>%s version %s.</p><p>Copyright (C) 2012 the Bino developers.</p><p>This "
+"is free software. You may redistribute copies of it under the terms of the "
+"<a href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public License</"
+"a>. There is NO WARRANTY, to the extent permitted by law.</p><p>See <a href="
+"\"%s\">%s</a> for more information on this software.</p>"
+msgstr ""
+"<p>%s 版本 %s.</p><p>Copyright (C) 2012 the Bino developers.</p><p>This is "
+"free software. You may redistribute copies of it under the terms of the <a "
+"href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public License</"
+"a>. There is NO WARRANTY, to the extent permitted by law.</p><p> 访问 <a "
+"href=\"%s\">%s</a> 以获得更多软件信息。</p>"
+
+#: src/gui.cpp:3082 src/main.cpp:384
+msgid "Platform:"
+msgstr "平台:"
+
+#: src/gui.cpp:3083 src/main.cpp:386
+msgid "Libraries used:"
+msgstr "使用以下库:"
+
+#: src/gui.cpp:3105
+msgid "About"
+msgstr "关于"
+
+#: src/gui.cpp:3106
+msgid "Libraries"
+msgstr "库"
+
+#: src/gui.cpp:3107
+msgid "Team"
+msgstr "团队"
+
+#: src/gui.cpp:3108
+msgid "License"
+msgstr "许可"
+
+#: src/lib_versions.cpp:182 src/lib_versions.cpp:194
+msgid "not used"
+msgstr "未使用"
+
+#: src/lirc.cpp:61
+msgid "Cannot initialize LIRC."
+msgstr "不能初始化 LIRC"
+
+#: src/lirc.cpp:67
+msgid "Cannot set LIRC socket properties."
+msgstr ""
+
+#: src/lirc.cpp:74
+msgid "Cannot read LIRC default configuration."
+msgstr ""
+
+#: src/lirc.cpp:89
+#, c-format
+msgid "Cannot read LIRC configuration file %s."
+msgstr ""
+
+#: src/lirc.cpp:117
+msgid "Cannot get LIRC event; disabling LIRC support."
+msgstr ""
+
+#: src/lirc.cpp:131
+#, c-format
+msgid "Received invalid command '%s' from LIRC."
+msgstr ""
+
+#: src/lirc.cpp:141
+msgid "Cannot get command for LIRC code."
+msgstr ""
+
+#: src/main.cpp:367 src/media_object.cpp:821 src/media_object.cpp:1286
+#: src/video_output.cpp:212
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: src/main.cpp:379
+#, c-format
+msgid "%s version %s"
+msgstr "%s 版本 %s"
+
+#: src/main.cpp:380
+msgid "Copyright (C) 2012 the Bino developers."
+msgstr "Copyright (C) 2012 the Bino developers。"
+
+#: src/main.cpp:381
+msgid ""
+"This is free software. You may redistribute copies of it under the terms of "
+"the GNU General Public License. There is NO WARRANTY, to the extent "
+"permitted by law."
+msgstr ""
+
+#. TRANSLATORS: This is the --help text. Please keep the line length limited.
+#. * The --help output should look good with a line width of 80 characters.
+#: src/main.cpp:399
+msgid "Usage:"
+msgstr "用法："
+
+#: src/main.cpp:401
+msgid "Options:"
+msgstr "选项："
+
+#: src/main.cpp:402
+msgid "Print help."
+msgstr "显示帮助。"
+
+#: src/main.cpp:403
+msgid "Print version."
+msgstr "显示版本。"
+
+#: src/main.cpp:404
+msgid "Do not use the GUI, just show a plain window."
+msgstr "不使用 GUI，仅显示一个纯窗口。"
+
+#: src/main.cpp:405
+msgid "Append all log messages to the given file."
+msgstr "追加所有日志信息到指定文件。"
+
+#: src/main.cpp:406
+msgid "Set log level (debug/info/warning/error/quiet)."
+msgstr "设置日志级别 (debug/info/warning/error/quiet)。"
+
+#: src/main.cpp:407
+msgid "Print a list of known audio devices and exit."
+msgstr "显示已知音频设备列表并退出。"
+
+#: src/main.cpp:408
+msgid "Use audio device number N (N=0 is the default)."
+msgstr "使用音频设备编号为 N (默认 N=0 )。"
+
+#: src/main.cpp:409
+msgid "Delay audio by D milliseconds. Default is 0."
+msgstr "延迟 D 毫秒音频。默认为 0。"
+
+#: src/main.cpp:410
+msgid "Set audio volume (0 to 1). Default is 1."
+msgstr "设置音量 (0 至 1）。默认为 1。"
+
+#: src/main.cpp:411
+msgid "Mute audio."
+msgstr "静音。"
+
+#: src/main.cpp:412
+msgid "Type of input device: default, firewire, x11."
+msgstr "输入设备类型：默认，火线，X11。"
+
+#: src/main.cpp:413
+msgid "Request frame size WxH from input device."
+msgstr ""
+
+#: src/main.cpp:414
+msgid "Request frame rate N/D from input device."
+msgstr ""
+
+#: src/main.cpp:415
+msgid "Use the given LIRC configuration file."
+msgstr ""
+
+#: src/main.cpp:416
+msgid "This option can be used more than once."
+msgstr "此选项可多次使用。"
+
+#: src/main.cpp:417
+msgid "Select video stream (1-n, depending on input)."
+msgstr "选择视频流 (1-n，根据输入情况）。"
+
+#: src/main.cpp:418
+msgid "Select audio stream (1-n, depending on input)."
+msgstr "选择音频流 (1-n，根据输入情况）。"
+
+#: src/main.cpp:419
+msgid "Select subtitle stream (0-n, dep. on input)."
+msgstr "选择字幕流 (0-n，根据输入情况）。"
+
+#: src/main.cpp:420
+msgid "Select input type (default autodetect):"
+msgstr "选择输入类型(默认自动检测）:"
+
+#: src/main.cpp:421
+msgid "Single view."
+msgstr "单一视图"
+
+#: src/main.cpp:422
+msgid "Left/right separate streams, left first."
+msgstr ""
+
+#: src/main.cpp:423
+msgid "Left/right separate streams, right first."
+msgstr ""
+
+#: src/main.cpp:424
+msgid "Left/right alternating, left first."
+msgstr ""
+
+#: src/main.cpp:425
+msgid "Left/right alternating, right first."
+msgstr ""
+
+#: src/main.cpp:426 src/main.cpp:441
+msgid "Left top, right bottom."
+msgstr "左上，右下。"
+
+#: src/main.cpp:427 src/main.cpp:442
+msgid "Left top, right bottom, half height."
+msgstr "左上，右下，半高。"
+
+#: src/main.cpp:428
+msgid "Left bottom, right top."
+msgstr "左下，右上"
+
+#: src/main.cpp:429
+msgid "Left bottom, right top, half height."
+msgstr "左下，右上，半高。"
+
+#: src/main.cpp:430 src/main.cpp:443
+msgid "Left left, right right."
+msgstr ""
+
+#: src/main.cpp:431 src/main.cpp:444
+msgid "Left left, right right, half width."
+msgstr ""
+
+#: src/main.cpp:432
+msgid "Left right, right left."
+msgstr ""
+
+#: src/main.cpp:433
+msgid "Left right, right left, half width."
+msgstr ""
+
+#: src/main.cpp:434 src/main.cpp:445
+msgid "Left even rows, right odd rows."
+msgstr ""
+
+#: src/main.cpp:435
+msgid "Left odd rows, right even rows."
+msgstr ""
+
+#: src/main.cpp:436
+msgid "Select output type:"
+msgstr ""
+
+#: src/main.cpp:437
+msgid "OpenGL quad-buffered stereo."
+msgstr ""
+
+#: src/main.cpp:438
+msgid "Left and right view alternating."
+msgstr ""
+
+#: src/main.cpp:439
+msgid "Only left."
+msgstr "仅左边"
+
+#: src/main.cpp:440
+msgid "Only right."
+msgstr "仅右边"
+
+#: src/main.cpp:446
+msgid "Left even columns, right odd columns."
+msgstr ""
+
+#: src/main.cpp:447
+msgid "Left and right in checkerboard pattern."
+msgstr ""
+
+#: src/main.cpp:448
+msgid "HDMI frame packing mode."
+msgstr ""
+
+#: src/main.cpp:449
+msgid "Red/cyan anaglyph, monochrome method."
+msgstr ""
+
+#: src/main.cpp:450
+msgid "Red/cyan anaglyph, half color method."
+msgstr ""
+
+#: src/main.cpp:451
+msgid "Red/cyan anaglyph, full color method."
+msgstr ""
+
+#: src/main.cpp:452
+msgid "Red/cyan anaglyph, Dubois method."
+msgstr ""
+
+#: src/main.cpp:453
+msgid "Green/magenta anaglyph, monochrome method."
+msgstr ""
+
+#: src/main.cpp:454
+msgid "Green/magenta anaglyph, half color method."
+msgstr ""
+
+#: src/main.cpp:455
+msgid "Green/magenta anaglyph, full color method."
+msgstr ""
+
+#: src/main.cpp:456
+msgid "Green/magenta anaglyph, Dubois method."
+msgstr ""
+
+#: src/main.cpp:457
+msgid "Amber/blue anaglyph, monochrome method."
+msgstr ""
+
+#: src/main.cpp:458
+msgid "Amber/blue anaglyph, half color method."
+msgstr ""
+
+#: src/main.cpp:459
+msgid "Amber/blue anaglyph, full color method."
+msgstr ""
+
+#: src/main.cpp:460
+msgid "Amber/blue anaglyph, Dubois method."
+msgstr ""
+
+#: src/main.cpp:461
+msgid "Red/green anaglyph, monochrome method."
+msgstr ""
+
+#: src/main.cpp:462
+msgid "Red/blue anaglyph, monochrome method."
+msgstr ""
+
+#: src/main.cpp:463
+msgid "Multi-display via Equalizer (2D setup)."
+msgstr ""
+
+#: src/main.cpp:464
+msgid "Multi-display via Equalizer (3D setup)."
+msgstr ""
+
+#: src/main.cpp:465
+msgid "Swap left/right view."
+msgstr "切换左/右视图。"
+
+#: src/main.cpp:466
+msgid "Fullscreen."
+msgstr "全屏。"
+
+#: src/main.cpp:467
+msgid "Use the listed screens in fullscreen mode."
+msgstr "全屏模式下使用列出的屏幕。"
+
+#: src/main.cpp:468
+msgid "Screen numbers start with 1."
+msgstr "屏幕编号从 1 开始。"
+
+#: src/main.cpp:469
+msgid "An empty list defaults to the primary screen."
+msgstr ""
+
+#: src/main.cpp:470
+msgid "Flip left view vertically when fullscreen."
+msgstr ""
+
+#: src/main.cpp:471
+msgid "Flop left view horizontally when fullscreen."
+msgstr ""
+
+#: src/main.cpp:472
+msgid "Flip right view vertically when fullscreen."
+msgstr ""
+
+#: src/main.cpp:473
+msgid "Flop right view horizontally when fullscreen."
+msgstr ""
+
+#: src/main.cpp:474
+msgid "Set zoom for wide videos (0=off to 1=full)."
+msgstr ""
+
+#: src/main.cpp:475
+msgid "Crop video to given aspect ratio (0:0=off)."
+msgstr ""
+
+#: src/main.cpp:476
+msgid "Center window on screen."
+msgstr "窗口置于屏幕中心。"
+
+#: src/main.cpp:477
+msgid "Set subtitle encoding."
+msgstr "设置字幕编码。"
+
+#: src/main.cpp:478
+msgid "Set subtitle font name."
+msgstr "设置字幕字体名称。"
+
+#: src/main.cpp:479
+msgid "Set subtitle font size."
+msgstr "设置字体大小。"
+
+#: src/main.cpp:480
+msgid "Set subtitle scale factor."
+msgstr ""
+
+#: src/main.cpp:481
+msgid "Set subtitle color, in [AA]RRGGBB format."
+msgstr ""
+
+#: src/main.cpp:482
+msgid "Subtitle parallax adjustment (-1 to +1)."
+msgstr ""
+
+#: src/main.cpp:483
+msgid "Parallax adjustment (-1 to +1)."
+msgstr ""
+
+#: src/main.cpp:484
+msgid "Crosstalk leak level (0 to 1)."
+msgstr ""
+
+#: src/main.cpp:485
+msgid "Comma-separated values for R,G,B."
+msgstr ""
+
+#: src/main.cpp:486
+msgid "Amount of ghostbusting to apply (0 to 1)."
+msgstr ""
+
+#: src/main.cpp:487
+msgid "Benchmark mode (no audio, show fps)."
+msgstr ""
+
+#: src/main.cpp:488
+msgid "Frame rate divisor for display refresh rate."
+msgstr ""
+
+#: src/main.cpp:489
+msgid "Default is 0 for benchmark mode, 1 otherwise."
+msgstr ""
+
+#: src/main.cpp:490
+msgid "Loop the input media."
+msgstr ""
+
+#: src/main.cpp:492
+msgid "Interactive control:"
+msgstr "交互控制:"
+
+#: src/main.cpp:493
+msgid "Leave fullscreen mode, or quit."
+msgstr "离开全屏模式，或退出。"
+
+#: src/main.cpp:494
+msgid "Quit."
+msgstr "退出。"
+
+#: src/main.cpp:515
+msgid "Seek according to horizontal click position."
+msgstr ""
+
+#: src/main.cpp:523
+msgid "No audio devices known."
+msgstr "没有已知的音频设备。"
+
+#: src/main.cpp:595
+msgid "Benchmark mode: audio and time synchronization disabled."
+msgstr ""
+
+#: src/main.cpp:729
+msgid "This version of Bino was compiled without support for LIRC."
+msgstr "此 Bino 版本未编译支持 LIRC 。"
+
+#. TRANSLATORS: This is a very short string describing the video size and aspect ratio.
+#: src/media_data.cpp:935
+#, c-format
+msgid "%dx%d, %.3g:1"
+msgstr "%dx%d, %.3g:1"
+
+#. TRANSLATORS: This is a very short string describing the audio language, channels, frequency, and bits.
+#: src/media_data.cpp:1066
+#, c-format
+msgid "%s, %d ch., %g kHz, %d bit"
+msgstr "%s, %d ch., %g kHz, %d bit"
+
+#: src/media_input.cpp:282
+#, c-format
+msgid "Video %s: %s"
+msgstr "视频 %s: %s"
+
+#: src/media_input.cpp:287
+msgid "No video."
+msgstr "无视频。"
+
+#: src/media_input.cpp:293
+#, c-format
+msgid "Audio %s: %s"
+msgstr "音频 %s: %s"
+
+#: src/media_input.cpp:298
+msgid "No audio."
+msgstr "无音频"
+
+#: src/media_input.cpp:304
+#, c-format
+msgid "Subtitle %s: %s"
+msgstr "字幕 %s: %s"
+
+#: src/media_input.cpp:309
+msgid "No subtitle."
+msgstr "无字幕。"
+
+#: src/media_input.cpp:311
+#, c-format
+msgid "Duration: %g seconds"
+msgstr "为期: %g 秒"
+
+#: src/media_input.cpp:314
+#, c-format
+msgid "Stereo layout: %s"
+msgstr "立体布局: %s"
+
+#: src/media_object.cpp:677
+#, c-format
+msgid "%s video stream %d: Unsupported stereo layout %s."
+msgstr ""
+
+#: src/media_object.cpp:715
+#, c-format
+msgid "%s audio stream %d: Cannot handle audio with %d channels."
+msgstr ""
+
+#: src/media_object.cpp:744
+#, c-format
+msgid "%s audio stream %d: Cannot handle audio with sample format %s."
+msgstr ""
+
+#: src/media_object.cpp:800
+#, c-format
+msgid "No support available for %s device."
+msgstr ""
+
+#: src/media_object.cpp:803
+msgid "default"
+msgstr "默认"
+
+#: src/media_object.cpp:832
+#, c-format
+msgid "%s: Cannot read stream info: %s"
+msgstr "%s: 不能读取流信息: %s"
+
+#: src/media_object.cpp:876
+#, c-format
+msgid "%s stream %d: Cannot open %s: %s"
+msgstr "%s 流 %d: 不能打开 %s: %s"
+
+#: src/media_object.cpp:877
+msgid "video codec"
+msgstr "视频插件"
+
+#: src/media_object.cpp:878
+msgid "audio codec"
+msgstr "音频插件"
+
+#: src/media_object.cpp:879
+msgid "subtitle codec"
+msgstr "字幕插件"
+
+#: src/media_object.cpp:880
+msgid "data"
+msgstr ""
+
+#: src/media_object.cpp:881
+msgid "codec not supported"
+msgstr "不支持该插件"
+
+#: src/media_object.cpp:891
+#, c-format
+msgid "%s video stream %d: Invalid frame size."
+msgstr ""
+
+#: src/media_object.cpp:935
+#, c-format
+msgid "%s video stream %d: Cannot initialize conversion context."
+msgstr ""
+
+#: src/media_object.cpp:998
+#, c-format
+msgid "Video stream %d: %s / %s, %g seconds"
+msgstr "视频流 %d: %s / %s, %g 秒"
+
+#: src/media_object.cpp:1002
+#, c-format
+msgid "Using up to %d threads for decoding."
+msgstr "使用了 %d 个线程解码。"
+
+#: src/media_object.cpp:1007
+#, c-format
+msgid "Audio stream %d: %s / %s, %g seconds"
+msgstr "音频流 %d: %s / %s, %g 秒"
+
+#: src/media_object.cpp:1014
+#, c-format
+msgid "Subtitle stream %d: %s / %s, %g seconds"
+msgstr "字幕流 %d: %s / %s, %g 秒"
+
+#: src/media_object.cpp:1021
+msgid "No usable streams."
+msgstr "没有可用的流。"
+
+#: src/media_object.cpp:1302 src/media_object.cpp:1332
+#: src/media_object.cpp:1362
+#, c-format
+msgid "%s: Cannot duplicate packet."
+msgstr ""
+
+#: src/media_object.cpp:1456
+#, c-format
+msgid "%s video stream %d: Dropping %dx%d frame"
+msgstr ""
+
+#: src/media_object.cpp:1919
+#, c-format
+msgid "%s: Seeking failed."
+msgstr ""
+
+#: src/player.cpp:437
+#, c-format
+msgid "Video: delay %g seconds/%g frames; dropping next frame."
+msgstr ""
+
+#: src/player.cpp:453
+#, c-format
+msgid "FPS: %.2f"
+msgstr "FPS: %.2f"
+
+#: src/player_equalizer.cpp:116
+msgid "Reading input frame failed."
+msgstr "读取输入帧失败。"
+
+#: src/player_equalizer.cpp:165 src/video_output_qt.cpp:590
+#: src/video_output_qt.cpp:597
+msgid "Waiting for subtitle renderer initialization..."
+msgstr ""
+
+#: src/player_equalizer.cpp:250
+msgid "Init data mapping failed."
+msgstr ""
+
+#: src/player_equalizer.cpp:251
+msgid "Frame data mapping failed."
+msgstr ""
+
+#: src/player_equalizer.cpp:252
+msgid "Video player initialization failed."
+msgstr ""
+
+#: src/player_equalizer.cpp:253
+msgid "Need at least OpenGL 2.1."
+msgstr "至少需要 OpenGL 2.1。"
+
+#: src/player_equalizer.cpp:430
+msgid "No canvas in Equalizer configuration."
+msgstr ""
+
+#: src/player_equalizer.cpp:437
+#, c-format
+msgid "Equalizer canvas: %gx%g, aspect ratio %g:1"
+msgstr ""
+
+#: src/player_equalizer.cpp:922 src/video_output_qt.cpp:560
+msgid ""
+"This OpenGL implementation does not support OpenGL 2.1 and framebuffer "
+"objects."
+msgstr ""
+
+#: src/player_equalizer.cpp:1105
+msgid "Equalizer initialization failed."
+msgstr "Equalizer 初始化失败。"
+
+#: src/player_equalizer.cpp:1113
+msgid "Cannot get equalizer configuration."
+msgstr "不能获取 equalizer 配置。"
+
+#: src/player_equalizer.cpp:1127
+msgid "Equalizer configuration initialization failed."
+msgstr "Equalizer 配置初始化失败"
+
+#: src/subtitle_renderer.cpp:223
+msgid "Cannot initialize LibASS."
+msgstr "不能初始化 LibASS。"
+
+#: src/subtitle_renderer.cpp:232
+msgid "Cannot initialize LibASS renderer."
+msgstr "不能初始化 LibASS 渲染。"
+
+#: src/subtitle_renderer.cpp:398
+msgid "Cannot initialize LibASS track."
+msgstr ""
+
+#: src/subtitle_renderer.cpp:409
+#, c-format
+msgid "Subtitle character set conversion failed: %s"
+msgstr "字幕字符集转换失败: %s"
+
+#: src/video_output.cpp:145
+#, c-format
+msgid "OpenGL error 0x%04X."
+msgstr "OpenGL 错误 0x%04X。"
+
+#: src/video_output.cpp:203
+#, c-format
+msgid "OpenGL %s '%s': compiler warning:"
+msgstr "OpenGL %s '%s': 编译警告:"
+
+#: src/video_output.cpp:204 src/video_output.cpp:209
+msgid "vertex shader"
+msgstr ""
+
+#: src/video_output.cpp:204 src/video_output.cpp:209
+msgid "fragment shader"
+msgstr ""
+
+#: src/video_output.cpp:208
+#, c-format
+msgid "OpenGL %s '%s': compilation failed."
+msgstr "OpenGL %s '%s': 编译失败。"
+
+#: src/video_output.cpp:211 src/video_output.cpp:288
+msgid "unknown error"
+msgstr "未知错误"
+
+#: src/video_output.cpp:284
+#, c-format
+msgid "OpenGL program '%s': linker warning:"
+msgstr ""
+
+#: src/video_output.cpp:287
+#, c-format
+msgid "OpenGL program '%s': linking failed."
+msgstr "OpenGL 程序 '%s': 连接失败。"
+
+#: src/video_output.cpp:563 src/video_output.cpp:675
+msgid "Cannot create a PBO buffer."
+msgstr ""
+
+#: src/video_output_qt.cpp:555
+#, c-format
+msgid "Cannot initialize GLEW: %s"
+msgstr ""
+
+#: src/video_output_qt.cpp:588
+msgid "Please wait"
+msgstr "请等待"
+
+#: src/video_output_qt.cpp:643
+msgid "Cannot get valid OpenGL context."
+msgstr ""
+
+#: src/video_output_qt.cpp:654
+msgid "The display does not support OpenGL stereo mode."
+msgstr ""
+
+#: src/video_output_qt.cpp:659
+msgid "Cannot set OpenGL context format."
+msgstr ""
+
+#: src/video_output_qt.cpp:752
+msgid "Cannot suspend screensaver."
+msgstr ""
+
+#: src/video_output_qt.cpp:767
+msgid "Cannot resume screensaver."
+msgstr ""
