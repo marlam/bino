@@ -111,7 +111,6 @@ static std::string basename(const std::string &url)
 void media_input::open(const std::vector<std::string> &urls, const device_request &dev_request)
 {
     assert(urls.size() > 0);
-    assert(!dev_request.is_device() || urls.size() == 1);
 
     // Open media objects
     _is_device = dev_request.is_device();

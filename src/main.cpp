@@ -672,7 +672,7 @@ int main(int argc, char *argv[])
     open_input_data input_data;
     if (device_type.value() == "") {
         input_data.dev_request.device =
-            (arguments.size() == 1 && arguments[0].substr(0, 5) == "/dev/"
+            (arguments.size() >= 1 && arguments[0].substr(0, 5) == "/dev/"
              ? device_request::sys_default : device_request::no_device);
     } else {
         input_data.dev_request.device =
