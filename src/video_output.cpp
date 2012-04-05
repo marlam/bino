@@ -1420,7 +1420,7 @@ void video_output::reshape(int w, int h)
                 w, h / 2, dst_w, dst_h, dst_ar,
                 crop_ar, _params.zoom());
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
-        _viewport[1][1] = _viewport[0][1] + h / 2;
+        _viewport[0][1] = _viewport[1][1] + h / 2;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }
     else if (_params.stereo_mode() == parameters::mode_hdmi_frame_pack)
@@ -1441,7 +1441,7 @@ void video_output::reshape(int w, int h)
                 w, (h - blank_lines) / 2, dst_w, dst_h, dst_ar,
                 _params.crop_aspect_ratio(), _params.zoom());
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
-        _viewport[1][1] = _viewport[0][1] + (h - blank_lines) / 2 + blank_lines;
+        _viewport[0][1] = _viewport[1][1] + (h - blank_lines) / 2 + blank_lines;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }
     else
