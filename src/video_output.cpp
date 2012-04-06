@@ -365,12 +365,12 @@ void video_output::deinit()
     if (_initialized)
     {
         clear();
-        assert(xglCheckError(HERE));
+        xglCheckError(HERE);
         input_deinit(0);
         input_deinit(1);
         color_deinit();
         render_deinit();
-        assert(xglCheckError(HERE));
+        xglCheckError(HERE);
         _initialized = false;
     }
 }
@@ -410,7 +410,7 @@ void video_output::set_suitable_size(int width, int height, float ar, parameters
 
 void video_output::input_init(int index, const video_frame &frame)
 {
-    assert(xglCheckError(HERE));
+    xglCheckError(HERE);
     glGenBuffers(1, &_input_pbo);
     glGenFramebuffersEXT(1, &_input_fbo);
     if (frame.layout == video_frame::bgra32)
@@ -480,7 +480,7 @@ void video_output::input_init(int index, const video_frame &frame)
                     0, GL_LUMINANCE, type, NULL);
         }
     }
-    assert(xglCheckError(HERE));
+    xglCheckError(HERE);
 }
 
 bool video_output::input_is_compatible(int index, const video_frame &current_frame)
@@ -496,7 +496,7 @@ bool video_output::input_is_compatible(int index, const video_frame &current_fra
 
 void video_output::input_deinit(int index)
 {
-    assert(xglCheckError(HERE));
+    xglCheckError(HERE);
     glDeleteBuffers(1, &_input_pbo);
     _input_pbo = 0;
     glDeleteFramebuffersEXT(1, &_input_fbo);
@@ -536,7 +536,7 @@ void video_output::input_deinit(int index)
     _input_yuv_chroma_width_divisor[index] = 0;
     _input_yuv_chroma_height_divisor[index] = 0;
     _frame[index] = video_frame();
-    assert(xglCheckError(HERE));
+    xglCheckError(HERE);
 }
 
 static int next_multiple_of_4(int x)
@@ -696,7 +696,7 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _input_fbo);
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
                 GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _input_subtitle_tex[index], 0);
-        assert(xglCheckFBO(HERE));
+        xglCheckFBO(HERE);
         glClear(GL_COLOR_BUFFER_BIT);
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer_bak);
         // Prerender the subtitle to get a bounding box
@@ -739,7 +739,7 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
 
 void video_output::color_init(const video_frame &frame)
 {
-    assert(xglCheckError(HERE));
+    xglCheckError(HERE);
     glGenFramebuffersEXT(1, &_color_fbo);
     std::string layout_str;
     std::string color_space_str;
@@ -846,12 +846,12 @@ void video_output::color_init(const video_frame &frame)
                 storage_str == "storage_srgb" ? GL_SRGB8 : GL_RGB16,
                 frame.width, frame.height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
     }
-    assert(xglCheckError(HERE));
+    xglCheckError(HERE);
 }
 
 void video_output::color_deinit()
 {
-    assert(xglCheckError(HERE));
+    xglCheckError(HERE);
     glDeleteFramebuffersEXT(1, &_color_fbo);
     _color_fbo = 0;
     if (_color_prg != 0)
@@ -868,7 +868,7 @@ void video_output::color_deinit()
         }
     }
     _color_last_frame = video_frame();
-    assert(xglCheckError(HERE));
+    xglCheckError(HERE);
 }
 
 bool video_output::color_is_compatible(const video_frame &current_frame)
@@ -884,7 +884,7 @@ bool video_output::color_is_compatible(const video_frame &current_frame)
 
 void video_output::render_init()
 {
-    assert(xglCheckError(HERE));
+    xglCheckError(HERE);
     std::string mode_str = (
             _params.stereo_mode() == parameters::mode_even_odd_rows ? "mode_even_odd_rows"
             : _params.stereo_mode() == parameters::mode_even_odd_columns ? "mode_even_odd_columns"
@@ -939,12 +939,12 @@ void video_output::render_init()
                 : _params.stereo_mode() == parameters::mode_even_odd_columns ? even_odd_columns_mask
                 : checkerboard_mask);
     }
-    assert(xglCheckError(HERE));
+    xglCheckError(HERE);
 }
 
 void video_output::render_deinit()
 {
-    assert(xglCheckError(HERE));
+    xglCheckError(HERE);
     if (_render_prg != 0)
     {
         xglDeleteProgram(_render_prg);
@@ -961,7 +961,7 @@ void video_output::render_deinit()
         _render_mask_tex = 0;
     }
     _render_last_params = parameters();
-    assert(xglCheckError(HERE));
+    xglCheckError(HERE);
 }
 
 bool video_output::render_is_compatible()
@@ -1140,7 +1140,7 @@ void video_output::display_current_frame(
     }
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
             GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[0], 0);
-    assert(xglCheckFBO(HERE));
+    xglCheckFBO(HERE);
     draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
     // right view: render into _color_tex[1]
     if (left != right)
@@ -1161,7 +1161,7 @@ void video_output::display_current_frame(
         }
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
                 GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[1], 0);
-        assert(xglCheckFBO(HERE));
+        xglCheckFBO(HERE);
         draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
     }
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer_bak);
