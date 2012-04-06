@@ -68,6 +68,7 @@ gl_thread::gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widge
     _resize(false),
     _action_activate(false),
     _action_prepare(false),
+    _action_finished(false),
     _failure(false)
 {
 }
@@ -82,6 +83,9 @@ GLXEWContext* gl_thread::glxewGetContext() const
 void gl_thread::set_render(bool r)
 {
     _render = r;
+    _action_activate = false;
+    _action_prepare = false;
+    _action_finished = false;
     _display_frameno = 0;
     _pti = 0;
     _ptc = 0;
@@ -96,20 +100,28 @@ void gl_thread::resize(int w, int h)
 
 void gl_thread::activate_next_frame()
 {
-    _action_mutex.lock();
+    if (_failure)
+        return;
+    _wait_mutex.lock();
+    _action_finished = false;
     _action_activate = true;
-    _action_cond.wait(_action_mutex);
-    _action_mutex.unlock();
+    _wait_cond.wait(_wait_mutex);
+    _action_finished = true;
+    _wait_mutex.unlock();
 }
 
 void gl_thread::prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle)
 {
-    _action_mutex.lock();
+    if (_failure)
+        return;
+    _wait_mutex.lock();
     _next_subtitle = subtitle;
     _next_frame = frame;
+    _action_finished = false;
     _action_prepare = true;
-    _action_cond.wait(_action_mutex);
-    _action_mutex.unlock();
+    _wait_cond.wait(_wait_mutex);
+    _action_finished = true;
+    _wait_mutex.unlock();
 }
 
 void gl_thread::run()
@@ -119,18 +131,16 @@ void gl_thread::run()
         _vo_qt_widget->makeCurrent();
         assert(QGLContext::currentContext() == _vo_qt_widget->context());
         while (_render) {
-            _action_mutex.lock();
             if (_action_activate) {
                 _vo_qt->video_output::activate_next_frame();
                 _action_activate = false;
-                _action_cond.wake_one();
+                _wait_cond.wake_one();
             }
             if (_action_prepare) {
                 _vo_qt->video_output::prepare_next_frame(_next_frame, _next_subtitle);
                 _action_prepare = false;
-                _action_cond.wake_one();
+                _wait_cond.wake_one();
             }
-            _action_mutex.unlock();
             if (_resize) {
                 _vo_qt->reshape(_w, _h);
                 _resize = false;
@@ -148,7 +158,13 @@ void gl_thread::run()
             _vo_qt_widget->swapBuffers();
             // When the buffer swap returns, the current frame is just now presented on screen.
             _pt_mutex.lock();
-            _pt[_pti] = timer::get_microseconds(timer::monotonic);
+            try {
+                _pt[_pti] = timer::get_microseconds(timer::monotonic);
+            }
+            catch (...) {
+                _pt_mutex.unlock();
+                throw;
+            }
             _pti++;
             if (_pti >= _pts)
                 _pti = 0;
@@ -161,6 +177,10 @@ void gl_thread::run()
         _e = e;
         _render = false;
         _failure = true;
+    }
+    if (_action_activate || _action_prepare) {
+        while (!_action_finished)
+            _wait_cond.wake_one();
     }
     _vo_qt_widget->doneCurrent();
 }

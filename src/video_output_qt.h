@@ -52,10 +52,11 @@ private:
     bool _render;
     bool _resize;
     int _w, _h;
-    mutex _action_mutex;
-    condition _action_cond;
+    mutex _wait_mutex;
+    condition _wait_cond;
     bool _action_activate;
     bool _action_prepare;
+    bool _action_finished;
     video_frame _next_frame;
     subtitle_box _next_subtitle;
     bool _failure;
