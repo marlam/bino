@@ -181,6 +181,7 @@ public:
     PARAMETER(int, subtitle_size)             // Subtitle point size, -1 means keep default
     PARAMETER(float, subtitle_scale)          // Scale factor
     PARAMETER(uint64_t, subtitle_color)       // Subtitle color in uint32_t bgra32 format, > UINT32_MAX means keep default
+    PARAMETER(int, subtitle_shadow)           // Subtitle shadow, -1 = default, 0 = force off, 1 = force on
     // Per-Video parameters
     PARAMETER(int, video_stream)              // Video stream index
     PARAMETER(int, audio_stream)              // Audio stream index, or -1 if there is no audio stream

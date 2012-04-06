@@ -58,7 +58,7 @@ private:
     int _input_subtitle_width[2];       // the width of the current subtitle texture
     int _input_subtitle_height[2];      // the height of the current subtitle texture
     int64_t _input_subtitle_time[2];    // the timestamp of the current subtitle texture
-    parameters _input_subtitle_params;  // the parameters of the current subtitle texture
+    parameters _input_subtitle_params[2];// the parameters of the current subtitle texture
     int _input_yuv_chroma_width_divisor[2];     // for yuv formats: chroma subsampling
     int _input_yuv_chroma_height_divisor[2];    // for yuv formats: chroma subsampling
     // Step 2: color space conversion and color correction

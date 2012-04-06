@@ -670,6 +670,10 @@ void dispatch::receive_cmd(const command& cmd)
         _parameters.set_subtitle_color(s11n::load<uint64_t>(p));
         notify_all(notification::subtitle_color);
         break;
+    case command::set_subtitle_shadow:
+        _parameters.set_subtitle_shadow(s11n::load<int>(p));
+        notify_all(notification::subtitle_shadow);
+        break;
     // Per-Video parameters
     case command::cycle_video_stream:
         if (_media_input && _media_input->video_streams() > 1

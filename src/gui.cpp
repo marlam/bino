@@ -1651,6 +1651,17 @@ subtitle_dialog::subtitle_dialog(QWidget *parent) : QDialog(parent), _lock(false
             ? 0xffffffu : dispatch::parameters().subtitle_color());
     connect(_color_button, SIGNAL(clicked()), this, SLOT(color_button_clicked()));
 
+    _shadow_checkbox = new QCheckBox(_("Override shadow:"));
+    _shadow_checkbox->setToolTip(_("<p>Override the subtitle shadow.</p>"));
+    _shadow_checkbox->setChecked(dispatch::parameters().subtitle_shadow() != -1);
+    connect(_shadow_checkbox, SIGNAL(stateChanged(int)), this, SLOT(shadow_changed()));
+    _shadow_combobox = new QComboBox();
+    _shadow_combobox->setToolTip(_shadow_checkbox->toolTip());
+    _shadow_combobox->addItem(_("On"));
+    _shadow_combobox->addItem(_("Off"));
+    _shadow_combobox->setCurrentIndex(dispatch::parameters().subtitle_shadow() == 0 ? 1 : 0);
+    connect(_shadow_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(shadow_changed()));
+
     QPushButton *ok_button = new QPushButton(_("OK"));
     connect(ok_button, SIGNAL(clicked()), this, SLOT(close()));
 
@@ -1666,7 +1677,9 @@ subtitle_dialog::subtitle_dialog(QWidget *parent) : QDialog(parent), _lock(false
     layout->addWidget(_scale_spinbox, 4, 1);
     layout->addWidget(_color_checkbox, 5, 0);
     layout->addWidget(_color_button, 5, 1);
-    layout->addWidget(ok_button, 6, 0, 1, 2);
+    layout->addWidget(_shadow_checkbox, 6, 0);
+    layout->addWidget(_shadow_combobox, 6, 1);
+    layout->addWidget(ok_button, 7, 0, 1, 2);
     setLayout(layout);
 }
 
@@ -1791,74 +1804,64 @@ void subtitle_dialog::color_changed()
     }
 }
 
+void subtitle_dialog::shadow_changed()
+{
+    if (!_lock)
+        send_cmd(command::set_subtitle_shadow, _shadow_checkbox->isChecked()
+                ? 1 - _shadow_combobox->currentIndex() : -1);
+}
+
 void subtitle_dialog::receive_notification(const notification &note)
 {
+    std::string s;
+    int i;
+    float f;
+    uint64_t c;
+
+    _lock = true;
     switch (note.type)
     {
     case notification::subtitle_encoding:
-        {
-            std::string encoding = dispatch::parameters().subtitle_encoding();
-            _lock = true;
-            _encoding_checkbox->setChecked(encoding != "");
-            if (encoding != "")
-            {
-                _encoding_combobox->setCurrentIndex(_encoding_combobox->findText(encoding.c_str()));
-            }
-            _lock = false;
-        }
+        s = dispatch::parameters().subtitle_encoding();
+        _encoding_checkbox->setChecked(!s.empty());
+        if (!s.empty())
+            _encoding_combobox->setCurrentIndex(_encoding_combobox->findText(s.c_str()));
         break;
     case notification::subtitle_font:
-        {
-            std::string font = dispatch::parameters().subtitle_font();
-            _lock = true;
-            _font_checkbox->setChecked(font != "");
-            if (font != "")
-            {
-                _font_combobox->setCurrentFont(QFont(QString(font.c_str())));
-            }
-            _lock = false;
-        }
+        s = dispatch::parameters().subtitle_font();
+        _font_checkbox->setChecked(!s.empty());
+        if (!s.empty())
+            _font_combobox->setCurrentFont(QFont(QString(s.c_str())));
         break;
     case notification::subtitle_size:
-        {
-            int size = dispatch::parameters().subtitle_size();
-            _lock = true;
-            _size_checkbox->setChecked(size > 0);
-            if (size > 0)
-            {
-                _size_spinbox->setValue(size);
-            }
-            _lock = false;
-        }
+        i = dispatch::parameters().subtitle_size();
+        _size_checkbox->setChecked(i > 0);
+        if (i > 0)
+            _size_spinbox->setValue(i);
         break;
     case notification::subtitle_scale:
-        {
-            float scale = dispatch::parameters().subtitle_scale();
-            _lock = true;
-            _scale_checkbox->setChecked(scale >= 0.0f);
-            if (scale >= 0.0f)
-            {
-                _scale_spinbox->setValue(scale);
-            }
-            _lock = false;
-        }
+        f = dispatch::parameters().subtitle_scale();
+        _scale_checkbox->setChecked(f >= 0.0f);
+        if (f >= 0.0f)
+            _scale_spinbox->setValue(f);
         break;
     case notification::subtitle_color:
-        {
-            uint64_t color = dispatch::parameters().subtitle_color();
-            _lock = true;
-            _color_checkbox->setChecked(color <= std::numeric_limits<uint32_t>::max());
-            if (color <= std::numeric_limits<uint32_t>::max())
-            {
-                set_color_button(color);
-            }
-            _lock = false;
-        }
+        c = dispatch::parameters().subtitle_color();
+        _color_checkbox->setChecked(c <= std::numeric_limits<uint32_t>::max());
+        if (c <= std::numeric_limits<uint32_t>::max())
+            set_color_button(c);
+        break;
+    case notification::subtitle_shadow:
+        i = dispatch::parameters().subtitle_shadow();
+        _shadow_checkbox->setChecked(i >= 0);
+        if (i >= 0)
+            _shadow_combobox->setCurrentIndex(1 - i);
         break;
     default:
         /* not handled */
         break;
     }
+    _lock = false;
 }
 
 

@@ -345,7 +345,6 @@ void subtitle_renderer::blend_ass_image(const ASS_Image *img, uint32_t *buf)
 void subtitle_renderer::set_ass_parameters(const parameters &params)
 {
     std::vector<std::string> overrides;
-    overrides.clear();
     if (!params.subtitle_font_is_default())
     {
         overrides.push_back(std::string("Default.Fontname=") + params.subtitle_font());
@@ -365,10 +364,15 @@ void subtitle_renderer::set_ass_parameters(const parameters &params)
         overrides.push_back(std::string("Default.PrimaryColour=") + color_str);
         overrides.push_back(std::string("Default.SecondaryColour=") + color_str);
     }
+    if (!params.subtitle_shadow_is_default())
+    {
+        overrides.push_back(std::string("Default.Shadow=")
+                + (params.subtitle_shadow() == 0 ? "0" : "3"));
+    }
     const char *ass_overrides[overrides.size() + 1];
     for (size_t i = 0; i < overrides.size(); i++)
     {
-        ass_overrides[i] = ::strdup(overrides[i].c_str());
+        ass_overrides[i] = overrides[i].c_str();
     }
     ass_overrides[overrides.size()] = NULL;
     ass_set_style_overrides(_ass_library, const_cast<char **>(ass_overrides));

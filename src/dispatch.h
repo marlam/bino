@@ -115,6 +115,7 @@ public:
         set_subtitle_size,              // int
         set_subtitle_scale,             // float
         set_subtitle_color,             // uint64_t
+        set_subtitle_shadow,            // int
         // Per-Video parameters
         cycle_video_stream,             // no parameters
         set_video_stream,               // int
@@ -228,6 +229,7 @@ public:
         subtitle_size,
         subtitle_scale,
         subtitle_color,
+        subtitle_shadow,
         // Per-Video parameters
         video_stream,
         audio_stream,

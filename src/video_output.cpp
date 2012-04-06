@@ -661,12 +661,13 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
                 || (!subtitle.is_constant() && frame.presentation_time != _input_subtitle_time[index])
                 || width != _input_subtitle_width[index]
                 || height != _input_subtitle_height[index]
-                || params.subtitle_encoding() != _input_subtitle_params.subtitle_encoding()
-                || params.subtitle_font() != _input_subtitle_params.subtitle_font()
-                || params.subtitle_size() != _input_subtitle_params.subtitle_size()
-                || (params.subtitle_scale() < _input_subtitle_params.subtitle_scale()
-                    || params.subtitle_scale() > _input_subtitle_params.subtitle_scale())
-                || params.subtitle_color() != _input_subtitle_params.subtitle_color()))
+                || params.subtitle_encoding() != _input_subtitle_params[index].subtitle_encoding()
+                || params.subtitle_font() != _input_subtitle_params[index].subtitle_font()
+                || params.subtitle_size() != _input_subtitle_params[index].subtitle_size()
+                || (params.subtitle_scale() < _input_subtitle_params[index].subtitle_scale()
+                    || params.subtitle_scale() > _input_subtitle_params[index].subtitle_scale())
+                || params.subtitle_color() != _input_subtitle_params[index].subtitle_color()
+                || params.subtitle_shadow() != _input_subtitle_params[index].subtitle_shadow()))
     {
         // We have a new subtitle or a new video display size or new parameters,
         // therefore we need to render the subtitle into _input_subtitle_tex.
@@ -733,7 +734,7 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
     _input_subtitle_width[index] = width;
     _input_subtitle_height[index] = height;
     _input_subtitle_time[index] = frame.presentation_time;
-    _input_subtitle_params = params;
+    _input_subtitle_params[index] = params;
     assert(xglCheckError(HERE));
 }
 

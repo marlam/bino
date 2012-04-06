@@ -264,6 +264,8 @@ private:
     QDoubleSpinBox *_scale_spinbox;
     QCheckBox *_color_checkbox;
     QPushButton *_color_button;
+    QCheckBox *_shadow_checkbox;
+    QComboBox *_shadow_combobox;
     QColor _color;
 
     QList<QTextCodec *> find_codecs();
@@ -276,6 +278,7 @@ private slots:
     void size_changed();
     void scale_changed();
     void color_changed();
+    void shadow_changed();
 
 public:
     subtitle_dialog(QWidget *parent);

@@ -97,6 +97,7 @@ parameters::parameters()
     unset_subtitle_size();
     unset_subtitle_scale();
     unset_subtitle_color();
+    unset_subtitle_shadow();
     // Per-Video parameters
     unset_video_stream();
     unset_audio_stream();
@@ -143,6 +144,7 @@ const std::string parameters::_subtitle_font_default = "";
 const int parameters::_subtitle_size_default = -1;
 const float parameters::_subtitle_scale_default = -1.0f;
 const uint64_t parameters::_subtitle_color_default = std::numeric_limits<uint64_t>::max();
+const int parameters::_subtitle_shadow_default = -1;
 // Per-Video parameter defaults
 const int parameters::_video_stream_default = 0;
 const int parameters::_audio_stream_default = 0;
@@ -478,6 +480,8 @@ void parameters::save(std::ostream &os) const
     s11n::save(os, _subtitle_scale_set);
     s11n::save(os, _subtitle_color);
     s11n::save(os, _subtitle_color_set);
+    s11n::save(os, _subtitle_shadow);
+    s11n::save(os, _subtitle_shadow_set);
     // Per-Video parameters
     s11n::save(os, _video_stream);
     s11n::save(os, _video_stream_set);
@@ -567,6 +571,8 @@ void parameters::load(std::istream &is)
     s11n::load(is, _subtitle_scale_set);
     s11n::load(is, _subtitle_color);
     s11n::load(is, _subtitle_color_set);
+    s11n::load(is, _subtitle_shadow);
+    s11n::load(is, _subtitle_shadow_set);
     // Per-Video parameters
     s11n::load(is, _video_stream);
     s11n::load(is, _video_stream_set);
@@ -646,6 +652,8 @@ std::string parameters::save_session_parameters() const
         s11n::save(oss, "subtitle_scale", _subtitle_scale);
     if (!subtitle_color_is_default())
         s11n::save(oss, "subtitle_color", _subtitle_color);
+    if (!subtitle_shadow_is_default())
+        s11n::save(oss, "subtitle_shadow", _subtitle_shadow);
     return oss.str();
 }
 
@@ -729,6 +737,9 @@ void parameters::load_session_parameters(const std::string &s)
         } else if (name == "subtitle_color") {
             s11n::load(value, _subtitle_color);
             _subtitle_color_set = true;
+        } else if (name == "subtitle_shadow") {
+            s11n::load(value, _subtitle_shadow);
+            _subtitle_shadow_set = true;
         }
     }
 }

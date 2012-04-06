@@ -320,6 +320,8 @@ int main(int argc, char *argv[])
     options.push_back(&subtitle_scale);
     opt::color subtitle_color("subtitle-color", '\0', opt::optional);
     options.push_back(&subtitle_color);
+    opt::val<int> subtitle_shadow("subtitle-shadow", '\0', opt::optional, -1, 1);
+    options.push_back(&subtitle_shadow);
     opt::val<float> subtitle_parallax("subtitle-parallax", '\0', opt::optional, -1.0f, +1.0f);
     options.push_back(&subtitle_parallax);
     opt::val<float> parallax("parallax", 'P', opt::optional, -1.0f, +1.0f);
@@ -479,6 +481,7 @@ int main(int argc, char *argv[])
                 + "  --subtitle-size=N        " + _("Set subtitle font size.") + '\n'
                 + "  --subtitle-scale=S       " + _("Set subtitle scale factor.") + '\n'
                 + "  --subtitle-color=COLOR   " + _("Set subtitle color, in [AA]RRGGBB format.") + '\n'
+                + "  --subtitle-shadow=-1|0|1 " + _("Set subtitle shadow, -1=default, 0=off, 1=on.") + '\n'
                 + "  --subtitle-parallax=VAL  " + _("Subtitle parallax adjustment (-1 to +1).") + '\n'
                 + "  -P|--parallax=VAL        " + _("Parallax adjustment (-1 to +1).") + '\n'
                 + "  --crosstalk=VAL          " + _("Crosstalk leak level (0 to 1).") + '\n'
@@ -657,6 +660,8 @@ int main(int argc, char *argv[])
         controller::send_cmd(command::set_subtitle_scale, subtitle_scale.value());
     if (subtitle_color.is_set())
         controller::send_cmd(command::set_subtitle_color, static_cast<uint64_t>(subtitle_color.value()));
+    if (subtitle_shadow.is_set())
+        controller::send_cmd(command::set_subtitle_shadow, subtitle_shadow.value());
 
     /* Set volatile parameters */
     if (fullscreen.is_set() && fullscreen.value())

@@ -188,6 +188,8 @@ Set subtitle font size.
 Set subtitle scale factor.
 @item --subtitle-color=@var{COLOR}
 Set subtitle color, in [AA]RRGGBB format.
+@item --subtitle-shadow=@var{-1|0|1}
+Set subtitle shadow, -1=default, 0=off, 1=on.
 @item --subtitle-parallax=@var{VAL}
 Subtitle parallax adjustment (-1 to +1).
 @item -P
