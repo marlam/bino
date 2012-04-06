@@ -78,6 +78,7 @@ private:
 private:
     // GL Helper functions
     bool xglCheckError(const std::string& where = std::string()) const;
+    bool xglCheckFBO(const std::string& where = std::string()) const;
     GLuint xglCompileShader(const std::string& name, GLenum type, const std::string& src) const;
     GLuint xglCreateProgram(GLuint vshader, GLuint fshader) const;
     GLuint xglCreateProgram(const std::string& name,

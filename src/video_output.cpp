@@ -97,6 +97,35 @@ static const float full_tex_coords[2][4][2] =
     { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } }
 };
 
+static bool srgb8_textures_are_color_renderable(void)
+{
+    bool retval = true;
+    GLuint fbo;
+    GLuint tex;
+
+    glGenFramebuffersEXT(1, &fbo);
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8, 2, 2, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
+    GLint framebuffer_bak;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &framebuffer_bak);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
+            GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, tex, 0);
+    GLenum e = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+    if (e != GL_FRAMEBUFFER_COMPLETE_EXT) {
+        retval = false;
+    }
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer_bak);
+    glDeleteFramebuffersEXT(1, &fbo);
+    glDeleteTextures(1, &tex);
+    return retval;
+}
+
 video_output::video_output() : controller(), _initialized(false)
 {
     _input_pbo = 0;
@@ -144,6 +173,17 @@ bool video_output::xglCheckError(const std::string& where) const
         std::string pfx = (where.length() > 0 ? where + ": " : "");
         throw exc(pfx + str::asprintf(_("OpenGL error 0x%04X."), static_cast<unsigned int>(e)));
         // Don't use gluErrorString(e) here to avoid depending on libGLU just for this
+        return false;
+    }
+    return true;
+}
+
+bool video_output::xglCheckFBO(const std::string& where) const
+{
+    GLenum e = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+    if (e != GL_FRAMEBUFFER_COMPLETE_EXT) {
+        std::string pfx = (where.length() > 0 ? where + ": " : "");
+        throw exc(pfx + str::asprintf(_("OpenGL Framebuffer status error 0x%04X."), static_cast<unsigned int>(e)));
         return false;
     }
     return true;
@@ -656,6 +696,7 @@ void video_output::update_subtitle_tex(int index, const video_frame &frame, cons
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _input_fbo);
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
                 GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _input_subtitle_tex[index], 0);
+        assert(xglCheckFBO(HERE));
         glClear(GL_COLOR_BUFFER_BIT);
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer_bak);
         // Prerender the subtitle to get a bounding box
@@ -778,7 +819,7 @@ void video_output::color_init(const video_frame &frame)
         }
     }
     // XXX: Hack: work around broken SRGB texture implementations
-    if (std::getenv("SRGB_TEXTURES_ARE_BROKEN"))
+    if (!srgb8_textures_are_color_renderable() || std::getenv("SRGB_TEXTURES_ARE_BROKEN"))
     {
         msg::dbg("Avoiding broken SRGB texture implementation.");
         storage_str = "storage_linear_rgb";
@@ -1099,6 +1140,7 @@ void video_output::display_current_frame(
     }
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
             GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[0], 0);
+    assert(xglCheckFBO(HERE));
     draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
     // right view: render into _color_tex[1]
     if (left != right)
@@ -1119,6 +1161,7 @@ void video_output::display_current_frame(
         }
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
                 GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[1], 0);
+        assert(xglCheckFBO(HERE));
         draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
     }
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer_bak);
