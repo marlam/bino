@@ -622,7 +622,7 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
     // between preparing a frame and rendering it, so it is benefical to update
     // to subtitle texture in this function (because other threads can do other
     // work in parallel).
-    update_subtitle_tex(index, frame, subtitle, _params);
+    update_subtitle_tex(index, frame, subtitle, dispatch::parameters());
 }
 
 int video_output::video_display_width() const
