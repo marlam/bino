@@ -69,7 +69,8 @@ gl_thread::gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widge
     _action_activate(false),
     _action_prepare(false),
     _action_finished(false),
-    _failure(false)
+    _failure(false),
+    _display_frameno(0)
 {
 }
 
@@ -83,10 +84,6 @@ GLXEWContext* gl_thread::glxewGetContext() const
 void gl_thread::set_render(bool r)
 {
     _render = r;
-    _action_activate = false;
-    _action_prepare = false;
-    _action_finished = false;
-    _display_frameno = 0;
     _pti = 0;
     _ptc = 0;
 }
@@ -766,11 +763,11 @@ void video_output_qt::mouse_toggle_fullscreen()
 void video_output_qt::suspend_screensaver()
 {
 #if defined(Q_WS_X11)
+    _widget->stop_rendering();
     if (QProcess::execute(QString("xdg-screensaver suspend ")
                 + str::from(_container_widget->winId()).c_str()) != 0)
-    {
         msg::wrn(_("Cannot suspend screensaver."));
-    }
+    _widget->start_rendering();
 #elif defined(Q_WS_WIN)
     /* TODO */
 #elif defined(Q_WS_MAC)
@@ -781,11 +778,11 @@ void video_output_qt::suspend_screensaver()
 void video_output_qt::resume_screensaver()
 {
 #if defined(Q_WS_X11)
+    _widget->stop_rendering();
     if (QProcess::execute(QString("xdg-screensaver resume ")
                 + str::from(_container_widget->winId()).c_str()) != 0)
-    {
         msg::wrn(_("Cannot resume screensaver."));
-    }
+    _widget->start_rendering();
 #elif defined(Q_WS_WIN)
     /* TODO */
 #elif defined(Q_WS_MAC)
