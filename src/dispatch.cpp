@@ -663,7 +663,7 @@ void dispatch::receive_cmd(const command& cmd)
         notify_all(notification::subtitle_size);
         break;
     case command::set_subtitle_scale:
-        _parameters.set_subtitle_scale(std::max(s11n::load<float>(p), 0.0f));
+        _parameters.set_subtitle_scale(s11n::load<float>(p));
         notify_all(notification::subtitle_scale);
         break;
     case command::set_subtitle_color:
