@@ -46,6 +46,7 @@ public:
     int height;         // Request frames of the given height (0 means default).
     int frame_rate_num; // Request a specific frame rate (0/0 means default).
     int frame_rate_den; // For example 1/25, 1/30, ...
+    bool request_mjpeg; // Request MJPEG format from device
 
     // Constructor
     device_request();

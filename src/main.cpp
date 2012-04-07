@@ -233,6 +233,11 @@ int main(int argc, char *argv[])
     opt::tuple<int> device_frame_rate("device-frame-rate", '\0', opt::optional,
             1, std::numeric_limits<int>::max(), std::vector<int>(2, 0), 2, "/");
     options.push_back(&device_frame_rate);
+    std::vector<std::string> device_formats;
+    device_formats.push_back("default");
+    device_formats.push_back("mjpeg");
+    opt::val<std::string> device_format("device-format", '\0', opt::optional, device_formats, "");
+    options.push_back(&device_format);
     opt::val<std::string> lirc_config("lirc-config", '\0', opt::optional);
     options.push_back(&lirc_config);
     std::vector<std::string> input_modes;
@@ -414,6 +419,7 @@ int main(int argc, char *argv[])
                 + "  --device-type=TYPE       " + _("Type of input device: default, firewire, x11.") + '\n'
                 + "  --device-frame-size=WxH  " + _("Request frame size WxH from input device.") + '\n'
                 + "  --device-frame-rate=N/D  " + _("Request frame rate N/D from input device.") + '\n'
+                + "  --device-format=FORMAT   " + _("Request device format 'default' or 'mjpeg'.")
                 + "  --lirc-config=FILE       " + _("Use the given LIRC configuration file.") + '\n'
                 + "                           " + _("This option can be used more than once.") + '\n'
                 + "  -v|--video=STREAM        " + _("Select video stream (1-n, depending on input).") + '\n'
@@ -689,6 +695,8 @@ int main(int argc, char *argv[])
     input_data.dev_request.height = device_frame_size.value()[1];
     input_data.dev_request.frame_rate_num = device_frame_rate.value()[0];
     input_data.dev_request.frame_rate_den = device_frame_rate.value()[1];
+    if (device_format.value() == "mjpeg")
+        input_data.dev_request.request_mjpeg = true;
     input_data.urls = arguments;
     if (video.is_set() > 0)
         input_data.params.set_video_stream(video.value() - 1);

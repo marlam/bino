@@ -812,6 +812,10 @@ void media_object::open(const std::string &url, const device_request &dev_reques
         av_dict_set(&iparams, "framerate", str::asprintf("%d/%d",
                     dev_request.frame_rate_num, dev_request.frame_rate_den).c_str(), 0);
     }
+    if (_is_device && dev_request.request_mjpeg)
+    {
+        av_dict_set(&iparams, "input_format", "mjpeg", 0);
+    }
 
     /* Open the input */
     _ffmpeg->format_ctx = NULL;

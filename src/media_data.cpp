@@ -41,7 +41,8 @@ device_request::device_request() :
     width(0),
     height(0),
     frame_rate_num(0),
-    frame_rate_den(0)
+    frame_rate_den(0),
+    request_mjpeg(false)
 {
 }
 
@@ -52,6 +53,7 @@ void device_request::save(std::ostream &os) const
     s11n::save(os, height);
     s11n::save(os, frame_rate_num);
     s11n::save(os, frame_rate_den);
+    s11n::save(os, request_mjpeg);
 }
 
 void device_request::load(std::istream &is)
@@ -63,6 +65,7 @@ void device_request::load(std::istream &is)
     s11n::load(is, height);
     s11n::load(is, frame_rate_num);
     s11n::load(is, frame_rate_den);
+    s11n::load(is, request_mjpeg);
 }
 
 

@@ -11,6 +11,7 @@ New in the next stable version:
 - Support for a "Recent Files" section in the File menu.
 - Support for multimedia keyboards.
 - Support for graphics cards that cannot render into SRGB textures.
+- Support for requesting MJPEG data from input devices.
 - Various user interface tweaks.
 
 New in version 1.2.0:
