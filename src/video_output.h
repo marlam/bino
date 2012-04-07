@@ -33,6 +33,8 @@
 #include "dispatch.h"
 
 
+class subtitle_updater;
+
 class video_output : public controller
 {
 private:
@@ -53,14 +55,10 @@ private:
     GLuint _input_yuv_u_tex[2][2];      // for yuv formats: u component
     GLuint _input_yuv_v_tex[2][2];      // for yuv formats: v component
     GLuint _input_bgra32_tex[2][2];     // for bgra32 format
-    GLuint _input_subtitle_tex[2];      // for subtitles
-    subtitle_box _input_subtitle_box[2];// the subtitle box currently stored in the texture
-    int _input_subtitle_width[2];       // the width of the current subtitle texture
-    int _input_subtitle_height[2];      // the height of the current subtitle texture
-    int64_t _input_subtitle_time[2];    // the timestamp of the current subtitle texture
-    parameters _input_subtitle_params[2];// the parameters of the current subtitle texture
     int _input_yuv_chroma_width_divisor[2];     // for yuv formats: chroma subsampling
     int _input_yuv_chroma_height_divisor[2];    // for yuv formats: chroma subsampling
+    subtitle_box _input_subtitle;       // the current subtitle box
+    GLuint _input_subtitle_tex;         // subtitle texture
     // Step 2: color space conversion and color correction
     video_frame _color_last_frame;      // last frame for this step; used for reinitialization check
     GLuint _color_prg;                  // color space transformation, color adjustment
@@ -75,7 +73,8 @@ private:
     GLint _viewport[2][4];
     float _tex_coords[2][4][2];
 
-private:
+    subtitle_updater *_subtitle_updater;        // the subtitle updater thread
+
     // GL Helper functions
     bool xglCheckError(const std::string& where = std::string()) const;
     bool xglCheckFBO(const std::string& where = std::string()) const;
@@ -90,6 +89,10 @@ private:
             const float tex_coords[2][4][2] = NULL,
             const float more_tex_coords[4][2] = NULL) const;
 
+    void start_subtitle_updating(const video_frame& frame,
+            const subtitle_box& subtitle, const parameters& params);
+    void finish_subtitle_updating(const subtitle_box& subtitle);
+
     // Step 1: initialize/deinitialize, and check if reinitialization is necessary
     void input_init(int index, const video_frame &frame);
     void input_deinit(int index);
@@ -102,10 +105,6 @@ private:
     void render_init();
     void render_deinit();
     bool render_is_compatible();
-
-    // Update the subtitle texture with the given subtitle and according to the
-    // current video display width and height.
-    void update_subtitle_tex(int index, const video_frame &frame, const subtitle_box &subtitle, const parameters &params);
 
 protected:
     subtitle_renderer _subtitle_renderer;

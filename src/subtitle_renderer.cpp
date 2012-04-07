@@ -270,27 +270,29 @@ bool subtitle_renderer::render_to_display_size(const subtitle_box &box) const
     return (box.format != subtitle_box::image);
 }
 
-void subtitle_renderer::prerender(const subtitle_box &box, int64_t timestamp,
+bool subtitle_renderer::prerender(const subtitle_box &box, int64_t timestamp,
         const parameters &params,
         int width, int height, float pixel_aspect_ratio,
         int &bb_x, int &bb_y, int &bb_w, int &bb_h)
 {
     assert(_initialized);
+    bool r;
     _fmt = box.format;
     switch (_fmt)
     {
     case subtitle_box::text:
     case subtitle_box::ass:
-        prerender_ass(box, timestamp, params, width, height, pixel_aspect_ratio);
+        r = prerender_ass(box, timestamp, params, width, height, pixel_aspect_ratio);
         break;
     case subtitle_box::image:
-        prerender_img(box);
+        r = prerender_img(box);
         break;
     }
     bb_x = _bb_x;
     bb_y = _bb_y;
     bb_w = _bb_w;
     bb_h = _bb_h;
+    return r;
 }
 
 void subtitle_renderer::render(uint32_t *bgra32_buffer)
@@ -380,7 +382,7 @@ void subtitle_renderer::set_ass_parameters(const parameters &params)
     ass_process_force_style(_ass_track);
 }
 
-void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp,
+bool subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp,
         const parameters &params, int width, int height, float pixel_aspect_ratio)
 {
     // Lock
@@ -445,7 +447,8 @@ void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp
     set_ass_parameters(params);
 
     // Render subtitle
-    _ass_img = ass_render_frame(_ass_renderer, _ass_track, timestamp / 1000, NULL);
+    int change_detected = 0;
+    _ass_img = ass_render_frame(_ass_renderer, _ass_track, timestamp / 1000, &change_detected);
 
     // Unlock
     global_libass_mutex.unlock();
@@ -482,6 +485,7 @@ void subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp
         _bb_y = min_y;
         _bb_h = max_y - min_y + 1;
     }
+    return (change_detected && _bb_w > 0 && _bb_h > 0);
 }
 
 void subtitle_renderer::render_ass(uint32_t *bgra32_buffer)
@@ -498,7 +502,7 @@ void subtitle_renderer::render_ass(uint32_t *bgra32_buffer)
     }
 }
 
-void subtitle_renderer::prerender_img(const subtitle_box &box)
+bool subtitle_renderer::prerender_img(const subtitle_box &box)
 {
     _img_box = &box;
     // Determine bounding box
@@ -532,6 +536,7 @@ void subtitle_renderer::prerender_img(const subtitle_box &box)
         _bb_y = min_y;
         _bb_h = max_y - min_y + 1;
     }
+    return true;
 }
 
 void subtitle_renderer::render_img(uint32_t *bgra32_buffer)

@@ -36,6 +36,7 @@
 #include "msg.h"
 #include "str.h"
 #include "timer.h"
+#include "blob.h"
 #include "dbg.h"
 
 #include "video_output.h"
@@ -91,6 +92,131 @@
  * interpolation, too.
  */
 
+class subtitle_updater : public thread
+{
+private:
+    // The last rendered subtitle
+    subtitle_box _last_subtitle;
+    int64_t _last_timestamp;
+    parameters _last_params;
+    int _last_outwidth;
+    int _last_outheight;
+    float _last_pixel_ar;
+    // The current subtitle to render
+    subtitle_box _subtitle;
+    int64_t _timestamp;
+    parameters _params;
+    int _outwidth;
+    int _outheight;
+    float _pixel_ar;
+    // The renderer and rendering buffer
+    subtitle_renderer* _renderer;
+    blob _buffer;
+    int _bb_x, _bb_y, _bb_w, _bb_h;
+    bool _tex_needs_updating;
+
+public:
+    subtitle_updater(subtitle_renderer* sr);
+
+    // Reset
+    void reset();
+    // Set all necessary information to render the next subtitle.
+    void set(const subtitle_box& subtitle, int64_t timestamp,
+            const parameters& params, int outwidth, int outheight, float pixel_ar);
+    // Start the subtitle rendering with thread::start(), which will execute the run() fuction.
+    // The wait for it to finish using the thread::finish() function.
+    virtual void run();
+    // Find out if the texture needs an update, and get all required info.
+    bool update(int *outwidth, int* outheight,
+            void** ptr, int* bb_x, int* bb_y, int* bb_w, int* bb_h);
+};
+
+subtitle_updater::subtitle_updater(subtitle_renderer* renderer) :
+    _renderer(renderer)
+{
+    reset();
+}
+
+void subtitle_updater::reset()
+{
+    _last_outwidth = -1;
+    _last_outheight = -1;
+    _last_timestamp = std::numeric_limits<int64_t>::min();
+}
+
+void subtitle_updater::set(
+        const subtitle_box& subtitle, int64_t timestamp,
+        const parameters& params, int outwidth, int outheight, float pixel_ar)
+{
+    _subtitle = subtitle;
+    _timestamp = timestamp;
+    _params = params;
+    _outwidth = outwidth;
+    _outheight = outheight;
+    _pixel_ar = pixel_ar;
+}
+
+void subtitle_updater::run()
+{
+    _tex_needs_updating = false;
+    if (_subtitle.is_valid()
+            && (_subtitle != _last_subtitle
+                || (!_subtitle.is_constant() && _timestamp != _last_timestamp)
+                || _outwidth != _last_outwidth
+                || _outheight != _last_outheight
+                || (_pixel_ar < _last_pixel_ar || _pixel_ar > _last_pixel_ar)
+                || _params.subtitle_encoding() != _last_params.subtitle_encoding()
+                || _params.subtitle_font() != _last_params.subtitle_font()
+                || _params.subtitle_size() != _last_params.subtitle_size()
+                || (_params.subtitle_scale() < _last_params.subtitle_scale()
+                    || _params.subtitle_scale() > _last_params.subtitle_scale())
+                || _params.subtitle_color() != _last_params.subtitle_color()
+                || _params.subtitle_shadow() != _last_params.subtitle_shadow())) {
+        // We have a new subtitle or a new video display size or new parameters,
+        // therefore we need to update the subtitle texture.
+        _tex_needs_updating = true;
+    }
+
+    if (_tex_needs_updating) {
+        _tex_needs_updating = _renderer->prerender(
+                _subtitle, _timestamp, _params,
+                _outwidth, _outheight, _pixel_ar,
+                _bb_x, _bb_y, _bb_w, _bb_h);
+        _last_subtitle = _subtitle;
+        _last_timestamp = _timestamp;
+        _last_params = _params;
+        _last_outwidth = _outwidth;
+        _last_outheight = _outheight;
+        _last_pixel_ar = _pixel_ar;
+    }
+
+    if (_tex_needs_updating) {
+        size_t bufsize = _bb_w * _bb_h * sizeof(uint32_t);
+        if (_buffer.size() < bufsize)
+            _buffer.resize(bufsize);
+        _renderer->render(_buffer.ptr<uint32_t>());
+    }
+}
+
+bool subtitle_updater::update(int *outwidth, int* outheight,
+        void** ptr, int* bb_x, int* bb_y, int* bb_w, int* bb_h)
+{
+    if (_tex_needs_updating) {
+        *outwidth = _outwidth;
+        *outheight = _outheight;
+        *ptr = _buffer.ptr();
+        *bb_x = _bb_x;
+        *bb_y = _bb_y;
+        *bb_w = _bb_w;
+        *bb_h = _bb_h;
+        return true;
+    } else {
+        return false;
+    }
+
+}
+
+
 static const float full_tex_coords[2][4][2] =
 {
     { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } },
@@ -141,20 +267,19 @@ video_output::video_output() : controller(), _initialized(false)
             _input_bgra32_tex[i][j] = 0;
         }
         _color_tex[i] = 0;
-        _input_subtitle_tex[i] = 0;
-        _input_subtitle_width[i] = -1;
-        _input_subtitle_height[i] = -1;
-        _input_subtitle_time[i] = std::numeric_limits<int64_t>::min();
     }
+    _input_subtitle_tex = 0;
     _color_prg = 0;
     _color_fbo = 0;
     _render_prg = 0;
     _render_dummy_tex = 0;
     _render_mask_tex = 0;
+    _subtitle_updater = new subtitle_updater(&_subtitle_renderer);
 }
 
 video_output::~video_output()
 {
+    delete _subtitle_updater;
 }
 
 /**
@@ -351,6 +476,78 @@ void video_output::xglDeleteProgram(GLuint program) const
 }
 
 
+void video_output::start_subtitle_updating(
+        const video_frame& frame, const subtitle_box& subtitle, const parameters& params)
+{
+    if (subtitle.is_valid()) {
+        assert(_subtitle_renderer.is_initialized());
+        int sub_outwidth, sub_outheight;
+        if (_subtitle_renderer.render_to_display_size(subtitle)) {
+            sub_outwidth = video_display_width();
+            sub_outheight = video_display_height();
+        } else {
+            sub_outwidth = frame.width;
+            sub_outheight = frame.height;
+        }
+        _subtitle_updater->set(subtitle, frame.presentation_time,
+                params, sub_outwidth, sub_outheight,
+                screen_pixel_aspect_ratio());
+        _subtitle_updater->start();
+    }
+}
+
+void video_output::finish_subtitle_updating(const subtitle_box& subtitle)
+{
+    if (subtitle.is_valid()) {
+        _subtitle_updater->finish();
+        int sub_outwidth, sub_outheight;
+        void *ptr;
+        int bb_x, bb_y, bb_w, bb_h;
+        if (_subtitle_updater->update(&sub_outwidth, &sub_outheight,
+                    &ptr, &bb_x, &bb_y, &bb_w, &bb_h)) {
+            // Make sure the texture has the right size
+            assert(xglCheckError(HERE));
+            GLint tex_w, tex_h;
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
+            glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &tex_w);
+            glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &tex_h);
+            if (tex_w != sub_outwidth || tex_h != sub_outheight) {
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, sub_outwidth, sub_outheight, 0,
+                        GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
+            }
+            // Clear the texture
+            GLint framebuffer_bak;
+            glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &framebuffer_bak);
+            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _input_fbo);
+            glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
+                    GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _input_subtitle_tex, 0);
+            xglCheckFBO(HERE);
+            glClear(GL_COLOR_BUFFER_BIT);
+            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer_bak);
+            // Get a PBO buffer of appropriate size for the bounding box.
+            size_t size = bb_w * bb_h * sizeof(uint32_t);
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, _input_pbo);
+            glBufferData(GL_PIXEL_UNPACK_BUFFER, size, NULL, GL_STREAM_DRAW);
+            void* pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+            if (!pboptr)
+                throw exc(_("Cannot create a PBO buffer."));
+            assert(reinterpret_cast<uintptr_t>(pboptr) % 4 == 0);
+            // Copy the bounding box into the buffer
+            std::memcpy(pboptr, ptr, size);
+            // Update the appropriate part of the texture.
+            glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, bb_w);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+            glTexSubImage2D(GL_TEXTURE_2D, 0, bb_x, bb_y, bb_w, bb_h,
+                    GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
+            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+            assert(xglCheckError(HERE));
+        }
+    }
+}
+
+
 void video_output::init()
 {
     if (!_initialized)
@@ -480,6 +677,12 @@ void video_output::input_init(int index, const video_frame &frame)
                     0, GL_LUMINANCE, type, NULL);
         }
     }
+    glGenTextures(1, &_input_subtitle_tex);
+    glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     xglCheckError(HERE);
 }
 
@@ -523,16 +726,13 @@ void video_output::input_deinit(int index)
             glDeleteTextures(1, &(_input_bgra32_tex[index][i]));
             _input_bgra32_tex[index][i] = 0;
         }
-        if (_input_subtitle_tex[i] != 0)
-        {
-            glDeleteTextures(1, &(_input_subtitle_tex[i]));
-            _input_subtitle_tex[i] = 0;
-        }
-        _input_subtitle_box[i] = subtitle_box();
-        _input_subtitle_width[i] = -1;
-        _input_subtitle_height[i] = -1;
-        _input_subtitle_time[i] = std::numeric_limits<int64_t>::min();
     }
+    _input_subtitle = subtitle_box();
+    if (_input_subtitle_tex != 0) {
+        glDeleteTextures(1, &_input_subtitle_tex);
+        _input_subtitle_tex = 0;
+    }
+    _subtitle_updater->reset();
     _input_yuv_chroma_width_divisor[index] = 0;
     _input_yuv_chroma_height_divisor[index] = 0;
     _frame[index] = video_frame();
@@ -546,6 +746,7 @@ static int next_multiple_of_4(int x)
 
 void video_output::prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle)
 {
+    // Initialization
     int index = (_active_index == 0 ? 1 : 0);
     if (!frame.is_valid())
     {
@@ -558,6 +759,14 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
         input_deinit(index);
         input_init(index, frame);
     }
+
+    // Start rendering the subtitle in a separate thread.
+    // In the common case, the video display width and height do not change
+    // between preparing a frame and rendering it, so it is benefical to update
+    // to subtitle texture in this function.
+    start_subtitle_updating(frame, subtitle, dispatch::parameters());
+
+    // Upload the frame data
     _frame[index] = frame;
     int bytes_per_pixel = 4;
     GLenum format = GL_BGRA;
@@ -618,11 +827,10 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
         }
     }
     assert(xglCheckError(HERE));
-    // In the common case, the video display width and height do not change
-    // between preparing a frame and rendering it, so it is benefical to update
-    // to subtitle texture in this function (because other threads can do other
-    // work in parallel).
-    update_subtitle_tex(index, frame, subtitle, dispatch::parameters());
+
+    // Finish the subtitle updating
+    finish_subtitle_updating(subtitle);
+    _input_subtitle = subtitle;
 }
 
 int video_output::video_display_width() const
@@ -635,107 +843,6 @@ int video_output::video_display_height() const
 {
     assert(_viewport[0][3] > 0);
     return _viewport[0][3];
-}
-
-void video_output::update_subtitle_tex(int index, const video_frame &frame, const subtitle_box &subtitle, const parameters &params)
-{
-    assert(xglCheckError(HERE));
-    int width = 0;
-    int height = 0;
-    if (subtitle.is_valid())
-    {
-        assert(_subtitle_renderer.is_initialized());
-        if (_subtitle_renderer.render_to_display_size(subtitle))
-        {
-            width = video_display_width();
-            height = video_display_height();
-        }
-        else
-        {
-            width = frame.width;
-            height = frame.height;
-        }
-    }
-    if (subtitle.is_valid()
-            && (subtitle != _input_subtitle_box[index]
-                || (!subtitle.is_constant() && frame.presentation_time != _input_subtitle_time[index])
-                || width != _input_subtitle_width[index]
-                || height != _input_subtitle_height[index]
-                || params.subtitle_encoding() != _input_subtitle_params[index].subtitle_encoding()
-                || params.subtitle_font() != _input_subtitle_params[index].subtitle_font()
-                || params.subtitle_size() != _input_subtitle_params[index].subtitle_size()
-                || (params.subtitle_scale() < _input_subtitle_params[index].subtitle_scale()
-                    || params.subtitle_scale() > _input_subtitle_params[index].subtitle_scale())
-                || params.subtitle_color() != _input_subtitle_params[index].subtitle_color()
-                || params.subtitle_shadow() != _input_subtitle_params[index].subtitle_shadow()))
-    {
-        // We have a new subtitle or a new video display size or new parameters,
-        // therefore we need to render the subtitle into _input_subtitle_tex.
-
-        // Regenerate an appropriate subtitle texture if necessary.
-        if (_input_subtitle_tex[index] == 0
-                || width != _input_subtitle_width[index]
-                || height != _input_subtitle_height[index])
-        {
-            if (_input_subtitle_tex[index] != 0)
-            {
-                glDeleteTextures(1, &(_input_subtitle_tex[index]));
-            }
-            glGenTextures(1, &(_input_subtitle_tex[index]));
-            glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex[index]);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
-                    width, height, 0,
-                    GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
-        }
-        // Clear the texture
-        GLint framebuffer_bak;
-        glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &framebuffer_bak);
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _input_fbo);
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
-                GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _input_subtitle_tex[index], 0);
-        xglCheckFBO(HERE);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer_bak);
-        // Prerender the subtitle to get a bounding box
-        int bb_x, bb_y, bb_w, bb_h;
-        _subtitle_renderer.prerender(subtitle, frame.presentation_time, params,
-                width, height, screen_pixel_aspect_ratio(),
-                bb_x, bb_y, bb_w, bb_h);
-        if (bb_w > 0 && bb_h > 0)
-        {
-            // Get a PBO buffer of appropriate size for the bounding box.
-            size_t size = bb_w * bb_h * sizeof(uint32_t);
-            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, _input_pbo);
-            glBufferData(GL_PIXEL_UNPACK_BUFFER, size, NULL, GL_STREAM_DRAW);
-            void *pboptr = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-            if (!pboptr)
-            {
-                throw exc(_("Cannot create a PBO buffer."));
-            }
-            assert(reinterpret_cast<uintptr_t>(pboptr) % 4 == 0);
-            // Render the subtitle into the buffer.
-            _subtitle_renderer.render(static_cast<uint32_t *>(pboptr));
-            // Update the appropriate part of the texture.
-            glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-            glPixelStorei(GL_UNPACK_ROW_LENGTH, bb_w);
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex[index]);
-            glTexSubImage2D(GL_TEXTURE_2D, 0, bb_x, bb_y, bb_w, bb_h,
-                    GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
-            glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-        }
-    }
-    _input_subtitle_box[index] = subtitle;
-    _input_subtitle_width[index] = width;
-    _input_subtitle_height[index] = height;
-    _input_subtitle_time[index] = frame.presentation_time;
-    _input_subtitle_params[index] = params;
-    assert(xglCheckError(HERE));
 }
 
 void video_output::color_init(const video_frame &frame)
@@ -1222,7 +1329,8 @@ void video_output::display_current_frame(
     // unlikely case that the video display area was resized between the call
     // to prepare_next_frame and now (e.g. when resizing the window in pause
     // mode while subtitles are displayed).
-    update_subtitle_tex(_active_index, frame, _input_subtitle_box[_active_index], _params);
+    start_subtitle_updating(frame, _input_subtitle, _params);
+    finish_subtitle_updating(_input_subtitle);
 
     glUseProgram(_render_prg);
     glActiveTexture(GL_TEXTURE0);
@@ -1233,8 +1341,8 @@ void video_output::display_current_frame(
         glBindTexture(GL_TEXTURE_2D, _color_tex[right]);
     }
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, (_input_subtitle_box[_active_index].is_valid()
-                ? _input_subtitle_tex[_active_index] : _render_dummy_tex));
+    glBindTexture(GL_TEXTURE_2D, (_input_subtitle.is_valid()
+                ? _input_subtitle_tex : _render_dummy_tex));
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_l"), left);
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_r"), right);
     glUniform1f(glGetUniformLocation(_render_prg, "parallax"), _params.parallax() * 0.05f);

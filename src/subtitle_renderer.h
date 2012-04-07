@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2011
+ * Copyright (C) 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Joe <cuchac@email.cz>
  *
@@ -75,13 +75,13 @@ private:
     void set_ass_parameters(const parameters &params);
 
     // Rendering ASS and text subtitles
-    void prerender_ass(const subtitle_box &box, int64_t timestamp,
+    bool prerender_ass(const subtitle_box &box, int64_t timestamp,
             const parameters &params,
             int width, int height, float pixel_aspect_ratio);
     void render_ass(uint32_t *bgra32_buffer);
 
     // Rendering bitmap subtitles
-    void prerender_img(const subtitle_box &box);
+    bool prerender_img(const subtitle_box &box);
     void render_img(uint32_t *bgra32_buffer);
 
 public:
@@ -116,7 +116,9 @@ public:
 
     // Prerender the subtitle, to determine the bounding box it will occupy.
     // The bounding box is relative to the given subtitle overlay size (width and height).
-    void prerender(const subtitle_box &box, int64_t timestamp,
+    // This function returns 'false' if the subtitle does not need to be rendered
+    // because there was no change relative to the last rendered subtitle.
+    bool prerender(const subtitle_box &box, int64_t timestamp,
             const parameters &params,
             int width, int height, float pixel_aspect_ratio,
             int &bb_x, int &bb_y, int &bb_w, int &bb_h);

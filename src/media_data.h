@@ -376,12 +376,17 @@ public:
     // Constructor, Destructor
     subtitle_box();
 
-    // Comparison. This assumes that two subtitle boxes are identical when they
-    // have the same presentation times.
+    // Comparison.
     bool operator==(const subtitle_box &box) const
     {
-        return (presentation_start_time == box.presentation_start_time
-                && presentation_stop_time == box.presentation_stop_time);
+        if (!is_valid() && !box.is_valid()) {
+            return true;
+        } else if (format == image) {
+            return (presentation_start_time == box.presentation_start_time
+                    && presentation_stop_time == box.presentation_stop_time);
+        } else {
+            return style == box.style && str == box.str;
+        }
     }
     bool operator!=(const subtitle_box &box) const
     {
