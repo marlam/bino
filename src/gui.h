@@ -324,16 +324,18 @@ class open_device_dialog : public QDialog
 
 private:
     QComboBox *_type_combobox;
-    QStackedWidget *_device_chooser_stack;
-    QComboBox *_default_device_combobox;
-    QComboBox *_firewire_device_combobox;
-    QLineEdit *_x11_device_field;
+    QStackedWidget *_device_chooser_stack[2];
+    QComboBox *_default_device_combobox[2];
+    QComboBox *_firewire_device_combobox[2];
+    QLineEdit *_x11_device_field[2];
+    QCheckBox *_second_device_checkbox;
     QGroupBox *_frame_size_groupbox;
     QSpinBox *_frame_width_spinbox;
     QSpinBox *_frame_height_spinbox;
     QGroupBox *_frame_rate_groupbox;
     QSpinBox *_frame_rate_num_spinbox;
     QSpinBox *_frame_rate_den_spinbox;
+    QCheckBox *_mjpeg_checkbox;
 
 private slots:
     void frame_size_groupbox_clicked(bool checked);
@@ -341,8 +343,8 @@ private slots:
 
 public:
     open_device_dialog(const QStringList &default_devices, const QStringList &firewire_devices,
-            const QString &x11_device, const device_request &dev_request, QWidget *parent);
-    void request(QString &device, device_request &dev_request);
+            const QStringList &last_devices, const device_request &dev_request, QWidget *parent);
+    void request(QStringList &devices, device_request &dev_request);
 };
 
 class main_window : public QMainWindow, public controller
