@@ -276,7 +276,7 @@ bool subtitle_renderer::prerender(const subtitle_box &box, int64_t timestamp,
         int &bb_x, int &bb_y, int &bb_w, int &bb_h)
 {
     assert(_initialized);
-    bool r;
+    bool r = false;
     _fmt = box.format;
     switch (_fmt)
     {
