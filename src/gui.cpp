@@ -1590,7 +1590,9 @@ subtitle_dialog::subtitle_dialog(QWidget *parent) : QDialog(parent), _lock(false
     setModal(false);
     setWindowTitle(_("Subtitle Settings"));
 
-    QLabel *info_label = new QLabel(_("<p>These settings apply to soft subtitles, but not to bitmaps.</p>"));
+    QLabel *info_label = new QLabel(_(
+                "<p>These settings apply only to soft subtitles, not to bitmaps.<br>"
+                "Some changes require a restart of the video to take effect.</p>"));
 
     _encoding_checkbox = new QCheckBox(_("Encoding:"));
     _encoding_checkbox->setToolTip(_("<p>Set the subtitle character set encoding.</p>"));

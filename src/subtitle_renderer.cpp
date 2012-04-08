@@ -485,7 +485,7 @@ bool subtitle_renderer::prerender_ass(const subtitle_box &box, int64_t timestamp
         _bb_y = min_y;
         _bb_h = max_y - min_y + 1;
     }
-    return (change_detected && _bb_w > 0 && _bb_h > 0);
+    return change_detected;
 }
 
 void subtitle_renderer::render_ass(uint32_t *bgra32_buffer)

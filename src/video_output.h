@@ -57,8 +57,9 @@ private:
     GLuint _input_bgra32_tex[2][2];     // for bgra32 format
     int _input_yuv_chroma_width_divisor[2];     // for yuv formats: chroma subsampling
     int _input_yuv_chroma_height_divisor[2];    // for yuv formats: chroma subsampling
-    subtitle_box _input_subtitle;       // the current subtitle box
-    GLuint _input_subtitle_tex;         // subtitle texture
+    subtitle_box _input_subtitle[2];    // the current subtitle box
+    GLuint _input_subtitle_tex[2];      // subtitle texture
+    bool _input_subtitle_tex_current[2];// whether the subtitle tex contains the current subtitle buffer
     // Step 2: color space conversion and color correction
     video_frame _color_last_frame;      // last frame for this step; used for reinitialization check
     GLuint _color_prg;                  // color space transformation, color adjustment
@@ -91,7 +92,7 @@ private:
 
     void start_subtitle_updating(const video_frame& frame,
             const subtitle_box& subtitle, const parameters& params);
-    void finish_subtitle_updating(const subtitle_box& subtitle);
+    void finish_subtitle_updating(const subtitle_box& subtitle, int index);
 
     // Step 1: initialize/deinitialize, and check if reinitialization is necessary
     void input_init(int index, const video_frame &frame);
