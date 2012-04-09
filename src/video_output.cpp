@@ -214,35 +214,6 @@ static const float full_tex_coords[2][4][2] =
     { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } }
 };
 
-static bool srgb8_textures_are_color_renderable(void)
-{
-    bool retval = true;
-    GLuint fbo;
-    GLuint tex;
-
-    glGenFramebuffersEXT(1, &fbo);
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8, 2, 2, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
-    GLint framebuffer_bak;
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &framebuffer_bak);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
-            GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, tex, 0);
-    GLenum e = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-    if (e != GL_FRAMEBUFFER_COMPLETE_EXT) {
-        retval = false;
-    }
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer_bak);
-    glDeleteFramebuffersEXT(1, &fbo);
-    glDeleteTextures(1, &tex);
-    return retval;
-}
-
 video_output::video_output() : controller(), _initialized(false)
 {
     _input_pbo = 0;
@@ -465,6 +436,35 @@ void video_output::xglDeleteProgram(GLuint program) const
         delete[] shaders;
         glDeleteProgram(program);
     }
+}
+
+bool video_output::srgb8_textures_are_color_renderable()
+{
+    bool retval = true;
+    GLuint fbo;
+    GLuint tex;
+
+    glGenFramebuffersEXT(1, &fbo);
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8, 2, 2, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
+    GLint framebuffer_bak;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &framebuffer_bak);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
+            GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, tex, 0);
+    GLenum e = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+    if (e != GL_FRAMEBUFFER_COMPLETE_EXT) {
+        retval = false;
+    }
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer_bak);
+    glDeleteFramebuffersEXT(1, &fbo);
+    glDeleteTextures(1, &tex);
+    return retval;
 }
 
 

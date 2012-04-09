@@ -86,6 +86,8 @@ private:
     void xglLinkProgram(const std::string& name, const GLuint prg) const;
     void xglDeleteProgram(GLuint prg) const;
 
+    bool srgb8_textures_are_color_renderable();
+
     void draw_quad(float x, float y, float w, float h,
             const float tex_coords[2][4][2] = NULL,
             const float more_tex_coords[4][2] = NULL) const;
