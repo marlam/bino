@@ -5,6 +5,7 @@
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
+ * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +35,9 @@
 
 
 class subtitle_updater;
+#if HAVE_LIBXNVCTRL
+class CNvSDIout;
+#endif // HAVE_LIBXNVCTRL
 
 class video_output : public controller
 {
@@ -75,6 +79,9 @@ private:
     float _tex_coords[2][4][2];
 
     subtitle_updater *_subtitle_updater;        // the subtitle updater thread
+#if HAVE_LIBXNVCTRL
+    CNvSDIout *_nv_sdi_output;          // access the nvidia quadro sdi output card
+#endif // HAVE_LIBXNVCTRL
 
     // GL Helper functions
     bool xglCheckError(const std::string& where = std::string()) const;
@@ -140,15 +147,28 @@ protected:
 
     /* Display the current frame.
      * The first version is used by Equalizer, which needs to set some special properties.
-     * The second version is for everyone else.
+     * The second version is used by NVIDIA SDI output.
+     * The third version is for everyone else.
      * TODO: This function needs to handle interlaced frames! */
     void display_current_frame(int64_t display_frameno, bool keep_viewport, bool mono_right_instead_of_left,
             float x, float y, float w, float h,
-            const GLint viewport[2][4], const float tex_coords[2][4][2]);
+            const GLint viewport[2][4], const float tex_coords[2][4][2],
+            int dst_width, int dst_height,
+            parameters::stereo_mode_t stereo_mode);
+    void display_current_frame(int64_t display_frameno, int dst_width, int dst_height, parameters::stereo_mode_t stereo_mode)
+    {
+        display_current_frame(display_frameno, false, false, -1.0f, -1.0f, 2.0f, 2.0f,
+                _viewport, _tex_coords, dst_width, dst_height, stereo_mode);
+    }
     void display_current_frame(int64_t display_frameno = 0)
     {
-        display_current_frame(display_frameno, false, false, -1.0f, -1.0f, 2.0f, 2.0f, _viewport, _tex_coords);
+        display_current_frame(display_frameno, false, false, -1.0f, -1.0f, 2.0f, 2.0f,
+                _viewport, _tex_coords, width(), height(), dispatch::parameters().stereo_mode());
     }
+
+#if HAVE_LIBXNVCTRL
+    void sdi_output(int64_t display_frameno = 0);
+#endif // HAVE_LIBXNVCTRL
 
 public:
     /* Constructor, Destructor */

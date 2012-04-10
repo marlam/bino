@@ -17,3 +17,10 @@ limitations. Here is a list of known problems:
   See also these bug reports:
   https://bugs.freedesktop.org/show_bug.cgi?id=32323
   https://bugs.freedesktop.org/show_bug.cgi?id=36965
+
+
+To use bino with NVIDIA Quadro SDI output, locate NVCtrl.h NVCtrlLib.h and
+libXNVCtrl.a from the NVIDIA Quadro SDI SDK, and use the following configure
+options:
+$ ./configure --with-xnvctrl xnvctrl_CFLAGS="-I/sdk/include/path/" xnvctrl_LDFLAGS="-L/sdk/lib/path"
+On Ubuntu, the required files can be found in the nvidia-settings package.

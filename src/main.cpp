@@ -6,6 +6,7 @@
  * Stefan Eilemann <eile@eyescale.ch>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
+ * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +63,10 @@
 # include "lirc.h"
 #endif
 #include "lib_versions.h"
+
+#if HAVE_LIBXNVCTRL
+#include "NVCtrl.h"
+#endif // HAVE_LIBXNVCTRL
 
 
 /* Return the directory containing our locale data (translated messages). */
@@ -341,6 +346,12 @@ int main(int argc, char *argv[])
     options.push_back(&swap_interval);
     opt::flag loop("loop", 'l', opt::optional);
     options.push_back(&loop);
+#if HAVE_LIBXNVCTRL
+    opt::val<int> sdi_output_format("sdi-output-format", '\0', opt::optional,
+            NV_CTRL_GVIO_VIDEO_FORMAT_487I_59_94_SMPTE259_NTSC,
+            NV_CTRL_GVIO_VIDEO_FORMAT_2048I_47_96_SMPTE372);
+    options.push_back(&sdi_output_format);
+#endif // HAVE_LIBXNVCTRL
     // Accept some Equalizer options. These are passed to Equalizer for interpretation.
     opt::val<std::string> eq_server("eq-server", '\0', opt::optional);
     options.push_back(&eq_server);
@@ -497,6 +508,7 @@ int main(int argc, char *argv[])
                 + "  --swap-interval=D        " + _("Frame rate divisor for display refresh rate.") + '\n'
                 + "                           " + _("Default is 0 for benchmark mode, 1 otherwise.") + '\n'
                 + "  -l|--loop                " + _("Loop the input media.") + '\n'
+                + "  --sdi-output-format=F    " + _("Set SDI output format.") + '\n'
                 + '\n'
                 + _("Interactive control:") + '\n'
                 + "  ESC                      " + _("Leave fullscreen mode, or quit.") + '\n'
@@ -668,6 +680,10 @@ int main(int argc, char *argv[])
         controller::send_cmd(command::set_subtitle_color, static_cast<uint64_t>(subtitle_color.value()));
     if (subtitle_shadow.is_set())
         controller::send_cmd(command::set_subtitle_shadow, subtitle_shadow.value());
+#if HAVE_LIBXNVCTRL
+    if (sdi_output_format.is_set())
+        controller::send_cmd(command::set_sdi_output_format, sdi_output_format.value());
+#endif // HAVE_LIBXNVCTRL
 
     /* Set volatile parameters */
     if (fullscreen.is_set() && fullscreen.value())

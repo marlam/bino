@@ -4,6 +4,7 @@
  * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
  * Joe <cuchac@email.cz>
+ * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -116,6 +117,11 @@ public:
         set_subtitle_scale,             // float
         set_subtitle_color,             // uint64_t
         set_subtitle_shadow,            // int
+#if HAVE_LIBXNVCTRL
+        set_sdi_output_format,          // int
+        set_sdi_output_left_stereo_mode,  // parameters::stereo_mode_t
+        set_sdi_output_right_stereo_mode, // parameters::stereo_mode_t
+#endif // HAVE_LIBXNVCTRL
         // Per-Video parameters
         cycle_video_stream,             // no parameters
         set_video_stream,               // int
@@ -230,6 +236,11 @@ public:
         subtitle_scale,
         subtitle_color,
         subtitle_shadow,
+#if HAVE_LIBXNVCTRL
+        sdi_output_format,
+        sdi_output_left_stereo_mode,
+        sdi_output_right_stereo_mode,
+#endif // HAVE_LIBXNVCTRL
         // Per-Video parameters
         video_stream,
         audio_stream,

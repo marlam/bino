@@ -6,6 +6,7 @@
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
  * Daniel Schaal <farbing@web.de>
+ * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +22,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PLAYER_GUI_H
-#define PLAYER_GUI_H
+#ifndef GUI_H
+#define GUI_H
+
+#include "config.h"
 
 #include <QMainWindow>
 #include <QWidget>
@@ -318,6 +321,32 @@ public:
     virtual void receive_notification(const notification &note);
 };
 
+class sdi_output_dialog : public QDialog, public controller
+{
+    Q_OBJECT
+
+private:
+    bool _lock;
+    QComboBox *_sdi_output_format_combobox;
+    QComboBox *_sdi_output_left_stereo_mode_combobox;
+    QComboBox *_sdi_output_right_stereo_mode_combobox;
+
+    void set_sdi_output_format(int val);
+    void set_sdi_output_left_stereo_mode(parameters::stereo_mode_t stereo_mode);
+    void set_sdi_output_right_stereo_mode(parameters::stereo_mode_t stereo_mode);
+
+private slots:
+    void sdi_output_format_changed(int val);
+    void sdi_output_left_stereo_mode_changed(int val);
+    void sdi_output_right_stereo_mode_changed(int val);
+
+public:
+    sdi_output_dialog(QWidget *parent);
+    void update();
+
+    virtual void receive_notification(const notification &note);
+};
+
 class open_device_dialog : public QDialog
 {
     Q_OBJECT
@@ -363,6 +392,9 @@ private:
     audio_dialog *_audio_dialog;
     subtitle_dialog *_subtitle_dialog;
     video_dialog *_video_dialog;
+#if HAVE_LIBXNVCTRL
+    sdi_output_dialog *_sdi_output_dialog;
+#endif // HAVE_LIBXNVCTRL
     QTimer *_timer;
     std::vector<std::string> _now_playing;
 
@@ -387,6 +419,7 @@ private slots:
     void preferences_audio();
     void preferences_subtitle();
     void preferences_video();
+    void preferences_sdi_output();
     void help_manual();
     void help_website();
     void help_keyboard();

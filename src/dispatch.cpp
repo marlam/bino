@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2010, 2011, 2012
  * Martin Lambers <marlam@marlam.de>
+ * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -674,6 +675,20 @@ void dispatch::receive_cmd(const command& cmd)
         _parameters.set_subtitle_shadow(s11n::load<int>(p));
         notify_all(notification::subtitle_shadow);
         break;
+#if HAVE_LIBXNVCTRL
+    case command::set_sdi_output_format:
+        _parameters.set_sdi_output_format(s11n::load<int>(p));
+        notify_all(notification::sdi_output_format);
+        break;
+    case command::set_sdi_output_left_stereo_mode:
+        _parameters.set_sdi_output_left_stereo_mode(static_cast<parameters::stereo_mode_t>(s11n::load<int>(p)));
+        notify_all(notification::sdi_output_left_stereo_mode);
+        break;
+    case command::set_sdi_output_right_stereo_mode:
+        _parameters.set_sdi_output_right_stereo_mode(static_cast<parameters::stereo_mode_t>(s11n::load<int>(p)));
+        notify_all(notification::sdi_output_right_stereo_mode);
+        break;
+#endif // HAVE_LIBXNVCTRL
     // Per-Video parameters
     case command::cycle_video_stream:
         if (_media_input && _media_input->video_streams() > 1

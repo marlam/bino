@@ -5,6 +5,7 @@
  * Martin Lambers <marlam@marlam.de>
  * Joe <joe@wpj.cz>
  * D. Matz <bandregent@yahoo.de>
+ * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +35,10 @@
 #include "str.h"
 #include "msg.h"
 #include "dbg.h"
+
+#if HAVE_LIBXNVCTRL
+#include "NVCtrl.h"
+#endif // HAVE_LIBXNVCTRL
 
 
 device_request::device_request() :
@@ -101,6 +106,11 @@ parameters::parameters()
     unset_subtitle_scale();
     unset_subtitle_color();
     unset_subtitle_shadow();
+#if HAVE_LIBXNVCTRL
+    unset_sdi_output_format();
+    unset_sdi_output_left_stereo_mode();
+    unset_sdi_output_right_stereo_mode();
+#endif // HAVE_LIBXNVCTRL
     // Per-Video parameters
     unset_video_stream();
     unset_audio_stream();
@@ -148,6 +158,11 @@ const int parameters::_subtitle_size_default = -1;
 const float parameters::_subtitle_scale_default = -1.0f;
 const uint64_t parameters::_subtitle_color_default = std::numeric_limits<uint64_t>::max();
 const int parameters::_subtitle_shadow_default = -1;
+#if HAVE_LIBXNVCTRL
+const int parameters::_sdi_output_format_default = NV_CTRL_GVIO_VIDEO_FORMAT_1080P_25_00_SMPTE274;
+const parameters::stereo_mode_t parameters::_sdi_output_left_stereo_mode_default = mode_mono_left;
+const parameters::stereo_mode_t parameters::_sdi_output_right_stereo_mode_default = mode_mono_right;
+#endif // HAVE_LIBXNVCTRL
 // Per-Video parameter defaults
 const int parameters::_video_stream_default = 0;
 const int parameters::_audio_stream_default = 0;
@@ -485,6 +500,14 @@ void parameters::save(std::ostream &os) const
     s11n::save(os, _subtitle_color_set);
     s11n::save(os, _subtitle_shadow);
     s11n::save(os, _subtitle_shadow_set);
+#if HAVE_LIBXNVCTRL
+    s11n::save(os, _sdi_output_format);
+    s11n::save(os, _sdi_output_format_set);
+    s11n::save(os, static_cast<int>(_sdi_output_left_stereo_mode));
+    s11n::save(os, _sdi_output_left_stereo_mode_set);
+    s11n::save(os, static_cast<int>(_sdi_output_right_stereo_mode));
+    s11n::save(os, _sdi_output_right_stereo_mode_set);
+#endif // HAVE_LIBXNVCTRL
     // Per-Video parameters
     s11n::save(os, _video_stream);
     s11n::save(os, _video_stream_set);
@@ -576,6 +599,14 @@ void parameters::load(std::istream &is)
     s11n::load(is, _subtitle_color_set);
     s11n::load(is, _subtitle_shadow);
     s11n::load(is, _subtitle_shadow_set);
+#if HAVE_LIBXNVCTRL
+    s11n::load(is, _sdi_output_format);
+    s11n::load(is, _sdi_output_format_set);
+    s11n::load(is, x); _sdi_output_left_stereo_mode = static_cast<stereo_mode_t>(x);
+    s11n::load(is, _sdi_output_left_stereo_mode_set);
+    s11n::load(is, x); _sdi_output_right_stereo_mode = static_cast<stereo_mode_t>(x);
+    s11n::load(is, _sdi_output_right_stereo_mode_set);
+#endif // HAVE_LIBXNVCTRL
     // Per-Video parameters
     s11n::load(is, _video_stream);
     s11n::load(is, _video_stream_set);
@@ -657,6 +688,14 @@ std::string parameters::save_session_parameters() const
         s11n::save(oss, "subtitle_color", _subtitle_color);
     if (!subtitle_shadow_is_default())
         s11n::save(oss, "subtitle_shadow", _subtitle_shadow);
+#if HAVE_LIBXNVCTRL
+    if (!sdi_output_format_is_default())
+        s11n::save(oss, "sdi_output_format", sdi_output_format());
+    if (!sdi_output_left_stereo_mode_is_default())
+        s11n::save(oss, "sdi_output_left_stereo_mode", stereo_mode_to_string(sdi_output_left_stereo_mode(), false));
+    if (!sdi_output_right_stereo_mode_is_default())
+        s11n::save(oss, "sdi_output_right_stereo_mode", stereo_mode_to_string(sdi_output_right_stereo_mode(), false));
+#endif // HAVE_LIBXNVCTRL
     return oss.str();
 }
 
@@ -743,6 +782,23 @@ void parameters::load_session_parameters(const std::string &s)
         } else if (name == "subtitle_shadow") {
             s11n::load(value, _subtitle_shadow);
             _subtitle_shadow_set = true;
+#if HAVE_LIBXNVCTRL
+        } else if (name == "sdi_output_format") {
+            s11n::load(value, _sdi_output_format);
+            _sdi_output_format_set = true;
+        } else if (name == "sdi_output_left_stereo_mode") {
+            std::string s;
+            bool swap_value;
+            s11n::load(value, s);
+            stereo_mode_from_string(s, _sdi_output_left_stereo_mode, swap_value);
+            _sdi_output_left_stereo_mode_set = true;
+        } else if (name == "sdi_output_right_stereo_mode") {
+            std::string s;
+            bool swap_value;
+            s11n::load(value, s);
+            stereo_mode_from_string(s, _sdi_output_right_stereo_mode, swap_value);
+            _sdi_output_right_stereo_mode_set = true;
+#endif // HAVE_LIBXNVCTRL
         }
     }
 }

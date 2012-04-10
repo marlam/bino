@@ -5,6 +5,7 @@
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
+ * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -152,6 +153,11 @@ void gl_thread::run()
             _display_frameno++;
 #endif
             _vo_qt->display_current_frame(_display_frameno);
+
+#if HAVE_LIBXNVCTRL
+            _vo_qt->sdi_output(_display_frameno);
+#endif // HAVE_LIBXNVCTRL
+
             _vo_qt_widget->swapBuffers();
             // When the buffer swap returns, the current frame is just now presented on screen.
             _pt_mutex.lock();

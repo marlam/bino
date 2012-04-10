@@ -7,6 +7,7 @@ dnl
 dnl Copyright (C) 2010, 2011, 2012
 dnl Martin Lambers <marlam@marlam.de>
 dnl Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
+dnl Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
 dnl
 dnl This program is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -225,6 +226,41 @@ if test "$HAVE_LIBGLEWMX" != "1"; then
 fi
 AM_CONDITIONAL([HAVE_LIBGLEWMX], [test "$HAVE_LIBGLEWMX" = "1"])
 
+dnl libXNVCtrl
+AC_ARG_WITH([xnvctrl],
+    [AS_HELP_STRING([--with-xnvctrl], [Enable NVIDIA Quadro SDI output (disabled by default)])],
+    [if test "$withval" = "yes"; then xnvctrl="yes"; else xnvctrl="no"; fi], [xnvctrl="no"])
+if test "$xnvctrl" = "yes"; then
+    CPPFLAGS_BAK="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS $libX11_CFLAGS $xnvctrl_CFLAGS"
+    AC_SUBST([xnvctrl_CFLAGS])
+    AC_CHECK_HEADERS([NVCtrl.h NVCtrlLib.h],
+                     [HAVE_LIBXNVCTRL=1],
+                     [HAVE_LIBXNVCTRL=0],
+                     [#include <GL/glx.h>])
+    if test "$HAVE_LIBXNVCTRL" = "1"; then
+        LDFLAGS_BAK="$LDFLAGS"
+        LDFLAGS="$LDFLAGS $xnvctrl_LDFLAGS"
+        AC_SUBST([xnvctrl_LDFLAGS])
+        AC_CHECK_LIB([XNVCtrl],
+                     [XNVCTRLQueryAttribute],
+                     [HAVE_LIBXNVCTRL=1],
+                     [HAVE_LIBXNVCTRL=0],
+                     [$libX11_LIBS -lXext])
+        LDFLAGS="$LDFLAGS_BAK"
+    fi
+    CPPFLAGS="$CPPFLAGS_BAK"
+    if test "$HAVE_LIBXNVCTRL" != "1"; then
+        AC_MSG_WARN([optional library libXNVCtrl not found])
+        AC_MSG_WARN([libXNVCtrl is provided by NVIDIA; Ubuntu package: nvidia-settings])
+        xnvctrl="no"
+    fi
+else
+    HAVE_LIBXNVCTRL=0
+fi
+AC_DEFINE_UNQUOTED([HAVE_LIBXNVCTRL], [$HAVE_LIBXNVCTRL], [Have NVIDIA libXNVCtrl for Quadro SDI output?])
+AM_CONDITIONAL([HAVE_LIBXNVCTRL], [test "$HAVE_LIBXNVCTRL" = "1"])
+
 dnl OpenGL
 dnl We need to explicitly link with OpenGL since we use its functions directly.
 dnl However, this is most probably not necessary on Windows and Mac OS X (for
@@ -272,6 +308,7 @@ if test "$am_cv_func_iconv" != "yes" \
     -o "$HAVE_LIBQTOPENGL" != "1" \
     -o "$HAVE_LIBGLEWMX" != "1" \
     -o \( "$equalizer" = "yes" -a "$HAVE_LIBEQUALIZER" != "1" \) \
+    -o \( "$xnvctrl" = "yes" -a "$HAVE_LIBXNVCTRL" != "1" \) \
     -o \( "$lirc" = "yes" -a "$HAVE_LIBLIRCCLIENT" != "1" \) ; then
     AC_MSG_ERROR([One or more libraries were not found. See messages above.])
 fi
@@ -288,6 +325,7 @@ AC_OUTPUT
 
 dnl Print configuration for user to check
 echo "Configuration:"
-echo "NLS:           $USE_NLS"
-echo "Equalizer:     $equalizer"
-echo "liblircclient: $lirc"
+echo "NLS:                      $USE_NLS"
+echo "Equalizer:                $equalizer"
+echo "NVIDIA Quadro SDI output: $xnvctrl"
+echo "liblircclient:            $lirc"

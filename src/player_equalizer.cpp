@@ -223,7 +223,7 @@ public:
         std::memcpy(vp[0], viewport, 4 * sizeof(int));
         std::memcpy(vp[1], viewport, 4 * sizeof(int));
         video_output::display_current_frame(0, true, mono_right_instead_of_left,
-                x, y, w, h, vp, my_tex_coords);
+                x, y, w, h, vp, my_tex_coords, 0, 0, parameters::mode_mono_left);
     }
 };
 

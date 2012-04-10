@@ -145,6 +145,12 @@ bino_SOURCES += logo/bino_logo.ico
 	$(AM_V_GEN)echo "IDI_ICON1 ICON DISCARDABLE \"$<\"" | $(WINDRES) -o $@
 endif
 
+if HAVE_LIBXNVCTRL
+bino_SOURCES += NvSDIout.cpp NvSDIout.h NvSDIutils.cpp NvSDIutils.h
+AM_CPPFLAGS += $(xnvctrl_CFLAGS)
+bino_LDADD += $(xnvctrl_LDFLAGS) -lXNVCtrl
+endif
+
 iconsdatadir = $(datadir)/icons/hicolor
 icons16dir = $(iconsdatadir)/16x16/apps
 icons32dir = $(iconsdatadir)/32x32/apps

@@ -5,6 +5,7 @@
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
+ * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +44,9 @@
 #include "video_output_color.fs.glsl.h"
 #include "video_output_render.fs.glsl.h"
 
+#if HAVE_LIBXNVCTRL
+#include "NvSDIout.h"
+#endif // HAVE_LIBXNVCTRL
 
 /* Video output overview:
  *
@@ -238,11 +242,17 @@ video_output::video_output() : controller(), _initialized(false)
     _render_dummy_tex = 0;
     _render_mask_tex = 0;
     _subtitle_updater = new subtitle_updater(&_subtitle_renderer);
+#if HAVE_LIBXNVCTRL
+    _nv_sdi_output = new CNvSDIout();
+#endif // HAVE_LIBXNVCTRL
 }
 
 video_output::~video_output()
 {
     delete _subtitle_updater;
+#if HAVE_LIBXNVCTRL
+    delete _nv_sdi_output;
+#endif // HAVE_LIBXNVCTRL
 }
 
 /**
@@ -554,6 +564,10 @@ void video_output::init()
     {
         /* currently nothing to do */
         _initialized = true;
+
+#if HAVE_LIBXNVCTRL
+        _nv_sdi_output->init(_params.sdi_output_format());
+#endif // HAVE_LIBXNVCTRL
     }
 }
 
@@ -563,6 +577,11 @@ void video_output::deinit()
     {
         clear();
         xglCheckError(HERE);
+#if HAVE_LIBXNVCTRL
+        if (_nv_sdi_output->isInitialized()) {
+            _nv_sdi_output->deinit();
+        }
+#endif // HAVE_LIBXNVCTRL
         input_deinit(0);
         input_deinit(1);
         color_deinit();
@@ -1123,12 +1142,51 @@ void video_output::draw_quad(float x, float y, float w, float h,
     glEnd();
 }
 
+#if HAVE_LIBXNVCTRL
+void video_output::sdi_output(int64_t display_frameno)
+{
+    if (!_nv_sdi_output->isInitialized())
+    {
+        return;
+    }
+
+    if (_nv_sdi_output->getOutputFormat() != dispatch::parameters().sdi_output_format())
+    {
+        _nv_sdi_output->reinit(dispatch::parameters().sdi_output_format());
+    }
+
+    glEnable(GL_TEXTURE_2D);
+    for (int i = 0; i < 2; ++i)
+    {
+        // Render each image to specified texture of SDI output
+        _nv_sdi_output->startRenderingTo(i);
+
+        parameters::stereo_mode_t tmp_stereo_mode =
+                (i == 0 ? dispatch::parameters().sdi_output_left_stereo_mode() :
+                          dispatch::parameters().sdi_output_right_stereo_mode());
+
+        display_current_frame(display_frameno, _nv_sdi_output->width(), _nv_sdi_output->height(), tmp_stereo_mode);
+
+        _nv_sdi_output->stopRenderingTo();
+        assert(xglCheckError(HERE));
+    }
+
+    assert(xglCheckError(HERE));
+
+    // Display both textures on SDI output
+    _nv_sdi_output->sendTextures();
+    assert(xglCheckError(HERE));
+}
+#endif // HAVE_LIBXNVCTRL
+
 void video_output::display_current_frame(
         int64_t display_frameno,
         bool keep_viewport, bool mono_right_instead_of_left,
         float x, float y, float w, float h,
         const GLint viewport[2][4],
-        const float tex_coords[2][4][2])
+        const float tex_coords[2][4][2],
+        int dst_width, int dst_height,
+        parameters::stereo_mode_t stereo_mode)
 {
     clear();
     const video_frame &frame = _frame[_active_index];
@@ -1145,6 +1203,7 @@ void video_output::display_current_frame(
     */
 
     _params = dispatch::parameters();
+    _params.set_stereo_mode(stereo_mode);
     bool context_needs_stereo = (_params.stereo_mode() == parameters::mode_stereo);
     if (context_needs_stereo != context_is_stereo())
     {
@@ -1160,9 +1219,11 @@ void video_output::display_current_frame(
                 || _render_last_params.crop_aspect_ratio() < _params.crop_aspect_ratio()
                 || _render_last_params.crop_aspect_ratio() > _params.crop_aspect_ratio()
                 || _render_last_params.zoom() < _params.zoom()
-                || _render_last_params.zoom() > _params.zoom()))
+                || _render_last_params.zoom() > _params.zoom()
+                || video_display_width() != dst_width
+                || video_display_height() != dst_height))
     {
-        reshape(width(), height());
+        reshape(dst_width, dst_height);
     }
     assert(xglCheckError(HERE));
     if (!_color_prg || !color_is_compatible(frame))

@@ -7,6 +7,7 @@
  * Joe <cuchac@email.cz>
  * Daniel Schaal <farbing@web.de>
  * D. Matz <bandregent@yahoo.de>
+ * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,6 +80,11 @@
 #include "dbg.h"
 #include "msg.h"
 #include "str.h"
+
+#if HAVE_LIBXNVCTRL
+#  include "NVCtrl.h"
+#  include "NvSDIutils.h"
+#endif // HAVE_LIBXNVCTRL
 
 // for autoconf < 2.65:
 #ifndef PACKAGE_URL
@@ -2055,6 +2061,486 @@ void video_dialog::receive_notification(const notification &note)
     }
 }
 
+
+sdi_output_dialog::sdi_output_dialog(QWidget *parent) : QDialog(parent),
+    _lock(false)
+{
+#if HAVE_LIBXNVCTRL
+
+    setModal(false);
+    setWindowTitle(_("SDI Output Settings"));
+
+    QLabel *sdi_output_format_label = new QLabel(_("SDI Output Format:"));
+    sdi_output_format_label->setToolTip(_("<p>Select output format used for SDI output.</p>"));
+    _sdi_output_format_combobox = new QComboBox();
+    _sdi_output_format_combobox->setToolTip(sdi_output_format_label->toolTip());
+    for (int i=NV_CTRL_GVIO_VIDEO_FORMAT_487I_59_94_SMPTE259_NTSC; i < NV_CTRL_GVIO_VIDEO_FORMAT_2048I_47_96_SMPTE372+1; ++i) {
+        _sdi_output_format_combobox->addItem(decodeSignalFormat(i));
+    }
+    connect(_sdi_output_format_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(sdi_output_format_changed(int)));
+
+    QLabel *sdi_output_left_stereo_mode_label = new QLabel(_("Left stereo mode:"));
+    sdi_output_left_stereo_mode_label->setToolTip(_("<p>Select stereo mode used for left SDI output.</p>"));
+    _sdi_output_left_stereo_mode_combobox = new QComboBox();
+    _sdi_output_left_stereo_mode_combobox->setToolTip(sdi_output_left_stereo_mode_label->toolTip());
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-mono-left.png"), _("Left view"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-mono-right.png"), _("Right view"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-top-bottom.png"), _("Top/bottom"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-top-bottom-half.png"), _("Top/bottom, half height"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-left-right.png"), _("Left/right"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-left-right-half.png"), _("Left/right, half width"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-even-odd-rows.png"), _("Even/odd rows"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-even-odd-columns.png"), _("Even/odd columns"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-checkerboard.png"), _("Checkerboard pattern"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, monochrome method"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, half-color method"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, full-color method"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, high-quality Dubois method"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, monochrome method"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, half-color method"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, full-color method"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, high-quality Dubois method"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, monochrome method"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, half-color method"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, full-color method"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, high-quality Dubois method"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-red-green.png"), _("Red/green glasses, monochrome method"));
+    _sdi_output_left_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-red-blue.png"), _("Red/blue glasses, monochrome method"));
+    connect(_sdi_output_left_stereo_mode_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(sdi_output_left_stereo_mode_changed(int)));
+
+    QLabel *sdi_output_right_stereo_mode_label = new QLabel(_("Right stereo mode:"));
+    sdi_output_right_stereo_mode_label->setToolTip(_("<p>Select stereo mode used for right SDI output.</p>"));
+    _sdi_output_right_stereo_mode_combobox = new QComboBox();
+    _sdi_output_right_stereo_mode_combobox->setToolTip(sdi_output_right_stereo_mode_label->toolTip());
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-mono-left.png"), _("Left view"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-mono-right.png"), _("Right view"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-top-bottom.png"), _("Top/bottom"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-top-bottom-half.png"), _("Top/bottom, half height"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-left-right.png"), _("Left/right"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-left-right-half.png"), _("Left/right, half width"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-even-odd-rows.png"), _("Even/odd rows"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-even-odd-columns.png"), _("Even/odd columns"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-checkerboard.png"), _("Checkerboard pattern"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, monochrome method"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, half-color method"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, full-color method"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, high-quality Dubois method"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, monochrome method"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, half-color method"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, full-color method"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, high-quality Dubois method"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, monochrome method"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, half-color method"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, full-color method"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, high-quality Dubois method"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-red-green.png"), _("Red/green glasses, monochrome method"));
+    _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-red-blue.png"), _("Red/blue glasses, monochrome method"));
+    connect(_sdi_output_right_stereo_mode_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(sdi_output_right_stereo_mode_changed(int)));
+
+    QPushButton *ok_button = new QPushButton(_("OK"));
+    ok_button->setDefault(true);
+    connect(ok_button, SIGNAL(clicked()), this, SLOT(close()));
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(sdi_output_format_label, 0, 0);
+    layout->addWidget(_sdi_output_format_combobox, 0, 1, 1, 1);
+    layout->addWidget(sdi_output_left_stereo_mode_label, 1, 0);
+    layout->addWidget(_sdi_output_left_stereo_mode_combobox, 1, 1);
+    layout->addWidget(sdi_output_right_stereo_mode_label, 2, 0);
+    layout->addWidget(_sdi_output_right_stereo_mode_combobox, 2, 1);
+    layout->addWidget(ok_button, 3, 0, 1, 2);
+    setLayout(layout);
+
+    update();
+#endif // HAVE_LIBXNVCTRL
+}
+
+void sdi_output_dialog::update()
+{
+#if HAVE_LIBXNVCTRL
+    _lock = true;
+    set_sdi_output_format(dispatch::parameters().sdi_output_format());
+    set_sdi_output_left_stereo_mode(dispatch::parameters().sdi_output_left_stereo_mode());
+    set_sdi_output_right_stereo_mode(dispatch::parameters().sdi_output_right_stereo_mode());
+    _lock = false;
+#endif // HAVE_LIBXNVCTRL
+}
+
+void sdi_output_dialog::set_sdi_output_format(int val)
+{
+#if HAVE_LIBXNVCTRL
+    _sdi_output_format_combobox->setCurrentIndex(val-1);
+#else
+    (void)val;
+#endif // HAVE_LIBXNVCTRL
+}
+
+void sdi_output_dialog::set_sdi_output_left_stereo_mode(parameters::stereo_mode_t stereo_mode)
+{
+#if HAVE_LIBXNVCTRL
+    switch (stereo_mode)
+    {
+    default:
+    case parameters::mode_mono_left:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(0);
+        break;
+    case parameters::mode_mono_right:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(1);
+        break;
+    case parameters::mode_top_bottom:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(2);
+        break;
+    case parameters::mode_top_bottom_half:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(3);
+        break;
+    case parameters::mode_left_right:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(4);
+        break;
+    case parameters::mode_left_right_half:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(5);
+        break;
+    case parameters::mode_even_odd_rows:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(6);
+        break;
+    case parameters::mode_even_odd_columns:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(7);
+        break;
+    case parameters::mode_checkerboard:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(8);
+        break;
+    case parameters::mode_red_cyan_monochrome:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(9);
+        break;
+    case parameters::mode_red_cyan_half_color:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(10);
+        break;
+    case parameters::mode_red_cyan_full_color:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(11);
+        break;
+    case parameters::mode_red_cyan_dubois:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(12);
+        break;
+    case parameters::mode_green_magenta_monochrome:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(13);
+        break;
+    case parameters::mode_green_magenta_half_color:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(14);
+        break;
+    case parameters::mode_green_magenta_full_color:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(15);
+        break;
+    case parameters::mode_green_magenta_dubois:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(16);
+        break;
+    case parameters::mode_amber_blue_monochrome:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(17);
+        break;
+    case parameters::mode_amber_blue_half_color:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(18);
+        break;
+    case parameters::mode_amber_blue_full_color:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(19);
+        break;
+    case parameters::mode_amber_blue_dubois:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(20);
+        break;
+    case parameters::mode_red_green_monochrome:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(21);
+        break;
+    case parameters::mode_red_blue_monochrome:
+        _sdi_output_left_stereo_mode_combobox->setCurrentIndex(22);
+        break;
+    }
+#else
+    (void)stereo_mode;
+#endif // HAVE_LIBXNVCTRL
+}
+
+void sdi_output_dialog::set_sdi_output_right_stereo_mode(parameters::stereo_mode_t stereo_mode)
+{
+#if HAVE_LIBXNVCTRL
+    switch (stereo_mode)
+    {
+    default:
+    case parameters::mode_mono_left:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(0);
+        break;
+    case parameters::mode_mono_right:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(1);
+        break;
+    case parameters::mode_top_bottom:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(2);
+        break;
+    case parameters::mode_top_bottom_half:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(3);
+        break;
+    case parameters::mode_left_right:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(4);
+        break;
+    case parameters::mode_left_right_half:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(5);
+        break;
+    case parameters::mode_even_odd_rows:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(6);
+        break;
+    case parameters::mode_even_odd_columns:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(7);
+        break;
+    case parameters::mode_checkerboard:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(8);
+        break;
+    case parameters::mode_red_cyan_monochrome:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(9);
+        break;
+    case parameters::mode_red_cyan_half_color:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(10);
+        break;
+    case parameters::mode_red_cyan_full_color:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(11);
+        break;
+    case parameters::mode_red_cyan_dubois:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(12);
+        break;
+    case parameters::mode_green_magenta_monochrome:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(13);
+        break;
+    case parameters::mode_green_magenta_half_color:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(14);
+        break;
+    case parameters::mode_green_magenta_full_color:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(15);
+        break;
+    case parameters::mode_green_magenta_dubois:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(16);
+        break;
+    case parameters::mode_amber_blue_monochrome:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(17);
+        break;
+    case parameters::mode_amber_blue_half_color:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(18);
+        break;
+    case parameters::mode_amber_blue_full_color:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(19);
+        break;
+    case parameters::mode_amber_blue_dubois:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(20);
+        break;
+    case parameters::mode_red_green_monochrome:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(21);
+        break;
+    case parameters::mode_red_blue_monochrome:
+        _sdi_output_right_stereo_mode_combobox->setCurrentIndex(22);
+        break;
+    }
+#else
+    (void)stereo_mode;
+#endif // HAVE_LIBXNVCTRL
+}
+
+void sdi_output_dialog::sdi_output_format_changed(int val)
+{
+#if HAVE_LIBXNVCTRL
+    if (!_lock)
+        send_cmd(command::set_sdi_output_format, val+1);
+#else
+    (void)val;
+#endif // HAVE_LIBXNVCTRL
+}
+
+void sdi_output_dialog::sdi_output_left_stereo_mode_changed(int val)
+{
+#if HAVE_LIBXNVCTRL
+    parameters::stereo_mode_t stereo_mode;
+
+    switch (val)
+    {
+    case 0:
+        stereo_mode = parameters::mode_mono_left;
+        break;
+    case 1:
+        stereo_mode = parameters::mode_mono_right;
+        break;
+    case 2:
+        stereo_mode = parameters::mode_top_bottom;
+        break;
+    case 3:
+        stereo_mode = parameters::mode_top_bottom_half;
+        break;
+    case 4:
+        stereo_mode = parameters::mode_left_right;
+        break;
+    case 5:
+        stereo_mode = parameters::mode_left_right_half;
+        break;
+    case 6:
+        stereo_mode = parameters::mode_even_odd_rows;
+        break;
+    case 7:
+        stereo_mode = parameters::mode_even_odd_columns;
+        break;
+    case 8:
+        stereo_mode = parameters::mode_checkerboard;
+        break;
+    case 9:
+        stereo_mode = parameters::mode_red_cyan_monochrome;
+        break;
+    case 10:
+        stereo_mode = parameters::mode_red_cyan_half_color;
+        break;
+    case 11:
+        stereo_mode = parameters::mode_red_cyan_full_color;
+        break;
+    case 12:
+        stereo_mode = parameters::mode_red_cyan_dubois;
+        break;
+    case 13:
+        stereo_mode = parameters::mode_green_magenta_monochrome;
+        break;
+    case 14:
+        stereo_mode = parameters::mode_green_magenta_half_color;
+        break;
+    case 15:
+        stereo_mode = parameters::mode_green_magenta_full_color;
+        break;
+    case 16:
+        stereo_mode = parameters::mode_green_magenta_dubois;
+        break;
+    case 17:
+        stereo_mode = parameters::mode_amber_blue_monochrome;
+        break;
+    case 18:
+        stereo_mode = parameters::mode_amber_blue_half_color;
+        break;
+    case 19:
+        stereo_mode = parameters::mode_amber_blue_full_color;
+        break;
+    case 20:
+        stereo_mode = parameters::mode_amber_blue_dubois;
+        break;
+    case 21:
+        stereo_mode = parameters::mode_red_green_monochrome;
+        break;
+    case 22:
+        stereo_mode = parameters::mode_red_blue_monochrome;
+        break;
+    }
+
+    if (!_lock)
+        send_cmd(command::set_sdi_output_left_stereo_mode, static_cast<int>(stereo_mode));
+#else
+    (void)val;
+#endif // HAVE_LIBXNVCTRL
+}
+
+void sdi_output_dialog::sdi_output_right_stereo_mode_changed(int val)
+{
+#if HAVE_LIBXNVCTRL
+    parameters::stereo_mode_t stereo_mode;
+
+    switch (val)
+    {
+    case 0:
+        stereo_mode = parameters::mode_mono_left;
+        break;
+    case 1:
+        stereo_mode = parameters::mode_mono_right;
+        break;
+    case 2:
+        stereo_mode = parameters::mode_top_bottom;
+        break;
+    case 3:
+        stereo_mode = parameters::mode_top_bottom_half;
+        break;
+    case 4:
+        stereo_mode = parameters::mode_left_right;
+        break;
+    case 5:
+        stereo_mode = parameters::mode_left_right_half;
+        break;
+    case 6:
+        stereo_mode = parameters::mode_even_odd_rows;
+        break;
+    case 7:
+        stereo_mode = parameters::mode_even_odd_columns;
+        break;
+    case 8:
+        stereo_mode = parameters::mode_checkerboard;
+        break;
+    case 9:
+        stereo_mode = parameters::mode_red_cyan_monochrome;
+        break;
+    case 10:
+        stereo_mode = parameters::mode_red_cyan_half_color;
+        break;
+    case 11:
+        stereo_mode = parameters::mode_red_cyan_full_color;
+        break;
+    case 12:
+        stereo_mode = parameters::mode_red_cyan_dubois;
+        break;
+    case 13:
+        stereo_mode = parameters::mode_green_magenta_monochrome;
+        break;
+    case 14:
+        stereo_mode = parameters::mode_green_magenta_half_color;
+        break;
+    case 15:
+        stereo_mode = parameters::mode_green_magenta_full_color;
+        break;
+    case 16:
+        stereo_mode = parameters::mode_green_magenta_dubois;
+        break;
+    case 17:
+        stereo_mode = parameters::mode_amber_blue_monochrome;
+        break;
+    case 18:
+        stereo_mode = parameters::mode_amber_blue_half_color;
+        break;
+    case 19:
+        stereo_mode = parameters::mode_amber_blue_full_color;
+        break;
+    case 20:
+        stereo_mode = parameters::mode_amber_blue_dubois;
+        break;
+    case 21:
+        stereo_mode = parameters::mode_red_green_monochrome;
+        break;
+    case 22:
+        stereo_mode = parameters::mode_red_blue_monochrome;
+        break;
+    }
+
+    if (!_lock)
+        send_cmd(command::set_sdi_output_right_stereo_mode, static_cast<int>(stereo_mode));
+#else
+    (void)val;
+#endif // HAVE_LIBXNVCTRL
+}
+
+void sdi_output_dialog::receive_notification(const notification &note)
+{
+#if HAVE_LIBXNVCTRL
+    switch (note.type)
+    {
+    case notification::sdi_output_format:
+        update();
+        break;
+    case notification::sdi_output_left_stereo_mode:
+        update();
+        break;
+    case notification::sdi_output_right_stereo_mode:
+        update();
+        break;
+    default:
+        /* not handled */
+        break;
+    }
+#else
+    (void)note;
+#endif // HAVE_LIBXNVCTRL
+}
+
+
 open_device_dialog::open_device_dialog(
         const QStringList &default_devices,
         const QStringList &firewire_devices,
@@ -2213,6 +2699,9 @@ main_window::main_window(QSettings *settings) :
     _audio_dialog(NULL),
     _subtitle_dialog(NULL),
     _video_dialog(NULL),
+#if HAVE_LIBXNVCTRL
+    _sdi_output_dialog(NULL),
+#endif // HAVE_LIBXNVCTRL
     _max_recent_files(5)
 {
     // Application properties
@@ -2279,6 +2768,14 @@ main_window::main_window(QSettings *settings) :
             send_cmd(command::set_fullscreen_inhibit_screensaver, session_params.fullscreen_inhibit_screensaver());
         if (!dispatch::parameters().zoom_is_set() && !session_params.zoom_is_default())
             send_cmd(command::set_zoom, session_params.zoom());
+#if HAVE_LIBXNVCTRL
+        if (!dispatch::parameters().sdi_output_format_is_set() && !session_params.sdi_output_format_is_default())
+            send_cmd(command::set_sdi_output_format, session_params.sdi_output_format());
+        if (!dispatch::parameters().sdi_output_left_stereo_mode_is_set() && !session_params.sdi_output_left_stereo_mode_is_default())
+            send_cmd(command::set_sdi_output_left_stereo_mode, session_params.sdi_output_left_stereo_mode());
+        if (!dispatch::parameters().sdi_output_right_stereo_mode_is_set() && !session_params.sdi_output_right_stereo_mode_is_default())
+            send_cmd(command::set_sdi_output_right_stereo_mode, session_params.sdi_output_right_stereo_mode());
+#endif // HAVE_LIBXNVCTRL
     }
     else
     {
@@ -2476,6 +2973,12 @@ main_window::main_window(QSettings *settings) :
     QAction *preferences_video_act = new QAction(_("Current &Video Settings..."), this);
     connect(preferences_video_act, SIGNAL(triggered()), this, SLOT(preferences_video()));
     preferences_menu->addAction(preferences_video_act);
+#if HAVE_LIBXNVCTRL
+    preferences_menu->addSeparator();
+    QAction *preferences_sdi_output_act = new QAction(_("SDI &Output Settings..."), this);
+    connect(preferences_sdi_output_act, SIGNAL(triggered()), this, SLOT(preferences_sdi_output()));
+    preferences_menu->addAction(preferences_sdi_output_act);
+#endif // HAVE_LIBXNVCTRL
     QMenu *help_menu = menuBar()->addMenu(_("&Help"));
     QAction *help_manual_act = new QAction(_("&Manual..."), this);
     help_manual_act->setShortcut(QKeySequence::HelpContents);
@@ -3021,6 +3524,19 @@ void main_window::preferences_video()
     _video_dialog->show();
     _video_dialog->raise();
     _video_dialog->activateWindow();
+}
+
+void main_window::preferences_sdi_output()
+{
+#if HAVE_LIBXNVCTRL
+    if (!_sdi_output_dialog)
+    {
+        _sdi_output_dialog = new sdi_output_dialog(this);
+    }
+    _sdi_output_dialog->show();
+    _sdi_output_dialog->raise();
+    _sdi_output_dialog->activateWindow();
+#endif // HAVE_LIBXNVCTRL
 }
 
 void main_window::help_manual()

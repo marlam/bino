@@ -5,6 +5,7 @@
  * Martin Lambers <marlam@marlam.de>
  * Joe <joe@wpj.cz>
  * D. Matz <bandregent@yahoo.de>
+ * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -183,6 +184,11 @@ public:
     PARAMETER(float, subtitle_scale)          // Scale factor
     PARAMETER(uint64_t, subtitle_color)       // Subtitle color in uint32_t bgra32 format, > UINT32_MAX means keep default
     PARAMETER(int, subtitle_shadow)           // Subtitle shadow, -1 = default, 0 = force off, 1 = force on
+#if HAVE_LIBXNVCTRL
+    PARAMETER(int, sdi_output_format)         // SDI output format
+    PARAMETER(stereo_mode_t, sdi_output_left_stereo_mode)  // SDI output left stereo mode
+    PARAMETER(stereo_mode_t, sdi_output_right_stereo_mode) // SDI output right stereo mode
+#endif // HAVE_LIBXNVCTRL
     // Per-Video parameters
     PARAMETER(int, video_stream)              // Video stream index
     PARAMETER(int, audio_stream)              // Audio stream index, or -1 if there is no audio stream
