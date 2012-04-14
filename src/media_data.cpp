@@ -265,6 +265,31 @@ void parameters::stereo_layout_from_string(const std::string &s, stereo_layout_t
     }
 }
 
+bool parameters::parse_stereo_layout(const std::string& s, stereo_layout_t* stereo_layout)
+{
+    bool ok = true;
+    if (s == "mono") {
+        *stereo_layout = layout_mono;
+    } else if (s == "separate-left-right") {
+        *stereo_layout = layout_separate;
+    } else if (s == "alternating-left-right") {
+        *stereo_layout = layout_alternating;
+    } else if (s == "top-bottom") {
+        *stereo_layout = layout_top_bottom;
+    } else if (s == "top-bottom-half") {
+        *stereo_layout = layout_top_bottom_half;
+    } else if (s == "left-right") {
+        *stereo_layout = layout_left_right;
+    } else if (s == "left-right-half") {
+        *stereo_layout = layout_left_right_half;
+    } else if (s == "even-odd-rows") {
+        *stereo_layout = layout_even_odd_rows;
+    } else {
+        ok = false;
+    }
+    return ok;
+}
+
 std::string parameters::stereo_mode_to_string(stereo_mode_t stereo_mode, bool stereo_mode_swap)
 {
     std::string s;
@@ -364,62 +389,72 @@ void parameters::stereo_mode_from_string(const std::string &s, stereo_mode_t &st
     } else {
         t = s;
         stereo_mode_swap = false;
-    } if (t == "stereo") {
-        stereo_mode = mode_stereo;
-    } else if (t == "alternating") {
-        stereo_mode = mode_alternating;
-    } else if (t == "mono-left") {
-        stereo_mode = mode_mono_left;
-    } else if (t == "mono-right") {
-        stereo_mode = mode_mono_right;
-    } else if (t == "top-bottom") {
-        stereo_mode = mode_top_bottom;
-    } else if (t == "top-bottom-half") {
-        stereo_mode = mode_top_bottom_half;
-    } else if (t == "left-right") {
-        stereo_mode = mode_left_right;
-    } else if (t == "left-right-half") {
-        stereo_mode = mode_left_right_half;
-    } else if (t == "even-odd-rows") {
-        stereo_mode = mode_even_odd_rows;
-    } else if (t == "even-odd-columns") {
-        stereo_mode = mode_even_odd_columns;
-    } else if (t == "checkerboard") {
-        stereo_mode = mode_checkerboard;
-    } else if (t == "hdmi-frame-pack") {
-        stereo_mode = mode_hdmi_frame_pack;
-    } else if (t == "red-cyan-monochrome") {
-        stereo_mode = mode_red_cyan_monochrome;
-    } else if (t == "red-cyan-half-color") {
-        stereo_mode = mode_red_cyan_half_color;
-    } else if (t == "red-cyan-full-color") {
-        stereo_mode = mode_red_cyan_full_color;
-    } else if (t == "red-cyan-dubois") {
-        stereo_mode = mode_red_cyan_dubois;
-    } else if (t == "green-magenta-monochrome") {
-        stereo_mode = mode_green_magenta_monochrome;
-    } else if (t == "green-magenta-half-color") {
-        stereo_mode = mode_green_magenta_half_color;
-    } else if (t == "green-magenta-full-color") {
-        stereo_mode = mode_green_magenta_full_color;
-    } else if (t == "green-magenta-dubois") {
-        stereo_mode = mode_green_magenta_dubois;
-    } else if (t == "amber-blue-monochrome") {
-        stereo_mode = mode_amber_blue_monochrome;
-    } else if (t == "amber-blue-half-color") {
-        stereo_mode = mode_amber_blue_half_color;
-    } else if (t == "amber-blue-full-color") {
-        stereo_mode = mode_amber_blue_full_color;
-    } else if (t == "amber-blue-dubois") {
-        stereo_mode = mode_amber_blue_dubois;
-    } else if (t == "red-green-monochrome") {
-        stereo_mode = mode_red_green_monochrome;
-    } else if (t == "red-blue-monochrome") {
-        stereo_mode = mode_red_blue_monochrome;
-    } else {
+    }
+    if (!parse_stereo_mode(t, &stereo_mode)) {
         // safe fallback
         stereo_mode = mode_mono_left;
     }
+}
+
+bool parameters::parse_stereo_mode(const std::string& s, stereo_mode_t* stereo_mode)
+{
+    bool ok = true;
+    if (s == "stereo") {
+        *stereo_mode = mode_stereo;
+    } else if (s == "alternating") {
+        *stereo_mode = mode_alternating;
+    } else if (s == "mono-left") {
+        *stereo_mode = mode_mono_left;
+    } else if (s == "mono-right") {
+        *stereo_mode = mode_mono_right;
+    } else if (s == "top-bottom") {
+        *stereo_mode = mode_top_bottom;
+    } else if (s == "top-bottom-half") {
+        *stereo_mode = mode_top_bottom_half;
+    } else if (s == "left-right") {
+        *stereo_mode = mode_left_right;
+    } else if (s == "left-right-half") {
+        *stereo_mode = mode_left_right_half;
+    } else if (s == "even-odd-rows") {
+        *stereo_mode = mode_even_odd_rows;
+    } else if (s == "even-odd-columns") {
+        *stereo_mode = mode_even_odd_columns;
+    } else if (s == "checkerboard") {
+        *stereo_mode = mode_checkerboard;
+    } else if (s == "hdmi-frame-pack") {
+        *stereo_mode = mode_hdmi_frame_pack;
+    } else if (s == "red-cyan-monochrome") {
+        *stereo_mode = mode_red_cyan_monochrome;
+    } else if (s == "red-cyan-half-color") {
+        *stereo_mode = mode_red_cyan_half_color;
+    } else if (s == "red-cyan-full-color") {
+        *stereo_mode = mode_red_cyan_full_color;
+    } else if (s == "red-cyan-dubois") {
+        *stereo_mode = mode_red_cyan_dubois;
+    } else if (s == "green-magenta-monochrome") {
+        *stereo_mode = mode_green_magenta_monochrome;
+    } else if (s == "green-magenta-half-color") {
+        *stereo_mode = mode_green_magenta_half_color;
+    } else if (s == "green-magenta-full-color") {
+        *stereo_mode = mode_green_magenta_full_color;
+    } else if (s == "green-magenta-dubois") {
+        *stereo_mode = mode_green_magenta_dubois;
+    } else if (s == "amber-blue-monochrome") {
+        *stereo_mode = mode_amber_blue_monochrome;
+    } else if (s == "amber-blue-half-color") {
+        *stereo_mode = mode_amber_blue_half_color;
+    } else if (s == "amber-blue-full-color") {
+        *stereo_mode = mode_amber_blue_full_color;
+    } else if (s == "amber-blue-dubois") {
+        *stereo_mode = mode_amber_blue_dubois;
+    } else if (s == "red-green-monochrome") {
+        *stereo_mode = mode_red_green_monochrome;
+    } else if (s == "red-blue-monochrome") {
+        *stereo_mode = mode_red_blue_monochrome;
+    } else {
+        ok = false;
+    }
+    return ok;
 }
 
 std::string parameters::loop_mode_to_string(loop_mode_t loop_mode)

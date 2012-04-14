@@ -8,12 +8,13 @@ New in the next stable version:
 - Support for high precision color input and output (30 bits per pixel).
 - Better audio/video synchronization.
 - Support for single-frame stepping.
-- Support for a "Recent Files" section in the File menu.
 - Support for multimedia keyboards.
 - Support for graphics cards that cannot render into SRGB textures.
 - Support for opening multiple input devices.
 - Support for requesting MJPEG data from input devices.
 - Support for video output via SDI on NVIDIA Quadro cards.
+- Support for a "Recent Files" section in the File menu.
+- Full support for scripting.
 - Various user interface tweaks.
 
 New in version 1.2.0:

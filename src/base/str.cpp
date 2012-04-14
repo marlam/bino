@@ -151,6 +151,37 @@ namespace str
         }
     }
 
+    /* Parse a string into tokens */
+
+    std::vector<std::string> tokens(const std::string &s, const std::string &delimiters)
+    {
+        std::vector<std::string> t;
+        size_t index = 0;
+        for (;;)
+        {
+            size_t start = s.find_first_not_of(delimiters, index);
+            if (start != std::string::npos)
+            {
+                size_t end = s.find_first_of(delimiters, start);
+                if (end == std::string::npos)
+                {
+                    t.push_back(s.substr(start));
+                    break;
+                }
+                else
+                {
+                    t.push_back(s.substr(start, end - start));
+                    index = end;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+        return t;
+    }
+
     /* Create std::strings from all basic data types */
 
     std::string from(bool x)

@@ -26,6 +26,7 @@
 #define STR_H
 
 #include <string>
+#include <vector>
 #include <cstdarg>
 #include <cerrno>
 #include <stdint.h>
@@ -45,6 +46,9 @@ namespace str
 
     /* Trim a string (remove whitespace from both ends) */
     std::string trim(const std::string &s);
+
+    /* Parse a string into tokens separated by one of the characters in 'delimiters'. */
+    std::vector<std::string> tokens(const std::string &s, const std::string &delimiters);
 
     /* Create std::strings from all basic data types */
     std::string from(bool x);

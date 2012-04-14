@@ -59,6 +59,7 @@
 #if HAVE_LIBEQUALIZER
 # include "player_equalizer.h"
 #endif
+#include "command_file.h"
 #if HAVE_LIBLIRCCLIENT
 # include "lirc.h"
 #endif
@@ -243,6 +244,8 @@ int main(int argc, char *argv[])
     device_formats.push_back("mjpeg");
     opt::val<std::string> device_format("device-format", '\0', opt::optional, device_formats, "");
     options.push_back(&device_format);
+    opt::val<std::string> read_commands("read-commands", '\0', opt::optional);
+    options.push_back(&read_commands);
     opt::val<std::string> lirc_config("lirc-config", '\0', opt::optional);
     options.push_back(&lirc_config);
     std::vector<std::string> input_modes;
@@ -269,36 +272,7 @@ int main(int argc, char *argv[])
     options.push_back(&audio);
     opt::val<int> subtitle("subtitle", 's', opt::optional, 0, 999, 0);
     options.push_back(&subtitle);
-    std::vector<std::string> video_output_modes;
-    video_output_modes.push_back("stereo");
-    video_output_modes.push_back("alternating");
-    video_output_modes.push_back("mono-left");
-    video_output_modes.push_back("mono-right");
-    video_output_modes.push_back("top-bottom");
-    video_output_modes.push_back("top-bottom-half");
-    video_output_modes.push_back("left-right");
-    video_output_modes.push_back("left-right-half");
-    video_output_modes.push_back("even-odd-rows");
-    video_output_modes.push_back("even-odd-columns");
-    video_output_modes.push_back("checkerboard");
-    video_output_modes.push_back("hdmi-frame-pack");
-    video_output_modes.push_back("red-cyan-monochrome");
-    video_output_modes.push_back("red-cyan-half-color");
-    video_output_modes.push_back("red-cyan-full-color");
-    video_output_modes.push_back("red-cyan-dubois");
-    video_output_modes.push_back("green-magenta-monochrome");
-    video_output_modes.push_back("green-magenta-half-color");
-    video_output_modes.push_back("green-magenta-full-color");
-    video_output_modes.push_back("green-magenta-dubois");
-    video_output_modes.push_back("amber-blue-monochrome");
-    video_output_modes.push_back("amber-blue-half-color");
-    video_output_modes.push_back("amber-blue-full-color");
-    video_output_modes.push_back("amber-blue-dubois");
-    video_output_modes.push_back("red-green-monochrome");
-    video_output_modes.push_back("red-blue-monochrome");
-    video_output_modes.push_back("equalizer");
-    video_output_modes.push_back("equalizer-3d");
-    opt::val<std::string> video_output_mode("output", 'o', opt::optional, video_output_modes, "");
+    opt::val<std::string> video_output_mode("output", 'o', opt::optional);
     options.push_back(&video_output_mode);
     opt::flag swap_eyes("swap-eyes", 'S', opt::optional);
     options.push_back(&swap_eyes);
@@ -430,7 +404,8 @@ int main(int argc, char *argv[])
                 + "  --device-type=TYPE       " + _("Type of input device: default, firewire, x11.") + '\n'
                 + "  --device-frame-size=WxH  " + _("Request frame size WxH from input device.") + '\n'
                 + "  --device-frame-rate=N/D  " + _("Request frame rate N/D from input device.") + '\n'
-                + "  --device-format=FORMAT   " + _("Request device format 'default' or 'mjpeg'.")
+                + "  --device-format=FORMAT   " + _("Request device format 'default' or 'mjpeg'.") + '\n'
+                + "  --read-commands=FILE     " + _("Read commands from a file.") + '\n'
                 + "  --lirc-config=FILE       " + _("Use the given LIRC configuration file.") + '\n'
                 + "                           " + _("This option can be used more than once.") + '\n'
                 + "  -v|--video=STREAM        " + _("Select video stream (1-n, depending on input).") + '\n'
@@ -619,18 +594,16 @@ int main(int argc, char *argv[])
     if (audio_device.is_set())
         controller::send_cmd(command::set_audio_device, audio_device.value() - 1);
     if (video_output_mode.is_set()) {
+        parameters::stereo_mode_t stereo_mode;
         if (video_output_mode.value() == "equalizer") {
             controller::send_cmd(command::set_stereo_mode, static_cast<int>(parameters::mode_mono_left));
-            controller::send_cmd(command::set_stereo_mode_swap, false);
         } else if (video_output_mode.value() == "equalizer-3d") {
             controller::send_cmd(command::set_stereo_mode, static_cast<int>(parameters::mode_mono_left));
-            controller::send_cmd(command::set_stereo_mode_swap, false);
-        } else {
-            parameters::stereo_mode_t stereo_mode;
-            bool stereo_mode_swap;
-            parameters::stereo_mode_from_string(video_output_mode.value(), stereo_mode, stereo_mode_swap);
+        } else if (parameters::parse_stereo_mode(video_output_mode.value(), &stereo_mode)) {
             controller::send_cmd(command::set_stereo_mode, static_cast<int>(stereo_mode));
-            controller::send_cmd(command::set_stereo_mode_swap, stereo_mode_swap);
+        } else {
+            msg::err(_("Unknown mode %s."), video_output_mode.value().c_str());
+            return 1;
         }
     }
     if (swap_eyes.is_set())
@@ -743,8 +716,12 @@ int main(int argc, char *argv[])
         input_data.params.set_subtitle_parallax(subtitle_parallax.value());
 
     int retval = 0;
+    std::vector<command_file*> command_files;
     try {
-        global_dispatch.init(input_data);
+        for (size_t i = 0; i < read_commands.values().size(); i++) {
+            command_files.push_back(new command_file(read_commands.values()[i]));
+            command_files[i]->init();
+        }
 #if HAVE_LIBLIRCCLIENT
         lircclient lirc(PACKAGE, lirc_config.values());
         try {
@@ -758,6 +735,7 @@ int main(int argc, char *argv[])
             msg::wrn(_("This version of Bino was compiled without support for LIRC."));
         }
 #endif
+        global_dispatch.init(input_data);
         if (dispatch_equalizer) {
 #if HAVE_LIBEQUALIZER
             player_equalizer::mainloop();
@@ -777,6 +755,8 @@ int main(int argc, char *argv[])
         retval = 1;
     }
 
+    for (size_t i = 0; i < command_files.size(); i++)
+        delete command_files[i];
     delete qt_app;
 
     return retval;

@@ -100,7 +100,7 @@ public:
      * Only a single player instance can exist. The constructor throws an
      * exception if and only if it detects that this instance already exists. */
     player();
-    ~player();
+    virtual ~player();
 
     /* Open a player. */
     virtual void open();

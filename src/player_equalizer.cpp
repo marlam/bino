@@ -58,6 +58,7 @@
  */
 
 extern dispatch* global_dispatch;
+static player_equalizer* global_player_equalizer = NULL;
 
 /*
  * player_eq_node
@@ -459,7 +460,7 @@ public:
         // Run player steps until we are told to do something
         bool more_steps;
         do {
-            global_dispatch->get_player()->step(&more_steps, &_eq_frame_data.seek_to,
+            global_player_equalizer->step(&more_steps, &_eq_frame_data.seek_to,
                     &_eq_frame_data.prep_frame, &_eq_frame_data.drop_frame, &_eq_frame_data.display_frame);
             dispatch::process_all_events();
         }
@@ -469,12 +470,12 @@ public:
                 && !_eq_frame_data.drop_frame
                 && !_eq_frame_data.display_frame
                 && !dispatch::pausing());
-        if (!more_steps)
-        {
+        if (isRunning() && !more_steps)
             this->exit();
-        }
+        if (!isRunning())
+            return 0;
         // Update the video state for all (it might have changed via handleEvent())
-        _eq_frame_data.subtitle = global_dispatch->get_player()->get_subtitle_box();
+        _eq_frame_data.subtitle = global_player_equalizer->get_subtitle_box();
         _eq_frame_data.dispatch_state = global_dispatch->save_state();
         // Find region of canvas to use, depending on the video aspect ratio and zoom level
         float aspect_ratio = dispatch::media_input()->video_frame_template().aspect_ratio;
@@ -878,7 +879,7 @@ public:
     const video_frame &get_video_frame()
     {
         if (_is_app_node)
-            return global_dispatch->get_player()->get_video_frame();
+            return global_player_equalizer->get_video_frame();
         else
             return _player.get_video_frame();
     }
@@ -1090,8 +1091,6 @@ public:
  * player_equalizer
  */
 
-static player_equalizer* global_player_equalizer = NULL;
-
 player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen) :
     player(), _flat_screen(flat_screen)
 {
@@ -1116,6 +1115,9 @@ player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen) :
 
 player_equalizer::~player_equalizer()
 {
+    eq::releaseConfig(_config);
+    eq::exit();
+    exitErrors();
     delete _node_factory;
     global_player_equalizer = NULL;
 }
@@ -1128,20 +1130,44 @@ void player_equalizer::open()
     }
 }
 
+static bool global_quit_request;
+static bool global_delete_request;
+
 void player_equalizer::close()
 {
     _config->exit();
-    eq::releaseConfig(_config);
-    eq::exit();
-    exitErrors();
+    global_delete_request = true;
 }
+
+class eq_quit_controller : public controller
+{
+    virtual void receive_notification(const notification& note)
+    {
+        if (note.type == notification::quit)
+            global_quit_request = true;
+    }
+};
 
 void player_equalizer::mainloop()
 {
-    assert(global_player_equalizer);
-    eq_config* config = global_player_equalizer->_config;
-    while (config->isRunning()) {
-        config->startFrame();
-        config->finishFrame();
+    global_quit_request = false;
+    global_delete_request = false;
+    eq_quit_controller qc;
+    for (;;) {
+        dispatch::step();
+        dispatch::process_all_events();
+        if (global_quit_request) {
+            return;
+        }
+        if (global_player_equalizer) {
+            eq_config* config = global_player_equalizer->_config;
+            while (config->isRunning()) {
+                config->startFrame();
+                config->finishFrame();
+            }
+            if (global_delete_request) {
+                delete global_player_equalizer;
+            }
+        }
     }
 }

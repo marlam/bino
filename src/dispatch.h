@@ -79,6 +79,7 @@ public:
     enum type
     {
         noop,                           // no parameters
+        quit,                           // no parameters
         // Play state
         open,                           // open_input_data
         close,                          // no parameters
@@ -99,16 +100,16 @@ public:
         set_fullscreen_flip_right,      // bool
         set_fullscreen_flop_right,      // bool
         set_fullscreen_inhibit_screensaver,     // bool
-        adjust_contrast,                // float (relative adjustment)
         set_contrast,                   // float (absolute value)
-        adjust_brightness,              // float (relative adjustment)
+        adjust_contrast,                // float (relative adjustment)
         set_brightness,                 // float (absolute value)
-        adjust_hue,                     // float (relative adjustment)
+        adjust_brightness,              // float (relative adjustment)
         set_hue,                        // float (absolute value)
-        adjust_saturation,              // float (relative adjustment)
+        adjust_hue,                     // float (relative adjustment)
         set_saturation,                 // float (absolute value)
-        adjust_zoom,                    // float (relative adjustment)
+        adjust_saturation,              // float (relative adjustment)
         set_zoom,                       // float (absolute value)
+        adjust_zoom,                    // float (relative adjustment)
         set_loop_mode,                  // parameters::loop_mode_t
         set_audio_delay,                // float (absolute value)
         set_subtitle_encoding,          // string (encoding name)
@@ -123,26 +124,26 @@ public:
         set_sdi_output_right_stereo_mode, // parameters::stereo_mode_t
 #endif // HAVE_LIBXNVCTRL
         // Per-Video parameters
-        cycle_video_stream,             // no parameters
         set_video_stream,               // int
-        cycle_audio_stream,             // no parameters
+        cycle_video_stream,             // no parameters
         set_audio_stream,               // int
-        cycle_subtitle_stream,          // no parameters
+        cycle_audio_stream,             // no parameters
         set_subtitle_stream,            // int
+        cycle_subtitle_stream,          // no parameters
         set_stereo_layout,              // video_frame::stereo_layout
         set_stereo_layout_swap,         // bool
         set_crop_aspect_ratio,          // float
-        adjust_parallax,                // float (relative adjustment)
         set_parallax,                   // float (absolute value)
-        adjust_ghostbust,               // float (relative adjustment)
+        adjust_parallax,                // float (relative adjustment)
         set_ghostbust,                  // float (absolute value)
-        adjust_subtitle_parallax,       // float (relative adjustment)
+        adjust_ghostbust,               // float (relative adjustment)
         set_subtitle_parallax,          // float (absolute value)
+        adjust_subtitle_parallax,       // float (relative adjustment)
         // Volatile parameters
         toggle_fullscreen,              // no parameters
         center,                         // no parameters
-        adjust_audio_volume,            // float (relative adjustment)
         set_audio_volume,               // float (absolute value)
+        adjust_audio_volume,            // float (relative adjustment)
         toggle_audio_mute,              // no parameters
     };
     
@@ -291,6 +292,12 @@ public:
     /* The controller is asked to process events via this function. The default
      * implementation simply does nothing. */
     virtual void process_events();
+
+    /* The controller can prevent Bino from exiting when there is no video
+     * to play. In this case, the following function should return 'false'.
+     * This is intended to be used for controllers that might send another
+     * 'open' command in the future. */
+    virtual bool allow_early_quit();
 };
 
 // The dispatch (singleton).
@@ -322,8 +329,9 @@ private:
     bool _pausing;
     float _position;
 
-    void force_stop();
+    void force_stop(bool reopen_media_input = true);
 
+    bool early_quit_is_allowed() const;
     void visit_all_controllers(int action, const notification& note) const;
     void notify_all(const notification& note);
 
@@ -367,9 +375,12 @@ public:
 
     /* Interface for Equalizer. */
     class open_input_data* get_input_data();
-    class player* get_player();
     std::string save_state() const;
     void load_state(const std::string& s);
+
+    /* Helper function for text-based controllers: parse a command from a string.
+     * Return false if this fails, otherwise store the command in c. */
+    static bool parse_command(const std::string& s, command* c);
 };
 
 #endif

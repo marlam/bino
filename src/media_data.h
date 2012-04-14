@@ -82,6 +82,7 @@ public:
     // Convert the stereo layout to and from a string representation
     static std::string stereo_layout_to_string(stereo_layout_t stereo_layout, bool stereo_layout_swap);
     static void stereo_layout_from_string(const std::string &s, stereo_layout_t &stereo_layout, bool &stereo_layout_swap);
+    static bool parse_stereo_layout(const std::string& s, stereo_layout_t* stereo_layout);
 
     // Stereo mode: the output mode for left and right view
     typedef enum {
@@ -116,6 +117,7 @@ public:
     // Convert the stereo mode to and from a string representation
     static std::string stereo_mode_to_string(stereo_mode_t stereo_mode, bool stereo_mode_swap);
     static void stereo_mode_from_string(const std::string &s, stereo_mode_t &stereo_mode, bool &stereo_mode_swap);
+    static bool parse_stereo_mode(const std::string& s, stereo_mode_t* stereo_mode);
 
     typedef enum {
         no_loop,                        // Do not loop.

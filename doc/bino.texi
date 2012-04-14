@@ -58,6 +58,7 @@ Short Contents:
 * Input Layouts::
 * Output Techniques::
 * Interactive Control::
+* Scripting::
 * Camera Devices::
 @end menu
 @ifhtml
@@ -135,6 +136,8 @@ If the input is a device, request the given frame size, e.g. 640x480.
 If the input is a device, request the given frame rate, e.g. 25/1.
 @item --device-format=@var{FORMAT}
 Request format @var{default} or @var{mjpeg} from device.
+@item --read-commands=@var{FILE}
+Read commands from file. @xref{Scripting}.
 @item --lirc-config=@var{FILE}
 Use the given LIRC configuration file. This option can be used more than once.
 @item -v
@@ -232,6 +235,7 @@ the file name. @xref{File Name Conventions}. If that fails, too, Bino guesses
 based on the resolution of the input.
 
 @section Supported Input Layouts
+@anchor{Supported Input Layouts}
 
 @table @var
 @item mono
@@ -376,6 +380,7 @@ The default output technique for stereoscopic 3D input is OpenGL quad buffered
 stereo if the graphics card supports it, otherwise red/cyan anaglyph glasses.
 
 @section Supported Output Techniques
+@anchor{Supported Output Techniques}
 
 @table @var
 @item stereo
@@ -916,52 +921,8 @@ configuration file usually is @code{~/.lircrc}. You can use the
 @samp{--lirc-config} option to use one or more custom LIRC configuration files
 instead.
 
-The following commands are available:
-
-@table @samp
-@item play
-Start playback, or exit pause mode.
-@item pause
-When playing, go into pause mode.
-@item stop
-Stop playback.
-@item cycle-video-stream
-Cycle through available video streams.
-@item cycle-audio-stream
-Cycle through available audio streams.
-@item cycle-subtitle-stream
-Cycle through available subtitle streams.
-@item toggle-stereo-mode-swap
-Swap left/right eye.
-@item toggle-fullscreen
-Toggle fullscreen.
-@item center
-Center window.
-@item adjust-zoom @var{delta}
-Adjust zoom for wide videos by adding @var{delta}, e.g. -0.1 or +0.1.
-@item adjust-contrast @var{delta}
-Adjust contrast by adding @var{delta}, e.g. -0.05 or +0.05.
-@item adjust-brightness @var{delta}
-Adjust brightness by adding @var{delta}, e.g. -0.05 or +0.05.
-@item adjust-hue @var{delta}
-Adjust hue by adding @var{delta}, e.g. -0.05 or +0.05.
-@item adjust-saturation @var{delta}
-Adjust saturation by adding @var{delta}, e.g. -0.05 or +0.05.
-@item adjust-parallax @var{delta}
-Adjust parallax by adding @var{delta}, e.g. -0.01 or +0.01.
-@item adjust-subtitle-parallax @var{delta}
-Adjust contrast by adding @var{delta}, e.g. -0.01 or +0.01.
-@item seek @var{delta}
-Seek by the given number of seconds relative to the current position.  For
-example -60.0 seeks backwards one minute, and +60.0 seeks forward one minute.
-@item set-pos @var{pos}
-Seek by setting an absolute position in the stream, with @var{pos} between 0 and
-1. For example, to seek to the middle of the video, use 0.5.
-@item adjust-audio-volume @var{delta}
-Adjust audio volume by adding @var{delta}, e.g. -0.05 or +0.05.
-@item toggle-audio-mute
-Toggle audio mute.
-@end table
+The available commands are the same commands that are available for scripting.
+@xref{Script Commands}.
 
 Example LIRC configuration file excerpt:
 @example
@@ -972,6 +933,190 @@ begin
   config = adjust-brightness +0.05
 end
 @end example
+
+
+@node Scripting
+@chapter Scripting
+
+Bino can read commands from one or multiple script files. Use the @samp{--read-commands}
+option to specify script files.
+
+Available script commands are listed below. @xref{Script Commands}.
+
+A script file can be a standard text file, but it can also be a named pipe,
+which allows other programs or scripts to submit commands to Bino as they see
+fit.
+
+@example
+$ mkfifo ~/bino-command-fifo
+$ bino --read-commands ~/bino-command-fifo &
+
+$ echo 'set-contrast 0.1' > ~/bino-command-fifo
+$ ...
+@end example
+
+Using the @samp{netcat} utility, this also works over the network.
+
+@example
+$ mkfifo ~/bino-command-fifo
+$ bino --read-commands ~/bino-command-fifo &
+
+$ nc -l 1234 > ~/bino-command-fifo &
+$ telnet localhost 1234
+set-contrast 0.1
+...
+@end example
+
+
+@section Script Commands
+@anchor{Script Commands}
+
+One script line defines exactly one script command.  Empty lines or lines
+starting with the @samp{#} character are comment lines and define the
+@samp{noop} command, which has no effect.
+
+@table @samp
+@item noop
+This command has no effect.
+@item quit
+Quit the application.
+@item open [@var{option}@dots{}] @var{file}@dots{}
+Open the given files.@*
+You can use percent-encoding to encode special characters.
+See @url{http://en.wikipedia.org/wiki/Percent_encoding}.
+Use this if the file names contain whitespace.@*
+To open devices, the following options are available, analogous to the command
+line options with the same name:
+	@table @samp
+	@item --device-type=@var{none}|@var{default}|@var{firewire}|@var{x11}
+	@item --device-frame-size=@var{W}x@var{H}
+	@item --device-frame-rate=@var{N}/@var{D}
+	@item --device-format=@var{default}|@var{mjpeg}
+	@end table
+@item close
+Close the currently opened input.
+@item toggle-play
+Toggle playback.
+@item play
+Start playback, or exit pause mode.
+@item stop
+Stop playback.
+@item toggle-pause
+Toggle pause mode.
+@item pause
+When playing, go into pause mode.
+@item step
+Single-step to the next video frame.
+@item seek @var{delta}
+Seek by the given number of seconds relative to the current position.  For
+example -60.0 seeks backwards one minute, and +600.0 seeks forward ten minutes.
+@item set-pos @var{pos}
+Seek by setting an absolute position in the stream, with @var{pos} between 0 and
+1. For example, to seek to the middle of the video, use 0.5.
+@item set-audio-device @var{dev}
+Set the audio device to the one with the given index.
+@item set-stereo-mode @var{mode}
+Set the stereo mode. @xref{Supported Output Techniques}.
+@item set-stereo-mode-swap @var{swap}
+Set stereo mode left/right swap (on or off).
+@item toggle-stereo-mode-swap
+Toggle stereo mode left/right swap.
+@item set-crosstalk @var{cr} @var{cg} @var{cb}
+Set display crosstalk levels for red, green, and blue. Each value must be between 0 and 1.
+@item set-fullscreen-screens @var{screens}
+Set screens to use in fullscreen mode. The value is an integer in which bits
+are set for each screen that should be used (screen 1 = lowest bit). The value
+0 means the default screen.
+@item set-fullscreen-flip-left @var{b}
+Set fullscreen flip left (on or off).
+@item set-fullscreen-flop-left@var{b}
+Set fullscreen flop left (on or off).
+@item set-fullscreen-flip-right @var{b}
+Set fullscreen flip right (on or off).
+@item set-fullscreen-flop-right @var{b}
+Set fullscreen flop right (on or off).
+@item set-fullscreen-inhibit-screensaver @var{b}
+Set fullscreen inhibit screensaver (on or off).
+@item set-contrast @var{value}
+Set contrast to the given @var{value}, from -1 to +1.
+@item adjust-contrast @var{delta}
+Adjust contrast by adding @var{delta}, e.g. -0.05 or +0.05.
+@item set-brightness @var{value}
+Set brightness to the given @var{value}, from -1 to +1.
+@item adjust-brightness @var{delta}
+Adjust brightness by adding @var{delta}, e.g. -0.05 or +0.05.
+@item set-hue @var{value}
+Set hue to the given @var{value}, from -1 to +1.
+@item adjust-hue @var{delta}
+Adjust hue by adding @var{delta}, e.g. -0.05 or +0.05.
+@item set-saturation @var{value}
+Set saturation to the given @var{value}, from -1 to +1.
+@item adjust-saturation @var{delta}
+Adjust saturation by adding @var{delta}, e.g. -0.05 or +0.05.
+@item set-zoom @var{value}
+Set zoom to the given @var{value}, from 0 to 1.
+@item adjust-zoom @var{delta}
+Adjust zoom by adding @var{delta}, e.g. -0.05 or +0.05.
+@item set-loop-mode @var{mode}
+Set loop mode to @samp{off} or @samp{current}.
+@item set-audio-delay @var{seconds}
+Set audio delay.
+@item set-subtitle-encoding @var{enc}
+Set subtitle encoding. An empty value means to use the default.
+@item set-subtitle-font @var{font}
+Set subtitle font. An empty value means to use the default.
+@item set-subtitle-size @var{size}
+Set the subtitle font size. The value is an integer, e.g. 12.
+Use -1 to keep the default size.
+@item set-subtitle-color @var{color}
+Set the subtitle color as an integer that represents an RGB color.
+Use a value larger than UINT32_MAX to keep the default color.
+@item set-subtitle-shadow @var{mode}
+Set subtitle shadow to force-on (1), force-off (0), or default (-1).
+@item set-video-stream @var{stream}
+Set video stream. Stream numbers start with 0.
+@item cycle-video-stream
+Cycle through available video streams.
+@item set-audio-stream @var{stream}
+Set audio stream. Stream numbers start with 0.
+@item cycle-audio-stream
+Cycle through available audio streams.
+@item set-subtitle-stream @var{stream}
+Set subtitle stream. Stream numbers start with 0. Using -1 disables subtitles.
+@item cycle-subtitle-stream
+Cycle through available subtitle streams.
+@item set-stereo-layout @var{layout}
+Set stereo layout. @xref{Supported Input Layouts}. Note that here only the
+left first, right second modes are supported. To get the right first, left second
+modes, use @samp{set-stereo-layout-swap}.
+@item set-stereo-layout-swap @var{b}
+Set stereo layout swap (on or off).
+@item set-crop-aspect-ratio @var{ar}
+Set crop aspect ratio, either as a floating point number (e.g. 1.78), or as a
+ratio (e.g. 16:9).
+@item set-parallax @var{value}
+Set parallax, from -1 to +1.
+@item adjust-parallax @var{delta}
+Adjust parallax by adding @var{delta}, e.g. -0.05 or + 0.05.
+@item set-ghostbust @var{value}
+Set ghostbust, from -1 to +1.
+@item adjust-ghostbust @var{delta}
+Adjust ghostbust by adding @var{delta}, e.g. -0.05 or + 0.05.
+@item set-subtitle-parallax @var{value}
+Set subtitle parallax, from -1 to +1.
+@item adjust-subtitle-parallax @var{delta}
+Adjust subtitle parallax by adding @var{delta}, e.g. -0.05 or + 0.05.
+@item toggle-fullscreen
+Toggle fullscreen.
+@item center
+Center window.
+@item set-audio-volume @var{value}
+Set audio volume, from 0 to 1.
+@item adjust-audio-volume @var{delta}
+Adjust audio volume by adding @var{delta}, e.g. -0.05 or +0.05.
+@item toggle-audio-mute
+Toggle audio mute.
+@end table
 
 
 @node Camera Devices
