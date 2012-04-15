@@ -980,6 +980,10 @@ starting with the @samp{#} character are comment lines and define the
 This command has no effect.
 @item quit
 Quit the application.
+@item wait @var{stop}|@var{seconds}
+Wait until the currently playing video stops, or wait for the given number of seconds,
+before processing more commands from this file, script, or FIFO.@*
+(This command is not available for LIRC remote controls.)
 @item open [@var{option}@dots{}] @var{file}@dots{}
 Open the given files.@*
 You can use percent-encoding to encode special characters.

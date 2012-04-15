@@ -33,6 +33,8 @@ private:
     int _fd;
     bool _is_fifo;
     std::string _linebuf;
+    bool _wait_until_stop;
+    int64_t _wait_until;
 
     // Helper function to read a command from a string
     bool get_command(const std::string &s, command &c);

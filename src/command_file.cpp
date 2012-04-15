@@ -32,6 +32,7 @@
 
 #include "exc.h"
 #include "str.h"
+#include "timer.h"
 
 #include "command_file.h"
 
@@ -66,6 +67,8 @@ void command_file::init()
         if (fstat(_fd, &statbuf) == 0 && S_ISFIFO(statbuf.st_mode))
             _is_fifo = true;
         _linebuf.clear();
+        _wait_until_stop = false;
+        _wait_until = -1;
     }
 }
 
@@ -93,6 +96,18 @@ void command_file::process_events()
 {
     if (!is_active())
         return;
+
+    if (_wait_until_stop && dispatch::playing())
+        return;
+
+    if (_wait_until >= 0) {
+        int64_t now = timer::get_microseconds(timer::monotonic);
+        if (now < _wait_until)
+            return;
+    }
+
+    _wait_until_stop = false;
+    _wait_until = -1;
 
     static const size_t readbuf_size = 512;
     static char readbuf[readbuf_size];
@@ -136,7 +151,23 @@ void command_file::process_events()
         }
     }
     if (cmd.length() > 0) {
-        cmd = str::sanitize(cmd);
+        cmd = str::sanitize(str::trim(cmd));
+        if (cmd.substr(0, 4) == "wait") {
+            // This command is specific to this particular controller!
+            std::vector<std::string> tokens = str::tokens(cmd, " \t\r");
+            if (tokens.size() == 2 && tokens[0] == "wait") {
+                float seconds;
+                if (tokens[1] == "stop") {
+                    _wait_until_stop = true;
+                    return;
+                } else if (str::to(tokens[1], &seconds)) {
+                    _wait_until = timer::get_microseconds(timer::monotonic);
+                    if (seconds > 0.0f)
+                        _wait_until += seconds * 1e6f;
+                    return;
+                }
+            }
+        }
         command c;
         bool ok = dispatch::parse_command(cmd, &c);
         if (!ok) {
