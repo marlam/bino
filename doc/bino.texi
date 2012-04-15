@@ -967,6 +967,30 @@ set-contrast 0.1
 ...
 @end example
 
+Here is a simple example script file:
+@example
+# Play all videos in fullscreen mode.
+toggle-fullscreen
+# Open the first video.
+open /path/to/video1.webm
+# Start playing.
+play
+# Wait until the video finishes before continuing this script.
+wait stop
+# Open a second video. This one has a space in its file name.
+open /path/to/video%20file.webm
+# Start playing.
+play
+# Immediately increase brightness.
+adjust-brightness +0.1
+@end example
+
+This script is executed with the following command. The @samp{--no-gui} option
+is not necessary, but prevents the GUI to remember the changed brightness
+setting in future sessions.
+@example
+$ bino --read-commands /path/to/script.txt --no-gui
+@end example
 
 @section Script Commands
 @anchor{Script Commands}
