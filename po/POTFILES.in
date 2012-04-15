@@ -8,6 +8,7 @@ src/base/str.cpp
 src/base/thread.cpp
 src/base/timer.cpp
 src/audio_output.cpp
+src/command_file.cpp
 src/dispatch.cpp
 src/gui.cpp
 src/lib_versions.cpp
