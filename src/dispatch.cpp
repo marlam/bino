@@ -890,47 +890,14 @@ static bool parse_bool(const std::string& s, bool* x)
     }
 }
 
-static bool parse_int(const std::string& s, int* x)
-{
-    try {
-        *x = str::to<int>(s);
-    }
-    catch (...) {
-        return false;
-    }
-    return true;
-}
-
-static bool parse_float(const std::string& s, float* x)
-{
-    try {
-        *x = str::to<float>(s);
-    }
-    catch (...) {
-        return false;
-    }
-    return true;
-}
-
-static bool parse_color(const std::string& s, uint64_t* x)
-{
-    try {
-        *x = str::to<uint64_t>(s);
-    }
-    catch (...) {
-        return false;
-    }
-    return true;
-}
-
 static bool parse_aspect_ratio(const std::string& s, float* x)
 {
     std::vector<std::string> tokens = str::tokens(s, ":");
     float xn, xd;
-    if (tokens.size() == 2 && parse_float(tokens[0], &xn) && parse_float(tokens[1], &xd)) {
+    if (tokens.size() == 2 && str::to(tokens[0], &xn) && str::to(tokens[1], &xd)) {
         *x = std::min(std::max(xn / xd, 1.0f), 2.39f);
         return true;
-    } else if (tokens.size() == 1 && parse_float(s, x)) {
+    } else if (tokens.size() == 1 && str::to(s, x)) {
         *x = std::min(std::max(*x, 1.0f), 2.39f);
         return true;
     } else {
@@ -960,14 +927,14 @@ static bool parse_open_input_data(const std::vector<std::string>& tokens, open_i
             } else if (subtokens.size() == 2 && subtokens[0] == "device-frame-size") {
                 std::vector<std::string> wh = str::tokens(subtokens[1], "x");
                 if (wh.size() == 2
-                        && parse_int(wh[0], &oid->dev_request.width) && oid->dev_request.width >= 0
-                        && parse_int(wh[1], &oid->dev_request.height) && oid->dev_request.height >= 0)
+                        && str::to(wh[0], &oid->dev_request.width) && oid->dev_request.width >= 0
+                        && str::to(wh[1], &oid->dev_request.height) && oid->dev_request.height >= 0)
                     continue;
             } else if (subtokens.size() == 2 && subtokens[0] == "device-frame-rate") {
                 std::vector<std::string> nd = str::tokens(subtokens[1], "/");
                 if (nd.size() == 2
-                        && parse_int(nd[0], &oid->dev_request.frame_rate_num) && oid->dev_request.frame_rate_num >= 0
-                        && parse_int(nd[1], &oid->dev_request.frame_rate_den) && oid->dev_request.frame_rate_den >= 0)
+                        && str::to(nd[0], &oid->dev_request.frame_rate_num) && oid->dev_request.frame_rate_num >= 0
+                        && str::to(nd[1], &oid->dev_request.frame_rate_den) && oid->dev_request.frame_rate_den >= 0)
                     continue;
             } else if (subtokens.size() == 2 && subtokens[0] == "device-format") {
                 if (subtokens[1] == "default") {
@@ -1078,13 +1045,13 @@ bool dispatch::parse_command(const std::string& s, command* c)
     } else if (tokens.size() == 1 && tokens[0] == "step") {
         *c = command(command::step);
     } else if (tokens.size() == 2 && tokens[0] == "seek"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::seek, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "set-pos"
-            && parse_float(tokens[1], &p.f) && p.f >= 0.0f && p.f <= 1.0f) {
+            && str::to(tokens[1], &p.f) && p.f >= 0.0f && p.f <= 1.0f) {
         *c = command(command::set_pos, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "set-audio-device"
-            && parse_int(tokens[1], &p.i)) {
+            && str::to(tokens[1], &p.i)) {
         *c = command(command::set_audio_device, p.i);
     } else if (tokens.size() == 2 && tokens[0] == "set-stereo-mode"
             && parameters::parse_stereo_mode(tokens[1], &p_stereo_mode)) {
@@ -1095,16 +1062,16 @@ bool dispatch::parse_command(const std::string& s, command* c)
     } else if (tokens.size() == 1 && tokens[0] == "toggle-stereo-mode-swap") {
         *c = command(command::toggle_stereo_mode_swap);
     } else if (tokens.size() == 4 && tokens[0] == "set-crosstalk"
-            && parse_float(tokens[1], p_crosstalk + 0) && p_crosstalk[0] >= 0.0f && p_crosstalk[0] <= 1.0f
-            && parse_float(tokens[2], p_crosstalk + 1) && p_crosstalk[1] >= 0.0f && p_crosstalk[1] <= 1.0f
-            && parse_float(tokens[3], p_crosstalk + 2) && p_crosstalk[2] >= 0.0f && p_crosstalk[2] <= 1.0f) {
+            && str::to(tokens[1], p_crosstalk + 0) && p_crosstalk[0] >= 0.0f && p_crosstalk[0] <= 1.0f
+            && str::to(tokens[2], p_crosstalk + 1) && p_crosstalk[1] >= 0.0f && p_crosstalk[1] <= 1.0f
+            && str::to(tokens[3], p_crosstalk + 2) && p_crosstalk[2] >= 0.0f && p_crosstalk[2] <= 1.0f) {
         std::ostringstream v;
         s11n::save(v, p_crosstalk[0]);
         s11n::save(v, p_crosstalk[1]);
         s11n::save(v, p_crosstalk[2]);
         *c = command(command::set_crosstalk, v.str());
     } else if (tokens.size() == 2 && tokens[0] == "set-fullscreen-screens"
-            && parse_int(tokens[1], &p.i)) {
+            && str::to(tokens[1], &p.i)) {
         *c = command(command::set_fullscreen_screens, p.i);
     } else if (tokens.size() == 2 && tokens[0] == "set-fullscreen-flip-left"
             && parse_bool(tokens[1], &p.b)) {
@@ -1122,34 +1089,34 @@ bool dispatch::parse_command(const std::string& s, command* c)
             && parse_bool(tokens[1], &p.b)) {
         *c = command(command::set_fullscreen_inhibit_screensaver, p.b);
     } else if (tokens.size() == 2 && tokens[0] == "set-contrast"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::set_contrast, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "adjust-contrast"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::adjust_contrast, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "set-brightness"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::set_brightness, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "adjust-brightness"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::adjust_brightness, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "set-hue"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::set_hue, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "adjust-hue"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::adjust_hue, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "set-saturation"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::set_saturation, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "adjust-saturation"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::adjust_saturation, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "set-zoom"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::set_zoom, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "adjust-zoom"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::adjust_zoom, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "set-loop-mode"
             && (tokens[1] == "off" || tokens[1] == "current")) {
@@ -1157,7 +1124,7 @@ bool dispatch::parse_command(const std::string& s, command* c)
                 ? parameters::no_loop : parameters::loop_current);
         *c = command(command::set_loop_mode, static_cast<int>(l));
     } else if (tokens.size() == 2 && tokens[0] == "set-audio-delay"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::set_audio_delay, p.f);
     } else if ((tokens.size() == 1 || tokens.size() == 2) && tokens[0] == "set-subtitle-encoding") {
         std::ostringstream v;
@@ -1169,26 +1136,26 @@ bool dispatch::parse_command(const std::string& s, command* c)
         s11n::save(v, tokens.size() > 1 ? str::trim(str::trim(s).substr(17)) : std::string(""));
         *c = command(command::set_subtitle_font, v.str());
     } else if (tokens.size() == 2 && tokens[0] == "set-subtitle-size"
-            && parse_int(tokens[1], &p.i)) {
+            && str::to(tokens[1], &p.i)) {
         *c = command(command::set_subtitle_size, p.i);
     } else if (tokens.size() == 2 && tokens[0] == "set-subtitle-color"
-            && parse_color(tokens[1], &p.c)) {
+            && str::to(tokens[1], &p.c)) {
         *c = command(command::set_subtitle_color, p.c);
     } else if (tokens.size() == 2 && tokens[0] == "set-subtitle-shadow"
-            && parse_int(tokens[1], &p.i)) {
+            && str::to(tokens[1], &p.i)) {
         *c = command(command::set_subtitle_shadow, p.i);
     } else if (tokens.size() == 2 && tokens[0] == "set-video-stream"
-            && parse_int(tokens[1], &p.i) && p.i >= 0) {
+            && str::to(tokens[1], &p.i) && p.i >= 0) {
         *c = command(command::set_video_stream, p.i);
     } else if (tokens.size() == 1 && tokens[0] == "cycle-video-stream") {
         *c = command(command::cycle_video_stream);
     } else if (tokens.size() == 2 && tokens[0] == "set-audio-stream"
-            && parse_int(tokens[1], &p.i) && p.i >= 0) {
+            && str::to(tokens[1], &p.i) && p.i >= 0) {
         *c = command(command::set_audio_stream, p.i);
     } else if (tokens.size() == 1 && tokens[0] == "cycle-audio-stream") {
         *c = command(command::cycle_audio_stream);
     } else if (tokens.size() == 2 && tokens[0] == "set-subtitle-stream"
-            && parse_int(tokens[1], &p.i) && p.i >= -1) {
+            && str::to(tokens[1], &p.i) && p.i >= -1) {
         *c = command(command::set_subtitle_stream, p.i);
     } else if (tokens.size() == 1 && tokens[0] == "cycle-subtitle-stream") {
         *c = command(command::cycle_subtitle_stream);
@@ -1202,32 +1169,32 @@ bool dispatch::parse_command(const std::string& s, command* c)
             && parse_aspect_ratio(tokens[1], &p.f)) {
         *c = command(command::set_crop_aspect_ratio, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "set-parallax"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::set_parallax, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "adjust-parallax"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::adjust_parallax, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "set-ghostbust"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::set_ghostbust, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "adjust-ghostbust"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::adjust_ghostbust, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "set-subtitle-parallax"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::set_subtitle_parallax, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "adjust-subtitle-parallax"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::adjust_subtitle_parallax, p.f);
     } else if (tokens.size() == 1 && tokens[0] == "toggle-fullscreen") {
         *c = command(command::toggle_fullscreen);
     } else if (tokens.size() == 1 && tokens[0] == "center") {
         *c = command(command::center);
     } else if (tokens.size() == 2 && tokens[0] == "set-audio-volume"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::set_audio_volume, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "adjust-audio-volume"
-            && parse_float(tokens[1], &p.f)) {
+            && str::to(tokens[1], &p.f)) {
         *c = command(command::adjust_audio_volume, p.f);
     } else if (tokens.size() == 1 && tokens[0] == "toggle-audio-mute") {
         *c = command(command::toggle_audio_mute);
