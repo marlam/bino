@@ -972,7 +972,7 @@ Here is a simple example script file:
 # Play all videos in fullscreen mode.
 toggle-fullscreen
 # Open the first video.
-open /path/to/video1.webm
+open /path/to/video.webm
 # Start playing.
 play
 # Wait until the video finishes before continuing this script.
@@ -983,6 +983,14 @@ open /path/to/video%20file.webm
 play
 # Immediately increase brightness.
 adjust-brightness +0.1
+# Immediately seek to 60 seconds within the video.
+seek 60.0
+# Let the video play for 30.0 seconds before continuing with this script.
+wait 30.0
+# Open a third video. This one has left and right view in separate files.
+open /path/to/left.webm /path/to/right.webm
+# Start playing.
+play
 @end example
 
 This script is executed with the following command. The @samp{--no-gui} option
