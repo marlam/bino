@@ -82,6 +82,21 @@ namespace str
     template<> float to<float>(const std::string &s);
     template<> double to<double>(const std::string &s);
     template<> long double to<long double>(const std::string &s);
+    template<typename T> bool to(const std::string& s, T* x);
+    template<> bool to(const std::string& s, bool* x);
+    template<> bool to(const std::string& s, signed char* x);
+    template<> bool to(const std::string& s, unsigned char* x);
+    template<> bool to(const std::string& s, short* x);
+    template<> bool to(const std::string& s, unsigned short* x);
+    template<> bool to(const std::string& s, int* x);
+    template<> bool to(const std::string& s, unsigned int* x);
+    template<> bool to(const std::string& s, long* x);
+    template<> bool to(const std::string& s, unsigned long* x);
+    template<> bool to(const std::string& s, long long* x);
+    template<> bool to(const std::string& s, unsigned long long* x);
+    template<> bool to(const std::string& s, float* x);
+    template<> bool to(const std::string& s, double* x);
+    template<> bool to(const std::string& s, long double* x);
 
     /* Create std::strings printf-like */
     std::string vasprintf(const char *format, va_list args) STR_AFP(1, 0);

@@ -284,6 +284,35 @@ namespace str
     template<> double to<double>(const std::string &s) { return _to<double>(s, "double"); }
     template<> long double to<long double>(const std::string &s) { return _to<long double>(s, "long double"); }
 
+    template<typename T>
+    static inline bool _to(const std::string& s, T* x)
+    {
+        T y;
+        try {
+            y = str::to<T>(s);
+        }
+        catch (...) {
+            return false;
+        }
+        *x = y;
+        return true;
+    }
+
+    template<> bool to(const std::string& s, bool* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, signed char* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, unsigned char* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, short* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, unsigned short* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, int* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, unsigned int* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, long* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, unsigned long* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, long long* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, unsigned long long* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, float* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, double* x) { return _to(s, x); }
+    template<> bool to(const std::string& s, long double* x) { return _to(s, x); }
+
     /* Create std::strings printf-like */
 
     std::string vasprintf(const char *format, va_list args)
