@@ -648,6 +648,7 @@ int64_t video_output_qt::wait_for_subtitle_renderer()
 
 void video_output_qt::deinit()
 {
+    exit_fullscreen();
     if (_widget)
     {
         _widget->stop_rendering();
