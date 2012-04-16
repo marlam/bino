@@ -1442,6 +1442,7 @@ void video_output::display_current_frame(
         glUniform1f(glGetUniformLocation(_render_prg, "step_y"), 1.0f / static_cast<float>(viewport[0][3]));
     }
 
+    glViewport(viewport[0][0], viewport[0][1], viewport[0][2], viewport[0][3]);
     if (_params.stereo_mode() == parameters::mode_stereo)
     {
         glUniform1f(glGetUniformLocation(_render_prg, "channel"), 0.0f);
