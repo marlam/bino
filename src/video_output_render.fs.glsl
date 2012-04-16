@@ -41,6 +41,12 @@
 // mode_checkerboard
 #define $mode
 
+uniform float contrast;
+uniform float brightness;
+uniform float saturation;
+uniform float cos_hue;
+uniform float sin_hue;
+
 uniform sampler2D rgb_l;
 uniform sampler2D rgb_r;
 uniform float parallax;
@@ -61,6 +67,7 @@ uniform float step_y;
 #if defined(mode_onechannel) || defined(mode_even_odd_rows) || defined(mode_even_odd_columns) || defined(mode_checkerboard)
 uniform vec3 crosstalk;
 #endif
+
 
 #if defined(mode_red_cyan_monochrome) || defined(mode_red_cyan_half_color) || defined(mode_green_magenta_monochrome) || defined(mode_green_magenta_half_color) || defined(mode_amber_blue_monochrome) || defined(mode_amber_blue_half_color) || defined(mode_red_green_monochrome) || defined(mode_red_blue_monochrome)
 float srgb_to_lum(vec3 srgb)
@@ -101,14 +108,58 @@ vec3 ghostbust(vec3 original, vec3 other)
 }
 #endif
 
+float nonlinear_to_linear(float x)
+{
+    return (x <= 0.04045 ? (x / 12.92) : pow((x + 0.055) / 1.055, 2.4));
+}
+vec3 adjust_color(vec3 rgb)
+{
+    vec3 srgb, yuv;
+    mat3 m;
+
+    // Convert RGB to SRGB
+    srgb = rgb_to_srgb(rgb);
+    // Convert SRGB to YUV
+    // According to ITU.BT-601 (see formulas in Sec. 2.5.1 and 2.5.2)
+    m = mat3(
+            0.299, -0.168736,  0.5,
+            0.587, -0.331264, -0.418688,
+            0.114,  0.5,      -0.081312);
+    yuv = m * srgb + vec3(0.0, 0.5, 0.5);
+
+    // Adjust colors in YUV space
+    // Adapted from http://www.silicontrip.net/~mark/lavtools/yuvadjust.c
+    // (Copyright 2002 Alfonso Garcia-Patiño Barbolani, released under GPLv2 or later)
+
+    // brightness and contrast
+    float ay = (yuv.x - 0.5) * (contrast + 1.0) + brightness + 0.5;
+    // hue and saturation
+    float au = (cos_hue * (yuv.y - 0.5) - sin_hue * (yuv.z - 0.5)) * (saturation + 1.0) + 0.5;
+    float av = (sin_hue * (yuv.y - 0.5) + cos_hue * (yuv.z - 0.5)) * (saturation + 1.0) + 0.5;
+    yuv = vec3(ay, au, av);
+
+    // Convert YUV to SRGB
+    // According to ITU.BT-601 (see formulas in Sec. 2.5.1 and 2.5.2)
+    m = mat3(
+            1.0,    1.0,      1.0,
+            0.0,   -0.344136, 1.772,
+            1.402, -0.714136, 0.0);
+    srgb = m * (yuv - vec3(0.0, 0.5, 0.5));
+    // Convert SRGB to RGB
+    return vec3(
+            nonlinear_to_linear(srgb.r),
+            nonlinear_to_linear(srgb.g),
+            nonlinear_to_linear(srgb.b));
+}
+
 vec3 tex_l(vec2 texcoord)
 {
-    return texture2D(rgb_l, texcoord + vec2(parallax, 0.0)).rgb;
+    return adjust_color(texture2D(rgb_l, texcoord + vec2(parallax, 0.0)).rgb);
 }
 
 vec3 tex_r(vec2 texcoord)
 {
-    return texture2D(rgb_r, texcoord - vec2(parallax, 0.0)).rgb;
+    return adjust_color(texture2D(rgb_r, texcoord - vec2(parallax, 0.0)).rgb);
 }
 
 vec4 sub_l(vec2 texcoord)

@@ -850,6 +850,92 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
     }
     assert(xglCheckError(HERE));
 
+    /* Step 2: color-correction */
+
+    if (!_color_prg || !color_is_compatible(frame)) {
+        color_deinit();
+        color_init(frame);
+        _color_last_frame = frame;
+    }
+    int left = 0;
+    int right = (frame.stereo_layout == parameters::layout_mono ? 0 : 1);
+
+    // Backup GL state
+    GLint framebuffer_bak;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &framebuffer_bak);
+    GLint viewport_bak[4];
+    glGetIntegerv(GL_VIEWPORT, viewport_bak);
+    GLboolean scissor_bak = glIsEnabled(GL_SCISSOR_TEST);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glDisable(GL_SCISSOR_TEST);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glViewport(0, 0, frame.width, frame.height);
+    glUseProgram(_color_prg);
+    if (frame.layout == video_frame::bgra32) {
+        glUniform1i(glGetUniformLocation(_color_prg, "srgb_tex"), 0);
+    } else {
+        glUniform1i(glGetUniformLocation(_color_prg, "y_tex"), 0);
+        glUniform1i(glGetUniformLocation(_color_prg, "u_tex"), 1);
+        glUniform1i(glGetUniformLocation(_color_prg, "v_tex"), 2);
+    }
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _color_fbo);
+    // left view: render into _color_tex[0]
+    if (frame.layout == video_frame::bgra32) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _input_bgra32_tex[_active_index][left]);
+    } else {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _input_yuv_y_tex[_active_index][left]);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, _input_yuv_u_tex[_active_index][left]);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[_active_index][left]);
+    }
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
+            GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[0], 0);
+    xglCheckFBO(HERE);
+    draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
+    // right view: render into _color_tex[1]
+    if (left != right) {
+        if (frame.layout == video_frame::bgra32) {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, _input_bgra32_tex[_active_index][right]);
+        } else {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, _input_yuv_y_tex[_active_index][right]);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, _input_yuv_u_tex[_active_index][right]);
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[_active_index][right]);
+        }
+        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
+                GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[1], 0);
+        xglCheckFBO(HERE);
+        draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
+    }
+
+    // Restore GL state
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer_bak);
+    if (scissor_bak)
+        glEnable(GL_SCISSOR_TEST);
+    glViewport(viewport_bak[0], viewport_bak[1], viewport_bak[2], viewport_bak[3]);
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
+
     // Finish the subtitle updating
     finish_subtitle_updating(subtitle, index);
     _input_subtitle[index] = subtitle;
@@ -869,6 +955,7 @@ int video_output::video_display_height() const
 
 void video_output::color_init(const video_frame &frame)
 {
+    int index = (_active_index == 0 ? 1 : 0);
     xglCheckError(HERE);
     glGenFramebuffersEXT(1, &_color_fbo);
     std::string layout_str;
@@ -922,14 +1009,14 @@ void video_output::color_init(const video_frame &frame)
             if (frame.chroma_location == video_frame::left)
             {
                 chroma_offset_x_str = str::from(0.5f / static_cast<float>(frame.width
-                            / _input_yuv_chroma_width_divisor[_active_index]));
+                            / _input_yuv_chroma_width_divisor[index]));
             }
             else if (frame.chroma_location == video_frame::topleft)
             {
                 chroma_offset_x_str = str::from(0.5f / static_cast<float>(frame.width
-                            / _input_yuv_chroma_width_divisor[_active_index]));
+                            / _input_yuv_chroma_width_divisor[index]));
                 chroma_offset_y_str = str::from(0.5f / static_cast<float>(frame.height
-                            / _input_yuv_chroma_height_divisor[_active_index]));
+                            / _input_yuv_chroma_height_divisor[index]));
             }
         }
         else if (frame.layout == video_frame::yuv420p)
@@ -937,14 +1024,14 @@ void video_output::color_init(const video_frame &frame)
             if (frame.chroma_location == video_frame::left)
             {
                 chroma_offset_x_str = str::from(0.5f / static_cast<float>(frame.width
-                            / _input_yuv_chroma_width_divisor[_active_index]));
+                            / _input_yuv_chroma_width_divisor[index]));
             }
             else if (frame.chroma_location == video_frame::topleft)
             {
                 chroma_offset_x_str = str::from(0.5f / static_cast<float>(frame.width
-                            / _input_yuv_chroma_width_divisor[_active_index]));
+                            / _input_yuv_chroma_width_divisor[index]));
                 chroma_offset_y_str = str::from(0.5f / static_cast<float>(frame.height
-                            / _input_yuv_chroma_height_divisor[_active_index]));
+                            / _input_yuv_chroma_height_divisor[index]));
             }
         }
     }
@@ -1226,12 +1313,6 @@ void video_output::display_current_frame(
         reshape(dst_width, dst_height);
     }
     assert(xglCheckError(HERE));
-    if (!_color_prg || !color_is_compatible(frame))
-    {
-        color_deinit();
-        color_init(frame);
-        _color_last_frame = frame;
-    }
     if (!_render_prg || !render_is_compatible())
     {                
         render_deinit();
@@ -1264,93 +1345,6 @@ void video_output::display_current_frame(
 
     glEnable(GL_TEXTURE_2D);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-    /* Step 2: color-correction */
-
-    GLboolean scissor_test = glIsEnabled(GL_SCISSOR_TEST);
-    glDisable(GL_SCISSOR_TEST);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glViewport(0, 0, frame.width, frame.height);
-    glUseProgram(_color_prg);
-    if (frame.layout == video_frame::bgra32)
-    {
-        glUniform1i(glGetUniformLocation(_color_prg, "srgb_tex"), 0);
-    }
-    else
-    {
-        glUniform1i(glGetUniformLocation(_color_prg, "y_tex"), 0);
-        glUniform1i(glGetUniformLocation(_color_prg, "u_tex"), 1);
-        glUniform1i(glGetUniformLocation(_color_prg, "v_tex"), 2);
-    }
-    glUniform1f(glGetUniformLocation(_color_prg, "contrast"), _params.contrast());
-    glUniform1f(glGetUniformLocation(_color_prg, "brightness"), _params.brightness());
-    glUniform1f(glGetUniformLocation(_color_prg, "saturation"), _params.saturation());
-    glUniform1f(glGetUniformLocation(_color_prg, "cos_hue"), std::cos(_params.hue() * M_PI));
-    glUniform1f(glGetUniformLocation(_color_prg, "sin_hue"), std::sin(_params.hue() * M_PI));
-    GLint framebuffer_bak;
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &framebuffer_bak);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _color_fbo);
-    // left view: render into _color_tex[0]
-    if (frame.layout == video_frame::bgra32)
-    {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _input_bgra32_tex[_active_index][left]);
-    }
-    else
-    {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _input_yuv_y_tex[_active_index][left]);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, _input_yuv_u_tex[_active_index][left]);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[_active_index][left]);
-    }
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
-            GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[0], 0);
-    xglCheckFBO(HERE);
-    draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
-    // right view: render into _color_tex[1]
-    if (left != right)
-    {
-        if (frame.layout == video_frame::bgra32)
-        {
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _input_bgra32_tex[_active_index][right]);
-        }
-        else
-        {
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _input_yuv_y_tex[_active_index][right]);
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, _input_yuv_u_tex[_active_index][right]);
-            glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[_active_index][right]);
-        }
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
-                GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[1], 0);
-        xglCheckFBO(HERE);
-        draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
-    }
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer_bak);
-    glViewport(viewport[0][0], viewport[0][1], viewport[0][2], viewport[0][3]);
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-    if (scissor_test)
-    {
-        glEnable(GL_SCISSOR_TEST);
-    }
-
-    // at this point, the left view is in _color_tex[0],
-    // and the right view (if it exists) is in _color_tex[1]
-    right = (left != right ? 1 : 0);
-    left = 0;
 
     /* Step 3: rendering */
 
@@ -1399,6 +1393,11 @@ void video_output::display_current_frame(
     // if that means that subtitle changes don't take effect in pause mode.
 
     glUseProgram(_render_prg);
+    glUniform1f(glGetUniformLocation(_render_prg, "contrast"), _params.contrast());
+    glUniform1f(glGetUniformLocation(_render_prg, "brightness"), _params.brightness());
+    glUniform1f(glGetUniformLocation(_render_prg, "saturation"), _params.saturation());
+    glUniform1f(glGetUniformLocation(_render_prg, "cos_hue"), std::cos(_params.hue() * M_PI));
+    glUniform1f(glGetUniformLocation(_render_prg, "sin_hue"), std::sin(_params.hue() * M_PI));
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _color_tex[left]);
     if (left != right)
