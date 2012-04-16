@@ -65,12 +65,13 @@ private:
     GLuint _input_subtitle_tex[2];      // subtitle texture
     bool _input_subtitle_tex_current[2];// whether the subtitle tex contains the current subtitle buffer
     // Step 2: color space conversion and color correction
-    video_frame _color_last_frame;      // last frame for this step; used for reinitialization check
-    GLuint _color_prg;                  // color space transformation, color adjustment
+    video_frame _color_last_frame[2];   // last frame for this step; used for reinitialization check
+    GLuint _color_prg[2];               // color space transformation, color adjustment
     GLuint _color_fbo;                  // framebuffer object to render into the sRGB texture
-    GLuint _color_tex[2];               // output: SRGB8 or linear RGB16 texture
+    GLuint _color_tex[2][2];            // output: SRGB8 or linear RGB16 texture
     // Step 3: rendering
     parameters _render_last_params;     // last params for this step; used for reinitialization check
+    video_frame _render_last_frame;     // last frame for this step; used for reinitialization check
     GLuint _render_prg;                 // reads sRGB texture, renders according to _params[_active_index]
     GLuint _render_dummy_tex;           // an empty subtitle texture
     GLuint _render_mask_tex;            // for the masking modes even-odd-{rows,columns}, checkerboard
@@ -108,9 +109,9 @@ private:
     void input_deinit(int index);
     bool input_is_compatible(int index, const video_frame &current_frame);
     // Step 2: initialize/deinitialize, and check if reinitialization is necessary
-    void color_init(const video_frame &frame);
-    void color_deinit();
-    bool color_is_compatible(const video_frame &current_frame);
+    void color_init(int index, const video_frame &frame);
+    void color_deinit(int index);
+    bool color_is_compatible(int index, const video_frame &current_frame);
     // Step 3: initialize/deinitialize, and check if reinitialization is necessary
     void render_init();
     void render_deinit();
@@ -132,7 +133,7 @@ protected:
     virtual void trigger_resize(int w, int h) = 0;      // Trigger a resize the video area
 
     void clear() const;                         // Clear the video area
-    void reshape(int w, int h);                 // Call this when the video area was resized
+    void reshape(int w, int h, const parameters& params = dispatch::parameters());       // Call this when the video area was resized
 
     /* Get screen properties (fixed) */
     virtual int screen_width() const = 0;       // in pixels

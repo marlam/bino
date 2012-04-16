@@ -231,12 +231,12 @@ video_output::video_output() : controller(), _initialized(false)
             _input_yuv_u_tex[i][j] = 0;
             _input_yuv_v_tex[i][j] = 0;
             _input_bgra32_tex[i][j] = 0;
+            _color_tex[i][j] = 0;
         }
-        _color_tex[i] = 0;
         _input_subtitle_tex[i] = 0;
         _input_subtitle_tex_current[i] = false;
+        _color_prg[i] = 0;
     }
-    _color_prg = 0;
     _color_fbo = 0;
     _render_prg = 0;
     _render_dummy_tex = 0;
@@ -584,7 +584,8 @@ void video_output::deinit()
 #endif // HAVE_LIBXNVCTRL
         input_deinit(0);
         input_deinit(1);
-        color_deinit();
+        color_deinit(0);
+        color_deinit(1);
         render_deinit();
         xglCheckError(HERE);
         _initialized = false;
@@ -852,10 +853,10 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
 
     /* Step 2: color-correction */
 
-    if (!_color_prg || !color_is_compatible(frame)) {
-        color_deinit();
-        color_init(frame);
-        _color_last_frame = frame;
+    if (!_color_prg[index] || !color_is_compatible(index, frame)) {
+        color_deinit(index);
+        color_init(index, frame);
+        _color_last_frame[index] = frame;
     }
     int left = 0;
     int right = (frame.stereo_layout == parameters::layout_mono ? 0 : 1);
@@ -879,46 +880,46 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glViewport(0, 0, frame.width, frame.height);
-    glUseProgram(_color_prg);
+    glUseProgram(_color_prg[index]);
     if (frame.layout == video_frame::bgra32) {
-        glUniform1i(glGetUniformLocation(_color_prg, "srgb_tex"), 0);
+        glUniform1i(glGetUniformLocation(_color_prg[index], "srgb_tex"), 0);
     } else {
-        glUniform1i(glGetUniformLocation(_color_prg, "y_tex"), 0);
-        glUniform1i(glGetUniformLocation(_color_prg, "u_tex"), 1);
-        glUniform1i(glGetUniformLocation(_color_prg, "v_tex"), 2);
+        glUniform1i(glGetUniformLocation(_color_prg[index], "y_tex"), 0);
+        glUniform1i(glGetUniformLocation(_color_prg[index], "u_tex"), 1);
+        glUniform1i(glGetUniformLocation(_color_prg[index], "v_tex"), 2);
     }
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _color_fbo);
-    // left view: render into _color_tex[0]
+    // left view: render into _color_tex[index][0]
     if (frame.layout == video_frame::bgra32) {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _input_bgra32_tex[_active_index][left]);
+        glBindTexture(GL_TEXTURE_2D, _input_bgra32_tex[index][left]);
     } else {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _input_yuv_y_tex[_active_index][left]);
+        glBindTexture(GL_TEXTURE_2D, _input_yuv_y_tex[index][left]);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, _input_yuv_u_tex[_active_index][left]);
+        glBindTexture(GL_TEXTURE_2D, _input_yuv_u_tex[index][left]);
         glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[_active_index][left]);
+        glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[index][left]);
     }
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
-            GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[0], 0);
+            GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[index][0], 0);
     xglCheckFBO(HERE);
     draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
-    // right view: render into _color_tex[1]
+    // right view: render into _color_tex[index][1]
     if (left != right) {
         if (frame.layout == video_frame::bgra32) {
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _input_bgra32_tex[_active_index][right]);
+            glBindTexture(GL_TEXTURE_2D, _input_bgra32_tex[index][right]);
         } else {
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _input_yuv_y_tex[_active_index][right]);
+            glBindTexture(GL_TEXTURE_2D, _input_yuv_y_tex[index][right]);
             glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, _input_yuv_u_tex[_active_index][right]);
+            glBindTexture(GL_TEXTURE_2D, _input_yuv_u_tex[index][right]);
             glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[_active_index][right]);
+            glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[index][right]);
         }
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
-                GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[1], 0);
+                GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[index][1], 0);
         xglCheckFBO(HERE);
         draw_quad(-1.0f, +1.0f, +2.0f, -2.0f);
     }
@@ -953,9 +954,8 @@ int video_output::video_display_height() const
     return _viewport[0][3];
 }
 
-void video_output::color_init(const video_frame &frame)
+void video_output::color_init(int index, const video_frame &frame)
 {
-    int index = (_active_index == 0 ? 1 : 0);
     xglCheckError(HERE);
     glGenFramebuffersEXT(1, &_color_fbo);
     std::string layout_str;
@@ -1049,12 +1049,12 @@ void video_output::color_init(const video_frame &frame)
     str::replace(color_fs_src, "$chroma_offset_x", chroma_offset_x_str);
     str::replace(color_fs_src, "$chroma_offset_y", chroma_offset_y_str);
     str::replace(color_fs_src, "$storage", storage_str);
-    _color_prg = xglCreateProgram("video_output_color", "", color_fs_src);
-    xglLinkProgram("video_output_color", _color_prg);
+    _color_prg[index] = xglCreateProgram("video_output_color", "", color_fs_src);
+    xglLinkProgram("video_output_color", _color_prg[index]);
     for (int i = 0; i < (frame.stereo_layout == parameters::layout_mono ? 1 : 2); i++)
     {
-        glGenTextures(1, &(_color_tex[i]));
-        glBindTexture(GL_TEXTURE_2D, _color_tex[i]);
+        glGenTextures(1, &(_color_tex[index][i]));
+        glBindTexture(GL_TEXTURE_2D, _color_tex[index][i]);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -1066,37 +1066,34 @@ void video_output::color_init(const video_frame &frame)
     xglCheckError(HERE);
 }
 
-void video_output::color_deinit()
+void video_output::color_deinit(int index)
 {
     xglCheckError(HERE);
     glDeleteFramebuffersEXT(1, &_color_fbo);
     _color_fbo = 0;
-    if (_color_prg != 0)
-    {
-        xglDeleteProgram(_color_prg);
-        _color_prg = 0;
+    if (_color_prg[index] != 0) {
+        xglDeleteProgram(_color_prg[index]);
+        _color_prg[index] = 0;
     }
-    for (int i = 0; i < 2; i++)
-    {
-        if (_color_tex[i] != 0)
-        {
-            glDeleteTextures(1, &(_color_tex[i]));
-            _color_tex[i] = 0;
+    for (int i = 0; i < 2; i++) {
+        if (_color_tex[index][i] != 0) {
+            glDeleteTextures(1, &(_color_tex[index][i]));
+            _color_tex[index][i] = 0;
         }
     }
-    _color_last_frame = video_frame();
+    _color_last_frame[index] = video_frame();
     xglCheckError(HERE);
 }
 
-bool video_output::color_is_compatible(const video_frame &current_frame)
+bool video_output::color_is_compatible(int index, const video_frame &current_frame)
 {
-    return (_color_last_frame.width == current_frame.width
-            && _color_last_frame.height == current_frame.height
-            && _color_last_frame.layout == current_frame.layout
-            && _color_last_frame.color_space == current_frame.color_space
-            && _color_last_frame.value_range == current_frame.value_range
-            && _color_last_frame.chroma_location == current_frame.chroma_location
-            && _color_last_frame.stereo_layout == current_frame.stereo_layout);
+    return (_color_last_frame[index].width == current_frame.width
+            && _color_last_frame[index].height == current_frame.height
+            && _color_last_frame[index].layout == current_frame.layout
+            && _color_last_frame[index].color_space == current_frame.color_space
+            && _color_last_frame[index].value_range == current_frame.value_range
+            && _color_last_frame[index].chroma_location == current_frame.chroma_location
+            && _color_last_frame[index].stereo_layout == current_frame.stereo_layout);
 }
 
 void video_output::render_init()
@@ -1178,6 +1175,7 @@ void video_output::render_deinit()
         _render_mask_tex = 0;
     }
     _render_last_params = parameters();
+    _render_last_frame = video_frame();
     xglCheckError(HERE);
 }
 
@@ -1298,10 +1296,10 @@ void video_output::display_current_frame(
         return;
     }
     if (!keep_viewport
-            && (frame.width != _color_last_frame.width
-                || frame.height != _color_last_frame.height
-                || frame.aspect_ratio < _color_last_frame.aspect_ratio
-                || frame.aspect_ratio > _color_last_frame.aspect_ratio
+            && (frame.width != _render_last_frame.width
+                || frame.height != _render_last_frame.height
+                || frame.aspect_ratio < _render_last_frame.aspect_ratio
+                || frame.aspect_ratio > _render_last_frame.aspect_ratio
                 || _render_last_params.stereo_mode() != _params.stereo_mode()
                 || _render_last_params.crop_aspect_ratio() < _params.crop_aspect_ratio()
                 || _render_last_params.crop_aspect_ratio() > _params.crop_aspect_ratio()
@@ -1310,7 +1308,7 @@ void video_output::display_current_frame(
                 || video_display_width() != dst_width
                 || video_display_height() != dst_height))
     {
-        reshape(dst_width, dst_height);
+        reshape(dst_width, dst_height, _params);
     }
     assert(xglCheckError(HERE));
     if (!_render_prg || !render_is_compatible())
@@ -1319,6 +1317,7 @@ void video_output::display_current_frame(
         render_init();
     }
     _render_last_params = _params;
+    _render_last_frame = frame;
 
     /* Use correct left and right view indices */
 
@@ -1399,11 +1398,11 @@ void video_output::display_current_frame(
     glUniform1f(glGetUniformLocation(_render_prg, "cos_hue"), std::cos(_params.hue() * M_PI));
     glUniform1f(glGetUniformLocation(_render_prg, "sin_hue"), std::sin(_params.hue() * M_PI));
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _color_tex[left]);
+    glBindTexture(GL_TEXTURE_2D, _color_tex[_active_index][left]);
     if (left != right)
     {
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, _color_tex[right]);
+        glBindTexture(GL_TEXTURE_2D, _color_tex[_active_index][right]);
     }
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, (_input_subtitle[_active_index].is_valid()
@@ -1581,7 +1580,7 @@ static void compute_viewport_and_tex_coords(int vp[4], float tc[4][2],
     }
 }
 
-void video_output::reshape(int w, int h)
+void video_output::reshape(int w, int h, const parameters& params)
 {
     // Clear
     _viewport[0][0] = 0;
@@ -1601,47 +1600,47 @@ void video_output::reshape(int w, int h)
     }
 
     // Compute viewport with the right aspect ratio
-    if (_params.stereo_mode() == parameters::mode_left_right
-            || _params.stereo_mode() == parameters::mode_left_right_half)
+    if (params.stereo_mode() == parameters::mode_left_right
+            || params.stereo_mode() == parameters::mode_left_right_half)
     {
         float dst_w = w / 2;
         float dst_h = h;
         float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
         float src_ar = _frame[_active_index].aspect_ratio;
-        float crop_ar = _params.crop_aspect_ratio();
-        if (_params.stereo_mode() == parameters::mode_left_right_half)
+        float crop_ar = params.crop_aspect_ratio();
+        if (params.stereo_mode() == parameters::mode_left_right_half)
         {
             src_ar /= 2.0f;
             crop_ar /= 2.0f;
         }
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
                 w / 2, h, dst_w, dst_h, dst_ar,
-                crop_ar, _params.zoom());
+                crop_ar, params.zoom());
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[1][0] = _viewport[0][0] + w / 2;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }
-    else if (_params.stereo_mode() == parameters::mode_top_bottom
-            || _params.stereo_mode() == parameters::mode_top_bottom_half)
+    else if (params.stereo_mode() == parameters::mode_top_bottom
+            || params.stereo_mode() == parameters::mode_top_bottom_half)
     {
         float dst_w = w;
         float dst_h = h / 2;
         float dst_ar = dst_w * screen_pixel_aspect_ratio() / dst_h;
         float src_ar = _frame[_active_index].aspect_ratio;
-        float crop_ar = _params.crop_aspect_ratio();
-        if (_params.stereo_mode() == parameters::mode_top_bottom_half)
+        float crop_ar = params.crop_aspect_ratio();
+        if (params.stereo_mode() == parameters::mode_top_bottom_half)
         {
             src_ar *= 2.0f;
             crop_ar *= 2.0f;
         }
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
                 w, h / 2, dst_w, dst_h, dst_ar,
-                crop_ar, _params.zoom());
+                crop_ar, params.zoom());
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[0][1] = _viewport[1][1] + h / 2;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }
-    else if (_params.stereo_mode() == parameters::mode_hdmi_frame_pack)
+    else if (params.stereo_mode() == parameters::mode_hdmi_frame_pack)
     {
         // HDMI frame packing mode has left view top, right view bottom, plus a
         // blank area separating the two. 720p uses 30 blank lines (total: 720
@@ -1657,7 +1656,7 @@ void video_output::reshape(int w, int h)
         float src_ar = _frame[_active_index].aspect_ratio;
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
                 w, (h - blank_lines) / 2, dst_w, dst_h, dst_ar,
-                _params.crop_aspect_ratio(), _params.zoom());
+                params.crop_aspect_ratio(), params.zoom());
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[0][1] = _viewport[1][1] + (h - blank_lines) / 2 + blank_lines;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
@@ -1670,7 +1669,7 @@ void video_output::reshape(int w, int h)
         float src_ar = _frame[_active_index].aspect_ratio;
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
                 w, h, dst_w, dst_h, dst_ar,
-                _params.crop_aspect_ratio(), _params.zoom());
+                params.crop_aspect_ratio(), params.zoom());
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }
