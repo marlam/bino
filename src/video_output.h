@@ -51,8 +51,8 @@ private:
     int _active_index;                                  // 0 or 1
 
     video_frame _frame[2];              // input frames (active / preparing)
-    parameters _params;                 // current parameters for display
     // Step 1: input of video data
+    video_frame _input_last_frame;      // last frame for this step
     GLuint _input_pbo;                  // pixel-buffer object for texture uploading
     GLuint _input_fbo;                  // frame-buffer object for texture clearing
     GLuint _input_yuv_y_tex[2];         // for yuv formats: y component
@@ -61,15 +61,16 @@ private:
     GLuint _input_bgra32_tex[2];        // for bgra32 format
     int _input_yuv_chroma_width_divisor;        // for yuv formats: chroma subsampling
     int _input_yuv_chroma_height_divisor;       // for yuv formats: chroma subsampling
-    subtitle_box _input_subtitle[2];    // the current subtitle box
-    GLuint _input_subtitle_tex[2];      // subtitle texture
-    bool _input_subtitle_tex_current[2];// whether the subtitle tex contains the current subtitle buffer
+    subtitle_box _subtitle[2];          // the current subtitle box
+    GLuint _subtitle_tex[2];            // subtitle texture
+    bool _subtitle_tex_current[2];      // whether the subtitle tex contains the current subtitle buffer
     // Step 2: color space conversion and color correction
     video_frame _color_last_frame[2];   // last frame for this step; used for reinitialization check
     GLuint _color_prg[2];               // color space transformation, color adjustment
     GLuint _color_fbo;                  // framebuffer object to render into the sRGB texture
     GLuint _color_tex[2][2];            // output: SRGB8 or linear RGB16 texture
     // Step 3: rendering
+    parameters _render_params;          // current parameters for display
     parameters _render_last_params;     // last params for this step; used for reinitialization check
     video_frame _render_last_frame;     // last frame for this step; used for reinitialization check
     GLuint _render_prg;                 // reads sRGB texture, renders according to _params[_active_index]
@@ -100,14 +101,12 @@ private:
             const float tex_coords[2][4][2] = NULL,
             const float more_tex_coords[4][2] = NULL) const;
 
-    void start_subtitle_updating(const video_frame& frame,
-            const subtitle_box& subtitle, const parameters& params);
-    void finish_subtitle_updating(const subtitle_box& subtitle, int index);
-
     // Step 1: initialize/deinitialize, and check if reinitialization is necessary
-    void input_init(int index, const video_frame &frame);
-    void input_deinit(int index);
-    bool input_is_compatible(int index, const video_frame &current_frame);
+    void input_init(const video_frame &frame);
+    void input_deinit();
+    bool input_is_compatible(const video_frame &current_frame);
+    void subtitle_init(int index);
+    void subtitle_deinit(int index);
     // Step 2: initialize/deinitialize, and check if reinitialization is necessary
     void color_init(int index, const video_frame &frame);
     void color_deinit(int index);
