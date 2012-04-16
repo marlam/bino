@@ -223,16 +223,13 @@ video_output::video_output() : controller(), _initialized(false)
     _input_pbo = 0;
     _input_fbo = 0;
     _active_index = 1;
-    for (int i = 0; i < 2; i++)
-    {
+    for (int i = 0; i < 2; i++) {
+        _input_yuv_y_tex[i] = 0;
+        _input_yuv_u_tex[i] = 0;
+        _input_yuv_v_tex[i] = 0;
+        _input_bgra32_tex[i] = 0;
         for (int j = 0; j < 2; j++)
-        {
-            _input_yuv_y_tex[i][j] = 0;
-            _input_yuv_u_tex[i][j] = 0;
-            _input_yuv_v_tex[i][j] = 0;
-            _input_bgra32_tex[i][j] = 0;
             _color_tex[i][j] = 0;
-        }
         _input_subtitle_tex[i] = 0;
         _input_subtitle_tex_current[i] = false;
         _color_prg[i] = 0;
@@ -634,8 +631,8 @@ void video_output::input_init(int index, const video_frame &frame)
     {
         for (int i = 0; i < (frame.stereo_layout == parameters::layout_mono ? 1 : 2); i++)
         {
-            glGenTextures(1, &(_input_bgra32_tex[index][i]));
-            glBindTexture(GL_TEXTURE_2D, _input_bgra32_tex[index][i]);
+            glGenTextures(1, &(_input_bgra32_tex[i]));
+            glBindTexture(GL_TEXTURE_2D, _input_bgra32_tex[i]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -646,18 +643,18 @@ void video_output::input_init(int index, const video_frame &frame)
     }
     else
     {
-        _input_yuv_chroma_width_divisor[index] = 1;
-        _input_yuv_chroma_height_divisor[index] = 1;
+        _input_yuv_chroma_width_divisor = 1;
+        _input_yuv_chroma_height_divisor = 1;
         bool need_chroma_filtering = false;
         if (frame.layout == video_frame::yuv422p)
         {
-            _input_yuv_chroma_width_divisor[index] = 2;
+            _input_yuv_chroma_width_divisor = 2;
             need_chroma_filtering = true;
         }
         else if (frame.layout == video_frame::yuv420p)
         {
-            _input_yuv_chroma_width_divisor[index] = 2;
-            _input_yuv_chroma_height_divisor[index] = 2;
+            _input_yuv_chroma_width_divisor = 2;
+            _input_yuv_chroma_height_divisor = 2;
             need_chroma_filtering = true;
         }
         bool type_u8 = (frame.value_range == video_frame::u8_full || frame.value_range == video_frame::u8_mpeg);
@@ -665,8 +662,8 @@ void video_output::input_init(int index, const video_frame &frame)
         GLint type = type_u8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
         for (int i = 0; i < (frame.stereo_layout == parameters::layout_mono ? 1 : 2); i++)
         {
-            glGenTextures(1, &(_input_yuv_y_tex[index][i]));
-            glBindTexture(GL_TEXTURE_2D, _input_yuv_y_tex[index][i]);
+            glGenTextures(1, &(_input_yuv_y_tex[i]));
+            glBindTexture(GL_TEXTURE_2D, _input_yuv_y_tex[i]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -675,36 +672,34 @@ void video_output::input_init(int index, const video_frame &frame)
                     frame.width,
                     frame.height,
                     0, GL_LUMINANCE, type, NULL);
-            glGenTextures(1, &(_input_yuv_u_tex[index][i]));
-            glBindTexture(GL_TEXTURE_2D, _input_yuv_u_tex[index][i]);
+            glGenTextures(1, &(_input_yuv_u_tex[i]));
+            glBindTexture(GL_TEXTURE_2D, _input_yuv_u_tex[i]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, need_chroma_filtering ? GL_LINEAR : GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, need_chroma_filtering ? GL_LINEAR : GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glTexImage2D(GL_TEXTURE_2D, 0, internal_format,
-                    frame.width / _input_yuv_chroma_width_divisor[index],
-                    frame.height / _input_yuv_chroma_height_divisor[index],
+                    frame.width / _input_yuv_chroma_width_divisor,
+                    frame.height / _input_yuv_chroma_height_divisor,
                     0, GL_LUMINANCE, type, NULL);
-            glGenTextures(1, &(_input_yuv_v_tex[index][i]));
-            glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[index][i]);
+            glGenTextures(1, &(_input_yuv_v_tex[i]));
+            glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[i]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, need_chroma_filtering ? GL_LINEAR : GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, need_chroma_filtering ? GL_LINEAR : GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glTexImage2D(GL_TEXTURE_2D, 0, internal_format,
-                    frame.width / _input_yuv_chroma_width_divisor[index],
-                    frame.height / _input_yuv_chroma_height_divisor[index],
+                    frame.width / _input_yuv_chroma_width_divisor,
+                    frame.height / _input_yuv_chroma_height_divisor,
                     0, GL_LUMINANCE, type, NULL);
         }
     }
-    glGenTextures(2, _input_subtitle_tex);
-    for (int i = 0; i < 2; i++) {
-        glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex[i]);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    }
+    glGenTextures(1, &_input_subtitle_tex[index]);
+    glBindTexture(GL_TEXTURE_2D, _input_subtitle_tex[index]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     xglCheckError(HERE);
 }
 
@@ -728,25 +723,25 @@ void video_output::input_deinit(int index)
     _input_fbo = 0;
     for (int i = 0; i < 2; i++)
     {
-        if (_input_yuv_y_tex[index][i] != 0)
+        if (_input_yuv_y_tex[i] != 0)
         {
-            glDeleteTextures(1, &(_input_yuv_y_tex[index][i]));
-            _input_yuv_y_tex[index][i] = 0;
+            glDeleteTextures(1, &(_input_yuv_y_tex[i]));
+            _input_yuv_y_tex[i] = 0;
         }
-        if (_input_yuv_u_tex[index][i] != 0)
+        if (_input_yuv_u_tex[i] != 0)
         {
-            glDeleteTextures(1, &(_input_yuv_u_tex[index][i]));
-            _input_yuv_u_tex[index][i] = 0;
+            glDeleteTextures(1, &(_input_yuv_u_tex[i]));
+            _input_yuv_u_tex[i] = 0;
         }
-        if (_input_yuv_v_tex[index][i] != 0)
+        if (_input_yuv_v_tex[i] != 0)
         {
-            glDeleteTextures(1, &(_input_yuv_v_tex[index][i]));
-            _input_yuv_v_tex[index][i] = 0;
+            glDeleteTextures(1, &(_input_yuv_v_tex[i]));
+            _input_yuv_v_tex[i] = 0;
         }
-        if (_input_bgra32_tex[index][i] != 0)
+        if (_input_bgra32_tex[i] != 0)
         {
-            glDeleteTextures(1, &(_input_bgra32_tex[index][i]));
-            _input_bgra32_tex[index][i] = 0;
+            glDeleteTextures(1, &(_input_bgra32_tex[i]));
+            _input_bgra32_tex[i] = 0;
         }
     }
     if (_input_subtitle_tex[index] != 0) {
@@ -756,8 +751,8 @@ void video_output::input_deinit(int index)
         _input_subtitle[index] = subtitle_box();
     }
     _subtitle_updater->reset();
-    _input_yuv_chroma_width_divisor[index] = 0;
-    _input_yuv_chroma_height_divisor[index] = 0;
+    _input_yuv_chroma_width_divisor = 0;
+    _input_yuv_chroma_height_divisor = 0;
     _frame[index] = video_frame();
     xglCheckError(HERE);
 }
@@ -812,18 +807,18 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
             int row_size;
             if (frame.layout == video_frame::bgra32)
             {
-                tex = _input_bgra32_tex[index][i];
+                tex = _input_bgra32_tex[i];
             }
             else
             {
                 if (plane != 0)
                 {
-                    w /= _input_yuv_chroma_width_divisor[index];
-                    h /= _input_yuv_chroma_height_divisor[index];
+                    w /= _input_yuv_chroma_width_divisor;
+                    h /= _input_yuv_chroma_height_divisor;
                 }
-                tex = (plane == 0 ? _input_yuv_y_tex[index][i]
-                        : plane == 1 ? _input_yuv_u_tex[index][i]
-                        : _input_yuv_v_tex[index][i]);
+                tex = (plane == 0 ? _input_yuv_y_tex[i]
+                        : plane == 1 ? _input_yuv_u_tex[i]
+                        : _input_yuv_v_tex[i]);
             }
             row_size = next_multiple_of_4(w * bytes_per_pixel);
             // Get a pixel buffer object buffer for the data
@@ -892,14 +887,14 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
     // left view: render into _color_tex[index][0]
     if (frame.layout == video_frame::bgra32) {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _input_bgra32_tex[index][left]);
+        glBindTexture(GL_TEXTURE_2D, _input_bgra32_tex[left]);
     } else {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _input_yuv_y_tex[index][left]);
+        glBindTexture(GL_TEXTURE_2D, _input_yuv_y_tex[left]);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, _input_yuv_u_tex[index][left]);
+        glBindTexture(GL_TEXTURE_2D, _input_yuv_u_tex[left]);
         glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[index][left]);
+        glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[left]);
     }
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
             GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[index][0], 0);
@@ -909,14 +904,14 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
     if (left != right) {
         if (frame.layout == video_frame::bgra32) {
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _input_bgra32_tex[index][right]);
+            glBindTexture(GL_TEXTURE_2D, _input_bgra32_tex[right]);
         } else {
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _input_yuv_y_tex[index][right]);
+            glBindTexture(GL_TEXTURE_2D, _input_yuv_y_tex[right]);
             glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, _input_yuv_u_tex[index][right]);
+            glBindTexture(GL_TEXTURE_2D, _input_yuv_u_tex[right]);
             glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[index][right]);
+            glBindTexture(GL_TEXTURE_2D, _input_yuv_v_tex[right]);
         }
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
                 GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _color_tex[index][1], 0);
@@ -1009,14 +1004,14 @@ void video_output::color_init(int index, const video_frame &frame)
             if (frame.chroma_location == video_frame::left)
             {
                 chroma_offset_x_str = str::from(0.5f / static_cast<float>(frame.width
-                            / _input_yuv_chroma_width_divisor[index]));
+                            / _input_yuv_chroma_width_divisor));
             }
             else if (frame.chroma_location == video_frame::topleft)
             {
                 chroma_offset_x_str = str::from(0.5f / static_cast<float>(frame.width
-                            / _input_yuv_chroma_width_divisor[index]));
+                            / _input_yuv_chroma_width_divisor));
                 chroma_offset_y_str = str::from(0.5f / static_cast<float>(frame.height
-                            / _input_yuv_chroma_height_divisor[index]));
+                            / _input_yuv_chroma_height_divisor));
             }
         }
         else if (frame.layout == video_frame::yuv420p)
@@ -1024,14 +1019,14 @@ void video_output::color_init(int index, const video_frame &frame)
             if (frame.chroma_location == video_frame::left)
             {
                 chroma_offset_x_str = str::from(0.5f / static_cast<float>(frame.width
-                            / _input_yuv_chroma_width_divisor[index]));
+                            / _input_yuv_chroma_width_divisor));
             }
             else if (frame.chroma_location == video_frame::topleft)
             {
                 chroma_offset_x_str = str::from(0.5f / static_cast<float>(frame.width
-                            / _input_yuv_chroma_width_divisor[index]));
+                            / _input_yuv_chroma_width_divisor));
                 chroma_offset_y_str = str::from(0.5f / static_cast<float>(frame.height
-                            / _input_yuv_chroma_height_divisor[index]));
+                            / _input_yuv_chroma_height_divisor));
             }
         }
     }

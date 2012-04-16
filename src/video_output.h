@@ -55,12 +55,12 @@ private:
     // Step 1: input of video data
     GLuint _input_pbo;                  // pixel-buffer object for texture uploading
     GLuint _input_fbo;                  // frame-buffer object for texture clearing
-    GLuint _input_yuv_y_tex[2][2];      // for yuv formats: y component
-    GLuint _input_yuv_u_tex[2][2];      // for yuv formats: u component
-    GLuint _input_yuv_v_tex[2][2];      // for yuv formats: v component
-    GLuint _input_bgra32_tex[2][2];     // for bgra32 format
-    int _input_yuv_chroma_width_divisor[2];     // for yuv formats: chroma subsampling
-    int _input_yuv_chroma_height_divisor[2];    // for yuv formats: chroma subsampling
+    GLuint _input_yuv_y_tex[2];         // for yuv formats: y component
+    GLuint _input_yuv_u_tex[2];         // for yuv formats: u component
+    GLuint _input_yuv_v_tex[2];         // for yuv formats: v component
+    GLuint _input_bgra32_tex[2];        // for bgra32 format
+    int _input_yuv_chroma_width_divisor;        // for yuv formats: chroma subsampling
+    int _input_yuv_chroma_height_divisor;       // for yuv formats: chroma subsampling
     subtitle_box _input_subtitle[2];    // the current subtitle box
     GLuint _input_subtitle_tex[2];      // subtitle texture
     bool _input_subtitle_tex_current[2];// whether the subtitle tex contains the current subtitle buffer
