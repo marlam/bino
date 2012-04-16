@@ -53,19 +53,25 @@
  * Video output happens in three steps: video data input, color correction,
  * and rendering.
  *
- * Step 1: Video data input.
- * We have two texture sets for input: one holding the current video frame,
- * and one for preparing the next video frame. Each texture set has textures
- * for the left and right view. The video data is transferred to texture
- * memory using pixel buffer objects, for better performance.
+ * The first two steps are performed in prepare_next_frame() once per video
+ * frame, and the third step is performed in display_current_frame() once per
+ * output frame.
  *
- * Step 2: Color correction.
- * The input data is first converted to YUV (for the common planar YUV frame
- * formats, this just means gathering of the three components from the
- * three planes). Then color adjustment in the YUV space is performed.
- * If the input data had an 8 bit value range, the result is converted to sRGB
- * and stored in an GL_SRGB texture. If the input data had a larger value range,
- * the result is converted to linear RGB and stored in an GL_RGB16 texture.
+ * To be able to call prepare_next_frame() for the next video frame while
+ * display_current_frame() still uses the current video frame, we must maintain
+ * two different sets of textures: one active set, used by
+ * display_current_frame(), and one inactive set, used by prepare_next_frame().
+ *
+ * Step 1: Video data input.
+ * The original YUV or SRGB data is transferred to texture memory using pixel
+ * buffer objects, for better performance. The is one texture for the left view
+ * and, if necessary, a second texture for the right view.
+ *
+ * Step 2: Color space conversion.
+ * This step converts the video data to SRGB color space. If the input data had
+ * an 8 bit value range, the result is stored in an GL_SRGB texture. If the
+ * input data had a larger value range (or GL_SRGB textures cannot be rendered
+ * into), the result is converted to linear RGB and stored in an GL_RGB16 texture.
  * In this color correction step, no interpolation is done, because we're
  * dealing with non-linear values, and interpolating them would lead to
  * errors. We do not store linear RGB in GL_RGB8 textures because that would
