@@ -1131,13 +1131,6 @@ void player_equalizer::open()
 }
 
 static bool global_quit_request;
-static bool global_delete_request;
-
-void player_equalizer::close()
-{
-    _config->exit();
-    global_delete_request = true;
-}
 
 class eq_quit_controller : public controller
 {
@@ -1151,13 +1144,13 @@ class eq_quit_controller : public controller
 void player_equalizer::mainloop()
 {
     global_quit_request = false;
-    global_delete_request = false;
     eq_quit_controller qc;
     for (;;) {
-        dispatch::step();
-        dispatch::process_all_events();
-        if (global_quit_request) {
-            return;
+        if (!global_player_equalizer) {
+            dispatch::step();
+            dispatch::process_all_events();
+            if (global_quit_request)
+                return;
         }
         if (global_player_equalizer) {
             eq_config* config = global_player_equalizer->_config;
@@ -1165,9 +1158,8 @@ void player_equalizer::mainloop()
                 config->startFrame();
                 config->finishFrame();
             }
-            if (global_delete_request) {
-                delete global_player_equalizer;
-            }
+            global_dispatch->stop_eq_player();
+            assert(!global_player_equalizer);
         }
     }
 }

@@ -42,7 +42,6 @@ public:
     virtual ~player_equalizer();
 
     virtual void open();
-    virtual void close();
 
     static void mainloop();
 };

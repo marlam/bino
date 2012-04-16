@@ -208,17 +208,8 @@ void dispatch::step()
 {
     assert(global_dispatch);
     if (global_dispatch->_playing) {
-        bool more = global_dispatch->_player->run_step();
-        if (!more) {
-            global_dispatch->_playing = false;
-            global_dispatch->_pausing = false;
-            global_dispatch->notify_all(notification::play);            
-            if (!global_dispatch->_gui_mode && global_dispatch->early_quit_is_allowed()) {
-                global_dispatch->notify_all(notification::quit);
-            } else {
-                global_dispatch->force_stop();
-            }
-        }
+        if (!global_dispatch->_player->run_step())
+            global_dispatch->stop_player();
     } else {
         usleep(1000);
     }
@@ -378,12 +369,20 @@ static float clamp(float x, float lo, float hi)
     return std::min(std::max(x, lo), hi);
 }
 
+void dispatch::stop_player()
+{
+    bool early_quit = !_gui_mode && early_quit_is_allowed();
+    force_stop(!early_quit);
+    notify_all(notification::play);
+    if (early_quit);
+        notify_all(notification::quit);
+}
+
 void dispatch::force_stop(bool reopen_media_input)
 {
     if (_player) {
         _player->close();
-        if (!_eq)
-            delete _player;     // The equalizer will delete the player object at the appropriate time
+        delete _player;
         _player = NULL;
     }
     if (_media_input) {

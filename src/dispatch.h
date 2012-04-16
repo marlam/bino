@@ -329,6 +329,7 @@ private:
     bool _pausing;
     float _position;
 
+    void stop_player();
     void force_stop(bool reopen_media_input = true);
 
     bool early_quit_is_allowed() const;
@@ -377,6 +378,7 @@ public:
     class open_input_data* get_input_data();
     std::string save_state() const;
     void load_state(const std::string& s);
+    void stop_eq_player() { stop_player(); }
 
     /* Helper function for text-based controllers: parse a command from a string.
      * Return false if this fails, otherwise store the command in c. */
