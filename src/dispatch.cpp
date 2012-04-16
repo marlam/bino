@@ -382,7 +382,8 @@ void dispatch::force_stop(bool reopen_media_input)
 {
     if (_player) {
         _player->close();
-        delete _player;
+        if (!_eq)
+            delete _player;     // The equalizer code will delete the player object at the appropriate time
         _player = NULL;
     }
     if (_media_input) {
@@ -425,7 +426,7 @@ void dispatch::receive_cmd(const command& cmd)
         break;
     // Play state
     case command::open:
-        force_stop();
+        force_stop(false);
         notify_all(notification::play);
         s11n::load(p, _input_data);
         // Create media input

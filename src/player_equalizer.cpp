@@ -463,6 +463,8 @@ public:
             global_player_equalizer->step(&more_steps, &_eq_frame_data.seek_to,
                     &_eq_frame_data.prep_frame, &_eq_frame_data.drop_frame, &_eq_frame_data.display_frame);
             dispatch::process_all_events();
+            if (!dispatch::playing())
+                more_steps = false;
         }
         while (more_steps
                 && _eq_frame_data.seek_to == -1
@@ -470,10 +472,10 @@ public:
                 && !_eq_frame_data.drop_frame
                 && !_eq_frame_data.display_frame
                 && !dispatch::pausing());
-        if (isRunning() && !more_steps)
+        if (!more_steps) {
             this->exit();
-        if (!isRunning())
             return 0;
+        }
         // Update the video state for all (it might have changed via handleEvent())
         _eq_frame_data.subtitle = global_player_equalizer->get_subtitle_box();
         _eq_frame_data.dispatch_state = global_dispatch->save_state();
@@ -1159,7 +1161,7 @@ void player_equalizer::mainloop()
                 config->finishFrame();
             }
             global_dispatch->stop_eq_player();
-            assert(!global_player_equalizer);
+            delete global_player_equalizer;
         }
     }
 }
