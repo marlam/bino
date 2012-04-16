@@ -374,7 +374,7 @@ void dispatch::stop_player()
     bool early_quit = !_gui_mode && early_quit_is_allowed();
     force_stop(!early_quit);
     notify_all(notification::play);
-    if (early_quit);
+    if (early_quit)
         notify_all(notification::quit);
 }
 
