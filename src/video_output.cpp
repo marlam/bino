@@ -992,6 +992,10 @@ void video_output::clear() const
 void video_output::reshape(int w, int h, const parameters& params)
 {
     // Clear
+    _full_viewport[0] = 0;
+    _full_viewport[1] = 0;
+    _full_viewport[2] = w;
+    _full_viewport[3] = h;
     _viewport[0][0] = 0;
     _viewport[0][1] = 0;
     _viewport[0][2] = w;
@@ -1294,6 +1298,48 @@ void video_output::display_current_frame(
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
+
+    if (_render_params.fullscreen() && _render_params.fullscreen_3d_ready_sync()
+            && (_render_params.stereo_mode() == parameters::mode_left_right
+                || _render_params.stereo_mode() == parameters::mode_left_right_half
+                || _render_params.stereo_mode() == parameters::mode_top_bottom
+                || _render_params.stereo_mode() == parameters::mode_top_bottom_half
+                || _render_params.stereo_mode() == parameters::mode_alternating)) {
+        /* DLP 3-D Ready Sync: draw colored lines to allow the projector
+         * to identify the stereo mode and the left / right views automatically. */
+        const uint32_t R = 0xffu << 16u;
+        const uint32_t G = 0xffu << 8u;
+        const uint32_t B = 0xffu;
+        int width = _full_viewport[2];
+        int height = _full_viewport[3];
+        // Make space in the buffer for the pixel data
+        size_t req_size = width * sizeof(uint32_t);
+        if (_3d_ready_sync_buf.size() < req_size)
+            _3d_ready_sync_buf.resize(req_size);
+        if (_render_params.stereo_mode() == parameters::mode_left_right
+                || _render_params.stereo_mode() == parameters::mode_left_right_half) {
+           uint32_t color = (display_frameno % 2 == 0 ? R : G | B);
+           for (int i = 0; i < width; i++)
+               _3d_ready_sync_buf.ptr<uint32_t>()[i] = color;
+           glWindowPos2i(0, 0);
+           glDrawPixels(width, 1, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _3d_ready_sync_buf.ptr());
+        } else if (_render_params.stereo_mode() == parameters::mode_top_bottom
+                || _render_params.stereo_mode() == parameters::mode_top_bottom_half) {
+           uint32_t color = (display_frameno % 2 == 0 ? B : R | G);
+           for (int i = 0; i < width; i++)
+               _3d_ready_sync_buf.ptr<uint32_t>()[i] = color;
+           glWindowPos2i(0, 0);
+           glDrawPixels(width, 1, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _3d_ready_sync_buf.ptr());
+           glWindowPos2i(0, height / 2);
+           glDrawPixels(width, 1, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _3d_ready_sync_buf.ptr());
+        } else if (_render_params.stereo_mode() == parameters::mode_alternating) {
+           uint32_t color = (display_frameno % 4 < 2 ? G : R | B);
+           for (int i = 0; i < width; i++)
+               _3d_ready_sync_buf.ptr<uint32_t>()[i] = color;
+           glWindowPos2i(0, 0);
+           glDrawPixels(width, 1, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, _3d_ready_sync_buf.ptr());
+        }
+    }
 }
 
 #if HAVE_LIBXNVCTRL

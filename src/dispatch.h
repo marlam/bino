@@ -100,6 +100,7 @@ public:
         set_fullscreen_flip_right,      // bool
         set_fullscreen_flop_right,      // bool
         set_fullscreen_inhibit_screensaver,     // bool
+        set_fullscreen_3d_ready_sync,   // bool
         set_contrast,                   // float (absolute value)
         adjust_contrast,                // float (relative adjustment)
         set_brightness,                 // float (absolute value)
@@ -224,6 +225,7 @@ public:
         fullscreen_flip_right,
         fullscreen_flop_right,
         fullscreen_inhibit_screensaver,
+        fullscreen_3d_ready_sync,
         contrast,
         brightness,
         hue,

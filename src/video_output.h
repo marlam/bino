@@ -29,6 +29,8 @@
 
 #include <GL/glew.h>
 
+#include "blob.h"
+
 #include "media_data.h"
 #include "subtitle_renderer.h"
 #include "dispatch.h"
@@ -76,7 +78,9 @@ private:
     GLuint _render_prg;                 // reads sRGB texture, renders according to _params[_active_index]
     GLuint _render_dummy_tex;           // an empty subtitle texture
     GLuint _render_mask_tex;            // for the masking modes even-odd-{rows,columns}, checkerboard
+    blob _3d_ready_sync_buf;            // for 3-D Ready Sync pixels
     // OpenGL viewports and tex coordinates for drawing the two views of the video frame
+    GLint _full_viewport[4];
     GLint _viewport[2][4];
     float _tex_coords[2][4][2];
 

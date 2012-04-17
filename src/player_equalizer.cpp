@@ -568,6 +568,7 @@ public:
                 controller::send_cmd(command::toggle_play);
                 break;
             case 'e':
+            case eq::KC_F7:
                 controller::send_cmd(command::toggle_stereo_mode_swap);
                 break;
             case 'f':

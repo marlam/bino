@@ -1098,6 +1098,9 @@ fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent)
     _flop_right_box = new QCheckBox(_("flop right view horizontally."));
     _flop_right_box->setToolTip(lbl2->toolTip());
 
+    _3d_ready_sync_box = new QCheckBox(_("use DLP(R) 3-D Ready Sync"));
+    _3d_ready_sync_box->setToolTip(_("<p>Use DLP&reg; 3-D Ready Sync for supported output modes.</p>"));
+
     _inhibit_screensaver_box = new QCheckBox(_("inhibit the screensaver"));
     _inhibit_screensaver_box->setToolTip(_("<p>Inhibit the screensaver during fullscreen playback.</p>"));
 
@@ -1118,7 +1121,8 @@ fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent)
     layout0->addWidget(_flop_left_box, 6, 0, 1, 3);
     layout0->addWidget(_flip_right_box, 7, 0, 1, 3);
     layout0->addWidget(_flop_right_box, 8, 0, 1, 3);
-    layout0->addWidget(_inhibit_screensaver_box, 9, 0, 1, 3);
+    layout0->addWidget(_3d_ready_sync_box, 9, 0, 1, 3);
+    layout0->addWidget(_inhibit_screensaver_box, 10, 0, 1, 3);
     QGridLayout *layout1 = new QGridLayout();
     layout1->addWidget(ok_btn, 0, 0);
     QGridLayout *layout = new QGridLayout();
@@ -1170,6 +1174,7 @@ fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent)
     _flop_left_box->setChecked(dispatch::parameters().fullscreen_flop_left());
     _flip_right_box->setChecked(dispatch::parameters().fullscreen_flip_right());
     _flop_right_box->setChecked(dispatch::parameters().fullscreen_flop_right());
+    _3d_ready_sync_box->setChecked(dispatch::parameters().fullscreen_3d_ready_sync());
 #ifdef Q_WS_X11
     _inhibit_screensaver_box->setChecked(dispatch::parameters().fullscreen_inhibit_screensaver());
 #else
@@ -1206,6 +1211,8 @@ void fullscreen_dialog::closeEvent(QCloseEvent* e)
     send_cmd(command::set_fullscreen_flop_left, _flop_left_box->isChecked());
     send_cmd(command::set_fullscreen_flip_right, _flip_right_box->isChecked());
     send_cmd(command::set_fullscreen_flop_right, _flop_right_box->isChecked());
+    // 3d ready sync
+    send_cmd(command::set_fullscreen_3d_ready_sync, _3d_ready_sync_box->isChecked());
     // inhibit_screensaver
     send_cmd(command::set_fullscreen_inhibit_screensaver, _inhibit_screensaver_box->isChecked());
 
@@ -2766,6 +2773,8 @@ main_window::main_window(QSettings *settings) :
             send_cmd(command::set_fullscreen_flop_right, session_params.fullscreen_flop_right());
         if (!dispatch::parameters().fullscreen_inhibit_screensaver_is_set() && !session_params.fullscreen_inhibit_screensaver_is_default())
             send_cmd(command::set_fullscreen_inhibit_screensaver, session_params.fullscreen_inhibit_screensaver());
+        if (!dispatch::parameters().fullscreen_3d_ready_sync_is_set() && !session_params.fullscreen_3d_ready_sync_is_default())
+            send_cmd(command::set_fullscreen_3d_ready_sync, session_params.fullscreen_3d_ready_sync());
         if (!dispatch::parameters().zoom_is_set() && !session_params.zoom_is_default())
             send_cmd(command::set_zoom, session_params.zoom());
 #if HAVE_LIBXNVCTRL
@@ -3576,7 +3585,7 @@ void main_window::help_keyboard()
                 "<tr><td>p / SPACE</td><td>" + _("Pause / unpause.") + "</td></tr>"
                 "<tr><td>f</td><td>" + _("Toggle fullscreen.") + "</td></tr>"
                 "<tr><td>c</td><td>" + _("Center window.") + "</td></tr>"
-                "<tr><td>e</td><td>" + _("Swap left/right eye.") + "</td></tr>"
+                "<tr><td>e / F7</td><td>" + _("Swap left/right eye.") + "</td></tr>"
                 "<tr><td>v</td><td>" + _("Cycle through available video streams.") + "</td></tr>"
                 "<tr><td>a</td><td>" + _("Cycle through available audio streams.") + "</td></tr>"
                 "<tr><td>s</td><td>" + _("Cycle through available subtitle streams.") + "</td></tr>"

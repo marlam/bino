@@ -173,6 +173,8 @@ Flop left view horizontally when in fullscreen mode.
 Flip right view vertically when in fullscreen mode.
 @item --fullscreen-flop-right
 Flop right view horizontally when in fullscreen mode.
+@item --fullscreen-3dr-sync
+Use DLP@registeredsymbol{} 3-D Ready Sync when in fullscreen mode.
 @item -z
 @itemx --zoom=@var{Z}
 Set zoom for videos that are wider than the screen, from 0 (off; show full
@@ -873,6 +875,7 @@ Toggle fullscreen.
 @item c
 Center window.
 @item e
+@item F7
 Swap left/right eye.
 @item v
 Cycle through available video streams.
@@ -1073,6 +1076,8 @@ Set fullscreen flip right (on or off).
 Set fullscreen flop right (on or off).
 @item set-fullscreen-inhibit-screensaver @var{b}
 Set fullscreen inhibit screensaver (on or off).
+@item set-fullscreen-3dr-sync @var{b}
+Set fullscreen DLP@registeredsymbol{} 3-D Ready Sync (on or off).
 @item set-contrast @var{value}
 Set contrast to the given @var{value}, from -1 to +1.
 @item adjust-contrast @var{delta}

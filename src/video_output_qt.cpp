@@ -304,6 +304,7 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
         _vo->send_cmd(command::toggle_play);
         break;
     case Qt::Key_E:
+    case Qt::Key_F7:
         _vo->send_cmd(command::toggle_stereo_mode_swap);
         break;
     case Qt::Key_F:

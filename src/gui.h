@@ -156,6 +156,7 @@ private:
     QCheckBox* _flop_left_box;
     QCheckBox* _flip_right_box;
     QCheckBox* _flop_right_box;
+    QCheckBox* _3d_ready_sync_box;
     QCheckBox* _inhibit_screensaver_box;
 
 public:

@@ -13,6 +13,7 @@ New in the next stable version:
 - Support for opening multiple input devices.
 - Support for requesting MJPEG data from input devices.
 - Support for video output via SDI on NVIDIA Quadro cards.
+- Support for DLP 3-D Ready Sync.
 - Support for a "Recent Files" section in the File menu.
 - Full support for scripting.
 - Various user interface tweaks.

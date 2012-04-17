@@ -288,6 +288,8 @@ int main(int argc, char *argv[])
     options.push_back(&fullscreen_flip_right);
     opt::flag fullscreen_flop_right("fullscreen-flop-right", '\0', opt::optional);
     options.push_back(&fullscreen_flop_right);
+    opt::flag fullscreen_3d_ready_sync("fullscreen-3d-ready-sync", '\0', opt::optional);
+    options.push_back(&fullscreen_3d_ready_sync);
     opt::val<float> zoom("zoom", 'z', opt::optional, 0.0f, 1.0f);
     options.push_back(&zoom);
     opt::tuple<float> crop_aspect_ratio("crop", 'C', opt::optional, 0.0f, 100.0f, std::vector<float>(), 2, ":");
@@ -465,6 +467,7 @@ int main(int argc, char *argv[])
                 + "  --fullscreen-flop-left   " + _("Flop left view horizontally when fullscreen.") + '\n'
                 + "  --fullscreen-flip-right  " + _("Flip right view vertically when fullscreen.") + '\n'
                 + "  --fullscreen-flop-right  " + _("Flop right view horizontally when fullscreen.") + '\n'
+                + "  --fullscreen-3dr-sync    " + _("Use DLP 3-D Ready Sync when fullscreen.") + '\n'
                 + "  -z|--zoom=Z              " + _("Set zoom for wide videos (0=off to 1=full).") + '\n'
                 + "  -C|--crop=W:H            " + _("Crop video to given aspect ratio (0:0=off).") + '\n'
                 + "  -c|--center              " + _("Center window on screen.") + '\n'
@@ -491,7 +494,7 @@ int main(int argc, char *argv[])
                 + "  p / SPACE                " + _("Pause / unpause.") + '\n'
                 + "  f                        " + _("Toggle fullscreen.") + '\n'
                 + "  c                        " + _("Center window.") + '\n'
-                + "  e                        " + _("Swap left/right eye.") + '\n'
+                + "  e / F7                   " + _("Swap left/right eye.") + '\n'
                 + "  v                        " + _("Cycle through available video streams.") + '\n'
                 + "  a                        " + _("Cycle through available audio streams.") + '\n'
                 + "  s                        " + _("Cycle through available subtitle streams.") + '\n'
@@ -629,6 +632,8 @@ int main(int argc, char *argv[])
         controller::send_cmd(command::set_fullscreen_flip_right, fullscreen_flip_right.value());
     if (fullscreen_flop_right.is_set())
         controller::send_cmd(command::set_fullscreen_flop_right, fullscreen_flop_right.value());
+    if (fullscreen_3d_ready_sync.is_set())
+        controller::send_cmd(command::set_fullscreen_3d_ready_sync, fullscreen_3d_ready_sync.value());
     if (zoom.is_set())
         controller::send_cmd(command::set_zoom, zoom.value());
     if (loop.is_set())

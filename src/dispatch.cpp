@@ -628,6 +628,10 @@ void dispatch::receive_cmd(const command& cmd)
         _parameters.set_fullscreen_inhibit_screensaver(s11n::load<bool>(p));
         notify_all(notification::fullscreen_inhibit_screensaver);
         break;
+    case command::set_fullscreen_3d_ready_sync:
+        _parameters.set_fullscreen_3d_ready_sync(s11n::load<bool>(p));
+        notify_all(notification::fullscreen_3d_ready_sync);
+        break;
     case command::adjust_contrast:
         _parameters.set_contrast(clamp(_parameters.contrast() + s11n::load<float>(p), -1.0f, +1.0f));
         notify_all(notification::contrast);
@@ -1088,6 +1092,9 @@ bool dispatch::parse_command(const std::string& s, command* c)
     } else if (tokens.size() == 2 && tokens[0] == "set-fullscreen-inhibit-screensaver"
             && parse_bool(tokens[1], &p.b)) {
         *c = command(command::set_fullscreen_inhibit_screensaver, p.b);
+    } else if (tokens.size() == 2 && tokens[0] == "set-fullscreen-3dr-sync"
+            && parse_bool(tokens[1], &p.b)) {
+        *c = command(command::set_fullscreen_3d_ready_sync, p.b);
     } else if (tokens.size() == 2 && tokens[0] == "set-contrast"
             && str::to(tokens[1], &p.f)) {
         *c = command(command::set_contrast, p.f);
