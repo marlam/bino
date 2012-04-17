@@ -881,7 +881,7 @@ Swap left/right eye.
 Cycle through available video streams.
 @item a
 Cycle through available audio streams.
-@item a
+@item s
 Cycle through available subtitle streams.
 @item 1, 2
 Adjust contrast.
