@@ -1552,7 +1552,6 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
     // Finish the subtitle updating
     if (subtitle.is_valid()) {
         _subtitle_updater->finish();
-        _subtitle[index] = subtitle;
         int sub_outwidth, sub_outheight;
         void *ptr;
         int bb_x, bb_y, bb_w, bb_h;
@@ -1606,6 +1605,7 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
             _subtitle_tex_current[index == 0 ? 1 : 0] = false;
         }
     }
+    _subtitle[index] = subtitle;
 }
 
 void video_output::activate_next_frame()
