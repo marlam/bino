@@ -489,7 +489,7 @@ void video_container_widget::playloop_step()
     }
     catch (std::exception& e) {
         send_cmd(command::close);
-        QMessageBox::critical(this, "Error", e.what());
+        QMessageBox::critical(this, _("Error"), e.what());
     }
 }
 
@@ -659,11 +659,15 @@ int64_t video_output_qt::wait_for_subtitle_renderer()
 void video_output_qt::deinit()
 {
     exit_fullscreen();
-    if (_widget)
-    {
-        _widget->stop_rendering();
-        _widget->makeCurrent();
-        video_output::deinit();
+    if (_widget) {
+        try {
+            _widget->stop_rendering();
+            _widget->makeCurrent();
+            video_output::deinit();
+        }
+        catch (std::exception& e) {
+            QMessageBox::critical(_widget, _("Error"), e.what());
+        }
         delete _widget;
         _widget = NULL;
     }
