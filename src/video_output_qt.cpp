@@ -129,10 +129,25 @@ void gl_thread::run()
         _vo_qt_widget->makeCurrent();
         assert(QGLContext::currentContext() == _vo_qt_widget->context());
         while (_render) {
-            if (_action_activate) {
-                _vo_qt->video_output::activate_next_frame();
-                _action_activate = false;
-                _wait_cond.wake_one();
+#ifdef Q_WS_X11
+            GLuint counter;
+            if (GLXEW_SGI_video_sync && glXGetVideoSyncSGI(&counter) == 0)
+                _display_frameno = counter;
+            else
+                _display_frameno++;
+#else
+            _display_frameno++;
+#endif
+            // In alternating mode, we should always present both left and right view of
+            // a stereo video frame before advancing to the next video frame. This means we
+            // can only switch video frames every other output frame.
+            if (dispatch::parameters().stereo_mode() != parameters::mode_alternating
+                    || _display_frameno % 2 == 0) {
+                if (_action_activate) {
+                    _vo_qt->video_output::activate_next_frame();
+                    _action_activate = false;
+                    _wait_cond.wake_one();
+                }
             }
             if (_action_prepare) {
                 _vo_qt->video_output::prepare_next_frame(_next_frame, _next_subtitle);
@@ -143,15 +158,6 @@ void gl_thread::run()
                 _vo_qt->reshape(_w, _h);
                 _resize = false;
             }
-#ifdef Q_WS_X11
-            GLuint counter;
-            if (GLXEW_SGI_video_sync && glXGetVideoSyncSGI(&counter) == 0)
-                _display_frameno = counter;
-            else
-                _display_frameno++;
-#else
-            _display_frameno++;
-#endif
             _vo_qt->display_current_frame(_display_frameno);
 
 #if HAVE_LIBXNVCTRL
@@ -160,20 +166,23 @@ void gl_thread::run()
 
             _vo_qt_widget->swapBuffers();
             // When the buffer swap returns, the current frame is just now presented on screen.
-            _pt_mutex.lock();
-            try {
-                _pt[_pti] = timer::get_microseconds(timer::monotonic);
-            }
-            catch (...) {
+            if (dispatch::parameters().stereo_mode() != parameters::mode_alternating
+                    || _display_frameno % 2 == 0) {
+                _pt_mutex.lock();
+                try {
+                    _pt[_pti] = timer::get_microseconds(timer::monotonic);
+                }
+                catch (...) {
+                    _pt_mutex.unlock();
+                    throw;
+                }
+                _pti++;
+                if (_pti >= _pts)
+                    _pti = 0;
+                if (_ptc < _pts)
+                    _ptc++;
                 _pt_mutex.unlock();
-                throw;
             }
-            _pti++;
-            if (_pti >= _pts)
-                _pti = 0;
-            if (_ptc < _pts)
-                _ptc++;
-            _pt_mutex.unlock();
         }
     }
     catch (std::exception& e) {
