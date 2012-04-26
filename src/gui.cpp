@@ -1574,7 +1574,7 @@ void audio_dialog::device_changed()
 void audio_dialog::delay_changed()
 {
     if (!_lock)
-        send_cmd(command::set_audio_delay, _delay_spinbox->value() * 1000);
+        send_cmd(command::set_audio_delay, static_cast<int64_t>(_delay_spinbox->value() * 1000));
 }
 
 void audio_dialog::receive_notification(const notification &note)
