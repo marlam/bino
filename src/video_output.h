@@ -167,7 +167,8 @@ protected:
     void display_current_frame(int64_t display_frameno = 0)
     {
         display_current_frame(display_frameno, false, false, -1.0f, -1.0f, 2.0f, 2.0f,
-                _viewport, _tex_coords, width(), height(), dispatch::parameters().stereo_mode());
+                _viewport, _tex_coords, video_display_width(), video_display_height(),
+                dispatch::parameters().stereo_mode());
     }
 
 #if HAVE_LIBXNVCTRL
