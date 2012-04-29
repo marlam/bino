@@ -41,11 +41,7 @@
 // mode_checkerboard
 #define $mode
 
-uniform float contrast;
-uniform float brightness;
-uniform float saturation;
-uniform float cos_hue;
-uniform float sin_hue;
+uniform mat4 color_matrix;
 
 uniform sampler2D rgb_l;
 uniform sampler2D rgb_r;
@@ -108,48 +104,11 @@ vec3 ghostbust(vec3 original, vec3 other)
 }
 #endif
 
-float nonlinear_to_linear(float x)
-{
-    return (x <= 0.04045 ? (x / 12.92) : pow((x + 0.055) / 1.055, 2.4));
-}
 vec3 adjust_color(vec3 rgb)
 {
-    vec3 srgb, yuv;
-    mat3 m;
-
-    // Convert RGB to SRGB
-    srgb = rgb_to_srgb(rgb);
-    // Convert SRGB to YUV
-    // According to ITU.BT-601 (see formulas in Sec. 2.5.1 and 2.5.2)
-    m = mat3(
-            0.299, -0.168736,  0.5,
-            0.587, -0.331264, -0.418688,
-            0.114,  0.5,      -0.081312);
-    yuv = m * srgb + vec3(0.0, 0.5, 0.5);
-
-    // Adjust colors in YUV space
-    // Adapted from http://www.silicontrip.net/~mark/lavtools/yuvadjust.c
-    // (Copyright 2002 Alfonso Garcia-Patiño Barbolani, released under GPLv2 or later)
-
-    // brightness and contrast
-    float ay = (yuv.x - 0.5) * (contrast + 1.0) + brightness + 0.5;
-    // hue and saturation
-    float au = (cos_hue * (yuv.y - 0.5) - sin_hue * (yuv.z - 0.5)) * (saturation + 1.0) + 0.5;
-    float av = (sin_hue * (yuv.y - 0.5) + cos_hue * (yuv.z - 0.5)) * (saturation + 1.0) + 0.5;
-    yuv = vec3(ay, au, av);
-
-    // Convert YUV to SRGB
-    // According to ITU.BT-601 (see formulas in Sec. 2.5.1 and 2.5.2)
-    m = mat3(
-            1.0,    1.0,      1.0,
-            0.0,   -0.344136, 1.772,
-            1.402, -0.714136, 0.0);
-    srgb = m * (yuv - vec3(0.0, 0.5, 0.5));
-    // Convert SRGB to RGB
-    return vec3(
-            nonlinear_to_linear(srgb.r),
-            nonlinear_to_linear(srgb.g),
-            nonlinear_to_linear(srgb.b));
+    vec4 rgbw = color_matrix * vec4(rgb, 1.0);
+    float w = max(rgbw.w, 0.0001);
+    return clamp(rgbw.rgb / w, 0.0, 1.0);
 }
 
 vec3 tex_l(vec2 texcoord)

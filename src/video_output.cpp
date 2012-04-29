@@ -40,6 +40,7 @@
 #include "blob.h"
 #include "dbg.h"
 
+#include "color_matrix.h"
 #include "video_output.h"
 #include "video_output_color.fs.glsl.h"
 #include "video_output_render.fs.glsl.h"
@@ -1192,11 +1193,10 @@ void video_output::display_current_frame(
     // if that means that subtitle changes don't take effect in pause mode.
 
     glUseProgram(_render_prg);
-    glUniform1f(glGetUniformLocation(_render_prg, "contrast"), _render_params.contrast());
-    glUniform1f(glGetUniformLocation(_render_prg, "brightness"), _render_params.brightness());
-    glUniform1f(glGetUniformLocation(_render_prg, "saturation"), _render_params.saturation());
-    glUniform1f(glGetUniformLocation(_render_prg, "cos_hue"), std::cos(_render_params.hue() * M_PI));
-    glUniform1f(glGetUniformLocation(_render_prg, "sin_hue"), std::sin(_render_params.hue() * M_PI));
+    float color_matrix[16];
+    get_color_matrix(_render_params.brightness(), _render_params.contrast(),
+            _render_params.hue(), _render_params.saturation(), color_matrix);
+    glUniformMatrix4fv(glGetUniformLocation(_render_prg, "color_matrix"), 1, GL_TRUE, color_matrix);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _color_tex[_active_index][left]);
     if (left != right) {
