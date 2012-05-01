@@ -262,7 +262,7 @@ void video_output_qt_widget::redisplay()
     _gl_thread.redisplay();
 }
 
-void video_output_qt_widget::paintEvent(QPaintEvent* event)
+void video_output_qt_widget::paintEvent(QPaintEvent*)
 {
     _gl_thread.redisplay();
 }
