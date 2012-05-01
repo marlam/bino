@@ -41,14 +41,34 @@
 // mode_checkerboard
 #define $mode
 
-uniform mat4 color_matrix;
+// subtitle_enabled
+// subtitle_disabled
+#define $subtitle
+
+// coloradjust_enabled
+// coloradjust_disabled
+#define $coloradjust
+
+// ghostbust_enabled
+// ghostbust_disabled
+#define $ghostbust
 
 uniform sampler2D rgb_l;
 uniform sampler2D rgb_r;
 uniform float parallax;
 
+#if defined(subtitle_enabled)
 uniform sampler2D subtitle;
 uniform float subtitle_parallax;
+#endif
+
+#if defined(coloradjust_enabled)
+uniform mat4 color_matrix;
+#endif
+
+#if defined(ghostbust_enabled) && (defined(mode_onechannel) || defined(mode_even_odd_rows) || defined(mode_even_odd_columns) || defined(mode_checkerboard))
+uniform vec3 crosstalk;
+#endif
 
 #if defined(mode_onechannel)
 uniform float channel;  // 0.0 for left, 1.0 for right
@@ -58,10 +78,6 @@ uniform float channel;  // 0.0 for left, 1.0 for right
 uniform sampler2D mask_tex;
 uniform float step_x;
 uniform float step_y;
-#endif
-
-#if defined(mode_onechannel) || defined(mode_even_odd_rows) || defined(mode_even_odd_columns) || defined(mode_checkerboard)
-uniform vec3 crosstalk;
 #endif
 
 
@@ -98,43 +114,52 @@ vec3 rgb_to_srgb(vec3 rgb)
 }
 
 #if defined(mode_onechannel) || defined(mode_even_odd_rows) || defined(mode_even_odd_columns) || defined(mode_checkerboard)
+#  if defined(ghostbust_enabled)
 vec3 ghostbust(vec3 original, vec3 other)
 {
     return original + crosstalk - (other + original) * crosstalk;
 }
+#  else
+#    define ghostbust(original, other) original
+#  endif
 #endif
 
+#if defined(coloradjust_enabled)
 vec3 adjust_color(vec3 rgb)
 {
     vec4 rgbw = color_matrix * vec4(rgb, 1.0);
     float w = max(rgbw.w, 0.0001);
     return clamp(rgbw.rgb / w, 0.0, 1.0);
 }
+#else
+#  define adjust_color(rgb) rgb
+#endif
 
 vec3 tex_l(vec2 texcoord)
 {
     return adjust_color(texture2D(rgb_l, texcoord + vec2(parallax, 0.0)).rgb);
 }
-
 vec3 tex_r(vec2 texcoord)
 {
     return adjust_color(texture2D(rgb_r, texcoord - vec2(parallax, 0.0)).rgb);
 }
 
+#if defined(subtitle_enabled)
 vec4 sub_l(vec2 texcoord)
 {
     return texture2D(subtitle, vec2(texcoord.x + subtitle_parallax, 1.0 - texcoord.y));
 }
-
 vec4 sub_r(vec2 texcoord)
 {
     return texture2D(subtitle, vec2(texcoord.x - subtitle_parallax, 1.0 - texcoord.y));
 }
-
 vec3 blend_subtitle(vec3 rgb, vec4 sub)
 {
     return mix(rgb, sub.rgb, sub.a);
 }
+#else
+#  define blend_subtitle(rgb, sub) rgb
+#endif
 
 void main()
 {

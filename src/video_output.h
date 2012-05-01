@@ -118,6 +118,9 @@ private:
     // Step 3: initialize/deinitialize, and check if reinitialization is necessary
     void render_init();
     void render_deinit();
+    bool render_needs_subtitle(const parameters& params);
+    bool render_needs_coloradjust(const parameters& params);
+    bool render_needs_ghostbust(const parameters& params);
     bool render_is_compatible();
 
 protected:

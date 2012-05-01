@@ -906,8 +906,14 @@ void video_output::render_init()
             : _render_params.stereo_mode() == parameters::mode_red_green_monochrome ? "mode_red_green_monochrome"
             : _render_params.stereo_mode() == parameters::mode_red_blue_monochrome ? "mode_red_blue_monochrome"
             : "mode_onechannel");
+    std::string subtitle_str = (render_needs_subtitle(_render_params) ? "subtitle_enabled" : "subtitle_disabled");
+    std::string coloradjust_str = (render_needs_coloradjust(_render_params) ? "coloradjust_enabled" : "coloradjust_disabled");
+    std::string ghostbust_str = (render_needs_ghostbust(_render_params) ? "ghostbust_enabled" : "ghostbust_disabled");
     std::string render_fs_src(VIDEO_OUTPUT_RENDER_FS_GLSL_STR);
     str::replace(render_fs_src, "$mode", mode_str);
+    str::replace(render_fs_src, "$subtitle", subtitle_str);
+    str::replace(render_fs_src, "$coloradjust", coloradjust_str);
+    str::replace(render_fs_src, "$ghostbust", ghostbust_str);
     _render_prg = xglCreateProgram("video_output_render", "", render_fs_src);
     xglLinkProgram("video_output_render", _render_prg);
     uint32_t dummy_texture = 0;
@@ -963,9 +969,30 @@ void video_output::render_deinit()
     xglCheckError(HERE);
 }
 
+bool video_output::render_needs_subtitle(const parameters& params)
+{
+    return params.subtitle_stream() != -1;
+}
+
+bool video_output::render_needs_coloradjust(const parameters& params)
+{
+    return params.contrast() < 0.0f || params.contrast() > 0.0f
+        || params.brightness() < 0.0f || params.brightness() > 0.0f
+        || params.hue() < 0.0f || params.hue() > 0.0f
+        || params.saturation() < 0.0f || params.saturation() > 0.0f;
+}
+
+bool video_output::render_needs_ghostbust(const parameters& params)
+{
+    return params.ghostbust() > 0.0f;
+}
+
 bool video_output::render_is_compatible()
 {
-    return (_render_last_params.stereo_mode() == _render_params.stereo_mode());
+    return (_render_last_params.stereo_mode() == _render_params.stereo_mode()
+            && render_needs_subtitle(_render_last_params) == render_needs_subtitle(_render_params)
+            && render_needs_coloradjust(_render_last_params) == render_needs_coloradjust(_render_params)
+            && render_needs_ghostbust(_render_last_params) == render_needs_ghostbust(_render_params));
 }
 
 int video_output::full_display_width() const
@@ -1207,24 +1234,28 @@ void video_output::display_current_frame(
     // if that means that subtitle changes don't take effect in pause mode.
 
     glUseProgram(_render_prg);
-    float color_matrix[16];
-    get_color_matrix(_render_params.brightness(), _render_params.contrast(),
-            _render_params.hue(), _render_params.saturation(), color_matrix);
-    glUniformMatrix4fv(glGetUniformLocation(_render_prg, "color_matrix"), 1, GL_TRUE, color_matrix);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _color_tex[_active_index][left]);
     if (left != right) {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, _color_tex[_active_index][right]);
     }
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, (_subtitle[_active_index].is_valid()
-                ? _subtitle_tex[_active_index] : _render_dummy_tex));
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_l"), 0);
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_r"), 1);
     glUniform1f(glGetUniformLocation(_render_prg, "parallax"), _render_params.parallax() * 0.05f);
-    glUniform1i(glGetUniformLocation(_render_prg, "subtitle"), 2);
-    glUniform1f(glGetUniformLocation(_render_prg, "subtitle_parallax"), _render_params.subtitle_parallax() * 0.05f);
+    if (render_needs_subtitle(_render_params)) {
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, (_subtitle[_active_index].is_valid()
+                    ? _subtitle_tex[_active_index] : _render_dummy_tex));
+        glUniform1i(glGetUniformLocation(_render_prg, "subtitle"), 2);
+        glUniform1f(glGetUniformLocation(_render_prg, "subtitle_parallax"), _render_params.subtitle_parallax() * 0.05f);
+    }
+    if (render_needs_coloradjust(_render_params)) {
+        float color_matrix[16];
+        get_color_matrix(_render_params.brightness(), _render_params.contrast(),
+                _render_params.hue(), _render_params.saturation(), color_matrix);
+        glUniformMatrix4fv(glGetUniformLocation(_render_prg, "color_matrix"), 1, GL_TRUE, color_matrix);
+    }
     if (_render_params.stereo_mode() != parameters::mode_red_green_monochrome
             && _render_params.stereo_mode() != parameters::mode_red_cyan_half_color
             && _render_params.stereo_mode() != parameters::mode_red_cyan_full_color
@@ -1238,7 +1269,8 @@ void video_output::display_current_frame(
             && _render_params.stereo_mode() != parameters::mode_amber_blue_full_color
             && _render_params.stereo_mode() != parameters::mode_amber_blue_dubois
             && _render_params.stereo_mode() != parameters::mode_red_blue_monochrome
-            && _render_params.stereo_mode() != parameters::mode_red_cyan_monochrome) {
+            && _render_params.stereo_mode() != parameters::mode_red_cyan_monochrome
+            && render_needs_ghostbust(_render_params)) {
         glUniform3f(glGetUniformLocation(_render_prg, "crosstalk"),
                 _render_params.crosstalk_r() * _render_params.ghostbust(),
                 _render_params.crosstalk_g() * _render_params.ghostbust(),
