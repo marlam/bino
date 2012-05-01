@@ -146,6 +146,7 @@ public:
         set_audio_volume,               // float (absolute value)
         adjust_audio_volume,            // float (relative adjustment)
         toggle_audio_mute,              // no parameters
+        update_display_pos,             // no parameters
     };
     
     type type;
@@ -259,6 +260,7 @@ public:
         center,
         audio_volume,
         audio_mute,
+        display_pos,
     };
 
     const enum type type;

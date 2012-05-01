@@ -3162,6 +3162,11 @@ void main_window::dropEvent(QDropEvent *event)
     }
 }
 
+void main_window::moveEvent(QMoveEvent*)
+{
+    send_cmd(command::update_display_pos);
+}
+
 void main_window::closeEvent(QCloseEvent *event)
 {
     // Stop the event and play loop

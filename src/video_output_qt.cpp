@@ -83,9 +83,10 @@ GLXEWContext* gl_thread::glxewGetContext() const
 
 void gl_thread::set_render(bool r)
 {
-    _render = r;
     _pti = 0;
     _ptc = 0;
+    _redisplay = r;
+    _render = r;
 }
 
 void gl_thread::resize(int w, int h)
@@ -120,6 +121,11 @@ void gl_thread::prepare_next_frame(const video_frame &frame, const subtitle_box 
     _wait_mutex.unlock();
 }
 
+void gl_thread::redisplay()
+{
+    _redisplay = true;
+}
+
 void gl_thread::run()
 {
     try {
@@ -145,6 +151,7 @@ void gl_thread::run()
                     _vo_qt->video_output::activate_next_frame();
                     _action_activate = false;
                     _wait_cond.wake_one();
+                    _redisplay = true;
                 }
             }
             if (_action_prepare) {
@@ -156,31 +163,33 @@ void gl_thread::run()
                     && (_vo_qt->full_display_width() != _w
                         || _vo_qt->full_display_height() != _h)) {
                 _vo_qt->reshape(_w, _h);
+                _redisplay = true;
             }
-            _vo_qt->display_current_frame(_display_frameno);
-
+            if (_redisplay || dispatch::parameters().stereo_mode() == parameters::mode_alternating) {
+                _redisplay = false;
+                _vo_qt->display_current_frame(_display_frameno);
 #if HAVE_LIBXNVCTRL
-            _vo_qt->sdi_output(_display_frameno);
+                _vo_qt->sdi_output(_display_frameno);
 #endif // HAVE_LIBXNVCTRL
-
-            _vo_qt_widget->swapBuffers();
-            // When the buffer swap returns, the current frame is just now presented on screen.
-            if (dispatch::parameters().stereo_mode() != parameters::mode_alternating
-                    || _display_frameno % 2 == 0) {
-                _pt_mutex.lock();
-                try {
-                    _pt[_pti] = timer::get_microseconds(timer::monotonic);
-                }
-                catch (...) {
+                _vo_qt_widget->swapBuffers();
+                // When the buffer swap returns, the current frame is just now presented on screen.
+                if (dispatch::parameters().stereo_mode() == parameters::mode_alternating
+                        && _display_frameno % 2 == 0) {
+                    _pt_mutex.lock();
+                    try {
+                        _pt[_pti] = timer::get_microseconds(timer::monotonic);
+                    }
+                    catch (...) {
+                        _pt_mutex.unlock();
+                        throw;
+                    }
+                    _pti++;
+                    if (_pti >= _pts)
+                        _pti = 0;
+                    if (_ptc < _pts)
+                        _ptc++;
                     _pt_mutex.unlock();
-                    throw;
                 }
-                _pti++;
-                if (_pti >= _pts)
-                    _pti = 0;
-                if (_ptc < _pts)
-                    _ptc++;
-                _pt_mutex.unlock();
             }
         }
     }
@@ -198,7 +207,11 @@ void gl_thread::run()
 
 int64_t gl_thread::time_to_next_frame_presentation()
 {
-    if (_ptc < _pts)    // no reliable data yet; assume immediate display
+    // FIXME: we currently only record reliable time in alternating mode
+    if (dispatch::parameters().stereo_mode() == parameters::mode_alternating)
+        return 0;
+    // if no reliable data is available: assume immediate display
+    if (_ptc < _pts)
         return 0;
     _pt_mutex.lock();
     int last_pti = _pti == 0 ? _pts - 1 : _pti - 1;
@@ -279,6 +292,16 @@ void video_output_qt_widget::stop_rendering()
     _gl_thread.set_render(false);
     _gl_thread.wait();
     _timer.stop();
+}
+
+void video_output_qt_widget::redisplay()
+{
+    _gl_thread.redisplay();
+}
+
+void video_output_qt_widget::paintEvent(QPaintEvent* event)
+{
+    _gl_thread.redisplay();
 }
 
 void video_output_qt_widget::resizeEvent(QResizeEvent* event)
@@ -515,6 +538,11 @@ void video_container_widget::grab_focus()
 QSize video_container_widget::sizeHint() const
 {
     return QSize(_w, _h);
+}
+
+void video_container_widget::moveEvent(QMoveEvent*)
+{
+    send_cmd(command::update_display_pos);
 }
 
 void video_container_widget::closeEvent(QCloseEvent *)
@@ -1001,6 +1029,39 @@ void video_output_qt::process_events()
 
 void video_output_qt::receive_notification(const notification& note)
 {
+    /* Redisplay if a parameter was changed that affects the video display. */
+    if (dispatch::playing()
+            && (note.type == notification::stereo_mode
+                || note.type == notification::stereo_mode_swap
+                || note.type == notification::crosstalk
+                || note.type == notification::fullscreen_flip_left
+                || note.type == notification::fullscreen_flop_left
+                || note.type == notification::fullscreen_flip_right
+                || note.type == notification::fullscreen_flop_right
+                || note.type == notification::fullscreen_3d_ready_sync
+                || note.type == notification::contrast
+                || note.type == notification::brightness
+                || note.type == notification::hue
+                || note.type == notification::saturation
+                || note.type == notification::zoom
+#if HAVE_LIBXNVCTRL
+                || note.type == notification::sdi_output_format
+                || note.type == notification::sdi_output_left_stereo_mode
+                || note.type == notification::sdi_output_right_stereo_mode
+#endif // HAVE_LIBXNVCTRL
+                || note.type == notification::crop_aspect_ratio
+                || note.type == notification::parallax
+                || note.type == notification::ghostbust)) {
+        _widget->redisplay();
+    }
+    /* Redisplay if the widget moved and a masking stereo mode is active. */
+    if (dispatch::playing()
+            && note.type == notification::display_pos
+            && (dispatch::parameters().stereo_mode() == parameters::mode_even_odd_rows
+                || dispatch::parameters().stereo_mode() == parameters::mode_even_odd_columns
+                || dispatch::parameters().stereo_mode() == parameters::mode_checkerboard)) {
+        _widget->redisplay();
+    }
     if (note.type == notification::play && !dispatch::playing()) {
         exit_fullscreen();
     }

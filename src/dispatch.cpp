@@ -857,6 +857,9 @@ void dispatch::receive_cmd(const command& cmd)
         _parameters.set_audio_mute(!_parameters.audio_mute());
         notify_all(notification::audio_mute);
         break;
+    case command::update_display_pos:
+        notify_all(notification::display_pos);
+        break;
     }
 }
 

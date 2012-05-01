@@ -56,6 +56,7 @@ private:
     bool _action_activate;
     bool _action_prepare;
     bool _action_finished;
+    bool _redisplay;
     video_frame _next_frame;
     subtitle_box _next_subtitle;
     bool _failure;
@@ -82,6 +83,7 @@ public:
     void resize(int w, int h);
     void activate_next_frame();
     void prepare_next_frame(const video_frame &frame, const subtitle_box &subtitle);
+    void redisplay();
 
     int64_t time_to_next_frame_presentation();
 
@@ -120,6 +122,7 @@ public:
 
     void start_rendering();
     void stop_rendering();
+    void redisplay();
     class gl_thread* gl_thread()
     {
         return &_gl_thread;
@@ -134,7 +137,7 @@ protected:
     virtual bool event(QEvent* e) { return QWidget::event(e); }
 # endif
 #endif
-    virtual void paintEvent(QPaintEvent*) {}
+    virtual void paintEvent(QPaintEvent* event);
     virtual void resizeEvent(QResizeEvent* event);
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
@@ -159,6 +162,7 @@ public:
 signals:
 protected:
     virtual QSize sizeHint() const;
+    virtual void moveEvent(QMoveEvent* event);
     virtual void closeEvent(QCloseEvent *event);
     virtual void receive_notification(const notification& note);
 };
