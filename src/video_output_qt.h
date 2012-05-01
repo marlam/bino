@@ -61,16 +61,8 @@ private:
     subtitle_box _next_subtitle;
     bool _failure;
     exc _e;
-
     // The display frame number
     int64_t _display_frameno;
-
-    // For estimation of next display frame presentation time
-    mutex _pt_mutex;
-    static const int _pts = 5;
-    int64_t _pt[_pts];
-    int _ptc;
-    int _pti;
 
 public:
     gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widget);

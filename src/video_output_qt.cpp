@@ -83,8 +83,6 @@ GLXEWContext* gl_thread::glxewGetContext() const
 
 void gl_thread::set_render(bool r)
 {
-    _pti = 0;
-    _ptc = 0;
     _redisplay = r;
     _render = r;
 }
@@ -172,24 +170,6 @@ void gl_thread::run()
                 _vo_qt->sdi_output(_display_frameno);
 #endif // HAVE_LIBXNVCTRL
                 _vo_qt_widget->swapBuffers();
-                // When the buffer swap returns, the current frame is just now presented on screen.
-                if (dispatch::parameters().stereo_mode() == parameters::mode_alternating
-                        && _display_frameno % 2 == 0) {
-                    _pt_mutex.lock();
-                    try {
-                        _pt[_pti] = timer::get_microseconds(timer::monotonic);
-                    }
-                    catch (...) {
-                        _pt_mutex.unlock();
-                        throw;
-                    }
-                    _pti++;
-                    if (_pti >= _pts)
-                        _pti = 0;
-                    if (_ptc < _pts)
-                        _ptc++;
-                    _pt_mutex.unlock();
-                }
             } else {
                 // do not busy loop
                 usleep(1000);
@@ -210,30 +190,10 @@ void gl_thread::run()
 
 int64_t gl_thread::time_to_next_frame_presentation()
 {
-    // FIXME: we currently only record reliable time in alternating mode
-    if (dispatch::parameters().stereo_mode() == parameters::mode_alternating)
-        return 0;
-    // if no reliable data is available: assume immediate display
-    if (_ptc < _pts)
-        return 0;
-    _pt_mutex.lock();
-    int last_pti = _pti == 0 ? _pts - 1 : _pti - 1;
-    int64_t last_pt = _pt[last_pti];
-    int64_t presentation_duration = 0;
-    for (int i = 0; i < _pts - 1; i++) {
-        int cpti = _pti - i - 1;
-        if (cpti < 0)
-            cpti += _pts;
-        int ppti = cpti - 1;
-        if (ppti < 0)
-            ppti = _pts - 1;
-        assert(_pt[cpti] - _pt[ppti] >= 0);
-        presentation_duration += _pt[cpti] - _pt[ppti];
-    }
-    presentation_duration /= _pts - 1;
-    _pt_mutex.unlock();
-    int64_t now = timer::get_microseconds(timer::monotonic);
-    return last_pt + presentation_duration - now;
+    // TODO: return a good estimate of the number of microseconds that will
+    // pass until the next buffer swap completes. For now, just assume that
+    // the next frame will display immediately.
+    return 0;
 }
 
 /* The GL widget */
