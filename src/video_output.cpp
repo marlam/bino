@@ -583,6 +583,10 @@ void video_output::init()
 #if HAVE_LIBXNVCTRL
         _nv_sdi_output->init(_params.sdi_output_format());
 #endif // HAVE_LIBXNVCTRL
+        _full_viewport[0] = -1;
+        _full_viewport[1] = -1;
+        _full_viewport[2] = -1;
+        _full_viewport[3] = -1;
         _initialized = true;
     }
 }
@@ -964,6 +968,16 @@ bool video_output::render_is_compatible()
     return (_render_last_params.stereo_mode() == _render_params.stereo_mode());
 }
 
+int video_output::full_display_width() const
+{
+    return _full_viewport[2];
+}
+
+int video_output::full_display_height() const
+{
+    return _full_viewport[3];
+}
+
 int video_output::video_display_width() const
 {
     assert(_viewport[0][2] > 0);
@@ -1310,8 +1324,8 @@ void video_output::display_current_frame(
         const uint32_t R = 0xffu << 16u;
         const uint32_t G = 0xffu << 8u;
         const uint32_t B = 0xffu;
-        int width = _full_viewport[2];
-        int height = _full_viewport[3];
+        int width = full_display_width();
+        int height = full_display_height();
         // Make space in the buffer for the pixel data
         size_t req_size = width * sizeof(uint32_t);
         if (_3d_ready_sync_buf.size() < req_size)

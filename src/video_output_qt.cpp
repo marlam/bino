@@ -66,7 +66,6 @@
 gl_thread::gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widget) :
     _vo_qt(vo_qt), _vo_qt_widget(vo_qt_widget),
     _render(false),
-    _resize(false),
     _action_activate(false),
     _action_prepare(false),
     _action_finished(false),
@@ -93,7 +92,6 @@ void gl_thread::resize(int w, int h)
 {
     _w = w;
     _h = h;
-    _resize = true;
 }
 
 void gl_thread::activate_next_frame()
@@ -154,9 +152,10 @@ void gl_thread::run()
                 _action_prepare = false;
                 _wait_cond.wake_one();
             }
-            if (_resize) {
+            if (_w > 0 && _h > 0
+                    && (_vo_qt->full_display_width() != _w
+                        || _vo_qt->full_display_height() != _h)) {
                 _vo_qt->reshape(_w, _h);
-                _resize = false;
             }
             _vo_qt->display_current_frame(_display_frameno);
 

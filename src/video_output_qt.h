@@ -50,7 +50,6 @@ private:
     video_output_qt* _vo_qt;
     video_output_qt_widget* _vo_qt_widget;
     bool _render;
-    bool _resize;
     int _w, _h;
     mutex _wait_mutex;
     condition _wait_cond;

@@ -125,9 +125,10 @@ protected:
 
     virtual GLEWContext* glewGetContext() const = 0;
 
-    // Get total size of the video display area. For single window output, this
-    // is the same as the current viewport. The Equalizer video output can override
-    // this function.
+    // Get the total viewport size.
+    int full_display_width() const;
+    int full_display_height() const;
+    // Get size of the viewport area that is used for video. This is overridable for Equalizer.
     virtual int video_display_width() const;
     virtual int video_display_height() const;
 
