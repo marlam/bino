@@ -190,6 +190,9 @@ void gl_thread::run()
                         _ptc++;
                     _pt_mutex.unlock();
                 }
+            } else {
+                // do not busy loop
+                usleep(1000);
             }
         }
     }
