@@ -163,7 +163,19 @@ void gl_thread::run()
                 _vo_qt->reshape(_w, _h);
                 _redisplay = true;
             }
-            if (_redisplay || dispatch::parameters().stereo_mode() == parameters::mode_alternating) {
+            // In alternating mode, we always need to redisplay
+            if (dispatch::parameters().stereo_mode() == parameters::mode_alternating)
+                _redisplay = true;
+            // If DLP 3-D Ready Sync is active, we always need to redisplay
+            if (dispatch::parameters().fullscreen() && dispatch::parameters().fullscreen_3d_ready_sync()
+                    && (dispatch::parameters().stereo_mode() == parameters::mode_left_right
+                        || dispatch::parameters().stereo_mode() == parameters::mode_left_right_half
+                        || dispatch::parameters().stereo_mode() == parameters::mode_top_bottom
+                        || dispatch::parameters().stereo_mode() == parameters::mode_top_bottom_half
+                        || dispatch::parameters().stereo_mode() == parameters::mode_alternating))
+                _redisplay = true;
+            // Redisplay if necessary
+            if (_redisplay) {
                 _redisplay = false;
                 _vo_qt->display_current_frame(_display_frameno);
 #if HAVE_LIBXNVCTRL
