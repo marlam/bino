@@ -581,7 +581,7 @@ void video_output::init()
 {
     if (!_initialized) {
 #if HAVE_LIBXNVCTRL
-        _nv_sdi_output->init(_params.sdi_output_format());
+        _nv_sdi_output->init(dispatch::parameters().sdi_output_format());
 #endif // HAVE_LIBXNVCTRL
         _full_viewport[0] = -1;
         _full_viewport[1] = -1;

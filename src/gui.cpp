@@ -2357,7 +2357,7 @@ void sdi_output_dialog::sdi_output_format_changed(int val)
 void sdi_output_dialog::sdi_output_left_stereo_mode_changed(int val)
 {
 #if HAVE_LIBXNVCTRL
-    parameters::stereo_mode_t stereo_mode;
+    parameters::stereo_mode_t stereo_mode = parameters::mode_mono_left;
 
     switch (val)
     {
@@ -2442,7 +2442,7 @@ void sdi_output_dialog::sdi_output_left_stereo_mode_changed(int val)
 void sdi_output_dialog::sdi_output_right_stereo_mode_changed(int val)
 {
 #if HAVE_LIBXNVCTRL
-    parameters::stereo_mode_t stereo_mode;
+    parameters::stereo_mode_t stereo_mode = parameters::mode_mono_left;
 
     switch (val)
     {
