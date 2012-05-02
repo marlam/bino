@@ -182,7 +182,7 @@ void gl_thread::run()
                 _vo_qt->sdi_output(_display_frameno);
 #endif // HAVE_LIBXNVCTRL
                 _vo_qt_widget->swapBuffers();
-            } else {
+            } else if (!dispatch::parameters().benchmark()) {
                 // do not busy loop
                 usleep(1000);
             }
