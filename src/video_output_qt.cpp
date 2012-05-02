@@ -877,6 +877,9 @@ void video_output_qt::center()
 void video_output_qt::enter_fullscreen()
 {
     if (!_fullscreen) {
+#ifdef Q_WS_MAC
+        _widget->stop_rendering();
+#endif
         // If the container is a window, we save its geometry here so that
         // we can restore it later.
         if (!_container_is_external)
@@ -940,12 +943,18 @@ void video_output_qt::enter_fullscreen()
             _screensaver_inhibited = true;
         }
         _fullscreen = true;
+#ifdef Q_WS_MAC
+        _widget->start_rendering();
+#endif
     }
 }
 
 void video_output_qt::exit_fullscreen()
 {
     if (_fullscreen) {
+#ifdef Q_WS_MAC
+        _widget->stop_rendering();
+#endif
         // Resume the screensaver before disabling fullscreen, so that our window ID
         // still represents the fullscreen window and was the same when suspending the screensaver.
         if (_screensaver_inhibited) {
@@ -967,6 +976,9 @@ void video_output_qt::exit_fullscreen()
         _container_widget->raise();
         _container_widget->grab_focus();
         _fullscreen = false;
+#ifdef Q_WS_MAC
+        _widget->start_rendering();
+#endif
     }
 }
 
