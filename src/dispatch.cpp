@@ -795,7 +795,7 @@ void dispatch::receive_cmd(const command& cmd)
         notify_all(notification::crop_aspect_ratio);
         break;
     case command::adjust_parallax:
-        _parameters.set_parallax(clamp(_parameters.contrast() + s11n::load<float>(p), -1.0f, +1.0f));
+        _parameters.set_parallax(clamp(_parameters.parallax() + s11n::load<float>(p), -1.0f, +1.0f));
         notify_all(notification::parallax);
         break;
     case command::set_parallax:
@@ -811,7 +811,7 @@ void dispatch::receive_cmd(const command& cmd)
         notify_all(notification::ghostbust);
         break;
     case command::adjust_subtitle_parallax:
-        _parameters.set_subtitle_parallax(clamp(_parameters.contrast() + s11n::load<float>(p), -1.0f, +1.0f));
+        _parameters.set_subtitle_parallax(clamp(_parameters.subtitle_parallax() + s11n::load<float>(p), -1.0f, +1.0f));
         notify_all(notification::subtitle_parallax);
         break;
     case command::set_subtitle_parallax:

@@ -1242,13 +1242,17 @@ void video_output::display_current_frame(
     }
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_l"), 0);
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_r"), 1);
-    glUniform1f(glGetUniformLocation(_render_prg, "parallax"), _render_params.parallax() * 0.05f);
+    glUniform1f(glGetUniformLocation(_render_prg, "parallax"),
+            _render_params.parallax() * 0.05f
+            * (_render_params.stereo_mode_swap() ? -1 : +1));
     if (render_needs_subtitle(_render_params)) {
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, (_subtitle[_active_index].is_valid()
                     ? _subtitle_tex[_active_index] : _render_dummy_tex));
         glUniform1i(glGetUniformLocation(_render_prg, "subtitle"), 2);
-        glUniform1f(glGetUniformLocation(_render_prg, "subtitle_parallax"), _render_params.subtitle_parallax() * 0.05f);
+        glUniform1f(glGetUniformLocation(_render_prg, "subtitle_parallax"),
+                _render_params.subtitle_parallax() * 0.05f
+                * (_render_params.stereo_mode_swap() ? -1 : +1));
     }
     if (render_needs_coloradjust(_render_params)) {
         float color_matrix[16];
