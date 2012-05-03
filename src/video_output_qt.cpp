@@ -578,6 +578,7 @@ void video_output_qt::init()
         create_widget();
         _widget->makeCurrent();
         set_opengl_versions();
+        glewExperimental = GL_TRUE;
         GLenum err = glewInit();
 #ifdef Q_WS_X11
         if (err == GLEW_OK)
@@ -590,10 +591,23 @@ void video_output_qt::init()
             throw exc(str::asprintf(_("Cannot initialize GLEW: %s"),
                         reinterpret_cast<const char *>(glewGetErrorString(err))));
         }
-        if (!glewIsSupported("GL_VERSION_2_1 GL_EXT_framebuffer_object"))
+        /* We essentially use OpenGL 2.1 + FBOs. Instead of checking for these two,
+         * we check for GL 1.3 + a larger number of extensions, so that GL implementations
+         * that do not fully support 2.1 still work. */
+        if (!glewIsSupported("GL_VERSION_1_3 " // at least OpenGL 1.3 is reasonable
+                    // GL_VERSION_2_0:
+                    "GL_ARB_shader_objects GL_ARB_fragment_shader "
+                    "GL_ARB_texture_non_power_of_two "
+                    // GL_VERSION_2_1:
+                    "GL_ARB_pixel_buffer_object "
+                    "GL_EXT_texture_sRGB "
+                    // FBOs. Some drivers (e.g. GeForce 6600 on Mac) only provide the EXT
+                    // version, though an ARB version exists
+                    "GL_EXT_framebuffer_object"
+                    // GL_ARB_framebuffer_sRGB is not needed (see video_output.cpp)
+                    ))
         {
-            throw exc(std::string(_("This OpenGL implementation does not support "
-                            "OpenGL 2.1 and framebuffer objects.")));
+            throw exc(std::string(_("This OpenGL implementation does not support required features.")));
         }
         video_output::init();
         video_output::clear();
