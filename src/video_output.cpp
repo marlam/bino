@@ -827,9 +827,11 @@ void video_output::color_init(int index, const parameters& params, const video_f
             }
         }
     }
-    if (!srgb8_textures_are_color_renderable()
-            || std::getenv("SRGB_TEXTURES_ARE_BROKEN") // XXX: Hack: work around broken SRGB texture implementations
-            || params.quality() == 0) {
+    if (storage_str == "storage_srgb"
+            && (!glewIsSupported("GL_EXT_texture_sRGB")
+                || std::getenv("SRGB_TEXTURES_ARE_BROKEN") // XXX: Hack: work around broken SRGB texture implementations
+                || params.quality() == 0
+                || !srgb8_textures_are_color_renderable())) {
         storage_str = "storage_linear_rgb";
     }
 

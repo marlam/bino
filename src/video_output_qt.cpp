@@ -633,10 +633,11 @@ void video_output_qt::init()
                     "GL_ARB_texture_non_power_of_two "
                     // GL_VERSION_2_1:
                     "GL_ARB_pixel_buffer_object "
-                    "GL_EXT_texture_sRGB "
                     // FBOs. Some drivers (e.g. GeForce 6600 on Mac) only provide the EXT
                     // version, though an ARB version exists
                     "GL_EXT_framebuffer_object"
+                    // SRGB extensions.
+                    // GL_EXT_texture_sRGB is optional (see video_output.cpp for the test)
                     // GL_ARB_framebuffer_sRGB is not needed (see video_output.cpp)
                     ))
         {
