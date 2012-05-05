@@ -389,7 +389,10 @@ stereo if the graphics card supports it, otherwise red/cyan anaglyph glasses.
 OpenGL quad-buffer stereo.@*
 @image{output-type-stereo,,,,png}
 @item alternating
-Left and right view alternating.@*
+Left and right view alternating. This can be used for shutter glasses on systems that do not support
+OpenGL quad-buffer stereo, but note that this mode may be unreliable and may swap left/right eyes occasionally,
+depending on your system. In case of problems, disabling the fullscreen mode screensaver inhibition may help.
+@*
 @image{output-type-alternating,,,,png}
 @item mono-left
 Left view only.@*
