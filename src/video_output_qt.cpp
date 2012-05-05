@@ -153,20 +153,38 @@ void gl_thread::run()
                     || _display_frameno % 2 == 0) {
                 _wait_mutex.lock();
                 if (_action_activate) {
-                    _vo_qt->video_output::activate_next_frame();
+                    try {
+                        _vo_qt->video_output::activate_next_frame();
+                    }
+                    catch (std::exception& e) {
+                        _e = e;
+                        _render = false;
+                        _failure = true;
+                    }
                     _action_activate = false;
                     _wait_cond.wake_one();
                     _redisplay = true;
                 }
                 _wait_mutex.unlock();
             }
+            if (_failure)
+                break;
             _wait_mutex.lock();
             if (_action_prepare) {
-                _vo_qt->video_output::prepare_next_frame(_next_frame, _next_subtitle);
+                try {
+                    _vo_qt->video_output::prepare_next_frame(_next_frame, _next_subtitle);
+                }
+                catch (std::exception& e) {
+                    _e = e;
+                    _render = false;
+                    _failure = true;
+                }
                 _action_prepare = false;
                 _wait_cond.wake_one();
             }
             _wait_mutex.unlock();
+            if (_failure)
+                break;
             if (_w > 0 && _h > 0
                     && (_vo_qt->full_display_width() != _w
                         || _vo_qt->full_display_height() != _h)) {
