@@ -60,6 +60,7 @@ Short Contents:
 * Interactive Control::
 * Scripting::
 * Camera Devices::
+* Performance Tweaking::
 @end menu
 @ifhtml
 @contents
@@ -1187,5 +1188,28 @@ name is of the form
 
 Note: for @var{firewire} and @var{x11} devices to work, your FFmpeg libraries
 must have @var{libdc1394} and @var{x11grab} support enabled.
+
+
+@node Performance Tweaking
+@chapter Performance Tweaking
+
+Bino should be able to play most video files on a computer with reasonable CPU and graphics power.
+
+If Bino cannot play a video fast enough, it drops frames. Audio continues to
+play, but video begins to stutter or even to stop completely.
+
+This can have to two causes: either your CPU cannot decode the video fast
+enough, or your graphics card cannot render the video fast enough.
+
+In the first case, there is currently not much you can do.
+
+In the second case, try the following to improve performance:
+@enumerate
+@item Reduce the quality setting as far as necessary.
+@item Use a lower-quality anaglyph mode instead of the high-quality Dubois mode.
+@item Avoid color adjustments: set the contrast, brightness, hue, and saturation adjustments to 0.
+@item Avoid ghostbusting: set the ghostbusting parameter to 0.
+@item Disable subtitles.
+@end enumerate
 
 @bye
