@@ -162,6 +162,7 @@ public:
     PARAMETER(int, swap_interval)             // Swap interval
     // Per-Session parameters
     PARAMETER(int, audio_device)              // Audio output device index, -1 = default
+    PARAMETER(int, quality)                   // Rendering quality, 0=fastest .. 4=best
     PARAMETER(stereo_mode_t, stereo_mode)     // Stereo mode
     PARAMETER(bool, stereo_mode_swap)         // Swap left and right view
     PARAMETER(float, crosstalk_r)             // Crosstalk level for red, 0 .. 1

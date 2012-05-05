@@ -90,6 +90,7 @@ public:
         set_pos,                        // float (absolute position)
         // Per-Session parameters
         set_audio_device,               // int
+        set_quality,                    // int
         set_stereo_mode,                // parameters::stereo_mode
         set_stereo_mode_swap,           // bool
         toggle_stereo_mode_swap,        // no parameters
@@ -217,6 +218,7 @@ public:
         pos,
         // Per-Session parameters
         audio_device,
+        quality,
         stereo_mode,
         stereo_mode_swap,
         crosstalk,

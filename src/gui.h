@@ -214,6 +214,25 @@ public:
     virtual void receive_notification(const notification &note);
 };
 
+class quality_dialog : public QDialog, public controller
+{
+    Q_OBJECT
+
+private:
+    bool _lock;
+    QSpinBox *_q_spinbox;
+    QSlider *_q_slider;
+
+private slots:
+    void q_slider_changed(int val);
+    void q_spinbox_changed(int val);
+
+public:
+    quality_dialog(QWidget *parent);
+
+    virtual void receive_notification(const notification &note);
+};
+
 class zoom_dialog : public QDialog, public controller
 {
     Q_OBJECT
@@ -389,6 +408,7 @@ private:
     fullscreen_dialog *_fullscreen_dialog;
     color_dialog *_color_dialog;
     crosstalk_dialog *_crosstalk_dialog;
+    quality_dialog *_quality_dialog;
     zoom_dialog *_zoom_dialog;
     audio_dialog *_audio_dialog;
     subtitle_dialog *_subtitle_dialog;
@@ -416,6 +436,7 @@ private slots:
     void preferences_fullscreen();
     void preferences_colors();
     void preferences_crosstalk();
+    void preferences_quality();
     void preferences_zoom();
     void preferences_audio();
     void preferences_subtitle();

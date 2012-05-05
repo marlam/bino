@@ -82,6 +82,7 @@ parameters::parameters()
     unset_swap_interval();
     // Per-Session parameters
     unset_audio_device();
+    unset_quality();
     unset_stereo_mode();
     unset_stereo_mode_swap();
     unset_crosstalk_r();
@@ -135,6 +136,7 @@ const bool parameters::_benchmark_default = false;
 const int parameters::_swap_interval_default = 1;
 // Per-Session parameter defaults
 const int parameters::_audio_device_default = -1;
+const int parameters::_quality_default = 4;
 const parameters::stereo_mode_t parameters::_stereo_mode_default = mode_mono_left;
 const bool parameters::_stereo_mode_swap_default = false;
 const float parameters::_crosstalk_r_default = 0.0f;
@@ -489,6 +491,8 @@ void parameters::save(std::ostream &os) const
     // Per-Session parameters
     s11n::save(os, _audio_device);
     s11n::save(os, _audio_device_set);
+    s11n::save(os, _quality);
+    s11n::save(os, _quality_set);
     s11n::save(os, static_cast<int>(_stereo_mode));
     s11n::save(os, _stereo_mode_set);
     s11n::save(os, _stereo_mode_swap);
@@ -590,6 +594,8 @@ void parameters::load(std::istream &is)
     // Per-Session parameters
     s11n::load(is, _audio_device);
     s11n::load(is, _audio_device_set);
+    s11n::load(is, _quality);
+    s11n::load(is, _quality_set);
     s11n::load(is, x); _stereo_mode = static_cast<stereo_mode_t>(x);
     s11n::load(is, _stereo_mode_set);
     s11n::load(is, _stereo_mode_swap);
@@ -683,6 +689,8 @@ std::string parameters::save_session_parameters() const
     std::stringstream oss;
     if (!audio_device_is_default())
         s11n::save(oss, "audio_device", audio_device());
+    if (!quality_is_default())
+        s11n::save(oss, "quality", quality());
     if (!stereo_mode_is_default() || !stereo_mode_swap_is_default())
         s11n::save(oss, "stereo_mode", stereo_mode_to_string(stereo_mode(), stereo_mode_swap()));
     if (!crosstalk_r_is_default())
@@ -751,6 +759,9 @@ void parameters::load_session_parameters(const std::string &s)
         if (name == "audio_device") {
             s11n::load(value, _audio_device);
             _audio_device_set = true;
+        } else if (name == "quality") {
+            s11n::load(value, _quality);
+            _quality_set = true;
         } else if (name == "stereo_mode") {
             std::string s;
             s11n::load(value, s);

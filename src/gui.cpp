@@ -1450,6 +1450,62 @@ void crosstalk_dialog::receive_notification(const notification &note)
 }
 
 
+quality_dialog::quality_dialog(QWidget *parent) : QDialog(parent), _lock(false)
+{
+    setModal(false);
+    setWindowTitle(_("Rendering Quality Adjustments"));
+
+    QLabel *q_label = new QLabel(_("Rendering Quality:"));
+    _q_slider = new QSlider(Qt::Horizontal);
+    _q_slider->setRange(0, 4);
+    _q_slider->setValue(dispatch::parameters().quality());
+    connect(_q_slider, SIGNAL(valueChanged(int)), this, SLOT(q_slider_changed(int)));
+    _q_spinbox = new QSpinBox();
+    _q_spinbox->setRange(0, 4);
+    _q_spinbox->setValue(dispatch::parameters().quality());
+    _q_spinbox->setSingleStep(1);
+    connect(_q_spinbox, SIGNAL(valueChanged(int)), this, SLOT(q_spinbox_changed(int)));
+
+    QPushButton *ok_button = new QPushButton(_("OK"));
+    connect(ok_button, SIGNAL(clicked()), this, SLOT(close()));
+
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(q_label, 0, 0);
+    layout->addWidget(_q_slider, 0, 1);
+    layout->addWidget(_q_spinbox, 0, 2);
+    layout->addWidget(ok_button, 1, 0, 1, 3);
+    setLayout(layout);
+}
+
+void quality_dialog::q_slider_changed(int val)
+{
+    if (!_lock)
+        send_cmd(command::set_quality, val);
+}
+
+void quality_dialog::q_spinbox_changed(int val)
+{
+    if (!_lock)
+        send_cmd(command::set_quality, val);
+}
+
+void quality_dialog::receive_notification(const notification &note)
+{
+    switch (note.type)
+    {
+    case notification::quality:
+        _lock = true;
+        _q_slider->setValue(dispatch::parameters().quality());
+        _q_spinbox->setValue(dispatch::parameters().quality());
+        _lock = false;
+        break;
+    default:
+        /* not handled */
+        break;
+    }
+}
+
+
 zoom_dialog::zoom_dialog(QWidget *parent) : QDialog(parent), _lock(false)
 {
     setModal(false);
@@ -2702,6 +2758,7 @@ main_window::main_window(QSettings *settings) :
     _fullscreen_dialog(NULL),
     _color_dialog(NULL),
     _crosstalk_dialog(NULL),
+    _quality_dialog(NULL),
     _zoom_dialog(NULL),
     _audio_dialog(NULL),
     _subtitle_dialog(NULL),
@@ -2725,6 +2782,8 @@ main_window::main_window(QSettings *settings) :
             send_cmd(command::set_audio_device, session_params.audio_device());
         if (!dispatch::parameters().audio_delay_is_set() && !session_params.audio_delay_is_default())
             send_cmd(command::set_audio_delay, session_params.audio_delay());
+        if (!dispatch::parameters().quality_is_set() && !session_params.quality_is_default())
+            send_cmd(command::set_quality, session_params.quality());
         if (!dispatch::parameters().contrast_is_set() && !session_params.contrast_is_default())
             send_cmd(command::set_contrast, session_params.contrast());
         if (!dispatch::parameters().brightness_is_set() && !session_params.brightness_is_default())
@@ -2966,6 +3025,10 @@ main_window::main_window(QSettings *settings) :
     QAction *preferences_crosstalk_act = new QAction(_("Display Cross&talk Calibration..."), this);
     connect(preferences_crosstalk_act, SIGNAL(triggered()), this, SLOT(preferences_crosstalk()));
     preferences_menu->addAction(preferences_crosstalk_act);
+    preferences_menu->addSeparator();
+    QAction *preferences_quality_act = new QAction(_("Quality Adjustments..."), this);
+    connect(preferences_quality_act, SIGNAL(triggered()), this, SLOT(preferences_quality()));
+    preferences_menu->addAction(preferences_quality_act);
     preferences_menu->addSeparator();
     QAction *preferences_zoom_act = new QAction(_("&Zoom for wide videos..."), this);
     connect(preferences_zoom_act, SIGNAL(triggered()), this, SLOT(preferences_zoom()));
@@ -3494,6 +3557,17 @@ void main_window::preferences_crosstalk()
     _crosstalk_dialog->show();
     _crosstalk_dialog->raise();
     _crosstalk_dialog->activateWindow();
+}
+
+void main_window::preferences_quality()
+{
+    if (!_quality_dialog)
+    {
+        _quality_dialog = new quality_dialog(this);
+    }
+    _quality_dialog->show();
+    _quality_dialog->raise();
+    _quality_dialog->activateWindow();
 }
 
 void main_window::preferences_zoom()

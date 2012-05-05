@@ -249,6 +249,8 @@ int main(int argc, char *argv[])
     opt::val<std::string> lirc_config("lirc-config", '\0', opt::optional);
     options.push_back(&lirc_config);
     std::vector<std::string> input_modes;
+    opt::val<int> quality("quality", '\0', opt::optional, 0, 4, 4);
+    options.push_back(&quality);
     input_modes.push_back("mono");
     input_modes.push_back("separate-left-right");
     input_modes.push_back("separate-right-left");
@@ -410,6 +412,7 @@ int main(int argc, char *argv[])
                 + "  --read-commands=FILE     " + _("Read commands from a file.") + '\n'
                 + "  --lirc-config=FILE       " + _("Use the given LIRC configuration file.") + '\n'
                 + "                           " + _("This option can be used more than once.") + '\n'
+                + "  --quality=Q              " + _("Output quality (0=fastest to 4=best/default).") + '\n'
                 + "  -v|--video=STREAM        " + _("Select video stream (1-n, depending on input).") + '\n'
                 + "  -a|--audio=STREAM        " + _("Select audio stream (1-n, depending on input).") + '\n'
                 + "  -s|--subtitle=STREAM     " + _("Select subtitle stream (0-n, dep. on input).") + '\n'
@@ -596,6 +599,8 @@ int main(int argc, char *argv[])
     /* Set session parameters */
     if (audio_device.is_set())
         controller::send_cmd(command::set_audio_device, audio_device.value() - 1);
+    if (quality.is_set())
+        controller::send_cmd(command::set_quality, quality.value());
     if (video_output_mode.is_set()) {
         parameters::stereo_mode_t stereo_mode;
         if (video_output_mode.value() == "equalizer") {

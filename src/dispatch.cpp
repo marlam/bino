@@ -586,6 +586,10 @@ void dispatch::receive_cmd(const command& cmd)
         _parameters.set_audio_device(s11n::load<int>(p));
         notify_all(notification::audio_device);
         break;
+    case command::set_quality:
+        _parameters.set_quality(s11n::load<int>(p));
+        notify_all(notification::quality);
+        break;
     case command::set_stereo_mode:
         _parameters.set_stereo_mode(static_cast<parameters::stereo_mode_t>(s11n::load<int>(p)));
         notify_all(notification::stereo_mode);
@@ -1060,6 +1064,9 @@ bool dispatch::parse_command(const std::string& s, command* c)
     } else if (tokens.size() == 2 && tokens[0] == "set-audio-device"
             && str::to(tokens[1], &p.i)) {
         *c = command(command::set_audio_device, p.i);
+    } else if (tokens.size() == 2 && tokens[0] == "set-quality"
+            && str::to(tokens[1], &p.i)) {
+        *c = command(command::set_quality, p.i);
     } else if (tokens.size() == 2 && tokens[0] == "set-stereo-mode"
             && parameters::parse_stereo_mode(tokens[1], &p_stereo_mode)) {
         *c = command(command::set_stereo_mode, static_cast<int>(p_stereo_mode));

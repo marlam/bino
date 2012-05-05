@@ -140,6 +140,8 @@ Request format @var{default} or @var{mjpeg} from device.
 Read commands from file. @xref{Scripting}.
 @item --lirc-config=@var{FILE}
 Use the given LIRC configuration file. This option can be used more than once.
+@item --quality=@var{Q}"
+Set rendering quality, from 0 (fastest) to 4 (best, default).
 @item -v
 @itemx --video=@var{STREAM}
 Select video stream (1-n, depending on the input).
@@ -1057,6 +1059,8 @@ Seek by setting an absolute position in the stream, with @var{pos} between 0 and
 1. For example, to seek to the middle of the video, use 0.5.
 @item set-audio-device @var{dev}
 Set the audio device to the one with the given index.
+@item set-quality @var{q}
+Set rendering quality, from 0 (fastest) to 4 (best, default).
 @item set-stereo-mode @var{mode}
 Set the stereo mode. @xref{Supported Output Techniques}.
 @item set-stereo-mode-swap @var{swap}
