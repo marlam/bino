@@ -827,9 +827,9 @@ void video_output::color_init(int index, const parameters& params, const video_f
             }
         }
     }
-    // XXX: Hack: work around broken SRGB texture implementations
-    if (!srgb8_textures_are_color_renderable() || std::getenv("SRGB_TEXTURES_ARE_BROKEN")) {
-        msg::dbg("Avoiding broken SRGB texture implementation.");
+    if (!srgb8_textures_are_color_renderable()
+            || std::getenv("SRGB_TEXTURES_ARE_BROKEN") // XXX: Hack: work around broken SRGB texture implementations
+            || params.quality() == 0) {
         storage_str = "storage_linear_rgb";
     }
 
@@ -851,7 +851,8 @@ void video_output::color_init(int index, const parameters& params, const video_f
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glTexImage2D(GL_TEXTURE_2D, 0,
-                storage_str == "storage_srgb" ? GL_SRGB8 : GL_RGB16,
+                storage_str == "storage_srgb" ? GL_SRGB8
+                : params.quality() > 0 ? GL_RGB16 : GL_RGB,
                 frame.width, frame.height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
     }
     xglCheckError(HERE);
