@@ -1175,7 +1175,7 @@ fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent)
     _flip_right_box->setChecked(dispatch::parameters().fullscreen_flip_right());
     _flop_right_box->setChecked(dispatch::parameters().fullscreen_flop_right());
     _3d_ready_sync_box->setChecked(dispatch::parameters().fullscreen_3d_ready_sync());
-#ifdef Q_WS_X11
+#if defined(Q_WS_X11) || defined(Q_WS_MAC)
     _inhibit_screensaver_box->setChecked(dispatch::parameters().fullscreen_inhibit_screensaver());
 #else
     _inhibit_screensaver_box->setChecked(false);

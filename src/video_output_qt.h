@@ -179,6 +179,9 @@ private:
     bool _screensaver_inhibited;
     bool _recreate_context;
     bool _recreate_context_stereo;
+#ifdef Q_WS_MAC
+    unsigned int _disableDisplaySleepAssertion;
+#endif
 
     void create_widget();
     void mouse_set_pos(float dest);

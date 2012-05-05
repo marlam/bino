@@ -47,6 +47,10 @@
 # include <X11/Xlib.h>
 # include <GL/glxew.h>
 #endif
+#ifdef Q_WS_MAC
+#include <IOKit/pwr_mgt/IOPMLib.h>
+#include <AvailabilityMacros.h>
+#endif
 
 #include "gettext.h"
 #define _(string) gettext(string)
@@ -819,7 +823,13 @@ void video_output_qt::suspend_screensaver()
 #elif defined(Q_WS_WIN)
     /* TODO */
 #elif defined(Q_WS_MAC)
-    /* TODO */
+# if defined (MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+    // API introduced in 10.6
+    IOPMAssertionCreateWithName(kIOPMAssertionTypeNoDisplaySleep, kIOPMAssertionLevelOn, CFSTR ("Bino"), &_disableDisplaySleepAssertion);
+# else
+    // API introduced in OSX 10.5, deprecated in 10.6
+    IOPMAssertionCreate(kIOPMAssertionTypeNoDisplaySleep, kIOPMAssertionLevelOn, &_disableDisplaySleepAssertion);
+# endif
 #endif
 }
 
@@ -834,7 +844,7 @@ void video_output_qt::resume_screensaver()
 #elif defined(Q_WS_WIN)
     /* TODO */
 #elif defined(Q_WS_MAC)
-    /* TODO */
+    IOPMAssertionRelease(_disableDisplaySleepAssertion);
 #endif
 }
 
