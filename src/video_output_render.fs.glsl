@@ -193,7 +193,11 @@ void main()
      *    position computations.
      */
     float m = texture2D(mask_tex, gl_TexCoord[2].xy).x;
-# if defined(mode_even_odd_rows)
+# if quality <= 2
+    // Do not perform expensive filtering with this quality setting
+    vec3 rgbc_l = tex_l(gl_TexCoord[0].xy);
+    vec3 rgbc_r = tex_r(gl_TexCoord[1].xy);
+# elif defined(mode_even_odd_rows)
     vec3 rgb0_l = tex_l(gl_TexCoord[0].xy - vec2(0.0, step_y));
     vec3 rgb1_l = tex_l(gl_TexCoord[0].xy);
     vec3 rgb2_l = tex_l(gl_TexCoord[0].xy + vec2(0.0, step_y));
