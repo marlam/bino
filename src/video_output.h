@@ -67,6 +67,7 @@ private:
     GLuint _subtitle_tex[2];            // subtitle texture
     bool _subtitle_tex_current[2];      // whether the subtitle tex contains the current subtitle buffer
     // Step 2: color space conversion and color correction
+    parameters _color_last_params[2];   // last params for this step; used for reinitialization check
     video_frame _color_last_frame[2];   // last frame for this step; used for reinitialization check
     GLuint _color_prg[2];               // color space transformation, color adjustment
     GLuint _color_fbo;                  // framebuffer object to render into the sRGB texture
@@ -112,9 +113,9 @@ private:
     void subtitle_init(int index);
     void subtitle_deinit(int index);
     // Step 2: initialize/deinitialize, and check if reinitialization is necessary
-    void color_init(int index, const video_frame &frame);
+    void color_init(int index, const parameters& params, const video_frame &frame);
     void color_deinit(int index);
-    bool color_is_compatible(int index, const video_frame &current_frame);
+    bool color_is_compatible(int index, const parameters& params, const video_frame &current_frame);
     // Step 3: initialize/deinitialize, and check if reinitialization is necessary
     void render_init();
     void render_deinit();

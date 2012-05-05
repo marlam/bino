@@ -766,16 +766,18 @@ void video_output::subtitle_deinit(int index)
     _subtitle_updater->reset();
 }
 
-void video_output::color_init(int index, const video_frame &frame)
+void video_output::color_init(int index, const parameters& params, const video_frame &frame)
 {
     xglCheckError(HERE);
     glGenFramebuffersEXT(1, &_color_fbo);
+    std::string quality_str;
     std::string layout_str;
     std::string color_space_str;
     std::string value_range_str;
     std::string storage_str;
     std::string chroma_offset_x_str;
     std::string chroma_offset_y_str;
+    quality_str = str::from(params.quality());
     if (frame.layout == video_frame::bgra32) {
         layout_str = "layout_bgra32";
         color_space_str = "color_space_srgb";
@@ -832,6 +834,7 @@ void video_output::color_init(int index, const video_frame &frame)
     }
 
     std::string color_fs_src(VIDEO_OUTPUT_COLOR_FS_GLSL_STR);
+    str::replace(color_fs_src, "$quality", quality_str);
     str::replace(color_fs_src, "$layout", layout_str);
     str::replace(color_fs_src, "$color_space", color_space_str);
     str::replace(color_fs_src, "$value_range", value_range_str);
@@ -852,6 +855,8 @@ void video_output::color_init(int index, const video_frame &frame)
                 frame.width, frame.height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
     }
     xglCheckError(HERE);
+    _color_last_params[index] = params;
+    _color_last_frame[index] = frame;
 }
 
 void video_output::color_deinit(int index)
@@ -869,13 +874,15 @@ void video_output::color_deinit(int index)
             _color_tex[index][i] = 0;
         }
     }
+    _color_last_params[index] = parameters();
     _color_last_frame[index] = video_frame();
     xglCheckError(HERE);
 }
 
-bool video_output::color_is_compatible(int index, const video_frame &current_frame)
+bool video_output::color_is_compatible(int index, const parameters& params, const video_frame &current_frame)
 {
-    return (_color_last_frame[index].width == current_frame.width
+    return (_color_last_params[index].quality() == params.quality()
+            && _color_last_frame[index].width == current_frame.width
             && _color_last_frame[index].height == current_frame.height
             && _color_last_frame[index].layout == current_frame.layout
             && _color_last_frame[index].color_space == current_frame.color_space
@@ -887,6 +894,7 @@ bool video_output::color_is_compatible(int index, const video_frame &current_fra
 void video_output::render_init()
 {
     xglCheckError(HERE);
+    std::string quality_str = str::from(_render_params.quality());
     std::string mode_str = (
             _render_params.stereo_mode() == parameters::mode_even_odd_rows ? "mode_even_odd_rows"
             : _render_params.stereo_mode() == parameters::mode_even_odd_columns ? "mode_even_odd_columns"
@@ -910,6 +918,7 @@ void video_output::render_init()
     std::string coloradjust_str = (render_needs_coloradjust(_render_params) ? "coloradjust_enabled" : "coloradjust_disabled");
     std::string ghostbust_str = (render_needs_ghostbust(_render_params) ? "ghostbust_enabled" : "ghostbust_disabled");
     std::string render_fs_src(VIDEO_OUTPUT_RENDER_FS_GLSL_STR);
+    str::replace(render_fs_src, "$quality", quality_str);
     str::replace(render_fs_src, "$mode", mode_str);
     str::replace(render_fs_src, "$subtitle", subtitle_str);
     str::replace(render_fs_src, "$coloradjust", coloradjust_str);
@@ -989,7 +998,8 @@ bool video_output::render_needs_ghostbust(const parameters& params)
 
 bool video_output::render_is_compatible()
 {
-    return (_render_last_params.stereo_mode() == _render_params.stereo_mode()
+    return (_render_last_params.quality() == _render_params.quality()
+            && _render_last_params.stereo_mode() == _render_params.stereo_mode()
             && render_needs_subtitle(_render_last_params) == render_needs_subtitle(_render_params)
             && render_needs_coloradjust(_render_last_params) == render_needs_coloradjust(_render_params)
             && render_needs_ghostbust(_render_last_params) == render_needs_ghostbust(_render_params));
@@ -1515,10 +1525,9 @@ void video_output::prepare_next_frame(const video_frame &frame, const subtitle_b
 
     /* Step 2: color-correction */
 
-    if (!_color_prg[index] || !color_is_compatible(index, frame)) {
+    if (!_color_prg[index] || !color_is_compatible(index, dispatch::parameters(), frame)) {
         color_deinit(index);
-        color_init(index, frame);
-        _color_last_frame[index] = frame;
+        color_init(index, dispatch::parameters(), frame);
     }
     int left = 0;
     int right = (frame.stereo_layout == parameters::layout_mono ? 0 : 1);

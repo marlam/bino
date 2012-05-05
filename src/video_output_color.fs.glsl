@@ -20,6 +20,9 @@
 
 #version 120
 
+// quality: 0 .. 4
+#define quality $quality
+
 // layout_yuv_p
 // layout_bgra32
 #define $layout
@@ -60,34 +63,36 @@ uniform sampler2D srgb_tex;
  *   to [0,1]
  * - The color space is either the one defined in ITU.BT-601 or the one
  *   defined in ITU.BT-709. */
-
+#if !defined(layout_bgra32)
 vec3 yuv_to_srgb(vec3 yuv)
 {
     // Convert the MPEG range to the full range for each component, if necessary
-#if defined(value_range_8bit_mpeg)
+# if defined(value_range_8bit_mpeg)
     yuv = (yuv - vec3(16.0 / 255.0)) * vec3(256.0 / 220.0, 256.0 / 225.0, 256.0 / 225.0);
-#elif defined(value_range_10bit_mpeg)
+# elif defined(value_range_10bit_mpeg)
     yuv = (yuv - vec3(64.0 / 1023.0)) * vec3(1024.0 / 877.0, 1024.0 / 897.0, 1024.0 / 897.0);
-#endif
+# endif
 
-#if defined(color_space_yuv709)
+# if defined(color_space_yuv709)
     // According to ITU.BT-709 (see entries 3.2 and 3.3 in Sec. 3 ("Signal format"))
     mat3 m = mat3(
             1.0,     1.0,      1.0,
             0.0,    -0.187324, 1.8556,
             1.5748, -0.468124, 0.0);
     return m * (yuv - vec3(0.0, 0.5, 0.5));
-#else // 601 or RGB (which was converted to 601)
+# else
     // According to ITU.BT-601 (see formulas in Sec. 2.5.1 and 2.5.2)
     mat3 m = mat3(
             1.0,    1.0,      1.0,
             0.0,   -0.344136, 1.772,
             1.402, -0.714136, 0.0);
     return m * (yuv - vec3(0.0, 0.5, 0.5));
-#endif
+# endif
 }
+#endif
 
 #if defined(storage_linear_rgb)
+# if quality >= 4
 // See GL_ARB_framebuffer_sRGB extension
 float nonlinear_to_linear(float x)
 {
@@ -100,6 +105,17 @@ vec3 srgb_to_rgb(vec3 srgb)
     float b = nonlinear_to_linear(srgb.b);
     return vec3(r, g, b);
 }
+# elif quality >= 2
+vec3 srgb_to_rgb(vec3 srgb)
+{
+    return pow(srgb, vec3(2.2));
+}
+# else
+vec3 srgb_to_rgb(vec3 srgb)
+{
+    return rgb * rgb;
+}
+# endif
 #endif
 
 vec3 get_srgb(vec2 tex_coord)

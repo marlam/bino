@@ -1053,7 +1053,8 @@ void video_output_qt::receive_notification(const notification& note)
 {
     /* Redisplay if a parameter was changed that affects the video display. */
     if (dispatch::playing()
-            && (note.type == notification::stereo_mode
+            && (note.type == notification::quality
+                || note.type == notification::stereo_mode
                 || note.type == notification::stereo_mode_swap
                 || note.type == notification::crosstalk
                 || note.type == notification::fullscreen_flip_left

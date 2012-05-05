@@ -21,6 +21,9 @@
 
 #version 120
 
+// quality: 0 .. 4
+#define quality $quality
+
 // mode_onechannel
 // mode_red_cyan_monochrome
 // mode_red_cyan_half_color
@@ -89,29 +92,32 @@ float srgb_to_lum(vec3 srgb)
 }
 #endif
 
+#if quality >= 4
+// Correct variant, see GL_ARB_framebuffer_sRGB extension
 float linear_to_nonlinear(float x)
 {
     return (x <= 0.0031308 ? (x * 12.92) : (1.055 * pow(x, 1.0 / 2.4) - 0.055));
 }
-
 vec3 rgb_to_srgb(vec3 rgb)
 {
-#if 1
-    // Correct variant, see GL_ARB_framebuffer_sRGB extension
     float sr = linear_to_nonlinear(rgb.r);
     float sg = linear_to_nonlinear(rgb.g);
     float sb = linear_to_nonlinear(rgb.b);
     return vec3(sr, sg, sb);
-#endif
-#if 0
+}
+#elif quality >= 2
+vec3 rgb_to_srgb(vec3 rgb)
+{
     // Faster variant
-    return pow(rgb, 1.0 / 2.2);
-#endif
-#if 0
+    return pow(rgb, vec3(1.0 / 2.2));
+}
+#else
+vec3 rgb_to_srgb(vec3 rgb)
+{
     // Even faster variant, assuming gamma = 2.0
     return sqrt(rgb);
-#endif
 }
+#endif
 
 #if defined(mode_onechannel) || defined(mode_even_odd_rows) || defined(mode_even_odd_columns) || defined(mode_checkerboard)
 #  if defined(ghostbust_enabled)
