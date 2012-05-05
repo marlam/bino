@@ -113,7 +113,7 @@ vec3 srgb_to_rgb(vec3 srgb)
 # else
 vec3 srgb_to_rgb(vec3 srgb)
 {
-    return rgb * rgb;
+    return srgb * srgb;
 }
 # endif
 #endif
