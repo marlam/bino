@@ -6,16 +6,15 @@ New in the next stable version:
 - An adjustable zoom mode for videos that are wider than the screen.
 - Support for the MPO, JPS, and PNS file formats for stereoscopic images.
 - Support for high precision color input and output (30 bits per pixel).
-- Better audio/video synchronization.
 - Support for single-frame stepping.
 - Support for multimedia keyboards.
-- Support for graphics cards that cannot render into SRGB textures.
 - Support for opening multiple input devices.
 - Support for requesting MJPEG data from input devices.
 - Support for video output via SDI on NVIDIA Quadro cards.
 - Support for DLP 3-D Ready Sync.
 - Support for a "Recent Files" section in the File menu.
 - Full support for scripting.
+- Better support for older graphics cards.
 - Various user interface tweaks.
 
 New in version 1.2.0:
