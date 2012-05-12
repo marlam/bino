@@ -253,7 +253,7 @@ static void compute_viewport_and_tex_coords(int vp[4], float tc[4][2],
         float src_ar, int w, int h, float dst_w, float dst_h, float dst_ar,
         float crop_ar, float zoom)
 {
-    std::memcpy(tc, full_tex_coords[0], sizeof(tc));
+    std::memcpy(tc, full_tex_coords[0], 4 * 2 * sizeof(float));
     if (crop_ar > 0.0f) {
         if (src_ar >= crop_ar) {
             float cutoff = (1.0f - crop_ar / src_ar) / 2.0f;
@@ -828,7 +828,7 @@ void video_output::color_init(int index, const parameters& params, const video_f
         }
     }
     if (params.quality() == 0) {
-        storage_str == "storage_srgb";  // SRGB data in GL_RGB8 texture.
+        storage_str = "storage_srgb";   // SRGB data in GL_RGB8 texture.
     } else if (storage_str == "storage_srgb"
             && (!glewIsSupported("GL_EXT_texture_sRGB")
                 || std::getenv("SRGB_TEXTURES_ARE_BROKEN") // XXX: Hack: work around broken SRGB texture implementations
