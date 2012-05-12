@@ -16,7 +16,7 @@ Stefan Eilemann (@email{eile@@eyescale.ch}),
 Frédéric Devernay (@email{Frederic.Devernay@@inrialpes.fr})
 
 @quotation
-Copying and distribution of this file and the referenced image files, with or
+Copying and distribution of this file and the referenced media files, with or
 without modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. These files are offered as-is,
 without any warranty.
@@ -60,6 +60,7 @@ Short Contents:
 * Interactive Control::
 * Scripting::
 * Camera Devices::
+* Audio/Video Synchronization::
 * Performance Tweaking::
 @end menu
 @ifhtml
@@ -1188,6 +1189,27 @@ name is of the form
 
 Note: for @var{firewire} and @var{x11} devices to work, your FFmpeg libraries
 must have @var{libdc1394} and @var{x11grab} support enabled.
+
+
+@node Audio/Video Synchronization
+@chapter Audio/Video Synchronization
+
+Bino uses OpenGL to display video, and OpenGL unfortunately does not provide a
+way to determine exactly when a frame will be visible on screen. On most systems,
+a frame is displayed almost immediately, but some systems introduce a delay, and
+this can cause notable audio/video synchronization errors.
+This effect may be aggravated by compositing window managers. See
+@url{http://savannah.nongnu.org/bugs/?35103,bug 35103} for more information.
+
+You can check the audio/video synchronization on your system using the file
+@uref{audio-video-sync.mp4,@code{audio-video-sync.mp4}} (created 
+on 12/18/2011 by @url{http://www.schristiancollins.com,S. Christian Collins}).
+It contains a few bright flashes accompanied by "tick" sounds. The flashes and
+the sounds should be exactly in sync.
+
+If they are not, you can adjust an audio delay that compensates for the video
+delay. Increase audio delay (e.g. in steps of 50 milliseconds) and replay the
+test video until audio and video are synchronized.
 
 
 @node Performance Tweaking
