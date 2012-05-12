@@ -827,10 +827,11 @@ void video_output::color_init(int index, const parameters& params, const video_f
             }
         }
     }
-    if (storage_str == "storage_srgb"
+    if (params.quality() == 0) {
+        storage_str == "storage_srgb";  // SRGB data in GL_RGB8 texture.
+    } else if (storage_str == "storage_srgb"
             && (!glewIsSupported("GL_EXT_texture_sRGB")
                 || std::getenv("SRGB_TEXTURES_ARE_BROKEN") // XXX: Hack: work around broken SRGB texture implementations
-                || params.quality() == 0
                 || !srgb8_textures_are_color_renderable())) {
         storage_str = "storage_linear_rgb";
     }
@@ -853,8 +854,8 @@ void video_output::color_init(int index, const parameters& params, const video_f
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glTexImage2D(GL_TEXTURE_2D, 0,
-                storage_str == "storage_srgb" ? GL_SRGB8
-                : params.quality() > 0 ? GL_RGB16 : GL_RGB,
+                params.quality() == 0 ? GL_RGB
+                : storage_str == "storage_srgb" ? GL_SRGB8 : GL_RGB16,
                 frame.width, frame.height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
     }
     xglCheckError(HERE);
@@ -1154,6 +1155,10 @@ void video_output::display_current_frame(
     */
 
     _render_params = dispatch::parameters();
+    // The quality parameter must always be consistent with the color conversion step
+    // so that we avoid a mismatch between SRGB/RGB linearization/delinearization.
+    _render_params.set_quality(_color_last_params[_active_index].quality());
+
     _render_params.set_stereo_mode(stereo_mode);
     bool context_needs_stereo = (_render_params.stereo_mode() == parameters::mode_stereo);
     if (context_needs_stereo != context_is_stereo()) {

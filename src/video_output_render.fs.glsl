@@ -111,12 +111,14 @@ vec3 rgb_to_srgb(vec3 rgb)
     // Faster variant
     return pow(rgb, vec3(1.0 / 2.2));
 }
-#else
+#elif quality >= 1
 vec3 rgb_to_srgb(vec3 rgb)
 {
     // Even faster variant, assuming gamma = 2.0
     return sqrt(rgb);
 }
+#else // quality == 0: SRGB stored in GL_RGB8
+# define rgb_to_srgb(rgb) rgb
 #endif
 
 #if defined(mode_onechannel) || defined(mode_even_odd_rows) || defined(mode_even_odd_columns) || defined(mode_checkerboard)
