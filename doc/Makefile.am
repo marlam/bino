@@ -60,6 +60,6 @@ bino_TEXINFOS = bino.texi $(IMAGES)
 
 AM_MAKEINFOHTMLFLAGS = --no-split
 
-dist_html_DATA = bino.html $(IMAGES)
+dist_html_DATA = bino.html $(IMAGES) audio-video-sync.mp4
 
 EXTRA_DIST = $(man_MANS)
