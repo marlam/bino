@@ -88,6 +88,7 @@ private:
     subtitle_updater *_subtitle_updater;        // the subtitle updater thread
 #if HAVE_LIBXNVCTRL
     CNvSDIout *_nv_sdi_output;          // access the nvidia quadro sdi output card
+    int64_t _last_nv_sdi_displayed_frameno;
 #endif // HAVE_LIBXNVCTRL
 
     // GL Helper functions

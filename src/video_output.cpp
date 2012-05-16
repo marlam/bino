@@ -319,6 +319,7 @@ video_output::video_output() : controller(), _initialized(false)
     _subtitle_updater = new subtitle_updater(&_subtitle_renderer);
 #if HAVE_LIBXNVCTRL
     _nv_sdi_output = new CNvSDIout();
+    _last_nv_sdi_displayed_frameno = 0;
 #endif // HAVE_LIBXNVCTRL
 }
 
@@ -1416,6 +1417,16 @@ void video_output::sdi_output(int64_t display_frameno)
     if (!_nv_sdi_output->isInitialized())
         return;
 
+    // NVIDIA sdi output device has an output queue to display frames, which
+    // default size is 5.
+    // If we send too many frames to this queue, it blocks the thread until a
+    // frame is sent on sdi output, and if the queue is empty, the last sent
+    // frame is automatically repeated.
+    // So by checking frame_no, we make sure to send an image to the device only
+    // if it is a new one.
+    if (display_frameno == _last_nv_sdi_displayed_frameno)
+        return;
+
     if (_nv_sdi_output->getOutputFormat() != dispatch::parameters().sdi_output_format())
         _nv_sdi_output->reinit(dispatch::parameters().sdi_output_format());
 
@@ -1439,6 +1450,8 @@ void video_output::sdi_output(int64_t display_frameno)
     // Display both textures on SDI output
     _nv_sdi_output->sendTextures();
     assert(xglCheckError(HERE));
+
+    _last_nv_sdi_displayed_frameno = display_frameno;
 }
 #endif // HAVE_LIBXNVCTRL
 

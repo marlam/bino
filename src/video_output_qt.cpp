@@ -205,10 +205,10 @@ void gl_thread::run()
             // Redisplay if necessary
             if (_redisplay) {
                 _redisplay = false;
-                _vo_qt->display_current_frame(_display_frameno);
 #if HAVE_LIBXNVCTRL
                 _vo_qt->sdi_output(_display_frameno);
 #endif // HAVE_LIBXNVCTRL
+                _vo_qt->display_current_frame(_display_frameno);
                 _vo_qt_widget->swapBuffers();
             } else if (!dispatch::parameters().benchmark()) {
                 // do not busy loop
