@@ -163,7 +163,7 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent) :
     _output_combobox->addItem(QIcon(":icons-local/output-type-mono-left.png"), _("Left view"));
     _output_combobox->addItem(QIcon(":icons-local/output-type-mono-right.png"), _("Right view"));
     _output_combobox->addItem(QIcon(":icons-local/output-type-stereo.png"), _("OpenGL stereo"));
-    _output_combobox->addItem(QIcon(":icons-local/output-type-alternating.png"), _("Left/right view alternating"));
+    _output_combobox->addItem(QIcon(":icons-local/output-type-alternating.png"), _("Left/right alternating"));
     _output_combobox->addItem(QIcon(":icons-local/output-type-top-bottom.png"), _("Top/bottom"));
     _output_combobox->addItem(QIcon(":icons-local/output-type-top-bottom-half.png"), _("Top/bottom, half height"));
     _output_combobox->addItem(QIcon(":icons-local/output-type-left-right.png"), _("Left/right"));
@@ -172,20 +172,20 @@ in_out_widget::in_out_widget(QSettings *settings, QWidget *parent) :
     _output_combobox->addItem(QIcon(":icons-local/output-type-even-odd-columns.png"), _("Even/odd columns"));
     _output_combobox->addItem(QIcon(":icons-local/output-type-checkerboard.png"), _("Checkerboard pattern"));
     _output_combobox->addItem(QIcon(":icons-local/output-type-hdmi-frame-pack.png"), _("HDMI frame packing mode"));
-    _output_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, monochrome method"));
-    _output_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, half-color method"));
-    _output_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, full-color method"));
-    _output_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, high-quality Dubois method"));
-    _output_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, monochrome method"));
-    _output_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, half-color method"));
-    _output_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, full-color method"));
-    _output_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, high-quality Dubois method"));
-    _output_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, monochrome method"));
-    _output_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, half-color method"));
-    _output_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, full-color method"));
-    _output_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, high-quality Dubois method"));
-    _output_combobox->addItem(QIcon(":icons-local/output-type-red-green.png"), _("Red/green glasses, monochrome method"));
-    _output_combobox->addItem(QIcon(":icons-local/output-type-red-blue.png"), _("Red/blue glasses, monochrome method"));
+    _output_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, monochrome"));
+    _output_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, half color"));
+    _output_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, full color"));
+    _output_combobox->addItem(QIcon(":icons-local/output-type-red-cyan.png"), _("Red/cyan glasses, Dubois"));
+    _output_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, monochrome"));
+    _output_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, half color"));
+    _output_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, full color"));
+    _output_combobox->addItem(QIcon(":icons-local/output-type-green-magenta.png"), _("Green/magenta glasses, Dubois"));
+    _output_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, monochrome"));
+    _output_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, half color"));
+    _output_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, full color"));
+    _output_combobox->addItem(QIcon(":icons-local/output-type-amber-blue.png"), _("Amber/blue glasses, Dubois"));
+    _output_combobox->addItem(QIcon(":icons-local/output-type-red-green.png"), _("Red/green glasses, monochrome"));
+    _output_combobox->addItem(QIcon(":icons-local/output-type-red-blue.png"), _("Red/blue glasses, monochrome"));
     connect(_output_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(output_changed()));
     layout2->addWidget(_output_combobox, 0, 1);
     layout2->setColumnStretch(1, 1);
@@ -1517,7 +1517,7 @@ zoom_dialog::zoom_dialog(QWidget *parent) : QDialog(parent), _lock(false)
                 "0: Show full video width.<br>"
                 "1: Use full screen height.</p"));
     QLabel *z_label = new QLabel(_("Zoom:"));
-    z_label->setToolTip(_("<p>Set the zoom level for videos that are wider than the screen</p>"));
+    z_label->setToolTip(_("<p>Set the zoom level for videos that are wider than the screen.</p>"));
     _z_slider = new QSlider(Qt::Horizontal);
     _z_slider->setRange(0, 1000);
     _z_slider->setValue(dispatch::parameters().zoom() * 1000.0f);
@@ -3660,28 +3660,28 @@ void main_window::help_keyboard()
                 // the --help output in main.cpp, to reduce the burden for translators.
                 QString("<p>") + _("Keyboard control:") + "<br>"
                 "<table>"
-                "<tr><td>q, ESC</td><td>" + _("Stop.") + "</td></tr>"
-                "<tr><td>p / SPACE</td><td>" + _("Pause / unpause.") + "</td></tr>"
-                "<tr><td>f</td><td>" + _("Toggle fullscreen.") + "</td></tr>"
-                "<tr><td>c</td><td>" + _("Center window.") + "</td></tr>"
-                "<tr><td>e / F7</td><td>" + _("Swap left/right eye.") + "</td></tr>"
-                "<tr><td>v</td><td>" + _("Cycle through available video streams.") + "</td></tr>"
-                "<tr><td>a</td><td>" + _("Cycle through available audio streams.") + "</td></tr>"
-                "<tr><td>s</td><td>" + _("Cycle through available subtitle streams.") + "</td></tr>"
-                "<tr><td>1, 2</td><td>" + _("Adjust contrast.") + "</td></tr>"
-                "<tr><td>3, 4</td><td>" + _("Adjust brightness.") + "</td></tr>"
-                "<tr><td>5, 6</td><td>" + _("Adjust hue.") + "</td></tr>"
-                "<tr><td>7, 8</td><td>" + _("Adjust saturation.") + "</td></tr>"
-                "<tr><td>[, ]</td><td>" + _("Adjust parallax.") + "</td></tr>"
-                "<tr><td>(, )</td><td>" + _("Adjust ghostbusting.") + "</td></tr>"
-                "<tr><td>&lt;, &gt;</td><td>" + _("Adjust zoom for wide videos.") + "</td></tr>"
-                "<tr><td>/, *</td><td>" + _("Adjust audio volume.") + "</td></tr>"
-                "<tr><td>m</td><td>" + _("Toggle audio mute.") + "</td></tr>"
-                "<tr><td>.</td><td>" + _("Step a single video frame forward.") + "</td></tr>"
-                "<tr><td>left, right</td><td>" + _("Seek 10 seconds backward / forward.") + "</td></tr>"
-                "<tr><td>down, up</td><td>" + _("Seek 1 minute backward / forward.") + "</td></tr>"
-                "<tr><td>page down, page up</td><td>" + _("Seek 10 minutes backward / forward.") + "</td></tr>"
-                "<tr><td>Media keys</td><td>" + _("Media keys should work as expected.") + "</td></tr>"
+                "<tr><td>q, ESC</td><td>" + _("Stop") + "</td></tr>"
+                "<tr><td>p / SPACE</td><td>" + _("Pause / unpause") + "</td></tr>"
+                "<tr><td>f</td><td>" + _("Toggle fullscreen") + "</td></tr>"
+                "<tr><td>c</td><td>" + _("Center window") + "</td></tr>"
+                "<tr><td>e / F7</td><td>" + _("Swap left/right eye") + "</td></tr>"
+                "<tr><td>v</td><td>" + _("Cycle through available video streams") + "</td></tr>"
+                "<tr><td>a</td><td>" + _("Cycle through available audio streams") + "</td></tr>"
+                "<tr><td>s</td><td>" + _("Cycle through available subtitle streams") + "</td></tr>"
+                "<tr><td>1, 2</td><td>" + _("Adjust contrast") + "</td></tr>"
+                "<tr><td>3, 4</td><td>" + _("Adjust brightness") + "</td></tr>"
+                "<tr><td>5, 6</td><td>" + _("Adjust hue") + "</td></tr>"
+                "<tr><td>7, 8</td><td>" + _("Adjust saturation") + "</td></tr>"
+                "<tr><td>[, ]</td><td>" + _("Adjust parallax") + "</td></tr>"
+                "<tr><td>(, )</td><td>" + _("Adjust ghostbusting") + "</td></tr>"
+                "<tr><td>&lt;, &gt;</td><td>" + _("Adjust zoom for wide videos") + "</td></tr>"
+                "<tr><td>/, *</td><td>" + _("Adjust audio volume") + "</td></tr>"
+                "<tr><td>m</td><td>" + _("Toggle audio mute") + "</td></tr>"
+                "<tr><td>.</td><td>" + _("Step a single video frame forward") + "</td></tr>"
+                "<tr><td>left, right</td><td>" + _("Seek 10 seconds backward / forward") + "</td></tr>"
+                "<tr><td>down, up</td><td>" + _("Seek 1 minute backward / forward") + "</td></tr>"
+                "<tr><td>page down, page up</td><td>" + _("Seek 10 minutes backward / forward") + "</td></tr>"
+                "<tr><td>Media keys</td><td>" + _("Media keys should work as expected") + "</td></tr>"
                 "</table>"
                 "</p>", QMessageBox::Ok, this);
         msgbox->setModal(false);
