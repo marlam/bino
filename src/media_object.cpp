@@ -328,6 +328,9 @@ media_object::media_object(bool always_convert_to_bgra32) :
 {
     avdevice_register_all();
     av_register_all();
+#if LIBAVFORMAT_VERSION_MAJOR >= 53 && LIBAVFORMAT_VERSION_MINOR >= 13
+    avformat_network_init();
+#endif
     switch (msg::level())
     {
     case msg::DBG:
