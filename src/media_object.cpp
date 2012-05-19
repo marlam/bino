@@ -322,6 +322,19 @@ static int64_t stream_duration(AVStream *stream, AVFormatContext *format)
     }
 }
 
+// Get a file name (or URL) extension, if any
+static std::string get_extension(const std::string& url)
+{
+    std::string extension;
+    size_t dot_pos = url.find_last_of('.');
+    if (dot_pos != std::string::npos) {
+        extension = url.substr(dot_pos + 1);
+        for (size_t i = 0; i < extension.length(); i++)
+            extension[i] =  std::tolower(extension[i]);
+    }
+    return extension;
+}
+
 
 media_object::media_object(bool always_convert_to_bgra32) :
     _always_convert_to_bgra32(always_convert_to_bgra32), _ffmpeg(NULL)
@@ -500,16 +513,7 @@ void media_object::set_video_frame_template(int index, int width_before_avcodec_
         video_frame_template.stereo_layout = parameters::layout_top_bottom;
     }
     /* Gather hints from the filename extension */
-    std::string extension;
-    size_t extension_dot_pos = _url.find_last_of('.');
-    if (extension_dot_pos != std::string::npos)
-    {
-        extension = _url.substr(extension_dot_pos + 1);
-        for (size_t i = 0; i < extension.length(); i++)
-        {
-            extension[i] =  std::tolower(extension[i]);
-        }
-    }
+    std::string extension = get_extension(_url);
     if (extension == "mpo")
     {
         /* MPO files are alternating-left-right. */
@@ -524,7 +528,7 @@ void media_object::set_video_frame_template(int index, int width_before_avcodec_
     /* Determine the input mode by looking at the file name.
      * This should be compatible to these conventions:
      * http://www.tru3d.com/technology/3D_Media_Formats_Software.php?file=TriDef%20Supported%203D%20Formats */
-    std::string marker = _url.substr(0, extension_dot_pos);
+    std::string marker = _url.substr(0, _url.find_last_of('.'));
     size_t last_dash = marker.find_last_of('-');
     if (last_dash != std::string::npos)
     {
@@ -796,6 +800,21 @@ void media_object::open(const std::string &url, const device_request &dev_reques
 #endif
         break;
     case device_request::no_device:
+        /* Force the format for a few file types that are unknown to older
+         * versions of FFmpeg and to Libav. Note: this may be removed in
+         * the future if all relevant FFmpeg/Libav versions recognize these
+         * files automatically.
+         * This fixes the problems for MPO and JPS images listed here:
+         * http://lists.nongnu.org/archive/html/bino-list/2012-03/msg00026.html
+         * This does not fix the PNS problem, because the format is "image2" but
+         * we also need to tell FFmpeg about the codec (PNG), which does not
+         * seem to be possible.
+         */
+        {
+            std::string extension = get_extension(_url);
+            if (extension == "mpo" || extension == "jps")
+                iformat = av_find_input_format("mjpeg");
+        }
         break;
     }
     if (_is_device && !iformat)
