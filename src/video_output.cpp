@@ -1451,6 +1451,15 @@ void video_output::sdi_output(int64_t display_frameno)
     _nv_sdi_output->sendTextures();
     assert(xglCheckError(HERE));
 
+    // Reshape the video again to fit the normal output.
+    // The above call to display_current_frame() will have triggered a reshape
+    // if the SDI output size is different from the video display size. Undo
+    // the effects here.
+    if (_nv_sdi_output->width() != video_display_width()
+            || _nv_sdi_output->height() != video_display_height()) {
+        reshape(video_display_width(), video_display_height());
+    }
+
     _last_nv_sdi_displayed_frameno = display_frameno;
 }
 #endif // HAVE_LIBXNVCTRL
