@@ -1176,8 +1176,8 @@ void video_output::display_current_frame(
                 || _render_last_params.crop_aspect_ratio() > _render_params.crop_aspect_ratio()
                 || _render_last_params.zoom() < _render_params.zoom()
                 || _render_last_params.zoom() > _render_params.zoom()
-                || video_display_width() != dst_width
-                || video_display_height() != dst_height)) {
+                || full_display_width() != dst_width
+                || full_display_height() != dst_height)) {
         reshape(dst_width, dst_height, _render_params);
     }
     assert(xglCheckError(HERE));
@@ -1455,9 +1455,9 @@ void video_output::sdi_output(int64_t display_frameno)
     // The above call to display_current_frame() will have triggered a reshape
     // if the SDI output size is different from the video display size. Undo
     // the effects here.
-    if (_nv_sdi_output->width() != video_display_width()
-            || _nv_sdi_output->height() != video_display_height()) {
-        reshape(video_display_width(), video_display_height());
+    if (_nv_sdi_output->width() != full_display_width()
+            || _nv_sdi_output->height() != full_display_height()) {
+        reshape(full_display_width(), full_display_height());
     }
 
     _last_nv_sdi_displayed_frameno = display_frameno;

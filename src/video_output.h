@@ -173,7 +173,7 @@ protected:
     void display_current_frame(int64_t display_frameno = 0)
     {
         display_current_frame(display_frameno, false, false, -1.0f, -1.0f, 2.0f, 2.0f,
-                _viewport, _tex_coords, video_display_width(), video_display_height(),
+                _viewport, _tex_coords, full_display_width(), full_display_height(),
                 dispatch::parameters().stereo_mode());
     }
 
