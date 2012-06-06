@@ -402,25 +402,19 @@ protected:
 class eq_config : public eq::Config
 {
 private:
-    bool _is_master_config;
     eq_init_data _eq_init_data;         // Master eq_init_data instance
     eq_frame_data _eq_frame_data;       // Master eq_frame_data instance
 
 public:
-    eq_config(eq::ServerPtr parent) : eq::Config(parent), _is_master_config(false)
+    eq_config(eq::ServerPtr parent) : eq::Config(parent)
     {
-    }
-
-    bool is_master_config()
-    {
-        return _is_master_config;
     }
 
     bool init(const open_input_data& input, bool flat_screen)
     {
         msg::dbg(HERE);
-        // If this function is called, then this is the master config
-        _is_master_config = true;
+        setLatency( 0 );
+
         // Initialize master init/frame data instances
         _eq_init_data.input = input;
         _eq_init_data.params = dispatch::parameters();
@@ -756,14 +750,13 @@ class eq_node : public eq::Node
 {
 private:
     dispatch* _dispatch;
-    bool _is_app_node;
     player_eq_node _player;
 
 public:
     eq_init_data init_data;
     eq_frame_data frame_data;
 
-    eq_node(eq::Config *parent) : eq::Node(parent), _dispatch(NULL), _is_app_node(false)
+    eq_node(eq::Config *parent) : eq::Node(parent), _dispatch(NULL)
     {
     }
 
@@ -781,16 +774,10 @@ protected:
         }
         // Map our InitData instance to the master instance
         eq_config *config = static_cast<eq_config *>(getConfig());
-        config->setLatency( 0 );
         if (!config->mapObject(&init_data, init_id))
         {
             setError(ERROR_MAP_INITDATA_FAILED);
             return false;
-        }
-        // Is this the application node?
-        if (config->is_master_config())
-        {
-            _is_app_node = true;
         }
         // Map our FrameData instance to the master instance
         if (!config->mapObject(&frame_data, init_data.frame_data_id))
@@ -801,7 +788,7 @@ protected:
 
         msg::dbg(HERE);
         // Create decoders and input
-        if (!_is_app_node)
+        if (!isApplicationNode( ))
         {
             _dispatch = new dispatch(NULL, NULL, true, init_data.flat_screen, true,
                     false, false, init_data.params.log_level(), init_data.params.benchmark(),
@@ -825,7 +812,7 @@ protected:
         // Unmap our InitData instance
         config->unmapObject(&init_data);
         // Cleanup
-        if (!_is_app_node)
+        if (!isApplicationNode( ))
             _player.close();
         msg::dbg(HERE);
         return eq::Node::configExit();
@@ -836,7 +823,7 @@ protected:
         // Update our frame data
         frame_data.sync(frame_id);
         // Do as we're told
-        if (_is_app_node)
+        if (isApplicationNode( ))
         {
             // Nothing to do since the config's master player already did it
         }
@@ -862,7 +849,7 @@ protected:
 
     virtual void frameFinish(const eq::uint128_t &, const uint32_t frame_number)
     {
-        if (_is_app_node)
+        if (isApplicationNode( ))
         {
             // Nothing to do since the config's master player already did it
         }
@@ -881,7 +868,7 @@ protected:
 public:
     const video_frame &get_video_frame()
     {
-        if (_is_app_node)
+        if (isApplicationNode( ))
             return global_player_equalizer->get_video_frame();
         else
             return _player.get_video_frame();
@@ -1042,7 +1029,6 @@ protected:
         }
         if (node->frame_data.display_frame)
         {
-            getWindow()->makeCurrent();
             _video_output.activate_next_frame();
         }
         startFrame(frame_number);
