@@ -1515,7 +1515,7 @@ zoom_dialog::zoom_dialog(QWidget *parent) : QDialog(parent), _lock(false)
                 "<p>Set zoom level for videos that<br>"
                 "are wider than the screen:<br>"
                 "0: Show full video width.<br>"
-                "1: Use full screen height.</p"));
+                "1: Use full screen height.</p>"));
     QLabel *z_label = new QLabel(_("Zoom:"));
     z_label->setToolTip(_("<p>Set the zoom level for videos that are wider than the screen.</p>"));
     _z_slider = new QSlider(Qt::Horizontal);

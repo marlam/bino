@@ -671,7 +671,7 @@ msgstr "Масштаб для широкоэкранного видео"
 #: src/gui.cpp:1515
 msgid ""
 "<p>Set zoom level for videos that<br>are wider than the screen:<br>0: Show "
-"full video width.<br>1: Use full screen height.</p"
+"full video width.<br>1: Use full screen height.</p>"
 msgstr ""
 "<p>Масштаб для видеозаписей, ширина<br>которых превышает ширину экрана:"
 "<br>0: Показывать видео в полную ширину.<br>1: Использовать всю высоту "
