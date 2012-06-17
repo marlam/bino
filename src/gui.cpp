@@ -3007,7 +3007,7 @@ main_window::main_window(QSettings *settings) :
     update_recent_file_actions();
 
     file_menu->addSeparator();
-    QAction *file_quit_act = new QAction(_("&Quit..."), this);
+    QAction *file_quit_act = new QAction(_("&Quit"), this);
     file_quit_act->setShortcut(QKeySequence::Quit);
     file_quit_act->setMenuRole(QAction::QuitRole);
     file_quit_act->setIcon(get_icon("application-exit"));

@@ -1024,8 +1024,8 @@ msgid "&Clear recent files"
 msgstr "Effacer les éléments récents"
 
 #: src/gui.cpp:3010
-msgid "&Quit..."
-msgstr "&Quitter..."
+msgid "&Quit"
+msgstr "&Quitter"
 
 #: src/gui.cpp:3016
 msgid "&Preferences"

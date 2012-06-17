@@ -1028,8 +1028,8 @@ msgid "&Clear recent files"
 msgstr "Очистить список &недавних файлов"
 
 #: src/gui.cpp:3010
-msgid "&Quit..."
-msgstr "&Выход..."
+msgid "&Quit"
+msgstr "&Выход"
 
 #: src/gui.cpp:3016
 msgid "&Preferences"
