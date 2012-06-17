@@ -3232,6 +3232,9 @@ void main_window::moveEvent(QMoveEvent*)
 
 void main_window::closeEvent(QCloseEvent *event)
 {
+    // Close a currently opened video. This also stops the video if it is
+    // playing, so that its settings are remembered.
+    send_cmd(command::close);
     // Stop the event and play loop
     _timer->stop();
     // Remember the Session preferences
