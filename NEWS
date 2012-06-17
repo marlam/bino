@@ -1,21 +1,22 @@
-New in the next stable version:
+New in version 1.4.0:
 - Support for the new output mode "Left/right view alternating", also known
-  as "frame sequential".
+  as "frame sequential". This is intended for 120Hz active stereo projectors
+  and displays when "OpenGL stereo" is not available.
 - Better support for audio control. Volume, mute, and delay can be adjusted,
   and the output device can be selected.
-- An adjustable zoom mode for videos that are wider than the screen.
-- Support for the MPO, JPS, and PNS file formats for stereoscopic images.
-- Support for high precision color input and output (30 bits per pixel).
-- Support for single-frame stepping.
-- Support for multimedia keyboards.
-- Support for opening multiple input devices.
-- Support for requesting MJPEG data from input devices.
+- Support for scripting via script files or named pipes.
+- Much improved support for older graphics cards.
 - Support for video output via SDI on NVIDIA Quadro cards.
+- Automatic support for high precision color input and output (30 bits per
+  pixel).
+- Single-frame stepping via the '.' key.
+- An adjustable zoom mode for videos that are wider than the screen.
+- Support for opening multiple input devices, and for requesting MJPEG data
+  from input devices.
+- Support for the MPO, JPS, and PNS file formats for stereoscopic images.
 - Support for DLP 3-D Ready Sync.
-- Support for a "Recent Files" section in the File menu.
-- Full support for scripting.
-- Better support for older graphics cards.
-- Various user interface tweaks.
+- Various user interface tweaks, including support for multimedia keyboards
+  and a "Recent Files" section in the File menu.
 
 New in version 1.2.0:
 - Flexible fullscreen mode with support for multiple screens.
