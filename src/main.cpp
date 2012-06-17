@@ -166,6 +166,15 @@ static void close_log_file(void)
     }
 }
 
+static std::string lengthen(const std::string& s, int len)
+{
+    int spaces = len - static_cast<int>(s.length());
+    if (spaces > 0)
+        return s + std::string(spaces, ' ');
+    else
+        return s;
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -492,9 +501,9 @@ int main(int argc, char *argv[])
                 + "  --sdi-output-format=F    " + _("Set SDI output format") + '\n'
                 + '\n'
                 + _("Interactive control:") + '\n'
-                + "  ESC                      " + _("Leave fullscreen mode, or quit") + '\n'
+                + "  " + lengthen(_("ESC"), 25) + _("Leave fullscreen mode, or quit") + '\n'
                 + "  q                        " + _("Quit") + '\n'
-                + "  p / SPACE                " + _("Pause / unpause") + '\n'
+                + "  p / " + lengthen(_("SPACE"), 21) + _("Pause / unpause") + '\n'
                 + "  f                        " + _("Toggle fullscreen") + '\n'
                 + "  c                        " + _("Center window") + '\n'
                 + "  e / F7                   " + _("Swap left/right eye") + '\n'
@@ -511,11 +520,11 @@ int main(int argc, char *argv[])
                 + "  /, *                     " + _("Adjust audio volume") + '\n'
                 + "  m                        " + _("Toggle audio mute") + '\n'
                 + "  .                        " + _("Step a single video frame forward") + '\n'
-                + "  left, right              " + _("Seek 10 seconds backward / forward") + '\n'
-                + "  down, up                 " + _("Seek 1 minute backward / forward") + '\n'
-                + "  page down, page up       " + _("Seek 10 minutes backward / forward") + '\n'
-                + "  Mouse click              " + _("Seek according to horizontal click position") + '\n'
-                + "  Media keys               " + _("Media keys should work as expected"));
+                + "  " + lengthen(_("left, right"), 25)        + _("Seek 10 seconds backward / forward") + '\n'
+                + "  " + lengthen(_("down, up"), 25)           + _("Seek 1 minute backward / forward") + '\n'
+                + "  " + lengthen(_("page down, page up"), 25) + _("Seek 10 minutes backward / forward") + '\n'
+                + "  " + lengthen(_("Mouse click"), 25)        + _("Seek according to horizontal click position") + '\n'
+                + "  " + lengthen(_("Media keys"), 25)         + _("Media keys should work as expected"));
     }
     if (list_audio_devices.value())
     {

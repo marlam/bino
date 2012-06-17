@@ -3660,8 +3660,8 @@ void main_window::help_keyboard()
                 // the --help output in main.cpp, to reduce the burden for translators.
                 QString("<p>") + _("Keyboard control:") + "<br>"
                 "<table>"
-                "<tr><td>q, ESC</td><td>" + _("Stop") + "</td></tr>"
-                "<tr><td>p / SPACE</td><td>" + _("Pause / unpause") + "</td></tr>"
+                "<tr><td>q, " + _("ESC") + "</td><td>" + _("Stop") + "</td></tr>"
+                "<tr><td>p / " + _("SPACE") + "</td><td>" + _("Pause / unpause") + "</td></tr>"
                 "<tr><td>f</td><td>" + _("Toggle fullscreen") + "</td></tr>"
                 "<tr><td>c</td><td>" + _("Center window") + "</td></tr>"
                 "<tr><td>e / F7</td><td>" + _("Swap left/right eye") + "</td></tr>"
@@ -3678,10 +3678,10 @@ void main_window::help_keyboard()
                 "<tr><td>/, *</td><td>" + _("Adjust audio volume") + "</td></tr>"
                 "<tr><td>m</td><td>" + _("Toggle audio mute") + "</td></tr>"
                 "<tr><td>.</td><td>" + _("Step a single video frame forward") + "</td></tr>"
-                "<tr><td>left, right</td><td>" + _("Seek 10 seconds backward / forward") + "</td></tr>"
-                "<tr><td>down, up</td><td>" + _("Seek 1 minute backward / forward") + "</td></tr>"
-                "<tr><td>page down, page up</td><td>" + _("Seek 10 minutes backward / forward") + "</td></tr>"
-                "<tr><td>Media keys</td><td>" + _("Media keys should work as expected") + "</td></tr>"
+                "<tr><td>" + _("left, right") + "</td><td>" + _("Seek 10 seconds backward / forward") + "</td></tr>"
+                "<tr><td>" + _("down, up") + "</td><td>" + _("Seek 1 minute backward / forward") + "</td></tr>"
+                "<tr><td>" + _("page down, page up") + "</td><td>" + _("Seek 10 minutes backward / forward") + "</td></tr>"
+                "<tr><td>" + _("Media keys") + "</td><td>" + _("Media keys should work as expected") + "</td></tr>"
                 "</table>"
                 "</p>", QMessageBox::Ok, this);
         msgbox->setModal(false);
