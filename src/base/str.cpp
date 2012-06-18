@@ -26,6 +26,7 @@
 #include <limits>
 #include <sstream>
 #include <locale>
+#include <cwchar>
 
 #ifdef HAVE_NL_LANGINFO
 # include <locale.h>
@@ -558,5 +559,34 @@ namespace str
 #else
         throw exc(str::asprintf(_("Cannot convert %s to %s."), from_charset.c_str(), to_charset.c_str()), ENOSYS);
 #endif
+    }
+
+    std::wstring to_wstr(const std::string &in)
+    {
+        std::wstring out;
+        size_t l = std::mbstowcs(NULL, in.c_str(), 0);
+        if (l == static_cast<size_t>(-1) || l > static_cast<size_t>(std::numeric_limits<int>::max() - 1)) {
+            // This should never happen. We don't want to handle this case, and we don't want to throw
+            // an exception from a str function, so inform the user and abort.
+            msg::err("Failure in str::to_wstr().");
+            dbg::crash();
+        }
+        out.resize(l);
+        std::mbstowcs(&(out[0]), in.c_str(), l);
+        return out;
+    }
+
+    size_t display_width(const std::wstring& ws)
+    {
+#ifdef HAVE_WCSWIDTH
+        return std::max(0, ::wcswidth(ws.c_str(), ws.length()));
+#else
+        return ws.length();
+#endif
+    }
+
+    size_t display_width(const std::string& s)
+    {
+        return display_width(to_wstr(s));
     }
 }

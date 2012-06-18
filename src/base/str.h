@@ -120,6 +120,11 @@ namespace str
 
     /* Convert a string from one character set to another */
     std::string convert(const std::string &src, const std::string &from_charset, const std::string &to_charset);
+
+    /* Wide character and display handling */
+    std::wstring to_wstr(const std::string& s);
+    size_t display_width(const std::wstring& ws);
+    size_t display_width(const std::string& s);
 }
 
 #endif
