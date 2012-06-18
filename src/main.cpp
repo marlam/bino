@@ -52,6 +52,7 @@
 
 #include "dbg.h"
 #include "msg.h"
+#include "str.h"
 #include "opt.h"
 
 #include "dispatch.h"
@@ -166,9 +167,9 @@ static void close_log_file(void)
     }
 }
 
-static std::string lengthen(const std::string& s, int len)
+static std::string lengthen(const std::string& s, int display_width)
 {
-    int spaces = len - static_cast<int>(s.length());
+    int spaces = display_width - static_cast<int>(str::display_width(s));
     if (spaces > 0)
         return s + std::string(spaces, ' ');
     else
