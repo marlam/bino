@@ -2629,14 +2629,22 @@ open_device_dialog::open_device_dialog(
         _x11_device_field[i] = new QLineEdit();
         _x11_device_field[i]->setToolTip(_("<p>Set the X11 device string. "
                     "Refer to the manual for details.</p>"));
+        _x11_device_field[i]->setText("localhost:0.0+0,0");
         _device_chooser_stack[i] = new QStackedWidget();
         _device_chooser_stack[i]->addWidget(_default_device_combobox[i]);
         _device_chooser_stack[i]->addWidget(_firewire_device_combobox[i]);
         _device_chooser_stack[i]->addWidget(_x11_device_field[i]);
         if (last_devices.size() > i) {
-            _default_device_combobox[i]->setCurrentIndex(_default_device_combobox[i]->findText(last_devices[i]));
-            _firewire_device_combobox[i]->setCurrentIndex(_firewire_device_combobox[i]->findText(last_devices[i]));
-            _x11_device_field[i]->setText(last_devices[i]);
+            int j;
+            if (dev_request.device == device_request::sys_default
+                    && (j = _default_device_combobox[i]->findText(last_devices[i])) >= 0) {
+                _default_device_combobox[i]->setCurrentIndex(j);
+            } else if (dev_request.device == device_request::firewire
+                    && (j = _firewire_device_combobox[i]->findText(last_devices[i])) >= 0) {
+                _firewire_device_combobox[i]->setCurrentIndex(j);
+            } else if (dev_request.device == device_request::x11) {
+                _x11_device_field[i]->setText(last_devices[i]);
+            }
         }
     }
     connect(_type_combobox, SIGNAL(currentIndexChanged(int)), _device_chooser_stack[0], SLOT(setCurrentIndex(int)));
