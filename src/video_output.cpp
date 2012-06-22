@@ -1053,6 +1053,20 @@ void video_output::reshape(int w, int h, const parameters& params)
     _full_viewport[1] = 0;
     _full_viewport[2] = w;
     _full_viewport[3] = h;
+    glViewport(0, 0, w, h);
+    clear();
+    // For the interleaved modes, we need even width and/or even height,
+    // otherwise we cannot correctly assign left/right rows/columns.
+    if ((params.stereo_mode() == parameters::mode_even_odd_columns
+                || params.stereo_mode() == parameters::mode_checkerboard)
+            && w > 1 && w % 2 == 1) {
+        w--;
+    }
+    if ((params.stereo_mode() == parameters::mode_even_odd_rows
+                || params.stereo_mode() == parameters::mode_checkerboard)
+            && h > 1 && h % 2 == 1) {
+        h--;
+    }
     _viewport[0][0] = 0;
     _viewport[0][1] = 0;
     _viewport[0][2] = w;
@@ -1062,8 +1076,6 @@ void video_output::reshape(int w, int h, const parameters& params)
     _viewport[1][2] = w;
     _viewport[1][3] = h;
     std::memcpy(_tex_coords, full_tex_coords, sizeof(_tex_coords));
-    glViewport(0, 0, w, h);
-    clear();
     if (!_frame[_active_index].is_valid())
         return;
 
@@ -1197,7 +1209,7 @@ void video_output::display_current_frame(
     }
     if ((_render_params.stereo_mode() == parameters::mode_even_odd_rows
                 || _render_params.stereo_mode() == parameters::mode_checkerboard)
-            && (pos_y() + viewport[0][1]) % 2 == 0) {
+            && (pos_y() + height() - viewport[0][1] - viewport[0][3]) % 2 == 0) {
         std::swap(left, right);
     }
     if ((_render_params.stereo_mode() == parameters::mode_even_odd_columns
