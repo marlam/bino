@@ -1,4 +1,5 @@
-; Copyright (C) 2011 Martin Lambers
+; Copyright (C) 2011, 2012
+; Martin Lambers <marlam@marlam.de>
 ;
 ; Copying and distribution of this file, with or without modification, are
 ; permitted in any medium without royalty provided the copyright notice and this
@@ -16,11 +17,11 @@ OutFile "bino-${PACKAGE_VERSION}-w32.exe"
 RequestExecutionLevel admin
 
 ; The default installation directory
-InstallDir "$PROGRAMFILES\Bino ${PACKAGE_VERSION}"
+InstallDir "$PROGRAMFILES\Bino"
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\Bino ${PACKAGE_VERSION}" "Install_Dir"
+InstallDirRegKey HKLM "Software\Bino" "Install_Dir"
 
 SetCompressor lzma
 ShowInstDetails show
@@ -40,7 +41,7 @@ Var STARTMENU_FOLDER
   !insertmacro MUI_PAGE_DIRECTORY
   ;Start Menu Folder Page Configuration
   !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU" 
-  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Bino ${PACKAGE_VERSION}"
+  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Bino"
   !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
   !insertmacro MUI_PAGE_STARTMENU Application $STARTMENU_FOLDER
   !insertmacro MUI_PAGE_INSTFILES
@@ -84,10 +85,10 @@ Section
   SetShellVarContext all
   WriteUninstaller "$INSTDIR\uninstall.exe"
   ; Write the installation path into the registry
-  WriteRegStr HKLM "Software\Bino ${PACKAGE_VERSION}" "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM "Software\Bino" "Install_Dir" "$INSTDIR"
   ; Windows Add/Remove Programs support
-  StrCpy $MYTMP "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bino ${PACKAGE_VERSION}"
-  WriteRegStr       HKLM $MYTMP "DisplayName"     "Bino ${PACKAGE_VERSION}"
+  StrCpy $MYTMP "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bino"
+  WriteRegStr       HKLM $MYTMP "DisplayName"     "Bino"
   WriteRegExpandStr HKLM $MYTMP "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegExpandStr HKLM $MYTMP "InstallLocation" "$INSTDIR"
   WriteRegStr       HKLM $MYTMP "DisplayVersion"  "${PACKAGE_VERSION}"
@@ -111,9 +112,9 @@ SectionEnd
 Section "Uninstall"
   SetShellVarContext all
   ; Remove registry keys
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bino ${PACKAGE_VERSION}"
-  DeleteRegKey HKLM "Software\Bino ${PACKAGE_VERSION}"
-  DeleteRegKey /ifempty HKCU "Software\Bino ${PACKAGE_VERSION}"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bino"
+  DeleteRegKey HKLM "Software\Bino"
+  DeleteRegKey /ifempty HKCU "Software\Bino"
   ; Remove start menu entries
   !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
   RMDir /r "$SMPROGRAMS\$MUI_TEMP"
