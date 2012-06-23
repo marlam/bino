@@ -8,7 +8,7 @@
 !include "MUI.nsh"
 
 ; The name of the installer
-Name "Bino ${PACKAGE_VERSION}"
+Name "Bino"
 
 ; The file to write
 OutFile "bino-${PACKAGE_VERSION}-w32.exe"
