@@ -251,7 +251,7 @@ static void xglKillCrlf(char* str)
 
 static void compute_viewport_and_tex_coords(int vp[4], float tc[4][2],
         float src_ar, int w, int h, float dst_w, float dst_h, float dst_ar,
-        float crop_ar, float zoom)
+        float crop_ar, float zoom, bool need_even_width, bool need_even_height)
 {
     std::memcpy(tc, full_tex_coords[0], 4 * 2 * sizeof(float));
     if (crop_ar > 0.0f) {
@@ -275,8 +275,6 @@ static void compute_viewport_and_tex_coords(int vp[4], float tc[4][2],
         float zoom_src_ar = zoom * dst_ar + (1.0f - zoom) * src_ar;
         vp[2] = dst_w;
         vp[3] = dst_ar / zoom_src_ar * dst_h;
-        vp[0] = (w - vp[2]) / 2;
-        vp[1] = (h - vp[3]) / 2;
         float cutoff = (1.0f - zoom_src_ar / src_ar) / 2.0f;
         tc[0][0] += cutoff;
         tc[1][0] -= cutoff;
@@ -286,9 +284,13 @@ static void compute_viewport_and_tex_coords(int vp[4], float tc[4][2],
         // need black borders left and right
         vp[2] = src_ar / dst_ar * dst_w;
         vp[3] = dst_h;
-        vp[0] = (w - vp[2]) / 2;
-        vp[1] = (h - vp[3]) / 2;
     }
+    if (need_even_width && vp[2] > 1 && vp[2] % 2 == 1)
+        vp[2]--;
+    if (need_even_height && vp[3] > 1 && vp[3] % 2 == 1)
+        vp[3]--;
+    vp[0] = (w - vp[2]) / 2;
+    vp[1] = (h - vp[3]) / 2;
 }
 
 
@@ -1055,18 +1057,6 @@ void video_output::reshape(int w, int h, const parameters& params)
     _full_viewport[3] = h;
     glViewport(0, 0, w, h);
     clear();
-    // For the interleaved modes, we need even width and/or even height,
-    // otherwise we cannot correctly assign left/right rows/columns.
-    if ((params.stereo_mode() == parameters::mode_even_odd_columns
-                || params.stereo_mode() == parameters::mode_checkerboard)
-            && w > 1 && w % 2 == 1) {
-        w--;
-    }
-    if ((params.stereo_mode() == parameters::mode_even_odd_rows
-                || params.stereo_mode() == parameters::mode_checkerboard)
-            && h > 1 && h % 2 == 1) {
-        h--;
-    }
     _viewport[0][0] = 0;
     _viewport[0][1] = 0;
     _viewport[0][2] = w;
@@ -1078,6 +1068,13 @@ void video_output::reshape(int w, int h, const parameters& params)
     std::memcpy(_tex_coords, full_tex_coords, sizeof(_tex_coords));
     if (!_frame[_active_index].is_valid())
         return;
+
+    // For the interleaved modes, we need even width and/or even height,
+    // otherwise we cannot correctly assign left/right rows/columns.
+    bool need_even_width = (params.stereo_mode() == parameters::mode_even_odd_columns
+            || params.stereo_mode() == parameters::mode_checkerboard);
+    bool need_even_height = (params.stereo_mode() == parameters::mode_even_odd_rows
+            || params.stereo_mode() == parameters::mode_checkerboard);
 
     // Compute viewport with the right aspect ratio
     if (params.stereo_mode() == parameters::mode_left_right
@@ -1093,7 +1090,7 @@ void video_output::reshape(int w, int h, const parameters& params)
         }
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
                 w / 2, h, dst_w, dst_h, dst_ar,
-                crop_ar, params.zoom());
+                crop_ar, params.zoom(), need_even_width, need_even_height);
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[1][0] = _viewport[0][0] + w / 2;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
@@ -1110,7 +1107,7 @@ void video_output::reshape(int w, int h, const parameters& params)
         }
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
                 w, h / 2, dst_w, dst_h, dst_ar,
-                crop_ar, params.zoom());
+                crop_ar, params.zoom(), need_even_width, need_even_height);
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[0][1] = _viewport[1][1] + h / 2;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
@@ -1129,7 +1126,7 @@ void video_output::reshape(int w, int h, const parameters& params)
         float src_ar = _frame[_active_index].aspect_ratio;
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
                 w, (h - blank_lines) / 2, dst_w, dst_h, dst_ar,
-                params.crop_aspect_ratio(), params.zoom());
+                params.crop_aspect_ratio(), params.zoom(), need_even_width, need_even_height);
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         _viewport[0][1] = _viewport[1][1] + (h - blank_lines) / 2 + blank_lines;
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
@@ -1140,7 +1137,7 @@ void video_output::reshape(int w, int h, const parameters& params)
         float src_ar = _frame[_active_index].aspect_ratio;
         compute_viewport_and_tex_coords(_viewport[0], _tex_coords[0], src_ar,
                 w, h, dst_w, dst_h, dst_ar,
-                params.crop_aspect_ratio(), params.zoom());
+                params.crop_aspect_ratio(), params.zoom(), need_even_width, need_even_height);
         std::memcpy(_viewport[1], _viewport[0], sizeof(_viewport[1]));
         std::memcpy(_tex_coords[1], _tex_coords[0], sizeof(_tex_coords[1]));
     }
