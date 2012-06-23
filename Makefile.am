@@ -30,7 +30,7 @@ if HAVE_MAKENSIS
 package-w32:
 	$(MAKE) -C po update-po && \
 	TMPDIR="`mktemp -d`" && \
-	$(MAKE) install-strip prefix="$$TMPDIR" bindir="$$TMPDIR" docdir="$$TMPDIR" localedir="$$TMPDIR" && \
+	$(MAKE) install-strip prefix="$$TMPDIR" bindir="$$TMPDIR" docdir="$$TMPDIR/doc" localedir="$$TMPDIR" && \
 	cp $(top_srcdir)/pkg/w32/bino.nsi "$$TMPDIR" && \
 	cp $(top_srcdir)/pkg/w32/notes.txt "$$TMPDIR" && \
 	cp $(top_srcdir)/COPYING "$$TMPDIR" && \

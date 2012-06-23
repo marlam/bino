@@ -72,11 +72,7 @@ Section "Bino Program" SecTools
   SetOutPath $INSTDIR\locale\ru\LC_MESSAGES
   FILE ru\LC_MESSAGES\bino.mo
   SetOutPath $INSTDIR\doc
-  FILE bino.html
-  FILE multi-display-vrlab.jpg
-  FILE multi-display-rotated.jpg
-  FILE gamma-pattern-tb.png
-  FILE crosstalk-pattern-tb.png
+  FILE doc\*.*
 SectionEnd
 
 ; Last section is a hidden one.
