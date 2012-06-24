@@ -61,15 +61,15 @@ Var STARTMENU_FOLDER
 Section "Bino Program" SecTools
   SetOutPath $INSTDIR\bin
   FILE bino.exe
-  SetOutPath $INSTDIR\locale\cs\LC_MESSAGES
-  FILE cs\LC_MESSAGES\bino.mo
+;  SetOutPath $INSTDIR\locale\cs\LC_MESSAGES
+;  FILE cs\LC_MESSAGES\bino.mo
   SetOutPath $INSTDIR\locale\de\LC_MESSAGES
   FILE de\LC_MESSAGES\bino.mo
   SetOutPath $INSTDIR\locale\fr\LC_MESSAGES
   FILE fr\LC_MESSAGES\bino.mo
   SetOutPath $INSTDIR\locale\pl\LC_MESSAGES
-  FILE pl\LC_MESSAGES\bino.mo
-  SetOutPath $INSTDIR\locale\ru\LC_MESSAGES
+;  FILE pl\LC_MESSAGES\bino.mo
+;  SetOutPath $INSTDIR\locale\ru\LC_MESSAGES
   FILE ru\LC_MESSAGES\bino.mo
   SetOutPath $INSTDIR\doc
   FILE doc\*.*
