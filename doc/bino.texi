@@ -16,7 +16,7 @@ Stefan Eilemann (@email{eile@@eyescale.ch}),
 Frédéric Devernay (@email{Frederic.Devernay@@inrialpes.fr})
 
 @quotation
-Copying and distribution of this file and the referenced media files, with or
+Copying and distribution of this file and the accompanying media files, with or
 without modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. These files are offered as-is,
 without any warranty.
