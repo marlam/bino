@@ -300,7 +300,7 @@ int main(int argc, char *argv[])
     options.push_back(&fullscreen_flip_right);
     opt::flag fullscreen_flop_right("fullscreen-flop-right", '\0', opt::optional);
     options.push_back(&fullscreen_flop_right);
-    opt::flag fullscreen_3d_ready_sync("fullscreen-3d-ready-sync", '\0', opt::optional);
+    opt::flag fullscreen_3d_ready_sync("fullscreen-3dr-sync", '\0', opt::optional);
     options.push_back(&fullscreen_3d_ready_sync);
     opt::val<float> zoom("zoom", 'z', opt::optional, 0.0f, 1.0f);
     options.push_back(&zoom);
