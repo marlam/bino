@@ -104,7 +104,7 @@ void gl_thread::activate_next_frame()
     _wait_mutex.lock();
     _action_finished = false;
     _action_activate = true;
-    while(_action_activate)
+    while (_action_activate)
         _wait_cond.wait(_wait_mutex);
     _action_finished = true;
     _wait_mutex.unlock();
@@ -119,7 +119,7 @@ void gl_thread::prepare_next_frame(const video_frame &frame, const subtitle_box 
     _next_frame = frame;
     _action_finished = false;
     _action_prepare = true;
-    while(_action_prepare)
+    while (_action_prepare)
         _wait_cond.wait(_wait_mutex);
     _action_finished = true;
     _wait_mutex.unlock();
@@ -227,7 +227,7 @@ void gl_thread::run()
             _wait_cond.wake_one();
             _wait_mutex.unlock();
             _wait_mutex.lock();
-     }
+        }
     }
     _wait_mutex.unlock();
     _vo_qt_widget->doneCurrent();
