@@ -143,16 +143,17 @@ static void qt_msg_handler(QtMsgType type, const char *msg)
     switch (type)
     {
     case QtDebugMsg:
-        msg::dbg("%s", msg);
+        msg::dbg(str::sanitize(msg));
         break;
     case QtWarningMsg:
-        msg::wrn("%s", msg);
+        msg::wrn(str::sanitize(msg));
         break;
     case QtCriticalMsg:
-        msg::err("%s", msg);
+        msg::err(str::sanitize(msg));
         break;
     case QtFatalMsg:
-        msg::err("%s", msg);
+    default:
+        msg::err(str::sanitize(msg));
         std::exit(1);
     }
 }
