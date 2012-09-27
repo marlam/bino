@@ -1264,10 +1264,8 @@ void video_output::display_current_frame(
     glUseProgram(_render_prg);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _color_tex[_active_index][left]);
-    if (left != right) {
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, _color_tex[_active_index][right]);
-    }
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, _color_tex[_active_index][right]);
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_l"), 0);
     glUniform1i(glGetUniformLocation(_render_prg, "rgb_r"), 1);
     glUniform1f(glGetUniformLocation(_render_prg, "parallax"),
