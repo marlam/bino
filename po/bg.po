@@ -1,0 +1,1880 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR The Bino developers
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: bino 1.4.0\n"
+"Report-Msgid-Bugs-To: bino-list@nongnu.org\n"
+"POT-Creation-Date: 2012-10-13 06:21+0200\n"
+"PO-Revision-Date: 2012-10-13 00:33+0200\n"
+"Last-Translator: Krasimir S. Stefanov <lokiisyourmaster@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: bg\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Bulgarian\n"
+
+#: src/base/dbg.cpp:49
+#, c-format
+msgid "Caught signal %d (%s). Aborting."
+msgstr "Прихванат е сигнал %d (%s). Аборт."
+
+#: src/base/dbg.cpp:56
+msgid "Unexpected exception."
+msgstr "Неочаквано изключение."
+
+#. TRANSLATORS: %s will be a mail address.
+#: src/base/dbg.cpp:221
+#, c-format
+msgid "Report bugs to <%s>."
+msgstr "Докладвайте бъгове на <%s>."
+
+#: src/base/exc.cpp:52 src/base/exc.cpp:70 src/base/exc.cpp:104
+#, c-format
+msgid "Exception: %s"
+msgstr "Изключение: %s"
+
+#: src/base/opt.cpp:168
+#, c-format
+msgid "Invalid option %s."
+msgstr "Невалидна опция %s."
+
+#: src/base/opt.cpp:172
+#, c-format
+msgid "Option --%s does not take an argument."
+msgstr "Опцията --%s не приема аргументи."
+
+#: src/base/opt.cpp:177
+#, c-format
+msgid "Invalid option -%c."
+msgstr "Невалидна опция -%c."
+
+#: src/base/opt.cpp:186
+#, c-format
+msgid "Option --%s requires an argument."
+msgstr "Опцията --%s изисква аргумент."
+
+#: src/base/opt.cpp:191
+#, c-format
+msgid "Option -%c requires an argument."
+msgstr "Опцията -%c изисква аргумент."
+
+#: src/base/opt.cpp:212
+#, c-format
+msgid "Invalid argument for -%c."
+msgstr "Невалиден аргумент за -%c."
+
+#: src/base/opt.cpp:216
+#, c-format
+msgid "Invalid argument for --%s."
+msgstr "Невалиден аргумент за --%s."
+
+#: src/base/opt.cpp:239
+#, c-format
+msgid "Option --%s (-%c) is mandatory."
+msgstr "Опцията --%s (-%c) е задължителна."
+
+#: src/base/opt.cpp:243
+#, c-format
+msgid "Option --%s is mandatory."
+msgstr "Опцията --%s е задължителна."
+
+#: src/base/opt.cpp:257
+msgid "Too few arguments."
+msgstr "Прекалено малко аргументи."
+
+#: src/base/opt.cpp:262
+msgid "Too many arguments."
+msgstr "Прекалено много аргументи."
+
+#: src/base/str.cpp:268
+#, c-format
+msgid "Cannot convert string to %s."
+msgstr "Не може да се конвертира низ в %s."
+
+#: src/base/str.cpp:516 src/base/str.cpp:534 src/base/str.cpp:544
+#: src/base/str.cpp:555 src/base/str.cpp:560
+#, c-format
+msgid "Cannot convert %s to %s."
+msgstr "Не може да се конвертира %s в %s."
+
+#: src/base/thread.cpp:38 src/base/thread.cpp:48 src/base/thread.cpp:61
+#: src/base/thread.cpp:74 src/base/thread.cpp:85 src/base/thread.cpp:95
+#: src/base/thread.cpp:108 src/base/thread.cpp:116 src/base/thread.cpp:124
+#: src/base/thread.cpp:204 src/base/thread.cpp:211 src/base/thread.cpp:225
+#: src/base/thread.cpp:245
+msgid "System function failed: "
+msgstr "Системната функция не можа да бъде изпълнена:"
+
+#: src/base/timer.cpp:63 src/base/timer.cpp:72 src/base/timer.cpp:81
+msgid "Cannot get time."
+msgstr "Времето не може да бъде установено."
+
+#: src/audio_output.cpp:88
+msgid "No OpenAL device available."
+msgstr "Няма налично OpenAL устройство."
+
+#: src/audio_output.cpp:93 src/audio_output.cpp:99
+#, c-format
+msgid "OpenAL device '%s' is not available."
+msgstr "OpenAL ustrojstwoto '%s' не е налично."
+
+#: src/audio_output.cpp:93 src/lib_versions.cpp:121 src/lib_versions.cpp:158
+#: src/media_data.cpp:1194 src/media_data.cpp:1217 src/media_data.cpp:1255
+#: src/media_data.cpp:1260
+msgid "unknown"
+msgstr "непознат"
+
+#: src/audio_output.cpp:106
+msgid "No OpenAL context available."
+msgstr "Няма наличен OpenAL контекст."
+
+#: src/audio_output.cpp:117
+msgid "Cannot create OpenAL buffers."
+msgstr "Не могат да бъдат създадени OpenAL буфери."
+
+#: src/audio_output.cpp:126
+msgid "Cannot create OpenAL source."
+msgstr "Не може да бъде създаден OpenAL източник."
+
+#: src/audio_output.cpp:139
+msgid "Cannot set OpenAL source parameters."
+msgstr "Параметрите на OpenAL източника не могат да бъдат зададени."
+
+#: src/audio_output.cpp:193
+msgid "Cannot check OpenAL source state."
+msgstr "Статуса на OpenAL източника не може да бъде проверен."
+
+#: src/audio_output.cpp:200
+msgid "Cannot restart OpenAL source playback."
+msgstr "Възпроизвеждането на OpenAL източника не може да бъде рестартирано."
+
+#: src/audio_output.cpp:353
+#, c-format
+msgid "No OpenAL format available for audio data format %s."
+msgstr "Няма наличен OpenAL формат за избрания звуков формат %s."
+
+#: src/audio_output.cpp:369
+msgid "Cannot set OpenAL audio volume."
+msgstr "Не може да се зададе нивото на OpenAL звука."
+
+#: src/audio_output.cpp:395
+msgid "Cannot buffer initial OpenAL data."
+msgstr "Не може да се буферират началните OpenAL данни."
+
+#: src/audio_output.cpp:409
+msgid "Cannot buffer OpenAL data."
+msgstr "OpenAL данните не могат да бъдат буферирани."
+
+#: src/audio_output.cpp:434
+msgid "Cannot start OpenAL source playback."
+msgstr "Възпроизвеждането на OpenAL източника не може да се стартира."
+
+#: src/audio_output.cpp:448
+msgid "Cannot pause OpenAL source playback."
+msgstr "Възпроизвеждането на OpenAL източника не може да се спре на пауза."
+
+#: src/audio_output.cpp:457
+msgid "Cannot unpause OpenAL source playback."
+msgstr "Възпроизвеждането на OpenAL източника не може да се пусне от пауза."
+
+#: src/audio_output.cpp:466
+msgid "Cannot stop OpenAL source playback."
+msgstr "Възпроизвеждането на OpenAL източника не може да се спре."
+
+#: src/audio_output.cpp:477
+msgid "Cannot unqueue OpenAL source buffers."
+msgstr "OpenAL буферите не могат да бъдат премахнати от опашката."
+
+#: src/command_file.cpp:63 src/command_file.cpp:79 src/command_file.cpp:125
+#: src/main.cpp:374 src/media_object.cpp:847 src/media_object.cpp:1312
+#: src/video_output.cpp:419
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: src/command_file.cpp:174
+#, c-format
+msgid "%s: invalid command '%s'"
+msgstr "%s: невалидна команда '%s'"
+
+#: src/dispatch.cpp:166
+msgid "Cannot connect to X server."
+msgstr "Няма връзка с X сървъра."
+
+#: src/dispatch.cpp:182
+msgid "No video to play."
+msgstr "Няма видео за възпроизвеждане."
+
+#: src/dispatch.cpp:437 src/player_equalizer.cpp:85
+msgid "No video streams found."
+msgstr "Не са открити видео потоци."
+
+#: src/dispatch.cpp:454
+msgid "Cannot set requested stereo layout: incompatible media."
+msgstr "Не може да се зададе избрания стерео формат: несъвместима медия."
+
+#: src/dispatch.cpp:469
+#, c-format
+msgid "Video stream %d not found."
+msgstr "Видео потокът %d не бе намерен."
+
+#: src/dispatch.cpp:475
+#, c-format
+msgid "Audio stream %d not found."
+msgstr "Аудио потокът %d не бе намерен."
+
+#: src/dispatch.cpp:483
+#, c-format
+msgid "Subtitle stream %d not found."
+msgstr "Потокът със субтитри %d не бе намерен."
+
+#: src/dispatch.cpp:555 src/main.cpp:764
+msgid "This version of Bino was compiled without support for Equalizer."
+msgstr "Тази версия на Bino е компилирана без поддръжка на Еквилайзер."
+
+#: src/gui.cpp:107
+msgid "Video:"
+msgstr "Видео:"
+
+#: src/gui.cpp:108
+msgid "<p>Select the video stream.</p>"
+msgstr "<p>Избор на видео поток.</p>"
+
+#: src/gui.cpp:114
+msgid "Audio:"
+msgstr "Аудио:"
+
+#: src/gui.cpp:115
+msgid "<p>Select the audio stream.</p>"
+msgstr "<p>Избор на аудио поток.</p>"
+
+#: src/gui.cpp:121
+msgid "Subtitle:"
+msgstr "Субтитри:"
+
+#: src/gui.cpp:122
+msgid "<p>Select the subtitle stream.</p>"
+msgstr "<p>Избор на субтитри.</p>"
+
+#: src/gui.cpp:133 src/media_input.cpp:276
+msgid "Input:"
+msgstr "Вход:"
+
+#: src/gui.cpp:134
+msgid "<p>Set the 3D layout of the video stream.</p>"
+msgstr "<p>Избор на 3D разположение на видеото.</p>"
+
+#: src/gui.cpp:138 src/main.cpp:431
+msgid "2D"
+msgstr "2D"
+
+#: src/gui.cpp:139 src/main.cpp:432
+msgid "Separate streams, left first"
+msgstr "Отделни потоци, първо левия"
+
+#: src/gui.cpp:140 src/main.cpp:433
+msgid "Separate streams, right first"
+msgstr "Отделни потоци, първо десния"
+
+#: src/gui.cpp:141 src/main.cpp:434
+msgid "Alternating, left first"
+msgstr "Редуващи се, първо лява половина"
+
+#: src/gui.cpp:142 src/main.cpp:435
+msgid "Alternating, right first"
+msgstr "Редуващи се, първо дясна половина"
+
+#: src/gui.cpp:143 src/gui.cpp:167 src/gui.cpp:2151 src/gui.cpp:2180
+#: src/main.cpp:436 src/main.cpp:451
+msgid "Top/bottom"
+msgstr "Горе/Долу"
+
+#: src/gui.cpp:144 src/gui.cpp:168 src/gui.cpp:2152 src/gui.cpp:2181
+#: src/main.cpp:437 src/main.cpp:452
+msgid "Top/bottom, half height"
+msgstr "Горе/Долу, половин височина"
+
+#: src/gui.cpp:145 src/main.cpp:438
+msgid "Bottom/top"
+msgstr "Долу/Горе"
+
+#: src/gui.cpp:146 src/main.cpp:439
+msgid "Bottom/top, half height"
+msgstr "Долу/Горе, половин височина"
+
+#: src/gui.cpp:147 src/gui.cpp:169 src/gui.cpp:2153 src/gui.cpp:2182
+#: src/main.cpp:440 src/main.cpp:453
+msgid "Left/right"
+msgstr "Ляво/Дясно"
+
+#: src/gui.cpp:148 src/gui.cpp:170 src/gui.cpp:2154 src/gui.cpp:2183
+#: src/main.cpp:441 src/main.cpp:454
+msgid "Left/right, half width"
+msgstr "Ляво/Дясно, половин ширина"
+
+#: src/gui.cpp:149 src/main.cpp:442
+msgid "Right/left"
+msgstr "Дясно/Ляво"
+
+#: src/gui.cpp:150 src/main.cpp:443
+msgid "Right/left, half width"
+msgstr "Дясно/Ляво, половин ширина"
+
+#: src/gui.cpp:151 src/gui.cpp:171 src/gui.cpp:2155 src/gui.cpp:2184
+#: src/main.cpp:444 src/main.cpp:455
+msgid "Even/odd rows"
+msgstr "Четни/Нечетни редове"
+
+#: src/gui.cpp:152 src/main.cpp:445
+msgid "Odd/even rows"
+msgstr "Нечетни/Четни редове"
+
+#: src/gui.cpp:158
+msgid "Output:"
+msgstr "Изход:"
+
+#: src/gui.cpp:159
+msgid "<p>Set the 3D output type for your display.</p>"
+msgstr "<p>Избор на 3D типа на дисплея.</p>"
+
+#: src/gui.cpp:163 src/gui.cpp:2149 src/gui.cpp:2178 src/main.cpp:449
+msgid "Left view"
+msgstr "Лява половина"
+
+#: src/gui.cpp:164 src/gui.cpp:2150 src/gui.cpp:2179 src/main.cpp:450
+msgid "Right view"
+msgstr "Дясна половина"
+
+#: src/gui.cpp:165 src/main.cpp:447
+msgid "OpenGL stereo"
+msgstr "OpenGL стерео"
+
+#: src/gui.cpp:166 src/main.cpp:448
+msgid "Left/right alternating"
+msgstr "Редуващи се, Лява/Дясна"
+
+#: src/gui.cpp:172 src/gui.cpp:2156 src/gui.cpp:2185 src/main.cpp:456
+msgid "Even/odd columns"
+msgstr "Четни/Нечетни колони"
+
+#: src/gui.cpp:173 src/gui.cpp:2157 src/gui.cpp:2186 src/main.cpp:457
+msgid "Checkerboard pattern"
+msgstr "Шахматно"
+
+#: src/gui.cpp:174 src/main.cpp:458
+msgid "HDMI frame packing mode"
+msgstr "HDMI пакетиране на кадри"
+
+#: src/gui.cpp:175 src/gui.cpp:2158 src/gui.cpp:2187 src/main.cpp:459
+msgid "Red/cyan glasses, monochrome"
+msgstr "Червени/Циан очила, монохром"
+
+#: src/gui.cpp:176 src/gui.cpp:2159 src/gui.cpp:2188 src/main.cpp:460
+msgid "Red/cyan glasses, half color"
+msgstr "Червени/Циан очила, половин цветност"
+
+#: src/gui.cpp:177 src/gui.cpp:2160 src/gui.cpp:2189 src/main.cpp:461
+msgid "Red/cyan glasses, full color"
+msgstr "Червени/Циан очила, пълни цветове"
+
+#: src/gui.cpp:178 src/gui.cpp:2161 src/gui.cpp:2190 src/main.cpp:462
+msgid "Red/cyan glasses, Dubois"
+msgstr "Червени/Циан очила, Дюбоа"
+
+#: src/gui.cpp:179 src/gui.cpp:2162 src/gui.cpp:2191 src/main.cpp:463
+msgid "Green/magenta glasses, monochrome"
+msgstr "Зелено/Пурпурни очила, монохром"
+
+#: src/gui.cpp:180 src/gui.cpp:2163 src/gui.cpp:2192 src/main.cpp:464
+msgid "Green/magenta glasses, half color"
+msgstr "Зелено/Пурпурни очила, половин цветност"
+
+#: src/gui.cpp:181 src/gui.cpp:2164 src/gui.cpp:2193 src/main.cpp:465
+msgid "Green/magenta glasses, full color"
+msgstr "Зелено/Пурпурни очила, пълни цветове"
+
+#: src/gui.cpp:182 src/gui.cpp:2165 src/gui.cpp:2194 src/main.cpp:466
+msgid "Green/magenta glasses, Dubois"
+msgstr "Зелено/Пурпурни очила, Дюбоа"
+
+#: src/gui.cpp:183 src/gui.cpp:2166 src/gui.cpp:2195 src/main.cpp:467
+msgid "Amber/blue glasses, monochrome"
+msgstr "Кехлибар/Сини очила, монохром"
+
+#: src/gui.cpp:184 src/gui.cpp:2167 src/gui.cpp:2196 src/main.cpp:468
+msgid "Amber/blue glasses, half color"
+msgstr "Кехлибар/Сини очила, половин цветност"
+
+#: src/gui.cpp:185 src/gui.cpp:2168 src/gui.cpp:2197 src/main.cpp:469
+msgid "Amber/blue glasses, full color"
+msgstr "Кехлибар/Сини очила, пълни цветове"
+
+#: src/gui.cpp:186 src/gui.cpp:2169 src/gui.cpp:2198 src/main.cpp:470
+msgid "Amber/blue glasses, Dubois"
+msgstr "Кехлибар/Сини очила, Дюбоа"
+
+#: src/gui.cpp:187 src/gui.cpp:2170 src/gui.cpp:2199 src/main.cpp:471
+msgid "Red/green glasses, monochrome"
+msgstr "Червени/Зелени очила, монохромно"
+
+#: src/gui.cpp:188 src/gui.cpp:2171 src/gui.cpp:2200 src/main.cpp:472
+msgid "Red/blue glasses, monochrome"
+msgstr "Червени/Сини очила, монохромно"
+
+#: src/gui.cpp:192
+msgid "Swap left/right"
+msgstr "Размяна на ляво/дясно"
+
+#: src/gui.cpp:193
+msgid ""
+"<p>Swap the left and right view. Use this if the 3D effect seems wrong.</p>"
+msgstr "<p>Размяна на левия и десния изглед.</p>"
+
+#: src/gui.cpp:471 src/gui.cpp:1732
+msgid "Off"
+msgstr "Изключено"
+
+#: src/gui.cpp:702
+msgid ""
+"<p>This slider shows the progress during video playback, and can be used to "
+"seek in the video.</p>"
+msgstr ""
+"<p>Този плъзгач показва докъде е стигнало възпроизвеждането, и може да се "
+"използва за превъртане.</p>"
+
+#: src/gui.cpp:709
+msgid "<p>Elapsed / total time.</p>"
+msgstr "<p>Изминало / Общо време.</p>"
+
+#: src/gui.cpp:716
+msgid "<p>Toggle audio mute.</p>"
+msgstr "<p>Заглушаване на звука.</p>"
+
+#: src/gui.cpp:721
+msgid "<p>Adjust audio volume.</p>"
+msgstr "<p>Задаване нивото на звука.</p>"
+
+#: src/gui.cpp:733
+msgid "<p>Play.</p>"
+msgstr "<p>Изпълняване.</p>"
+
+#: src/gui.cpp:737
+msgid "<p>Pause.</p>"
+msgstr "<p>Пауза.</p>"
+
+#: src/gui.cpp:741
+msgid "<p>Stop.</p>"
+msgstr "<p>Стоп.</p>"
+
+#: src/gui.cpp:746
+msgid "<p>Toggle loop mode.</p>"
+msgstr "<p>(Де)Активиране на повторение.</p>"
+
+#: src/gui.cpp:753
+msgid ""
+"<p>Switch to fullscreen mode. You can leave fullscreen mode by pressing the "
+"f key.</p>"
+msgstr ""
+"<p>Превключване на пълноекранен режим. Можете да го напуснете чрез натискане "
+"на клавиш f.</p>"
+
+#: src/gui.cpp:759
+msgid "<p>Center the video area on your screen.</p>"
+msgstr "<p>Центриране на видеото в екрана.</p>"
+
+#: src/gui.cpp:766
+msgid "<p>Seek backward 10 minutes.</p>"
+msgstr "<p>Назад 10 минути.</p>"
+
+#: src/gui.cpp:771
+msgid "<p>Seek backward 1 minute.</p>"
+msgstr "<p>Назад 1 минута.</p>"
+
+#: src/gui.cpp:777
+msgid "<p>Seek backward 10 seconds.</p>"
+msgstr "<p>Назад 10 секунди.</p>"
+
+#: src/gui.cpp:783
+msgid "<p>Seek forward 10 seconds.</p>"
+msgstr "<p>Напред 10 секунди.</p>"
+
+#: src/gui.cpp:788
+msgid "<p>Seek forward 1 minute.</p>"
+msgstr "<p>Напред 1 минута.</p>"
+
+#: src/gui.cpp:794
+msgid "<p>Seek forward 10 minutes.</p>"
+msgstr "<p>Напред 10 минути.</p>"
+
+#: src/gui.cpp:1055
+msgid "Fullscreen/Multiscreen Settings"
+msgstr "Настройки на пълен екран/много екрани"
+
+#: src/gui.cpp:1057
+msgid "Configure fullscreen mode:"
+msgstr "Конфигуриране на пълноекранния режим:"
+
+#: src/gui.cpp:1058
+msgid "<p>Select the screens to use in fullscreen mode.</p>"
+msgstr "<p>Избор на екрани, които ще се използват в пълноекранен режим.</p>"
+
+#: src/gui.cpp:1060
+msgid "Single screen:"
+msgstr "Единичен екран:"
+
+#: src/gui.cpp:1061
+msgid "<p>Use a single screen for fullscreen mode.</p>"
+msgstr "<p>Използване на един екран за пълноекранния режим.</p>"
+
+#: src/gui.cpp:1064
+msgid "Primary screen"
+msgstr "Основен екран"
+
+#: src/gui.cpp:1067 src/gui.cpp:1078 src/gui.cpp:1079
+#, c-format
+msgid "Screen %d"
+msgstr "Екран %d"
+
+#: src/gui.cpp:1070
+msgid "Dual screen:"
+msgstr "Два екрана:"
+
+#: src/gui.cpp:1071
+msgid "<p>Use two screens for fullscreen mode.</p>"
+msgstr "<p>Използване на два екрана за пълноекранния режим.</p>"
+
+#: src/gui.cpp:1083
+msgid "Multi screen:"
+msgstr "Много екрани:"
+
+#: src/gui.cpp:1084
+msgid "<p>Use multiple screens for fullscreen mode.</p>"
+msgstr "<p>Използване на множество екрани за пълноекранния режим.</p>"
+
+#: src/gui.cpp:1086
+msgid "<p>Comma-separated list of screens to use for fullscreen mode.</p>"
+msgstr ""
+"<p>Отделени със запетайка екрани, които да се използват в пълноекранния "
+"режим.</p>"
+
+#: src/gui.cpp:1089
+msgid "When in fullscreen mode,"
+msgstr "Когато е пълноекранен режим,"
+
+#: src/gui.cpp:1090
+msgid "<p>Set special left/right view handling for fullscreen mode.</p>"
+msgstr "<p>Настройка на специален ляв/десен изглед при пълноекранен режим.</p>"
+
+#: src/gui.cpp:1092
+msgid "flip left view vertically."
+msgstr "обръщане на левия изглед вертикално."
+
+#: src/gui.cpp:1094
+msgid "flop left view horizontally."
+msgstr "обръщане на левия изглед хоризонтално."
+
+#: src/gui.cpp:1096
+msgid "flip right view vertically."
+msgstr "обръщане на десния изглед вертикално."
+
+#: src/gui.cpp:1098
+msgid "flop right view horizontally."
+msgstr "обръщане на десния изглед хоризонтално."
+
+#: src/gui.cpp:1101
+msgid "use DLP(R) 3-D Ready Sync"
+msgstr "използване на DLP(R) 3-D Ready синхронизация"
+
+#: src/gui.cpp:1102
+msgid "<p>Use DLP&reg; 3-D Ready Sync for supported output modes.</p>"
+msgstr ""
+"<p>използване на DLP&reg; 3-D Ready синхронизация за поддържаните изходни "
+"режими.</p>"
+
+#: src/gui.cpp:1104
+msgid "inhibit the screensaver"
+msgstr "подтискане на предпазителя на екрана"
+
+#: src/gui.cpp:1105
+msgid "<p>Inhibit the screensaver during fullscreen playback.</p>"
+msgstr ""
+"<p>Подтиска задействането на екранния предпазител по време на пълноекранно "
+"възпроизвеждане.</p>"
+
+#: src/gui.cpp:1107 src/gui.cpp:1273 src/gui.cpp:1408 src/gui.cpp:1469
+#: src/gui.cpp:1534 src/gui.cpp:1612 src/gui.cpp:1736 src/gui.cpp:2004
+#: src/gui.cpp:2203 src/gui.cpp:2689 src/gui.cpp:3398 src/gui.cpp:3445
+#: src/gui.cpp:3762
+msgid "OK"
+msgstr "Добре"
+
+#: src/gui.cpp:1226
+msgid "Display Color Adjustments"
+msgstr "Настройки на цветовете"
+
+#: src/gui.cpp:1228
+msgid "Contrast:"
+msgstr "Контраст:"
+
+#: src/gui.cpp:1239
+msgid "Brightness:"
+msgstr "Яркост:"
+
+#: src/gui.cpp:1250
+msgid "Hue:"
+msgstr "Оттенък:"
+
+#: src/gui.cpp:1261
+msgid "Saturation:"
+msgstr "Наситеност:"
+
+#: src/gui.cpp:1379
+msgid "Display Crosstalk Calibration"
+msgstr "Калибриране на Crosstalk"
+
+#. TRANSLATORS: Please keep the lines short using <br> where necessary.
+#: src/gui.cpp:1382
+msgid ""
+"<p>Please read the manual to find out<br>how to measure the crosstalk "
+"levels<br>of your display.</p>"
+msgstr ""
+"<p>Моля прочетете ръководството<br>за да разберете как да откриете нивата на "
+"crosstalk<br>за вашия дисплей.</p>"
+
+#: src/gui.cpp:1386
+msgid "Red:"
+msgstr "Червено:"
+
+#: src/gui.cpp:1393
+msgid "Green:"
+msgstr "Зелено:"
+
+#: src/gui.cpp:1400
+msgid "Blue:"
+msgstr "Синьо:"
+
+#: src/gui.cpp:1456
+msgid "Rendering Quality Adjustments"
+msgstr "Настройки на качеството на рендериране"
+
+#: src/gui.cpp:1458
+msgid "Rendering Quality:"
+msgstr "Качество на рендериране:"
+
+#: src/gui.cpp:1512
+msgid "Zoom for wide videos"
+msgstr "Увеличаване при широко видео"
+
+#: src/gui.cpp:1515
+msgid ""
+"<p>Set zoom level for videos that<br>are wider than the screen:<br>0: Show "
+"full video width.<br>1: Use full screen height.</p>"
+msgstr ""
+"<p>Задава нивото на увеличаване когато<br>видеото е по-широко от екрана:"
+"<br>0: показване на пълната ширина на видеото.<br>1: използване на "
+"пълноекранната височина.</p>"
+
+#: src/gui.cpp:1519
+msgid "Zoom:"
+msgstr "Увеличаване:"
+
+#: src/gui.cpp:1520
+msgid "<p>Set the zoom level for videos that are wider than the screen.</p>"
+msgstr ""
+"<p>Задава нивото на увеличаване когато видеото е по-широко от екрана.</p>"
+
+#: src/gui.cpp:1578
+msgid "Audio Settings"
+msgstr "Звукови настройки"
+
+#: src/gui.cpp:1580
+msgid "Audio device:"
+msgstr "Звуково устройство:"
+
+#: src/gui.cpp:1581
+msgid ""
+"<p>Select the audio device.<br>This will take effect for the next started "
+"video.</p>"
+msgstr ""
+"<p>Избор на звуково устройство.<br>Ще влезе в ефект при следващото "
+"стартиране на видеото.</p>"
+
+#: src/gui.cpp:1585 src/gui.cpp:2619
+msgid "Default"
+msgstr "По подразбиране"
+
+#: src/gui.cpp:1602
+msgid "Audio delay (ms):"
+msgstr "Закъснение на звука (мсек)"
+
+#: src/gui.cpp:1603
+msgid ""
+"<p>Set an audio delay, in milliseconds.<br>This is useful if audio and video "
+"are not in sync.</p>"
+msgstr ""
+"<p>Настройва закъснението на звука.<br>Използва се когато звука и видеото не "
+"са синхронизирани.</p>"
+
+#: src/gui.cpp:1660
+msgid "Subtitle Settings"
+msgstr "Настройки на субтитрите"
+
+#: src/gui.cpp:1663
+msgid ""
+"<p>These settings apply only to soft subtitles, not to bitmaps.<br>Some "
+"changes require a restart of the video to take effect.</p>"
+msgstr ""
+"<p>Тези настройки се отнасят само за текстови субтитри.<br>Някои от "
+"настройките изискват рестартиране на видеото за да влязат в сила.</p>"
+
+#: src/gui.cpp:1666
+msgid "Encoding:"
+msgstr "Кодировка:"
+
+#: src/gui.cpp:1667
+msgid "<p>Set the subtitle character set encoding.</p>"
+msgstr "<p>Кодировка на субтитрите.</p>"
+
+#: src/gui.cpp:1682
+msgid "Override font:"
+msgstr "Шрифт:"
+
+#: src/gui.cpp:1683
+msgid "<p>Override the subtitle font family.</p>"
+msgstr "<p>Шрифт на субтитрите.</p>"
+
+#: src/gui.cpp:1692
+msgid "Override font size:"
+msgstr "Размер на шрифта:"
+
+#: src/gui.cpp:1693
+msgid "<p>Override the subtitle font size.</p>"
+msgstr "<p>Размер на шрифта на субтитрите.</p>"
+
+#: src/gui.cpp:1703
+msgid "Override scale factor:"
+msgstr "Коефициент на уголемяване:"
+
+#: src/gui.cpp:1704
+msgid "<p>Override the subtitle scale factor.</p>"
+msgstr "<p>Коефициент на уголемяване на субтитрите.</p>"
+
+#: src/gui.cpp:1715
+msgid "Override color:"
+msgstr "Цвят на шрифта:"
+
+#: src/gui.cpp:1716
+msgid "<p>Override the subtitle color.</p>"
+msgstr "<p>Цвят на субтитрите.</p>"
+
+#: src/gui.cpp:1725
+msgid "Override shadow:"
+msgstr "Сянка на шрифта:"
+
+#: src/gui.cpp:1726
+msgid "<p>Override the subtitle shadow.</p>"
+msgstr "<p>Сянка на субтитрите.</p>"
+
+#: src/gui.cpp:1731
+msgid "On"
+msgstr "Включване"
+
+#: src/gui.cpp:1942
+msgid "Video Settings"
+msgstr "Видео настройки"
+
+#: src/gui.cpp:1944
+msgid "Crop to aspect ratio:"
+msgstr "Изрязване до съотношение:"
+
+#: src/gui.cpp:1945
+msgid ""
+"<p>Set the real aspect ratio of the video, so that borders can be cropped.</"
+"p>"
+msgstr ""
+"<p>Задаване на реалното съотношение на видеото, така че рамките да могат да "
+"бъдат изрязани.</p>"
+
+#: src/gui.cpp:1948
+msgid "Do not crop"
+msgstr "Без изрязване"
+
+#: src/gui.cpp:1961
+msgid "Parallax:"
+msgstr "Паралакс:"
+
+#: src/gui.cpp:1962
+msgid ""
+"<p>Adjust parallax, from -1 to +1. This changes the separation of left and "
+"right view, and thus the perceived distance of the scene.</p>"
+msgstr ""
+"<p>Настройка на паралакса, от -1 до +1. Тази настройка определя "
+"раздалечаването между левия и десния изглед, т.е. дълбочината на сцената.</p>"
+
+#: src/gui.cpp:1975
+msgid "Subtitle parallax:"
+msgstr "Паралакс на субтитрите:"
+
+#: src/gui.cpp:1976
+msgid ""
+"<p>Adjust subtitle parallax, from -1 to +1. This changes the perceived "
+"distance of the subtitles.</p>"
+msgstr ""
+"<p>Настройка на паралакса на субтитрите, от -1 до +1. Тази настройка "
+"определя дълбочината на субтитрите.</p>"
+
+#: src/gui.cpp:1989
+msgid "Ghostbusting:"
+msgstr "Подтискане на смесването:"
+
+#: src/gui.cpp:1990
+msgid ""
+"<p>Set the amount of crosstalk ghostbusting, from 0 to 1. You need to set "
+"the crosstalk levels of your display first. Note that crosstalk ghostbusting "
+"does not work with anaglyph glasses.</p>"
+msgstr ""
+"<p>Задава нивото на подтискане на смесването между левия и десния изглед, от "
+"0 до 1. Трябва да настроите първо нивата на подтискане на дисплея. Тази "
+"опция не работи с анаглифни очила.</p>"
+
+#: src/gui.cpp:2134
+msgid "SDI Output Settings"
+msgstr "Настройки на SDI изход"
+
+#: src/gui.cpp:2136
+msgid "SDI Output Format:"
+msgstr "SDI изходен формат:"
+
+#: src/gui.cpp:2137
+msgid "<p>Select output format used for SDI output.</p>"
+msgstr "<p>Избор на формат за SDI изхода.</p>"
+
+#: src/gui.cpp:2145
+msgid "Left stereo mode:"
+msgstr "Ляв стерео режим:"
+
+#: src/gui.cpp:2146
+msgid "<p>Select stereo mode used for left SDI output.</p>"
+msgstr "<p>Избор на стерео режим за левия SDI изход.</p>"
+
+#: src/gui.cpp:2174
+msgid "Right stereo mode:"
+msgstr "Десен стерео режим:"
+
+#: src/gui.cpp:2175
+msgid "<p>Select stereo mode used for right SDI output.</p>"
+msgstr "<p>Избор на стерео режим за десния SDI изход.</p>"
+
+#: src/gui.cpp:2615
+msgid "Open device(s)"
+msgstr "Отваряне на устройство"
+
+#: src/gui.cpp:2618
+msgid "<p>Choose a device type.</p>"
+msgstr "<p>Избор на типа на устройството.</p>"
+
+#: src/gui.cpp:2620 src/media_object.cpp:823
+msgid "Firewire"
+msgstr "Firewire"
+
+#: src/gui.cpp:2621 src/media_object.cpp:824
+msgid "X11"
+msgstr "X11"
+
+#: src/gui.cpp:2624 src/gui.cpp:2627
+msgid "<p>Choose a device.</p>"
+msgstr "<p>Избор на устройство.</p>"
+
+#: src/gui.cpp:2630
+msgid "<p>Set the X11 device string. Refer to the manual for details.</p>"
+msgstr ""
+"<p>Задаване на X11 низ на устройството. Вижте ръководството за повече "
+"информация.</p>"
+
+#: src/gui.cpp:2654
+msgid "First device:"
+msgstr "Първо устройство:"
+
+#: src/gui.cpp:2655
+msgid "Second device:"
+msgstr "Второ устройство:"
+
+#: src/gui.cpp:2659
+msgid "Request frame size"
+msgstr "Изискване на размер на кадъра"
+
+#: src/gui.cpp:2660
+msgid ""
+"<p>Request a specific frame size from the device, e.g. 640x480. The device "
+"must support this frame size. Some devices require a frame size to be "
+"selected.</p>"
+msgstr ""
+"<p>Изискване на специфичен размер на кадъра от устройството, например "
+"640x480. Устройството трябва да поддържа този размер. Някои устройства "
+"изискват размера на кадъра да бъде зададен.</p>"
+
+#: src/gui.cpp:2671
+msgid "Request frame rate"
+msgstr "Изискване на кадрова честота"
+
+#: src/gui.cpp:2672
+msgid ""
+"<p>Request a specific frame rate from the device, e.g. 25/1. The device must "
+"support this frame rate. Some devices require a frame rate to be selected.</"
+"p>"
+msgstr ""
+"<p>Изискване на специфична кадрова честота от устройството, например 25/1. "
+"Устройството трябва да поддържа тази честота. Някои устройства изискват "
+"честотата да бъде зададена.</p>"
+
+#: src/gui.cpp:2683
+msgid "Request MJPEG format"
+msgstr "Изискване на MJPEG формат"
+
+#: src/gui.cpp:2684
+msgid ""
+"<p>Request MJPEG data from the input device. The device may ignore this "
+"request.</p>"
+msgstr ""
+"<p>Изискване на MJPEG данни от устройството. Някои устройства може да "
+"игнорират тази заявка.</p>"
+
+#: src/gui.cpp:2687 src/gui.cpp:3444
+msgid "Cancel"
+msgstr "Отказ"
+
+#: src/gui.cpp:2985
+msgid "&File"
+msgstr "Файл"
+
+#: src/gui.cpp:2986
+msgid "&Open file(s)..."
+msgstr "Отваряне на файл(ове)"
+
+#: src/gui.cpp:2991
+msgid "Open &URL(s)..."
+msgstr "Отваряне на адрес(и)"
+
+#: src/gui.cpp:2995
+msgid "Open &device(s)..."
+msgstr "Отваряне на устройство"
+
+#: src/gui.cpp:3010
+msgid "&Clear recent files"
+msgstr "Изчистване на историята"
+
+#: src/gui.cpp:3018
+msgid "&Quit"
+msgstr "Изход"
+
+#: src/gui.cpp:3024
+msgid "&Preferences"
+msgstr "Предпочитания"
+
+#: src/gui.cpp:3027
+msgid "&Fullscreen Settings..."
+msgstr "Настройки за пълен екран"
+
+#: src/gui.cpp:3030
+msgid "Display &Color Adjustments..."
+msgstr "Настройки на цветовете"
+
+#: src/gui.cpp:3033
+msgid "Display Cross&talk Calibration..."
+msgstr "Калибриране на Crosstalk"
+
+#: src/gui.cpp:3037
+msgid "Quality Adjustments..."
+msgstr "Настройки на качеството"
+
+#: src/gui.cpp:3041
+msgid "&Zoom for wide videos..."
+msgstr "Увеличаване при широко видео..."
+
+#: src/gui.cpp:3045
+msgid "&Audio Settings..."
+msgstr "Настройки на звука"
+
+#: src/gui.cpp:3049
+msgid "&Subtitle Settings..."
+msgstr "Настройки на субтитрите"
+
+#: src/gui.cpp:3053
+msgid "Current &Video Settings..."
+msgstr "Настройки на текущото видео"
+
+#: src/gui.cpp:3058
+msgid "SDI &Output Settings..."
+msgstr "Настройки на SDI изход..."
+
+#: src/gui.cpp:3062
+msgid "&Help"
+msgstr "Помощ"
+
+#: src/gui.cpp:3063
+msgid "&Manual..."
+msgstr "Ръководство"
+
+#: src/gui.cpp:3068
+msgid "&Website..."
+msgstr "Интернет страница"
+
+#: src/gui.cpp:3072
+msgid "&Keyboard Shortcuts"
+msgstr "Бързи клавиши"
+
+#: src/gui.cpp:3076
+msgid "&About"
+msgstr "Относно"
+
+#: src/gui.cpp:3391
+msgid "Tip"
+msgstr "Съвет"
+
+#: src/gui.cpp:3394
+msgid ""
+"<p>You can select and open multiple files at once.</p><p>This is useful for "
+"example if you have extra subtitle files,<br>or if left and right view are "
+"stored in separate files.</p>"
+msgstr ""
+"<p>Може да избирате и да отваряте множество файлове.</p><p>Това е полезно "
+"например когато имате субтитри в отделен файл,<br>или левия и десния канал "
+"са в отделни файлове</p>"
+
+#: src/gui.cpp:3397
+msgid "Do not show this message again."
+msgstr "Да не се показва повече."
+
+#: src/gui.cpp:3414
+msgid "Open files"
+msgstr "Отваряне на файлове"
+
+#: src/gui.cpp:3438
+msgid "Open URL(s)"
+msgstr "Отваряне на адрес(и)"
+
+#: src/gui.cpp:3439
+msgid "URL(s):"
+msgstr "Адрес(и)"
+
+#: src/gui.cpp:3440
+msgid "<p>Enter one or more space separated URLs.</p>"
+msgstr "<p>Въведете един или повече адреси, разделени с интервал.</p>"
+
+#: src/gui.cpp:3653 src/gui.cpp:3661 src/video_output_qt.cpp:286
+#: src/video_output_qt.cpp:522 src/video_output_qt.cpp:719
+#: src/video_output_qt.cpp:731 src/video_output_qt.cpp:752
+msgid "Error"
+msgstr "Грешка"
+
+#: src/gui.cpp:3653
+msgid "Cannot open manual."
+msgstr "Ръководството не може да бъде отворено."
+
+#: src/gui.cpp:3661
+msgid "Cannot open website."
+msgstr "Интернет страницата не може да бъде отворена."
+
+#: src/gui.cpp:3669
+msgid "Keyboard Shortcuts"
+msgstr "Бързи клавиши"
+
+#: src/gui.cpp:3672
+msgid "Keyboard control:"
+msgstr "Контролиране с клавиатура:"
+
+#: src/gui.cpp:3674 src/main.cpp:506
+msgid "ESC"
+msgstr "ESC"
+
+#: src/gui.cpp:3674
+msgid "Stop"
+msgstr "Спиране"
+
+#: src/gui.cpp:3675 src/main.cpp:508
+msgid "SPACE"
+msgstr "SPACE"
+
+#: src/gui.cpp:3675 src/main.cpp:508
+msgid "Pause / unpause"
+msgstr "Пауза / Пускане"
+
+#: src/gui.cpp:3676 src/main.cpp:509
+msgid "Toggle fullscreen"
+msgstr "Превключване на пълен екран"
+
+#: src/gui.cpp:3677 src/main.cpp:510
+msgid "Center window"
+msgstr "Центриране на прозореца"
+
+#: src/gui.cpp:3678 src/main.cpp:511
+msgid "Swap left/right eye"
+msgstr "Размяна ляво/дясно"
+
+#: src/gui.cpp:3679 src/main.cpp:512
+msgid "Cycle through available video streams"
+msgstr "Превключване между наличните видео потоци"
+
+#: src/gui.cpp:3680 src/main.cpp:513
+msgid "Cycle through available audio streams"
+msgstr "Превключване между наличните аудио потоци"
+
+#: src/gui.cpp:3681 src/main.cpp:514
+msgid "Cycle through available subtitle streams"
+msgstr "Превключване между наличните субтитри"
+
+#: src/gui.cpp:3682 src/main.cpp:515
+msgid "Adjust contrast"
+msgstr "Настройка на контраста"
+
+#: src/gui.cpp:3683 src/main.cpp:516
+msgid "Adjust brightness"
+msgstr "Настройка на яркостта"
+
+#: src/gui.cpp:3684 src/main.cpp:517
+msgid "Adjust hue"
+msgstr "Настройка на оттенъка"
+
+#: src/gui.cpp:3685 src/main.cpp:518
+msgid "Adjust saturation"
+msgstr "Настройка на наситеността"
+
+#: src/gui.cpp:3686 src/main.cpp:519
+msgid "Adjust parallax"
+msgstr "Настройка на паралакса"
+
+#: src/gui.cpp:3687 src/main.cpp:520
+msgid "Adjust ghostbusting"
+msgstr "Настройка на подтискането на смесване между изгледите"
+
+#: src/gui.cpp:3688 src/main.cpp:521
+msgid "Adjust zoom for wide videos"
+msgstr "Настройка на увеличението за широко видео"
+
+#: src/gui.cpp:3689 src/main.cpp:522
+msgid "Adjust audio volume"
+msgstr "Настройка на нивото на звука"
+
+#: src/gui.cpp:3690 src/main.cpp:523
+msgid "Toggle audio mute"
+msgstr "Заглушаване на звука"
+
+#: src/gui.cpp:3691 src/main.cpp:524
+msgid "Step a single video frame forward"
+msgstr "Преминаване един кадър напред"
+
+#: src/gui.cpp:3692 src/main.cpp:525
+msgid "left, right"
+msgstr "ляво, дясно"
+
+#: src/gui.cpp:3692 src/main.cpp:525
+msgid "Seek 10 seconds backward / forward"
+msgstr "Преминаване 10 секунди назад / напред"
+
+#: src/gui.cpp:3693 src/main.cpp:526
+msgid "down, up"
+msgstr "надолу, нагоре"
+
+#: src/gui.cpp:3693 src/main.cpp:526
+msgid "Seek 1 minute backward / forward"
+msgstr "Преминаване 1 минута назад / напред"
+
+#: src/gui.cpp:3694 src/main.cpp:527
+msgid "page down, page up"
+msgstr "страница надолу, страница нагоре"
+
+#: src/gui.cpp:3694 src/main.cpp:527
+msgid "Seek 10 minutes backward / forward"
+msgstr "Преминаване 10 минути назад / напред"
+
+#: src/gui.cpp:3695 src/main.cpp:529
+msgid "Media keys"
+msgstr "Мултимедийни клавиши"
+
+#: src/gui.cpp:3695 src/main.cpp:529
+msgid "Media keys should work as expected"
+msgstr "Мултимедийните клавиши трябва да работят нормално"
+
+#: src/gui.cpp:3711
+#, c-format
+msgid "About %s"
+msgstr "Относно %s"
+
+#: src/gui.cpp:3717
+#, c-format
+msgid "The %s 3D video player"
+msgstr "%s 3D видео плеър"
+
+#: src/gui.cpp:3722
+#, c-format
+msgid ""
+"<p>%s version %s.</p><p>Copyright (C) 2012 the Bino developers.</p><p>This "
+"is free software. You may redistribute copies of it under the terms of the "
+"<a href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public License</"
+"a>. There is NO WARRANTY, to the extent permitted by law.</p><p>See <a href="
+"\"%s\">%s</a> for more information on this software.</p>"
+msgstr ""
+"<p>%s версия %s.</p><p>Всички права запазени (C) 2012 от разработчиците на "
+"Bino.</p><p>Тази програма е свободен софтуер. Може да разпространявате нейни "
+"копия според условията на <a href=\"http://www.gnu.org/licenses/gpl.html"
+"\">GNU General Public License</a>. Програмата идва без НИКАКВА ГАРАНЦИЯ, "
+"доколкото това е позволено от закона.</p><p>Вижте <a href=\"%s\">%s</a> за "
+"повече информация.</p>"
+
+#: src/gui.cpp:3734 src/main.cpp:391
+msgid "Platform:"
+msgstr "Платформа:"
+
+#: src/gui.cpp:3735 src/main.cpp:393
+msgid "Libraries used:"
+msgstr "Използвани библиотеки:"
+
+#: src/gui.cpp:3757
+msgid "About"
+msgstr "Относно"
+
+#: src/gui.cpp:3758
+msgid "Libraries"
+msgstr "Библиотеки"
+
+#: src/gui.cpp:3759
+msgid "Team"
+msgstr "Екип"
+
+#: src/gui.cpp:3760
+msgid "License"
+msgstr "Лиценз"
+
+#: src/lib_versions.cpp:182 src/lib_versions.cpp:194
+msgid "not used"
+msgstr "не се използва"
+
+#: src/lirc.cpp:61
+msgid "Cannot initialize LIRC."
+msgstr "Не може да се инициализира LIRC."
+
+#: src/lirc.cpp:67
+msgid "Cannot set LIRC socket properties."
+msgstr "Не могат да бъдат зададени свойствата на LIRC сокета."
+
+#: src/lirc.cpp:74
+msgid "Cannot read LIRC default configuration."
+msgstr "Не може да бъде прочетена стандартната конфигурация на LIRC."
+
+#: src/lirc.cpp:89
+#, c-format
+msgid "Cannot read LIRC configuration file %s."
+msgstr "Не може да бъде прочетен конфигурационният файл на LIRC %s."
+
+#: src/lirc.cpp:117
+msgid "Cannot get LIRC event; disabling LIRC support."
+msgstr "Не може да се получи LIRC събитие; изключване на LIRC поддръжката."
+
+#: src/lirc.cpp:131
+#, c-format
+msgid "Received invalid command '%s' from LIRC."
+msgstr "Получена е невалидна команда '%s' от LIRC."
+
+#: src/lirc.cpp:141
+msgid "Cannot get command for LIRC code."
+msgstr "Не можа да се вземе командата за LIRC кода."
+
+#: src/main.cpp:386
+#, c-format
+msgid "%s version %s"
+msgstr "%s версия %s"
+
+#: src/main.cpp:387
+msgid "Copyright (C) 2012 the Bino developers."
+msgstr "Всички права запазени (C) 2012 от разработчиците на Bino."
+
+#: src/main.cpp:388
+msgid ""
+"This is free software. You may redistribute copies of it under the terms of "
+"the GNU General Public License. There is NO WARRANTY, to the extent "
+"permitted by law."
+msgstr ""
+"Тази програма е свободен софтуер. Може да разпространявате нейни копия "
+"според условията на GNU General Public License. Програмата идва без НИКАКВА "
+"ГАРАНЦИЯ, доколкото това е позволено от закона."
+
+#. TRANSLATORS: This is the --help text. Please keep the line length limited.
+#. * The --help output should look good with a line width of 80 characters.
+#: src/main.cpp:406
+msgid "Usage:"
+msgstr "Използване:"
+
+#: src/main.cpp:408
+msgid "Options:"
+msgstr "Опции:"
+
+#: src/main.cpp:409
+msgid "Print help"
+msgstr "Отпечатване на помощта"
+
+#: src/main.cpp:410
+msgid "Print version"
+msgstr "Отпечатване на версията"
+
+#: src/main.cpp:411
+msgid "Do not use the GUI, just show a plain window"
+msgstr "Без използване на графичен интерфейс, само просто прозорец"
+
+#: src/main.cpp:412
+msgid "Append all log messages to the given file"
+msgstr "Прибавяне на всички съобщения на дневника към избрания файл"
+
+#: src/main.cpp:413
+msgid "Set log level (debug/info/warning/error/quiet)"
+msgstr ""
+"Ниво на докладване на съобщения в дневника (debug/info/warning/error/quiet)"
+
+#: src/main.cpp:414
+msgid "Print a list of known audio devices and exit"
+msgstr "Отпечатване на списък с известни аудио устройства и затваряне"
+
+#: src/main.cpp:415
+msgid "Use audio device number N (N=0 is the default)"
+msgstr "Използване на аудио устройство номер N (N=0 е по подразбиране)"
+
+#: src/main.cpp:416
+msgid "Delay audio by D milliseconds (default 0)"
+msgstr "Забавяне на звука с D милисекунди (по подразбиране 0)"
+
+#: src/main.cpp:417
+msgid "Set audio volume (0 to 1, default 1)"
+msgstr "Задаване на нивото на звука (0 до 1, по подразбиране 1)"
+
+#: src/main.cpp:418
+msgid "Mute audio"
+msgstr "Заглушаване на звука"
+
+#: src/main.cpp:419
+msgid "Type of input device: default, firewire, x11"
+msgstr "Тип на устройството: default, firewire, x11"
+
+#: src/main.cpp:420
+msgid "Request frame size WxH from input device"
+msgstr "Изискване на размер на кадъра WxH от входното устройство"
+
+#: src/main.cpp:421
+msgid "Request frame rate N/D from input device"
+msgstr "Изискване на кадтова честота N/D от входното устройство"
+
+#: src/main.cpp:422
+msgid "Request device format 'default' or 'mjpeg'"
+msgstr "Изискване на формат 'default' или 'mjpeg'"
+
+#: src/main.cpp:423
+msgid "Read commands from a file"
+msgstr "Прочитане на командите от файл"
+
+#: src/main.cpp:424
+msgid "Use the given LIRC configuration file"
+msgstr "Използване на избрания LIRC конфигурационен файл"
+
+#: src/main.cpp:425
+msgid "This option can be used more than once"
+msgstr "Тази опция може да бъде използвана повече от веднъж"
+
+#: src/main.cpp:426
+msgid "Output quality (0=fastest to 4=best/default)"
+msgstr "Изходно качество (0=най-бързо, 4=най-добро/по подразбиране)"
+
+#: src/main.cpp:427
+msgid "Select video stream (1-n, depending on input)"
+msgstr "Избор на видео поток (1-n, зависи от входа)"
+
+#: src/main.cpp:428
+msgid "Select audio stream (1-n, depending on input)"
+msgstr "Избор на аудио поток (1-n, зависи от входа)"
+
+#: src/main.cpp:429
+msgid "Select subtitle stream (0-n, dep. on input)"
+msgstr "Избор на поток на субтитрите (1-n, зависи от входа)"
+
+#: src/main.cpp:430
+msgid "Select input type (default autodetect):"
+msgstr "Избор на типа на входа (по подразбиране се засича автоматично)"
+
+#: src/main.cpp:446
+msgid "Select output type:"
+msgstr "Избор на типа на изхода:"
+
+#: src/main.cpp:473
+msgid "Multi-display via Equalizer (2D setup)"
+msgstr "Многоекранен чрез Equalizer (2D)"
+
+#: src/main.cpp:474
+msgid "Multi-display via Equalizer (3D setup)"
+msgstr "Многоекранен чрез Equalizer (3D)"
+
+#: src/main.cpp:475
+msgid "Swap left/right view"
+msgstr "Смяна на ляв/десен изглед"
+
+#: src/main.cpp:476
+msgid "Fullscreen"
+msgstr "Пълен екран"
+
+#: src/main.cpp:477
+msgid "Use the listed screens in fullscreen mode"
+msgstr "Използване на изброените екрани при пълноекранен режим"
+
+#: src/main.cpp:478
+msgid "Screen numbers start with 1"
+msgstr "Номерата на екрани започват от 1"
+
+#: src/main.cpp:479
+msgid "An empty list defaults to the primary screen"
+msgstr "Празен списък = основния екран"
+
+#: src/main.cpp:480
+msgid "Flip left view vertically when fullscreen"
+msgstr "Обръщане на левия изглед вертикално когато е на пълен екран"
+
+#: src/main.cpp:481
+msgid "Flop left view horizontally when fullscreen"
+msgstr "Обръщане на левия изглед хоризонтално когато е на пълен екран"
+
+#: src/main.cpp:482
+msgid "Flip right view vertically when fullscreen"
+msgstr "Обръщане на десния изглед вертикално когато е на пълен екран"
+
+#: src/main.cpp:483
+msgid "Flop right view horizontally when fullscreen"
+msgstr "Обръщане на десния изглед хоризонтално когато е на пълен екран"
+
+#: src/main.cpp:484
+msgid "Use DLP 3-D Ready Sync when fullscreen"
+msgstr "Използване на DLP 3-D Ready синхронизация при пълен екран"
+
+#: src/main.cpp:485
+msgid "Set zoom for wide videos (0=off to 1=full)"
+msgstr "Учеличение при широко видео (0 до 1, 0=без, 1=пълно)"
+
+#: src/main.cpp:486
+msgid "Crop video to given aspect ratio (0:0=off)"
+msgstr "Изрязване на видеото до избраното съотношение (0:0=изключено)"
+
+#: src/main.cpp:487
+msgid "Center window on screen"
+msgstr "Центриране на прозореца в екрана"
+
+#: src/main.cpp:488
+msgid "Set subtitle encoding"
+msgstr "Задаване на кодировката на субтитрите"
+
+#: src/main.cpp:489
+msgid "Set subtitle font name"
+msgstr "Задаване на шрифта на субтитрите"
+
+#: src/main.cpp:490
+msgid "Set subtitle font size"
+msgstr "Задаване на размера на субтитрите"
+
+#: src/main.cpp:491
+msgid "Set subtitle scale factor"
+msgstr "Задаване на скалата на субтитрите"
+
+#: src/main.cpp:492
+msgid "Set subtitle color, in [AA]RRGGBB format"
+msgstr "Задаване на цвета на субтитрите в [AA]RRGGBB формат"
+
+#: src/main.cpp:493
+msgid "Set subtitle shadow, -1=default, 0=off, 1=on"
+msgstr "Сянка на субтитрите, -1=по подразбиране, 0=изкл., 1=вкл."
+
+#: src/main.cpp:494
+msgid "Subtitle parallax adjustment (-1 to +1)"
+msgstr "Настройка на паралакса на субтитрите (-1 до +1)"
+
+#: src/main.cpp:495
+msgid "Parallax adjustment (-1 to +1)"
+msgstr "настройка на паралакса (-1 до +1)"
+
+#: src/main.cpp:496
+msgid "Crosstalk leak level (0 to 1)"
+msgstr "Ниво на смесването на кадри (0 до 1)"
+
+#: src/main.cpp:497
+msgid "Comma-separated values for R,G,B"
+msgstr "Стойности за R,G,B, отделени със запетая"
+
+#: src/main.cpp:498
+msgid "Amount of ghostbusting to apply (0 to 1)"
+msgstr "Ниво на подтискане на смесването което да с приложи (0 до 1)"
+
+#: src/main.cpp:499
+msgid "Benchmark mode (no audio, show fps)"
+msgstr "Тест за производителност (без звук, показване на кадрова честота)"
+
+#: src/main.cpp:500
+msgid "Frame rate divisor for display refresh rate"
+msgstr "Делител на кадровата честота на екрана"
+
+#: src/main.cpp:501
+msgid "Default is 0 for benchmark mode, 1 otherwise"
+msgstr "При режим не тестване на производителността е 0, иначе е 1"
+
+#: src/main.cpp:502
+msgid "Loop the input media"
+msgstr "Повтаряне на входната медия"
+
+#: src/main.cpp:503
+msgid "Set SDI output format"
+msgstr "Задаване на изходния формат на SDI"
+
+#: src/main.cpp:505
+msgid "Interactive control:"
+msgstr "Интерактивен контрол:"
+
+#: src/main.cpp:506
+msgid "Leave fullscreen mode, or quit"
+msgstr "Напускане на пълноекранния режим или изход"
+
+#: src/main.cpp:507
+msgid "Quit"
+msgstr "Изход"
+
+#: src/main.cpp:528
+msgid "Mouse click"
+msgstr "Щракане с мишката"
+
+#: src/main.cpp:528
+msgid "Seek according to horizontal click position"
+msgstr "Превъртане според хоризонталната позиция на щракването"
+
+#: src/main.cpp:536
+msgid "No audio devices known."
+msgstr "Няма познати аудио устройства."
+
+#: src/main.cpp:608
+msgid "Benchmark mode: audio and time synchronization disabled."
+msgstr "Режим на тестване: синхронизацията на звук и време е изключена."
+
+#: src/main.cpp:624
+#, c-format
+msgid "Unknown mode %s."
+msgstr "Непознат режим %s."
+
+#: src/main.cpp:756
+msgid "This version of Bino was compiled without support for LIRC."
+msgstr "Тази версия на Bino е компилирана без поддръжка на LIRC."
+
+#. TRANSLATORS: This is a very short string describing the video size and aspect ratio.
+#: src/media_data.cpp:1062
+#, c-format
+msgid "%dx%d, %.3g:1"
+msgstr "%dx%d, %.3g:1"
+
+#. TRANSLATORS: This is a very short string describing the audio language, channels, frequency, and bits.
+#: src/media_data.cpp:1193
+#, c-format
+msgid "%s, %d ch., %g kHz, %d bit"
+msgstr "%s, %d канал(а)., %g kHz, %d бита"
+
+#: src/media_input.cpp:281
+#, c-format
+msgid "Video %s: %s"
+msgstr "Видео %s: %s"
+
+#: src/media_input.cpp:286
+msgid "No video."
+msgstr "Няма видео."
+
+#: src/media_input.cpp:292
+#, c-format
+msgid "Audio %s: %s"
+msgstr "Звук %s: %s"
+
+#: src/media_input.cpp:297
+msgid "No audio."
+msgstr "Няма звук."
+
+#: src/media_input.cpp:303
+#, c-format
+msgid "Subtitle %s: %s"
+msgstr "Субтитри %s: %s"
+
+#: src/media_input.cpp:308
+msgid "No subtitle."
+msgstr "Няма субтитри."
+
+#: src/media_input.cpp:310
+#, c-format
+msgid "Duration: %g seconds"
+msgstr "Продължителност: %g секунди"
+
+#: src/media_input.cpp:313
+#, c-format
+msgid "Stereo layout: %s"
+msgstr "Стерео разположение: %s"
+
+#: src/media_object.cpp:684
+#, c-format
+msgid "%s video stream %d: Unsupported stereo layout %s."
+msgstr "%s видео поток %d: Неподдържана стереоскопична конфигурация %s."
+
+#: src/media_object.cpp:722
+#, c-format
+msgid "%s audio stream %d: Cannot handle audio with %d channels."
+msgstr "%s аудио поток %d: Не може да се възпроизведе аудио с %d канал(и)."
+
+#: src/media_object.cpp:751
+#, c-format
+msgid "%s audio stream %d: Cannot handle audio with sample format %s."
+msgstr ""
+"%s аудио поток %d: Не може да се възпроизведе аудио с формат на семплите %s."
+
+#: src/media_object.cpp:822
+#, c-format
+msgid "No support available for %s device."
+msgstr "Няма поддръжка за устройство %s."
+
+#: src/media_object.cpp:825
+msgid "default"
+msgstr "по подразбиране"
+
+#: src/media_object.cpp:858
+#, c-format
+msgid "%s: Cannot read stream info: %s"
+msgstr "%s: Не може да се прочете информация за потока: %s"
+
+#: src/media_object.cpp:902
+#, c-format
+msgid "%s stream %d: Cannot open %s: %s"
+msgstr "%s поток %d: Не може да се отвори %s: %s"
+
+#: src/media_object.cpp:903
+msgid "video codec"
+msgstr "видео кодек"
+
+#: src/media_object.cpp:904
+msgid "audio codec"
+msgstr "аудио кодек"
+
+#: src/media_object.cpp:905
+msgid "subtitle codec"
+msgstr "кодек на субтитрите"
+
+#: src/media_object.cpp:906
+msgid "data"
+msgstr "данни"
+
+#: src/media_object.cpp:907
+msgid "codec not supported"
+msgstr "кодекът не се поддържа"
+
+#: src/media_object.cpp:917
+#, c-format
+msgid "%s video stream %d: Invalid frame size."
+msgstr "%s видео поток %d: невалиден размер на кадъра."
+
+#: src/media_object.cpp:961
+#, c-format
+msgid "%s video stream %d: Cannot initialize conversion context."
+msgstr ""
+"%s видео поток %d: Не може да се инициализира контекста за конвертиране."
+
+#: src/media_object.cpp:1024
+#, c-format
+msgid "Video stream %d: %s / %s, %g seconds"
+msgstr "Видео поток %d: %s / %s, %g секунди"
+
+#: src/media_object.cpp:1028
+#, c-format
+msgid "Using up to %d threads for decoding."
+msgstr "Използване на максимум %d нишки за декодиране."
+
+#: src/media_object.cpp:1033
+#, c-format
+msgid "Audio stream %d: %s / %s, %g seconds"
+msgstr "Аудио поток %d: %s / %s, %g секунди"
+
+#: src/media_object.cpp:1040
+#, c-format
+msgid "Subtitle stream %d: %s / %s, %g seconds"
+msgstr "Поток със субтитри %d: %s / %s, %g секунди"
+
+#: src/media_object.cpp:1047
+msgid "No usable streams."
+msgstr "Няма използваеми потоци."
+
+#: src/media_object.cpp:1328 src/media_object.cpp:1358
+#: src/media_object.cpp:1388
+#, c-format
+msgid "%s: Cannot duplicate packet."
+msgstr "%s: Пакетът не може да се дублира."
+
+#: src/media_object.cpp:1482
+#, c-format
+msgid "%s video stream %d: Dropping %dx%d frame"
+msgstr "%s видео поток %d: Отхвърляне на кадър %dx%d"
+
+#: src/media_object.cpp:1945
+#, c-format
+msgid "%s: Seeking failed."
+msgstr "%s: превъртането се провали."
+
+#: src/player.cpp:437
+#, c-format
+msgid "Video: delay %g seconds/%g frames; dropping next frame."
+msgstr "Видео: закъснение %g секунди/%g кадри; отхвърляне на следващия кадър."
+
+#: src/player.cpp:453
+#, c-format
+msgid "FPS: %.2f"
+msgstr "К/Сек: %.2f"
+
+#: src/player_equalizer.cpp:117
+msgid "Reading input frame failed."
+msgstr "Прочитането на входния кадър се провали."
+
+#: src/player_equalizer.cpp:166 src/video_output_qt.cpp:673
+#: src/video_output_qt.cpp:680
+msgid "Waiting for subtitle renderer initialization..."
+msgstr "Изчакване за инициализиране на системата за рендериране на субтитри..."
+
+#: src/player_equalizer.cpp:251
+msgid "Init data mapping failed."
+msgstr "Инициализацията на картографирането на данни се провали."
+
+#: src/player_equalizer.cpp:252
+msgid "Frame data mapping failed."
+msgstr "Картографирането на данните на кадъра се провали."
+
+#: src/player_equalizer.cpp:253
+msgid "Video player initialization failed."
+msgstr "Инициализирането на видео плеъра се провали."
+
+#: src/player_equalizer.cpp:254
+msgid "Need at least OpenGL 2.1."
+msgstr "Изисква се поне OpenGL 2.1"
+
+#: src/player_equalizer.cpp:425
+msgid "No canvas in Equalizer configuration."
+msgstr "Няма платно в конфигурацията на еквилайзера."
+
+#: src/player_equalizer.cpp:432
+#, c-format
+msgid "Equalizer canvas: %gx%g, aspect ratio %g:1"
+msgstr "Платно на еквилайзера: %gx%g, съотношение %g:1"
+
+#: src/player_equalizer.cpp:913
+msgid ""
+"This OpenGL implementation does not support OpenGL 2.1 and framebuffer "
+"objects."
+msgstr "OpenGL имплементацията не поддържа OpenGL 2.1 и фреймбуфер обекти."
+
+#: src/player_equalizer.cpp:1093
+msgid "Equalizer initialization failed."
+msgstr "Инициализирането на еквилайзера се провали."
+
+#: src/player_equalizer.cpp:1101
+msgid "Cannot get equalizer configuration."
+msgstr "Не може да се вземе конфигурацията на еквилайзера."
+
+#: src/player_equalizer.cpp:1118
+msgid "Equalizer configuration initialization failed."
+msgstr "Инициализирането на конфигурацията на еквилайзера се провали."
+
+#: src/subtitle_renderer.cpp:223
+msgid "Cannot initialize LibASS."
+msgstr "Не може да се инициализира LibASS."
+
+#: src/subtitle_renderer.cpp:232
+msgid "Cannot initialize LibASS renderer."
+msgstr "Не може да се инициализира LibASS renderer."
+
+#: src/subtitle_renderer.cpp:404
+msgid "Cannot initialize LibASS track."
+msgstr "Не може да се инициализира LibASS трак."
+
+#: src/subtitle_renderer.cpp:415
+#, c-format
+msgid "Subtitle character set conversion failed: %s"
+msgstr "Конвертирането на кодировката на субтитрите се провали: %s"
+
+#: src/video_output.cpp:350
+#, c-format
+msgid "OpenGL error 0x%04X."
+msgstr "OpenGL грешка 0x%04X."
+
+#: src/video_output.cpp:362
+#, c-format
+msgid "OpenGL Framebuffer status error 0x%04X."
+msgstr "OpenGL фреймбуфер грешка на статуса 0x%04X."
+
+#: src/video_output.cpp:410
+#, c-format
+msgid "OpenGL %s '%s': compiler warning:"
+msgstr "OpenGL %s '%s': предупреждение от компилатора:"
+
+#: src/video_output.cpp:411 src/video_output.cpp:416
+msgid "vertex shader"
+msgstr "вертекс шейдър"
+
+#: src/video_output.cpp:411 src/video_output.cpp:416
+msgid "fragment shader"
+msgstr "фрагментен шейдър"
+
+#: src/video_output.cpp:415
+#, c-format
+msgid "OpenGL %s '%s': compilation failed."
+msgstr "OpenGL %s '%s': компилирането се провали."
+
+#: src/video_output.cpp:418 src/video_output.cpp:495
+msgid "unknown error"
+msgstr "непозната грешка"
+
+#: src/video_output.cpp:491
+#, c-format
+msgid "OpenGL program '%s': linker warning:"
+msgstr "OpenGL program '%s': предупреждение при свързването:"
+
+#: src/video_output.cpp:494
+#, c-format
+msgid "OpenGL program '%s': linking failed."
+msgstr "OpenGL program '%s': свързването се провали."
+
+#: src/video_output.cpp:1545 src/video_output.cpp:1685
+msgid "Cannot create a PBO buffer."
+msgstr "Не може да се създаде PBO буфер."
+
+#: src/video_output_qt.cpp:624
+#, c-format
+msgid "Cannot initialize GLEW: %s"
+msgstr "Не може да се инициализира GLEW: %s"
+
+#: src/video_output_qt.cpp:644
+msgid "This OpenGL implementation does not support required features."
+msgstr "OpenGL имплементацията ви не поддържа нужните възможности."
+
+#: src/video_output_qt.cpp:671
+msgid "Please wait"
+msgstr "Моля изчакайте"
+
+#: src/video_output_qt.cpp:731
+msgid "Cannot get valid OpenGL context."
+msgstr "Не може да се получи валиден OpenGL контекст."
+
+#: src/video_output_qt.cpp:742
+msgid "The display does not support OpenGL stereo mode."
+msgstr "Дисплеят не поддържа OpenGL стерео режим."
+
+#: src/video_output_qt.cpp:747
+msgid "Cannot set OpenGL context format."
+msgstr "Не може да се зададе формат на OpenGL контекста "
+
+#: src/video_output_qt.cpp:840
+msgid "Cannot suspend screensaver."
+msgstr "Предпазителя на екрана не може да бъде деактивиран"
+
+#: src/video_output_qt.cpp:861
+msgid "Cannot resume screensaver."
+msgstr "Предпазителя на екрана не може да бъде активиран"
