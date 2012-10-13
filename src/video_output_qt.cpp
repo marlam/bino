@@ -214,9 +214,15 @@ void gl_thread::run()
                 // it after the swap. Not sure why that would be necessary, but it
                 // fixes a problem where swapBuffers() does not return and the
                 // application blocks.
+                // However, this breaks video playback on Windows, so only do it on
+                // X11 systems.
+#ifdef Q_WS_X11
                 _vo_qt_widget->doneCurrent();
+#endif
                 _vo_qt_widget->swapBuffers();
+#ifdef Q_WS_X11
                 _vo_qt_widget->makeCurrent();
+#endif
             } else if (!dispatch::parameters().benchmark()) {
                 // do not busy loop
                 usleep(1000);
