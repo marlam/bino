@@ -209,7 +209,14 @@ void gl_thread::run()
                 _vo_qt->sdi_output(_display_frameno);
 #endif // HAVE_LIBXNVCTRL
                 _vo_qt->display_current_frame(_display_frameno);
+                // Swap buffers. To avoid problems with the NVIDIA 304.x driver
+                // series on GNU/Linux, we first release the GL context and re-grab
+                // it after the swap. Not sure why that would be necessary, but it
+                // fixes a problem where swapBuffers() does not return and the
+                // application blocks.
+                _vo_qt_widget->doneCurrent();
                 _vo_qt_widget->swapBuffers();
+                _vo_qt_widget->makeCurrent();
             } else if (!dispatch::parameters().benchmark()) {
                 // do not busy loop
                 usleep(1000);
