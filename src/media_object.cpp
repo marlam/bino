@@ -853,7 +853,7 @@ void media_object::open(const std::string &url, const device_request &dev_reques
         // For a camera device, do not read ahead multiple packets, to avoid a startup delay.
         _ffmpeg->format_ctx->max_analyze_duration = 0;
     }
-    if ((e = av_find_stream_info(_ffmpeg->format_ctx)) < 0)
+    if ((e = avformat_find_stream_info(_ffmpeg->format_ctx, NULL)) < 0)
     {
         throw exc(str::asprintf(_("%s: Cannot read stream info: %s"),
                     _url.c_str(), my_av_strerror(e).c_str()));
@@ -897,7 +897,7 @@ void media_object::open(const std::string &url, const device_request &dev_reques
                 codec_ctx->flags |= CODEC_FLAG_EMU_EDGE;
         }
         // Find and open the codec. CODEC_ID_TEXT is a special case: it has no decoder since it is unencoded raw data.
-        if (codec_ctx->codec_id != CODEC_ID_TEXT && (!codec || (e = avcodec_open(codec_ctx, codec)) < 0))
+        if (codec_ctx->codec_id != CODEC_ID_TEXT && (!codec || (e = avcodec_open2(codec_ctx, codec, NULL)) < 0))
         {
             msg::wrn(_("%s stream %d: Cannot open %s: %s"), _url.c_str(), i,
                     codec_ctx->codec_type == AVMEDIA_TYPE_VIDEO ? _("video codec")
