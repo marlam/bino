@@ -528,23 +528,7 @@ int main(int argc, char *argv[])
                 + "  " + lengthen(_("Mouse click"), 25)        + _("Seek according to horizontal click position") + '\n'
                 + "  " + lengthen(_("Media keys"), 25)         + _("Media keys should work as expected"));
     }
-    if (list_audio_devices.value())
-    {
-        audio_output ao;
-        if (ao.devices() == 0)
-        {
-            msg::req(_("No audio devices known."));
-        }
-        else
-        {
-            msg::req("%d audio devices available:", ao.devices());
-            for (int i = 0; i < ao.devices(); i++)
-            {
-                msg::req(4, "%d: %s", i + 1, ao.device_name(i).c_str());
-            }
-        }
-    }
-    if (version.value() || help.value() || list_audio_devices.value())
+    if (version.value() || help.value())
     {
         return 0;
     }
@@ -604,10 +588,29 @@ int main(int argc, char *argv[])
             dispatch_equalizer, dispatch_equalizer_3d, false,
             dispatch_gui, have_display, dispatch_log_level,
             dispatch_benchmark, dispatch_swap_interval);
-    if (dispatch_benchmark)
-        msg::inf(_("Benchmark mode: audio and time synchronization disabled."));
+
+    /* List audio devices and exit, if requested */
+    if (list_audio_devices.value())
+    {
+        audio_output ao;
+        if (ao.devices() == 0)
+        {
+            msg::req(_("No audio devices known."));
+        }
+        else
+        {
+            msg::req("%d audio devices available:", ao.devices());
+            for (int i = 0; i < ao.devices(); i++)
+            {
+                msg::req(4, "%d: %s", i + 1, ao.device_name(i).c_str());
+            }
+        }
+        return 0;
+    }
 
     /* Set session parameters */
+    if (dispatch_benchmark)
+        msg::inf(_("Benchmark mode: audio and time synchronization disabled."));
     if (audio_device.is_set())
         controller::send_cmd(command::set_audio_device, audio_device.value() - 1);
     if (quality.is_set())
