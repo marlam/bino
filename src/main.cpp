@@ -138,22 +138,31 @@ static const char *localedir()
 #endif
 }
 
+#if QT_VERSION < 0x050000
 static void qt_msg_handler(QtMsgType type, const char *msg)
+#else
+static void qt_msg_handler(QtMsgType type, const QMessageLogContext&, const QString& msg)
+#endif
 {
+#if QT_VERSION < 0x050000
+    std::string s = msg;
+#else
+    std::string s = qPrintable(msg);
+#endif
     switch (type)
     {
     case QtDebugMsg:
-        msg::dbg(str::sanitize(msg));
+        msg::dbg(str::sanitize(s));
         break;
     case QtWarningMsg:
-        msg::wrn(str::sanitize(msg));
+        msg::wrn(str::sanitize(s));
         break;
     case QtCriticalMsg:
-        msg::err(str::sanitize(msg));
+        msg::err(str::sanitize(s));
         break;
     case QtFatalMsg:
     default:
-        msg::err(str::sanitize(msg));
+        msg::err(str::sanitize(s));
         std::exit(1);
     }
 }
@@ -182,6 +191,9 @@ int main(int argc, char *argv[])
 {
     /* Initialization: gettext */
     setlocale(LC_ALL, "");
+#if QT_VERSION >= 0x050000
+    setlocale(LC_CTYPE, "C.UTF-8"); // Qt5: the strings returned by gettext() must be UTF-8
+#endif
     bindtextdomain(PACKAGE, localedir());
     textdomain(PACKAGE);
 
@@ -203,9 +215,15 @@ int main(int argc, char *argv[])
 #else
     bool have_display = true;
 #endif
+#if QT_VERSION < 0x050000
     qInstallMsgHandler(qt_msg_handler);
+#else
+    qInstallMessageHandler(qt_msg_handler);
+#endif
     QApplication *qt_app = new QApplication(argc, argv, have_display);
-    QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale()); // necessary for i18n via gettext
+#if QT_VERSION < 0x050000
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale()); // Qt4: necessary for i18n via gettext
+#endif
     QCoreApplication::setOrganizationName("Bino");
     QCoreApplication::setOrganizationDomain("bino3d.org");
     QCoreApplication::setApplicationName(PACKAGE_NAME);

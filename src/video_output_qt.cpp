@@ -486,7 +486,11 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
 
 void video_output_qt_widget::mouseReleaseEvent(QMouseEvent *event)
 {
+#if QT_VERSION < 0x050000
     _vo->mouse_set_pos(std::max(std::min(static_cast<float>(event->posF().x()) / this->width(), 1.0f), 0.0f));
+#else
+    _vo->mouse_set_pos(std::max(std::min(static_cast<float>(event->localPos().x()) / this->width(), 1.0f), 0.0f));
+#endif
 }
 
 void video_output_qt_widget::mouseDoubleClickEvent(QMouseEvent *)

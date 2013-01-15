@@ -68,6 +68,7 @@
 #include <QSettings>
 #include <QGroupBox>
 #include <QStackedWidget>
+#include <QMimeData>
 
 #include "gettext.h"
 #define _(string) gettext(string)
@@ -1200,7 +1201,7 @@ void fullscreen_dialog::closeEvent(QCloseEvent* e)
         int fss = 0;
         QStringList screens = _multi_edt->text().split(',', QString::SkipEmptyParts);
         for (int i = 0; i < screens.size(); i++) {
-            int s = str::to<int>(screens[i].toAscii().data());
+            int s = str::to<int>(screens[i].toLatin1().data());
             if (s >= 1 && s <= 16)
                 fss |= (1 << (s - 1));
         }
