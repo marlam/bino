@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  * Gabriele Greco <gabrielegreco@gmail.com>
  *
@@ -45,19 +45,24 @@ const size_t audio_output::_buffer_size = 20160 * 2;
 
 audio_output::audio_output() : controller(), _initialized(false)
 {
-    if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT"))
+    const char *p = NULL;
+    if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT"))
     {
-        const char *p = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
-        while (p && *p)
-        {
-            _devices.push_back(p);
-            p += _devices.back().length() + 1;
-        }
-        msg::dbg("%d OpenAL devices available:", devices());
-        for (size_t i = 0; i < _devices.size(); i++)
-        {
-            msg::dbg(4, _devices[i]);
-        }
+        p = alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
+    }
+    else if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT"))
+    {
+        p = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
+    }
+    while (p && *p)
+    {
+        _devices.push_back(p);
+        p += _devices.back().length() + 1;
+    }
+    msg::dbg("%d OpenAL devices available:", devices());
+    for (size_t i = 0; i < _devices.size(); i++)
+    {
+        msg::dbg(4, _devices[i]);
     }
 }
 
