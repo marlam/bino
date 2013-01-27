@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -341,9 +341,7 @@ media_object::media_object(bool always_convert_to_bgra32) :
 {
     avdevice_register_all();
     av_register_all();
-#if LIBAVFORMAT_VERSION_MAJOR >= 53 && LIBAVFORMAT_VERSION_MINOR >= 13
     avformat_network_init();
-#endif
     switch (msg::level())
     {
     case msg::DBG:
@@ -724,23 +722,28 @@ void media_object::set_audio_blob_template(int index)
     }
     audio_blob_template.channels = audio_codec_ctx->channels;
     audio_blob_template.rate = audio_codec_ctx->sample_rate;
-    if (audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_U8)
+    if (audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_U8
+            || audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_U8P)
     {
         audio_blob_template.sample_format = audio_blob::u8;
     }
-    else if (audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_S16)
+    else if (audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_S16
+            || audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_S16P)
     {
         audio_blob_template.sample_format = audio_blob::s16;
     }
-    else if (audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_FLT)
+    else if (audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_FLT
+            || audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_FLTP)
     {
         audio_blob_template.sample_format = audio_blob::f32;
     }
-    else if (audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_DBL)
+    else if (audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_DBL
+            || audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_DBLP)
     {
         audio_blob_template.sample_format = audio_blob::d64;
     }
-    else if (audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_S32
+    else if ((audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_S32
+                || audio_codec_ctx->sample_fmt == AV_SAMPLE_FMT_S32P)
             && sizeof(int32_t) == sizeof(float))
     {
         // we need to convert this to AV_SAMPLE_FMT_FLT after decoding
@@ -1475,7 +1478,6 @@ read_frame:
                     &(_ffmpeg->video_packets[_video_stream]));
         }
         while (!frame_finished);
-#if LIBAVCODEC_VERSION_MAJOR >= 53 && LIBAVCODEC_VERSION_MINOR >= 8
         if (_ffmpeg->video_frames[_video_stream]->width != _ffmpeg->video_frame_templates[_video_stream].raw_width
                 || _ffmpeg->video_frames[_video_stream]->height != _ffmpeg->video_frame_templates[_video_stream].raw_height)
         {
@@ -1483,7 +1485,6 @@ read_frame:
                     _ffmpeg->video_frames[_video_stream]->width, _ffmpeg->video_frames[_video_stream]->height);
             goto read_frame;
         }
-#endif
         if (_frame.layout == video_frame::bgra32)
         {
             sws_scale(_ffmpeg->video_sws_ctxs[_video_stream],
@@ -1622,12 +1623,13 @@ void audio_decode_thread::run()
             }
 
             // Decode audio data
+            AVFrame audioframe = { { 0 } };
             tmppacket = packet;
             while (tmppacket.size > 0)
             {
-                int tmpbuf_size = audio_tmpbuf_size;
-                int len = avcodec_decode_audio3(_ffmpeg->audio_codec_ctxs[_audio_stream],
-                        reinterpret_cast<int16_t *>(&(_ffmpeg->audio_tmpbufs[_audio_stream][0])), &tmpbuf_size, &tmppacket);
+                int got_frame = 0;
+                int len = avcodec_decode_audio4(_ffmpeg->audio_codec_ctxs[_audio_stream],
+                        &audioframe, &got_frame, &tmppacket);
                 if (len < 0)
                 {
                     tmppacket.size = 0;
@@ -1635,9 +1637,34 @@ void audio_decode_thread::run()
                 }
                 tmppacket.data += len;
                 tmppacket.size -= len;
-                if (tmpbuf_size <= 0)
+                if (!got_frame)
                 {
                     continue;
+                }
+                int plane_size;
+                int tmpbuf_size = av_samples_get_buffer_size(&plane_size,
+                        _ffmpeg->audio_codec_ctxs[_audio_stream]->channels,
+                        audioframe.nb_samples,
+                        _ffmpeg->audio_codec_ctxs[_audio_stream]->sample_fmt, 1);
+                if (av_sample_fmt_is_planar(_ffmpeg->audio_codec_ctxs[_audio_stream]->sample_fmt)
+                        && _ffmpeg->audio_codec_ctxs[_audio_stream]->channels > 1)
+                {
+                    int dummy;
+                    int sample_size = av_samples_get_buffer_size(&dummy, 1, 1,
+                            _ffmpeg->audio_codec_ctxs[_audio_stream]->sample_fmt, 1);
+                    uint8_t *out = reinterpret_cast<uint8_t *>(&(_ffmpeg->audio_tmpbufs[_audio_stream][0]));
+                    for (int s = 0; s < audioframe.nb_samples; s++)
+                    {
+                        for (int c = 0; c < _ffmpeg->audio_codec_ctxs[_audio_stream]->channels; c++)
+                        {
+                            std::memcpy(out, audioframe.extended_data[c] + s * sample_size, sample_size);
+                            out += sample_size;
+                        }
+                    }
+                }
+                else
+                {
+                    std::memcpy(&(_ffmpeg->audio_tmpbufs[_audio_stream][0]), audioframe.extended_data[0], plane_size);
                 }
                 // Put it in the decoded audio data buffer
                 if (_ffmpeg->audio_codec_ctxs[_audio_stream]->sample_fmt == AV_SAMPLE_FMT_S32)
@@ -2065,7 +2092,7 @@ void media_object::close()
                     av_free_packet(&_ffmpeg->subtitle_packet_queues[i][j]);
                 }
             }
-            av_close_input_file(_ffmpeg->format_ctx);
+            avformat_close_input(&_ffmpeg->format_ctx);
         }
         delete _ffmpeg->reader;
         delete _ffmpeg;
