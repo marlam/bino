@@ -4,7 +4,7 @@ dnl configure.ac
 dnl
 dnl This file is part of bino, a 3D video player.
 dnl
-dnl Copyright (C) 2010, 2011, 2012
+dnl Copyright (C) 2010, 2011, 2012, 2013
 dnl Martin Lambers <marlam@marlam.de>
 dnl Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
 dnl Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
@@ -24,7 +24,7 @@ dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 dnl Autotools init stuff
 AC_PREREQ([2.63])
-AC_INIT([Bino], [1.4.1], [bino-list@nongnu.org], [bino], [http://bino3d.org/])
+AC_INIT([Bino], [1.4.2], [bino-list@nongnu.org], [bino], [http://bino3d.org/])
 AC_CONFIG_SRCDIR([src/main.cpp])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
