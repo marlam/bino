@@ -5,18 +5,17 @@ environment, <http://mxe.cc>). This is because MXE not only provides a recent
 version of gcc as a cross compiler, but also all required libraries, and the
 nsis package to build an installer.
 
-The current stable version of MXE should work fine.
+The stable version of MXE is now far too old to be useful, so please use the
+development version instead.
 
-Use the following steps to build Bino using MXE installed in /path/to/mxe:
-
-1. Build the required MXE packages:
+1. Build the required MXE packages in /path/to/mxe:
 
    $ cd /path/to
-   $ git clone -b stable https://github.com/mxe/mxe.git
+   $ git clone -b master https://github.com/mxe/mxe.git
    $ cd mxe
    $ make gettext pthreads ffmpeg libass openal glew qt nsis
 
-   (If you do not need to build a Bino installer package, you can skip nsis).
+   (Please read the MXE documentation if you have trouble with this step.)
 
    Add MXE to your PATH:
    $ export PATH="/path/to/mxe/usr/bin:$PATH"
@@ -27,16 +26,8 @@ Use the following steps to build Bino using MXE installed in /path/to/mxe:
    $ ./configure --host=i686-pc-mingw32 --build=`build-aux/config.guess`
    $ make
 
-   Optionally build the installer (requires nsis):
+   Build the installer:
    $ make package-w32
 
 The installer will install the binary, the manual, and translations along with
 start menu entries, and provide uninstall functionality.
-
-You can also copy just the bino.exe binary from the src subdirectory to any
-Windows machine. If you want to have access to translations and the manual, keep
-the following directory structure:
-c:\<path_to_bino>\bin\bino.exe
-c:\<path_to_bino>\doc\bino.html
-c:\<path_to_bino>\doc\<image_files...>
-c:\<path_to_bino>\locale\<lang>\LC_MESSAGES\bino.mo
