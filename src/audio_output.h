@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  * Gabriele Greco <gabrielegreco@gmail.com>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
@@ -29,9 +29,11 @@
 #if !defined(__APPLE__) || defined(HAVE_AL_AL_H)
 #  include <AL/al.h>
 #  include <AL/alc.h>
+#  include <AL/alext.h>
 #else
 #  include <OpenAL/al.h>
 #  include <OpenAL/alc.h>
+#  include <OpenAL/alext.h>
 #endif
 
 #include "dispatch.h"
