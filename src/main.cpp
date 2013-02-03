@@ -191,9 +191,6 @@ int main(int argc, char *argv[])
 {
     /* Initialization: gettext */
     setlocale(LC_ALL, "");
-#if QT_VERSION >= 0x050000
-    setlocale(LC_CTYPE, "C.UTF-8"); // Qt5: the strings returned by gettext() must be UTF-8
-#endif
     bindtextdomain(PACKAGE, localedir());
     textdomain(PACKAGE);
 
@@ -222,7 +219,11 @@ int main(int argc, char *argv[])
 #endif
     QApplication *qt_app = new QApplication(argc, argv, have_display);
 #if QT_VERSION < 0x050000
-    QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale()); // Qt4: necessary for i18n via gettext
+    // Make Qt4 behave like Qt5: always interpret all C strings as UTF-8.
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+#else
+    // Qt5 resets locale information in the QApplication constructor. Repair that.
+    setlocale(LC_ALL, "");
 #endif
     QCoreApplication::setOrganizationName("Bino");
     QCoreApplication::setOrganizationDomain("bino3d.org");

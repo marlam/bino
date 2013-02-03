@@ -71,7 +71,8 @@
 #include <QMimeData>
 
 #include "gettext.h"
-#define _(string) gettext(string)
+// Qt requires strings from gettext to be in UTF-8 encoding.
+#define _(string) (str::convert(gettext(string), str::localcharset(), "UTF-8").c_str())
 
 #include "gui.h"
 #include "lib_versions.h"
