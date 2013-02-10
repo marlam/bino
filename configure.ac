@@ -41,6 +41,16 @@ AC_PROG_LN_S
 AC_LANG([C++])
 AC_C_BIGENDIAN
 
+dnl Check if the C++ compiler works. Autoconf will not do that for us!?
+AC_MSG_CHECKING([whether the C++ compiler works])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[]])], [COMPILER_WORKS=1], [COMPILER_WORKS=0])
+if test "$COMPILER_WORKS" = "1"; then
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
+    AC_MSG_ERROR([The C++ compiler was not found or does not work.])
+fi
+
 dnl Useful definitions
 AC_DEFINE_UNQUOTED([PLATFORM], ["${target}"], [Platform triplet])
 
