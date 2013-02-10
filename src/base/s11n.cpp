@@ -21,7 +21,6 @@
 #include <cstring>
 
 #include "str.h"
-#include "intcheck.h"
 
 #include "s11n.h"
 

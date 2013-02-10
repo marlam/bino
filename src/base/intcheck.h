@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -202,6 +202,23 @@ T checked_div(T a, T b)
         throw exc(ERANGE);
     }
     return a / b;
+}
+
+/**
+ * \param a     Integer value.
+ * \return      abs(a)
+ *
+ * Return the absolute value of a.
+ * If overflow would occur, this function throws exc(ERANGE).
+ */
+template<typename T>
+T checked_abs(T a)
+{
+    if (std::numeric_limits<T>::is_signed && a == std::numeric_limits<T>::min())
+    {
+        throw exc(ERANGE);
+    }
+    return a < 0 ? -a : a;
 }
 
 #endif

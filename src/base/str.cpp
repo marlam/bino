@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010, 2011, 2012
+ * Copyright (C) 2009, 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 #include "config.h"
 
 #include <cstdio>
+#include <cstring>
 #include <cstdlib>
 #include <cctype>
 #include <cmath>
@@ -513,7 +514,8 @@ namespace str
         iconv_t cd = iconv_open(to_charset.c_str(), from_charset.c_str());
         if (cd == reinterpret_cast<iconv_t>(static_cast<size_t>(-1)))
         {
-            throw exc(str::asprintf(_("Cannot convert %s to %s."), from_charset.c_str(), to_charset.c_str()), errno);
+            throw exc(str::asprintf(_("Cannot convert %s to %s: %s"),
+                        from_charset.c_str(), to_charset.c_str(), std::strerror(errno)), errno);
         }
 
         size_t inbytesleft = src.length() + 1;
@@ -531,7 +533,8 @@ namespace str
         if (!orig_outbuf)
         {
             iconv_close(cd);
-            throw exc(str::asprintf(_("Cannot convert %s to %s."), from_charset.c_str(), to_charset.c_str()), ENOMEM);
+            throw exc(str::asprintf(_("Cannot convert %s to %s: %s"),
+                        from_charset.c_str(), to_charset.c_str(), std::strerror(ENOMEM)), ENOMEM);
         }
         char *outbuf = orig_outbuf;
 
@@ -541,7 +544,8 @@ namespace str
         if (s == static_cast<size_t>(-1))
         {
             free(orig_outbuf);
-            throw exc(str::asprintf(_("Cannot convert %s to %s."), from_charset.c_str(), to_charset.c_str()), saved_errno);
+            throw exc(str::asprintf(_("Cannot convert %s to %s: %s"),
+                        from_charset.c_str(), to_charset.c_str(), std::strerror(saved_errno)), saved_errno);
         }
 
         std::string dst;
@@ -552,12 +556,14 @@ namespace str
         catch (std::exception &e)
         {
             free(orig_outbuf);
-            throw exc(str::asprintf(_("Cannot convert %s to %s."), from_charset.c_str(), to_charset.c_str()), ENOMEM);
+            throw exc(str::asprintf(_("Cannot convert %s to %s: %s"),
+                        from_charset.c_str(), to_charset.c_str(), std::strerror(ENOMEM)), ENOMEM);
         }
         free(orig_outbuf);
         return dst;
 #else
-        throw exc(str::asprintf(_("Cannot convert %s to %s."), from_charset.c_str(), to_charset.c_str()), ENOSYS);
+        throw exc(str::asprintf(_("Cannot convert %s to %s."),
+                    from_charset.c_str(), to_charset.c_str(), std::strerror(ENOSYS)), ENOSYS);
 #endif
     }
 

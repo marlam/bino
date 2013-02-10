@@ -117,6 +117,13 @@ public:
         std::free(_ptr);
     }
 
+    void free()
+    {
+        std::free(_ptr);
+        _ptr = NULL;
+        _size = 0;
+    }
+
     void resize(size_t s)
     {
         _ptr = realloc(_ptr, s);
