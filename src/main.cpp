@@ -221,10 +221,9 @@ int main(int argc, char *argv[])
 #if QT_VERSION < 0x050000
     // Make Qt4 behave like Qt5: always interpret all C strings as UTF-8.
     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-#else
-    // Qt5 resets locale information in the QApplication constructor. Repair that.
-    setlocale(LC_ALL, "");
 #endif
+    // Qt resets locale information in the QApplication constructor. Repair that.
+    setlocale(LC_ALL, "");
     QCoreApplication::setOrganizationName("Bino");
     QCoreApplication::setOrganizationDomain("bino3d.org");
     QCoreApplication::setApplicationName(PACKAGE_NAME);
