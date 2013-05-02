@@ -491,6 +491,9 @@ void dispatch::receive_cmd(const command& cmd)
         if (_input_data.params.crop_aspect_ratio_is_set())
             _parameters.set_crop_aspect_ratio(_input_data.params.crop_aspect_ratio());
         notify_all(notification::crop_aspect_ratio);
+        if (_input_data.params.source_aspect_ratio_is_set())
+            _parameters.set_source_aspect_ratio(_input_data.params.source_aspect_ratio());
+        notify_all(notification::source_aspect_ratio);
         if (_input_data.params.parallax_is_set())
             _parameters.set_parallax(_input_data.params.parallax());
         notify_all(notification::parallax);
@@ -797,6 +800,13 @@ void dispatch::receive_cmd(const command& cmd)
             _parameters.set_crop_aspect_ratio((x <= 0.0f ? 0.0f : clamp(x, 1.0f, 2.39f)));
         }
         notify_all(notification::crop_aspect_ratio);
+        break;
+    case command::set_source_aspect_ratio:
+        {
+            float x = s11n::load<float>(p);
+            _parameters.set_source_aspect_ratio((x <= 0.0f ? 0.0f : clamp(x, 1.0f, 2.39f)));
+        }
+        notify_all(notification::source_aspect_ratio);
         break;
     case command::adjust_parallax:
         _parameters.set_parallax(clamp(_parameters.parallax() + s11n::load<float>(p), -1.0f, +1.0f));
@@ -1185,6 +1195,9 @@ bool dispatch::parse_command(const std::string& s, command* c)
     } else if (tokens.size() == 2 && tokens[0] == "set-crop-aspect-ratio"
             && parse_aspect_ratio(tokens[1], &p.f)) {
         *c = command(command::set_crop_aspect_ratio, p.f);
+    } else if (tokens.size() == 2 && tokens[0] == "set-source-aspect-ratio"
+            && parse_aspect_ratio(tokens[1], &p.f)) {
+        *c = command(command::set_source_aspect_ratio, p.f);
     } else if (tokens.size() == 2 && tokens[0] == "set-parallax"
             && str::to(tokens[1], &p.f)) {
         *c = command(command::set_parallax, p.f);

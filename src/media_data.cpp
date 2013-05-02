@@ -120,6 +120,7 @@ parameters::parameters()
     unset_stereo_layout();
     unset_stereo_layout_swap();
     unset_crop_aspect_ratio();
+    unset_source_aspect_ratio();
     unset_parallax();
     unset_ghostbust();
     unset_subtitle_parallax();
@@ -174,6 +175,7 @@ const int parameters::_subtitle_stream_default = -1;
 const parameters::stereo_layout_t parameters::_stereo_layout_default = layout_mono;
 const bool parameters::_stereo_layout_swap_default = false;
 const float parameters::_crop_aspect_ratio_default = 0.0f;
+const float parameters::_source_aspect_ratio_default = 0.0f;
 const float parameters::_parallax_default = 0.0f;
 const float parameters::_ghostbust_default = 0.0f;
 const float parameters::_subtitle_parallax_default = 0.0f;
@@ -564,6 +566,8 @@ void parameters::save(std::ostream &os) const
     s11n::save(os, _stereo_layout_swap_set);
     s11n::save(os, _crop_aspect_ratio);
     s11n::save(os, _crop_aspect_ratio_set);
+    s11n::save(os, _source_aspect_ratio);
+    s11n::save(os, _source_aspect_ratio_set);
     s11n::save(os, _parallax);
     s11n::save(os, _parallax_set);
     s11n::save(os, _ghostbust);
@@ -667,6 +671,8 @@ void parameters::load(std::istream &is)
     s11n::load(is, _stereo_layout_swap_set);
     s11n::load(is, _crop_aspect_ratio);
     s11n::load(is, _crop_aspect_ratio_set);
+    s11n::load(is, _source_aspect_ratio);
+    s11n::load(is, _source_aspect_ratio_set);
     s11n::load(is, _parallax);
     s11n::load(is, _parallax_set);
     s11n::load(is, _ghostbust);
@@ -868,6 +874,7 @@ void parameters::unset_video_parameters()
     unset_stereo_layout();
     unset_stereo_layout_swap();
     unset_crop_aspect_ratio();
+    unset_source_aspect_ratio();
     unset_parallax();
     unset_ghostbust();
     unset_subtitle_parallax();
@@ -886,6 +893,8 @@ std::string parameters::save_video_parameters() const
         s11n::save(oss, "stereo_layout", stereo_layout_to_string(stereo_layout(), stereo_layout_swap()));
     if (!crop_aspect_ratio_is_default())
         s11n::save(oss, "crop_aspect_ratio", _crop_aspect_ratio);
+    if (!source_aspect_ratio_is_default())
+        s11n::save(oss, "source_aspect_ratio", _source_aspect_ratio);
     if (!parallax_is_default())
         s11n::save(oss, "parallax", _parallax);
     if (!ghostbust_is_default())
@@ -919,6 +928,9 @@ void parameters::load_video_parameters(const std::string &s)
         } else if (name == "crop_aspect_ratio") {
             s11n::load(value, _crop_aspect_ratio);
             _crop_aspect_ratio_set = true;
+        } else if (name == "source_aspect_ratio") {
+            s11n::load(value, _source_aspect_ratio);
+            _source_aspect_ratio_set = true;
         } else if (name == "parallax") {
             s11n::load(value, _parallax);
             _parallax_set = true;

@@ -1960,6 +1960,23 @@ video_dialog::video_dialog(QWidget *parent) : QDialog(parent), _lock(false)
     _crop_ar_combobox->addItem("1:1");
     connect(_crop_ar_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(crop_ar_changed()));
 
+    QLabel *source_ar_label = new QLabel(_("Force source aspect ratio:"));
+    source_ar_label->setToolTip(_("<p>Force the aspect ratio of video source.</p>"));
+    _source_ar_combobox = new QComboBox();
+    _source_ar_combobox->setToolTip(source_ar_label->toolTip());
+    _source_ar_combobox->addItem(_("Do not force"));
+    _source_ar_combobox->addItem("16:10");
+    _source_ar_combobox->addItem("16:9");
+    _source_ar_combobox->addItem("1.85:1");
+    _source_ar_combobox->addItem("2.21:1");
+    _source_ar_combobox->addItem("2.35:1");
+    _source_ar_combobox->addItem("2.39:1");
+    _source_ar_combobox->addItem("5:3");
+    _source_ar_combobox->addItem("4:3");
+    _source_ar_combobox->addItem("5:4");
+    _source_ar_combobox->addItem("1:1");
+    connect(_source_ar_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(source_ar_changed()));
+
     QLabel *p_label = new QLabel(_("Parallax:"));
     p_label->setToolTip(_("<p>Adjust parallax, from -1 to +1. This changes the separation of left and right view, "
                 "and thus the perceived distance of the scene.</p>"));
@@ -2009,16 +2026,18 @@ video_dialog::video_dialog(QWidget *parent) : QDialog(parent), _lock(false)
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(crop_ar_label, 0, 0);
     layout->addWidget(_crop_ar_combobox, 0, 1, 1, 2);
-    layout->addWidget(p_label, 1, 0);
-    layout->addWidget(_p_slider, 1, 1);
-    layout->addWidget(_p_spinbox, 1, 2);
-    layout->addWidget(sp_label, 2, 0);
-    layout->addWidget(_sp_slider, 2, 1);
-    layout->addWidget(_sp_spinbox, 2, 2);
-    layout->addWidget(g_label, 3, 0);
-    layout->addWidget(_g_slider, 3, 1);
-    layout->addWidget(_g_spinbox, 3, 2);
-    layout->addWidget(ok_button, 4, 0, 1, 3);
+    layout->addWidget(source_ar_label, 1, 0);
+    layout->addWidget(_source_ar_combobox, 1, 1, 1, 2);
+    layout->addWidget(p_label, 2, 0);
+    layout->addWidget(_p_slider, 2, 1);
+    layout->addWidget(_p_spinbox, 2, 2);
+    layout->addWidget(sp_label, 3, 0);
+    layout->addWidget(_sp_slider, 3, 1);
+    layout->addWidget(_sp_spinbox, 3, 2);
+    layout->addWidget(g_label, 4, 0);
+    layout->addWidget(_g_slider, 4, 1);
+    layout->addWidget(_g_spinbox, 4, 2);
+    layout->addWidget(ok_button, 5, 0, 1, 3);
     setLayout(layout);
 
     update();
@@ -2074,6 +2093,43 @@ void video_dialog::crop_ar_changed()
     }
 }
 
+void video_dialog::set_source_ar(float value)
+{
+    _source_ar_combobox->setCurrentIndex(
+              ( std::abs(value - 16.0f / 10.0f) < 0.01f ? 1
+              : std::abs(value - 16.0f / 9.0f)  < 0.01f ? 2
+              : std::abs(value - 1.85f)         < 0.01f ? 3
+              : std::abs(value - 2.21f)         < 0.01f ? 4
+              : std::abs(value - 2.35f)         < 0.01f ? 5
+              : std::abs(value - 2.39f)         < 0.01f ? 6
+              : std::abs(value - 5.0f / 3.0f)   < 0.01f ? 7
+              : std::abs(value - 4.0f / 3.0f)   < 0.01f ? 8
+              : std::abs(value - 5.0f / 4.0f)   < 0.01f ? 9
+              : std::abs(value - 1.0f)          < 0.01f ? 10
+              : 0));
+}
+
+void video_dialog::source_ar_changed()
+{
+    if (!_lock)
+    {
+        int i = _source_ar_combobox->currentIndex();
+        float ar =
+              i == 1 ? 16.0f / 10.0f
+            : i == 2 ? 16.0f / 9.0f
+            : i == 3 ? 1.85f
+            : i == 4 ? 2.21f
+            : i == 5 ? 2.35f
+            : i == 6 ? 2.39f
+            : i == 7 ? 5.0f / 3.0f
+            : i == 8 ? 4.0f / 3.0f
+            : i == 9 ? 5.0f / 4.0f
+            : i == 10 ? 1.0f
+            : 0.0f;
+        send_cmd(command::set_source_aspect_ratio, ar);
+    }
+}
+
 void video_dialog::p_slider_changed(int val)
 {
     if (!_lock)
@@ -2115,6 +2171,7 @@ void video_dialog::receive_notification(const notification &note)
     switch (note.type)
     {
     case notification::crop_aspect_ratio:
+    case notification::source_aspect_ratio:
     case notification::parallax:
     case notification::subtitle_parallax:
     case notification::ghostbust:
@@ -3350,6 +3407,8 @@ void main_window::open(QStringList filenames,
             input_data.params.set_stereo_layout_swap(initial_params.stereo_layout_swap());
         if (initial_params.crop_aspect_ratio_is_set())
             input_data.params.set_crop_aspect_ratio(initial_params.crop_aspect_ratio());
+        if (initial_params.source_aspect_ratio_is_set())
+            input_data.params.set_source_aspect_ratio(initial_params.source_aspect_ratio());
         if (initial_params.parallax_is_set())
             input_data.params.set_parallax(initial_params.parallax());
         if (initial_params.ghostbust_is_set())

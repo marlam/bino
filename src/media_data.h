@@ -200,6 +200,7 @@ public:
     PARAMETER(stereo_layout_t, stereo_layout) // Assume this stereo layout
     PARAMETER(bool, stereo_layout_swap)       // Assume this stereo layout
     PARAMETER(float, crop_aspect_ratio)       // Crop the video to this aspect ratio, 0 = don't crop.
+    PARAMETER(float, source_aspect_ratio)     // Force video source to this aspect ratio, 0 = don't force.
     PARAMETER(float, parallax)                // Parallax adjustment, -1 .. +1
     PARAMETER(float, ghostbust)               // Amount of crosstalk ghostbusting, 0 .. 1
     PARAMETER(float, subtitle_parallax)       // Subtitle parallax adjustment, -1 .. +1

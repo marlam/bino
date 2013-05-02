@@ -316,6 +316,7 @@ class video_dialog : public QDialog, public controller
 private:
     bool _lock;
     QComboBox *_crop_ar_combobox;
+    QComboBox *_source_ar_combobox;
     QDoubleSpinBox *_p_spinbox;
     QSlider *_p_slider;
     QDoubleSpinBox *_sp_spinbox;
@@ -324,9 +325,11 @@ private:
     QSlider *_g_slider;
 
     void set_crop_ar(float val);
+    void set_source_ar(float val);
 
 private slots:
     void crop_ar_changed();
+    void source_ar_changed();
     void p_slider_changed(int val);
     void p_spinbox_changed(double val);
     void sp_slider_changed(int val);

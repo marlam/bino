@@ -135,6 +135,7 @@ public:
         set_stereo_layout,              // video_frame::stereo_layout
         set_stereo_layout_swap,         // bool
         set_crop_aspect_ratio,          // float
+        set_source_aspect_ratio,        // float
         set_parallax,                   // float (absolute value)
         adjust_parallax,                // float (relative adjustment)
         set_ghostbust,                  // float (absolute value)
@@ -254,6 +255,7 @@ public:
         stereo_layout,
         stereo_layout_swap,
         crop_aspect_ratio,
+        source_aspect_ratio,
         parallax,
         ghostbust,
         subtitle_parallax,
