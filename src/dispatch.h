@@ -1,10 +1,11 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  * Joe <cuchac@email.cz>
  * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
+ * Frédéric Bour <frederic.bour@lakaban.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

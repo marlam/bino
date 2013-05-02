@@ -8,6 +8,7 @@
  * Daniel Schaal <farbing@web.de>
  * D. Matz <bandregent@yahoo.de>
  * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
+ * Frédéric Bour <frederic.bour@lakaban.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
