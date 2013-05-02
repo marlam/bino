@@ -3090,6 +3090,22 @@ main_window::main_window(QSettings *settings) :
     restoreState(_settings->value("windowstate").toByteArray());
     _settings->endGroup();
 
+    // Work around a Qt/X11 problem: if the GL thread is running and a QComboBox
+    // shows its popup for the first time, then the application sometimes hangs
+    // and sometimes aborts with the message "Unknown request in queue while dequeuing".
+    // So we briefly show a QComboBox popup before doing anything else.
+    // This seems to be another X11 thing; maybe Wayland will solve this stuff...
+#ifdef Q_WS_X11
+    {
+        QComboBox* box = new QComboBox();
+        box->addItem("foo");
+        box->addItem("bar");
+        box->show();
+        box->showPopup();
+        box->close();
+    }
+#endif
+
 #ifdef Q_WS_MAC
     // Since this is a single-window app, don't let the user close the main window on OS X
     setWindowFlags(Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint);
