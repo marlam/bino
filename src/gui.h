@@ -28,6 +28,7 @@
 
 #include "config.h"
 
+#include <QtGlobal>
 #include <QMainWindow>
 #include <QWidget>
 #include <QDialog>

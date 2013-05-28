@@ -303,6 +303,9 @@ void video_output_qt_widget::check_gl_thread()
 
 void video_output_qt_widget::start_rendering()
 {
+#if QT_VERSION >= 0x050000
+    context()->moveToThread(&_gl_thread);
+#endif
     _gl_thread.set_render(true);
     _gl_thread.start();
     _timer.start(0);
