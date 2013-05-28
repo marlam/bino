@@ -244,6 +244,9 @@ void gl_thread::run()
     }
     _wait_mutex.unlock();
     _vo_qt_widget->doneCurrent();
+#if QT_VERSION >= 0x050000
+    _vo_qt_widget->context()->moveToThread(QCoreApplication::instance()->thread());
+#endif
 }
 
 int64_t gl_thread::time_to_next_frame_presentation()
