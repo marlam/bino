@@ -1178,7 +1178,7 @@ fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent)
     _flip_right_box->setChecked(dispatch::parameters().fullscreen_flip_right());
     _flop_right_box->setChecked(dispatch::parameters().fullscreen_flop_right());
     _3d_ready_sync_box->setChecked(dispatch::parameters().fullscreen_3d_ready_sync());
-#if defined(Q_WS_X11) || defined(Q_WS_MAC)
+#ifndef Q_OS_WIN
     _inhibit_screensaver_box->setChecked(dispatch::parameters().fullscreen_inhibit_screensaver());
 #else
     _inhibit_screensaver_box->setChecked(false);
@@ -3166,7 +3166,7 @@ main_window::main_window(QSettings *settings) :
     }
 #endif
 
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     // Since this is a single-window app, don't let the user close the main window on OS X
     setWindowFlags(Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint);
 #endif

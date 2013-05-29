@@ -138,6 +138,7 @@ static void opengl_versions()
     if (opengl_v.size() == 0)
     {
 #ifdef Q_WS_X11
+        // This only works on Qt4, but that's ok...
         const char *display = getenv("DISPLAY");
         bool have_display = (display && display[0] != '\0');
 #else

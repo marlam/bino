@@ -237,7 +237,6 @@ else
         CXXFLAGS="$CXXFLAGS -fPIE"
         LDFLAGS="$LDFLAGS -pie"
     fi
-    dnl TODO: Qt5 lacks Q_WS_* macros. We have to replace all of them in the code.
 fi
 if test "$HAVE_LIBQTOPENGL" = "1"; then
     if test -z "$RCC" -o -z "$MOC"; then
@@ -246,7 +245,7 @@ if test "$HAVE_LIBQTOPENGL" = "1"; then
     fi
 fi
 if test "$HAVE_LIBQTOPENGL" = "1" -a "$QT_VERSION" = "4"; then
-    dnl When running on X11, we need to link with -lX11 explicitly since we use X functions directly
+    dnl When running Qt4 on X11, we need to link with -lX11 explicitly since we use X functions directly
     AC_MSG_CHECKING([whether we need to link with X11])
     CPPFLAGS_BAK="$CPPFLAGS"
     CPPFLAGS="$CPPFLAGS $libqtopengl_CFLAGS"
