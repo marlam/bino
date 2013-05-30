@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -45,6 +45,8 @@
 #ifdef Q_WS_X11
 # include <QX11Info>
 # include <X11/Xlib.h>
+#endif
+#if HAVE_X11
 # include <GL/glxew.h>
 #endif
 #ifdef Q_OS_MAC
@@ -78,7 +80,7 @@ gl_thread::gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widge
 {
 }
 
-#ifdef Q_WS_X11
+#if HAVE_X11
 GLXEWContext* gl_thread::glxewGetContext() const
 {
     return _vo_qt->glxewGetContext();
@@ -137,8 +139,7 @@ void gl_thread::run()
         _vo_qt_widget->makeCurrent();
         assert(QGLContext::currentContext() == _vo_qt_widget->context());
         while (_render) {
-#ifdef Q_WS_X11
-            // TODO: port this to Qt5
+#if HAVE_X11
             GLuint counter;
             if (GLXEW_SGI_video_sync && glXGetVideoSyncSGI(&counter) == 0)
                 _display_frameno = counter;
@@ -639,8 +640,7 @@ void video_output_qt::init()
         set_opengl_versions();
         glewExperimental = GL_TRUE;
         GLenum err = glewInit();
-#ifdef Q_WS_X11
-        // TODO: port this to Qt5
+#if HAVE_X11
         if (err == GLEW_OK)
         {
             err = glxewInit();
@@ -796,8 +796,7 @@ void video_output_qt::create_widget()
     process_events();
 }
 
-#ifdef Q_WS_X11
-// TODO: port this to Qt5
+#if HAVE_X11
 GLXEWContext* video_output_qt::glxewGetContext() const
 {
     return const_cast<GLXEWContext*>(&_glxew_context);

@@ -28,13 +28,11 @@
 
 #include "config.h"
 
-#include <QtGlobal>
 #include <QMainWindow>
 #include <QWidget>
 #include <QDialog>
 
 #include "dispatch.h"
-#include "video_output_qt.h"
 
 class QLabel;
 class QComboBox;
@@ -50,6 +48,8 @@ class QRadioButton;
 class QLineEdit;
 class QStackedWidget;
 class QTimer;
+
+class video_container_widget;
 
 class in_out_widget : public QWidget, public controller
 {

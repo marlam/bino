@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,6 +21,8 @@
 #ifndef VIDEO_OUTPUT_QT_H
 #define VIDEO_OUTPUT_QT_H
 
+#include "config.h"
+
 #include <GL/glew.h>
 
 #include <QWidget>
@@ -30,7 +32,7 @@
 #include <QThread>
 #include <QMutex>
 
-#ifdef Q_WS_X11
+#if HAVE_X11
 # include <GL/glxew.h>
 #endif
 
@@ -67,7 +69,7 @@ private:
 public:
     gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widget);
 
-#ifdef Q_WS_X11
+#if HAVE_X11
     GLXEWContext* glxewGetContext() const;
 #endif
 
@@ -164,7 +166,7 @@ protected:
 class video_output_qt : public video_output
 {
 private:
-#ifdef Q_WS_X11
+#if HAVE_X11
     GLXEWContext _glxew_context;
 #endif
     GLEWContext _glew_context;
@@ -190,7 +192,7 @@ private:
     void resume_screensaver();
 
 protected:
-#ifdef Q_WS_X11
+#if HAVE_X11
     GLXEWContext* glxewGetContext() const;
 #endif
     virtual GLEWContext* glewGetContext() const;

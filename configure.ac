@@ -192,8 +192,7 @@ fi
 dnl Qt
 AC_ARG_VAR([RCC], [rcc command])
 AC_ARG_VAR([MOC], [moc command])
-QT_VERSION="0"
-PKG_CHECK_MODULES([libqtopengl], [Qt5OpenGL >= 5.0], [HAVE_LIBQTOPENGL=1], [HAVE_LIBQTOPENGL=0])
+PKG_CHECK_MODULES([libqtopengl], [Qt5OpenGL >= 5.1], [HAVE_LIBQTOPENGL=1], [HAVE_LIBQTOPENGL=0])
 if test "$HAVE_LIBQTOPENGL" != "1"; then
     dnl Fall back to Qt4
     PKG_CHECK_MODULES([libqtopengl], [QtOpenGL >= 4.6], [HAVE_LIBQTOPENGL=1], [HAVE_LIBQTOPENGL=0])
@@ -202,7 +201,6 @@ if test "$HAVE_LIBQTOPENGL" != "1"; then
         AC_MSG_WARN([$libqtopengl_PKG_ERRORS])
         AC_MSG_WARN([QtOpenGL is provided by Qt])
     else
-        QT_VERSION="4"
         if test -z "$RCC"; then
             AC_CHECK_TOOLS([RCC], [rcc-qt4 rcc])
         fi
@@ -210,43 +208,8 @@ if test "$HAVE_LIBQTOPENGL" != "1"; then
             AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
         fi
     fi
-else
-    QT_VERSION="5"
-    if test -z "$RCC"; then
-        AC_CHECK_TOOLS([RCC], [rcc-qt5 rcc])
-    fi
-    if test -z "$MOC"; then
-        AC_CHECK_TOOLS([MOC], [moc-qt5 moc])
-    fi
-    dnl Qt5 on Linux requires -fPIE / -pie with gcc, but does not record this fact
-    dnl in the pkg-config files (which is a bug in my opinion). Work around that.
-    AC_MSG_CHECKING([whether Qt needs -fPIE and -pie])
-    CPPFLAGS_BAK="$CPPFLAGS"
-    CPPFLAGS="$CPPFLAGS $libqtopengl_CFLAGS"
-    AC_COMPILE_IFELSE(
-        [AC_LANG_PROGRAM([[
-	 #include <qconfig.h>
-	 #ifdef QT_REDUCE_RELOCATIONS
-	  Oops I need PIE
-	 #endif]],
-	[[int x = 0;]])],
-	[NEED_PIE="no"],[NEED_PIE="yes"])
-    CPPFLAGS="$CPPFLAGS_BAK"
-    AC_MSG_RESULT([$NEED_PIE])
-    if test "$NEED_PIE" = "yes"; then
-        CXXFLAGS="$CXXFLAGS -fPIE"
-        LDFLAGS="$LDFLAGS -pie"
-    fi
-fi
-if test "$HAVE_LIBQTOPENGL" = "1"; then
-    if test -z "$RCC" -o -z "$MOC"; then
-        AC_MSG_WARN([required tools rcc and/or moc not found; Qt not usable])
-        HAVE_LIBQTOPENGL="0"
-    fi
-fi
-if test "$HAVE_LIBQTOPENGL" = "1" -a "$QT_VERSION" = "4"; then
-    dnl When running Qt4 on X11, we need to link with -lX11 explicitly since we use X functions directly
-    AC_MSG_CHECKING([whether we need to link with X11])
+    dnl Check if we are running on X11
+    AC_MSG_CHECKING([whether Qt uses X11])
     CPPFLAGS_BAK="$CPPFLAGS"
     CPPFLAGS="$CPPFLAGS $libqtopengl_CFLAGS"
     AC_COMPILE_IFELSE(
@@ -259,7 +222,9 @@ if test "$HAVE_LIBQTOPENGL" = "1" -a "$QT_VERSION" = "4"; then
 	[NEED_LIBX11="yes"],[NEED_LIBX11="no"])
     CPPFLAGS="$CPPFLAGS_BAK"
     AC_MSG_RESULT([$NEED_LIBX11])
+    dnl With Qt4, we use X11 functions directly, and thus need to link with -lX11
     if test "$NEED_LIBX11" = "yes"; then
+        AC_DEFINE([HAVE_X11], [1], [Whether we are running on X11])
         PKG_CHECK_MODULES([libX11], [x11 >= 0.0], [HAVE_LIBX11=1], [HAVE_LIBX11=0])
         if test "$HAVE_LIBX11" != "1"; then
             AC_MSG_WARN([required library libX11 not found:])
@@ -268,6 +233,40 @@ if test "$HAVE_LIBQTOPENGL" = "1" -a "$QT_VERSION" = "4"; then
             libqtopengl_CFLAGS="$libqtopengl_CFLAGS $libX11_CFLAGS"
             libqtopengl_LIBS="$libqtopengl_LIBS $libX11_LIBS"
         fi
+    else
+        AC_DEFINE([HAVE_X11], [0], [Whether we are running on X11])
+    fi
+else
+    if test -z "$RCC"; then
+        AC_CHECK_TOOLS([RCC], [rcc-qt5 rcc])
+    fi
+    if test -z "$MOC"; then
+        AC_CHECK_TOOLS([MOC], [moc-qt5 moc])
+    fi
+    dnl Qt5 on Linux requires -fPIE / -pie with gcc, but does not record this fact
+    dnl in the pkg-config files (which is a bug in my opinion). Work around that.
+    AC_MSG_CHECKING([whether Qt needs -fPIE and -pie])
+    if test -n "`$PKG_CONFIG --variable=qt_config Qt5Core | $GREP reduce_relocations`"; then
+	AC_MSG_RESULT([yes])
+        CXXFLAGS="$CXXFLAGS -fPIE"
+        LDFLAGS="$LDFLAGS -pie"
+    else
+	AC_MSG_RESULT([no])
+    fi
+    dnl Check if we are running on X11
+    AC_MSG_CHECKING([whether Qt uses X11])
+    if test -n "`$PKG_CONFIG --variable=qt_config Qt5Core | $GREP xcb`"; then
+        AC_DEFINE([HAVE_X11], [1], [Whether we are running on X11])
+	AC_MSG_RESULT([yes])
+    else
+        AC_DEFINE([HAVE_X11], [0], [Whether we are running on X11])
+	AC_MSG_RESULT([no])
+    fi
+fi
+if test "$HAVE_LIBQTOPENGL" = "1"; then
+    if test -z "$RCC" -o -z "$MOC"; then
+        AC_MSG_WARN([required tools rcc and/or moc not found; Qt not usable])
+        HAVE_LIBQTOPENGL="0"
     fi
 fi
 

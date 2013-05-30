@@ -79,6 +79,7 @@
 #include "lib_versions.h"
 #include "audio_output.h"
 #include "media_input.h"
+#include "video_output_qt.h"
 
 #include "dbg.h"
 #include "msg.h"
@@ -3150,7 +3151,7 @@ main_window::main_window(QSettings *settings) :
     restoreState(_settings->value("windowstate").toByteArray());
     _settings->endGroup();
 
-    // Work around a Qt/X11 problem: if the GL thread is running and a QComboBox
+    // Work around a Qt/X11 problem with Qt4: if the GL thread is running and a QComboBox
     // shows its popup for the first time, then the application sometimes hangs
     // and sometimes aborts with the message "Unknown request in queue while dequeuing".
     // So we briefly show a QComboBox popup before doing anything else.
