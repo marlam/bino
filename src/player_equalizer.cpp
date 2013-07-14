@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  * Stefan Eilemann <eile@eyescale.ch>
  *
@@ -24,6 +24,7 @@
 #include <sstream>
 #include <cmath>
 #include <cstdlib>
+#include <unistd.h>     // for usleep()
 
 #include <eq/eq.h>
 
@@ -227,51 +228,6 @@ public:
                 x, y, w, h, vp, my_tex_coords, 0, 0, parameters::mode_mono_left);
     }
 };
-
-/*
- * Define errors produced by player.
- */
-
-enum Error
-{
-    ERROR_MAP_INITDATA_FAILED = eq::ERROR_CUSTOM,
-    ERROR_MAP_FRAMEDATA_FAILED,
-    ERROR_PLAYER_INIT_FAILED,
-    ERROR_OPENGL_2_1_NEEDED
-};
-
-struct ErrorData
-{
-    const uint32_t code;
-    const std::string text;
-};
-
-static ErrorData errors[] =
-{
-    { ERROR_MAP_FRAMEDATA_FAILED, _("Init data mapping failed.") },
-    { ERROR_MAP_INITDATA_FAILED, _("Frame data mapping failed.") },
-    { ERROR_PLAYER_INIT_FAILED, _("Video player initialization failed.") },
-    { ERROR_OPENGL_2_1_NEEDED, _("Need at least OpenGL 2.1.") },
-    { 0, "" } // last!
-};
-
-static void initErrors()
-{
-    co::base::ErrorRegistry &registry = co::base::Global::getErrorRegistry();
-    for (size_t i = 0; errors[i].code != 0; i++)
-    {
-        registry.setString(errors[i].code, errors[i].text);
-    }
-}
-
-static void exitErrors()
-{
-    co::base::ErrorRegistry &registry = co::base::Global::getErrorRegistry();
-    for (size_t i = 0; errors[i].code != 0; i++)
-    {
-        registry.eraseString(errors[i].code);
-    }
-}
 
 /*
  * eq_init_data
@@ -699,7 +655,7 @@ private:
                 eq::Vector3f w = u.cross(v);
                 w.normalize();
 
-                const eq::Vector3f dot = w.dot(eq::Vector3f::FORWARD);
+                const eq::Vector3f dot(w.dot(eq::Vector3f::FORWARD));
                 const float val = dot.squared_length();
                 if (val < angle) // facing more away then previous segment
                 {
@@ -776,13 +732,13 @@ protected:
         eq_config *config = static_cast<eq_config *>(getConfig());
         if (!config->mapObject(&init_data, init_id))
         {
-            setError(ERROR_MAP_INITDATA_FAILED);
+            msg::err(_("Init data mapping failed."));
             return false;
         }
         // Map our FrameData instance to the master instance
         if (!config->mapObject(&frame_data, init_data.frame_data_id))
         {
-            setError(ERROR_MAP_FRAMEDATA_FAILED);
+            msg::err(_("Frame data mapping failed."));
             return false;
         }
 
@@ -795,7 +751,7 @@ protected:
                     init_data.params.swap_interval());
             if (!_player.init(init_data.input))
             {
-                setError(ERROR_PLAYER_INIT_FAILED);
+                msg::err(_("Video player initialization failed."));
                 return false;
             }
         }
@@ -911,7 +867,6 @@ protected:
                     "GL_VERSION_2_1 GL_EXT_framebuffer_object"))
         {
             msg::err(_("This OpenGL implementation does not support OpenGL 2.1 and framebuffer objects."));
-            setError(ERROR_OPENGL_2_1_NEEDED);
             return false;
         }
 
@@ -1086,7 +1041,6 @@ player_equalizer::player_equalizer(int *argc, char *argv[], bool flat_screen) :
     assert(!global_player_equalizer);
     global_player_equalizer = this;
     /* Initialize Equalizer */
-    initErrors();
     _node_factory = new eq_node_factory;
     if (!eq::init(*argc, argv, _node_factory))
     {
@@ -1106,7 +1060,6 @@ player_equalizer::~player_equalizer()
 {
     eq::releaseConfig(_config);
     eq::exit();
-    exitErrors();
     delete _node_factory;
     global_player_equalizer = NULL;
 }
