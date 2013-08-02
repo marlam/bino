@@ -356,16 +356,30 @@ int main(int argc, char *argv[])
     options.push_back(&sdi_output_format);
 #endif // HAVE_LIBXNVCTRL
     // Accept some Equalizer options. These are passed to Equalizer for interpretation.
+    opt::flag eq_help("eq-help", '\0', opt::optional);
+    options.push_back(&eq_help);
+    opt::val<std::string> eq_layout("eq-layout", '\0', opt::optional);
+    options.push_back(&eq_layout);
+    opt::val<std::string> eq_gpufilter("eq-gpufilter", '\0', opt::optional);
+    options.push_back(&eq_gpufilter);
+    opt::val<std::string> eq_modelunit("eq-modelunit", '\0', opt::optional);
+    options.push_back(&eq_modelunit);
+    opt::val<std::string> eq_logfile("eq-logfile", '\0', opt::optional);
+    options.push_back(&eq_logfile);
     opt::val<std::string> eq_server("eq-server", '\0', opt::optional);
     options.push_back(&eq_server);
     opt::val<std::string> eq_config("eq-config", '\0', opt::optional);
     options.push_back(&eq_config);
-    opt::val<std::string> eq_listen("eq-listen", '\0', opt::optional);
-    options.push_back(&eq_listen);
-    opt::val<std::string> eq_logfile("eq-logfile", '\0', opt::optional);
-    options.push_back(&eq_logfile);
+    opt::val<std::string> eq_config_flags("eq-config-flags", '\0', opt::optional);
+    options.push_back(&eq_config_flags);
+    opt::val<std::string> eq_config_prefixes("eq-config-prefixes", '\0', opt::optional);
+    options.push_back(&eq_config_prefixes);
     opt::val<std::string> eq_render_client("eq-render-client", '\0', opt::optional);
     options.push_back(&eq_render_client);
+    opt::val<std::string> eq_listen("eq-listen", '\0', opt::optional);
+    options.push_back(&eq_listen);
+    opt::val<std::string> co_listen("co-listen", '\0', opt::optional);
+    options.push_back(&co_listen);
 
     std::vector<std::string> arguments;
 #ifdef __APPLE__
