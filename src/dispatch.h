@@ -113,7 +113,7 @@ public:
         set_zoom,                       // float (absolute value)
         adjust_zoom,                    // float (relative adjustment)
         set_loop_mode,                  // parameters::loop_mode_t
-        set_audio_delay,                // float (absolute value)
+        set_audio_delay,                // int64_t (absolute value, in microseconds)
         set_subtitle_encoding,          // string (encoding name)
         set_subtitle_font,              // string (font name)
         set_subtitle_size,              // int

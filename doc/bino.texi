@@ -1109,7 +1109,7 @@ Set zoom to the given @var{value}, from 0 to 1.
 Adjust zoom by adding @var{delta}, e.g. -0.05 or +0.05.
 @item set-loop-mode @var{mode}
 Set loop mode to @samp{off} or @samp{current}.
-@item set-audio-delay @var{seconds}
+@item set-audio-delay @var{milliseconds}
 Set audio delay.
 @item set-subtitle-encoding @var{enc}
 Set subtitle encoding. An empty value means to use the default.

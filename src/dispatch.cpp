@@ -1141,8 +1141,8 @@ bool dispatch::parse_command(const std::string& s, command* c)
                 ? parameters::no_loop : parameters::loop_current);
         *c = command(command::set_loop_mode, static_cast<int>(l));
     } else if (tokens.size() == 2 && tokens[0] == "set-audio-delay"
-            && str::to(tokens[1], &p.f)) {
-        *c = command(command::set_audio_delay, p.f);
+            && str::to(tokens[1], &p.i)) {
+        *c = command(command::set_audio_delay, static_cast<int64_t>(p.i * 1000));
     } else if ((tokens.size() == 1 || tokens.size() == 2) && tokens[0] == "set-subtitle-encoding") {
         std::ostringstream v;
         s11n::save(v, tokens.size() > 1 ? tokens[1] : std::string(""));

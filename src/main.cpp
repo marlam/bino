@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
     options.push_back(&list_audio_devices);
     opt::val<int> audio_device("audio-device", 'A', opt::optional, 0, 999, 0);
     options.push_back(&audio_device);
-    opt::val<int> audio_delay("audio-delay", 'D', opt::optional, -10000, +10000, 0);
+    opt::val<int> audio_delay("audio-delay", 'D', opt::optional, -100000, +100000, 0);
     options.push_back(&audio_delay);
     opt::val<float> audio_volume("audio-volume", 'V', opt::optional, 0.0f, 1.0f, 1.0f);
     options.push_back(&audio_volume);
@@ -658,7 +658,7 @@ int main(int argc, char *argv[])
     if (loop.is_set())
         controller::send_cmd(command::set_loop_mode, loop.value() ? parameters::loop_current : parameters::no_loop);
     if (audio_delay.is_set())
-        controller::send_cmd(command::set_audio_delay, audio_delay.value() * 1000);
+        controller::send_cmd(command::set_audio_delay, static_cast<int64_t>(audio_delay.value() * 1000));
     if (subtitle_encoding.is_set()) {
         std::ostringstream v;
         s11n::save(v, subtitle_encoding.value());
