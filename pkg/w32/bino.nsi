@@ -57,6 +57,7 @@ Var STARTMENU_FOLDER
   !insertmacro MUI_LANGUAGE "French"
 ;  !insertmacro MUI_LANGUAGE "Polish"
   !insertmacro MUI_LANGUAGE "Russian"
+  !insertmacro MUI_LANGUAGE "SimpChinese"
 
 ; Program file installation
 Section "Bino Program" SecTools
@@ -74,6 +75,8 @@ Section "Bino Program" SecTools
 ;  FILE pl\LC_MESSAGES\bino.mo
   SetOutPath $INSTDIR\locale\ru\LC_MESSAGES
   FILE ru\LC_MESSAGES\bino.mo
+  SetOutPath $INSTDIR\locale\zh_cn\LC_MESSAGES
+  FILE zh_cn\LC_MESSAGES\bino.mo
   SetOutPath $INSTDIR\doc
   FILE doc\*.*
 SectionEnd
