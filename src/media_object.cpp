@@ -1199,14 +1199,20 @@ int media_object::video_frame_rate_numerator(int index) const
 {
     assert(index >= 0);
     assert(index < video_streams());
-    return _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->r_frame_rate.num;
+    int n = _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->r_frame_rate.num;
+    if (n <= 0)
+        n = 1;
+    return n;
 }
 
 int media_object::video_frame_rate_denominator(int index) const
 {
     assert(index >= 0);
     assert(index < video_streams());
-    return _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->r_frame_rate.den;
+    int d = _ffmpeg->format_ctx->streams[_ffmpeg->video_streams.at(index)]->r_frame_rate.den;
+    if (d <= 0)
+        d = 1;
+    return d;
 }
 
 int64_t media_object::video_duration(int index) const
