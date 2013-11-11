@@ -5,13 +5,10 @@ environment, <http://mxe.cc>). This is because MXE not only provides a recent
 version of gcc as a cross compiler, but also all required libraries, and the
 nsis package to build an installer.
 
-The stable version of MXE is now far too old to be useful, so please use the
-development version instead.
-
 1. Build the required MXE packages in /path/to/mxe:
 
    $ cd /path/to
-   $ git clone -b master https://github.com/mxe/mxe.git
+   $ git clone -b stable https://github.com/mxe/mxe.git
    $ cd mxe
    $ make gettext pthreads ffmpeg libass openal glew qt nsis
 
