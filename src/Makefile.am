@@ -178,14 +178,14 @@ uninstall-hook: update-icon-cache update-desktop-database
 
 moc_verbose = $(moc_verbose_$(V))
 moc_verbose_ = $(moc_verbose_$(AM_DEFAULT_VERBOSITY))
-moc_verbose_0 = @echo "  MOC   " $@;
+moc_verbose_0 = @echo "  MOC     " $@;
 
 %-moc.cpp: %.h
 	$(moc_verbose)$(MOC) -o $@ $<
 
 rcc_verbose = $(rcc_verbose_$(V))
 rcc_verbose_ = $(rcc_verbose_$(AM_DEFAULT_VERBOSITY))
-rcc_verbose_0 = @echo "  RCC   " $@;
+rcc_verbose_0 = @echo "  RCC     " $@;
 
 %-rcc.cpp: %.qrc
 	$(rcc_verbose)$(RCC) -o $@ $<
