@@ -150,7 +150,7 @@ public:
 // Hide the FFmpeg stuff so that their messy header files cannot cause problems
 // in other source files.
 
-static const size_t max_audio_frame_size = 19200; // 1 second of 48khz 32bit audio
+static const size_t max_audio_frame_size = 192000; // 1 second of 48khz 32bit audio
 static const size_t audio_tmpbuf_size = (max_audio_frame_size * 3) / 2;
 
 struct ffmpeg_stuff
