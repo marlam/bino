@@ -900,7 +900,11 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             // Set CODEC_FLAG_EMU_EDGE in the same situations in which ffplay sets it.
             // I don't know what exactly this does, but it is necessary to fix the problem
             // described in this thread: http://lists.nongnu.org/archive/html/bino-list/2012-02/msg00039.html
-            if (codec_ctx->lowres || (codec && (codec->capabilities & CODEC_CAP_DR1)))
+            int lowres = 0;
+#ifdef FF_API_LOWRES
+            lowres = codec_ctx->lowres;
+#endif
+            if (lowres || (codec && (codec->capabilities & CODEC_CAP_DR1)))
                 codec_ctx->flags |= CODEC_FLAG_EMU_EDGE;
         }
         // Find and open the codec. AV_CODEC_ID_TEXT is a special case: it has no decoder since it is unencoded raw data.
