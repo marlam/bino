@@ -56,6 +56,9 @@ extern "C"
 
 #include "media_object.h"
 
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54, 25, 0)
+#define AV_CODEC_ID_TEXT CODEC_ID_TEXT
+#endif
 
 // The read thread.
 // This thread reads packets from the AVFormatContext and stores them in the
@@ -880,7 +883,7 @@ void media_object::open(const std::string &url, const device_request &dev_reques
     {
         _ffmpeg->format_ctx->streams[i]->discard = AVDISCARD_ALL;        // ignore by default; user must activate streams
         AVCodecContext *codec_ctx = _ffmpeg->format_ctx->streams[i]->codec;
-        AVCodec *codec = (codec_ctx->codec_id == CODEC_ID_TEXT
+        AVCodec *codec = (codec_ctx->codec_id == AV_CODEC_ID_TEXT
                 ? NULL : avcodec_find_decoder(codec_ctx->codec_id));
         // XXX: Sometimes the reported width and height for a video stream change after avcodec_open(),
         // but the original values seem to be correct. This seems to happen mostly with 1920x1080 video
@@ -900,8 +903,8 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             if (codec_ctx->lowres || (codec && (codec->capabilities & CODEC_CAP_DR1)))
                 codec_ctx->flags |= CODEC_FLAG_EMU_EDGE;
         }
-        // Find and open the codec. CODEC_ID_TEXT is a special case: it has no decoder since it is unencoded raw data.
-        if (codec_ctx->codec_id != CODEC_ID_TEXT && (!codec || (e = avcodec_open2(codec_ctx, codec, NULL)) < 0))
+        // Find and open the codec. AV_CODEC_ID_TEXT is a special case: it has no decoder since it is unencoded raw data.
+        if (codec_ctx->codec_id != AV_CODEC_ID_TEXT && (!codec || (e = avcodec_open2(codec_ctx, codec, NULL)) < 0))
         {
             msg::wrn(_("%s stream %d: Cannot open %s: %s"), _url.c_str(), i,
                     codec_ctx->codec_type == AVMEDIA_TYPE_VIDEO ? _("video codec")
@@ -1001,9 +1004,9 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             int j = _ffmpeg->subtitle_streams.size() - 1;
             msg::dbg(_url + " stream " + str::from(i) + " is subtitle stream " + str::from(j) + ".");
             _ffmpeg->subtitle_codec_ctxs.push_back(codec_ctx);
-            // CODEC_ID_TEXT does not have any decoder; it is just UTF-8 text in the packet data.
+            // AV_CODEC_ID_TEXT does not have any decoder; it is just UTF-8 text in the packet data.
             _ffmpeg->subtitle_codecs.push_back(
-                    _ffmpeg->subtitle_codec_ctxs[j]->codec_id == CODEC_ID_TEXT ? NULL : codec);
+                    _ffmpeg->subtitle_codec_ctxs[j]->codec_id == AV_CODEC_ID_TEXT ? NULL : codec);
             _ffmpeg->subtitle_box_templates.push_back(subtitle_box());
             set_subtitle_box_template(j);
             _ffmpeg->subtitle_decode_threads.push_back(subtitle_decode_thread(_url, _ffmpeg, j));
@@ -1783,8 +1786,8 @@ void subtitle_decode_thread::run()
         int got_subtitle;
         tmppacket = packet;
 
-        // CODEC_ID_TEXT does not have any decoder; it is just UTF-8 text in the packet data.
-        if (_ffmpeg->subtitle_codec_ctxs[_subtitle_stream]->codec_id == CODEC_ID_TEXT)
+        // AV_CODEC_ID_TEXT does not have any decoder; it is just UTF-8 text in the packet data.
+        if (_ffmpeg->subtitle_codec_ctxs[_subtitle_stream]->codec_id == AV_CODEC_ID_TEXT)
         {
             int64_t duration = packet.convergence_duration * 1000000
                 * _ffmpeg->format_ctx->streams[_ffmpeg->subtitle_streams[_subtitle_stream]]->time_base.num
@@ -1944,9 +1947,9 @@ void media_object::seek(int64_t dest_pos)
     }
     for (size_t i = 0; i < _ffmpeg->subtitle_streams.size(); i++)
     {
-        if (_ffmpeg->format_ctx->streams[_ffmpeg->subtitle_streams[i]]->codec->codec_id != CODEC_ID_TEXT)
+        if (_ffmpeg->format_ctx->streams[_ffmpeg->subtitle_streams[i]]->codec->codec_id != AV_CODEC_ID_TEXT)
         {
-            // CODEC_ID_TEXT has no decoder, so we cannot flush its buffers
+            // AV_CODEC_ID_TEXT has no decoder, so we cannot flush its buffers
             avcodec_flush_buffers(_ffmpeg->format_ctx->streams[_ffmpeg->subtitle_streams[i]]->codec);
         }
         _ffmpeg->subtitle_box_buffers[i].clear();
