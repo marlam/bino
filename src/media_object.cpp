@@ -937,8 +937,13 @@ void media_object::open(const std::string &url, const device_request &dev_reques
             _ffmpeg->video_packets.push_back(AVPacket());
             av_init_packet(&(_ffmpeg->video_packets[j]));
             _ffmpeg->video_decode_threads.push_back(video_decode_thread(_url, _ffmpeg, j));
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 1)
             _ffmpeg->video_frames.push_back(avcodec_alloc_frame());
             _ffmpeg->video_buffered_frames.push_back(avcodec_alloc_frame());
+#else
+            _ffmpeg->video_frames.push_back(av_frame_alloc());
+            _ffmpeg->video_buffered_frames.push_back(av_frame_alloc());
+#endif
             enum PixelFormat frame_fmt = (_ffmpeg->video_frame_templates[j].layout == video_frame::bgra32
                     ? PIX_FMT_BGRA : _ffmpeg->video_codec_ctxs[j]->pix_fmt);
             int frame_bufsize = (avpicture_get_size(frame_fmt,
@@ -955,7 +960,11 @@ void media_object::open(const std::string &url, const device_request &dev_reques
                 // Initialize things needed for software pixel format conversion
                 int sws_bufsize = avpicture_get_size(PIX_FMT_BGRA,
                         _ffmpeg->video_codec_ctxs[j]->width, _ffmpeg->video_codec_ctxs[j]->height);
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 1)
                 _ffmpeg->video_sws_frames.push_back(avcodec_alloc_frame());
+#else
+                _ffmpeg->video_sws_frames.push_back(av_frame_alloc());
+#endif
                 _ffmpeg->video_sws_buffers.push_back(static_cast<uint8_t *>(av_malloc(sws_bufsize)));
                 if (!_ffmpeg->video_sws_frames[j] || !_ffmpeg->video_sws_buffers[j])
                 {
