@@ -2,14 +2,14 @@
 # bino 3d 播放器简体中文语言文件
 # Copyright (C) 2013 The Bino developers
 # This file is distributed under the same license as the PACKAGE package.
-# Frank Hill <hxf.prc@gmail.com>, 2013.
+# Frank Hill <hxf.prc@gmail.com>, 2014.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: bino 1.4.2\n"
+"Project-Id-Version: bino 1.4.4\n"
 "Report-Msgid-Bugs-To: bino-list@nongnu.org\n"
-"POT-Creation-Date: 2013-10-01 21:47+0200\n"
-"PO-Revision-Date: 2013-08-27 20:45+0800\n"
+"POT-Creation-Date: 2014-01-16 18:01+0100\n"
+"PO-Revision-Date: 2014-01-15 21:10+0800\n"
 "Last-Translator: Frank Hill\n"
 "Language-Team: Simplified Chinese\n"
 "Language: zh_cn\n"
@@ -190,7 +190,7 @@ msgid "Cannot unqueue OpenAL source buffers."
 msgstr "无法乱序 OpenAL 音源缓冲。"
 
 #: src/command_file.cpp:63 src/command_file.cpp:79 src/command_file.cpp:125
-#: src/main.cpp:374 src/media_object.cpp:850 src/media_object.cpp:1315
+#: src/main.cpp:374 src/media_object.cpp:851 src/media_object.cpp:1322
 #: src/video_output.cpp:419
 #, c-format
 msgid "%s: %s"
@@ -850,11 +850,11 @@ msgstr "打开设备："
 msgid "<p>Choose a device type.</p>"
 msgstr "<p>选择一个设备类型</p>"
 
-#: src/gui.cpp:2620 src/media_object.cpp:826
+#: src/gui.cpp:2620 src/media_object.cpp:827
 msgid "Firewire"
 msgstr "火线"
 
-#: src/gui.cpp:2621 src/media_object.cpp:827
+#: src/gui.cpp:2621 src/media_object.cpp:828
 msgid "X11"
 msgstr "X11"
 
@@ -916,43 +916,43 @@ msgstr "取消"
 
 #: src/gui.cpp:2985
 msgid "&File"
-msgstr "&F文件"
+msgstr "文件(&F)"
 
 #: src/gui.cpp:2986
 msgid "&Open file(s)..."
-msgstr "&O打开文件..."
+msgstr "打开文件(&O)..."
 
 #: src/gui.cpp:2991
 msgid "Open &URL(s)..."
-msgstr "打开 &URL(s)..."
+msgstr "打开 URLs(&U)..."
 
 #: src/gui.cpp:2995
 msgid "Open &device(s)..."
-msgstr "打开 &D设备..."
+msgstr "打开设备(&D)..."
 
 #: src/gui.cpp:3010
 msgid "&Clear recent files"
-msgstr "&C清除最近打开文件"
+msgstr "清除最近打开文件(&C)"
 
 #: src/gui.cpp:3018
 msgid "&Quit"
-msgstr "&Q退出"
+msgstr "退出(&Q)"
 
 #: src/gui.cpp:3024
 msgid "&Preferences"
-msgstr "&P首选项"
+msgstr "首选项(&P)"
 
 #: src/gui.cpp:3027
 msgid "&Fullscreen Settings..."
-msgstr "&F全屏幕设定…"
+msgstr "全屏幕设定(&F)…"
 
 #: src/gui.cpp:3030
 msgid "Display &Color Adjustments..."
-msgstr "显示和&C颜色调整…"
+msgstr "显示和颜色调整(&C)…"
 
 #: src/gui.cpp:3033
 msgid "Display Cross&talk Calibration..."
-msgstr "显示器窜扰调整&t…"
+msgstr "显示器窜扰调整(&T)…"
 
 #: src/gui.cpp:3037
 msgid "Quality Adjustments..."
@@ -960,43 +960,43 @@ msgstr "质量调整…"
 
 #: src/gui.cpp:3041
 msgid "&Zoom for wide videos..."
-msgstr "&Z宽屏视频缩放"
+msgstr "宽屏视频缩放(&Z)"
 
 #: src/gui.cpp:3045
 msgid "&Audio Settings..."
-msgstr "&A声音设定…"
+msgstr "声音设定(&A)…"
 
 #: src/gui.cpp:3049
 msgid "&Subtitle Settings..."
-msgstr "&S字幕设定…"
+msgstr "字幕设定(&S)…"
 
 #: src/gui.cpp:3053
 msgid "Current &Video Settings..."
-msgstr "当前&V视频设定…"
+msgstr "当前视频设定(&V)…"
 
 #: src/gui.cpp:3058
 msgid "SDI &Output Settings..."
-msgstr "SDI &O输出设置…"
+msgstr "SDI 输出设置(&O)…"
 
 #: src/gui.cpp:3062
 msgid "&Help"
-msgstr "&H帮助"
+msgstr "帮助(&H)"
 
 #: src/gui.cpp:3063
 msgid "&Manual..."
-msgstr "&M手册..."
+msgstr "手册(&M)..."
 
 #: src/gui.cpp:3068
 msgid "&Website..."
-msgstr "&W网站..."
+msgstr "网站(&W)..."
 
 #: src/gui.cpp:3072
 msgid "&Keyboard Shortcuts"
-msgstr "&K快捷键"
+msgstr "快捷键(&K)"
 
 #: src/gui.cpp:3076
 msgid "&About"
-msgstr "&A关于"
+msgstr "关于(&A)"
 
 #: src/gui.cpp:3407
 msgid "Tip"
@@ -1577,106 +1577,106 @@ msgstr "时长：%g 秒"
 msgid "Stereo layout: %s"
 msgstr "S3D 布局：%s"
 
-#: src/media_object.cpp:682
+#: src/media_object.cpp:683
 #, c-format
 msgid "%s video stream %d: Unsupported stereo layout %s."
 msgstr "%s 视频流 %d：不支持的 S3D 布局 %s。"
 
-#: src/media_object.cpp:720
+#: src/media_object.cpp:721
 #, c-format
 msgid "%s audio stream %d: Cannot handle audio with %d channels."
 msgstr "%s 音轨 %d：无法处理 %d 声道的音频。"
 
-#: src/media_object.cpp:754
+#: src/media_object.cpp:755
 #, c-format
 msgid "%s audio stream %d: Cannot handle audio with sample format %s."
 msgstr "%s 音轨 %d：无法处理 %s 音频采样格式。"
 
-#: src/media_object.cpp:825
+#: src/media_object.cpp:826
 #, c-format
 msgid "No support available for %s device."
 msgstr "不支持 %s 设备。"
 
-#: src/media_object.cpp:828
+#: src/media_object.cpp:829
 msgid "default"
 msgstr "默认"
 
-#: src/media_object.cpp:861
+#: src/media_object.cpp:862
 #, c-format
 msgid "%s: Cannot read stream info: %s"
 msgstr "%s：无法读取数据流信息：%s"
 
-#: src/media_object.cpp:905
+#: src/media_object.cpp:906
 #, c-format
 msgid "%s stream %d: Cannot open %s: %s"
 msgstr "%s 数据流 %d：无法打开 %s：%s"
 
-#: src/media_object.cpp:906
+#: src/media_object.cpp:907
 msgid "video codec"
 msgstr "视频编码"
 
-#: src/media_object.cpp:907
+#: src/media_object.cpp:908
 msgid "audio codec"
 msgstr "音频编码"
 
-#: src/media_object.cpp:908
+#: src/media_object.cpp:909
 msgid "subtitle codec"
 msgstr "字幕编码"
 
-#: src/media_object.cpp:909
+#: src/media_object.cpp:910
 msgid "data"
 msgstr "数据"
 
-#: src/media_object.cpp:910
+#: src/media_object.cpp:911
 msgid "codec not supported"
 msgstr "编码不支持"
 
-#: src/media_object.cpp:920
+#: src/media_object.cpp:921
 #, c-format
 msgid "%s video stream %d: Invalid frame size."
 msgstr "%s 视频流 %d：无效的帧尺寸。"
 
-#: src/media_object.cpp:964
+#: src/media_object.cpp:965
 #, c-format
 msgid "%s video stream %d: Cannot initialize conversion context."
 msgstr "%s 视频流 %d：无法初始化转换对象。"
 
-#: src/media_object.cpp:1027
+#: src/media_object.cpp:1028
 #, c-format
 msgid "Video stream %d: %s / %s, %g seconds"
 msgstr "视频流 %d：%s / %s，%g 秒"
 
-#: src/media_object.cpp:1031
+#: src/media_object.cpp:1032
 #, c-format
 msgid "Using up to %d threads for decoding."
 msgstr "使用向上箭头调整为 %d 线程进行解码。"
 
-#: src/media_object.cpp:1036
+#: src/media_object.cpp:1037
 #, c-format
 msgid "Audio stream %d: %s / %s, %g seconds"
 msgstr "音轨 %d：%s / %s，%g 秒"
 
-#: src/media_object.cpp:1043
+#: src/media_object.cpp:1044
 #, c-format
 msgid "Subtitle stream %d: %s / %s, %g seconds"
 msgstr "字幕 %d：%s / %s，%g 秒"
 
-#: src/media_object.cpp:1050
+#: src/media_object.cpp:1051
 msgid "No usable streams."
 msgstr "无可用数据流。"
 
-#: src/media_object.cpp:1331 src/media_object.cpp:1361
-#: src/media_object.cpp:1391
+#: src/media_object.cpp:1338 src/media_object.cpp:1368
+#: src/media_object.cpp:1398
 #, c-format
 msgid "%s: Cannot duplicate packet."
 msgstr "%s：无法复制包。"
 
-#: src/media_object.cpp:1484
+#: src/media_object.cpp:1491
 #, c-format
 msgid "%s video stream %d: Dropping %dx%d frame"
 msgstr "%s 视频流 %d：丢弃 %dx%d 帧"
 
-#: src/media_object.cpp:1972
+#: src/media_object.cpp:1979
 #, c-format
 msgid "%s: Seeking failed."
 msgstr "%s：时间定位失败。"
