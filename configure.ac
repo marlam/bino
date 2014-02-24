@@ -4,7 +4,7 @@ dnl configure.ac
 dnl
 dnl This file is part of bino, a 3D video player.
 dnl
-dnl Copyright (C) 2010, 2011, 2012, 2013
+dnl Copyright (C) 2010, 2011, 2012, 2013, 2014
 dnl Martin Lambers <marlam@marlam.de>
 dnl Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
 dnl Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
@@ -190,11 +190,17 @@ else
 fi
 
 dnl Qt
+qt_version=""
+AC_ARG_WITH([qt-version],
+    [AS_HELP_STRING([--with-qt-version], [Choose Qt version. Currently 4 or 5; 4 is the default.])],
+    [qt_version="$withval"], [qt_version="4"])
+if test "$qt_version" != "4" -a "$qt_version" != "5"; then
+    AC_MSG_WARN([unknown Qt version requested, falling back to Qt 4.])
+    qt_version="4"
+fi
 AC_ARG_VAR([RCC], [rcc command])
 AC_ARG_VAR([MOC], [moc command])
-PKG_CHECK_MODULES([libqtopengl], [Qt5OpenGL >= 5.1], [HAVE_LIBQTOPENGL=1], [HAVE_LIBQTOPENGL=0])
-if test "$HAVE_LIBQTOPENGL" != "1"; then
-    dnl Fall back to Qt4
+if test "$qt_version" = "4"; then
     PKG_CHECK_MODULES([libqtopengl], [QtOpenGL >= 4.6], [HAVE_LIBQTOPENGL=1], [HAVE_LIBQTOPENGL=0])
     if test "$HAVE_LIBQTOPENGL" != "1"; then
         AC_MSG_WARN([required library QtOpenGL not found:])
@@ -208,18 +214,18 @@ if test "$HAVE_LIBQTOPENGL" != "1"; then
             AC_CHECK_TOOLS([MOC], [moc-qt4 moc])
         fi
     fi
-    dnl Check if we are running on X11
+    dnl Check if we are running on X11. Needed for GLXEW.
     AC_MSG_CHECKING([whether Qt uses X11])
     CPPFLAGS_BAK="$CPPFLAGS"
     CPPFLAGS="$CPPFLAGS $libqtopengl_CFLAGS"
     AC_COMPILE_IFELSE(
         [AC_LANG_PROGRAM([[
-	 #include <QGLWidget>
-	 #ifndef Q_WS_X11
-	  error: No X11
-	 #endif]],
-	[[int x = 0;]])],
-	[NEED_LIBX11="yes"],[NEED_LIBX11="no"])
+         #include <QGLWidget>
+         #ifndef Q_WS_X11
+          error: No X11
+         #endif]],
+        [[int x = 0;]])],
+        [NEED_LIBX11="yes"],[NEED_LIBX11="no"])
     CPPFLAGS="$CPPFLAGS_BAK"
     AC_MSG_RESULT([$NEED_LIBX11])
     dnl With Qt4, we use X11 functions directly, and thus need to link with -lX11
@@ -237,6 +243,7 @@ if test "$HAVE_LIBQTOPENGL" != "1"; then
         AC_DEFINE([HAVE_X11], [0], [Whether we are running on X11])
     fi
 else
+    PKG_CHECK_MODULES([libqtopengl], [Qt5OpenGL >= 5.1], [HAVE_LIBQTOPENGL=1], [HAVE_LIBQTOPENGL=0])
     if test -z "$RCC"; then
         AC_CHECK_TOOLS([RCC], [rcc-qt5 rcc])
     fi
@@ -247,20 +254,20 @@ else
     dnl in the pkg-config files (which is a bug in my opinion). Work around that.
     AC_MSG_CHECKING([whether Qt needs -fPIE and -pie])
     if test -n "`$PKG_CONFIG --variable=qt_config Qt5Core | $GREP reduce_relocations`"; then
-	AC_MSG_RESULT([yes])
+        AC_MSG_RESULT([yes])
         CXXFLAGS="$CXXFLAGS -fPIE"
         LDFLAGS="$LDFLAGS -pie"
     else
-	AC_MSG_RESULT([no])
+        AC_MSG_RESULT([no])
     fi
-    dnl Check if we are running on X11
+    dnl Check if we are running on X11. Needed for GLXEW.
     AC_MSG_CHECKING([whether Qt uses X11])
     if test -n "`$PKG_CONFIG --variable=qt_config Qt5Core | $GREP xcb`"; then
         AC_DEFINE([HAVE_X11], [1], [Whether we are running on X11])
-	AC_MSG_RESULT([yes])
+        AC_MSG_RESULT([yes])
     else
         AC_DEFINE([HAVE_X11], [0], [Whether we are running on X11])
-	AC_MSG_RESULT([no])
+        AC_MSG_RESULT([no])
     fi
 fi
 if test "$HAVE_LIBQTOPENGL" = "1"; then
