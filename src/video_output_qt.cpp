@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -211,22 +211,7 @@ void gl_thread::run()
                 _vo_qt->sdi_output(_display_frameno);
 #endif // HAVE_LIBXNVCTRL
                 _vo_qt->display_current_frame(_display_frameno);
-                // Swap buffers. To avoid problems with the NVIDIA 304.x driver
-                // series on GNU/Linux, we first release the GL context and re-grab
-                // it after the swap. Not sure why that would be necessary, but it
-                // fixes a problem where swapBuffers() does not return and the
-                // application blocks.
-                // However, this breaks video playback on Windows, so only do it on
-                // X11 systems.
-                // Continue to use Q_WS_X11 here, even though that is undefined with Qt5:
-                // it is unlikely that we need this workaround with Qt5.
-#ifdef Q_WS_X11
-                _vo_qt_widget->doneCurrent();
-#endif
                 _vo_qt_widget->swapBuffers();
-#ifdef Q_WS_X11
-                _vo_qt_widget->makeCurrent();
-#endif
             } else if (!dispatch::parameters().benchmark()) {
                 // do not busy loop
                 usleep(1000);
