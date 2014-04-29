@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  * Stefan Eilemann <eile@eyescale.ch>
  *
@@ -22,6 +22,7 @@
 #include "config.h"
 
 #include <sstream>
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <unistd.h>     // for usleep()
@@ -668,12 +669,12 @@ private:
                 wall.apply(vp);
 
                 const eq::Vector3f topRight = wall.topLeft + wall.bottomRight - wall.bottomLeft;
-                float yMin = EQ_MIN(wall.bottomLeft.y(), wall.bottomRight.y());
-                float yMax = EQ_MAX(wall.bottomLeft.y(), wall.bottomRight.y());
-                yMin = EQ_MIN(yMin, wall.topLeft.y());
-                yMax = EQ_MAX(yMax, wall.topLeft.y());
-                yMin = EQ_MIN(yMin, topRight.y());
-                yMax = EQ_MAX(yMax, topRight.y());
+                float yMin = std::min(wall.bottomLeft.y(), wall.bottomRight.y());
+                float yMax = std::max(wall.bottomLeft.y(), wall.bottomRight.y());
+                yMin = std::min(yMin, wall.topLeft.y());
+                yMax = std::max(yMax, wall.topLeft.y());
+                yMin = std::min(yMin, topRight.y());
+                yMax = std::max(yMax, topRight.y());
 
                 const float h = yMax - yMin;
                 const eq::Vector3f center = (wall.bottomRight + wall.topLeft) * 0.5f;
