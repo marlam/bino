@@ -1212,13 +1212,13 @@ msgstr "%s 3D видео плеър"
 #: src/gui.cpp:3722
 #, c-format
 msgid ""
-"<p>%s version %s.</p><p>Copyright (C) 2013 the Bino developers.</p><p>This "
+"<p>%s version %s.</p><p>Copyright (C) 2014 the Bino developers.</p><p>This "
 "is free software. You may redistribute copies of it under the terms of the "
 "<a href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public License</"
 "a>. There is NO WARRANTY, to the extent permitted by law.</p><p>See <a href="
 "\"%s\">%s</a> for more information on this software.</p>"
 msgstr ""
-"<p>%s версия %s.</p><p>Всички права запазени (C) 2013 от разработчиците на "
+"<p>%s версия %s.</p><p>Всички права запазени (C) 2014 от разработчиците на "
 "Bino.</p><p>Тази програма е свободен софтуер. Може да разпространявате нейни "
 "копия според условията на <a href=\"http://www.gnu.org/licenses/gpl.html"
 "\">GNU General Public License</a>. Програмата идва без НИКАКВА ГАРАНЦИЯ, "
@@ -1289,8 +1289,8 @@ msgid "%s version %s"
 msgstr "%s версия %s"
 
 #: src/main.cpp:387
-msgid "Copyright (C) 2013 the Bino developers."
-msgstr "Всички права запазени (C) 2013 от разработчиците на Bino."
+msgid "Copyright (C) 2014 the Bino developers."
+msgstr "Всички права запазени (C) 2014 от разработчиците на Bino."
 
 #: src/main.cpp:388
 msgid ""

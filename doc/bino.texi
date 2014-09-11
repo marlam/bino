@@ -10,7 +10,7 @@
 This manual was last updated @value{UPDATED} for version
 @value{VERSION} of Bino.
 
-Copyright @copyright{} 2011, 2012, 2013
+Copyright @copyright{} 2011, 2012, 2013, 2014
 Martin Lambers (@email{marlam@@marlam.de}),
 Stefan Eilemann (@email{eile@@eyescale.ch}),
 Frédéric Devernay (@email{Frederic.Devernay@@inrialpes.fr})

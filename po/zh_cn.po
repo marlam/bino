@@ -1,6 +1,6 @@
 # Chinese translations for bino package
 # bino 3d 播放器简体中文语言文件
-# Copyright (C) 2013 The Bino developers
+# Copyright (C) 2014 The Bino developers
 # This file is distributed under the same license as the PACKAGE package.
 # Frank Hill <hxf.prc@gmail.com>, 2014.
 #
@@ -1198,13 +1198,13 @@ msgstr "3D 视频播放器 %s"
 #: src/gui.cpp:3801
 #, c-format
 msgid ""
-"<p>%s version %s.</p><p>Copyright (C) 2013 the Bino developers.</p><p>This "
+"<p>%s version %s.</p><p>Copyright (C) 2014 the Bino developers.</p><p>This "
 "is free software. You may redistribute copies of it under the terms of the "
 "<a href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public License</"
 "a>. There is NO WARRANTY, to the extent permitted by law.</p><p>See <a href="
 "\"%s\">%s</a> for more information on this software.</p>"
 msgstr ""
-"<p>%s 版本 %s。</p><p>Bino 开发者版权所有 (C) 2013。</p><p>本软件是自由软件，"
+"<p>%s 版本 %s。</p><p>Bino 开发者版权所有 (C) 2014。</p><p>本软件是自由软件，"
 "你可以在 <a href=\"http://www.gnu.org/licenses/gpl.html\">GNU GPL</a> 许可证"
 "下重新发布。在法律所允许的范围内，本软件不带任何的保证。</p><p>要获取更多本软"
 "件的信息，请参见 <a href=\"%s\">%s</a>。</p>"
@@ -1273,8 +1273,8 @@ msgid "%s version %s"
 msgstr "%s 版本 %s"
 
 #: src/main.cpp:415
-msgid "Copyright (C) 2013 the Bino developers."
-msgstr "Bino 开发者版权所有 (C) 2013。"
+msgid "Copyright (C) 2014 the Bino developers."
+msgstr "Bino 开发者版权所有 (C) 2014。"
 
 #: src/main.cpp:416
 msgid ""

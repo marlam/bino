@@ -1,4 +1,4 @@
-# Copyright (C) 2011 The Bino developers
+# Copyright (C) 2014 The Bino developers
 # This file is distributed under the same license as the Bino package.
 # Joe <cuchac@email.cz>, 2011.
 #
@@ -242,8 +242,8 @@ msgid "%s version %s"
 msgstr "%s verze %s"
 
 #: src/main.cpp:326
-msgid "Copyright (C) 2011 the Bino developers."
-msgstr "Copyright (C) 2011 Bino vývojáři."
+msgid "Copyright (C) 2014 the Bino developers."
+msgstr "Copyright (C) 2014 Bino vývojáři."
 
 #: src/main.cpp:327
 msgid ""
@@ -1417,13 +1417,13 @@ msgstr "%s 3D video přehrávač"
 #: src/player_qt.cpp:2891
 #, c-format
 msgid ""
-"<p>%s version %s.</p><p>Copyright (C) 2011 the Bino developers.</p><p>This "
+"<p>%s version %s.</p><p>Copyright (C) 2014 the Bino developers.</p><p>This "
 "is free software. You may redistribute copies of it under the terms of the "
 "<a href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public License</"
 "a>. There is NO WARRANTY, to the extent permitted by law.</p><p>See <a href="
 "\"%s\">%s</a> for more information on this software.</p>"
 msgstr ""
-"<p>%s verze %s.</p><p>Copyright (C) 2011 Bino vývojáři.</p><p>Tento program "
+"<p>%s verze %s.</p><p>Copyright (C) 2014 Bino vývojáři.</p><p>Tento program "
 "je svobodný software. Můžete jej šířit a modifikovat podle ustanovení <a "
 "href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public License</a>."
 "Tento program je rozšiřován v naději, že bude užitečný, avšak BEZ JAKÉKOLI "
