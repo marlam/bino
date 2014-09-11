@@ -23,7 +23,7 @@ development version instead.
 2. Build Bino
 
    $ cd /path/to/bino
-   $ ./configure --host=i686-pc-mingw32 --build=`build-aux/config.guess`
+   $ ./configure --host=i686-pc-mingw32.static --build=`build-aux/config.guess`
    $ make
 
    Build the installer:
