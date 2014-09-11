@@ -1,3 +1,8 @@
+New in version 1.6.0:
+- Support for Qt5 (but Qt4 remains the default for now).
+- New option to force a source aspect ratio.
+- Support for newer versions of FFmpeg/Libav and Equalizer.
+
 New in version 1.4.0:
 - Support for the new output mode "Left/right view alternating", also known
   as "frame sequential". This is intended for 120Hz active stereo projectors
