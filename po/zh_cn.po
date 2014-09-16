@@ -8,14 +8,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bino 1.4.4\n"
 "Report-Msgid-Bugs-To: bino-list@nongnu.org\n"
-"POT-Creation-Date: 2014-03-05 19:42+0100\n"
-"PO-Revision-Date: 2014-01-15 21:10+0800\n"
-"Last-Translator: Frank Hill\n"
+"POT-Creation-Date: 2014-09-11 19:49+0200\n"
+"PO-Revision-Date: 2014-09-16 17:16+0800\n"
+"Last-Translator: Frank Hill <hxf.prc@gmail.com>\n"
 "Language-Team: Simplified Chinese\n"
 "Language: zh_cn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
 
 #: src/base/dbg.cpp:49
 #, c-format
@@ -97,9 +98,9 @@ msgstr "无法转换字符串为 %s。"
 
 #: src/base/str.cpp:517 src/base/str.cpp:536 src/base/str.cpp:547
 #: src/base/str.cpp:559
-#, fuzzy, c-format
+#, c-format
 msgid "Cannot convert %s to %s: %s"
-msgstr "无法转换 %s 为 %s。"
+msgstr "无法转换 %s 为 %s：%s"
 
 #: src/base/str.cpp:565
 #, c-format
@@ -214,7 +215,7 @@ msgstr "无法连接 X 服务器。"
 msgid "No video to play."
 msgstr "无视频。"
 
-#: src/dispatch.cpp:438 src/player_equalizer.cpp:86
+#: src/dispatch.cpp:438 src/player_equalizer.cpp:87
 msgid "No video streams found."
 msgstr "未找到视频流。"
 
@@ -787,19 +788,16 @@ msgid "Do not crop"
 msgstr "不剪裁"
 
 #: src/gui.cpp:1965
-#, fuzzy
 msgid "Force source aspect ratio:"
-msgstr "剪裁到指定宽高比："
+msgstr "强制视频源宽高比："
 
 #: src/gui.cpp:1966
-#, fuzzy
 msgid "<p>Force the aspect ratio of video source.</p>"
-msgstr "<p>设置视频的实际宽高比，以便裁掉黑边。</p>"
+msgstr "<p>强制指定来源视频的宽高比。</p>"
 
 #: src/gui.cpp:1969
-#, fuzzy
 msgid "Do not force"
-msgstr "不剪裁"
+msgstr "不指定宽高比"
 
 #: src/gui.cpp:1982
 msgid "Parallax:"
@@ -1051,9 +1049,9 @@ msgstr "网址："
 msgid "<p>Enter one or more space separated URLs.</p>"
 msgstr "<p>输入一个网址或空格分开的多个网址。</p>"
 
-#: src/gui.cpp:3732 src/gui.cpp:3740 src/video_output_qt.cpp:306
-#: src/video_output_qt.cpp:549 src/video_output_qt.cpp:746
-#: src/video_output_qt.cpp:758 src/video_output_qt.cpp:779
+#: src/gui.cpp:3732 src/gui.cpp:3740 src/video_output_qt.cpp:291
+#: src/video_output_qt.cpp:534 src/video_output_qt.cpp:731
+#: src/video_output_qt.cpp:743 src/video_output_qt.cpp:764
 msgid "Error"
 msgstr "错误"
 
@@ -1711,51 +1709,51 @@ msgstr "视频：延迟 %g 秒/%g 帧；丢弃下一帧。"
 msgid "FPS: %.2f"
 msgstr "FPS: %.2f"
 
-#: src/player_equalizer.cpp:118
+#: src/player_equalizer.cpp:119
 msgid "Reading input frame failed."
 msgstr "读取输入帧失败。"
 
-#: src/player_equalizer.cpp:167 src/video_output_qt.cpp:700
-#: src/video_output_qt.cpp:707
+#: src/player_equalizer.cpp:168 src/video_output_qt.cpp:685
+#: src/video_output_qt.cpp:692
 msgid "Waiting for subtitle renderer initialization..."
 msgstr "等待字幕渲染器初始化…"
 
-#: src/player_equalizer.cpp:381
+#: src/player_equalizer.cpp:382
 msgid "No canvas in Equalizer configuration."
 msgstr "Equalizer 配置里无画布。"
 
-#: src/player_equalizer.cpp:388
+#: src/player_equalizer.cpp:389
 #, c-format
 msgid "Equalizer canvas: %gx%g, aspect ratio %g:1"
 msgstr "Equalizer 画布：%gx%g，宽高比 %g:1"
 
-#: src/player_equalizer.cpp:735
+#: src/player_equalizer.cpp:736
 msgid "Init data mapping failed."
 msgstr "初始数据映射失败。"
 
-#: src/player_equalizer.cpp:741
+#: src/player_equalizer.cpp:742
 msgid "Frame data mapping failed."
 msgstr "帧数据映射失败。"
 
-#: src/player_equalizer.cpp:754
+#: src/player_equalizer.cpp:755
 msgid "Video player initialization failed."
 msgstr "视频播放器初始化失败。"
 
-#: src/player_equalizer.cpp:869
+#: src/player_equalizer.cpp:870
 msgid ""
 "This OpenGL implementation does not support OpenGL 2.1 and framebuffer "
 "objects."
 msgstr "此 OpenGL 实现不支持 OpenGL 2.1 和帧缓冲对象。"
 
-#: src/player_equalizer.cpp:1047
+#: src/player_equalizer.cpp:1048
 msgid "Equalizer initialization failed."
 msgstr "Equalizer 初始化失败。"
 
-#: src/player_equalizer.cpp:1055
+#: src/player_equalizer.cpp:1056
 msgid "Cannot get equalizer configuration."
 msgstr "无法获取 equalizer 配置"
 
-#: src/player_equalizer.cpp:1071
+#: src/player_equalizer.cpp:1072
 msgid "Equalizer configuration initialization failed."
 msgstr "Equalizer 配置初始化失败。"
 
@@ -1822,36 +1820,36 @@ msgstr "OpenGL 程序‘%s’：链接失败。"
 msgid "Cannot create a PBO buffer."
 msgstr "无法创建一个 PBO 缓冲。"
 
-#: src/video_output_qt.cpp:651
+#: src/video_output_qt.cpp:636
 #, c-format
 msgid "Cannot initialize GLEW: %s"
 msgstr "无法初始化 GLEW：%s"
 
-#: src/video_output_qt.cpp:671
+#: src/video_output_qt.cpp:656
 msgid "This OpenGL implementation does not support required features."
 msgstr "此 OpenGL 实现不支持所需的特性。"
 
-#: src/video_output_qt.cpp:698
+#: src/video_output_qt.cpp:683
 msgid "Please wait"
 msgstr "请稍候"
 
-#: src/video_output_qt.cpp:758
+#: src/video_output_qt.cpp:743
 msgid "Cannot get valid OpenGL context."
 msgstr "无法获取有效的 OpenGL context。"
 
-#: src/video_output_qt.cpp:769
+#: src/video_output_qt.cpp:754
 msgid "The display does not support OpenGL stereo mode."
 msgstr "此显示设备不支持 OpenGL 立体模式。"
 
-#: src/video_output_qt.cpp:774
+#: src/video_output_qt.cpp:759
 msgid "Cannot set OpenGL context format."
 msgstr "无法设置 OpenGL context 格式。"
 
-#: src/video_output_qt.cpp:877
+#: src/video_output_qt.cpp:862
 msgid "Cannot suspend screensaver."
 msgstr "无法停止屏幕保护程序。"
 
-#: src/video_output_qt.cpp:892
+#: src/video_output_qt.cpp:877
 msgid "Cannot resume screensaver."
 msgstr "无法恢复屏幕保护程序。"
 
