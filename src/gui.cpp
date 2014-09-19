@@ -3077,7 +3077,7 @@ main_window::main_window(QSettings *settings) :
 
     file_menu->addSeparator();
     QAction *file_quit_act = new QAction(_("&Quit"), this);
-    file_quit_act->setShortcut(QKeySequence::Quit);
+    file_quit_act->setShortcut(tr("Ctrl+Q")); // QKeySequence::Quit is not reliable
     file_quit_act->setMenuRole(QAction::QuitRole);
     file_quit_act->setIcon(get_icon("application-exit"));
     connect(file_quit_act, SIGNAL(triggered()), this, SLOT(close()));
