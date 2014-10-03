@@ -53,17 +53,7 @@ class QIcon;
 class video_container_widget;
 class in_out_widget;
 class controls_widget;
-class fullscreen_dialog;
-class color_dialog;
-class crosstalk_dialog;
-class quality_dialog;
-class zoom_dialog;
-class audio_dialog;
-class subtitle_dialog;
-class video_dialog;
-#if HAVE_LIBXNVCTRL
-class sdi_output_dialog;
-#endif
+class preferences_dialog;
 
 class main_window : public QMainWindow, public controller
 {
@@ -74,17 +64,7 @@ private:
     video_container_widget *_video_container_widget;
     in_out_widget *_in_out_widget;
     controls_widget *_controls_widget;
-    fullscreen_dialog *_fullscreen_dialog;
-    color_dialog *_color_dialog;
-    crosstalk_dialog *_crosstalk_dialog;
-    quality_dialog *_quality_dialog;
-    zoom_dialog *_zoom_dialog;
-    audio_dialog *_audio_dialog;
-    subtitle_dialog *_subtitle_dialog;
-    video_dialog *_video_dialog;
-#if HAVE_LIBXNVCTRL
-    sdi_output_dialog *_sdi_output_dialog;
-#endif // HAVE_LIBXNVCTRL
+    preferences_dialog * _preferences_dialog;
     QTimer *_timer;
     std::vector<std::string> _now_playing;
 
@@ -103,15 +83,7 @@ private slots:
     void file_open();
     void file_open_urls();
     void file_open_device();
-    void preferences_fullscreen();
-    void preferences_colors();
-    void preferences_crosstalk();
-    void preferences_quality();
-    void preferences_zoom();
-    void preferences_audio();
-    void preferences_subtitle();
-    void preferences_video();
-    void preferences_sdi_output();
+    void preferences();
     void help_manual();
     void help_website();
     void help_keyboard();

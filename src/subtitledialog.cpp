@@ -42,11 +42,8 @@
 
 #include "gui_common.h"
 
-subtitle_dialog::subtitle_dialog(QWidget *parent) : QDialog(parent), _lock(false)
+subtitle_dialog::subtitle_dialog(QWidget *parent) : QWidget(parent), _lock(false)
 {
-    setModal(false);
-    setWindowTitle(_("Subtitle Settings"));
-
     QLabel *info_label = new QLabel(_(
                 "<p>These settings apply only to soft subtitles, not to bitmaps.<br>"
                 "Some changes require a restart of the video to take effect.</p>"));
@@ -121,9 +118,6 @@ subtitle_dialog::subtitle_dialog(QWidget *parent) : QDialog(parent), _lock(false
     _shadow_combobox->setCurrentIndex(dispatch::parameters().subtitle_shadow() == 0 ? 1 : 0);
     connect(_shadow_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(shadow_changed()));
 
-    QPushButton *ok_button = new QPushButton(_("OK"));
-    connect(ok_button, SIGNAL(clicked()), this, SLOT(close()));
-
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(info_label, 0, 0, 1, 2);
     layout->addWidget(_encoding_checkbox, 1, 0);
@@ -138,7 +132,6 @@ subtitle_dialog::subtitle_dialog(QWidget *parent) : QDialog(parent), _lock(false
     layout->addWidget(_color_button, 5, 1);
     layout->addWidget(_shadow_checkbox, 6, 0);
     layout->addWidget(_shadow_combobox, 6, 1);
-    layout->addWidget(ok_button, 7, 0, 1, 2);
     setLayout(layout);
 }
 

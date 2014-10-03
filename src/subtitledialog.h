@@ -28,7 +28,7 @@
 
 #include "config.h"
 
-#include <QDialog>
+#include <QWidget>
 #include <QList>
 #include "dispatch.h"
 
@@ -38,8 +38,9 @@ class QFontComboBox;
 class QSpinBox;
 class QDoubleSpinBox;
 class QTextCodec;
+class QPushButton;
 
-class subtitle_dialog: public QDialog, public controller
+class subtitle_dialog: public QWidget, public controller
 {
     Q_OBJECT
 
@@ -72,7 +73,7 @@ private slots:
     void shadow_changed();
 
 public:
-    subtitle_dialog(QWidget *parent);
+    subtitle_dialog(QWidget *parent = 0);
 
     virtual void receive_notification(const notification &note);
 };

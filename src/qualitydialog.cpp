@@ -27,7 +27,6 @@
 #include "config.h"
 
 #include <QLabel>
-#include <QPushButton>
 #include <QSlider>
 #include <QSpinBox>
 #include <QGridLayout>
@@ -36,11 +35,8 @@
 
 #include "gui_common.h"
 
-quality_dialog::quality_dialog(QWidget *parent) : QDialog(parent), _lock(false)
+quality_dialog::quality_dialog(QWidget *parent) : QWidget(parent), _lock(false)
 {
-    setModal(false);
-    setWindowTitle(_("Rendering Quality Adjustments"));
-
     QLabel *q_label = new QLabel(_("Rendering Quality:"));
     _q_slider = new QSlider(Qt::Horizontal);
     _q_slider->setRange(0, 4);
@@ -52,14 +48,10 @@ quality_dialog::quality_dialog(QWidget *parent) : QDialog(parent), _lock(false)
     _q_spinbox->setSingleStep(1);
     connect(_q_spinbox, SIGNAL(valueChanged(int)), this, SLOT(q_spinbox_changed(int)));
 
-    QPushButton *ok_button = new QPushButton(_("OK"));
-    connect(ok_button, SIGNAL(clicked()), this, SLOT(close()));
-
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(q_label, 0, 0);
     layout->addWidget(_q_slider, 0, 1);
     layout->addWidget(_q_spinbox, 0, 2);
-    layout->addWidget(ok_button, 1, 0, 1, 3);
     setLayout(layout);
 }
 

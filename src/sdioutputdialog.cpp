@@ -30,13 +30,10 @@
 
 #include "sdioutputdialog.h"
 
-sdi_output_dialog::sdi_output_dialog(QWidget *parent) : QDialog(parent),
+sdi_output_dialog::sdi_output_dialog(QWidget *parent) : QWidget(parent),
     _lock(false)
 {
 #if HAVE_LIBXNVCTRL
-
-    setModal(false);
-    setWindowTitle(_("SDI Output Settings"));
 
     QLabel *sdi_output_format_label = new QLabel(_("SDI Output Format:"));
     sdi_output_format_label->setToolTip(_("<p>Select output format used for SDI output.</p>"));
@@ -105,10 +102,6 @@ sdi_output_dialog::sdi_output_dialog(QWidget *parent) : QDialog(parent),
     _sdi_output_right_stereo_mode_combobox->addItem(QIcon(":icons-local/output-type-red-blue.png"), _("Red/blue glasses, monochrome"));
     connect(_sdi_output_right_stereo_mode_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(sdi_output_right_stereo_mode_changed(int)));
 
-    QPushButton *ok_button = new QPushButton(_("OK"));
-    ok_button->setDefault(true);
-    connect(ok_button, SIGNAL(clicked()), this, SLOT(close()));
-
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(sdi_output_format_label, 0, 0);
     layout->addWidget(_sdi_output_format_combobox, 0, 1, 1, 1);
@@ -116,7 +109,6 @@ sdi_output_dialog::sdi_output_dialog(QWidget *parent) : QDialog(parent),
     layout->addWidget(_sdi_output_left_stereo_mode_combobox, 1, 1);
     layout->addWidget(sdi_output_right_stereo_mode_label, 2, 0);
     layout->addWidget(_sdi_output_right_stereo_mode_combobox, 2, 1);
-    layout->addWidget(ok_button, 3, 0, 1, 2);
     setLayout(layout);
 
     update();

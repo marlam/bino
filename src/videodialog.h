@@ -28,14 +28,14 @@
 
 #include "config.h"
 
-#include <QDialog>
+#include <QWidget>
 #include "dispatch.h"
 
 class QComboBox;
 class QDoubleSpinBox;
 class QSlider;
 
-class video_dialog : public QDialog, public controller
+class video_dialog : public QWidget, public controller
 {
     Q_OBJECT
 
@@ -64,7 +64,7 @@ private slots:
     void g_spinbox_changed(double val);
 
 public:
-    video_dialog(QWidget *parent);
+    video_dialog(QWidget *parent = 0);
     void update();
 
     virtual void receive_notification(const notification &note);

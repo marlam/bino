@@ -28,13 +28,13 @@
 
 #include "config.h"
 
-#include <QDialog>
+#include <QWidget>
 #include "dispatch.h"
 
 class QSpinBox;
 class QSlider;
 
-class quality_dialog : public QDialog, public controller
+class quality_dialog : public QWidget, public controller
 {
     Q_OBJECT
 
@@ -48,7 +48,7 @@ private slots:
     void q_spinbox_changed(int val);
 
 public:
-    quality_dialog(QWidget *parent);
+    quality_dialog(QWidget *parent = 0);
 
     virtual void receive_notification(const notification &note);
 };

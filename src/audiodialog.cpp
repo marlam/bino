@@ -29,7 +29,6 @@
 #include <QLabel>
 #include <QComboBox>
 #include <QSpinBox>
-#include <QPushButton>
 #include <QGridLayout>
 
 #include "audiodialog.h"
@@ -37,11 +36,8 @@
 #include "gui_common.h"
 #include "audio_output.h"
 
-audio_dialog::audio_dialog(QWidget *parent) : QDialog(parent), _lock(false)
+audio_dialog::audio_dialog(QWidget *parent) : QWidget(parent), _lock(false)
 {
-    setModal(false);
-    setWindowTitle(_("Audio Settings"));
-
     QLabel *device_label = new QLabel(_("Audio device:"));
     device_label->setToolTip(_("<p>Select the audio device.<br>"
                 "This will take effect for the next started video.</p>"));
@@ -74,15 +70,11 @@ audio_dialog::audio_dialog(QWidget *parent) : QDialog(parent), _lock(false)
     _delay_spinbox->setValue(dispatch::parameters().audio_delay() / 1000);
     connect(_delay_spinbox, SIGNAL(valueChanged(int)), this, SLOT(delay_changed()));
 
-    QPushButton *ok_button = new QPushButton(_("OK"));
-    connect(ok_button, SIGNAL(clicked()), this, SLOT(close()));
-
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(device_label, 0, 0);
     layout->addWidget(_device_combobox, 0, 1);
     layout->addWidget(delay_label, 1, 0);
     layout->addWidget(_delay_spinbox, 1, 1);
-    layout->addWidget(ok_button, 2, 0, 1, 2);
     setLayout(layout);
 }
 

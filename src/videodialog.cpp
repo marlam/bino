@@ -31,18 +31,14 @@
 #include <QLabel>
 #include <QComboBox>
 #include <QDoubleSpinBox>
-#include <QPushButton>
 #include <QGridLayout>
 
 #include "videodialog.h"
 
 #include "gui_common.h"
 
-video_dialog::video_dialog(QWidget *parent) : QDialog(parent), _lock(false)
+video_dialog::video_dialog(QWidget *parent) : QWidget(parent), _lock(false)
 {
-    setModal(false);
-    setWindowTitle(_("Video Settings"));
-
     QLabel *crop_ar_label = new QLabel(_("Crop to aspect ratio:"));
     crop_ar_label->setToolTip(_("<p>Set the real aspect ratio of the video, so that borders can be cropped.</p>"));
     _crop_ar_combobox = new QComboBox();
@@ -120,9 +116,6 @@ video_dialog::video_dialog(QWidget *parent) : QDialog(parent), _lock(false)
     _g_spinbox->setSingleStep(0.01);
     connect(_g_spinbox, SIGNAL(valueChanged(double)), this, SLOT(g_spinbox_changed(double)));
 
-    QPushButton *ok_button = new QPushButton(_("OK"));
-    connect(ok_button, SIGNAL(clicked()), this, SLOT(close()));
-
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(crop_ar_label, 0, 0);
     layout->addWidget(_crop_ar_combobox, 0, 1, 1, 2);
@@ -137,7 +130,6 @@ video_dialog::video_dialog(QWidget *parent) : QDialog(parent), _lock(false)
     layout->addWidget(g_label, 4, 0);
     layout->addWidget(_g_slider, 4, 1);
     layout->addWidget(_g_spinbox, 4, 2);
-    layout->addWidget(ok_button, 5, 0, 1, 3);
     setLayout(layout);
 
     update();

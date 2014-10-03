@@ -79,16 +79,8 @@
 
 #include "inoutwidget.h"
 #include "controlswidget.h"
-#include "colordialog.h"
-#include "qualitydialog.h"
-#include "fullscreendialog.h"
-#include "audiodialog.h"
+#include "preferences.h"
 #include "opendevicedialog.h"
-#include "sdioutputdialog.h"
-#include "subtitledialog.h"
-#include "crosstalkdialog.h"
-#include "zoomdialog.h"
-#include "videodialog.h"
 
 #include "lib_versions.h"
 #include "audio_output.h"
@@ -111,17 +103,7 @@
 
 main_window::main_window(QSettings *settings) :
     _settings(settings),
-    _fullscreen_dialog(NULL),
-    _color_dialog(NULL),
-    _crosstalk_dialog(NULL),
-    _quality_dialog(NULL),
-    _zoom_dialog(NULL),
-    _audio_dialog(NULL),
-    _subtitle_dialog(NULL),
-    _video_dialog(NULL),
-#if HAVE_LIBXNVCTRL
-    _sdi_output_dialog(NULL),
-#endif // HAVE_LIBXNVCTRL
+    _preferences_dialog(NULL),
     _max_recent_files(5)
 {
     // Application properties
@@ -372,41 +354,9 @@ main_window::main_window(QSettings *settings) :
     QMenu *preferences_menu = menuBar()->addMenu(_("&Preferences"));
     // note: whenever the preferences menu becomes a preferences panel, don't forget
     // to preferences_act->setMenuRole(QAction::PreferencesRole) on the menu item
-    QAction *preferences_fullscreen_act = new QAction(_("&Fullscreen Settings..."), this);
-    connect(preferences_fullscreen_act, SIGNAL(triggered()), this, SLOT(preferences_fullscreen()));
-    preferences_menu->addAction(preferences_fullscreen_act);
-    QAction *preferences_colors_act = new QAction(_("Display &Color Adjustments..."), this);
-    connect(preferences_colors_act, SIGNAL(triggered()), this, SLOT(preferences_colors()));
-    preferences_menu->addAction(preferences_colors_act);
-    QAction *preferences_crosstalk_act = new QAction(_("Display Cross&talk Calibration..."), this);
-    connect(preferences_crosstalk_act, SIGNAL(triggered()), this, SLOT(preferences_crosstalk()));
-    preferences_menu->addAction(preferences_crosstalk_act);
-    preferences_menu->addSeparator();
-    QAction *preferences_quality_act = new QAction(_("Quality Adjustments..."), this);
-    connect(preferences_quality_act, SIGNAL(triggered()), this, SLOT(preferences_quality()));
-    preferences_menu->addAction(preferences_quality_act);
-    preferences_menu->addSeparator();
-    QAction *preferences_zoom_act = new QAction(_("&Zoom for wide videos..."), this);
-    connect(preferences_zoom_act, SIGNAL(triggered()), this, SLOT(preferences_zoom()));
-    preferences_menu->addAction(preferences_zoom_act);
-    preferences_menu->addSeparator();
-    QAction *preferences_audio_act = new QAction(_("&Audio Settings..."), this);
-    connect(preferences_audio_act, SIGNAL(triggered()), this, SLOT(preferences_audio()));
-    preferences_menu->addAction(preferences_audio_act);
-    preferences_menu->addSeparator();
-    QAction *preferences_subtitle_act = new QAction(_("&Subtitle Settings..."), this);
-    connect(preferences_subtitle_act, SIGNAL(triggered()), this, SLOT(preferences_subtitle()));
-    preferences_menu->addAction(preferences_subtitle_act);
-    preferences_menu->addSeparator();
-    QAction *preferences_video_act = new QAction(_("Current &Video Settings..."), this);
-    connect(preferences_video_act, SIGNAL(triggered()), this, SLOT(preferences_video()));
-    preferences_menu->addAction(preferences_video_act);
-#if HAVE_LIBXNVCTRL
-    preferences_menu->addSeparator();
-    QAction *preferences_sdi_output_act = new QAction(_("SDI &Output Settings..."), this);
-    connect(preferences_sdi_output_act, SIGNAL(triggered()), this, SLOT(preferences_sdi_output()));
-    preferences_menu->addAction(preferences_sdi_output_act);
-#endif // HAVE_LIBXNVCTRL
+    QAction *preferences_act = new QAction(_("&Settings..."), this);
+    connect(preferences_act, SIGNAL(triggered()), this, SLOT(preferences()));
+    preferences_menu->addAction(preferences_act);
     QMenu *help_menu = menuBar()->addMenu(_("&Help"));
     QAction *help_manual_act = new QAction(_("&Manual..."), this);
     help_manual_act->setShortcut(QKeySequence::HelpContents);
@@ -905,103 +855,13 @@ void main_window::file_open_device()
     open(devices, dev_request);
 }
 
-void main_window::preferences_fullscreen()
+void main_window::preferences()
 {
-    if (!_fullscreen_dialog)
-        _fullscreen_dialog = new fullscreen_dialog(this);
-    _fullscreen_dialog->show();
-    _fullscreen_dialog->raise();
-    _fullscreen_dialog->activateWindow();
-}
-
-void main_window::preferences_colors()
-{
-    if (!_color_dialog)
-    {
-        _color_dialog = new color_dialog(this);
-    }
-    _color_dialog->show();
-    _color_dialog->raise();
-    _color_dialog->activateWindow();
-}
-
-void main_window::preferences_crosstalk()
-{
-    if (!_crosstalk_dialog)
-    {
-        _crosstalk_dialog = new crosstalk_dialog(this);
-    }
-    _crosstalk_dialog->show();
-    _crosstalk_dialog->raise();
-    _crosstalk_dialog->activateWindow();
-}
-
-void main_window::preferences_quality()
-{
-    if (!_quality_dialog)
-    {
-        _quality_dialog = new quality_dialog(this);
-    }
-    _quality_dialog->show();
-    _quality_dialog->raise();
-    _quality_dialog->activateWindow();
-}
-
-void main_window::preferences_zoom()
-{
-    if (!_zoom_dialog)
-    {
-        _zoom_dialog = new zoom_dialog(this);
-    }
-    _zoom_dialog->show();
-    _zoom_dialog->raise();
-    _zoom_dialog->activateWindow();
-}
-
-void main_window::preferences_audio()
-{
-    if (!_audio_dialog)
-    {
-        _audio_dialog = new audio_dialog(this);
-    }
-    _audio_dialog->show();
-    _audio_dialog->raise();
-    _audio_dialog->activateWindow();
-}
-
-void main_window::preferences_subtitle()
-{
-    if (!_subtitle_dialog)
-    {
-        _subtitle_dialog = new subtitle_dialog(this);
-    }
-    _subtitle_dialog->show();
-    _subtitle_dialog->raise();
-    _subtitle_dialog->activateWindow();
-}
-
-void main_window::preferences_video()
-{
-    if (!_video_dialog)
-    {
-        _video_dialog = new video_dialog(this);
-    }
-    _video_dialog->show();
-    _video_dialog->raise();
-    _video_dialog->activateWindow();
-}
-
-void main_window::preferences_sdi_output()
-{
-#if HAVE_LIBXNVCTRL
-    if (!_sdi_output_dialog)
-    {
-        _sdi_output_dialog = new sdi_output_dialog(this);
-    }
-    _sdi_output_dialog->show();
-    _sdi_output_dialog->raise();
-    _sdi_output_dialog->activateWindow();
-#endif // HAVE_LIBXNVCTRL
+    if (!_preferences_dialog)
+        _preferences_dialog = new preferences_dialog(this);
+    _preferences_dialog->show();
+    _preferences_dialog->raise();
+    _preferences_dialog->activateWindow();
 }
 
 void main_window::help_manual()

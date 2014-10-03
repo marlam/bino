@@ -23,33 +23,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CROSSTALKDIALOG_H
-#define CROSSTALKDIALOG_H
+#ifndef PREFERENCESDIALOG_H
+#define PREFERENCESDIALOG_H
 
 #include "config.h"
 
-#include <QWidget>
-#include "dispatch.h"
+#include <QDialog>
 
-class QDoubleSpinBox;
+class QIcon;
+class QListWidgetItem;
+class QListWidget;
+class QStackedWidget;
 
-class crosstalk_dialog : public QWidget, public controller
+class preferences_dialog : public QDialog
 {
     Q_OBJECT
 
 private:
-    bool _lock;
-    QDoubleSpinBox *_r_spinbox;
-    QDoubleSpinBox *_g_spinbox;
-    QDoubleSpinBox *_b_spinbox;
+    QListWidget * list_widget;
+    QStackedWidget * stacked_widget;
 
+    void add_preferences_page(QWidget * dialog, const QString & title, const QString & icon_name);
+    
 private slots:
-    void spinbox_changed();
 
 public:
-    crosstalk_dialog(QWidget *parent = 0);
-
-    virtual void receive_notification(const notification &note);
+    preferences_dialog(QWidget *parent);
 };
 
 #endif

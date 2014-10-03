@@ -34,14 +34,13 @@
 #include <QCheckBox>
 #include <QLineEdit>
 #include <QDesktopWidget>
-#include <QPushButton>
 #include <QCloseEvent>
 
 #include "gui_common.h"
 
 #include "fullscreendialog.h"
 
-fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent)
+fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QWidget(parent)
 {
     const int screen_count = QApplication::desktop()->screenCount();
 
@@ -49,9 +48,6 @@ fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent)
      * dialog) in that its settings only take effect when the dialog is closed,
      * and not immediately. This is necessary to allow the user full flexibility
      * in defining the screens used in fullscreen mode. */
-
-    setModal(false);
-    setWindowTitle(_("Fullscreen/Multiscreen Settings"));
 
     QLabel* lbl = new QLabel(_("Configure fullscreen mode:"));
     lbl->setToolTip(_("<p>Select the screens to use in fullscreen mode.</p>"));
@@ -103,9 +99,6 @@ fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent)
     _inhibit_screensaver_box = new QCheckBox(_("inhibit the screensaver"));
     _inhibit_screensaver_box->setToolTip(_("<p>Inhibit the screensaver during fullscreen playback.</p>"));
 
-    QPushButton* ok_btn = new QPushButton(_("OK"));
-    connect(ok_btn, SIGNAL(clicked()), this, SLOT(close()));
-
     QGridLayout *layout0 = new QGridLayout();
     layout0->addWidget(lbl, 0, 0, 1, 3);
     layout0->addWidget(_single_btn, 1, 0);
@@ -123,7 +116,6 @@ fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QDialog(parent)
     layout0->addWidget(_3d_ready_sync_box, 9, 0, 1, 3);
     layout0->addWidget(_inhibit_screensaver_box, 10, 0, 1, 3);
     QGridLayout *layout1 = new QGridLayout();
-    layout1->addWidget(ok_btn, 0, 0);
     QGridLayout *layout = new QGridLayout();
     layout->addLayout(layout0, 0, 0);
     layout->addLayout(layout1, 1, 0);

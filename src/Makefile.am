@@ -33,6 +33,7 @@ bino_SOURCES = \
 	videodialog.h videodialog.cpp \
 	zoomdialog.h zoomdialog.cpp \
 	colordialog.h colordialog.cpp \
+	preferences.h preferences.cpp \
 	gui.h gui.cpp \
 	lib_versions.h lib_versions.cpp \
 	main.cpp

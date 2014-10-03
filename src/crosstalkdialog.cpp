@@ -28,17 +28,13 @@
 
 #include <QLabel>
 #include <QDoubleSpinBox>
-#include <QPushButton>
 #include <QGridLayout>
 
 #include "crosstalkdialog.h"
 #include "gui_common.h"
 
-crosstalk_dialog::crosstalk_dialog(QWidget *parent) : QDialog(parent), _lock(false)
+crosstalk_dialog::crosstalk_dialog(QWidget *parent) : QWidget(parent), _lock(false)
 {
-    setModal(false);
-    setWindowTitle(_("Display Crosstalk Calibration"));
-
     /* TRANSLATORS: Please keep the lines short using <br> where necessary. */
     QLabel *rtfm_label = new QLabel(_("<p>Please read the manual to find out<br>"
                 "how to measure the crosstalk levels<br>"
@@ -66,9 +62,6 @@ crosstalk_dialog::crosstalk_dialog(QWidget *parent) : QDialog(parent), _lock(fal
     _b_spinbox->setSingleStep(0.01);
     connect(_b_spinbox, SIGNAL(valueChanged(double)), this, SLOT(spinbox_changed()));
 
-    QPushButton *ok_button = new QPushButton(_("OK"));
-    connect(ok_button, SIGNAL(clicked()), this, SLOT(close()));
-
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(rtfm_label, 0, 0, 1, 2);
     layout->addWidget(r_label, 2, 0);
@@ -77,7 +70,6 @@ crosstalk_dialog::crosstalk_dialog(QWidget *parent) : QDialog(parent), _lock(fal
     layout->addWidget(_g_spinbox, 3, 1);
     layout->addWidget(b_label, 4, 0);
     layout->addWidget(_b_spinbox, 4, 1);
-    layout->addWidget(ok_button, 5, 0, 1, 2);
     setLayout(layout);
 }
 

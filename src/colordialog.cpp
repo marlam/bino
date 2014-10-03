@@ -29,18 +29,14 @@
 #include <QLabel>
 #include <QSlider>
 #include <QDoubleSpinBox>
-#include <QPushButton>
 #include <QGridLayout>
 
 #include "colordialog.h"
 
 #include "gui_common.h"
 
-color_dialog::color_dialog(QWidget *parent) : QDialog(parent), _lock(false)
+color_dialog::color_dialog(QWidget *parent) : QWidget(parent), _lock(false)
 {
-    setModal(false);
-    setWindowTitle(_("Display Color Adjustments"));
-
     QLabel *c_label = new QLabel(_("Contrast:"));
     _c_slider = new QSlider(Qt::Horizontal);
     _c_slider->setRange(-1000, 1000);
@@ -86,9 +82,6 @@ color_dialog::color_dialog(QWidget *parent) : QDialog(parent), _lock(false)
     _s_spinbox->setSingleStep(0.01);
     connect(_s_spinbox, SIGNAL(valueChanged(double)), this, SLOT(s_spinbox_changed(double)));
 
-    QPushButton *ok_button = new QPushButton(_("OK"));
-    connect(ok_button, SIGNAL(clicked()), this, SLOT(close()));
-
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(c_label, 0, 0);
     layout->addWidget(_c_slider, 0, 1);
@@ -102,7 +95,6 @@ color_dialog::color_dialog(QWidget *parent) : QDialog(parent), _lock(false)
     layout->addWidget(s_label, 3, 0);
     layout->addWidget(_s_slider, 3, 1);
     layout->addWidget(_s_spinbox, 3, 2);
-    layout->addWidget(ok_button, 4, 0, 1, 3);
     setLayout(layout);
 }
 

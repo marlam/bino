@@ -28,7 +28,7 @@
 
 #include "config.h"
 
-#include <QDialog>
+#include <QWidget>
 #include "dispatch.h"
 
 class QRadioButton;
@@ -36,7 +36,7 @@ class QComboBox;
 class QLineEdit;
 class QCheckBox;
 
-class fullscreen_dialog : public QDialog, public controller
+class fullscreen_dialog : public QWidget, public controller
 {
     Q_OBJECT
 
@@ -56,7 +56,7 @@ private:
     QCheckBox* _inhibit_screensaver_box;
 
 public:
-    fullscreen_dialog(QWidget* parent);
+    fullscreen_dialog(QWidget* parent = 0);
     void closeEvent(QCloseEvent* e);
 };
 

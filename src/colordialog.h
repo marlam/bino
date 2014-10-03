@@ -28,13 +28,13 @@
 
 #include "config.h"
 
-#include <QDialog>
+#include <QWidget>
 #include "dispatch.h"
 
 class QDoubleSpinBox;
 class QSlider;
 
-class color_dialog : public QDialog, public controller
+class color_dialog : public QWidget, public controller
 {
     Q_OBJECT
 
@@ -60,7 +60,7 @@ private slots:
     void s_spinbox_changed(double val);
 
 public:
-    color_dialog(QWidget *parent);
+    color_dialog(QWidget *parent = 0);
 
     virtual void receive_notification(const notification &note);
 };

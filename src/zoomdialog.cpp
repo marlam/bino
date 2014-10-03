@@ -36,11 +36,8 @@
 
 #include "gui_common.h"
 
-zoom_dialog::zoom_dialog(QWidget *parent) : QDialog(parent), _lock(false)
+zoom_dialog::zoom_dialog(QWidget *parent) : QWidget(parent), _lock(false)
 {
-    setModal(false);
-    setWindowTitle(_("Zoom for wide videos"));
-
     QLabel *info_label = new QLabel(_(
                 "<p>Set zoom level for videos that<br>"
                 "are wider than the screen:<br>"
@@ -61,15 +58,11 @@ zoom_dialog::zoom_dialog(QWidget *parent) : QDialog(parent), _lock(false)
     _z_spinbox->setToolTip(z_label->toolTip());
     connect(_z_spinbox, SIGNAL(valueChanged(double)), this, SLOT(z_spinbox_changed(double)));
 
-    QPushButton *ok_button = new QPushButton(_("OK"));
-    connect(ok_button, SIGNAL(clicked()), this, SLOT(close()));
-
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(info_label, 0, 0, 1, 3);
     layout->addWidget(z_label, 1, 0);
     layout->addWidget(_z_slider, 1, 1);
     layout->addWidget(_z_spinbox, 1, 2);
-    layout->addWidget(ok_button, 2, 0, 1, 3);
     setLayout(layout);
 }
 

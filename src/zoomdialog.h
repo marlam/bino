@@ -28,13 +28,13 @@
 
 #include "config.h"
 
-#include <QDialog>
+#include <QWidget>
 #include "dispatch.h"
 
 class QDoubleSpinBox;
 class QSlider;
 
-class zoom_dialog : public QDialog, public controller
+class zoom_dialog : public QWidget, public controller
 {
     Q_OBJECT
 
@@ -48,7 +48,7 @@ private slots:
     void z_spinbox_changed(double val);
 
 public:
-    zoom_dialog(QWidget *parent);
+    zoom_dialog(QWidget *parent = 0);
 
     virtual void receive_notification(const notification &note);
 };

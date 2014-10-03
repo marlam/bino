@@ -28,13 +28,13 @@
 
 #include "config.h"
 
-#include <QDialog>
+#include <QWidget>
 #include "dispatch.h"
 
 class QComboBox;
 class QSpinBox;
 
-class audio_dialog : public QDialog, public controller
+class audio_dialog : public QWidget, public controller
 {
     Q_OBJECT
 
@@ -48,7 +48,7 @@ private slots:
     void delay_changed();
 
 public:
-    audio_dialog(QWidget *parent);
+    audio_dialog(QWidget *parent = 0);
 
     virtual void receive_notification(const notification &note);
 };

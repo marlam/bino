@@ -28,10 +28,10 @@
 
 #include "config.h"
 
-#include <QDialog>
+#include <QWidget>
 #include "dispatch.h"
 
-class sdi_output_dialog : public QDialog, public controller
+class sdi_output_dialog : public QWidget, public controller
 {
     Q_OBJECT
 
@@ -51,7 +51,7 @@ private slots:
     void sdi_output_right_stereo_mode_changed(int val);
 
 public:
-    sdi_output_dialog(QWidget *parent);
+    sdi_output_dialog(QWidget *parent = 0);
     void update();
 
     virtual void receive_notification(const notification &note);
