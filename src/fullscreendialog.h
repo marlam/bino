@@ -23,33 +23,41 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GUI_H
-#define GUI_H
+#ifndef FULLSCREENDIALOG_H
+#define FULLSCREENDIALOG_H
 
 #include "config.h"
 
-class QSettings;
+#include <QDialog>
+#include "dispatch.h"
 
-#include "mainwindow.h"
+class QRadioButton;
+class QComboBox;
+class QLineEdit;
+class QCheckBox;
 
-class video_container_widget;
-
-class gui
+class fullscreen_dialog : public QDialog, public controller
 {
+    Q_OBJECT
+
 private:
-    main_window *_main_window;
-    QSettings *_settings;
+    QRadioButton* _single_btn;
+    QComboBox* _single_box;
+    QRadioButton* _dual_btn;
+    QComboBox* _dual_box0;
+    QComboBox* _dual_box1;
+    QRadioButton* _multi_btn;
+    QLineEdit* _multi_edt;
+    QCheckBox* _flip_left_box;
+    QCheckBox* _flop_left_box;
+    QCheckBox* _flip_right_box;
+    QCheckBox* _flop_right_box;
+    QCheckBox* _3d_ready_sync_box;
+    QCheckBox* _inhibit_screensaver_box;
 
 public:
-    gui();
-    ~gui();
-
-    void open(const open_input_data& input_data);
-
-    class video_container_widget* container_widget()
-    {
-        return _main_window->container_widget();
-    }
+    fullscreen_dialog(QWidget* parent);
+    void closeEvent(QCloseEvent* e);
 };
 
 #endif

@@ -23,33 +23,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GUI_H
-#define GUI_H
+#ifndef QUALITYDIALOG_H
+#define QUALITYDIALOG_H
 
 #include "config.h"
 
-class QSettings;
+#include <QDialog>
+#include "dispatch.h"
 
-#include "mainwindow.h"
+class QSpinBox;
+class QSlider;
 
-class video_container_widget;
-
-class gui
+class quality_dialog : public QDialog, public controller
 {
+    Q_OBJECT
+
 private:
-    main_window *_main_window;
-    QSettings *_settings;
+    bool _lock;
+    QSpinBox *_q_spinbox;
+    QSlider *_q_slider;
+
+private slots:
+    void q_slider_changed(int val);
+    void q_spinbox_changed(int val);
 
 public:
-    gui();
-    ~gui();
+    quality_dialog(QWidget *parent);
 
-    void open(const open_input_data& input_data);
-
-    class video_container_widget* container_widget()
-    {
-        return _main_window->container_widget();
-    }
+    virtual void receive_notification(const notification &note);
 };
 
 #endif

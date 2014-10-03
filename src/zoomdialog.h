@@ -23,33 +23,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GUI_H
-#define GUI_H
+#ifndef ZOOMDIALOG_H
+#define ZOOMDIALOG_H
 
 #include "config.h"
 
-class QSettings;
+#include <QDialog>
+#include "dispatch.h"
 
-#include "mainwindow.h"
+class QDoubleSpinBox;
+class QSlider;
 
-class video_container_widget;
-
-class gui
+class zoom_dialog : public QDialog, public controller
 {
+    Q_OBJECT
+
 private:
-    main_window *_main_window;
-    QSettings *_settings;
+    bool _lock;
+    QDoubleSpinBox *_z_spinbox;
+    QSlider *_z_slider;
+
+private slots:
+    void z_slider_changed(int val);
+    void z_spinbox_changed(double val);
 
 public:
-    gui();
-    ~gui();
+    zoom_dialog(QWidget *parent);
 
-    void open(const open_input_data& input_data);
-
-    class video_container_widget* container_widget()
-    {
-        return _main_window->container_widget();
-    }
+    virtual void receive_notification(const notification &note);
 };
 
 #endif

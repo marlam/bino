@@ -23,33 +23,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GUI_H
-#define GUI_H
+#ifndef SDIOUTPUTDIALOG_H
+#define SDIOUTPUTDIALOG_H
 
 #include "config.h"
 
-class QSettings;
+#include <QDialog>
+#include "dispatch.h"
 
-#include "mainwindow.h"
-
-class video_container_widget;
-
-class gui
+class sdi_output_dialog : public QDialog, public controller
 {
+    Q_OBJECT
+
 private:
-    main_window *_main_window;
-    QSettings *_settings;
+    bool _lock;
+    QComboBox *_sdi_output_format_combobox;
+    QComboBox *_sdi_output_left_stereo_mode_combobox;
+    QComboBox *_sdi_output_right_stereo_mode_combobox;
+
+    void set_sdi_output_format(int val);
+    void set_sdi_output_left_stereo_mode(parameters::stereo_mode_t stereo_mode);
+    void set_sdi_output_right_stereo_mode(parameters::stereo_mode_t stereo_mode);
+
+private slots:
+    void sdi_output_format_changed(int val);
+    void sdi_output_left_stereo_mode_changed(int val);
+    void sdi_output_right_stereo_mode_changed(int val);
 
 public:
-    gui();
-    ~gui();
+    sdi_output_dialog(QWidget *parent);
+    void update();
 
-    void open(const open_input_data& input_data);
-
-    class video_container_widget* container_widget()
-    {
-        return _main_window->container_widget();
-    }
+    virtual void receive_notification(const notification &note);
 };
 
 #endif

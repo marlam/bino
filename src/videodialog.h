@@ -23,33 +23,51 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GUI_H
-#define GUI_H
+#ifndef VIDEODIALOG_H
+#define VIDEODIALOG_H
 
 #include "config.h"
 
-class QSettings;
+#include <QDialog>
+#include "dispatch.h"
 
-#include "mainwindow.h"
+class QComboBox;
+class QDoubleSpinBox;
+class QSlider;
 
-class video_container_widget;
-
-class gui
+class video_dialog : public QDialog, public controller
 {
+    Q_OBJECT
+
 private:
-    main_window *_main_window;
-    QSettings *_settings;
+    bool _lock;
+    QComboBox *_crop_ar_combobox;
+    QComboBox *_source_ar_combobox;
+    QDoubleSpinBox *_p_spinbox;
+    QSlider *_p_slider;
+    QDoubleSpinBox *_sp_spinbox;
+    QSlider *_sp_slider;
+    QDoubleSpinBox *_g_spinbox;
+    QSlider *_g_slider;
+
+    void set_crop_ar(float val);
+    void set_source_ar(float val);
+
+private slots:
+    void crop_ar_changed();
+    void source_ar_changed();
+    void p_slider_changed(int val);
+    void p_spinbox_changed(double val);
+    void sp_slider_changed(int val);
+    void sp_spinbox_changed(double val);
+    void g_slider_changed(int val);
+    void g_spinbox_changed(double val);
 
 public:
-    gui();
-    ~gui();
+    video_dialog(QWidget *parent);
+    void update();
 
-    void open(const open_input_data& input_data);
-
-    class video_container_widget* container_widget()
-    {
-        return _main_window->container_widget();
-    }
+    virtual void receive_notification(const notification &note);
 };
 
 #endif

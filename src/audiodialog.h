@@ -23,33 +23,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GUI_H
-#define GUI_H
+#ifndef AUDIODIALOG_H
+#define AUDIODIALOG_H
 
 #include "config.h"
 
-class QSettings;
+#include <QDialog>
+#include "dispatch.h"
 
-#include "mainwindow.h"
+class QComboBox;
+class QSpinBox;
 
-class video_container_widget;
-
-class gui
+class audio_dialog : public QDialog, public controller
 {
+    Q_OBJECT
+
 private:
-    main_window *_main_window;
-    QSettings *_settings;
+    bool _lock;
+    QComboBox *_device_combobox;
+    QSpinBox *_delay_spinbox;
+
+private slots:
+    void device_changed();
+    void delay_changed();
 
 public:
-    gui();
-    ~gui();
+    audio_dialog(QWidget *parent);
 
-    void open(const open_input_data& input_data);
-
-    class video_container_widget* container_widget()
-    {
-        return _main_window->container_widget();
-    }
+    virtual void receive_notification(const notification &note);
 };
 
 #endif

@@ -23,33 +23,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GUI_H
-#define GUI_H
+#ifndef CROSSTALKDIALOG_H
+#define CROSSTALKDIALOG_H
 
 #include "config.h"
 
-class QSettings;
+#include <QDialog>
+#include "dispatch.h"
 
-#include "mainwindow.h"
+class QDoubleSpinBox;
 
-class video_container_widget;
-
-class gui
+class crosstalk_dialog : public QDialog, public controller
 {
+    Q_OBJECT
+
 private:
-    main_window *_main_window;
-    QSettings *_settings;
+    bool _lock;
+    QDoubleSpinBox *_r_spinbox;
+    QDoubleSpinBox *_g_spinbox;
+    QDoubleSpinBox *_b_spinbox;
+
+private slots:
+    void spinbox_changed();
 
 public:
-    gui();
-    ~gui();
+    crosstalk_dialog(QWidget *parent);
 
-    void open(const open_input_data& input_data);
-
-    class video_container_widget* container_widget()
-    {
-        return _main_window->container_widget();
-    }
+    virtual void receive_notification(const notification &note);
 };
 
 #endif
