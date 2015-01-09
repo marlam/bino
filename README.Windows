@@ -13,6 +13,7 @@ development version instead.
    $ cd /path/to
    $ git clone -b master https://github.com/mxe/mxe.git
    $ cd mxe
+   $ [Edit settings.mk and set MXE_TARGETS to i686-w64-mingw32.static]
    $ make gettext pthreads ffmpeg libass openal glew qt nsis
 
    (Please read the MXE documentation if you have trouble with this step.)
@@ -23,7 +24,8 @@ development version instead.
 2. Build Bino
 
    $ cd /path/to/bino
-   $ ./configure --host=i686-pc-mingw32.static --build=`build-aux/config.guess`
+   $ ./configure --host=i686-w64-mingw32.static --build=`build-aux/config.guess` \
+     LDFLAGS="-Wl,--allow-multiple-definition"
    $ make
 
    Build the installer:
