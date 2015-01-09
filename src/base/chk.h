@@ -17,19 +17,19 @@
  */
 
 /**
- * \file intcheck.h
+ * \file chk.h
  *
  * This file provides functions that operate on integers and check
  * for over- and underflow.
  */
 
-#ifndef INTCHECK_H
-#define INTCHECK_H
+#ifndef CHK_H
+#define CHK_H
 
+#include <cstring>
 #include <cerrno>
 #include <limits>
-
-#include "exc.h"
+#include <stdexcept>
 
 
 /**
@@ -37,7 +37,8 @@
  * \return      Casted integer value.
  *
  * Cast the integer value \a x to the given type.
- * If over- or underflow would occur, this function throws exc(ERANGE).
+ * If over- or underflow would occur, this function throws
+ * std::overflow_error or std::underflow_error.
  * Example: size_t a = checked_cast<size_t>(b);
  */
 template<typename TO, typename FROM>
@@ -48,33 +49,41 @@ TO checked_cast(FROM x)
     // b) avoid compiler warnings like 'comparison of signed and unsigned'
     if (std::numeric_limits<FROM>::is_signed && std::numeric_limits<TO>::is_signed)
     {
-        if (sizeof(FROM) > sizeof(TO)
-                && (x < static_cast<FROM>(std::numeric_limits<TO>::min())
-                    || x > static_cast<FROM>(std::numeric_limits<TO>::max())))
+        if (sizeof(FROM) > sizeof(TO))
         {
-            throw exc(ERANGE);
+            if (x < static_cast<FROM>(std::numeric_limits<TO>::min()))
+            {
+                throw std::underflow_error(std::strerror(ERANGE));
+            }
+            else if (x > static_cast<FROM>(std::numeric_limits<TO>::max()))
+            {
+                throw std::overflow_error(std::strerror(ERANGE));
+            }
         }
     }
     else if (!std::numeric_limits<FROM>::is_signed && !std::numeric_limits<TO>::is_signed)
     {
         if (sizeof(FROM) >= sizeof(TO) && x > static_cast<FROM>(std::numeric_limits<TO>::max()))
         {
-            throw exc(ERANGE);
+            throw std::overflow_error(std::strerror(ERANGE));
         }
     }
     else if (std::numeric_limits<FROM>::is_signed)      // TO is unsigned
     {
-        if (x < static_cast<FROM>(std::numeric_limits<TO>::min())
-                || (sizeof(FROM) > sizeof(TO) && x > static_cast<FROM>(std::numeric_limits<TO>::max())))
+        if (x < static_cast<FROM>(std::numeric_limits<TO>::min()))
         {
-            throw exc(ERANGE);
+            throw std::underflow_error(std::strerror(ERANGE));
+        }
+        else if (sizeof(FROM) > sizeof(TO) && x > static_cast<FROM>(std::numeric_limits<TO>::max()))
+        {
+            throw std::overflow_error(std::strerror(ERANGE));
         }
     }
     else        // FROM is unsigned, TO is signed
     {
         if (sizeof(FROM) >= sizeof(TO) && x > static_cast<FROM>(std::numeric_limits<TO>::max()))
         {
-            throw exc(ERANGE);
+            throw std::overflow_error(std::strerror(ERANGE));
         }
     }
     return x;
@@ -86,7 +95,8 @@ TO checked_cast(FROM x)
  * \return      a + b
  *
  * Return a + b.
- * If over- or underflow would occur, this function throws exc(ERANGE).
+ * If over- or underflow would occur, this function throws
+ * std::overflow_error or std::underflow_error.
  */
 template<typename T>
 T checked_add(T a, T b)
@@ -95,14 +105,14 @@ T checked_add(T a, T b)
     {
         if (a < std::numeric_limits<T>::min() - b)
         {
-            throw exc(ERANGE);
+            throw std::underflow_error(std::strerror(ERANGE));
         }
     }
     else
     {
         if (a > std::numeric_limits<T>::max() - b)
         {
-            throw exc(ERANGE);
+            throw std::overflow_error(std::strerror(ERANGE));
         }
     }
     return a + b;
@@ -114,7 +124,8 @@ T checked_add(T a, T b)
  * \return      a - b
  *
  * Return a - b.
- * If over- or underflow would occur, this function throws exc(ERANGE).
+ * If over- or underflow would occur, this function throws
+ * std::overflow_error or std::underflow_error.
  */
 template<typename T>
 T checked_sub(T a, T b)
@@ -123,14 +134,14 @@ T checked_sub(T a, T b)
     {
         if (a > std::numeric_limits<T>::max() + b)
         {
-            throw exc(ERANGE);
+            throw std::overflow_error(std::strerror(ERANGE));
         }
     }
     else
     {
         if (a < std::numeric_limits<T>::min() + b)
         {
-            throw exc(ERANGE);
+            throw std::underflow_error(std::strerror(ERANGE));
         }
     }
     return a - b;
@@ -142,43 +153,56 @@ T checked_sub(T a, T b)
  * \return      a * b
  *
  * Return a * b.
- * If over- or underflow would occur, this function throws exc(ERANGE).
+ * If over- or underflow would occur, this function throws
+ * std::overflow_error or std::underflow_error.
  */
 template<typename T>
 T checked_mul(T a, T b)
 {
-    if (std::numeric_limits<T>::is_signed)
+    /* Adapted from the comp.lang.c FAQ, see http://c-faq.com/misc/sd26.html */
+    if (std::numeric_limits<T>::is_signed && a != static_cast<T>(0) && b != static_cast<T>(0))
     {
-        /* Adapted from the comp.lang.c FAQ, see http://c-faq.com/misc/sd26.html */
         if (a == std::numeric_limits<T>::min())
         {
-            if (b != static_cast<T>(0) && b != static_cast<T>(1))
+            if (b > static_cast<T>(1))
             {
-                throw exc(ERANGE);
+                throw std::underflow_error(std::strerror(ERANGE));
+            }
+            else if (b != static_cast<T>(1))
+            {
+                throw std::overflow_error(std::strerror(ERANGE));
             }
         }
         else if (b == std::numeric_limits<T>::min())
         {
-            if (a != static_cast<T>(0) && a != static_cast<T>(1))
+            if (a > static_cast<T>(1))
             {
-                throw exc(ERANGE);
+                throw std::underflow_error(std::strerror(ERANGE));
+            }
+            else if (a != static_cast<T>(1))
+            {
+                throw std::overflow_error(std::strerror(ERANGE));
             }
         }
         else
         {
-            if (a < static_cast<T>(1))
+            T aa = (a >= static_cast<T>(1) ? a : -a);
+            T bb = (b >= static_cast<T>(1) ? b : -b);
+            if (std::numeric_limits<T>::max() / bb < aa)
             {
-                a = -a;
-            }
-            if (b < static_cast<T>(1))
-            {
-                b = -b;
+                if ((a >= static_cast<T>(1)) != (b >= static_cast<T>(1)))
+                    throw std::underflow_error(std::strerror(ERANGE));
+                else
+                    throw std::overflow_error(std::strerror(ERANGE));
             }
         }
     }
-    if (!(b == static_cast<T>(0) || !(std::numeric_limits<T>::max() / b < a)))
+    else
     {
-        throw exc(ERANGE);
+        if (!(b == static_cast<T>(0) || !(std::numeric_limits<T>::max() / b < a)))
+        {
+            throw std::overflow_error(std::strerror(ERANGE));
+        }
     }
     return a * b;
 }
@@ -189,7 +213,8 @@ T checked_mul(T a, T b)
  * \return      a / b
  *
  * Return a / b.
- * If over- or underflow would occur, this function throws exc(ERANGE).
+ * If over- or underflow would occur, this function throws
+ * std::overflow_error or std::underflow_error.
  */
 template<typename T>
 T checked_div(T a, T b)
@@ -199,7 +224,7 @@ T checked_div(T a, T b)
                 && a == std::numeric_limits<T>::min()
                 && b == static_cast<T>(-1)))
     {
-        throw exc(ERANGE);
+        throw std::overflow_error(std::strerror(ERANGE));
     }
     return a / b;
 }
@@ -209,14 +234,15 @@ T checked_div(T a, T b)
  * \return      abs(a)
  *
  * Return the absolute value of a.
- * If overflow would occur, this function throws exc(ERANGE).
+ * If over- or underflow would occur, this function throws
+ * std::overflow_error or std::underflow_error.
  */
 template<typename T>
 T checked_abs(T a)
 {
     if (std::numeric_limits<T>::is_signed && a == std::numeric_limits<T>::min())
     {
-        throw exc(ERANGE);
+        throw std::overflow_error(std::strerror(ERANGE));
     }
     return a < 0 ? -a : a;
 }

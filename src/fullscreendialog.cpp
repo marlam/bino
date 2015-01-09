@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -36,9 +36,9 @@
 #include <QDesktopWidget>
 #include <QCloseEvent>
 
-#include "gui_common.h"
-
 #include "fullscreendialog.h"
+
+#include "gui_common.h"
 
 fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QWidget(parent)
 {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012
+ * Copyright (C) 2012, 2015
  * Binocle <http://binocle.com/>
  * All rights reserved.
  *
@@ -40,8 +40,8 @@
 #include "NVCtrlLib.h"
 #include "NVCtrl.h"
 
-#include "msg.h"
-#include "dbg.h"
+#include "base/msg.h"
+#include "base/dbg.h"
 
 int
 ScanHW (Display * dpy, HGPUNV * gpuList)

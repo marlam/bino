@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,14 +22,15 @@
  * Timer.
  */
 
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef TMR_H
+#define TMR_H
 
-#include <stdint.h>
-
-
-namespace timer
+class timer
 {
+public:
+
+    /* All timers are always in microseconds. */
+
     enum type {
         realtime,
         monotonic,
@@ -37,7 +38,12 @@ namespace timer
         thread_cpu
     };
 
-    int64_t get_microseconds(type type);
+    static long long get(type type);
+
+    static float to_seconds(long long microseconds)
+    {
+        return microseconds / 1e6f;
+    }
 };
 
 #endif

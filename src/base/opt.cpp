@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2009, 2010, 2011, 2012
+ * Copyright (C) 2006, 2007, 2009, 2010, 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,17 +25,17 @@
 # include <set>
 #endif
 
-#include "gettext.h"
-#define _(string) gettext(string)
-
 #include <getopt.h>
 #undef no_argument
 #undef required_argument
 #undef optional_argument
 
-#include "dbg.h"
-#include "msg.h"
-#include "opt.h"
+#include "base/dbg.h"
+#include "base/msg.h"
+#include "base/opt.h"
+
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 
 namespace opt

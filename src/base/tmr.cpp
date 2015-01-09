@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,22 +19,22 @@
 #include "config.h"
 
 #include <cerrno>
-#ifdef HAVE_CLOCK_GETTIME
+#if HAVE_CLOCK_GETTIME
 # include <time.h>
 #else
 # include <sys/time.h>
 #endif
 
-#include "gettext.h"
+#include "base/exc.h"
+#include "base/tmr.h"
+
+#include "base/gettext.h"
 #define _(string) gettext(string)
 
-#include "exc.h"
-#include "timer.h"
 
-
-int64_t timer::get_microseconds(timer::type t)
+long long timer::get(timer::type t)
 {
-#ifdef HAVE_CLOCK_GETTIME
+#if HAVE_CLOCK_GETTIME
 
     struct timespec time;
     int r;
@@ -61,7 +61,7 @@ int64_t timer::get_microseconds(timer::type t)
     }
     if (r != 0)
         throw exc(_("Cannot get time."), errno);
-    return static_cast<int64_t>(time.tv_sec) * 1000000 + time.tv_nsec / 1000;
+    return static_cast<long long>(time.tv_sec) * 1000000 + time.tv_nsec / 1000;
 
 #else
 
@@ -70,13 +70,13 @@ int64_t timer::get_microseconds(timer::type t)
         int r = gettimeofday(&tv, NULL);
         if (r != 0)
             throw exc(_("Cannot get time."), errno);
-        return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
+        return static_cast<long long>(tv.tv_sec) * 1000000 + tv.tv_usec;
     } else if (t == process_cpu) {
         // In W32, clock() starts with zero on program start, so we do not need
         // to subtract a start value.
         // XXX: Is this also true on Mac OS X?
         clock_t c = clock();
-        return (c * static_cast<int64_t>(1000000) / CLOCKS_PER_SEC);
+        return (c * static_cast<long long>(1000000) / CLOCKS_PER_SEC);
     } else {
         throw exc(_("Cannot get time."), ENOSYS);
     }

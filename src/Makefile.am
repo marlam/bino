@@ -146,7 +146,7 @@ CLEANFILES = $(BUILT_SOURCES)
 
 DEFS += -DHTMLDIR=\"$(htmldir)\" -DLOCALEDIR=\"$(localedir)\"
 
-AM_CPPFLAGS = -I$(top_srcdir)/src/base \
+AM_CPPFLAGS = \
 	$(libavformat_CFLAGS) $(libavdevice_CFLAGS) $(libswscale_CFLAGS) $(libass_CFLAGS) \
 	$(libopenal_CFLAGS) $(libgl_CFLAGS) $(libglewmx_CFLAGS) $(libqtopengl_CFLAGS)
 

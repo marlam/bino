@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  * Gabriele Greco <gabrielegreco@gmail.com>
  *
@@ -23,17 +23,17 @@
 
 #include <limits>
 
-#include "gettext.h"
-#define _(string) gettext(string)
-
 #include "audio_output.h"
 #include "lib_versions.h"
 
-#include "exc.h"
-#include "str.h"
-#include "msg.h"
-#include "timer.h"
-#include "dbg.h"
+#include "base/exc.h"
+#include "base/str.h"
+#include "base/msg.h"
+#include "base/tmr.h"
+#include "base/dbg.h"
+
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 
 /* This code is adapted from the alffmpeg.c example available here:
@@ -231,13 +231,13 @@ int64_t audio_output::status(bool *need_data)
         if (timestamp != _last_timestamp)
         {
             _last_timestamp = timestamp;
-            _ext_timer_at_last_timestamp = timer::get_microseconds(timer::monotonic);
+            _ext_timer_at_last_timestamp = timer::get(timer::monotonic);
             _last_reported_timestamp = std::max(_last_reported_timestamp, timestamp);
             return _last_reported_timestamp;
         }
         else
         {
-            _last_reported_timestamp = _last_timestamp + (timer::get_microseconds(timer::monotonic) - _ext_timer_at_last_timestamp);
+            _last_reported_timestamp = _last_timestamp + (timer::get(timer::monotonic) - _ext_timer_at_last_timestamp);
             return _last_reported_timestamp;
         }
     }
@@ -440,7 +440,7 @@ int64_t audio_output::start()
     }
     _past_time = 0;
     _last_timestamp = 0;
-    _ext_timer_at_last_timestamp = timer::get_microseconds(timer::monotonic);
+    _ext_timer_at_last_timestamp = timer::get(timer::monotonic);
     _last_reported_timestamp = _last_timestamp;
     return _last_timestamp;
 }

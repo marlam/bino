@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2015
  * Martin Lambers <marlam@marlam.de>
  * Alexey Osipov <lion-simba@pridelands.ru>
  * Joe <cuchac@email.cz>
@@ -25,14 +25,14 @@
 #include <vector>
 #include <unistd.h>
 
-#include "gettext.h"
-#define _(string) gettext(string)
+#include "base/exc.h"
+#include "base/dbg.h"
+#include "base/str.h"
+#include "base/msg.h"
+#include "base/tmr.h"
 
-#include "exc.h"
-#include "dbg.h"
-#include "str.h"
-#include "msg.h"
-#include "timer.h"
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 #include "audio_output.h"
 #include "video_output.h"
@@ -157,12 +157,12 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
         }
         else
         {
-            _master_time_start = timer::get_microseconds(timer::monotonic);
+            _master_time_start = timer::get(timer::monotonic);
             _master_time_pos = _video_pos;
             _current_pos = _video_pos;
         }
         _start_pos = _current_pos;
-        _fps_mark_time = timer::get_microseconds(timer::monotonic);
+        _fps_mark_time = timer::get(timer::monotonic);
         _frames_shown = 0;
         _running = true;
         if (global_dispatch->get_media_input()->initial_skip() > 0)
@@ -259,7 +259,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
         }
         else
         {
-            _master_time_start = timer::get_microseconds(timer::monotonic);
+            _master_time_start = timer::get(timer::monotonic);
             _master_time_pos = _video_pos;
             _current_pos = _video_pos;
         }
@@ -291,7 +291,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
             }
             else
             {
-                _pause_start = timer::get_microseconds(timer::monotonic);
+                _pause_start = timer::get(timer::monotonic);
             }
             _in_pause = true;
             global_dispatch->set_pausing(true);
@@ -376,7 +376,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
             }
             else
             {
-                _master_time_start += timer::get_microseconds(timer::monotonic) - _pause_start;
+                _master_time_start += timer::get(timer::monotonic) - _pause_start;
             }
             _in_pause = false;
             global_dispatch->set_pausing(false);
@@ -414,7 +414,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
         else
         {
             // Use our own timer
-            _master_time_current = timer::get_microseconds(timer::monotonic) - _master_time_start
+            _master_time_current = timer::get(timer::monotonic) - _master_time_start
                 + _master_time_pos;
         }
 
@@ -449,7 +449,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
                     _frames_shown++;
                     if (_frames_shown == 100)   //show fps each 100 frames
                     {
-                        int64_t now = timer::get_microseconds(timer::monotonic);
+                        int64_t now = timer::get(timer::monotonic);
                         msg::inf(_("FPS: %.2f"), static_cast<float>(_frames_shown) / ((now - _fps_mark_time) / 1e6f));
                         _fps_mark_time = now;
                         _frames_shown = 0;

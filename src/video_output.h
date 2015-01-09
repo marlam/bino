@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2015
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -29,7 +29,7 @@
 
 #include <GL/glew.h>
 
-#include "blob.h"
+#include "base/blb.h"
 
 #include "media_data.h"
 #include "subtitle_renderer.h"

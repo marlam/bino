@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008, 2009, 2010, 2011, 2012
+ * Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -54,7 +54,7 @@ public:
 
 namespace s11n
 {
-    // Functions needed to human-readable save/load:
+    // Functions needed for human-readable save/load:
     // - When saving a group of values contained in a serializable class, use startgroup()/endgroup()
     // - When loading back, get the next name/value pair and interpret it
     void startgroup(std::ostream& os, const char* name);
@@ -196,13 +196,11 @@ namespace s11n
     template<typename T>
     void load(std::istream& is, std::vector<T>& x)
     {
-        x.clear();
         size_t s;
         load(is, s);
+        x.resize(s);
         for (size_t i = 0; i < s; i++) {
-            T v;
-            load(is, v);
-            x.push_back(v);
+            load(is, x[i]);
         }
     }
 
@@ -215,15 +213,13 @@ namespace s11n
         load(ss, name, value);
         if (name == "size")
             load(value, z);
+        x.resize(z);
         size_t i = 0;
         while (ss.good() && i < z) {
             load(ss, name, value);
-            T v;
-            load(value, v);
-            x.push_back(v);
+            load(value, x[i]);
             i++;
         }
-        x.resize(z);
     }
 
     // TODO: add more STL containers as needed

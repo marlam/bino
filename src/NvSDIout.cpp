@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012
+ * Copyright (C) 2012, 2015
  * Binocle <http://binocle.com/>
  * All rights reserved.
  *
@@ -37,11 +37,11 @@
 
 #include "NVCtrlLib.h"
 
-#include "gettext.h"
-#define _(string) gettext(string)
+#include "base/msg.h"
+#include "base/dbg.h"
 
-#include "msg.h"
-#include "dbg.h"
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 #include "NvSDIutils.h"
 

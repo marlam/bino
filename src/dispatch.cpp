@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
  * Frédéric Bour <frederic.bour@lakaban.net>
@@ -28,15 +28,15 @@
 #include <cctype>
 #include <unistd.h>
 
-#include "gettext.h"
-#define _(string) gettext(string)
+#include "base/exc.h"
+#include "base/dbg.h"
+#include "base/msg.h"
+#include "base/str.h"
+#include "base/tmr.h"
+#include "base/pth.h"
 
-#include "exc.h"
-#include "dbg.h"
-#include "msg.h"
-#include "str.h"
-#include "timer.h"
-#include "thread.h"
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 #include "gui.h"
 #include "audio_output.h"

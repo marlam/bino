@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -71,10 +71,6 @@
 #include <QStackedWidget>
 #include <QMimeData>
 
-#include "gettext.h"
-// Qt requires strings from gettext to be in UTF-8 encoding.
-#define _(string) (str::convert(gettext(string), str::localcharset(), "UTF-8").c_str())
-
 #include "mainwindow.h"
 
 #include "inoutwidget.h"
@@ -87,9 +83,13 @@
 #include "media_input.h"
 #include "video_output_qt.h"
 
-#include "dbg.h"
-#include "msg.h"
-#include "str.h"
+#include "base/dbg.h"
+#include "base/msg.h"
+#include "base/str.h"
+
+#include "base/gettext.h"
+// Qt requires strings from gettext to be in UTF-8 encoding.
+#define _(string) (str::convert(gettext(string), str::localcharset(), "UTF-8").c_str())
 
 #if HAVE_LIBXNVCTRL
 #  include "NVCtrl.h"

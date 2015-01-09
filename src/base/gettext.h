@@ -277,4 +277,10 @@ dcnpgettext_expr (const char *domain,
   return (n == 1 ? msgid : msgid_plural);
 }
 
+#ifdef vasprintf
+# undef vasprintf
+#endif
+#ifdef asprintf
+# undef asprintf
+#endif
 #endif /* _LIBGETTEXT_H */

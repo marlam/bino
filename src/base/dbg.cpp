@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -34,11 +34,11 @@
 # include <signal.h>
 #endif
 
-#include "gettext.h"
-#define _(string) gettext(string)
+#include "base/msg.h"
+#include "base/dbg.h"
 
-#include "msg.h"
-#include "dbg.h"
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 
 namespace dbg

@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -54,14 +54,14 @@
 #include <AvailabilityMacros.h>
 #endif
 
-#include "gettext.h"
-#define _(string) gettext(string)
+#include "base/exc.h"
+#include "base/msg.h"
+#include "base/str.h"
+#include "base/dbg.h"
+#include "base/tmr.h"
 
-#include "exc.h"
-#include "msg.h"
-#include "str.h"
-#include "dbg.h"
-#include "timer.h"
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 #include "video_output_qt.h"
 #include "lib_versions.h"
@@ -672,7 +672,7 @@ int64_t video_output_qt::wait_for_subtitle_renderer()
     {
         return 0;
     }
-    int64_t wait_start = timer::get_microseconds(timer::monotonic);
+    int64_t wait_start = timer::get(timer::monotonic);
     exc init_exception;
     QDialog *mbox = NULL;
     // Show a dialog only in GUI mode
@@ -714,7 +714,7 @@ int64_t video_output_qt::wait_for_subtitle_renderer()
     {
         throw init_exception;
     }
-    int64_t wait_stop = timer::get_microseconds(timer::monotonic);
+    int64_t wait_stop = timer::get(timer::monotonic);
     return (wait_stop - wait_start);
 }
 

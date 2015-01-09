@@ -3,10 +3,10 @@ src/base/dbg.cpp
 src/base/exc.cpp
 src/base/msg.cpp
 src/base/opt.cpp
-src/base/s11n.cpp
+src/base/ser.cpp
 src/base/str.cpp
-src/base/thread.cpp
-src/base/timer.cpp
+src/base/pth.cpp
+src/base/tmr.cpp
 src/audio_output.cpp
 src/command_file.cpp
 src/dispatch.cpp

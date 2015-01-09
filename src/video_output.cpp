@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -31,15 +31,15 @@
 
 #include <GL/glew.h>
 
-#include "gettext.h"
-#define _(string) gettext(string)
+#include "base/exc.h"
+#include "base/msg.h"
+#include "base/str.h"
+#include "base/tmr.h"
+#include "base/blb.h"
+#include "base/dbg.h"
 
-#include "exc.h"
-#include "msg.h"
-#include "str.h"
-#include "timer.h"
-#include "blob.h"
-#include "dbg.h"
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 #include "color_matrix.h"
 #include "video_output.h"

@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2011, 2012
+ * Copyright (C) 2011, 2012, 2015
  * Martin Lambers <marlam@marlam.de>
  * Joe <cuchac@email.cz>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
@@ -42,15 +42,15 @@ extern "C"
 #include <ass/ass.h>
 }
 
-#include "gettext.h"
-#define _(string) gettext(string)
+#include "base/dbg.h"
+#include "base/exc.h"
+#include "base/str.h"
+#include "base/blb.h"
+#include "base/msg.h"
+#include "base/pth.h"
 
-#include "dbg.h"
-#include "exc.h"
-#include "str.h"
-#include "blob.h"
-#include "msg.h"
-#include "thread.h"
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 #include "subtitle_renderer.h"
 
@@ -94,7 +94,7 @@ subtitle_renderer::subtitle_renderer() :
 
 subtitle_renderer::~subtitle_renderer()
 {
-    if (_initializer.is_running())
+    if (_initializer.running())
     {
         try
         {
@@ -253,7 +253,7 @@ void subtitle_renderer::init()
 
 bool subtitle_renderer::is_initialized()
 {
-    if (_initializer.is_running())
+    if (_initializer.running())
     {
         return false;
     }

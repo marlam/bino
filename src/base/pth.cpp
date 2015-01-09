@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011, 2012
+ * Copyright (C) 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,10 +23,10 @@
 #include <pthread.h>
 #include <sched.h>
 
-#include "gettext.h"
-#define _(string) gettext(string)
+#include "base/pth.h"
 
-#include "thread.h"
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 
 const pthread_mutex_t mutex::_mutex_initializer = PTHREAD_MUTEX_INITIALIZER;
@@ -282,7 +282,7 @@ thread* thread_group::get_next_finished_thread()
     if (__finished_threads.size() == 0) {
         std::vector<thread*>::iterator it = __active_threads.begin();
         while (it != __active_threads.end()) {
-            if (!(*it)->is_running()) {
+            if (!(*it)->running()) {
                 __finished_threads.push_back(*it);
                 it = __active_threads.erase(it);
             } else {

@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  * Joe <cuchac@email.cz>
  * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
@@ -28,8 +28,8 @@
 #include <sstream>
 #include <stdint.h>
 
-#include "s11n.h"
-#include "thread.h"
+#include "base/ser.h"
+#include "base/pth.h"
 
 #include "media_data.h"
 

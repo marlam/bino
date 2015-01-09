@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015
  * Martin Lambers <marlam@marlam.de>
  * Stefan Eilemann <eile@eyescale.ch>
  *
@@ -29,12 +29,12 @@
 
 #include <eq/eq.h>
 
-#include "gettext.h"
-#define _(string) gettext(string)
+#include "base/dbg.h"
+#include "base/msg.h"
+#include "base/ser.h"
 
-#include "dbg.h"
-#include "msg.h"
-#include "s11n.h"
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 #include "dispatch.h"
 #include "media_input.h"

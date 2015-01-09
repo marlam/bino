@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2012
+ * Copyright (C) 2012, 2015
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,12 +27,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "gettext.h"
-#define _(string) gettext(string)
+#include "base/exc.h"
+#include "base/str.h"
+#include "base/tmr.h"
 
-#include "exc.h"
-#include "str.h"
-#include "timer.h"
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 #include "command_file.h"
 
@@ -101,7 +101,7 @@ void command_file::process_events()
         return;
 
     if (_wait_until >= 0) {
-        int64_t now = timer::get_microseconds(timer::monotonic);
+        int64_t now = timer::get(timer::monotonic);
         if (now < _wait_until)
             return;
     }
@@ -161,7 +161,7 @@ void command_file::process_events()
                     _wait_until_stop = true;
                     return;
                 } else if (str::to(tokens[1], &seconds)) {
-                    _wait_until = timer::get_microseconds(timer::monotonic);
+                    _wait_until = timer::get(timer::monotonic);
                     if (seconds > 0.0f)
                         _wait_until += seconds * 1e6f;
                     return;

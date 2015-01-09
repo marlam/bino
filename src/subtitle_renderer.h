@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2011, 2012
+ * Copyright (C) 2011, 2012, 2015
  * Martin Lambers <marlam@marlam.de>
  * Joe <cuchac@email.cz>
  *
@@ -31,7 +31,7 @@ extern "C"
 #include <ass/ass.h>
 }
 
-#include "thread.h"
+#include "base/pth.h"
 
 #include "media_data.h"
 

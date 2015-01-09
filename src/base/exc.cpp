@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012
+ * Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,11 +21,11 @@
 #include <cstring>
 #include <cerrno>
 
-#include "gettext.h"
-#define _(string) gettext(string)
+#include "base/msg.h"
+#include "base/exc.h"
 
-#include "msg.h"
-#include "exc.h"
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 
 const char *exc::_fallback_str = strerror(ENOMEM);

@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -45,15 +45,15 @@ extern "C"
 #  include <windows.h>
 #endif
 
-#include "gettext.h"
-#define _(string) gettext(string)
+#include "base/dbg.h"
+#include "base/blb.h"
+#include "base/exc.h"
+#include "base/msg.h"
+#include "base/str.h"
+#include "base/pth.h"
 
-#include "dbg.h"
-#include "blob.h"
-#include "exc.h"
-#include "msg.h"
-#include "str.h"
-#include "thread.h"
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 #include "media_object.h"
 

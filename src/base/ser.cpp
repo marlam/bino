@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008, 2009, 2010, 2011, 2012
+ * Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,9 +20,9 @@
 
 #include <cstring>
 
-#include "str.h"
+#include "base/str.h"
 
-#include "s11n.h"
+#include "base/ser.h"
 
 
 static const char* low_char_encodings[] = {

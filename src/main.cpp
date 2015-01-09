@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015
  * Martin Lambers <marlam@marlam.de>
  * Stefan Eilemann <eile@eyescale.ch>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
@@ -44,13 +44,13 @@
 #include <QtGlobal>
 #include <QTextCodec>
 
-#include "gettext.h"
-#define _(string) gettext(string)
+#include "base/dbg.h"
+#include "base/msg.h"
+#include "base/str.h"
+#include "base/opt.h"
 
-#include "dbg.h"
-#include "msg.h"
-#include "str.h"
-#include "opt.h"
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 #include "dispatch.h"
 #include "audio_output.h"

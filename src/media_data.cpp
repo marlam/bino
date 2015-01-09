@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015
  * Martin Lambers <marlam@marlam.de>
  * Joe <joe@wpj.cz>
  * D. Matz <bandregent@yahoo.de>
@@ -28,14 +28,14 @@
 #include <cstring>
 #include <cmath>
 
-#include "gettext.h"
-#define _(string) gettext(string)
-
 #include "media_data.h"
 
-#include "str.h"
-#include "msg.h"
-#include "dbg.h"
+#include "base/str.h"
+#include "base/msg.h"
+#include "base/dbg.h"
+
+#include "base/gettext.h"
+#define _(string) gettext(string)
 
 #if HAVE_LIBXNVCTRL
 #include "NVCtrl.h"
