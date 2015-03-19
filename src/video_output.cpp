@@ -841,13 +841,13 @@ void video_output::color_init(int index, const parameters& params, const video_f
     }
 
     std::string color_fs_src(VIDEO_OUTPUT_COLOR_FS_GLSL_STR);
-    str::replace(color_fs_src, "$quality", quality_str);
-    str::replace(color_fs_src, "$layout", layout_str);
-    str::replace(color_fs_src, "$color_space", color_space_str);
-    str::replace(color_fs_src, "$value_range", value_range_str);
-    str::replace(color_fs_src, "$chroma_offset_x", chroma_offset_x_str);
-    str::replace(color_fs_src, "$chroma_offset_y", chroma_offset_y_str);
-    str::replace(color_fs_src, "$storage", storage_str);
+    color_fs_src = str::replace(color_fs_src, "$quality", quality_str);
+    color_fs_src = str::replace(color_fs_src, "$layout", layout_str);
+    color_fs_src = str::replace(color_fs_src, "$color_space", color_space_str);
+    color_fs_src = str::replace(color_fs_src, "$value_range", value_range_str);
+    color_fs_src = str::replace(color_fs_src, "$chroma_offset_x", chroma_offset_x_str);
+    color_fs_src = str::replace(color_fs_src, "$chroma_offset_y", chroma_offset_y_str);
+    color_fs_src = str::replace(color_fs_src, "$storage", storage_str);
     _color_prg[index] = xglCreateProgram("video_output_color", "", color_fs_src);
     xglLinkProgram("video_output_color", _color_prg[index]);
     for (int i = 0; i < (frame.stereo_layout == parameters::layout_mono ? 1 : 2); i++) {
@@ -926,11 +926,11 @@ void video_output::render_init()
     std::string coloradjust_str = (render_needs_coloradjust(_render_params) ? "coloradjust_enabled" : "coloradjust_disabled");
     std::string ghostbust_str = (render_needs_ghostbust(_render_params) ? "ghostbust_enabled" : "ghostbust_disabled");
     std::string render_fs_src(VIDEO_OUTPUT_RENDER_FS_GLSL_STR);
-    str::replace(render_fs_src, "$quality", quality_str);
-    str::replace(render_fs_src, "$mode", mode_str);
-    str::replace(render_fs_src, "$subtitle", subtitle_str);
-    str::replace(render_fs_src, "$coloradjust", coloradjust_str);
-    str::replace(render_fs_src, "$ghostbust", ghostbust_str);
+    render_fs_src = str::replace(render_fs_src, "$quality", quality_str);
+    render_fs_src = str::replace(render_fs_src, "$mode", mode_str);
+    render_fs_src = str::replace(render_fs_src, "$subtitle", subtitle_str);
+    render_fs_src = str::replace(render_fs_src, "$coloradjust", coloradjust_str);
+    render_fs_src = str::replace(render_fs_src, "$ghostbust", ghostbust_str);
     _render_prg = xglCreateProgram("video_output_render", "", render_fs_src);
     xglLinkProgram("video_output_render", _render_prg);
     uint32_t dummy_texture = 0;
