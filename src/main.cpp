@@ -165,12 +165,12 @@ static void qt_msg_handler(QtMsgType type, const QMessageLogContext&, const QStr
 }
 
 // Handle a log file that may be set via the --log-file option; see below
-static FILE *logf = NULL;
+static FILE *logfile = NULL;
 static void close_log_file(void)
 {
-    if (logf)
+    if (logfile)
     {
-        (void)std::fclose(logf);
+        (void)std::fclose(logfile);
     }
 }
 
@@ -396,14 +396,14 @@ int main(int argc, char *argv[])
     }
     if (!log_file.value().empty())
     {
-        logf = std::fopen(log_file.value().c_str(), "a");
-        if (!logf)
+        logfile = std::fopen(log_file.value().c_str(), "a");
+        if (!logfile)
         {
             msg::err(_("%s: %s"), log_file.value().c_str(), std::strerror(errno));
             return 1;
         }
         std::atexit(close_log_file);
-        msg::set_file(logf);
+        msg::set_file(logfile);
         msg::set_columns(80);
     }
 
