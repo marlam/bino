@@ -255,12 +255,12 @@ else
     if test -z "$MOC"; then
         AC_CHECK_TOOLS([MOC], [moc-qt5 moc])
     fi
-    dnl Qt5 on Linux requires -fPIE / -pie with gcc, but does not record this fact
+    dnl Qt5 on Linux requires -fPIC / -pie with gcc, but does not record this fact
     dnl in the pkg-config files (which is a bug in my opinion). Work around that.
-    AC_MSG_CHECKING([whether Qt needs -fPIE and -pie])
+    AC_MSG_CHECKING([whether Qt needs -fPIC and -pie])
     if test -n "`$PKG_CONFIG --variable=qt_config Qt5Core | $GREP reduce_relocations`"; then
         AC_MSG_RESULT([yes])
-        CXXFLAGS="$CXXFLAGS -fPIE"
+        CXXFLAGS="$CXXFLAGS -fPIC"
         LDFLAGS="$LDFLAGS -pie"
     else
         AC_MSG_RESULT([no])
