@@ -1,7 +1,6 @@
 Bino uses the following libraries:
 
 - GNU Gettext for internationalization: http://www.gnu.org/software/gettext/
-- PThreads for multithreading: http://sourceware.org/pthreads-win32/
 - FFmpeg for video and audio decoding: http://ffmpeg.org/
 - LibASS for subtitle rendering: http://code.google.com/p/libass/
 - OpenAL Soft for audio output: http://kcat.strangesoft.net/openal.html

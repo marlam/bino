@@ -14,7 +14,7 @@ development version instead.
    $ git clone -b master https://github.com/mxe/mxe.git
    $ cd mxe
    $ [Edit settings.mk and set MXE_TARGETS to i686-w64-mingw32.static]
-   $ make gettext pthreads ffmpeg libass openal glew qt nsis
+   $ make gettext ffmpeg libass openal glew qt nsis
 
    (Please read the MXE documentation if you have trouble with this step.)
 
