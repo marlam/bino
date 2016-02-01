@@ -1,5 +1,6 @@
-New in next version:
+New in version 1.6.2:
 - The preferences dialogues were restructured.
+- Qt5 is now the default instead of Qt4.
 
 New in version 1.6.0:
 - Support for Qt5 (but Qt4 remains the default for now).
