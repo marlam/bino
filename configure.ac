@@ -4,7 +4,7 @@ dnl configure.ac
 dnl
 dnl This file is part of bino, a 3D video player.
 dnl
-dnl Copyright (C) 2010, 2011, 2012, 2013, 2014
+dnl Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016
 dnl Martin Lambers <marlam@marlam.de>
 dnl Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
 dnl Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
@@ -197,11 +197,11 @@ fi
 dnl Qt
 qt_version=""
 AC_ARG_WITH([qt-version],
-    [AS_HELP_STRING([--with-qt-version], [Choose Qt version. Currently 4 or 5; 4 is the default.])],
-    [qt_version="$withval"], [qt_version="4"])
+    [AS_HELP_STRING([--with-qt-version], [Choose Qt version. Currently 4 or 5; 5 is the default.])],
+    [qt_version="$withval"], [qt_version="5"])
 if test "$qt_version" != "4" -a "$qt_version" != "5"; then
-    AC_MSG_WARN([unknown Qt version requested, falling back to Qt 4.])
-    qt_version="4"
+    AC_MSG_WARN([unknown Qt version requested, falling back to Qt 5.])
+    qt_version="5"
 fi
 AC_ARG_VAR([RCC], [rcc command])
 AC_ARG_VAR([MOC], [moc command])
