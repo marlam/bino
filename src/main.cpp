@@ -58,7 +58,7 @@
 # include "player_equalizer.h"
 #endif
 #include "command_file.h"
-#if HAVE_LIBLIRCCLIENT
+#if HAVE_LIRC
 # include "lirc.h"
 #endif
 #include "lib_versions.h"
@@ -774,7 +774,7 @@ int main(int argc, char *argv[])
             command_files.push_back(new command_file(read_commands.values()[i]));
             command_files[i]->init();
         }
-#if HAVE_LIBLIRCCLIENT
+#if HAVE_LIRC
         lircclient lirc(PACKAGE, lirc_config.values());
         try {
             lirc.init();
@@ -797,7 +797,7 @@ int main(int argc, char *argv[])
         } else {
             QApplication::exec();
         }
-#if HAVE_LIBLIRCCLIENT
+#if HAVE_LIRC
         lirc.deinit();
 #endif
         global_dispatch.deinit();

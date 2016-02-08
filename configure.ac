@@ -353,26 +353,31 @@ dnl and ignore a failure.
 PKG_CHECK_MODULES([libgl], [gl >= 0.0], [HAVE_LIBGL=1], [HAVE_LIBGL=0])
 
 dnl LIRC
-LIBLIRCCLIENT_PKGCONFIG_VERSION="\"\""
-AC_ARG_WITH([liblircclient],
-    [AS_HELP_STRING([--without-liblircclient], [Disable remote control support via liblircclient (enabled by default)])],
+LIRC_PKGCONFIG_VERSION="\"\""
+AC_ARG_WITH([lirc],
+    [AS_HELP_STRING([--without-lirc], [Disable remote control support via lirc (enabled by default)])],
     [if test "$withval" = "yes"; then lirc="yes"; else lirc="no"; fi], [lirc="yes"])
 if test "$lirc" = "yes"; then
-    PKG_CHECK_MODULES([liblircclient], [liblircclient0 >= 0.0], [HAVE_LIBLIRCCLIENT=1], [HAVE_LIBLIRCCLIENT=0])
-    if test "$HAVE_LIBLIRCCLIENT" != "1"; then
-        AC_MSG_WARN([optional library liblircclient not found:])
-        AC_MSG_WARN([$liblircclient_PKG_ERRORS])
-        AC_MSG_WARN([liblircclient is provided by LIRC; Debian package: liblircclient-dev])
-	lirc="no"
+    PKG_CHECK_MODULES([lirc], [lirc >= 0.0], [HAVE_LIRC=1], [HAVE_LIRC=0])
+    if test "$HAVE_LIRC" != "1"; then
+        PKG_CHECK_MODULES([lirc], [liblircclient0 >= 0.0], [HAVE_LIRC=1], [HAVE_LIRC=0])
+        if test "$HAVE_LIRC" != "1"; then
+            AC_MSG_WARN([optional library lirc not found:])
+            AC_MSG_WARN([$lirc_PKG_ERRORS])
+            AC_MSG_WARN([lirc is provided by LIRC; Debian package: liblircclient-dev])
+            lirc="no"
+        else
+            LIRC_PKGCONFIG_VERSION="\"`$PKG_CONFIG --modversion liblircclient0`\""
+        fi
     else
-        LIBLIRCCLIENT_PKGCONFIG_VERSION="\"`$PKG_CONFIG --modversion liblircclient0`\""
+        LIRC_PKGCONFIG_VERSION="\"`$PKG_CONFIG --modversion lirc`\""
     fi
 else
-    HAVE_LIBLIRCCLIENT=0
+    HAVE_LIRC=0
 fi
-AC_DEFINE_UNQUOTED([HAVE_LIBLIRCCLIENT], [$HAVE_LIBLIRCCLIENT], [Have liblircclient?])
-AC_DEFINE_UNQUOTED([LIBLIRCCLIENT_PKGCONFIG_VERSION], [$LIBLIRCCLIENT_PKGCONFIG_VERSION], [liblircclient version])
-AM_CONDITIONAL([HAVE_LIBLIRCCLIENT], [test "$HAVE_LIBLIRCCLIENT" = "1"])
+AC_DEFINE_UNQUOTED([HAVE_LIRC], [$HAVE_LIRC], [Have lirc?])
+AC_DEFINE_UNQUOTED([LIRC_PKGCONFIG_VERSION], [$LIRC_PKGCONFIG_VERSION], [lirc version])
+AM_CONDITIONAL([HAVE_LIRC], [test "$HAVE_LIRC" = "1"])
 
 dnl Icon and Menu tools. It is ok if these are missing.
 GTK_UPDATE_ICON_CACHE=""
@@ -393,7 +398,7 @@ if test "$am_cv_func_iconv" != "yes" \
     -o "$HAVE_LIBGLEWMX" != "1" \
     -o \( "$equalizer" = "yes" -a "$HAVE_LIBEQUALIZER" != "1" \) \
     -o \( "$xnvctrl" = "yes" -a "$HAVE_LIBXNVCTRL" != "1" \) \
-    -o \( "$lirc" = "yes" -a "$HAVE_LIBLIRCCLIENT" != "1" \) ; then
+    -o \( "$lirc" = "yes" -a "$HAVE_LIRC" != "1" \) ; then
     AC_MSG_ERROR([One or more libraries were not found. See messages above.])
 fi
 
@@ -412,4 +417,4 @@ echo "Configuration:"
 echo "NLS:                      $USE_NLS"
 echo "Equalizer:                $equalizer"
 echo "NVIDIA Quadro SDI output: $xnvctrl"
-echo "liblircclient:            $lirc"
+echo "lirc:                     $lirc"

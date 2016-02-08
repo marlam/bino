@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2015
+ * Copyright (C) 2010, 2011, 2015, 2016
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -59,7 +59,7 @@ static std::vector<std::string> openal_v;
 static std::vector<std::string> opengl_v;
 static std::vector<std::string> glew_v;
 static std::vector<std::string> equalizer_v;
-static std::vector<std::string> lircclient_v;
+static std::vector<std::string> lirc_v;
 static std::vector<std::string> qt_v;
 
 static void ffmpeg_versions()
@@ -185,14 +185,14 @@ static void equalizer_versions()
     }
 }
 
-static void lircclient_versions()
+static void lirc_versions()
 {
-    if (lircclient_v.size() == 0)
+    if (lirc_v.size() == 0)
     {
-#if HAVE_LIBLIRCCLIENT
-        lircclient_v.push_back(LIBLIRCCLIENT_PKGCONFIG_VERSION);
+#if HAVE_LIRC
+        lirc_v.push_back(LIRC_PKGCONFIG_VERSION);
 #else
-        lircclient_v.push_back(_("not used"));
+        lirc_v.push_back(_("not used"));
 #endif
     }
 }
@@ -213,7 +213,7 @@ std::vector<std::string> lib_versions(bool html)
     opengl_versions();
     glew_versions();
     equalizer_versions();
-    lircclient_versions();
+    lirc_versions();
     qt_versions();
 
     std::vector<std::string> v;
@@ -256,10 +256,10 @@ std::vector<std::string> lib_versions(bool html)
             v.push_back(std::string("<br>") + equalizer_v[i]);
         }
         v.push_back("</li>");
-        v.push_back("<li><a href=\"http://www.lirc.org/\">LIRC Client</a>");
-        for (size_t i = 0; i < lircclient_v.size(); i++)
+        v.push_back("<li><a href=\"http://www.lirc.org/\">LIRC</a>");
+        for (size_t i = 0; i < lirc_v.size(); i++)
         {
-            v.push_back(std::string("<br>") + lircclient_v[i]);
+            v.push_back(std::string("<br>") + lirc_v[i]);
         }
         v.push_back("</li>");
         v.push_back("<li><a href=\"http://qt.nokia.com/\">Qt</a>");
@@ -302,10 +302,10 @@ std::vector<std::string> lib_versions(bool html)
         {
             v.push_back(std::string("    ") + equalizer_v[i]);
         }
-        v.push_back("LIRC Client:");
-        for (size_t i = 0; i < lircclient_v.size(); i++)
+        v.push_back("LIRC:");
+        for (size_t i = 0; i < lirc_v.size(); i++)
         {
-            v.push_back(std::string("    ") + lircclient_v[i]);
+            v.push_back(std::string("    ") + lirc_v[i]);
         }
         v.push_back("Qt:");
         for (size_t i = 0; i < qt_v.size(); i++)
