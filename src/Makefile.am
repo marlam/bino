@@ -22,6 +22,7 @@ bino_SOURCES = \
 	audio_output.h audio_output.cpp \
 	player.h player.cpp \
 	mainwindow.h mainwindow.cpp \
+	gui_common.h \
 	inoutwidget.h inoutwidget.cpp \
 	controlswidget.h controlswidget.cpp \
 	crosstalkdialog.h crosstalkdialog.cpp \
