@@ -119,11 +119,6 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])], [], [CPPFLAGS="$CPPFLAGS_bak"; LDFLAGS=
 dnl - str
 AM_ICONV([])
 AC_CHECK_FUNCS([nl_langinfo vasprintf wcswidth])
-AC_CHECK_TYPES([int128_t, uint128_t], [], [], [[#include <cstdint>]])
-AC_CHECK_TYPES([__int128, unsigned __int128])
-AC_CHECK_TYPES([__float128])
-AC_SEARCH_LIBS([strtoflt128], [quadmath])
-dnl TODO: define LONG_DOUBLE_IS_IEEE_754_QUAD on systems where this is true
 dnl - sys
 dnl AC_CHECK_FUNCS([nanosleep sysconf sched_yield])
 dnl - tmr
