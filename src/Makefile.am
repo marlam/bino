@@ -174,9 +174,10 @@ bino_SOURCES += logo/bino_logo.ico
 endif
 
 if HAVE_LIBXNVCTRL
-bino_SOURCES += NvSDIout.cpp NvSDIout.h NvSDIutils.cpp NvSDIutils.h
+bino_SOURCES += NvSDIout.cpp NvSDIout.h NvSDIutils.cpp NvSDIutils.h sdioutputdialog.cpp sdioutputdialog.h
 AM_CPPFLAGS += $(xnvctrl_CFLAGS)
 bino_LDADD += $(xnvctrl_LDFLAGS) -lXNVCtrl
+nodist_bino_SOURCES += sdioutputdialog-moc.cpp
 endif
 
 iconsdatadir = $(datadir)/icons/hicolor

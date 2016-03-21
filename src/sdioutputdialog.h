@@ -31,6 +31,8 @@
 #include <QWidget>
 #include "dispatch.h"
 
+class QComboBox;
+
 class sdi_output_dialog : public QWidget, public controller
 {
     Q_OBJECT
