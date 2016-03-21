@@ -37,8 +37,8 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include "NVCtrlLib.h"
-#include "NVCtrl.h"
+#include <NVCtrl/NVCtrlLib.h>
+#include <NVCtrl/NVCtrl.h>
 
 #include "base/msg.h"
 #include "base/dbg.h"

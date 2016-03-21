@@ -35,7 +35,7 @@
 
 #include <GL/glx.h>
 
-#include "NVCtrlLib.h"
+#include <NVCtrl/NVCtrlLib.h>
 
 #include "base/msg.h"
 #include "base/dbg.h"
@@ -103,11 +103,21 @@ void CNvSDIout::init(int videoFormat) {
         return;
     }
 
+    // Get GLX functions
+    myGLXEnumerateVideoDevicesNV = reinterpret_cast<unsigned int* (*)(Display*, int, int*)>(
+            glXGetProcAddress(reinterpret_cast<const GLubyte*>("glXEnumerateVideoDevicesNV")));
+    myGLXBindVideoDeviceNV = reinterpret_cast<int (*)(Display*, unsigned int, unsigned int, const int*)>(
+            glXGetProcAddress(reinterpret_cast<const GLubyte*>("glXBindVideoDeviceNV")));
+    if (!myGLXEnumerateVideoDevicesNV || !myGLXBindVideoDeviceNV) {
+        msg::err("Error: cannot get GLX functions");
+        return;
+    }
+
     // Enumerate available video devices.
     unsigned int *videoDevices;
     int numDevices;
 
-    videoDevices = glXEnumerateVideoDevicesNV(dpy, outputOptions.xscreen, &numDevices);
+    videoDevices = myGLXEnumerateVideoDevicesNV(dpy, outputOptions.xscreen, &numDevices);
     if (!videoDevices || numDevices <= 0) {
         XFree(videoDevices);
         msg::err("Error: could not enumerate video devices");
@@ -117,7 +127,7 @@ void CNvSDIout::init(int videoFormat) {
     msg::inf("Number of sdi devices: %d\n", numDevices);
 
     // Bind first video device
-    int retCode = glXBindVideoDeviceNV(dpy, 1, videoDevices[0], NULL);
+    int retCode = myGLXBindVideoDeviceNV(dpy, 1, videoDevices[0], NULL);
     if (retCode != Success) {
         XFree(videoDevices);
         msg::wrn("Error: could not bind SDI video device");
@@ -200,7 +210,7 @@ void CNvSDIout::deinit() {
         }
     }
 
-    if (Success != glXBindVideoDeviceNV(_display, 1, 0, NULL))
+    if (Success != myGLXBindVideoDeviceNV(_display, 1, 0, NULL))
     {
         msg::wrn("Error: could not release video device");
     }

@@ -176,7 +176,7 @@ endif
 if HAVE_LIBXNVCTRL
 bino_SOURCES += NvSDIout.cpp NvSDIout.h NvSDIutils.cpp NvSDIutils.h sdioutputdialog.cpp sdioutputdialog.h
 AM_CPPFLAGS += $(xnvctrl_CFLAGS)
-bino_LDADD += $(xnvctrl_LDFLAGS) -lXNVCtrl
+bino_LDADD += $(xnvctrl_LDFLAGS) -lXNVCtrl -lX11
 nodist_bino_SOURCES += sdioutputdialog-moc.cpp
 endif
 

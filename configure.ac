@@ -318,7 +318,7 @@ if test "$xnvctrl" = "yes"; then
     CPPFLAGS_BAK="$CPPFLAGS"
     CPPFLAGS="$CPPFLAGS $libX11_CFLAGS $xnvctrl_CFLAGS"
     AC_SUBST([xnvctrl_CFLAGS])
-    AC_CHECK_HEADERS([NVCtrl.h NVCtrlLib.h],
+    AC_CHECK_HEADERS([NVCtrl/NVCtrl.h NVCtrl/NVCtrlLib.h],
                      [HAVE_LIBXNVCTRL=1],
                      [HAVE_LIBXNVCTRL=0],
                      [#include <GL/glx.h>])
@@ -330,13 +330,13 @@ if test "$xnvctrl" = "yes"; then
                      [XNVCTRLQueryAttribute],
                      [HAVE_LIBXNVCTRL=1],
                      [HAVE_LIBXNVCTRL=0],
-                     [$libX11_LIBS -lXext])
+                     [-lX11 -lXext])
         LDFLAGS="$LDFLAGS_BAK"
     fi
     CPPFLAGS="$CPPFLAGS_BAK"
     if test "$HAVE_LIBXNVCTRL" != "1"; then
         AC_MSG_WARN([optional library libXNVCtrl not found])
-        AC_MSG_WARN([libXNVCtrl is provided by NVIDIA; Ubuntu package: nvidia-settings])
+        AC_MSG_WARN([libXNVCtrl is provided by NVIDIA; Debian package: libxnvctrl-dev])
         xnvctrl="no"
     fi
 else

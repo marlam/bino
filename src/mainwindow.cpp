@@ -92,7 +92,7 @@
 #define _(string) (str::convert(gettext(string), str::localcharset(), "UTF-8").c_str())
 
 #if HAVE_LIBXNVCTRL
-#  include "NVCtrl.h"
+#  include <NVCtrl/NVCtrl.h>
 #  include "NvSDIutils.h"
 #endif // HAVE_LIBXNVCTRL
 

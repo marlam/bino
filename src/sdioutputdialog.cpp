@@ -35,8 +35,7 @@
 #include "gui_common.h"
 
 #if HAVE_LIBXNVCTRL
-#include "NVCtrl.h"
-
+#include <NVCtrl/NVCtrl.h>
 #include "NvSDIutils.h"
 #endif // HAVE_LIBXNVCTRL
 

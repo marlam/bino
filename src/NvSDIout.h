@@ -51,6 +51,9 @@ typedef struct {
 class CNvSDIout
 {
 private:
+    unsigned int* (*myGLXEnumerateVideoDevicesNV)(Display *dpy, int screen, int *nelements);
+    int (*myGLXBindVideoDeviceNV)(Display *dpy, unsigned int video_slot, unsigned int video_device, const int *attrib_list);
+
 	//X stuff
 	Display *_display;          // Display	
 

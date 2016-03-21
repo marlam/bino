@@ -39,6 +39,10 @@
 # include <mach-o/dyld.h> // for _NSGetExecutablePath()
 #endif
 
+#if HAVE_LIBXNVCTRL
+# include <NVCtrl/NVCtrl.h>
+#endif // HAVE_LIBXNVCTRL
+
 #include <QCoreApplication>
 #include <QApplication>
 #include <QtGlobal>
@@ -62,10 +66,6 @@
 # include "lirc.h"
 #endif
 #include "lib_versions.h"
-
-#if HAVE_LIBXNVCTRL
-#include "NVCtrl.h"
-#endif // HAVE_LIBXNVCTRL
 
 
 /* Return the directory containing our locale data (translated messages). */

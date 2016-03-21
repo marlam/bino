@@ -38,7 +38,7 @@
 #define _(string) gettext(string)
 
 #if HAVE_LIBXNVCTRL
-#include "NVCtrl.h"
+# include <NVCtrl/NVCtrl.h>
 #endif // HAVE_LIBXNVCTRL
 
 
