@@ -443,10 +443,10 @@ static inline T str_to(const std::string& s, const char* t)
     char* p;
     int errnobak = errno;
     errno = 0;
-    char* localebak = setlocale(LC_NUMERIC, NULL);
+    std::string localebak = std::string(setlocale(LC_NUMERIC, NULL));
     setlocale(LC_NUMERIC, "");
     r = strtox<T>(str, &p, 0);
-    setlocale(LC_NUMERIC, localebak);
+    setlocale(LC_NUMERIC, localebak.c_str());
     if (p == str || errno == ERANGE || *p != '\0') {
         errno = errnobak;
         throw std::invalid_argument(str::asprintf(_("Cannot convert string to %s."), t));
