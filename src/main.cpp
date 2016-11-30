@@ -558,6 +558,7 @@ int main(int argc, char *argv[])
     }
     if (version.value() || help.value())
     {
+        delete qt_app;
         return 0;
     }
 
