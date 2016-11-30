@@ -1,3 +1,13 @@
+New in version 1.6.4:
+- Current FFmpeg libraries are supported.
+- Build problems were fixed.
+- A few bugs were fixed.
+- Current Qt versions are supported, but "OpenGL stereo" support is disabled
+  with Qt >= 5.7 until a proper fix is found.
+
+New in version 1.6.3:
+- Build problems were fixed.
+
 New in version 1.6.2:
 - The preferences dialogues were restructured.
 - Qt5 is now the default instead of Qt4.
