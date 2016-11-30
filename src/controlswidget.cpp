@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2016
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -38,7 +38,7 @@
 #include "media_input.h"
 
 controls_widget::controls_widget(QSettings *settings, QWidget *parent)
-    : QWidget(parent), _lock(false), _settings(settings)
+    : QWidget(parent), _input_duration(0), _lock(false), _settings(settings)
 {
     QGridLayout *row0_layout = new QGridLayout;
     _seek_slider = new QSlider(Qt::Horizontal);
