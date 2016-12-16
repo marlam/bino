@@ -386,16 +386,23 @@ template<> int float_snprintf<__float128>(char* str, size_t size, __float128 x) 
 template<typename T>
 static inline std::string float_to_str(T x)
 {
+    std::string localebak = std::string(setlocale(LC_NUMERIC, NULL));
+    setlocale(LC_NUMERIC, "C");
+
+    std::string result;
     const int startsize = float_startbufsize<T>();
     char buf[startsize];
     int length = float_snprintf(buf, startsize, x);
     if (length < startsize) {
-        return std::string(buf, length);
+        result = std::string(buf, length);
     } else {
         std::vector<char> buf2(length + 1);
         length = float_snprintf<T>(&buf2[0], length + 1, x);
-        return std::string(&buf2[0], length);
+        result = std::string(&buf2[0], length);
     }
+
+    setlocale(LC_NUMERIC, localebak.c_str());
+    return result;
 }
 
 /* Read a number from a string.
@@ -444,7 +451,7 @@ static inline T str_to(const std::string& s, const char* t)
     int errnobak = errno;
     errno = 0;
     std::string localebak = std::string(setlocale(LC_NUMERIC, NULL));
-    setlocale(LC_NUMERIC, "");
+    setlocale(LC_NUMERIC, "C");
     r = strtox<T>(str, &p, 0);
     setlocale(LC_NUMERIC, localebak.c_str());
     if (p == str || errno == ERANGE || *p != '\0') {
