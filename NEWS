@@ -1,3 +1,6 @@
+New in version 1.6.5:
+- Fixed a bug that prevented Bino from working correctly in some languages.
+
 New in version 1.6.4:
 - Current FFmpeg libraries are supported.
 - Build problems were fixed.
