@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2015
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2016
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -69,8 +69,10 @@ private:
 public:
     gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widget);
 
-#if HAVE_X11
+#ifdef GLEW_MX
+# if HAVE_X11
     GLXEWContext* glxewGetContext() const;
+# endif
 #endif
 
     void set_render(bool r);
@@ -166,10 +168,12 @@ protected:
 class video_output_qt : public video_output
 {
 private:
-#if HAVE_X11
+#ifdef GLEW_MX
+# if HAVE_X11
     GLXEWContext _glxew_context;
-#endif
+# endif
     GLEWContext _glew_context;
+#endif
     int _screen_width, _screen_height;
     float _screen_pixel_aspect_ratio;
     video_container_widget *_container_widget;
@@ -192,10 +196,12 @@ private:
     void resume_screensaver();
 
 protected:
-#if HAVE_X11
-    GLXEWContext* glxewGetContext() const;
-#endif
+#ifdef GLEW_MX
+# if HAVE_X11
+    virtual GLXEWContext* glxewGetContext() const;
+# endif
     virtual GLEWContext* glewGetContext() const;
+#endif
     virtual bool context_is_stereo() const;
     virtual void recreate_context(bool stereo);
     virtual void trigger_resize(int w, int h);

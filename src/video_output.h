@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2015
+ * Copyright (C) 2010, 2011, 2012, 2015, 2016
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -128,7 +128,9 @@ private:
 protected:
     subtitle_renderer _subtitle_renderer;
 
+#ifdef GLEW_MX
     virtual GLEWContext* glewGetContext() const = 0;
+#endif
 
     // Get the total viewport size.
     int full_display_width() const;

@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -80,11 +80,13 @@ gl_thread::gl_thread(video_output_qt* vo_qt, video_output_qt_widget* vo_qt_widge
 {
 }
 
-#if HAVE_X11
+#ifdef GLEW_MX
+# if HAVE_X11
 GLXEWContext* gl_thread::glxewGetContext() const
 {
     return _vo_qt->glxewGetContext();
 }
+# endif
 #endif
 
 void gl_thread::set_render(bool r)
@@ -781,17 +783,18 @@ void video_output_qt::create_widget()
     process_events();
 }
 
-#if HAVE_X11
+#ifdef GLEW_MX
+# if HAVE_X11
 GLXEWContext* video_output_qt::glxewGetContext() const
 {
     return const_cast<GLXEWContext*>(&_glxew_context);
 }
-#endif
-
+# endif
 GLEWContext* video_output_qt::glewGetContext() const
 {
     return const_cast<GLEWContext*>(&_glew_context);
 }
+#endif
 
 bool video_output_qt::context_is_stereo() const
 {
