@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2011, 2012, 2015
+ * Copyright (C) 2011, 2012, 2015, 2017
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -33,6 +33,8 @@
 #define _(string) gettext(string)
 
 #include "lirc.h"
+
+#include <lirc/lirc_client.h>
 
 
 lircclient::lircclient(

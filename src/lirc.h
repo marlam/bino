@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2011, 2012
+ * Copyright (C) 2011, 2012, 2017
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,10 +24,9 @@
 #include <string>
 #include <vector>
 
-#include <lirc/lirc_client.h>
-
 #include "dispatch.h"
 
+struct lirc_config;
 
 class lircclient : public controller
 {
