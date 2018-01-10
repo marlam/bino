@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2018
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -34,7 +34,6 @@
 #include <QCheckBox>
 #include <QLineEdit>
 #include <QDesktopWidget>
-#include <QCloseEvent>
 
 #include "fullscreendialog.h"
 
@@ -174,9 +173,9 @@ fullscreen_dialog::fullscreen_dialog(QWidget* parent) : QWidget(parent)
 #endif
 }
 
-void fullscreen_dialog::closeEvent(QCloseEvent* e)
+void fullscreen_dialog::apply()
 {
-    /* Activate the settings chosen in the dialog, then close. */
+    /* Activate the settings chosen in the dialog */
 
     // fullscreen_screens
     if (_single_btn->isChecked()) {
@@ -206,6 +205,4 @@ void fullscreen_dialog::closeEvent(QCloseEvent* e)
     send_cmd(command::set_fullscreen_3d_ready_sync, _3d_ready_sync_box->isChecked());
     // inhibit_screensaver
     send_cmd(command::set_fullscreen_inhibit_screensaver, _inhibit_screensaver_box->isChecked());
-
-    e->accept();
 }

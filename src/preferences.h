@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2018
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -35,6 +35,8 @@ class QListWidgetItem;
 class QListWidget;
 class QStackedWidget;
 
+class fullscreen_dialog;
+
 class preferences_dialog : public QDialog
 {
     Q_OBJECT
@@ -42,6 +44,7 @@ class preferences_dialog : public QDialog
 private:
     QListWidget * list_widget;
     QStackedWidget * stacked_widget;
+    fullscreen_dialog* _fullscreen_dialog;
 
     void add_preferences_page(QWidget * dialog, const QString & title, const QString & icon_name);
     
@@ -49,6 +52,7 @@ private slots:
 
 public:
     preferences_dialog(QWidget *parent);
+    void closeEvent(QCloseEvent *e);
 };
 
 #endif

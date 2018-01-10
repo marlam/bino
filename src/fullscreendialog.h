@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013
+ * Copyright (C) 2010, 2011, 2012, 2013, 2018
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -57,7 +57,7 @@ private:
 
 public:
     fullscreen_dialog(QWidget* parent = 0);
-    void closeEvent(QCloseEvent* e);
+    void apply();
 };
 
 #endif

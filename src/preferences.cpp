@@ -31,6 +31,7 @@
 #include <QPushButton>
 #include <QStackedWidget>
 #include <QListWidget>
+#include <QCloseEvent>
 
 #include "preferences.h"
 
@@ -58,7 +59,8 @@ preferences_dialog::preferences_dialog(QWidget *parent) :
     list_widget = new QListWidget(this);
     stacked_widget = new QStackedWidget(this);
     
-    add_preferences_page(new fullscreen_dialog(),_("Fullscreen"),"view-fullscreen");
+    _fullscreen_dialog = new fullscreen_dialog();
+    add_preferences_page(_fullscreen_dialog,_("Fullscreen"),"view-fullscreen");
     add_preferences_page(new color_dialog(),_("Display Color"),"fill-color");
     add_preferences_page(new crosstalk_dialog(),_("Display Crosstalk"),"video-display");
     add_preferences_page(new quality_dialog(),_("Rendering Quality"),"rating");
@@ -91,4 +93,10 @@ void preferences_dialog::add_preferences_page(QWidget * dialog, const QString& t
     stacked_widget->addWidget(dialog);
     QListWidgetItem *qlistwidgetitem = new QListWidgetItem(title, list_widget);
     qlistwidgetitem->setIcon(QIcon::fromTheme(icon_name, QIcon(QString(":icons/") + icon_name)));
+}
+
+void preferences_dialog::closeEvent(QCloseEvent *e)
+{
+    _fullscreen_dialog->apply();
+    e->accept();
 }
