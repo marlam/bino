@@ -1,32 +1,19 @@
 Maintainer:
 Martin Lambers
 
-Version 1.6.5:
-Martin Lambers
-
-Version 1.6.4:
-Martin Lambers
-
-Version 1.6.3:
-Phobos Kappa
-Martin Lambers
-
-Version 1.6.2:
-Martin Lambers
-Daniel Schaal
-
-Version 1.6.1:
+Version 1.6:
 Frédéric Bour
 Frédéric Devernay
 Vittorio Giovara
 Frank Hill
+Phobos Kappa
 Martin Lambers
 Alexey Osipov
 Daniel Schaal
 Krasimir S. Stefanov
 Reinhard Tartler
 
-Version 1.4.4:
+Version 1.4:
 S. Christian Collins
 Frédéric Devernay
 Stefan Eilemann
@@ -39,7 +26,7 @@ Alexey Osipov
 Daniel Schaal
 Krasimir S. Stefanov
 
-Version 1.2.1:
+Version 1.2:
 Frédéric Devernay
 Joe
 Martin Lambers
@@ -47,7 +34,7 @@ Alexey Osipov
 Robert Pliszko
 Daniel Schaal
 
-Version 1.0.0:
+Version 1.0:
 Frédéric Devernay
 Stefan Eilemann
 Vittorio Giovara
