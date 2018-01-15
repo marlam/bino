@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bino 0.9.2\n"
 "Report-Msgid-Bugs-To: bino-list@nongnu.org\n"
-"POT-Creation-Date: 2016-02-01 19:26+0100\n"
+"POT-Creation-Date: 2018-01-15 09:24+0100\n"
 "PO-Revision-Date: 2012-06-05 10:45+0200\n"
 "Last-Translator: Frédéric Devernay <>\n"
 "Language-Team: French\n"
@@ -91,18 +91,18 @@ msgstr "Pas assez d'arguments."
 msgid "Too many arguments."
 msgstr "Trop d'arguments."
 
-#: src/base/str.cpp:452
+#: src/base/str.cpp:459
 #, c-format
 msgid "Cannot convert string to %s."
 msgstr "Impossible de convertir la chaîne de caractères en %s."
 
-#: src/base/str.cpp:986 src/base/str.cpp:1005 src/base/str.cpp:1016
-#: src/base/str.cpp:1028
+#: src/base/str.cpp:993 src/base/str.cpp:1012 src/base/str.cpp:1023
+#: src/base/str.cpp:1035
 #, c-format
 msgid "Cannot convert %s to %s: %s"
 msgstr "Impossible de convertir %s en %s: %s"
 
-#: src/base/str.cpp:1034
+#: src/base/str.cpp:1041
 #, c-format
 msgid "Cannot convert %s to %s."
 msgstr "Impossible de convertir %s en %s."
@@ -238,7 +238,7 @@ msgstr "Flux audio %d non trouvé."
 msgid "Subtitle stream %d not found."
 msgstr "Flux de sous-titres %d non trouvé."
 
-#: src/dispatch.cpp:559 src/main.cpp:795
+#: src/dispatch.cpp:559 src/main.cpp:796
 msgid "This version of Bino was compiled without support for Equalizer."
 msgstr "Cette version de Bino a été compilée sans le support Equalizer."
 
@@ -246,33 +246,33 @@ msgstr "Cette version de Bino a été compilée sans le support Equalizer."
 msgid "not used"
 msgstr "inutilisé"
 
-#: src/lirc.cpp:61
+#: src/lirc.cpp:63
 msgid "Cannot initialize LIRC."
 msgstr "Impossible d'initialiser LIRC."
 
-#: src/lirc.cpp:67
+#: src/lirc.cpp:69
 msgid "Cannot set LIRC socket properties."
 msgstr "Impossible de régler les paramètres de socket LIRC."
 
-#: src/lirc.cpp:74
+#: src/lirc.cpp:76
 msgid "Cannot read LIRC default configuration."
 msgstr "Impossible de lire la configuration par défaut de LIRC."
 
-#: src/lirc.cpp:89
+#: src/lirc.cpp:91
 #, c-format
 msgid "Cannot read LIRC configuration file %s."
 msgstr "Impossible de lire le fichier de configuration LIRC %s."
 
-#: src/lirc.cpp:117
+#: src/lirc.cpp:119
 msgid "Cannot get LIRC event; disabling LIRC support."
 msgstr "Impossible de lire l'événement LIRC ; désactivation du support LIRC."
 
-#: src/lirc.cpp:131
+#: src/lirc.cpp:133
 #, c-format
 msgid "Received invalid command '%s' from LIRC."
 msgstr "Commande LIRC '%s' invalide."
 
-#: src/lirc.cpp:141
+#: src/lirc.cpp:143
 msgid "Cannot get command for LIRC code."
 msgstr "Commande non disponible pour le code LIRC."
 
@@ -282,8 +282,8 @@ msgid "%s version %s"
 msgstr "%s version %s"
 
 #: src/main.cpp:415
-msgid "Copyright (C) 2014 the Bino developers."
-msgstr "Copyright (C) 2014 les développeurs Bino."
+msgid "Copyright (C) 2018 the Bino developers."
+msgstr "Copyright (C) 2018 les développeurs Bino."
 
 #: src/main.cpp:416
 msgid ""
@@ -801,20 +801,20 @@ msgstr "Touches multimédia"
 msgid "Media keys should work as expected"
 msgstr "Les touches multimédia devraient fonctionner comme on s'y attend"
 
-#: src/main.cpp:626
+#: src/main.cpp:627
 msgid "No audio devices known."
 msgstr "Pas de périphérique audio connu."
 
-#: src/main.cpp:641
+#: src/main.cpp:642
 msgid "Benchmark mode: audio and time synchronization disabled."
 msgstr "Mode banc d'essai: audio et synchronisation temporelle désactivés."
 
-#: src/main.cpp:655
+#: src/main.cpp:656
 #, c-format
 msgid "Unknown mode %s."
 msgstr "Mode %s inconnu."
 
-#: src/main.cpp:787
+#: src/main.cpp:788
 msgid "This version of Bino was compiled without support for LIRC."
 msgstr "Cette version de Bino a été compilée sans le support LIRC."
 
@@ -998,8 +998,8 @@ msgstr "FPS : %.2f"
 msgid "Reading input frame failed."
 msgstr "Echec de la lecture de l'image d'entrée."
 
-#: src/player_equalizer.cpp:168 src/video_output_qt.cpp:685
-#: src/video_output_qt.cpp:692
+#: src/player_equalizer.cpp:168 src/video_output_qt.cpp:687
+#: src/video_output_qt.cpp:694
 msgid "Waiting for subtitle renderer initialization..."
 msgstr "Attente de l'initialisation du rendu des sous-titres..."
 
@@ -1107,43 +1107,43 @@ msgstr "Programme OpenGL '%s' : erreur de l'éditeur de liens."
 msgid "Cannot create a PBO buffer."
 msgstr "Impossuble de créer un buffer PBO."
 
-#: src/video_output_qt.cpp:291 src/video_output_qt.cpp:534
-#: src/video_output_qt.cpp:731 src/video_output_qt.cpp:743
-#: src/video_output_qt.cpp:764
+#: src/video_output_qt.cpp:293 src/video_output_qt.cpp:536
+#: src/video_output_qt.cpp:733 src/video_output_qt.cpp:745
+#: src/video_output_qt.cpp:766
 msgid "Error"
 msgstr "Erreur"
 
-#: src/video_output_qt.cpp:636
+#: src/video_output_qt.cpp:638
 #, c-format
 msgid "Cannot initialize GLEW: %s"
 msgstr "Impossible d'initialiser GLEW : %s"
 
-#: src/video_output_qt.cpp:656
+#: src/video_output_qt.cpp:658
 msgid "This OpenGL implementation does not support required features."
 msgstr ""
 "Cette implémentation OpenGL se supporte pas les fonctionnalités requises."
 
-#: src/video_output_qt.cpp:683
+#: src/video_output_qt.cpp:685
 msgid "Please wait"
 msgstr "Veuillez patienter"
 
-#: src/video_output_qt.cpp:743
+#: src/video_output_qt.cpp:745
 msgid "Cannot get valid OpenGL context."
 msgstr "Impossible d'obtenir un contexte OpenGL valide."
 
-#: src/video_output_qt.cpp:754
+#: src/video_output_qt.cpp:756
 msgid "The display does not support OpenGL stereo mode."
 msgstr "L'affichage ne supporte pas le mode OpenGL stéréo"
 
-#: src/video_output_qt.cpp:759
+#: src/video_output_qt.cpp:761
 msgid "Cannot set OpenGL context format."
 msgstr "Impossible de choisir le format du contexte OpenGL"
 
-#: src/video_output_qt.cpp:862
+#: src/video_output_qt.cpp:865
 msgid "Cannot suspend screensaver."
 msgstr "Impossible de suspendre l'économiseur d'écran."
 
-#: src/video_output_qt.cpp:877
+#: src/video_output_qt.cpp:880
 msgid "Cannot resume screensaver."
 msgstr "Impossible de rétablir l'économiseur d'écran."
 

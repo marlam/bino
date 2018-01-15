@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bino 1.3.4\n"
 "Report-Msgid-Bugs-To: bino-list@nongnu.org\n"
-"POT-Creation-Date: 2014-09-11 19:49+0200\n"
+"POT-Creation-Date: 2018-01-15 09:24+0100\n"
 "PO-Revision-Date: 2011-04-10 17:23+0200\n"
 "Last-Translator: Martin Lambers <marlam@marlam.de>\n"
 "Language-Team: none\n"
@@ -88,31 +88,31 @@ msgstr "Zu wenige Argumente."
 msgid "Too many arguments."
 msgstr "Zu viele Argumente."
 
-#: src/base/str.cpp:269
+#: src/base/str.cpp:459
 #, c-format
 msgid "Cannot convert string to %s."
 msgstr "Kann Zeichenkette nicht zu %s konvertieren."
 
-#: src/base/str.cpp:517 src/base/str.cpp:536 src/base/str.cpp:547
-#: src/base/str.cpp:559
+#: src/base/str.cpp:993 src/base/str.cpp:1012 src/base/str.cpp:1023
+#: src/base/str.cpp:1035
 #, c-format
 msgid "Cannot convert %s to %s: %s"
 msgstr "Kann %s nicht zu %s konvertieren: %s"
 
-#: src/base/str.cpp:565
+#: src/base/str.cpp:1041
 #, c-format
 msgid "Cannot convert %s to %s."
 msgstr "Kann %s nicht zu %s konvertieren."
 
-#: src/base/thread.cpp:38 src/base/thread.cpp:48 src/base/thread.cpp:61
-#: src/base/thread.cpp:74 src/base/thread.cpp:85 src/base/thread.cpp:95
-#: src/base/thread.cpp:108 src/base/thread.cpp:116 src/base/thread.cpp:124
-#: src/base/thread.cpp:204 src/base/thread.cpp:211 src/base/thread.cpp:225
-#: src/base/thread.cpp:245
+#: src/base/pth.cpp:38 src/base/pth.cpp:48 src/base/pth.cpp:61
+#: src/base/pth.cpp:74 src/base/pth.cpp:85 src/base/pth.cpp:95
+#: src/base/pth.cpp:108 src/base/pth.cpp:116 src/base/pth.cpp:124
+#: src/base/pth.cpp:204 src/base/pth.cpp:211 src/base/pth.cpp:225
+#: src/base/pth.cpp:245
 msgid "System function failed: "
 msgstr "Systemfunktion fehlgeschlagen: "
 
-#: src/base/timer.cpp:63 src/base/timer.cpp:72 src/base/timer.cpp:81
+#: src/base/tmr.cpp:63 src/base/tmr.cpp:72 src/base/tmr.cpp:81
 msgid "Cannot get time."
 msgstr "Kann Zeit nicht abfragen."
 
@@ -235,1066 +235,43 @@ msgstr "Audiokanal %d nicht gefunden."
 msgid "Subtitle stream %d not found."
 msgstr "Untertitelkanal %d nicht gefunden."
 
-#: src/dispatch.cpp:559 src/main.cpp:795
+#: src/dispatch.cpp:559 src/main.cpp:796
 msgid "This version of Bino was compiled without support for Equalizer."
 msgstr ""
 "Diese Version von Bino wurde ohne Unterstützung für Equalizer erstellt."
-
-#: src/gui.cpp:111
-msgid "Video:"
-msgstr "Video:"
-
-#: src/gui.cpp:112
-msgid "<p>Select the video stream.</p>"
-msgstr "<p>Auswahl des Videokanals.</p>"
-
-#: src/gui.cpp:118
-msgid "Audio:"
-msgstr "Audio:"
-
-#: src/gui.cpp:119
-msgid "<p>Select the audio stream.</p>"
-msgstr "<p>Auswahl des Videokanals.</p>"
-
-#: src/gui.cpp:125
-msgid "Subtitle:"
-msgstr "Untertitel:"
-
-#: src/gui.cpp:126
-msgid "<p>Select the subtitle stream.</p>"
-msgstr "<p>Auswahl des Untertitelkanals.</p>"
-
-#: src/gui.cpp:137 src/media_input.cpp:276
-msgid "Input:"
-msgstr "Eingabe:"
-
-#: src/gui.cpp:138
-msgid "<p>Set the 3D layout of the video stream.</p>"
-msgstr "<p>Auswahl des Stereolayouts des Videokanals.</p>"
-
-#: src/gui.cpp:142 src/main.cpp:459
-msgid "2D"
-msgstr "2D"
-
-#: src/gui.cpp:143 src/main.cpp:460
-msgid "Separate streams, left first"
-msgstr "Getrennte Kanäle, links zuerst"
-
-#: src/gui.cpp:144 src/main.cpp:461
-msgid "Separate streams, right first"
-msgstr "Getrennte Kanäle, rechts zuerst"
-
-#: src/gui.cpp:145 src/main.cpp:462
-msgid "Alternating, left first"
-msgstr "Abwechselnd, links zuerst."
-
-#: src/gui.cpp:146 src/main.cpp:463
-msgid "Alternating, right first"
-msgstr "Abwechselnd, rechts zuerst."
-
-#: src/gui.cpp:147 src/gui.cpp:171 src/gui.cpp:2212 src/gui.cpp:2241
-#: src/main.cpp:464 src/main.cpp:479
-msgid "Top/bottom"
-msgstr "Oben/unten"
-
-#: src/gui.cpp:148 src/gui.cpp:172 src/gui.cpp:2213 src/gui.cpp:2242
-#: src/main.cpp:465 src/main.cpp:480
-msgid "Top/bottom, half height"
-msgstr "Oben/unten, halbe Höhe"
-
-#: src/gui.cpp:149 src/main.cpp:466
-msgid "Bottom/top"
-msgstr "Unten/oben"
-
-#: src/gui.cpp:150 src/main.cpp:467
-msgid "Bottom/top, half height"
-msgstr "Unten/oben, halbe Höhe"
-
-#: src/gui.cpp:151 src/gui.cpp:173 src/gui.cpp:2214 src/gui.cpp:2243
-#: src/main.cpp:468 src/main.cpp:481
-msgid "Left/right"
-msgstr "Links/rechts"
-
-#: src/gui.cpp:152 src/gui.cpp:174 src/gui.cpp:2215 src/gui.cpp:2244
-#: src/main.cpp:469 src/main.cpp:482
-msgid "Left/right, half width"
-msgstr "Links/rechts, halbe Breite"
-
-#: src/gui.cpp:153 src/main.cpp:470
-msgid "Right/left"
-msgstr "Rechts/links"
-
-#: src/gui.cpp:154 src/main.cpp:471
-msgid "Right/left, half width"
-msgstr "Rechts/links, halbe Breite"
-
-#: src/gui.cpp:155 src/gui.cpp:175 src/gui.cpp:2216 src/gui.cpp:2245
-#: src/main.cpp:472 src/main.cpp:483
-msgid "Even/odd rows"
-msgstr "Gerade/ungerade Zeilen"
-
-#: src/gui.cpp:156 src/main.cpp:473
-msgid "Odd/even rows"
-msgstr "Ungerade/gerade Zeilen"
-
-#: src/gui.cpp:162
-msgid "Output:"
-msgstr "Ausgabe:"
-
-#: src/gui.cpp:163
-msgid "<p>Set the 3D output type for your display.</p>"
-msgstr "<p>Auswahl des 3D Ausgabetyps für das Ausgabegerät.</p>"
-
-#: src/gui.cpp:167 src/gui.cpp:2210 src/gui.cpp:2239 src/main.cpp:477
-msgid "Left view"
-msgstr "Linke Sicht"
-
-#: src/gui.cpp:168 src/gui.cpp:2211 src/gui.cpp:2240 src/main.cpp:478
-msgid "Right view"
-msgstr "Rechte Sicht"
-
-#: src/gui.cpp:169 src/main.cpp:475
-msgid "OpenGL stereo"
-msgstr "OpenGL Stereo"
-
-#: src/gui.cpp:170 src/main.cpp:476
-msgid "Left/right alternating"
-msgstr "Links/rechts abwechselnd"
-
-#: src/gui.cpp:176 src/gui.cpp:2217 src/gui.cpp:2246 src/main.cpp:484
-msgid "Even/odd columns"
-msgstr "Gerade/ungerade Spalten"
-
-#: src/gui.cpp:177 src/gui.cpp:2218 src/gui.cpp:2247 src/main.cpp:485
-msgid "Checkerboard pattern"
-msgstr "Schachbrettmuster"
-
-#: src/gui.cpp:178 src/main.cpp:486
-msgid "HDMI frame packing mode"
-msgstr "HDMI Framepacking Modus"
-
-#: src/gui.cpp:179 src/gui.cpp:2219 src/gui.cpp:2248 src/main.cpp:487
-msgid "Red/cyan glasses, monochrome"
-msgstr "Rot/cyan Brillen, monochrom"
-
-#: src/gui.cpp:180 src/gui.cpp:2220 src/gui.cpp:2249 src/main.cpp:488
-msgid "Red/cyan glasses, half color"
-msgstr "Rot/cyan Brillen, halbfarbig"
-
-#: src/gui.cpp:181 src/gui.cpp:2221 src/gui.cpp:2250 src/main.cpp:489
-msgid "Red/cyan glasses, full color"
-msgstr "Rot/cyan Brillen, vollfarbig"
-
-#: src/gui.cpp:182 src/gui.cpp:2222 src/gui.cpp:2251 src/main.cpp:490
-msgid "Red/cyan glasses, Dubois"
-msgstr "Rot/cyan Brillen, Dubois"
-
-#: src/gui.cpp:183 src/gui.cpp:2223 src/gui.cpp:2252 src/main.cpp:491
-msgid "Green/magenta glasses, monochrome"
-msgstr "Grün/magenta Brillen, monochrom"
-
-#: src/gui.cpp:184 src/gui.cpp:2224 src/gui.cpp:2253 src/main.cpp:492
-msgid "Green/magenta glasses, half color"
-msgstr "Grün/magenta Brillen, halbfarbig"
-
-#: src/gui.cpp:185 src/gui.cpp:2225 src/gui.cpp:2254 src/main.cpp:493
-msgid "Green/magenta glasses, full color"
-msgstr "Grün/magenta Brillen, vollfarbig"
-
-#: src/gui.cpp:186 src/gui.cpp:2226 src/gui.cpp:2255 src/main.cpp:494
-msgid "Green/magenta glasses, Dubois"
-msgstr "Grün/magenta Brillen, Dubois"
-
-#: src/gui.cpp:187 src/gui.cpp:2227 src/gui.cpp:2256 src/main.cpp:495
-msgid "Amber/blue glasses, monochrome"
-msgstr "Orange/blau Brillen, monochrom"
-
-#: src/gui.cpp:188 src/gui.cpp:2228 src/gui.cpp:2257 src/main.cpp:496
-msgid "Amber/blue glasses, half color"
-msgstr "Orange/blau Brillen, halbfarbig"
-
-#: src/gui.cpp:189 src/gui.cpp:2229 src/gui.cpp:2258 src/main.cpp:497
-msgid "Amber/blue glasses, full color"
-msgstr "Orange/blau Brillen, vollfarbig"
-
-#: src/gui.cpp:190 src/gui.cpp:2230 src/gui.cpp:2259 src/main.cpp:498
-msgid "Amber/blue glasses, Dubois"
-msgstr "Orange/blau Brillen, Dubois"
-
-#: src/gui.cpp:191 src/gui.cpp:2231 src/gui.cpp:2260 src/main.cpp:499
-msgid "Red/green glasses, monochrome"
-msgstr "Rot/grün Brillen, monochrome"
-
-#: src/gui.cpp:192 src/gui.cpp:2232 src/gui.cpp:2261 src/main.cpp:500
-msgid "Red/blue glasses, monochrome"
-msgstr "Rot/blau Brillen, monochrom"
-
-#: src/gui.cpp:196
-msgid "Swap left/right"
-msgstr "Tausche links/rechts"
-
-#: src/gui.cpp:197
-msgid ""
-"<p>Swap the left and right view. Use this if the 3D effect seems wrong.</p>"
-msgstr ""
-"<p>Vertauschung von linker und rechter Sicht (falls der 3D Effekt falsch "
-"wirkt).</p>"
-
-#: src/gui.cpp:475 src/gui.cpp:1736
-msgid "Off"
-msgstr "Aus"
-
-#: src/gui.cpp:706
-msgid ""
-"<p>This slider shows the progress during video playback, and can be used to "
-"seek in the video.</p>"
-msgstr ""
-"<p>Dieser Gleiter zeigt der Fortschritt beim Abspielen an, und kann zum Vor- "
-"und Zurückspulen benutzt werden.</p>"
-
-#: src/gui.cpp:713
-msgid "<p>Elapsed / total time.</p>"
-msgstr "<p>Zeit / Gesamtdauer.</p>"
-
-#: src/gui.cpp:720
-msgid "<p>Toggle audio mute.</p>"
-msgstr "<p>Schalte Stummschaltung um.</p>"
-
-#: src/gui.cpp:725
-msgid "<p>Adjust audio volume.</p>"
-msgstr "<p>Stelle Lautstärke ein.</p>"
-
-#: src/gui.cpp:737
-msgid "<p>Play.</p>"
-msgstr "<p>Abspielen.</p>"
-
-#: src/gui.cpp:741
-msgid "<p>Pause.</p>"
-msgstr "<p>Pause.</p>"
-
-#: src/gui.cpp:745
-msgid "<p>Stop.</p>"
-msgstr "<p>Stopp.</p>"
-
-#: src/gui.cpp:750
-msgid "<p>Toggle loop mode.</p>"
-msgstr "<p>Schalte Wiederholmodus um.</p>"
-
-#: src/gui.cpp:757
-msgid ""
-"<p>Switch to fullscreen mode. You can leave fullscreen mode by pressing the "
-"f key.</p>"
-msgstr ""
-"<p>Zum Vollbildmodus schalten. Der Vollbildmodus kann mit der Taste f "
-"verlassen werden.</p>"
-
-#: src/gui.cpp:763
-msgid "<p>Center the video area on your screen.</p>"
-msgstr "<p>Zentrierung des Videos in der Mitte des Bildschirms.</p>"
-
-#: src/gui.cpp:770
-msgid "<p>Seek backward 10 minutes.</p>"
-msgstr "<p>10 Minuten zurückspulen.</p>"
-
-#: src/gui.cpp:775
-msgid "<p>Seek backward 1 minute.</p>"
-msgstr "<p>1 Minute zurückspulen.</p>"
-
-#: src/gui.cpp:781
-msgid "<p>Seek backward 10 seconds.</p>"
-msgstr "<p>10 Sekunden zurückspulen.</p>"
-
-#: src/gui.cpp:787
-msgid "<p>Seek forward 10 seconds.</p>"
-msgstr "<p>10 Sekunden vorspulen.</p>"
-
-#: src/gui.cpp:792
-msgid "<p>Seek forward 1 minute.</p>"
-msgstr "<p>1 Minute vorspulen.</p>"
-
-#: src/gui.cpp:798
-msgid "<p>Seek forward 10 minutes.</p>"
-msgstr "<p>10 Minuten vorspulen.</p>"
-
-#: src/gui.cpp:1059
-msgid "Fullscreen/Multiscreen Settings"
-msgstr "Vollbild-/Multibildeinstellungen"
-
-#: src/gui.cpp:1061
-msgid "Configure fullscreen mode:"
-msgstr "Konfiguriere Vollbildmodus:"
-
-#: src/gui.cpp:1062
-msgid "<p>Select the screens to use in fullscreen mode.</p>"
-msgstr "<p>Auswahl der Bildschirme für den Vollbildmodus.</p>"
-
-#: src/gui.cpp:1064
-msgid "Single screen:"
-msgstr "Einzelner Bildschirm:"
-
-#: src/gui.cpp:1065
-msgid "<p>Use a single screen for fullscreen mode.</p>"
-msgstr "<p>Benutze einen einzelnen Bildschirm im Vollbildmodus.</p>"
-
-#: src/gui.cpp:1068
-msgid "Primary screen"
-msgstr "Hauptbildschirm"
-
-#: src/gui.cpp:1071 src/gui.cpp:1082 src/gui.cpp:1083
-#, c-format
-msgid "Screen %d"
-msgstr "Bildschirm %d"
-
-#: src/gui.cpp:1074
-msgid "Dual screen:"
-msgstr "Doppelbildschirm:"
-
-#: src/gui.cpp:1075
-msgid "<p>Use two screens for fullscreen mode.</p>"
-msgstr "<p>Benutze zwei Bildschirme im Vollbildmodus.</p>"
-
-#: src/gui.cpp:1087
-msgid "Multi screen:"
-msgstr "Multibildschirm:"
-
-#: src/gui.cpp:1088
-msgid "<p>Use multiple screens for fullscreen mode.</p>"
-msgstr "<p>Benutze mehrere Bildschirme im Vollbildmodus.</p>"
-
-#: src/gui.cpp:1090
-msgid "<p>Comma-separated list of screens to use for fullscreen mode.</p>"
-msgstr ""
-"<p>Liste von Bildschirmen für den Vollbildmodus, durch Kommata getrennt.</p>"
-
-#: src/gui.cpp:1093
-msgid "When in fullscreen mode,"
-msgstr "Im Vollbildmodus:"
-
-#: src/gui.cpp:1094
-msgid "<p>Set special left/right view handling for fullscreen mode.</p>"
-msgstr ""
-"<p>Wähle spezielle Einstellungen für linke und rechte Ansicht im "
-"Vollbildmodus.</p>"
-
-#: src/gui.cpp:1096
-msgid "flip left view vertically."
-msgstr "Spiegele linke Ansicht vertikal."
-
-#: src/gui.cpp:1098
-msgid "flop left view horizontally."
-msgstr "Spiegele linke Ansicht horizontal."
-
-#: src/gui.cpp:1100
-msgid "flip right view vertically."
-msgstr "Spiegele rechte Ansicht vertikal."
-
-#: src/gui.cpp:1102
-msgid "flop right view horizontally."
-msgstr "Spiegele rechte Ansicht horizontal."
-
-#: src/gui.cpp:1105
-msgid "use DLP(R) 3-D Ready Sync"
-msgstr "aktiviere DLP(R) 3-D Ready Sync"
-
-#: src/gui.cpp:1106
-msgid "<p>Use DLP&reg; 3-D Ready Sync for supported output modes.</p>"
-msgstr "<p>Aktiviere DLP&reg; 3-D Ready Sync für unterstützte Ausgabemodi.</p>"
-
-#: src/gui.cpp:1108
-msgid "inhibit the screensaver"
-msgstr "deaktiviere den Bildschirmschoner"
-
-#: src/gui.cpp:1109
-msgid "<p>Inhibit the screensaver during fullscreen playback.</p>"
-msgstr "<p>Deaktiviere den Bildschirmschoner im Vollbildmodus.</p>"
-
-#: src/gui.cpp:1111 src/gui.cpp:1277 src/gui.cpp:1412 src/gui.cpp:1473
-#: src/gui.cpp:1538 src/gui.cpp:1616 src/gui.cpp:1740 src/gui.cpp:2025
-#: src/gui.cpp:2264 src/gui.cpp:2750 src/gui.cpp:3477 src/gui.cpp:3524
-#: src/gui.cpp:3841
-msgid "OK"
-msgstr "OK"
-
-#: src/gui.cpp:1230
-msgid "Display Color Adjustments"
-msgstr "Bildschirmfarbenjustierung"
-
-#: src/gui.cpp:1232
-msgid "Contrast:"
-msgstr "Kontrast:"
-
-#: src/gui.cpp:1243
-msgid "Brightness:"
-msgstr "Helligkeit:"
-
-#: src/gui.cpp:1254
-msgid "Hue:"
-msgstr "Farbton:"
-
-#: src/gui.cpp:1265
-msgid "Saturation:"
-msgstr "Farbsättigung:"
-
-#: src/gui.cpp:1383
-msgid "Display Crosstalk Calibration"
-msgstr "Bildschirm-Crosstalk Kalibrierung"
-
-#. TRANSLATORS: Please keep the lines short using <br> where necessary.
-#: src/gui.cpp:1386
-msgid ""
-"<p>Please read the manual to find out<br>how to measure the crosstalk "
-"levels<br>of your display.</p>"
-msgstr ""
-"<p>Bitte lese das Handbuch um herauszufinden<br>wie Crosstalk-Level für "
-"Deinen<br>Bildschirm gemessen werden.</p>"
-
-#: src/gui.cpp:1390
-msgid "Red:"
-msgstr "Rot:"
-
-#: src/gui.cpp:1397
-msgid "Green:"
-msgstr "Grün:"
-
-#: src/gui.cpp:1404
-msgid "Blue:"
-msgstr "Blau:"
-
-#: src/gui.cpp:1460
-msgid "Rendering Quality Adjustments"
-msgstr "Justierung der Ausgabequalität"
-
-#: src/gui.cpp:1462
-msgid "Rendering Quality:"
-msgstr "Ausgabequalität:"
-
-#: src/gui.cpp:1516
-msgid "Zoom for wide videos"
-msgstr "Zoom für überbreite Videos"
-
-#: src/gui.cpp:1519
-msgid ""
-"<p>Set zoom level for videos that<br>are wider than the screen:<br>0: Show "
-"full video width.<br>1: Use full screen height.</p>"
-msgstr ""
-"<p>Setze den Zoom für Videos, die<br>breiter als der Bildschirm sind:<br>0: "
-"Zeige volle Videobreite.<br>1: Nutze volle Bildschirmhöhe.</p>"
-
-#: src/gui.cpp:1523
-msgid "Zoom:"
-msgstr "Zoom:"
-
-#: src/gui.cpp:1524
-msgid "<p>Set the zoom level for videos that are wider than the screen.</p>"
-msgstr "<p>Setze den Zoom für Videos, die breiter als der Bildschirm sind.</p>"
-
-#: src/gui.cpp:1582
-msgid "Audio Settings"
-msgstr "Audio Einstellungen"
-
-#: src/gui.cpp:1584
-msgid "Audio device:"
-msgstr "Audiogerät:"
-
-#: src/gui.cpp:1585
-msgid ""
-"<p>Select the audio device.<br>This will take effect for the next started "
-"video.</p>"
-msgstr ""
-"<p>Wähle das Audiogerät.<br>Die Auswahl wird für das nächste gestartete "
-"Video aktiv.</p>"
-
-#: src/gui.cpp:1589 src/gui.cpp:2680
-msgid "Default"
-msgstr "Standard"
-
-#: src/gui.cpp:1606
-msgid "Audio delay (ms):"
-msgstr "Audioverzögerung (ms):"
-
-#: src/gui.cpp:1607
-msgid ""
-"<p>Set an audio delay, in milliseconds.<br>This is useful if audio and video "
-"are not in sync.</p>"
-msgstr ""
-"<p>Setze eine Audioverzögerung in Millisekunden.<br>Dies ist nüztlich wenn "
-"Audio und Video nicht synchron laufen.</p>"
-
-#: src/gui.cpp:1664
-msgid "Subtitle Settings"
-msgstr "Untertitel Einstellungen"
-
-#: src/gui.cpp:1667
-msgid ""
-"<p>These settings apply only to soft subtitles, not to bitmaps.<br>Some "
-"changes require a restart of the video to take effect.</p>"
-msgstr ""
-"<p>Diese Einstellungen gelten für Text-Untertitel, nicht für Bild-Untertitel."
-"<br>Einige Einstellungen benötigen einen Neustart des Videos, um aktiv zu "
-"werden.</p>"
-
-#: src/gui.cpp:1670
-msgid "Encoding:"
-msgstr "Zeichensatz:"
-
-#: src/gui.cpp:1671
-msgid "<p>Set the subtitle character set encoding.</p>"
-msgstr "<p>Auswahl des Untertitelzeichensatzes.</p>"
-
-#: src/gui.cpp:1686
-msgid "Override font:"
-msgstr "Setze Schriftart:"
-
-#: src/gui.cpp:1687
-msgid "<p>Override the subtitle font family.</p>"
-msgstr "<p>Auswahl der Schriftart des Untertitels.</p>"
-
-#: src/gui.cpp:1696
-msgid "Override font size:"
-msgstr "Setze Schriftgröße:"
-
-#: src/gui.cpp:1697
-msgid "<p>Override the subtitle font size.</p>"
-msgstr "<p>Auswahl der Schriftgröße des Untertitels.</p>"
-
-#: src/gui.cpp:1707
-msgid "Override scale factor:"
-msgstr "Setze Skalierungsfaktor:"
-
-#: src/gui.cpp:1708
-msgid "<p>Override the subtitle scale factor.</p>"
-msgstr "<p>Auswahl des Skalierungsfaktors des Untertitels.</p>"
-
-#: src/gui.cpp:1719
-msgid "Override color:"
-msgstr "Setze Farbe:"
-
-#: src/gui.cpp:1720
-msgid "<p>Override the subtitle color.</p>"
-msgstr "<p>Auswahl der Farbe des Untertitels.</p>"
-
-#: src/gui.cpp:1729
-msgid "Override shadow:"
-msgstr "Setze Schatten:"
-
-#: src/gui.cpp:1730
-msgid "<p>Override the subtitle shadow.</p>"
-msgstr "<p>Auswahl des Schattens für Untertitel.</p>"
-
-#: src/gui.cpp:1735
-msgid "On"
-msgstr "An"
-
-#: src/gui.cpp:1946
-msgid "Video Settings"
-msgstr "Video Einstellungen"
-
-#: src/gui.cpp:1948
-msgid "Crop to aspect ratio:"
-msgstr "Stutze auf Seitenverhältnis:"
-
-#: src/gui.cpp:1949
-msgid ""
-"<p>Set the real aspect ratio of the video, so that borders can be cropped.</"
-"p>"
-msgstr ""
-"<p>Setze das wahre Seitenverhältnis des Videos, so dass Ränder gestutzt "
-"werden können.</p>"
-
-#: src/gui.cpp:1952
-msgid "Do not crop"
-msgstr "Kein Stutzen"
-
-#
-#: src/gui.cpp:1965
-msgid "Force source aspect ratio:"
-msgstr "Erzwinge Seitenverhältnis:"
-
-#
-#: src/gui.cpp:1966
-msgid "<p>Force the aspect ratio of video source.</p>"
-msgstr "<p>Erzwinge das Seitenverhältnis des Videos</p>"
-
-#
-#: src/gui.cpp:1969
-msgid "Do not force"
-msgstr "Nicht erzwingen"
-
-#: src/gui.cpp:1982
-msgid "Parallax:"
-msgstr "Parallaxe:"
-
-#: src/gui.cpp:1983
-msgid ""
-"<p>Adjust parallax, from -1 to +1. This changes the separation of left and "
-"right view, and thus the perceived distance of the scene.</p>"
-msgstr ""
-"<p>Justierung der Parallaxe, von -1 bis +1. Dies ändert die Separierung von "
-"linker und rechter Sicht und damit den wahrgenommenen Abstand der Szene.</p>"
-
-#: src/gui.cpp:1996
-msgid "Subtitle parallax:"
-msgstr "Untertitelparallaxe:"
-
-#: src/gui.cpp:1997
-msgid ""
-"<p>Adjust subtitle parallax, from -1 to +1. This changes the perceived "
-"distance of the subtitles.</p>"
-msgstr ""
-"<p>Justierung der Untertitelparallaxe, von -1 bis +1. Dies ändert den "
-"wahrgenommenen Abstand der Untertitel.</p>"
-
-#: src/gui.cpp:2010
-msgid "Ghostbusting:"
-msgstr "Crosstalk-Verringerungsfaktor:"
-
-#: src/gui.cpp:2011
-msgid ""
-"<p>Set the amount of crosstalk ghostbusting, from 0 to 1. You need to set "
-"the crosstalk levels of your display first. Note that crosstalk ghostbusting "
-"does not work with anaglyph glasses.</p>"
-msgstr ""
-"<p>Auswahl des Faktors der Verringerung von Crosstalk, von 0 bis 1. Zuerst "
-"müssen die Crosstalk-Level des Bildschirms gesetzt werden. Crosstalk-"
-"Verringerung funktioniert nicht mit Anaglyphenbrillen.</p>"
-
-#: src/gui.cpp:2195
-msgid "SDI Output Settings"
-msgstr "SDI Ausgabe Einstellungen"
-
-#: src/gui.cpp:2197
-msgid "SDI Output Format:"
-msgstr "SDI Ausgabeformat:"
-
-#: src/gui.cpp:2198
-msgid "<p>Select output format used for SDI output.</p>"
-msgstr "<p>Auswahl des Ausgabeformats für SDI Ausgabe.</p>"
-
-#: src/gui.cpp:2206
-msgid "Left stereo mode:"
-msgstr "Linker Stereomodus:"
-
-#: src/gui.cpp:2207
-msgid "<p>Select stereo mode used for left SDI output.</p>"
-msgstr "<p>Auswahl der Ausgabemodus für die linken SDI Ausgabe.</p>"
-
-#: src/gui.cpp:2235
-msgid "Right stereo mode:"
-msgstr "Rechter Stereomodus:"
-
-#: src/gui.cpp:2236
-msgid "<p>Select stereo mode used for right SDI output.</p>"
-msgstr "<p>Auswahl der Ausgabemodus für die rechte SDI Ausgabe.</p>"
-
-#: src/gui.cpp:2676
-msgid "Open device(s)"
-msgstr "Öffne Gerät(e)"
-
-#: src/gui.cpp:2679
-msgid "<p>Choose a device type.</p>"
-msgstr "<p>Auswahl des Kameratyps.</p>"
-
-#: src/gui.cpp:2681 src/media_object.cpp:831
-msgid "Firewire"
-msgstr "Firewire"
-
-#: src/gui.cpp:2682 src/media_object.cpp:832
-msgid "X11"
-msgstr "X11"
-
-#: src/gui.cpp:2685 src/gui.cpp:2688
-msgid "<p>Choose a device.</p>"
-msgstr "<p>Auswahl der Kamera.</p>"
-
-#: src/gui.cpp:2691
-msgid "<p>Set the X11 device string. Refer to the manual for details.</p>"
-msgstr "<p>Setze das X11 Gerät. Siehe Benutzerhandbuch.</p>"
-
-#: src/gui.cpp:2715
-msgid "First device:"
-msgstr "Erstes Gerät:"
-
-#: src/gui.cpp:2716
-msgid "Second device:"
-msgstr "Zweites Gerät:"
-
-#: src/gui.cpp:2720
-msgid "Request frame size"
-msgstr "Fordere Bildgröße an"
-
-#: src/gui.cpp:2721
-msgid ""
-"<p>Request a specific frame size from the device, e.g. 640x480. The device "
-"must support this frame size. Some devices require a frame size to be "
-"selected.</p>"
-msgstr ""
-"<p>Fordere eine bestimmete Bildauflösung von der Kamera an, z.B. 640x480. "
-"Die Kamera muss diese Auflösung unterstützen. Einige Kameras verlangen, dass "
-"eine Auflösung ausgewählt wird.</p>"
-
-#: src/gui.cpp:2732
-msgid "Request frame rate"
-msgstr "Fordere Bildrate an"
-
-#: src/gui.cpp:2733
-msgid ""
-"<p>Request a specific frame rate from the device, e.g. 25/1. The device must "
-"support this frame rate. Some devices require a frame rate to be selected.</"
-"p>"
-msgstr ""
-"<p>Fordere eine bestimmte Bildrate von der Kamera an, z.B. 25/1. Die Kamera "
-"muss diese Bildrate unterstützen. Einige Kameras verlangen, dass eine "
-"Bildrate ausgewählt wird.</p>"
-
-#: src/gui.cpp:2744
-msgid "Request MJPEG format"
-msgstr "Fordere MJPEG Format an"
-
-#: src/gui.cpp:2745
-msgid ""
-"<p>Request MJPEG data from the input device. The device may ignore this "
-"request.</p>"
-msgstr ""
-"<p>Fordere MJPEG Daten from Gerät an. Das Gerät kann diese Anforderung "
-"ignorieren.</p>"
-
-#: src/gui.cpp:2748 src/gui.cpp:3523
-msgid "Cancel"
-msgstr "Abbrechen"
-
-#: src/gui.cpp:3046
-msgid "&File"
-msgstr "&Datei"
-
-#: src/gui.cpp:3047
-msgid "&Open file(s)..."
-msgstr "Öffne Datei(en)..."
-
-#: src/gui.cpp:3052
-msgid "Open &URL(s)..."
-msgstr "Öffne &URL(s)..."
-
-#: src/gui.cpp:3056
-msgid "Open &device(s)..."
-msgstr "Öffne &Gerät(e)..."
-
-#: src/gui.cpp:3071
-msgid "&Clear recent files"
-msgstr "Lösche Liste zuletzt geöffneter Dateien"
-
-#: src/gui.cpp:3079
-msgid "&Quit"
-msgstr "&Beenden"
-
-#: src/gui.cpp:3085
-msgid "&Preferences"
-msgstr "&Einstellungen"
-
-#: src/gui.cpp:3088
-msgid "&Fullscreen Settings..."
-msgstr "&Vollbildeinstellungen..."
-
-#: src/gui.cpp:3091
-msgid "Display &Color Adjustments..."
-msgstr "Bildschirm&farben..."
-
-#: src/gui.cpp:3094
-msgid "Display Cross&talk Calibration..."
-msgstr "Bildschirm-Crosstalk..."
-
-#: src/gui.cpp:3098
-msgid "Quality Adjustments..."
-msgstr "Qualitätseinstellungen..."
-
-#: src/gui.cpp:3102
-msgid "&Zoom for wide videos..."
-msgstr "&Zoom für überbreite Videos..."
-
-#: src/gui.cpp:3106
-msgid "&Audio Settings..."
-msgstr "&Audio Einstellungen..."
-
-#: src/gui.cpp:3110
-msgid "&Subtitle Settings..."
-msgstr "&Untertitel Einstellungen..."
-
-#: src/gui.cpp:3114
-msgid "Current &Video Settings..."
-msgstr "Einstellungen für das aktuelle Video..."
-
-#: src/gui.cpp:3119
-msgid "SDI &Output Settings..."
-msgstr "SDI Ausgabe Einstellungen..."
-
-#: src/gui.cpp:3123
-msgid "&Help"
-msgstr "&Hilfe"
-
-#: src/gui.cpp:3124
-msgid "&Manual..."
-msgstr "&Handbuch..."
-
-#: src/gui.cpp:3129
-msgid "&Website..."
-msgstr "&Webseite..."
-
-#: src/gui.cpp:3133
-msgid "&Keyboard Shortcuts"
-msgstr "&Tastaturkürzel"
-
-#: src/gui.cpp:3137
-msgid "&About"
-msgstr "&Über"
-
-#: src/gui.cpp:3470
-msgid "Tip"
-msgstr "Tipp"
-
-#: src/gui.cpp:3473
-msgid ""
-"<p>You can select and open multiple files at once.</p><p>This is useful for "
-"example if you have extra subtitle files,<br>or if left and right view are "
-"stored in separate files.</p>"
-msgstr ""
-"<p>Du kannst mehrere Dateien gleichzeitig auswählen und öffnen.</p><p>Dies "
-"ist nützlich wenn Du z.B. Untertitel in Extradateien hast,<br>oder wenn "
-"linke und rechte Ansicht in separaten Dateien gespeichert sind.</p>"
-
-#: src/gui.cpp:3476
-msgid "Do not show this message again."
-msgstr "Zeige diese Nachricht nicht noch einmal."
-
-#: src/gui.cpp:3493
-msgid "Open files"
-msgstr "Dateien öffnen"
-
-#: src/gui.cpp:3517
-msgid "Open URL(s)"
-msgstr "Öffne URL(s)"
-
-#: src/gui.cpp:3518
-msgid "URL(s):"
-msgstr "URL(s):"
-
-#: src/gui.cpp:3519
-msgid "<p>Enter one or more space separated URLs.</p>"
-msgstr "<p>Gebe eine oder mehrere durch Leerzeichen getrennte URLs ein.</p>"
-
-#: src/gui.cpp:3732 src/gui.cpp:3740 src/video_output_qt.cpp:291
-#: src/video_output_qt.cpp:534 src/video_output_qt.cpp:731
-#: src/video_output_qt.cpp:743 src/video_output_qt.cpp:764
-msgid "Error"
-msgstr "Fehler"
-
-#: src/gui.cpp:3732
-msgid "Cannot open manual."
-msgstr "Kann Handbuch nicht öffnen."
-
-#: src/gui.cpp:3740
-msgid "Cannot open website."
-msgstr "Kann Webseite nicht öffnen."
-
-#: src/gui.cpp:3748
-msgid "Keyboard Shortcuts"
-msgstr "Tastaturkürzel"
-
-#: src/gui.cpp:3751
-msgid "Keyboard control:"
-msgstr "Tastaturkürzel:"
-
-#: src/gui.cpp:3753 src/main.cpp:534
-msgid "ESC"
-msgstr "ESC"
-
-#: src/gui.cpp:3753
-msgid "Stop"
-msgstr "Stopp"
-
-#: src/gui.cpp:3754 src/main.cpp:536
-msgid "SPACE"
-msgstr "Leertaste"
-
-#: src/gui.cpp:3754 src/main.cpp:536
-msgid "Pause / unpause"
-msgstr "Pause / weiter"
-
-#: src/gui.cpp:3755 src/main.cpp:537
-msgid "Toggle fullscreen"
-msgstr "Schalte Vollbildmodus um"
-
-#: src/gui.cpp:3756 src/main.cpp:538
-msgid "Center window"
-msgstr "Zentriere Fenster"
-
-#: src/gui.cpp:3757 src/main.cpp:539
-msgid "Swap left/right eye"
-msgstr "Tausche links/rechts"
-
-#: src/gui.cpp:3758 src/main.cpp:540
-msgid "Cycle through available video streams"
-msgstr "Schalte durch verfügbare Videokanäle"
-
-#: src/gui.cpp:3759 src/main.cpp:541
-msgid "Cycle through available audio streams"
-msgstr "Schalte durch verfügbare Audiokanäle"
-
-#: src/gui.cpp:3760 src/main.cpp:542
-msgid "Cycle through available subtitle streams"
-msgstr "Schalte durch verfügbare Untertitelkanäle"
-
-#: src/gui.cpp:3761 src/main.cpp:543
-msgid "Adjust contrast"
-msgstr "Justiere Kontrast"
-
-#: src/gui.cpp:3762 src/main.cpp:544
-msgid "Adjust brightness"
-msgstr "Justiere Helligkeit"
-
-#: src/gui.cpp:3763 src/main.cpp:545
-msgid "Adjust hue"
-msgstr "Justiere Farbton"
-
-#: src/gui.cpp:3764 src/main.cpp:546
-msgid "Adjust saturation"
-msgstr "Justiere Farbsättigung"
-
-#: src/gui.cpp:3765 src/main.cpp:547
-msgid "Adjust parallax"
-msgstr "Justiere Parallaxe"
-
-#: src/gui.cpp:3766 src/main.cpp:548
-msgid "Adjust ghostbusting"
-msgstr "Justiere Crosstalk-Verringerungsfaktor"
-
-#: src/gui.cpp:3767 src/main.cpp:549
-msgid "Adjust zoom for wide videos"
-msgstr "Justiere Zoom für überbreite Videos"
-
-#: src/gui.cpp:3768 src/main.cpp:550
-msgid "Adjust audio volume"
-msgstr "Justiere Lautstärke"
-
-#: src/gui.cpp:3769 src/main.cpp:551
-msgid "Toggle audio mute"
-msgstr "Schalte Stummschaltung um"
-
-#: src/gui.cpp:3770 src/main.cpp:552
-msgid "Step a single video frame forward"
-msgstr "Schalte ein Videobild weiter"
-
-#: src/gui.cpp:3771 src/main.cpp:553
-msgid "left, right"
-msgstr "links, rechts"
-
-#: src/gui.cpp:3771 src/main.cpp:553
-msgid "Seek 10 seconds backward / forward"
-msgstr "Springe 10 Sekunden zurück / vor"
-
-#: src/gui.cpp:3772 src/main.cpp:554
-msgid "down, up"
-msgstr "runter, rauf"
-
-#: src/gui.cpp:3772 src/main.cpp:554
-msgid "Seek 1 minute backward / forward"
-msgstr "Springe 1 Minute zurück / vor"
-
-#: src/gui.cpp:3773 src/main.cpp:555
-msgid "page down, page up"
-msgstr "Seite runter, Seite rauf"
-
-#: src/gui.cpp:3773 src/main.cpp:555
-msgid "Seek 10 minutes backward / forward"
-msgstr "Springe 10 Minuten zurück / vor"
-
-#: src/gui.cpp:3774 src/main.cpp:557
-msgid "Media keys"
-msgstr "Medientasten"
-
-#: src/gui.cpp:3774 src/main.cpp:557
-msgid "Media keys should work as expected"
-msgstr "Medientasten sollten wie erwartet funktionieren"
-
-#: src/gui.cpp:3790
-#, c-format
-msgid "About %s"
-msgstr "Über %s"
-
-#: src/gui.cpp:3796
-#, c-format
-msgid "The %s 3D video player"
-msgstr "%s - 3D Videospieler"
-
-#: src/gui.cpp:3801
-#, c-format
-msgid ""
-"<p>%s version %s.</p><p>Copyright (C) 2014 the Bino developers.</p><p>This "
-"is free software. You may redistribute copies of it under the terms of the "
-"<a href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public License</"
-"a>. There is NO WARRANTY, to the extent permitted by law.</p><p>See <a href="
-"\"%s\">%s</a> for more information on this software.</p>"
-msgstr ""
-"<p>%s Version %s.</p><p>Copyright (C) 2014 Die Bino Entwickler.</p><p>Dies "
-"ist freie Software. Du kannst Kopien davon verteilen unter den Bedingungen "
-"der <a href=\"http://www.gnu.org/licenses/gpl.html\">GNU General Public "
-"License</a>. Es gibt keine Garantie.</p><p>Siehe <a href=\"%s\">%s</a> für "
-"mehr Informationen über diese Software.</p>"
-
-#: src/gui.cpp:3813 src/main.cpp:419
-msgid "Platform:"
-msgstr "Plattform:"
-
-#: src/gui.cpp:3814 src/main.cpp:421
-msgid "Libraries used:"
-msgstr "Benutzte Bibliotheken:"
-
-#: src/gui.cpp:3836
-msgid "About"
-msgstr "Über"
-
-#: src/gui.cpp:3837
-msgid "Libraries"
-msgstr "Bibliotheken"
-
-#: src/gui.cpp:3838
-msgid "Team"
-msgstr "Team"
-
-#: src/gui.cpp:3839
-msgid "License"
-msgstr "Lizenz"
 
 #: src/lib_versions.cpp:183 src/lib_versions.cpp:195
 msgid "not used"
 msgstr "nicht benutzt"
 
-#: src/lirc.cpp:61
+#: src/lirc.cpp:63
 msgid "Cannot initialize LIRC."
 msgstr "Kann LIRC nicht initialisieren."
 
 #
-#: src/lirc.cpp:67
+#: src/lirc.cpp:69
 msgid "Cannot set LIRC socket properties."
 msgstr "Kann LIRC Parameter nicht setzen."
 
-#: src/lirc.cpp:74
+#: src/lirc.cpp:76
 msgid "Cannot read LIRC default configuration."
 msgstr "Kann LIRC Standardkonfiguration nicht lesen."
 
-#: src/lirc.cpp:89
+#: src/lirc.cpp:91
 #, c-format
 msgid "Cannot read LIRC configuration file %s."
 msgstr "Kann LIRC Konfigurationsdatei %s nicht lesen."
 
-#: src/lirc.cpp:117
+#: src/lirc.cpp:119
 msgid "Cannot get LIRC event; disabling LIRC support."
 msgstr "Kann LIRC Ereignis nicht lesen; schalte LIRC ab."
 
-#: src/lirc.cpp:131
+#: src/lirc.cpp:133
 #, c-format
 msgid "Received invalid command '%s' from LIRC."
 msgstr "Ungültiges Kommando '%s' von LIRC erhalten."
 
-#: src/lirc.cpp:141
+#: src/lirc.cpp:143
 msgid "Cannot get command for LIRC code."
 msgstr "Kann kein Kommando für LIRC Code bekommen."
 
@@ -1304,8 +281,8 @@ msgid "%s version %s"
 msgstr "%s Version %s"
 
 #: src/main.cpp:415
-msgid "Copyright (C) 2014 the Bino developers."
-msgstr "Copyright (C) 2014 Die Bino Entwickler."
+msgid "Copyright (C) 2018 the Bino developers."
+msgstr "Copyright (C) 2018 Die Bino Entwickler."
 
 #: src/main.cpp:416
 msgid ""
@@ -1315,6 +292,14 @@ msgid ""
 msgstr ""
 "Dies ist freie Software. Du kannst Kopien davon verteilen unter den "
 "Bedingungen der GNU General Public License. Es gibt keine Garantie."
+
+#: src/main.cpp:419
+msgid "Platform:"
+msgstr "Plattform:"
+
+#: src/main.cpp:421
+msgid "Libraries used:"
+msgstr "Benutzte Bibliotheken:"
 
 #. TRANSLATORS: This is the --help text. Please keep the line length limited.
 #. * The --help output should look good with a line width of 80 characters.
@@ -1414,9 +399,153 @@ msgstr "Setze Untertitelkanal (0-n, je nach Eingabe)"
 msgid "Select input type (default autodetect):"
 msgstr "Setze Eingabetyp (Standard: automatisch):"
 
+#: src/main.cpp:459
+msgid "2D"
+msgstr "2D"
+
+#: src/main.cpp:460
+msgid "Separate streams, left first"
+msgstr "Getrennte Kanäle, links zuerst"
+
+#: src/main.cpp:461
+msgid "Separate streams, right first"
+msgstr "Getrennte Kanäle, rechts zuerst"
+
+#: src/main.cpp:462
+msgid "Alternating, left first"
+msgstr "Abwechselnd, links zuerst."
+
+#: src/main.cpp:463
+msgid "Alternating, right first"
+msgstr "Abwechselnd, rechts zuerst."
+
+#: src/main.cpp:464 src/main.cpp:479
+msgid "Top/bottom"
+msgstr "Oben/unten"
+
+#: src/main.cpp:465 src/main.cpp:480
+msgid "Top/bottom, half height"
+msgstr "Oben/unten, halbe Höhe"
+
+#: src/main.cpp:466
+msgid "Bottom/top"
+msgstr "Unten/oben"
+
+#: src/main.cpp:467
+msgid "Bottom/top, half height"
+msgstr "Unten/oben, halbe Höhe"
+
+#: src/main.cpp:468 src/main.cpp:481
+msgid "Left/right"
+msgstr "Links/rechts"
+
+#: src/main.cpp:469 src/main.cpp:482
+msgid "Left/right, half width"
+msgstr "Links/rechts, halbe Breite"
+
+#: src/main.cpp:470
+msgid "Right/left"
+msgstr "Rechts/links"
+
+#: src/main.cpp:471
+msgid "Right/left, half width"
+msgstr "Rechts/links, halbe Breite"
+
+#: src/main.cpp:472 src/main.cpp:483
+msgid "Even/odd rows"
+msgstr "Gerade/ungerade Zeilen"
+
+#: src/main.cpp:473
+msgid "Odd/even rows"
+msgstr "Ungerade/gerade Zeilen"
+
 #: src/main.cpp:474
 msgid "Select output type:"
 msgstr "Setze Ausgabemodus:"
+
+#: src/main.cpp:475
+msgid "OpenGL stereo"
+msgstr "OpenGL Stereo"
+
+#: src/main.cpp:476
+msgid "Left/right alternating"
+msgstr "Links/rechts abwechselnd"
+
+#: src/main.cpp:477
+msgid "Left view"
+msgstr "Linke Sicht"
+
+#: src/main.cpp:478
+msgid "Right view"
+msgstr "Rechte Sicht"
+
+#: src/main.cpp:484
+msgid "Even/odd columns"
+msgstr "Gerade/ungerade Spalten"
+
+#: src/main.cpp:485
+msgid "Checkerboard pattern"
+msgstr "Schachbrettmuster"
+
+#: src/main.cpp:486
+msgid "HDMI frame packing mode"
+msgstr "HDMI Framepacking Modus"
+
+#: src/main.cpp:487
+msgid "Red/cyan glasses, monochrome"
+msgstr "Rot/cyan Brillen, monochrom"
+
+#: src/main.cpp:488
+msgid "Red/cyan glasses, half color"
+msgstr "Rot/cyan Brillen, halbfarbig"
+
+#: src/main.cpp:489
+msgid "Red/cyan glasses, full color"
+msgstr "Rot/cyan Brillen, vollfarbig"
+
+#: src/main.cpp:490
+msgid "Red/cyan glasses, Dubois"
+msgstr "Rot/cyan Brillen, Dubois"
+
+#: src/main.cpp:491
+msgid "Green/magenta glasses, monochrome"
+msgstr "Grün/magenta Brillen, monochrom"
+
+#: src/main.cpp:492
+msgid "Green/magenta glasses, half color"
+msgstr "Grün/magenta Brillen, halbfarbig"
+
+#: src/main.cpp:493
+msgid "Green/magenta glasses, full color"
+msgstr "Grün/magenta Brillen, vollfarbig"
+
+#: src/main.cpp:494
+msgid "Green/magenta glasses, Dubois"
+msgstr "Grün/magenta Brillen, Dubois"
+
+#: src/main.cpp:495
+msgid "Amber/blue glasses, monochrome"
+msgstr "Orange/blau Brillen, monochrom"
+
+#: src/main.cpp:496
+msgid "Amber/blue glasses, half color"
+msgstr "Orange/blau Brillen, halbfarbig"
+
+#: src/main.cpp:497
+msgid "Amber/blue glasses, full color"
+msgstr "Orange/blau Brillen, vollfarbig"
+
+#: src/main.cpp:498
+msgid "Amber/blue glasses, Dubois"
+msgstr "Orange/blau Brillen, Dubois"
+
+#: src/main.cpp:499
+msgid "Red/green glasses, monochrome"
+msgstr "Rot/grün Brillen, monochrome"
+
+#: src/main.cpp:500
+msgid "Red/blue glasses, monochrome"
+msgstr "Rot/blau Brillen, monochrom"
 
 #: src/main.cpp:501
 msgid "Multi-display via Equalizer (2D setup)"
@@ -1547,12 +676,112 @@ msgid "Interactive control:"
 msgstr "Interaktive Bedienung:"
 
 #: src/main.cpp:534
+msgid "ESC"
+msgstr "ESC"
+
+#: src/main.cpp:534
 msgid "Leave fullscreen mode, or quit"
 msgstr "Verlasse Vollbildmodus, oder beende"
 
 #: src/main.cpp:535
 msgid "Quit"
 msgstr "Beenden"
+
+#: src/main.cpp:536
+msgid "SPACE"
+msgstr "Leertaste"
+
+#: src/main.cpp:536
+msgid "Pause / unpause"
+msgstr "Pause / weiter"
+
+#: src/main.cpp:537
+msgid "Toggle fullscreen"
+msgstr "Schalte Vollbildmodus um"
+
+#: src/main.cpp:538
+msgid "Center window"
+msgstr "Zentriere Fenster"
+
+#: src/main.cpp:539
+msgid "Swap left/right eye"
+msgstr "Tausche links/rechts"
+
+#: src/main.cpp:540
+msgid "Cycle through available video streams"
+msgstr "Schalte durch verfügbare Videokanäle"
+
+#: src/main.cpp:541
+msgid "Cycle through available audio streams"
+msgstr "Schalte durch verfügbare Audiokanäle"
+
+#: src/main.cpp:542
+msgid "Cycle through available subtitle streams"
+msgstr "Schalte durch verfügbare Untertitelkanäle"
+
+#: src/main.cpp:543
+msgid "Adjust contrast"
+msgstr "Justiere Kontrast"
+
+#: src/main.cpp:544
+msgid "Adjust brightness"
+msgstr "Justiere Helligkeit"
+
+#: src/main.cpp:545
+msgid "Adjust hue"
+msgstr "Justiere Farbton"
+
+#: src/main.cpp:546
+msgid "Adjust saturation"
+msgstr "Justiere Farbsättigung"
+
+#: src/main.cpp:547
+msgid "Adjust parallax"
+msgstr "Justiere Parallaxe"
+
+#: src/main.cpp:548
+msgid "Adjust ghostbusting"
+msgstr "Justiere Crosstalk-Verringerungsfaktor"
+
+#: src/main.cpp:549
+msgid "Adjust zoom for wide videos"
+msgstr "Justiere Zoom für überbreite Videos"
+
+#: src/main.cpp:550
+msgid "Adjust audio volume"
+msgstr "Justiere Lautstärke"
+
+#: src/main.cpp:551
+msgid "Toggle audio mute"
+msgstr "Schalte Stummschaltung um"
+
+#: src/main.cpp:552
+msgid "Step a single video frame forward"
+msgstr "Schalte ein Videobild weiter"
+
+#: src/main.cpp:553
+msgid "left, right"
+msgstr "links, rechts"
+
+#: src/main.cpp:553
+msgid "Seek 10 seconds backward / forward"
+msgstr "Springe 10 Sekunden zurück / vor"
+
+#: src/main.cpp:554
+msgid "down, up"
+msgstr "runter, rauf"
+
+#: src/main.cpp:554
+msgid "Seek 1 minute backward / forward"
+msgstr "Springe 1 Minute zurück / vor"
+
+#: src/main.cpp:555
+msgid "page down, page up"
+msgstr "Seite runter, Seite rauf"
+
+#: src/main.cpp:555
+msgid "Seek 10 minutes backward / forward"
+msgstr "Springe 10 Minuten zurück / vor"
 
 #: src/main.cpp:556
 msgid "Mouse click"
@@ -1562,20 +791,28 @@ msgstr "Mausklick"
 msgid "Seek according to horizontal click position"
 msgstr "Springe zur Klick-Position"
 
-#: src/main.cpp:626
+#: src/main.cpp:557
+msgid "Media keys"
+msgstr "Medientasten"
+
+#: src/main.cpp:557
+msgid "Media keys should work as expected"
+msgstr "Medientasten sollten wie erwartet funktionieren"
+
+#: src/main.cpp:627
 msgid "No audio devices known."
 msgstr "Keine Audiogeräte gefunden."
 
-#: src/main.cpp:641
+#: src/main.cpp:642
 msgid "Benchmark mode: audio and time synchronization disabled."
 msgstr "Benchmark Modus: Audio und Videosynchronisation deaktiviert."
 
-#: src/main.cpp:655
+#: src/main.cpp:656
 #, c-format
 msgid "Unknown mode %s."
 msgstr "Unbekannter Modus %s."
 
-#: src/main.cpp:787
+#: src/main.cpp:788
 msgid "This version of Bino was compiled without support for LIRC."
 msgstr "Diese Version von Bino wurde ohne Unterstützung für LIRC erstellt."
 
@@ -1590,6 +827,10 @@ msgstr "%dx%d, %.3g:1"
 #, c-format
 msgid "%s, %d ch., %g kHz, %d bit"
 msgstr "%s, %d Kan., %g kHz, %d bit"
+
+#: src/media_input.cpp:276
+msgid "Input:"
+msgstr "Eingabe:"
 
 #: src/media_input.cpp:281
 #, c-format
@@ -1647,6 +888,14 @@ msgstr "%s Audiokanal %d: Kann Audiodaten mit Sampleformat %s nicht benutzen."
 #, c-format
 msgid "No support available for %s device."
 msgstr "Unterstüztung für %s Geräte nicht verfügbar."
+
+#: src/media_object.cpp:831
+msgid "Firewire"
+msgstr "Firewire"
+
+#: src/media_object.cpp:832
+msgid "X11"
+msgstr "X11"
 
 #: src/media_object.cpp:833
 msgid "default"
@@ -1746,8 +995,8 @@ msgstr "FPS: %.2f"
 msgid "Reading input frame failed."
 msgstr "Lesen des Eingabebildes fehlgeschlagen."
 
-#: src/player_equalizer.cpp:168 src/video_output_qt.cpp:685
-#: src/video_output_qt.cpp:692
+#: src/player_equalizer.cpp:168 src/video_output_qt.cpp:687
+#: src/video_output_qt.cpp:694
 msgid "Waiting for subtitle renderer initialization..."
 msgstr "Warte auf die Initialisierung der Untertitelanzeige..."
 
@@ -1855,39 +1104,623 @@ msgstr "OpenGL Programm '%s': Linken fehlgeschlagen."
 msgid "Cannot create a PBO buffer."
 msgstr "Kann keinen PBO Puffer erzeugen."
 
-#: src/video_output_qt.cpp:636
+#: src/video_output_qt.cpp:293 src/video_output_qt.cpp:536
+#: src/video_output_qt.cpp:733 src/video_output_qt.cpp:745
+#: src/video_output_qt.cpp:766
+msgid "Error"
+msgstr "Fehler"
+
+#: src/video_output_qt.cpp:638
 #, c-format
 msgid "Cannot initialize GLEW: %s"
 msgstr "Kann GLEW nicht initialisieren: %s"
 
-#: src/video_output_qt.cpp:656
+#: src/video_output_qt.cpp:658
 msgid "This OpenGL implementation does not support required features."
 msgstr ""
 "Diese OpenGL Implementierung unterstützt nicht alle benötigten Funktionen."
 
-#: src/video_output_qt.cpp:683
+#: src/video_output_qt.cpp:685
 msgid "Please wait"
 msgstr "Bitte warten"
 
-#: src/video_output_qt.cpp:743
+#: src/video_output_qt.cpp:745
 msgid "Cannot get valid OpenGL context."
 msgstr "Kann keinen OpenGL Kontext erzeugen."
 
-#: src/video_output_qt.cpp:754
+#: src/video_output_qt.cpp:756
 msgid "The display does not support OpenGL stereo mode."
 msgstr "Dieses Gerät unterstützt kein OpenGL Stereo."
 
-#: src/video_output_qt.cpp:759
+#: src/video_output_qt.cpp:761
 msgid "Cannot set OpenGL context format."
 msgstr "Kann OpenGL Kontextformat nicht setzen."
 
-#: src/video_output_qt.cpp:862
+#: src/video_output_qt.cpp:865
 msgid "Cannot suspend screensaver."
 msgstr "Kann Bildschirmschoner nicht deaktivieren."
 
-#: src/video_output_qt.cpp:877
+#: src/video_output_qt.cpp:880
 msgid "Cannot resume screensaver."
 msgstr "Kann Bildschirmschoner nicht reaktivieren."
+
+#~ msgid "Video:"
+#~ msgstr "Video:"
+
+#~ msgid "<p>Select the video stream.</p>"
+#~ msgstr "<p>Auswahl des Videokanals.</p>"
+
+#~ msgid "Audio:"
+#~ msgstr "Audio:"
+
+#~ msgid "<p>Select the audio stream.</p>"
+#~ msgstr "<p>Auswahl des Videokanals.</p>"
+
+#~ msgid "Subtitle:"
+#~ msgstr "Untertitel:"
+
+#~ msgid "<p>Select the subtitle stream.</p>"
+#~ msgstr "<p>Auswahl des Untertitelkanals.</p>"
+
+#~ msgid "<p>Set the 3D layout of the video stream.</p>"
+#~ msgstr "<p>Auswahl des Stereolayouts des Videokanals.</p>"
+
+#~ msgid "Output:"
+#~ msgstr "Ausgabe:"
+
+#~ msgid "<p>Set the 3D output type for your display.</p>"
+#~ msgstr "<p>Auswahl des 3D Ausgabetyps für das Ausgabegerät.</p>"
+
+#~ msgid "Swap left/right"
+#~ msgstr "Tausche links/rechts"
+
+#~ msgid ""
+#~ "<p>Swap the left and right view. Use this if the 3D effect seems wrong.</"
+#~ "p>"
+#~ msgstr ""
+#~ "<p>Vertauschung von linker und rechter Sicht (falls der 3D Effekt falsch "
+#~ "wirkt).</p>"
+
+#~ msgid "Off"
+#~ msgstr "Aus"
+
+#~ msgid ""
+#~ "<p>This slider shows the progress during video playback, and can be used "
+#~ "to seek in the video.</p>"
+#~ msgstr ""
+#~ "<p>Dieser Gleiter zeigt der Fortschritt beim Abspielen an, und kann zum "
+#~ "Vor- und Zurückspulen benutzt werden.</p>"
+
+#~ msgid "<p>Elapsed / total time.</p>"
+#~ msgstr "<p>Zeit / Gesamtdauer.</p>"
+
+#~ msgid "<p>Toggle audio mute.</p>"
+#~ msgstr "<p>Schalte Stummschaltung um.</p>"
+
+#~ msgid "<p>Adjust audio volume.</p>"
+#~ msgstr "<p>Stelle Lautstärke ein.</p>"
+
+#~ msgid "<p>Play.</p>"
+#~ msgstr "<p>Abspielen.</p>"
+
+#~ msgid "<p>Pause.</p>"
+#~ msgstr "<p>Pause.</p>"
+
+#~ msgid "<p>Stop.</p>"
+#~ msgstr "<p>Stopp.</p>"
+
+#~ msgid "<p>Toggle loop mode.</p>"
+#~ msgstr "<p>Schalte Wiederholmodus um.</p>"
+
+#~ msgid ""
+#~ "<p>Switch to fullscreen mode. You can leave fullscreen mode by pressing "
+#~ "the f key.</p>"
+#~ msgstr ""
+#~ "<p>Zum Vollbildmodus schalten. Der Vollbildmodus kann mit der Taste f "
+#~ "verlassen werden.</p>"
+
+#~ msgid "<p>Center the video area on your screen.</p>"
+#~ msgstr "<p>Zentrierung des Videos in der Mitte des Bildschirms.</p>"
+
+#~ msgid "<p>Seek backward 10 minutes.</p>"
+#~ msgstr "<p>10 Minuten zurückspulen.</p>"
+
+#~ msgid "<p>Seek backward 1 minute.</p>"
+#~ msgstr "<p>1 Minute zurückspulen.</p>"
+
+#~ msgid "<p>Seek backward 10 seconds.</p>"
+#~ msgstr "<p>10 Sekunden zurückspulen.</p>"
+
+#~ msgid "<p>Seek forward 10 seconds.</p>"
+#~ msgstr "<p>10 Sekunden vorspulen.</p>"
+
+#~ msgid "<p>Seek forward 1 minute.</p>"
+#~ msgstr "<p>1 Minute vorspulen.</p>"
+
+#~ msgid "<p>Seek forward 10 minutes.</p>"
+#~ msgstr "<p>10 Minuten vorspulen.</p>"
+
+#~ msgid "Fullscreen/Multiscreen Settings"
+#~ msgstr "Vollbild-/Multibildeinstellungen"
+
+#~ msgid "Configure fullscreen mode:"
+#~ msgstr "Konfiguriere Vollbildmodus:"
+
+#~ msgid "<p>Select the screens to use in fullscreen mode.</p>"
+#~ msgstr "<p>Auswahl der Bildschirme für den Vollbildmodus.</p>"
+
+#~ msgid "Single screen:"
+#~ msgstr "Einzelner Bildschirm:"
+
+#~ msgid "<p>Use a single screen for fullscreen mode.</p>"
+#~ msgstr "<p>Benutze einen einzelnen Bildschirm im Vollbildmodus.</p>"
+
+#~ msgid "Primary screen"
+#~ msgstr "Hauptbildschirm"
+
+#~ msgid "Screen %d"
+#~ msgstr "Bildschirm %d"
+
+#~ msgid "Dual screen:"
+#~ msgstr "Doppelbildschirm:"
+
+#~ msgid "<p>Use two screens for fullscreen mode.</p>"
+#~ msgstr "<p>Benutze zwei Bildschirme im Vollbildmodus.</p>"
+
+#~ msgid "Multi screen:"
+#~ msgstr "Multibildschirm:"
+
+#~ msgid "<p>Use multiple screens for fullscreen mode.</p>"
+#~ msgstr "<p>Benutze mehrere Bildschirme im Vollbildmodus.</p>"
+
+#~ msgid "<p>Comma-separated list of screens to use for fullscreen mode.</p>"
+#~ msgstr ""
+#~ "<p>Liste von Bildschirmen für den Vollbildmodus, durch Kommata getrennt.</"
+#~ "p>"
+
+#~ msgid "When in fullscreen mode,"
+#~ msgstr "Im Vollbildmodus:"
+
+#~ msgid "<p>Set special left/right view handling for fullscreen mode.</p>"
+#~ msgstr ""
+#~ "<p>Wähle spezielle Einstellungen für linke und rechte Ansicht im "
+#~ "Vollbildmodus.</p>"
+
+#~ msgid "flip left view vertically."
+#~ msgstr "Spiegele linke Ansicht vertikal."
+
+#~ msgid "flop left view horizontally."
+#~ msgstr "Spiegele linke Ansicht horizontal."
+
+#~ msgid "flip right view vertically."
+#~ msgstr "Spiegele rechte Ansicht vertikal."
+
+#~ msgid "flop right view horizontally."
+#~ msgstr "Spiegele rechte Ansicht horizontal."
+
+#~ msgid "use DLP(R) 3-D Ready Sync"
+#~ msgstr "aktiviere DLP(R) 3-D Ready Sync"
+
+#~ msgid "<p>Use DLP&reg; 3-D Ready Sync for supported output modes.</p>"
+#~ msgstr ""
+#~ "<p>Aktiviere DLP&reg; 3-D Ready Sync für unterstützte Ausgabemodi.</p>"
+
+#~ msgid "inhibit the screensaver"
+#~ msgstr "deaktiviere den Bildschirmschoner"
+
+#~ msgid "<p>Inhibit the screensaver during fullscreen playback.</p>"
+#~ msgstr "<p>Deaktiviere den Bildschirmschoner im Vollbildmodus.</p>"
+
+#~ msgid "OK"
+#~ msgstr "OK"
+
+#~ msgid "Display Color Adjustments"
+#~ msgstr "Bildschirmfarbenjustierung"
+
+#~ msgid "Contrast:"
+#~ msgstr "Kontrast:"
+
+#~ msgid "Brightness:"
+#~ msgstr "Helligkeit:"
+
+#~ msgid "Hue:"
+#~ msgstr "Farbton:"
+
+#~ msgid "Saturation:"
+#~ msgstr "Farbsättigung:"
+
+#~ msgid "Display Crosstalk Calibration"
+#~ msgstr "Bildschirm-Crosstalk Kalibrierung"
+
+#~ msgid ""
+#~ "<p>Please read the manual to find out<br>how to measure the crosstalk "
+#~ "levels<br>of your display.</p>"
+#~ msgstr ""
+#~ "<p>Bitte lese das Handbuch um herauszufinden<br>wie Crosstalk-Level für "
+#~ "Deinen<br>Bildschirm gemessen werden.</p>"
+
+#~ msgid "Red:"
+#~ msgstr "Rot:"
+
+#~ msgid "Green:"
+#~ msgstr "Grün:"
+
+#~ msgid "Blue:"
+#~ msgstr "Blau:"
+
+#~ msgid "Rendering Quality Adjustments"
+#~ msgstr "Justierung der Ausgabequalität"
+
+#~ msgid "Rendering Quality:"
+#~ msgstr "Ausgabequalität:"
+
+#~ msgid "Zoom for wide videos"
+#~ msgstr "Zoom für überbreite Videos"
+
+#~ msgid ""
+#~ "<p>Set zoom level for videos that<br>are wider than the screen:<br>0: "
+#~ "Show full video width.<br>1: Use full screen height.</p>"
+#~ msgstr ""
+#~ "<p>Setze den Zoom für Videos, die<br>breiter als der Bildschirm sind:"
+#~ "<br>0: Zeige volle Videobreite.<br>1: Nutze volle Bildschirmhöhe.</p>"
+
+#~ msgid "Zoom:"
+#~ msgstr "Zoom:"
+
+#~ msgid "<p>Set the zoom level for videos that are wider than the screen.</p>"
+#~ msgstr ""
+#~ "<p>Setze den Zoom für Videos, die breiter als der Bildschirm sind.</p>"
+
+#~ msgid "Audio Settings"
+#~ msgstr "Audio Einstellungen"
+
+#~ msgid "Audio device:"
+#~ msgstr "Audiogerät:"
+
+#~ msgid ""
+#~ "<p>Select the audio device.<br>This will take effect for the next started "
+#~ "video.</p>"
+#~ msgstr ""
+#~ "<p>Wähle das Audiogerät.<br>Die Auswahl wird für das nächste gestartete "
+#~ "Video aktiv.</p>"
+
+#~ msgid "Default"
+#~ msgstr "Standard"
+
+#~ msgid "Audio delay (ms):"
+#~ msgstr "Audioverzögerung (ms):"
+
+#~ msgid ""
+#~ "<p>Set an audio delay, in milliseconds.<br>This is useful if audio and "
+#~ "video are not in sync.</p>"
+#~ msgstr ""
+#~ "<p>Setze eine Audioverzögerung in Millisekunden.<br>Dies ist nüztlich "
+#~ "wenn Audio und Video nicht synchron laufen.</p>"
+
+#~ msgid "Subtitle Settings"
+#~ msgstr "Untertitel Einstellungen"
+
+#~ msgid ""
+#~ "<p>These settings apply only to soft subtitles, not to bitmaps.<br>Some "
+#~ "changes require a restart of the video to take effect.</p>"
+#~ msgstr ""
+#~ "<p>Diese Einstellungen gelten für Text-Untertitel, nicht für Bild-"
+#~ "Untertitel.<br>Einige Einstellungen benötigen einen Neustart des Videos, "
+#~ "um aktiv zu werden.</p>"
+
+#~ msgid "Encoding:"
+#~ msgstr "Zeichensatz:"
+
+#~ msgid "<p>Set the subtitle character set encoding.</p>"
+#~ msgstr "<p>Auswahl des Untertitelzeichensatzes.</p>"
+
+#~ msgid "Override font:"
+#~ msgstr "Setze Schriftart:"
+
+#~ msgid "<p>Override the subtitle font family.</p>"
+#~ msgstr "<p>Auswahl der Schriftart des Untertitels.</p>"
+
+#~ msgid "Override font size:"
+#~ msgstr "Setze Schriftgröße:"
+
+#~ msgid "<p>Override the subtitle font size.</p>"
+#~ msgstr "<p>Auswahl der Schriftgröße des Untertitels.</p>"
+
+#~ msgid "Override scale factor:"
+#~ msgstr "Setze Skalierungsfaktor:"
+
+#~ msgid "<p>Override the subtitle scale factor.</p>"
+#~ msgstr "<p>Auswahl des Skalierungsfaktors des Untertitels.</p>"
+
+#~ msgid "Override color:"
+#~ msgstr "Setze Farbe:"
+
+#~ msgid "<p>Override the subtitle color.</p>"
+#~ msgstr "<p>Auswahl der Farbe des Untertitels.</p>"
+
+#~ msgid "Override shadow:"
+#~ msgstr "Setze Schatten:"
+
+#~ msgid "<p>Override the subtitle shadow.</p>"
+#~ msgstr "<p>Auswahl des Schattens für Untertitel.</p>"
+
+#~ msgid "On"
+#~ msgstr "An"
+
+#~ msgid "Video Settings"
+#~ msgstr "Video Einstellungen"
+
+#~ msgid "Crop to aspect ratio:"
+#~ msgstr "Stutze auf Seitenverhältnis:"
+
+#~ msgid ""
+#~ "<p>Set the real aspect ratio of the video, so that borders can be cropped."
+#~ "</p>"
+#~ msgstr ""
+#~ "<p>Setze das wahre Seitenverhältnis des Videos, so dass Ränder gestutzt "
+#~ "werden können.</p>"
+
+#~ msgid "Do not crop"
+#~ msgstr "Kein Stutzen"
+
+#
+#~ msgid "Force source aspect ratio:"
+#~ msgstr "Erzwinge Seitenverhältnis:"
+
+#
+#~ msgid "<p>Force the aspect ratio of video source.</p>"
+#~ msgstr "<p>Erzwinge das Seitenverhältnis des Videos</p>"
+
+#
+#~ msgid "Do not force"
+#~ msgstr "Nicht erzwingen"
+
+#~ msgid "Parallax:"
+#~ msgstr "Parallaxe:"
+
+#~ msgid ""
+#~ "<p>Adjust parallax, from -1 to +1. This changes the separation of left "
+#~ "and right view, and thus the perceived distance of the scene.</p>"
+#~ msgstr ""
+#~ "<p>Justierung der Parallaxe, von -1 bis +1. Dies ändert die Separierung "
+#~ "von linker und rechter Sicht und damit den wahrgenommenen Abstand der "
+#~ "Szene.</p>"
+
+#~ msgid "Subtitle parallax:"
+#~ msgstr "Untertitelparallaxe:"
+
+#~ msgid ""
+#~ "<p>Adjust subtitle parallax, from -1 to +1. This changes the perceived "
+#~ "distance of the subtitles.</p>"
+#~ msgstr ""
+#~ "<p>Justierung der Untertitelparallaxe, von -1 bis +1. Dies ändert den "
+#~ "wahrgenommenen Abstand der Untertitel.</p>"
+
+#~ msgid "Ghostbusting:"
+#~ msgstr "Crosstalk-Verringerungsfaktor:"
+
+#~ msgid ""
+#~ "<p>Set the amount of crosstalk ghostbusting, from 0 to 1. You need to set "
+#~ "the crosstalk levels of your display first. Note that crosstalk "
+#~ "ghostbusting does not work with anaglyph glasses.</p>"
+#~ msgstr ""
+#~ "<p>Auswahl des Faktors der Verringerung von Crosstalk, von 0 bis 1. "
+#~ "Zuerst müssen die Crosstalk-Level des Bildschirms gesetzt werden. "
+#~ "Crosstalk-Verringerung funktioniert nicht mit Anaglyphenbrillen.</p>"
+
+#~ msgid "SDI Output Settings"
+#~ msgstr "SDI Ausgabe Einstellungen"
+
+#~ msgid "SDI Output Format:"
+#~ msgstr "SDI Ausgabeformat:"
+
+#~ msgid "<p>Select output format used for SDI output.</p>"
+#~ msgstr "<p>Auswahl des Ausgabeformats für SDI Ausgabe.</p>"
+
+#~ msgid "Left stereo mode:"
+#~ msgstr "Linker Stereomodus:"
+
+#~ msgid "<p>Select stereo mode used for left SDI output.</p>"
+#~ msgstr "<p>Auswahl der Ausgabemodus für die linken SDI Ausgabe.</p>"
+
+#~ msgid "Right stereo mode:"
+#~ msgstr "Rechter Stereomodus:"
+
+#~ msgid "<p>Select stereo mode used for right SDI output.</p>"
+#~ msgstr "<p>Auswahl der Ausgabemodus für die rechte SDI Ausgabe.</p>"
+
+#~ msgid "Open device(s)"
+#~ msgstr "Öffne Gerät(e)"
+
+#~ msgid "<p>Choose a device type.</p>"
+#~ msgstr "<p>Auswahl des Kameratyps.</p>"
+
+#~ msgid "<p>Choose a device.</p>"
+#~ msgstr "<p>Auswahl der Kamera.</p>"
+
+#~ msgid "<p>Set the X11 device string. Refer to the manual for details.</p>"
+#~ msgstr "<p>Setze das X11 Gerät. Siehe Benutzerhandbuch.</p>"
+
+#~ msgid "First device:"
+#~ msgstr "Erstes Gerät:"
+
+#~ msgid "Second device:"
+#~ msgstr "Zweites Gerät:"
+
+#~ msgid "Request frame size"
+#~ msgstr "Fordere Bildgröße an"
+
+#~ msgid ""
+#~ "<p>Request a specific frame size from the device, e.g. 640x480. The "
+#~ "device must support this frame size. Some devices require a frame size to "
+#~ "be selected.</p>"
+#~ msgstr ""
+#~ "<p>Fordere eine bestimmete Bildauflösung von der Kamera an, z.B. 640x480. "
+#~ "Die Kamera muss diese Auflösung unterstützen. Einige Kameras verlangen, "
+#~ "dass eine Auflösung ausgewählt wird.</p>"
+
+#~ msgid "Request frame rate"
+#~ msgstr "Fordere Bildrate an"
+
+#~ msgid ""
+#~ "<p>Request a specific frame rate from the device, e.g. 25/1. The device "
+#~ "must support this frame rate. Some devices require a frame rate to be "
+#~ "selected.</p>"
+#~ msgstr ""
+#~ "<p>Fordere eine bestimmte Bildrate von der Kamera an, z.B. 25/1. Die "
+#~ "Kamera muss diese Bildrate unterstützen. Einige Kameras verlangen, dass "
+#~ "eine Bildrate ausgewählt wird.</p>"
+
+#~ msgid "Request MJPEG format"
+#~ msgstr "Fordere MJPEG Format an"
+
+#~ msgid ""
+#~ "<p>Request MJPEG data from the input device. The device may ignore this "
+#~ "request.</p>"
+#~ msgstr ""
+#~ "<p>Fordere MJPEG Daten from Gerät an. Das Gerät kann diese Anforderung "
+#~ "ignorieren.</p>"
+
+#~ msgid "Cancel"
+#~ msgstr "Abbrechen"
+
+#~ msgid "&File"
+#~ msgstr "&Datei"
+
+#~ msgid "&Open file(s)..."
+#~ msgstr "Öffne Datei(en)..."
+
+#~ msgid "Open &URL(s)..."
+#~ msgstr "Öffne &URL(s)..."
+
+#~ msgid "Open &device(s)..."
+#~ msgstr "Öffne &Gerät(e)..."
+
+#~ msgid "&Clear recent files"
+#~ msgstr "Lösche Liste zuletzt geöffneter Dateien"
+
+#~ msgid "&Quit"
+#~ msgstr "&Beenden"
+
+#~ msgid "&Preferences"
+#~ msgstr "&Einstellungen"
+
+#~ msgid "&Fullscreen Settings..."
+#~ msgstr "&Vollbildeinstellungen..."
+
+#~ msgid "Display &Color Adjustments..."
+#~ msgstr "Bildschirm&farben..."
+
+#~ msgid "Display Cross&talk Calibration..."
+#~ msgstr "Bildschirm-Crosstalk..."
+
+#~ msgid "Quality Adjustments..."
+#~ msgstr "Qualitätseinstellungen..."
+
+#~ msgid "&Zoom for wide videos..."
+#~ msgstr "&Zoom für überbreite Videos..."
+
+#~ msgid "&Audio Settings..."
+#~ msgstr "&Audio Einstellungen..."
+
+#~ msgid "&Subtitle Settings..."
+#~ msgstr "&Untertitel Einstellungen..."
+
+#~ msgid "Current &Video Settings..."
+#~ msgstr "Einstellungen für das aktuelle Video..."
+
+#~ msgid "SDI &Output Settings..."
+#~ msgstr "SDI Ausgabe Einstellungen..."
+
+#~ msgid "&Help"
+#~ msgstr "&Hilfe"
+
+#~ msgid "&Manual..."
+#~ msgstr "&Handbuch..."
+
+#~ msgid "&Website..."
+#~ msgstr "&Webseite..."
+
+#~ msgid "&Keyboard Shortcuts"
+#~ msgstr "&Tastaturkürzel"
+
+#~ msgid "&About"
+#~ msgstr "&Über"
+
+#~ msgid "Tip"
+#~ msgstr "Tipp"
+
+#~ msgid ""
+#~ "<p>You can select and open multiple files at once.</p><p>This is useful "
+#~ "for example if you have extra subtitle files,<br>or if left and right "
+#~ "view are stored in separate files.</p>"
+#~ msgstr ""
+#~ "<p>Du kannst mehrere Dateien gleichzeitig auswählen und öffnen.</"
+#~ "p><p>Dies ist nützlich wenn Du z.B. Untertitel in Extradateien hast,"
+#~ "<br>oder wenn linke und rechte Ansicht in separaten Dateien gespeichert "
+#~ "sind.</p>"
+
+#~ msgid "Do not show this message again."
+#~ msgstr "Zeige diese Nachricht nicht noch einmal."
+
+#~ msgid "Open files"
+#~ msgstr "Dateien öffnen"
+
+#~ msgid "Open URL(s)"
+#~ msgstr "Öffne URL(s)"
+
+#~ msgid "URL(s):"
+#~ msgstr "URL(s):"
+
+#~ msgid "<p>Enter one or more space separated URLs.</p>"
+#~ msgstr "<p>Gebe eine oder mehrere durch Leerzeichen getrennte URLs ein.</p>"
+
+#~ msgid "Cannot open manual."
+#~ msgstr "Kann Handbuch nicht öffnen."
+
+#~ msgid "Cannot open website."
+#~ msgstr "Kann Webseite nicht öffnen."
+
+#~ msgid "Keyboard Shortcuts"
+#~ msgstr "Tastaturkürzel"
+
+#~ msgid "Keyboard control:"
+#~ msgstr "Tastaturkürzel:"
+
+#~ msgid "Stop"
+#~ msgstr "Stopp"
+
+#~ msgid "About %s"
+#~ msgstr "Über %s"
+
+#~ msgid "The %s 3D video player"
+#~ msgstr "%s - 3D Videospieler"
+
+#~ msgid ""
+#~ "<p>%s version %s.</p><p>Copyright (C) 2014 the Bino developers.</"
+#~ "p><p>This is free software. You may redistribute copies of it under the "
+#~ "terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">GNU General "
+#~ "Public License</a>. There is NO WARRANTY, to the extent permitted by law."
+#~ "</p><p>See <a href=\"%s\">%s</a> for more information on this software.</"
+#~ "p>"
+#~ msgstr ""
+#~ "<p>%s Version %s.</p><p>Copyright (C) 2014 Die Bino Entwickler.</"
+#~ "p><p>Dies ist freie Software. Du kannst Kopien davon verteilen unter den "
+#~ "Bedingungen der <a href=\"http://www.gnu.org/licenses/gpl.html\">GNU "
+#~ "General Public License</a>. Es gibt keine Garantie.</p><p>Siehe <a href="
+#~ "\"%s\">%s</a> für mehr Informationen über diese Software.</p>"
+
+#~ msgid "About"
+#~ msgstr "Über"
+
+#~ msgid "Libraries"
+#~ msgstr "Bibliotheken"
+
+#~ msgid "Team"
+#~ msgstr "Team"
+
+#~ msgid "License"
+#~ msgstr "Lizenz"
 
 #~ msgid "Need at least OpenGL 2.1."
 #~ msgstr "Benötige mindestens OpenGL 2.1."
