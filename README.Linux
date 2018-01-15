@@ -1,26 +1,7 @@
-The free graphics drivers shipped with recent Linux kernel + Mesa + X.org
-combinations mostly work fine with Bino. Proprietary graphics drivers work too,
-but are *not* required!
-
-However, some free graphics drivers (especially older versions) still have some
-limitations. Here is a list of known problems:
-
-- Older drivers for Intel GMA and i965 graphics chips seem to cause Bino to crash.
-  This has been reported for Ubuntu 10.04 and 10.10, but it seems to be fixed in
-  11.04.
-
-- Bino relies on OpenGL SRGB textures for proper scaling of video frames.
-  Unfortunately some free graphics drivers (notably those for ATI cards) have
-  broken support for such textures. As a result, the video appears far too bright.
-  If this happens to you, you can set the environment variable
-  SRGB_TEXTURES_ARE_BROKEN, and Bino will work around that problem.  
-  See also these bug reports:
-  https://bugs.freedesktop.org/show_bug.cgi?id=32323
-  https://bugs.freedesktop.org/show_bug.cgi?id=36965
-
-
 To use bino with NVIDIA Quadro SDI output, locate NVCtrl.h NVCtrlLib.h and
 libXNVCtrl.a from the NVIDIA Quadro SDI SDK, and use the following configure
 options:
+
 $ ./configure --with-xnvctrl xnvctrl_CFLAGS="-I/sdk/include/path/" xnvctrl_LDFLAGS="-L/sdk/lib/path"
-On Ubuntu, the required files can be found in the nvidia-settings package.
+
+On Debian, the required files can be found in the libxnvctrl-dev package.
