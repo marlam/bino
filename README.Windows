@@ -19,7 +19,7 @@ development version instead.
    (Please read the MXE documentation if you have trouble with this step.)
 
    Add MXE to your PATH:
-   $ export PATH="/var/tmp/mxe/usr/bin:$PATH"
+   $ export PATH="/var/tmp/mxe/usr/bin:/var/tmp/mxe/usr/i686-w64-mingw32.static/qt/bin:$PATH"
 
 2. Build Bino
 
