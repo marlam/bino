@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2018
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -946,7 +946,7 @@ void main_window::help_about()
         about_text->setOpenExternalLinks(true);
         about_text->setText(str::asprintf(_(
                         "<p>%s version %s.</p>"
-                        "<p>Copyright (C) 2016 the Bino developers.</p>"
+                        "<p>Copyright (C) 2018 the Bino developers.</p>"
                         "<p>This is free software. You may redistribute copies of it "
                         "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
                         "GNU General Public License</a>. "

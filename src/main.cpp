@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2018
  * Martin Lambers <marlam@marlam.de>
  * Stefan Eilemann <eile@eyescale.ch>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
@@ -412,7 +412,7 @@ int main(int argc, char *argv[])
         if (msg::file() == stderr)
             msg::set_file(stdout);
         msg::req(_("%s version %s"), PACKAGE_NAME, VERSION);
-        msg::req(4, _("Copyright (C) 2016 the Bino developers."));
+        msg::req(4, _("Copyright (C) 2018 the Bino developers."));
         msg::req_txt(4, _("This is free software. You may redistribute copies of it "
                     "under the terms of the GNU General Public License. "
                     "There is NO WARRANTY, to the extent permitted by law."));
