@@ -213,7 +213,8 @@ void media_input::open(const std::vector<std::string> &urls, const device_reques
     }
 
     // Skip advertisement in 3dtv.at movies. Only works for single media objects.
-    try { _initial_skip = str::to<int64_t>(tag_value("StereoscopicSkip")) / 10; } catch (...) { }
+    // XXX: Disable this since seeking in WMV files is notoriously bad with FFmpeg.
+    //try { _initial_skip = str::to<int64_t>(tag_value("StereoscopicSkip")) / 10; } catch (...) { }
 
     // Find stereo layout and set active video stream(s)
     _supports_stereo_layout_separate = false;
