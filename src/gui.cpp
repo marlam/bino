@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2018
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -39,7 +39,7 @@
 
 // for autoconf < 2.65:
 #ifndef PACKAGE_URL
-#  define PACKAGE_URL "http://bino3d.org"
+#  define PACKAGE_URL "https://bino3d.org"
 #endif
 
 gui::gui()

@@ -98,7 +98,7 @@
 
 // for autoconf < 2.65:
 #ifndef PACKAGE_URL
-#  define PACKAGE_URL "http://bino3d.org"
+#  define PACKAGE_URL "https://bino3d.org"
 #endif
 
 main_window::main_window(QSettings *settings) :
