@@ -884,9 +884,9 @@ void video_output_qt::resume_screensaver()
 
 bool video_output_qt::supports_stereo() const
 {
-#if QT_VERSION >= 0x050700
-    /* the test below does not seem to work with Qt 5.7; for now
-     * disable stereo support for that version */
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)) && (QT_VERSION < QT_VERSION_CHECK(5, 10, 0))
+    /* the test below does not seem to work with Qt 5.7-5.9;
+     * disable stereo support for these versions */
     return false;
 #else
     QGLFormat fmt = _format;
