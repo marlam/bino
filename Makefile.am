@@ -8,7 +8,7 @@
 
 SUBDIRS = po src doc
 
-EXTRA_DIST = README.Linux README.FreeBSD README.MacOSX README.Windows
+EXTRA_DIST = README.Linux README.FreeBSD README.MacOSX README.Windows README.md
 
 # Create the ChangeLog file from the git log
 dist-hook:
