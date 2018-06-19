@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2018
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -347,11 +347,16 @@ void video_output_qt_widget::keyPressEvent(QKeyEvent *event)
         }
         break;
     case Qt::Key_Q:
+        _vo->send_cmd(command::quit);
+        break;
 #if QT_VERSION >= 0x040700
     case Qt::Key_MediaStop:
-#endif
-        _vo->send_cmd(command::toggle_play);
+        if (dispatch::pausing() || dispatch::playing())
+        {
+            _vo->send_cmd(command::toggle_play);
+        }
         break;
+#endif
     case Qt::Key_E:
     case Qt::Key_F7:
         _vo->send_cmd(command::toggle_stereo_mode_swap);
