@@ -655,8 +655,8 @@ private:
                 wall.topLeft = matrix * wall.topLeft;
                 std::cout << wall << std::endl;
 #endif
-                const eq::Vector3f u = wall.bottomRight - wall.bottomLeft;
-                const eq::Vector3f v = wall.topLeft - wall.bottomLeft;
+                eq::Vector3f u = wall.bottomRight - wall.bottomLeft;
+                eq::Vector3f v = wall.topLeft - wall.bottomLeft;
                 eq::Vector3f w = u.cross(v);
                 w.normalize();
 
