@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2018
  * Martin Lambers <marlam@marlam.de>
  * Stefan Eilemann <eile@eyescale.ch>
  *
@@ -296,6 +296,7 @@ class eq_frame_data : public co::Object
 public:
     std::string dispatch_state;
     subtitle_box subtitle;
+    bool do_seek;
     int64_t seek_to;
     bool prep_frame;
     bool drop_frame;
@@ -306,6 +307,7 @@ public:
 
 public:
     eq_frame_data() :
+        do_seek(false),
         seek_to(0),
         prep_frame(false),
         drop_frame(false),
@@ -325,6 +327,7 @@ protected:
         std::ostringstream oss;
         s11n::save(oss, dispatch_state);
         s11n::save(oss, subtitle);
+        s11n::save(oss, do_seek);
         s11n::save(oss, seek_to);
         s11n::save(oss, prep_frame);
         s11n::save(oss, drop_frame);
@@ -342,6 +345,7 @@ protected:
         std::istringstream iss(s);
         s11n::load(iss, dispatch_state);
         s11n::load(iss, subtitle);
+        s11n::load(iss, do_seek);
         s11n::load(iss, seek_to);
         s11n::load(iss, prep_frame);
         s11n::load(iss, drop_frame);
@@ -411,14 +415,14 @@ public:
         // Run player steps until we are told to do something
         bool more_steps;
         do {
-            global_player_equalizer->step(&more_steps, &_eq_frame_data.seek_to,
+            global_player_equalizer->step(&more_steps, &_eq_frame_data.do_seek, &_eq_frame_data.seek_to,
                     &_eq_frame_data.prep_frame, &_eq_frame_data.drop_frame, &_eq_frame_data.display_frame);
             dispatch::process_all_events();
             if (!dispatch::playing())
                 more_steps = false;
         }
         while (more_steps
-                && _eq_frame_data.seek_to == -1
+                && !_eq_frame_data.do_seek
                 && !_eq_frame_data.prep_frame
                 && !_eq_frame_data.drop_frame
                 && !_eq_frame_data.display_frame
@@ -787,7 +791,7 @@ protected:
         else
         {
             _dispatch->load_state(frame_data.dispatch_state);
-            if (frame_data.seek_to >= 0)
+            if (frame_data.do_seek)
             {
                 _player.seek(frame_data.seek_to);
             }

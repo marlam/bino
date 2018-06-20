@@ -102,10 +102,10 @@ void player::set_current_subtitle_box()
     }
 }
 
-int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
+int64_t player::step(bool *more_steps, bool *do_seek, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame)
 {
     *more_steps = false;
-    *seek_to = -1;
+    *do_seek = false;
     *prep_frame = false;
     *drop_frame = false;
     *display_frame = false;
@@ -220,6 +220,7 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
             }
             *seek_to = _current_pos + _seek_request;
         }
+        *do_seek = true;
         _seek_request = 0;
         _set_pos_request = -1.0f;
         global_dispatch->get_media_input()->seek(*seek_to);
@@ -490,13 +491,14 @@ int64_t player::step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool 
 bool player::run_step()
 {
     bool more_steps;
+    bool do_seek;
     int64_t seek_to;
     bool prep_frame;
     bool drop_frame;
     bool display_frame;
     int64_t allowed_sleep;
 
-    allowed_sleep = step(&more_steps, &seek_to, &prep_frame, &drop_frame, &display_frame);
+    allowed_sleep = step(&more_steps, &do_seek, &seek_to, &prep_frame, &drop_frame, &display_frame);
 
     if (!more_steps)
     {

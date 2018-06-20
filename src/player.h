@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2015
+ * Copyright (C) 2010, 2011, 2012, 2015, 2018
  * Martin Lambers <marlam@marlam.de>
  * Alexey Osipov <lion-simba@pridelands.ru>
  * Joe <cuchac@email.cz>
@@ -110,7 +110,7 @@ public:
 
     // Execute one step and indicate required actions. Returns the number of microseconds
     // that the caller may sleep before starting the next step.
-    int64_t step(bool *more_steps, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
+    int64_t step(bool *more_steps, bool *do_seek, int64_t *seek_to, bool *prep_frame, bool *drop_frame, bool *display_frame);
 
     // Execute one step and immediately take required actions. Return true if more steps are required.
     bool run_step();
