@@ -1,5 +1,6 @@
 New in version 1.6.7:
 - Fixed a loop mode problem where the beginning of a video was skipped.
+- OpenGL stereo output mode is re-enabled with Qt >= 5.10
 
 New in version 1.6.6:
 - Fixed the preferences dialog for multi-display fullscreen mode.
