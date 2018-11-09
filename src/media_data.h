@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2015
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2018
  * Martin Lambers <marlam@marlam.de>
  * Joe <joe@wpj.cz>
  * D. Matz <bandregent@yahoo.de>
@@ -205,6 +205,8 @@ public:
     PARAMETER(float, parallax)                // Parallax adjustment, -1 .. +1
     PARAMETER(float, ghostbust)               // Amount of crosstalk ghostbusting, 0 .. 1
     PARAMETER(float, subtitle_parallax)       // Subtitle parallax adjustment, -1 .. +1
+    PARAMETER(float, vertical_pixel_shift_left)  // Vertical shift in pixels for left view
+    PARAMETER(float, vertical_pixel_shift_right) // Vertical shift in pixels for right view
     // Volatile parameters
     PARAMETER(bool, fullscreen)               // Fullscreen mode
     PARAMETER(bool, center)                   // Should the video be centered?

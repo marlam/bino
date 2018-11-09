@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2015
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2018
  * Martin Lambers <marlam@marlam.de>
  * Joe <cuchac@email.cz>
  * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
@@ -143,6 +143,8 @@ public:
         adjust_ghostbust,               // float (relative adjustment)
         set_subtitle_parallax,          // float (absolute value)
         adjust_subtitle_parallax,       // float (relative adjustment)
+        set_vertical_pixel_shift_left,  // float
+        set_vertical_pixel_shift_right, // float
         // Volatile parameters
         toggle_fullscreen,              // no parameters
         center,                         // no parameters
@@ -260,6 +262,8 @@ public:
         parallax,
         ghostbust,
         subtitle_parallax,
+        vertical_pixel_shift_left,
+        vertical_pixel_shift_right,
         // Volatile parameters
         fullscreen,
         center,

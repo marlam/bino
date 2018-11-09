@@ -337,6 +337,10 @@ int main(int argc, char *argv[])
     options.push_back(&subtitle_shadow);
     opt::val<float> subtitle_parallax("subtitle-parallax", '\0', opt::optional, -1.0f, +1.0f);
     options.push_back(&subtitle_parallax);
+    opt::val<float> vertical_pixel_shift_left("vertical-pixel-shift-left", '\0', opt::optional, -99999.9f, +99999.9f, 0.0f);
+    options.push_back(&vertical_pixel_shift_left);
+    opt::val<float> vertical_pixel_shift_right("vertical-pixel-shift-right", '\0', opt::optional, -99999.9f, +99999.9f, 0.0f);
+    options.push_back(&vertical_pixel_shift_right);
     opt::val<float> parallax("parallax", 'P', opt::optional, -1.0f, +1.0f);
     options.push_back(&parallax);
     opt::tuple<float> crosstalk("crosstalk", '\0', opt::optional, 0.0f, 1.0f, std::vector<float>(), 3);
@@ -767,6 +771,10 @@ int main(int argc, char *argv[])
         input_data.params.set_ghostbust(ghostbust.value());
     if (subtitle_parallax.is_set())
         input_data.params.set_subtitle_parallax(subtitle_parallax.value());
+    if (vertical_pixel_shift_left.is_set())
+        input_data.params.set_vertical_pixel_shift_left(vertical_pixel_shift_left.value());
+    if (vertical_pixel_shift_right.is_set())
+        input_data.params.set_vertical_pixel_shift_right(vertical_pixel_shift_right.value());
 
     int retval = 0;
     std::vector<command_file*> command_files;

@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2018
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  *
@@ -59,6 +59,8 @@
 uniform sampler2D rgb_l;
 uniform sampler2D rgb_r;
 uniform float parallax;
+uniform float vertical_shift_left;
+uniform float vertical_shift_right;
 
 #if defined(subtitle_enabled)
 uniform sampler2D subtitle;
@@ -145,11 +147,11 @@ vec3 adjust_color(vec3 rgb)
 
 vec3 tex_l(vec2 texcoord)
 {
-    return adjust_color(texture2D(rgb_l, texcoord + vec2(parallax, 0.0)).rgb);
+    return adjust_color(texture2D(rgb_l, texcoord + vec2(parallax, vertical_shift_left)).rgb);
 }
 vec3 tex_r(vec2 texcoord)
 {
-    return adjust_color(texture2D(rgb_r, texcoord - vec2(parallax, 0.0)).rgb);
+    return adjust_color(texture2D(rgb_r, texcoord + vec2(-parallax, vertical_shift_right)).rgb);
 }
 
 #if defined(subtitle_enabled)

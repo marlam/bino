@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2015
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2018
  * Martin Lambers <marlam@marlam.de>
  * Joe <joe@wpj.cz>
  * D. Matz <bandregent@yahoo.de>
@@ -125,6 +125,8 @@ parameters::parameters()
     unset_parallax();
     unset_ghostbust();
     unset_subtitle_parallax();
+    unset_vertical_pixel_shift_left();
+    unset_vertical_pixel_shift_right();
     // Volatile parameters
     unset_fullscreen();
     unset_center();
@@ -180,6 +182,8 @@ const float parameters::_source_aspect_ratio_default = 0.0f;
 const float parameters::_parallax_default = 0.0f;
 const float parameters::_ghostbust_default = 0.0f;
 const float parameters::_subtitle_parallax_default = 0.0f;
+const float parameters::_vertical_pixel_shift_left_default = 0.0f;
+const float parameters::_vertical_pixel_shift_right_default = 0.0f;
 // Volatile parameter defaults
 const bool parameters::_fullscreen_default = false;
 const bool parameters::_center_default = false;
@@ -575,6 +579,10 @@ void parameters::save(std::ostream &os) const
     s11n::save(os, _ghostbust_set);
     s11n::save(os, _subtitle_parallax);
     s11n::save(os, _subtitle_parallax_set);
+    s11n::save(os, _vertical_pixel_shift_left);
+    s11n::save(os, _vertical_pixel_shift_left_set);
+    s11n::save(os, _vertical_pixel_shift_right);
+    s11n::save(os, _vertical_pixel_shift_right_set);
     // Volatile parameters
     s11n::save(os, _fullscreen);
     s11n::save(os, _fullscreen_set);
@@ -680,6 +688,10 @@ void parameters::load(std::istream &is)
     s11n::load(is, _ghostbust_set);
     s11n::load(is, _subtitle_parallax);
     s11n::load(is, _subtitle_parallax_set);
+    s11n::load(is, _vertical_pixel_shift_left);
+    s11n::load(is, _vertical_pixel_shift_left_set);
+    s11n::load(is, _vertical_pixel_shift_right);
+    s11n::load(is, _vertical_pixel_shift_right_set);
     // Volatile parameters
     s11n::load(is, _fullscreen);
     s11n::load(is, _fullscreen_set);
@@ -879,6 +891,8 @@ void parameters::unset_video_parameters()
     unset_parallax();
     unset_ghostbust();
     unset_subtitle_parallax();
+    unset_vertical_pixel_shift_left();
+    unset_vertical_pixel_shift_right();
 }
 
 std::string parameters::save_video_parameters() const
@@ -902,6 +916,10 @@ std::string parameters::save_video_parameters() const
         s11n::save(oss, "ghostbust", _ghostbust);
     if (!subtitle_parallax_is_default())
         s11n::save(oss, "subtitle_parallax", _subtitle_parallax);
+    if (!vertical_pixel_shift_left_is_default())
+        s11n::save(oss, "vertical_pixel_shift_left", _vertical_pixel_shift_left);
+    if (!vertical_pixel_shift_right_is_default())
+        s11n::save(oss, "vertical_pixel_shift_right", _vertical_pixel_shift_right);
     return oss.str();
 }
 
@@ -941,6 +959,12 @@ void parameters::load_video_parameters(const std::string &s)
         } else if (name == "subtitle_parallax") {
             s11n::load(value, _subtitle_parallax);
             _subtitle_parallax_set = true;
+        } else if (name == "vertical_pixel_shift_left") {
+            s11n::load(value, _vertical_pixel_shift_left);
+            _vertical_pixel_shift_left_set = true;
+        } else if (name == "vertical_pixel_shift_right") {
+            s11n::load(value, _vertical_pixel_shift_right);
+            _vertical_pixel_shift_right_set = true;
         }
     }
 }

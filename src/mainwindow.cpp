@@ -666,6 +666,10 @@ void main_window::open(QStringList filenames,
             input_data.params.set_source_aspect_ratio(initial_params.source_aspect_ratio());
         if (initial_params.parallax_is_set())
             input_data.params.set_parallax(initial_params.parallax());
+        if (initial_params.vertical_pixel_shift_left_is_set())
+            input_data.params.set_vertical_pixel_shift_left(initial_params.vertical_pixel_shift_left());
+        if (initial_params.vertical_pixel_shift_right_is_set())
+            input_data.params.set_vertical_pixel_shift_right(initial_params.vertical_pixel_shift_right());
         if (initial_params.ghostbust_is_set())
             input_data.params.set_ghostbust(initial_params.ghostbust());
         if (initial_params.subtitle_parallax_is_set())

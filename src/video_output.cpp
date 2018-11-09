@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2015
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2018
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -1282,6 +1282,10 @@ void video_output::display_current_frame(
     glUniform1f(glGetUniformLocation(_render_prg, "parallax"),
             _render_params.parallax() * 0.05f
             * (_render_params.stereo_mode_swap() ? -1 : +1));
+    glUniform1f(glGetUniformLocation(_render_prg, "vertical_shift_left"),
+                _render_params.vertical_pixel_shift_left() / frame.height);
+    glUniform1f(glGetUniformLocation(_render_prg, "vertical_shift_right"),
+                _render_params.vertical_pixel_shift_right() / frame.height);
     if (render_needs_subtitle(_render_params)) {
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, (_subtitle[_active_index].is_valid()

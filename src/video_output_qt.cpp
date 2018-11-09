@@ -1121,6 +1121,8 @@ void video_output_qt::receive_notification(const notification& note)
 #endif // HAVE_LIBXNVCTRL
                 || note.type == notification::crop_aspect_ratio
                 || note.type == notification::parallax
+                || note.type == notification::vertical_pixel_shift_left
+                || note.type == notification::vertical_pixel_shift_right
                 || note.type == notification::ghostbust)) {
         _widget->redisplay();
     }

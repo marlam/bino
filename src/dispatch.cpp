@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2015
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015, 2018
  * Martin Lambers <marlam@marlam.de>
  * Binocle <http://binocle.com> (author: Olivier Letz <oletz@binocle.com>)
  * Frédéric Bour <frederic.bour@lakaban.net>
@@ -504,6 +504,12 @@ void dispatch::receive_cmd(const command& cmd)
         if (_input_data.params.subtitle_parallax_is_set())
             _parameters.set_subtitle_parallax(_input_data.params.subtitle_parallax());
         notify_all(notification::subtitle_parallax);
+        if (_input_data.params.vertical_pixel_shift_left_is_set())
+            _parameters.set_vertical_pixel_shift_left(_input_data.params.vertical_pixel_shift_left());
+        notify_all(notification::vertical_pixel_shift_left);
+        if (_input_data.params.vertical_pixel_shift_right_is_set())
+            _parameters.set_vertical_pixel_shift_right(_input_data.params.vertical_pixel_shift_right());
+        notify_all(notification::vertical_pixel_shift_right);
         if (!_parameters.stereo_mode_is_set()) {
             if (_media_input->video_frame_template().stereo_layout == parameters::layout_mono)
                 _parameters.set_stereo_mode(parameters::mode_mono_left);
@@ -832,6 +838,14 @@ void dispatch::receive_cmd(const command& cmd)
     case command::set_subtitle_parallax:
         _parameters.set_subtitle_parallax(clamp(s11n::load<float>(p), -1.0f, +1.0f));
         notify_all(notification::subtitle_parallax);
+        break;
+    case command::set_vertical_pixel_shift_left:
+        _parameters.set_vertical_pixel_shift_left(s11n::load<float>(p));
+        notify_all(notification::vertical_pixel_shift_left);
+        break;
+    case command::set_vertical_pixel_shift_right:
+        _parameters.set_vertical_pixel_shift_right(s11n::load<float>(p));
+        notify_all(notification::vertical_pixel_shift_right);
         break;
     // Volatile parameters
     case command::toggle_fullscreen:
@@ -1217,6 +1231,12 @@ bool dispatch::parse_command(const std::string& s, command* c)
     } else if (tokens.size() == 2 && tokens[0] == "adjust-subtitle-parallax"
             && str::to(tokens[1], &p.f)) {
         *c = command(command::adjust_subtitle_parallax, p.f);
+    } else if (tokens.size() == 2 && tokens[0] == "set-vertical-pixel-shift-left"
+            && str::to(tokens[1], &p.f)) {
+        *c = command(command::set_vertical_pixel_shift_left, p.f);
+    } else if (tokens.size() == 2 && tokens[0] == "set-vertical-pixel-shift-right"
+            && str::to(tokens[1], &p.f)) {
+        *c = command(command::set_vertical_pixel_shift_right, p.f);
     } else if (tokens.size() == 1 && tokens[0] == "toggle-fullscreen") {
         *c = command(command::toggle_fullscreen);
     } else if (tokens.size() == 1 && tokens[0] == "center") {
