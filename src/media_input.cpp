@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2015
+ * Copyright (C) 2010, 2011, 2012, 2015, 2018
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <frederic.devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -622,6 +622,26 @@ video_frame media_input::finish_video_frame_read()
         get_video_stream(1, o1, s1);
         video_frame f0 = _media_objects[o0].finish_video_frame_read(s0);
         video_frame f1 = _media_objects[o1].finish_video_frame_read(s1);
+        if (is_device())
+        {
+            /* Try to keep both device streams in sync. This should only be
+             * relevant at the beginning of playback, when one device starts
+             * grabbing frames before the other does. */
+            while (f0.is_valid() && f1.is_valid()
+                    && f1.presentation_time > f0.presentation_time + video_frame_duration() / 2)
+            {
+                msg::dbg("skipping frame from device %d stream %d because device %d stream %d is ahead", o0, s0, o1, s1);
+                _media_objects[o0].start_video_frame_read(s0, 1);
+                f0 = _media_objects[o0].finish_video_frame_read(s0);
+            }
+            while (f0.is_valid() && f1.is_valid()
+                    && f0.presentation_time > f1.presentation_time + video_frame_duration() / 2)
+            {
+                msg::dbg("skipping frame from device %d stream %d because device %d stream %d is ahead", o1, s1, o0, s0);
+                _media_objects[o1].start_video_frame_read(s1, 1);
+                f1 = _media_objects[o1].finish_video_frame_read(s1);
+            }
+        }
         if (f0.is_valid() && f1.is_valid())
         {
             frame = _video_frame;
