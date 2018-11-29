@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012
+ * Copyright (C) 2010, 2011, 2012, 2018
  * Martin Lambers <marlam@marlam.de>
  * Joe <cuchac@email.cz>
  *
@@ -52,6 +52,8 @@ private:
 
     int64_t _initial_skip;                      // Initial portion of input to skip, in microseconds.
     int64_t _duration;                          // Total combined duration of input.
+
+    bool _finished_first_frame_read;            // Whether we have finished the first frame read from this input.
 
     video_frame _video_frame;                   // Video frame template for currently active video stream.
     audio_blob _audio_blob;                     // Audio blob template for currently active audio stream.

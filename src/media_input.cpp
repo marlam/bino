@@ -38,7 +38,8 @@
 media_input::media_input() :
     _active_video_stream(-1), _active_audio_stream(-1), _active_subtitle_stream(-1),
     _have_active_video_read(false), _have_active_audio_read(false), _have_active_subtitle_read(false),
-    _last_audio_data_size(0), _initial_skip(0), _duration(-1)
+    _last_audio_data_size(0), _initial_skip(0), _duration(-1),
+    _finished_first_frame_read(false)
 {
 }
 
@@ -622,11 +623,11 @@ video_frame media_input::finish_video_frame_read()
         get_video_stream(1, o1, s1);
         video_frame f0 = _media_objects[o0].finish_video_frame_read(s0);
         video_frame f1 = _media_objects[o1].finish_video_frame_read(s1);
-        if (is_device())
+        if (!_finished_first_frame_read && is_device())
         {
             /* Try to keep both device streams in sync. This should only be
-             * relevant at the beginning of playback, when one device starts
-             * grabbing frames before the other does. */
+             * relevant at the beginning of playback, i.e. the first frame read,
+             * when one device starts grabbing frames before the other does. */
             while (f0.is_valid() && f1.is_valid()
                     && f1.presentation_time > f0.presentation_time + video_frame_duration() / 2)
             {
@@ -675,6 +676,7 @@ video_frame media_input::finish_video_frame_read()
         }
     }
     _have_active_video_read = false;
+    _finished_first_frame_read = true;
     return frame;
 }
 
