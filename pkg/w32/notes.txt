@@ -17,4 +17,4 @@ The source code for Bino is available here:
 https://bino3d.org/download.html
 
 Instructions to build this package from source can be found here:
-https://gitlab.marlam.de/marlam/bino/raw/master/README.Windows
+https://git.marlam.de/gitweb/?p=bino.git;a=blob_plain;f=README.Windows;hb=HEAD
