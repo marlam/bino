@@ -74,8 +74,10 @@ namespace dbg
         (void)sigaction(SIGFPE, &signal_handler, NULL);
         (void)sigaction(SIGSEGV, &signal_handler, NULL);
 #endif
+#if __cplusplus < 201700
         std::set_unexpected(exception_crash);
         std::set_terminate(exception_crash);
+#endif
         std::set_new_handler(oom_abort);
     }
 
