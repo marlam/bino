@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2018
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2018, 2019, 2020, 2021
  * Martin Lambers <marlam@marlam.de>
  * Stefan Eilemann <eile@eyescale.ch>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
@@ -533,6 +533,8 @@ int main(int argc, char *argv[])
                 + "                           " + _("Default is 0 for benchmark mode, 1 otherwise") + '\n'
                 + "  -l|--loop                " + _("Loop the input media") + '\n'
                 + "  --sdi-output-format=F    " + _("Set SDI output format") + '\n'
+                + "  --set-vertical-pixel-shift-left=L  " + _("Set left vert. shift in input pixels") + '\n'
+                + "  --set-vertical-pixel-shift-right=R " + _("Set right vert. shift in input pixels") + '\n'
                 + '\n'
                 + _("Interactive control:") + '\n'
                 + "  " + lengthen(_("ESC"), 25) + _("Leave fullscreen mode, or quit") + '\n'

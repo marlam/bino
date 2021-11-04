@@ -1,13 +1,13 @@
 .\" -*-nroff-*-
 .\"
-.\" Copyright (C) 2010, 2011, 2012, 2013, 2014, 2018
+.\" Copyright (C) 2010, 2011, 2012, 2013, 2014, 2018, 2019, 2020, 2021
 .\" Martin Lambers <marlam@marlam.de>
 .\" Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
 .\"
 .\" Copying and distribution of this file, with or without modification, are
 .\" permitted in any medium without royalty provided the copyright notice and this
 .\" notice are preserved. This file is offered as-is, without any warranty.
-.TH Bino 1 2018-01
+.TH Bino 1 2021-11
 .SH NAME
 Bino - a 3D video player with multi-display support.
 .SH SYNOPSIS
@@ -246,6 +246,10 @@ Frame rate divisor relative to display refresh rate. The default is 0 for
 benchmark mode and 1 otherwise.
 .IP "\-l|\-\-loop"
 Loop the input media.
+.IP "\-\-set\-vertical\-pixel\-shift\-left=\fIL\fP"
+Set left vertical shift in input pixels.
+.IP "\-\-set\-vertical\-pixel\-shift\-right=\fIR\fP
+Set right vertical shift in input pixels.
 .SH INTERACTIVE CONTROL
 .IP "ESC"
 Leave fullscreen mode, or quit when in window mode.

@@ -10,7 +10,7 @@
 This manual was last updated @value{UPDATED} for version
 @value{VERSION} of Bino.
 
-Copyright @copyright{} 2011, 2012, 2013, 2014, 2018
+Copyright @copyright{} 2011, 2012, 2013, 2014, 2018, 2019, 2020, 2021
 Martin Lambers (@email{marlam@@marlam.de}),
 Stefan Eilemann (@email{eile@@eyescale.ch}),
 Frédéric Devernay (@email{Frederic.Devernay@@inrialpes.fr})
@@ -220,6 +220,10 @@ benchmark mode and 1 otherwise.
 @item -l
 @itemx --loop
 Loop the input media.
+@item --set-vertical-pixel-shift-left=@var{L}
+Set left vertical shift in input pixels.
+@item --set-vertical-pixel-shift-right=@var{R}
+Set right vertical shift in input pixels.
 @end table
 
 @node Input Layouts
@@ -1166,6 +1170,10 @@ Set audio volume, from 0 to 1.
 Adjust audio volume by adding @var{delta}, e.g. -0.05 or +0.05.
 @item toggle-audio-mute
 Toggle audio mute.
+@item set-vertical-pixel-shift-left =@var{L}
+Set left vertical shift in input pixels.
+@item set-vertical-pixel-shift-right @var{R}
+Set right vertical shift in input pixels.
 @end table
 
 
