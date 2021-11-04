@@ -13,19 +13,18 @@ development version instead.
    $ cd /var/tmp
    $ git clone https://github.com/mxe/mxe.git
    $ cd mxe
-   [Edit settings.mk and set MXE_TARGETS to i686-w64-mingw32.static]
-   $ make gettext ffmpeg libass openal glew qt nsis
+   [Edit settings.mk and set MXE_TARGETS to x86_64-w64-mingw32.static]
+   $ make gettext ffmpeg libass openal glew qtbase nsis
 
    (Please read the MXE documentation if you have trouble with this step.)
 
    Add MXE to your PATH:
-   $ export PATH="/var/tmp/mxe/usr/bin:/var/tmp/mxe/usr/i686-w64-mingw32.static/qt/bin:$PATH"
+   $ export PATH="/var/tmp/mxe/usr/bin:/var/tmp/mxe/usr/x86_64-w64-mingw32.static/qt/bin:$PATH"
 
 2. Build Bino
 
    $ cd /var/tmp/bino
-   $ ./configure --host=i686-w64-mingw32.static --build=`build-aux/config.guess` \
-     --with-qt-version=4 LDFLAGS="-Wl,--allow-multiple-definition" CXXFLAGS="-std=gnu++11"
+   $ ./configure --host=x86_64-w64-mingw32.static --build=`build-aux/config.guess`
    $ make
 
    Build the installer:
