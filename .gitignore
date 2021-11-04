@@ -13,3 +13,4 @@ doc/version.texi
 doc/stamp-vti
 po/*.pot
 po/*.gmo
+po/stamp-po
