@@ -1,3 +1,7 @@
+New in version 1.6.8:
+- Improved support for using multiple cameras
+- New options and script commands to set a vertical pixel shift
+
 New in version 1.6.7:
 - Fixed a loop mode problem where the beginning of a video was skipped.
 - Fixed building with latest FFmpeg
