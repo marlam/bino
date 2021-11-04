@@ -43,6 +43,7 @@
 # include <NVCtrl/NVCtrl.h>
 #endif // HAVE_LIBXNVCTRL
 
+#include <QtPlugin>
 #include <QCoreApplication>
 #include <QApplication>
 #include <QtGlobal>
@@ -134,6 +135,10 @@ static const char *localedir()
     return LOCALEDIR;
 #endif
 }
+
+#if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
+Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
+#endif
 
 #if QT_VERSION < 0x050000
 static void qt_msg_handler(QtMsgType type, const char *msg)
