@@ -11,7 +11,7 @@
 Name "Bino"
 
 ; The file to write
-OutFile "bino-${PACKAGE_VERSION}-w32.exe"
+OutFile "bino-${PACKAGE_VERSION}-w64.exe"
 
 ; Require Administrator privileges
 RequestExecutionLevel admin
