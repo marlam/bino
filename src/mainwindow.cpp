@@ -1,7 +1,7 @@
 /*
  * This file is part of bino, a 3D video player.
  *
- * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2018
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2018, 2019, 2020, 2021
  * Martin Lambers <marlam@marlam.de>
  * Frédéric Devernay <Frederic.Devernay@inrialpes.fr>
  * Joe <cuchac@email.cz>
@@ -950,13 +950,13 @@ void main_window::help_about()
         about_text->setOpenExternalLinks(true);
         about_text->setText(str::asprintf(_(
                         "<p>%s version %s.</p>"
-                        "<p>Copyright (C) 2018 the Bino developers.</p>"
+                        "<p>Copyright (C) %d the Bino developers.</p>"
                         "<p>This is free software. You may redistribute copies of it "
                         "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
                         "GNU General Public License</a>. "
                         "There is NO WARRANTY, to the extent permitted by law.</p>"
                         "<p>See <a href=\"%s\">%s</a> for more information on this software.</p>"),
-                    PACKAGE_NAME, VERSION, PACKAGE_URL, PACKAGE_URL).c_str());
+                    PACKAGE_NAME, VERSION, 2021, PACKAGE_URL, PACKAGE_URL).c_str());
 
         QTextBrowser* libs_text = new QTextBrowser(this);
         libs_text->setOpenExternalLinks(true);
