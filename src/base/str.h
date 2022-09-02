@@ -31,6 +31,7 @@
 #include <vector>
 #include <cstdarg>
 #include <cerrno>
+#include <ctime>
 
 #ifdef __GNUC__
 # define STR_AFP(a, b) __attribute__ ((format (printf, a, b)))
