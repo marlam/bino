@@ -220,7 +220,7 @@ void thread::wait()
     __wait_mutex.lock();
     if (atomic::bool_compare_and_swap(&__joinable, true, false)) {
         int e = pthread_join(__thread_id, NULL);
-        if (e != 0) {
+        if (e != 0 && e != ESRCH) {
             __wait_mutex.unlock();
             throw exc(std::string(_("System function failed: "))
                     + "pthread_join(): " + std::strerror(e), e);
