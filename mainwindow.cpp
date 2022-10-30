@@ -457,22 +457,28 @@ void MainWindow::trackSubtitle()
 void MainWindow::threeD360()
 {
     QAction* a = _3d360ActionGroup->checkedAction();
-    if (a)
+    if (a) {
         _bino->setThreeSixtyMode(static_cast<VideoFrame::ThreeSixtyMode>(a->data().toInt()));
+        _widget->update();
+    }
 }
 
 void MainWindow::threeDInput()
 {
     QAction* a = _3dInputActionGroup->checkedAction();
-    if (a)
+    if (a) {
         _bino->setInputLayout(static_cast<VideoFrame::StereoLayout>(a->data().toInt()));
+        _widget->update();
+    }
 }
 
 void MainWindow::threeDOutput()
 {
     QAction* a = _3dOutputActionGroup->checkedAction();
-    if (a)
+    if (a) {
         _widget->setStereoMode(static_cast<Widget::StereoMode>(a->data().toInt()));
+        _widget->update();
+    }
 }
 
 void MainWindow::mediaTogglePause()
@@ -551,6 +557,7 @@ void MainWindow::viewToggleFullscreen()
 void MainWindow::viewToggleSwapEyes()
 {
     _bino->toggleSwapEyes();
+    _widget->update();
 }
 
 void MainWindow::updateActions()
