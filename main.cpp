@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
             "green-magenta-dubois, green-magenta-full-color, green-magenta-half-color, green-magenta-monochrome, "
             "amber-blue-dubois, amber-blue-full-color, amber-blue-half-color, amber-blue-monochrome, "
             "red-green-monochrome, red-blue-monochrome).", "mode" });
-    parser.addOption({ "360", "View 360° video." });
+    parser.addOption({ "360", "Set 360° mode (on, off).", "mode" });
     parser.process(app);
 
     // Initialize logging
@@ -171,6 +171,17 @@ int main(int argc, char* argv[])
 #endif
 
     // Set modes
+    VideoFrame::ThreeSixtyMode threeSixtyMode = VideoFrame::ThreeSixty_Unknown;
+    if (parser.isSet("360")) {
+        if (parser.value("360") == "on") {
+            threeSixtyMode = VideoFrame::ThreeSixty_On;
+        } else if (parser.value("360") == "off") {
+            threeSixtyMode = VideoFrame::ThreeSixty_Off;
+        } else {
+            LOG_FATAL("invalid argument for option %s", "--360");
+            return 1;
+        }
+    }
     VideoFrame::StereoLayout inputMode = VideoFrame::Layout_Unknown;
     if (parser.isSet("input")) {
         if (parser.value("input") == "mono")
@@ -397,8 +408,7 @@ int main(int argc, char* argv[])
                 continue;
             }
         }
-        playlist.append(PlaylistEntry(url, inputMode,
-                    parser.isSet("360") ? VideoFrame::ThreeSixty_On : VideoFrame::ThreeSixty_Unknown,
+        playlist.append(PlaylistEntry(url, inputMode, threeSixtyMode,
                     videoTrack, audioTrack, subtitleTrack));
     }
     if (parser.positionalArguments().length() > 0 && playlist.length() == 0) {
