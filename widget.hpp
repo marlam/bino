@@ -90,6 +90,9 @@ public:
     virtual void mouseReleaseEvent(QMouseEvent* e) override;
     virtual void mouseMoveEvent(QMouseEvent* e) override;
 
+public slots:
+    void mediaChanged(PlaylistEntry entry);
+
 signals:
     void toggleFullscreen();
 };

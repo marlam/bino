@@ -24,6 +24,7 @@
 #include <QtMath>
 
 #include "widget.hpp"
+#include "playlist.hpp"
 #include "tools.hpp"
 #include "log.hpp"
 
@@ -62,6 +63,7 @@ Widget::Widget(Bino* bino, StereoMode stereoMode, QWidget* parent) :
     _sizeHint = SizeBase.scaled(maxSize, Qt::KeepAspectRatio);
     connect(_bino, &Bino::newVideoFrame, [=]() { update(); });
     connect(_bino, &Bino::toggleFullscreen, [=]() { emit toggleFullscreen(); });
+    connect(Playlist::instance(), SIGNAL(mediaChanged(PlaylistEntry)), this, SLOT(mediaChanged(PlaylistEntry)));
     setFocus();
 }
 
@@ -356,4 +358,13 @@ void Widget::mouseMoveEvent(QMouseEvent* e)
         _threeSixtyVerticalAngleCurrent = -yf * 90.0f;
         update();
     }
+}
+
+void Widget::mediaChanged(PlaylistEntry)
+{
+    _inThreeSixtyMovement = false;
+    _threeSixtyHorizontalAngleBase = 0.0f;
+    _threeSixtyVerticalAngleBase = 0.0f;
+    _threeSixtyHorizontalAngleCurrent = 0.0f;
+    _threeSixtyVerticalAngleCurrent = 0.0f;
 }
