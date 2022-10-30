@@ -1,0 +1,12 @@
+<RCC>
+<qresource>
+    <file>shader-color.vert.glsl</file>
+    <file>shader-color.frag.glsl</file>
+    <file>shader-view.vert.glsl</file>
+    <file>shader-view.frag.glsl</file>
+    <file>shader-display.vert.glsl</file>
+    <file>shader-display.frag.glsl</file>
+    <file>bino-logo-small.svg</file>
+    <file>bino-logo-big.svg</file>
+</qresource>
+</RCC>

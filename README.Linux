@@ -1,7 +1,0 @@
-To use bino with NVIDIA Quadro SDI output, locate NVCtrl.h NVCtrlLib.h and
-libXNVCtrl.a from the NVIDIA Quadro SDI SDK, and use the following configure
-options:
-
-$ ./configure --with-xnvctrl xnvctrl_CFLAGS="-I/sdk/include/path/" xnvctrl_LDFLAGS="-L/sdk/lib/path"
-
-On Debian, the required files can be found in the libxnvctrl-dev package.
