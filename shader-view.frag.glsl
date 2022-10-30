@@ -56,7 +56,9 @@ void main(void)
         float phi = atan(dir.x, -dir.z);
         float u = phi / (2.0f * pi) + 0.5;
         float v = theta / pi + 0.5;
-        rgb = texture(frameTex, vec2(u, v)).rgb;
+        float vtx = view_offset_x + view_factor_x * u;
+        float vty = view_offset_y + view_factor_y * v;
+        rgb = texture(frameTex, vec2(vtx, vty)).rgb;
     } else {
         float vtx = view_offset_x + view_factor_x * vtexcoord.x;
         float vty = view_offset_y + view_factor_y * vtexcoord.y;
