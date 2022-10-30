@@ -27,7 +27,7 @@ as Bino 2.0. It has the following advantages over the 1.x versions:
 - Support for 360° videos, with and without 3D
 
 - When used with QVR: much better support for Virtual Reality hardware,
-  including SteamVR support (e.g. HTC Vivde) and
+  including SteamVR support (e.g. HTC Vive)
 
 - Drastically simplified source code
 
