@@ -29,12 +29,15 @@
 #include "log.hpp"
 
 /* These might not be defined in OpenGL ES environments.
- * Define them here to fix compilation; they will never be used with OpenGL ES. */
+ * Define them here to fix compilation. */
 #ifndef GL_BACK_LEFT
 # define GL_BACK_LEFT 0x0402
 #endif
 #ifndef GL_BACK_RIGHT
 # define GL_BACK_RIGHT 0x0403
+#endif
+#ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
+# define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
 #endif
 
 
@@ -119,6 +122,7 @@ void Widget::initializeGL()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0f);
         _viewTexWidth[i] = 1;
         _viewTexHeight[i] = 1;
     }
