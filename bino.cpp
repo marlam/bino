@@ -1008,7 +1008,8 @@ void Bino::render(
     }
     // Set up shader program
     glUseProgram(_viewPrg.programId());
-    _viewPrg.setUniformValue("projection_model_view_matrix", projectionMatrix * viewMatrix);
+    _viewPrg.setUniformValue("projection_matrix", projectionMatrix);
+    _viewPrg.setUniformValue("model_view_matrix", viewMatrix);
     _viewPrg.setUniformValue("frameTex", 0);
     _viewPrg.setUniformValue("subtitleTex", 1);
     _viewPrg.setUniformValue("view_offset_x", viewOffsetX);
