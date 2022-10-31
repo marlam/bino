@@ -24,6 +24,9 @@ if(QVR_FOUND)
 endif()
 
 qt6_add_resources(RESOURCES resources.qrc)
+if(WIN32)
+    set(APPICON_RESOURCE appicon.rc)
+endif()
 
 add_executable(bino
 	main.cpp version.hpp
@@ -38,6 +41,6 @@ add_executable(bino
         qvrapp.hpp qvrapp.cpp
 	widget.hpp widget.cpp
 	mainwindow.hpp mainwindow.cpp
-	${RESOURCES})
+	${RESOURCES} ${APPICON_RESOURCE})
 target_link_libraries(bino PRIVATE Qt6::OpenGLWidgets Qt6::Multimedia ${QVR_LIBRARIES})
 install(TARGETS bino RUNTIME DESTINATION bin)
