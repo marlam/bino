@@ -1021,13 +1021,18 @@ void Bino::render(
     _viewPrg.setUniformValue("three_sixty", _frame.threeSixtyMode == VideoFrame::ThreeSixty_On ? 1 : 0);
     _viewPrg.setUniformValue("nonlinear_output", finalRenderingStep ? 1 : 0);
     // Render scene
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _frameTex);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, _subtitleTex);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _frameTex);
     if (_frame.threeSixtyMode == VideoFrame::ThreeSixty_On) {
+        // Disable mipmapping in 360° mode because it causes artifacts
+        // at the horizontal wraparound
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glBindVertexArray(_cubeVao);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
+        // Reenable mipmapping
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     } else {
         glBindVertexArray(_screenVao);
         glDrawElements(GL_TRIANGLES, _screen.indices.size(), GL_UNSIGNED_INT, 0);
