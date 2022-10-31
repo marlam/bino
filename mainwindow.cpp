@@ -237,7 +237,7 @@ MainWindow::MainWindow(Bino* bino, Widget::StereoMode stereoMode, bool fullscree
     _3dOutputActionGroup->addAction(threeDOutRGM)->setData(int(Widget::Mode_Red_Green_Monochrome));
     connect(threeDOutRGM, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutRGM, threeDMenu);
-    QAction* threeDOutRBM = new QAction("Output red/bluemonochrome", this);
+    QAction* threeDOutRBM = new QAction("Output red/blue monochrome", this);
     threeDOutRBM->setCheckable(true);
     _3dOutputActionGroup->addAction(threeDOutRBM)->setData(int(Widget::Mode_Red_Blue_Monochrome));
     connect(threeDOutRBM, SIGNAL(triggered()), this, SLOT(threeDOutput()));
