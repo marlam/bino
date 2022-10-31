@@ -657,6 +657,8 @@ void MainWindow::updateActions()
     }
 
     _mediaTogglePauseAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
+    _mediaSeekFwd1SecAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
+    _mediaSeekBwd1SecAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
     _mediaSeekFwd10SecsAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
     _mediaSeekBwd10SecsAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
     _mediaSeekFwd1MinAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
