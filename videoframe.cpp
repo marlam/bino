@@ -95,7 +95,7 @@ void VideoFrame::update(StereoLayout sl, ThreeSixtyMode ts, const QVideoFrame& f
         height = qframe.height();
         aspectRatio = float(width) / height;
         if (sl == Layout_Unknown) {
-            if (aspectRatio > 3.0f)
+            if (aspectRatio >= 3.0f)
                 sl = VideoFrame::Layout_Left_Right;
             else if (aspectRatio < 1.0f)
                 sl = VideoFrame::Layout_Top_Bottom;
