@@ -31,7 +31,7 @@ smooth out vec3 vdirection;
 void main(void)
 {
     vtexcoord = texcoord;
-    vdirection = (model_view_matrix * position).xyz;
+    vdirection = (position * model_view_matrix).xyz;
     vec4 out_pos;
     if (three_sixty)
         out_pos = projection_matrix * position;

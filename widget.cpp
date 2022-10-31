@@ -255,8 +255,8 @@ void Widget::paintGL()
             float left = -right;
             projectionMatrix.frustum(left, right, bottom, top, 1.0f, 100.0f);
             QQuaternion rotation = QQuaternion::fromEulerAngles(
-                    _threeSixtyVerticalAngleBase + _threeSixtyVerticalAngleCurrent,
-                    _threeSixtyHorizontalAngleBase + _threeSixtyHorizontalAngleCurrent, 0.0f);
+                    -(_threeSixtyVerticalAngleBase + _threeSixtyVerticalAngleCurrent),
+                    -(_threeSixtyHorizontalAngleBase + _threeSixtyHorizontalAngleCurrent), 0.0f);
             viewMatrix.rotate(rotation);
         }
         _bino->render(projectionMatrix, viewMatrix, v, viewWidth, viewHeight, _viewTex[v]);
