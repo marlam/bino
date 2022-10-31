@@ -633,6 +633,10 @@ void MainWindow::updateActions()
                 a->setChecked(_bino->subtitleTrack() == i);
             }
         }
+    } else {
+        QAction* a = new QAction("None", this);
+        a->setEnabled(false);
+        addBinoAction(a, _trackMenu);
     }
     _trackVideoActionGroup->setEnabled(_bino->playlistMode() && !_bino->stopped());
     _trackAudioActionGroup->setEnabled(_bino->playlistMode() && !_bino->stopped());
