@@ -59,6 +59,9 @@ MainWindow::MainWindow(Bino* bino, Widget::StereoMode stereoMode, bool fullscree
     _widget(new Widget(bino, stereoMode, this)),
     _contextMenu(new QMenu(this))
 {
+    setWindowTitle("Bino");
+    setWindowIcon(QIcon(":bino-logo-small-512.png"));
+
     QMenu* fileMenu = addBinoMenu("&File");
     _fileOpenAction = new QAction("&Open file...", this);
     _fileOpenAction->setShortcuts({ QKeySequence::Open });

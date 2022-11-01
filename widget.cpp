@@ -58,8 +58,6 @@ Widget::Widget(Bino* bino, StereoMode stereoMode, QWidget* parent) :
 {
     setUpdateBehavior(QOpenGLWidget::PartialUpdate);
     setMouseTracking(true);
-    window()->setWindowTitle("Bino");
-    window()->setWindowIcon(QIcon(":bino-logo-small.svg"));
     setMinimumSize(8, 8);
     QSize screenSize = QGuiApplication::primaryScreen()->availableSize();
     QSize maxSize = 0.75f * screenSize;

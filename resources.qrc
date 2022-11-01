@@ -7,6 +7,7 @@
     <file>shader-display.vert.glsl</file>
     <file>shader-display.frag.glsl</file>
     <file>bino-logo-small.svg</file>
+    <file>bino-logo-small-512.png</file>
     <file>bino-logo-big.svg</file>
 </qresource>
 </RCC>
