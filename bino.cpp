@@ -321,7 +321,6 @@ void Bino::setInputLayout(VideoFrame::StereoLayout layout)
 {
     _videoSink->setStereoLayout(layout);
     _frameIsNew = true;
-    emit stateChanged();
     LOG_DEBUG("setting stereo layout to %s", VideoFrame::layoutToString(layout));
 }
 
@@ -329,7 +328,6 @@ void Bino::setThreeSixtyMode(VideoFrame::ThreeSixtyMode mode)
 {
     _videoSink->setThreeSixtyMode(mode);
     _frameIsNew = true;
-    emit stateChanged();
     LOG_DEBUG("setting 360° mode to %s", VideoFrame::modeToString(mode));
 }
 
