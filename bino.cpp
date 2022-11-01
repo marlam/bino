@@ -45,6 +45,8 @@ Bino::Bino(const Screen& screen, bool swapEyes) :
     _captureSession(nullptr),
     _tempFile(nullptr),
     _recorder(nullptr),
+    _lastFrameStereoLayout(VideoFrame::Layout_Unknown),
+    _lastFrameThreeSixtyMode(VideoFrame::ThreeSixty_Unknown),
     _screen(screen),
     _frameIsNew(false),
     _swapEyes(swapEyes)
@@ -97,10 +99,6 @@ void Bino::startPlaylistMode()
                     : state == QMediaPlayer::PausedState ? "paused"
                     : "unknown");
             });
-
-    connect(_player, &QMediaPlayer::activeTracksChanged, [=]() { emit stateChanged(); });
-    connect(_player, &QMediaPlayer::playbackStateChanged, [=]() { emit stateChanged(); });
-    connect(_player, &QMediaPlayer::sourceChanged, [=]() { emit stateChanged(); });
 
     emit stateChanged();
 }
@@ -222,6 +220,7 @@ void Bino::mediaChanged(PlaylistEntry entry)
         _player->play();
         _videoSink->newUrl(entry.url, entry.stereoLayout, entry.threeSixtyMode);
     }
+    emit stateChanged();
 }
 
 void Bino::seek(qint64 milliseconds)
@@ -235,31 +234,39 @@ void Bino::togglePause()
 {
     if (!playlistMode())
         return;
-    if (_player->playbackState() == QMediaPlayer::PlayingState)
+    if (_player->playbackState() == QMediaPlayer::PlayingState) {
         _player->pause();
-    else if (_player->playbackState() == QMediaPlayer::PausedState)
+        emit stateChanged();
+    } else if (_player->playbackState() == QMediaPlayer::PausedState) {
         _player->play();
+        emit stateChanged();
+    }
 }
 
 void Bino::pause()
 {
     if (!playlistMode())
         return;
-    if (_player->playbackState() == QMediaPlayer::PlayingState)
+    if (_player->playbackState() == QMediaPlayer::PlayingState) {
         _player->pause();
+        emit stateChanged();
+    }
 }
 
 void Bino::play()
 {
     if (!playlistMode())
         return;
-    if (_player->playbackState() == QMediaPlayer::PausedState)
+    if (_player->playbackState() == QMediaPlayer::PlayingState) {
         _player->play();
+        emit stateChanged();
+    }
 }
 
 void Bino::toggleMute()
 {
     _audioOutput->setMuted(!_player->audioOutput()->isMuted());
+    emit stateChanged();
 }
 
 void Bino::changeVolume(int offset)
@@ -271,7 +278,10 @@ void Bino::stop()
 {
     if (!playlistMode())
         return;
-    _player->stop();
+    if (_player->playbackState() == QMediaPlayer::StoppedState) {
+        _player->stop();
+        emit stateChanged();
+    }
 }
 
 void Bino::toggleSwapEyes()
@@ -283,33 +293,43 @@ void Bino::toggleSwapEyes()
 void Bino::setVideoTrack(int i)
 {
     LOG_DEBUG("changing video track to %d", i);
-    if (playlistMode())
+    if (playlistMode()) {
         _player->setActiveVideoTrack(i);
+        emit stateChanged();
+    }
 }
 
 void Bino::setAudioTrack(int i)
 {
     LOG_DEBUG("changing audio track to %d", i);
-    if (playlistMode())
+    if (playlistMode()) {
         _player->setActiveAudioTrack(i);
+        emit stateChanged();
+    }
 }
 
 void Bino::setSubtitleTrack(int i)
 {
     LOG_DEBUG("changing subtitle track to %d", i);
-    if (playlistMode())
+    if (playlistMode()) {
         _player->setActiveSubtitleTrack(i);
+        emit stateChanged();
+    }
 }
 
 void Bino::setInputLayout(VideoFrame::StereoLayout layout)
 {
-    _videoSink->stereoLayout = layout;
+    _videoSink->setStereoLayout(layout);
+    _frameIsNew = true;
+    emit stateChanged();
     LOG_DEBUG("setting stereo layout to %s", VideoFrame::layoutToString(layout));
 }
 
 void Bino::setThreeSixtyMode(VideoFrame::ThreeSixtyMode mode)
 {
-    _videoSink->threeSixtyMode = mode;
+    _videoSink->setThreeSixtyMode(mode);
+    _frameIsNew = true;
+    emit stateChanged();
     LOG_DEBUG("setting 360° mode to %s", VideoFrame::modeToString(mode));
 }
 
@@ -381,10 +401,14 @@ VideoFrame::StereoLayout Bino::inputLayout() const
     return _videoSink->stereoLayout;
 }
 
+VideoFrame::StereoLayout Bino::assumeInputLayout() const
+{
+    return _frame.stereoLayout;
+}
+
 bool Bino::assumeStereoInputLayout() const
 {
-    return (_videoSink->stereoLayout != VideoFrame::Layout_Mono
-            && _frame.stereoLayout != VideoFrame::Layout_Mono);
+    return (assumeInputLayout() != VideoFrame::Layout_Mono);
 }
 
 VideoFrame::ThreeSixtyMode Bino::threeSixtyMode() const
@@ -394,8 +418,7 @@ VideoFrame::ThreeSixtyMode Bino::threeSixtyMode() const
 
 bool Bino::assumeThreeSixtyMode() const
 {
-    return (_videoSink->threeSixtyMode != VideoFrame::ThreeSixty_Off
-            && _frame.threeSixtyMode == VideoFrame::ThreeSixty_On);
+    return _frame.threeSixtyMode == VideoFrame::ThreeSixty_On;
 }
 
 void Bino::serializeStaticData(QDataStream& ds) const
@@ -921,6 +944,12 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
         // Done.
         _frameIsNew = false;
     }
+    if (_frame.stereoLayout != _lastFrameStereoLayout
+            || _frame.threeSixtyMode != _lastFrameThreeSixtyMode) {
+        emit stateChanged();
+    }
+    _lastFrameStereoLayout = _frame.stereoLayout;
+    _lastFrameThreeSixtyMode = _frame.threeSixtyMode;
 }
 
 void Bino::render(

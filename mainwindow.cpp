@@ -82,29 +82,12 @@ MainWindow::MainWindow(Bino* bino, Widget::StereoMode stereoMode, bool fullscree
     _trackSubtitleActionGroup = new QActionGroup(this);
 
     QMenu* threeDMenu = addBinoMenu("&3D Modes");
-    _3d360ActionGroup = new QActionGroup(this);
-    QAction* threeD360Auto = new QAction("360° automatic", this);
-    threeD360Auto->setCheckable(true);
-    _3d360ActionGroup->addAction(threeD360Auto)->setData(VideoFrame::ThreeSixty_Unknown);
-    connect(threeD360Auto, SIGNAL(triggered()), this, SLOT(threeD360()));
-    addBinoAction(threeD360Auto, threeDMenu);
-    QAction* threeD360On = new QAction("360° on", this);
-    threeD360On->setCheckable(true);
-    _3d360ActionGroup->addAction(threeD360On)->setData(VideoFrame::ThreeSixty_On);
-    connect(threeD360On, SIGNAL(triggered()), this, SLOT(threeD360()));
-    addBinoAction(threeD360On, threeDMenu);
-    QAction* threeD360Off = new QAction("360° off", this);
-    threeD360Off->setCheckable(true);
-    _3d360ActionGroup->addAction(threeD360Off)->setData(VideoFrame::ThreeSixty_Off);
-    connect(threeD360Off, SIGNAL(triggered()), this, SLOT(threeD360()));
-    addBinoAction(threeD360Off, threeDMenu);
+    _3d360Action = new QAction("360° mode");
+    _3d360Action->setCheckable(true);
+    connect(_3d360Action, SIGNAL(triggered()), this, SLOT(threeD360()));
+    addBinoAction(_3d360Action, threeDMenu);
     threeDMenu->addSeparator();
     _3dInputActionGroup = new QActionGroup(this);
-    QAction* threeDInAuto = new QAction("Input automatic", this);
-    threeDInAuto->setCheckable(true);
-    _3dInputActionGroup->addAction(threeDInAuto)->setData(int(VideoFrame::Layout_Unknown));
-    connect(threeDInAuto, SIGNAL(triggered()), this, SLOT(threeDInput()));
-    addBinoAction(threeDInAuto, threeDMenu);
     QAction* threeDInMono = new QAction("Input 2D", this);
     threeDInMono->setCheckable(true);
     _3dInputActionGroup->addAction(threeDInMono)->setData(int(VideoFrame::Layout_Mono));
@@ -456,11 +439,8 @@ void MainWindow::trackSubtitle()
 
 void MainWindow::threeD360()
 {
-    QAction* a = _3d360ActionGroup->checkedAction();
-    if (a) {
-        _bino->setThreeSixtyMode(static_cast<VideoFrame::ThreeSixtyMode>(a->data().toInt()));
-        _widget->update();
-    }
+    _bino->setThreeSixtyMode(_3d360Action->isChecked() ? VideoFrame::ThreeSixty_On : VideoFrame::ThreeSixty_Off);
+    _widget->update();
 }
 
 void MainWindow::threeDInput()
@@ -562,6 +542,8 @@ void MainWindow::viewToggleSwapEyes()
 
 void MainWindow::updateActions()
 {
+    LOG_DEBUG("updating mainwindow menu state");
+
     _viewToggleSwapEyesAction->setChecked(_bino->swapEyes());
     _mediaTogglePauseAction->setChecked(_bino->paused());
     _mediaToggleVolumeMuteAction->setChecked(_bino->muted());
@@ -642,22 +624,24 @@ void MainWindow::updateActions()
     _trackAudioActionGroup->setEnabled(_bino->playlistMode() && !_bino->stopped());
     _trackSubtitleActionGroup->setEnabled(_bino->playlistMode() && !_bino->stopped());
 
-    VideoFrame::ThreeSixtyMode threeSixty = _bino->threeSixtyMode();
-    for (int i = 0; i < _3d360ActionGroup->actions().size(); i++) {
-        QAction* a = _3d360ActionGroup->actions()[i];
-        a->setChecked(a->data().toInt() == int(threeSixty));
-    }
-    VideoFrame::StereoLayout layout = _bino->inputLayout();
+    _3d360Action->setChecked(_bino->assumeThreeSixtyMode());
+    VideoFrame::StereoLayout layout = _bino->assumeInputLayout();
     for (int i = 0; i < _3dInputActionGroup->actions().size(); i++) {
         QAction* a = _3dInputActionGroup->actions()[i];
         a->setChecked(a->data().toInt() == int(layout));
     }
     for (int i = 0; i < _3dOutputActionGroup->actions().size(); i++) {
         QAction* a = _3dOutputActionGroup->actions()[i];
-        a->setChecked(a->data().toInt() == int(_widget->stereoMode()));
-        Widget::StereoMode mode = static_cast<Widget::StereoMode>(a->data().toInt());
-        if (mode == Widget::Mode_OpenGL_Stereo)
-            a->setEnabled(_widget->isOpenGLStereo());
+        if (_bino->assumeStereoInputLayout()) {
+            a->setEnabled(true);
+            a->setChecked(a->data().toInt() == int(_widget->stereoMode()));
+            Widget::StereoMode mode = static_cast<Widget::StereoMode>(a->data().toInt());
+            if (mode == Widget::Mode_OpenGL_Stereo)
+                a->setEnabled(_widget->isOpenGLStereo());
+        } else {
+            a->setEnabled(false);
+            a->setChecked(false);
+        }
     }
 
     _mediaTogglePauseAction->setEnabled(_bino->playlistMode() && !_bino->stopped());

@@ -86,6 +86,18 @@ void VideoSink::newUrl(const QUrl& url, VideoFrame::StereoLayout layout, VideoFr
     }
 }
 
+void VideoSink::setStereoLayout(VideoFrame::StereoLayout layout)
+{
+    stereoLayout = layout;
+    processNewFrame(frame->qframe);
+}
+
+void VideoSink::setThreeSixtyMode(VideoFrame::ThreeSixtyMode mode)
+{
+    threeSixtyMode = mode;
+    processNewFrame(frame->qframe);
+}
+
 void VideoSink::processNewFrame(const QVideoFrame& frame)
 {
     this->frame->update(stereoLayout, threeSixtyMode, frame, srcIsNew);

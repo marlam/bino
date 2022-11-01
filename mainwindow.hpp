@@ -42,7 +42,7 @@ private:
     QActionGroup* _trackVideoActionGroup;
     QActionGroup* _trackAudioActionGroup;
     QActionGroup* _trackSubtitleActionGroup;
-    QActionGroup* _3d360ActionGroup;
+    QAction* _3d360Action;
     QActionGroup* _3dInputActionGroup;
     QActionGroup* _3dOutputActionGroup;
     QAction* _mediaTogglePauseAction;

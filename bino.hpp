@@ -58,6 +58,9 @@ private:
     // for rendering subtitles:
     QImage _subtitleImg;
     QString _subtitleImgString;
+    // for updating the GUI if necessary
+    VideoFrame::StereoLayout _lastFrameStereoLayout;
+    VideoFrame::ThreeSixtyMode _lastFrameThreeSixtyMode;
 
     /* Static data for rendering, initialized on the main process */
     Screen _screen;
@@ -124,10 +127,11 @@ public:
     int videoTrack() const;
     int audioTrack() const;
     int subtitleTrack() const;
-    VideoFrame::StereoLayout inputLayout() const;
-    bool assumeStereoInputLayout() const;
-    VideoFrame::ThreeSixtyMode threeSixtyMode() const;
-    bool assumeThreeSixtyMode() const;
+    VideoFrame::StereoLayout inputLayout() const;       // this might be unknown
+    VideoFrame::StereoLayout assumeInputLayout() const; // this is never unknown
+    bool assumeStereoInputLayout() const;               // is the assumed layout stereo?
+    VideoFrame::ThreeSixtyMode threeSixtyMode() const;  // this might be unknown
+    bool assumeThreeSixtyMode() const;                  // this is never unknown
 
     /* Functions necessary for VR mode */
     void serializeStaticData(QDataStream& ds) const;

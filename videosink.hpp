@@ -40,6 +40,9 @@ public:
 
     void newUrl(const QUrl& url, VideoFrame::StereoLayout stereoLayout, VideoFrame::ThreeSixtyMode mode);
 
+    void setStereoLayout(VideoFrame::StereoLayout layout);
+    void setThreeSixtyMode(VideoFrame::ThreeSixtyMode mode);
+
 public Q_SLOTS:
     void processNewFrame(const QVideoFrame& frame);
 
