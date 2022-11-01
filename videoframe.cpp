@@ -138,7 +138,9 @@ void VideoFrame::update(StereoLayout sl, ThreeSixtyMode ts, const QVideoFrame& f
                 || qframe.pixelFormat() == QVideoFrameFormat::Format_YV12
                 || qframe.pixelFormat() == QVideoFrameFormat::Format_NV12
                 || qframe.pixelFormat() == QVideoFrameFormat::Format_P010
-                || qframe.pixelFormat() == QVideoFrameFormat::Format_P016) {
+                || qframe.pixelFormat() == QVideoFrameFormat::Format_P016
+                || qframe.pixelFormat() == QVideoFrameFormat::Format_Y8
+                || qframe.pixelFormat() == QVideoFrameFormat::Format_Y16) {
             fallbackToImage = false;
         }
         if (fallbackToImage) {

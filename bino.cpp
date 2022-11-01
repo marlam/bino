@@ -903,6 +903,18 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16, w / 2, h / 2, 0, GL_RG, GL_UNSIGNED_SHORT, planeData[1]);
                 planeFormat = 4;
                 planeCount = 2;
+            } else if (_frame.pixelFormat == QVideoFrameFormat::Format_Y8) {
+                glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
+                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
+                planeFormat = 5;
+                planeCount = 1;
+            } else if (_frame.pixelFormat == QVideoFrameFormat::Format_Y16) {
+                glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_R16, w, h, 0, GL_RED, GL_UNSIGNED_SHORT, planeData[0]);
+                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
+                planeFormat = 5;
+                planeCount = 1;
             } else {
                 LOG_FATAL("unhandled pixel format");
                 std::exit(1);

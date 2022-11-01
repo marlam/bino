@@ -27,6 +27,7 @@ const int Format_RGB = 1;
 const int Format_YUVp = 2;
 const int Format_YVUp = 3;
 const int Format_YUVsp = 4;
+const int Format_Y = 5;
 uniform int planeFormat;
 
 uniform bool yuvValueRangeSmall;
@@ -58,6 +59,8 @@ void main(void)
     vec3 rgb = vec3(0.0, 1.0, 0.0);
     if (planeFormat == Format_RGB) {
         rgb = texture(plane0, vtexcoord).rgb;
+    } else if (planeFormat == Format_Y) {
+        rgb = texture(plane0, vtexcoord).rrr;
     } else {
         vec3 yuv;
         if (planeFormat == Format_YUVp) {
