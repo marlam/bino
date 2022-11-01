@@ -551,22 +551,7 @@ void MainWindow::updateActions()
     _mediaTogglePauseAction->setChecked(_bino->paused());
     _mediaToggleVolumeMuteAction->setChecked(_bino->muted());
 
-    while (_trackVideoActionGroup->actions().size() > 0) {
-        QAction* a = _trackVideoActionGroup->actions()[0];
-        _trackVideoActionGroup->removeAction(a);
-        delete a;
-    }
-    while (_trackAudioActionGroup->actions().size() > 0) {
-        QAction* a = _trackAudioActionGroup->actions()[0];
-        _trackAudioActionGroup->removeAction(a);
-        delete a;
-    }
-    while (_trackSubtitleActionGroup->actions().size() > 0) {
-        QAction* a = _trackSubtitleActionGroup->actions()[0];
-        _trackSubtitleActionGroup->removeAction(a);
-        delete a;
-    }
-
+    _trackMenu->clear();
     QUrl url = _bino->url();
     MetaData metaData;
     if (!url.isEmpty() && metaData.detectCached(url)) {
