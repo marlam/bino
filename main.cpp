@@ -554,7 +554,6 @@ int main(int argc, char* argv[])
                     : QMediaDevices::defaultVideoInput());
         } else {
             bino.startPlaylistMode();
-            playlist.start();
         }
     }
 
@@ -566,11 +565,17 @@ int main(int argc, char* argv[])
             LOG_FATAL("cannot initialize QVR manager");
             return 1;
         }
+        playlist.start();
         return app.exec();
 #endif
     } else {
         MainWindow mainwindow(&bino, outputMode, parser.isSet("fullscreen"));
         mainwindow.show();
+        // wait for up to 10 seconds to process all events before starting
+        // the playlist, because otherwise playing might be finished before
+        // the first frame rendering, e.g. if you just want to "play" an image
+        QGuiApplication::processEvents(QEventLoop::AllEvents, 10000);
+        playlist.start();
         return app.exec();
     }
 }
