@@ -574,7 +574,7 @@ int main(int argc, char* argv[])
         // wait for up to 10 seconds to process all events before starting
         // the playlist, because otherwise playing might be finished before
         // the first frame rendering, e.g. if you just want to "play" an image
-        QGuiApplication::processEvents(QEventLoop::AllEvents, 10000);
+        QGuiApplication::processEvents(QEventLoop::AllEvents, 3000);
         playlist.start();
         return app.exec();
     }
