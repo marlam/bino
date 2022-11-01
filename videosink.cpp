@@ -44,7 +44,7 @@ void VideoSink::newUrl(const QUrl& url, VideoFrame::StereoLayout layout, VideoFr
          * but QMediaMetaData currently does not provide that information */
     }
     if (stereoLayout == VideoFrame::Layout_Unknown) {
-        /* Try to guess the layout from the URL.
+        /* Try to guess the layout from a marker contained in the file name.
          * This should be compatible to the Bino 1.x naming conventions. */
         QString fileName = url.fileName();
         QString marker = fileName.left(fileName.lastIndexOf('.'));
@@ -69,7 +69,19 @@ void VideoSink::newUrl(const QUrl& url, VideoFrame::StereoLayout layout, VideoFr
         else if (marker == "2d")
             stereoLayout = VideoFrame::Layout_Mono;
         if (stereoLayout != VideoFrame::Layout_Unknown)
-            LOG_DEBUG("guessing stereo layout from file name %s: %s", qPrintable(fileName), VideoFrame::layoutToString(stereoLayout));
+            LOG_DEBUG("setting stereo layout from file name marker %s: %s", qPrintable(marker), VideoFrame::layoutToString(stereoLayout));
+    }
+    if (stereoLayout == VideoFrame::Layout_Unknown) {
+        /* Try to guess from the file name extension */
+        QString fileName = url.fileName();
+        QString extension;
+        if (fileName.lastIndexOf('.') > 0)
+            extension = fileName.right(fileName.length() - fileName.lastIndexOf('.'));
+        extension = extension.toLower();
+        if (extension == ".jps" || extension == ".pns")
+            stereoLayout = VideoFrame::Layout_Right_Left;
+        if (stereoLayout != VideoFrame::Layout_Unknown)
+            LOG_DEBUG("setting stereo layout from file name extension %s: %s", qPrintable(extension), VideoFrame::layoutToString(stereoLayout));
     }
     threeSixtyMode = mode;
     if (threeSixtyMode == VideoFrame::ThreeSixty_Unknown) {
