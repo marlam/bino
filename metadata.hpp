@@ -27,6 +27,8 @@
 
 class MetaData
 {
+Q_DECLARE_TR_FUNCTIONS(MetaData)
+
 public:
     QUrl url;
     QMediaMetaData global;

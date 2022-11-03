@@ -89,11 +89,11 @@ void Bino::startPlaylistMode()
     _player->setAudioOutput(_audioOutput);
     _player->connect(_player, &QMediaPlayer::errorOccurred,
             [=](QMediaPlayer::Error /* error */, const QString& errorString) {
-            LOG_WARNING("media player error: %s", qPrintable(errorString));
+            LOG_WARNING("%s", qPrintable(tr("Media player error: %1").arg(errorString)));
             });
     _player->connect(_player, &QMediaPlayer::playbackStateChanged,
             [=](QMediaPlayer::PlaybackState state) {
-            LOG_DEBUG("playback state changed to %s",
+            LOG_DEBUG("Playback state changed to %s",
                     state == QMediaPlayer::StoppedState ? "stopped"
                     : state == QMediaPlayer::PlayingState ? "playing"
                     : state == QMediaPlayer::PausedState ? "paused"
@@ -883,7 +883,7 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
             planeFormat = 5;
             planeCount = 1;
         } else {
-            LOG_FATAL("unhandled pixel format");
+            LOG_FATAL("Unhandled pixel format");
             std::exit(1);
         }
     }
@@ -1080,7 +1080,7 @@ void Bino::render(
             frameTex = _extFrameTex;
         break;
     }
-    LOG_FIREHOSE("rendering view %d from %s frame texture fx=%g ox=%g fy=%g oy=%g",
+    LOG_FIREHOSE("Rendering view %d from %s frame texture fx=%g ox=%g fy=%g oy=%g",
             view, frameTex == _frameTex ? "standard" : "extended", viewFactorX, viewOffsetX, viewFactorY, viewOffsetY);
     // Determine if we are producing the final rendering result here (which is the
     // case for VR mode) or if we are just rendering to intermediate textures (which
@@ -1179,7 +1179,7 @@ void Bino::keyPressEvent(QKeyEvent* event)
     } else if (event->key() == Qt::Key_E || event->key() == Qt::Key_F7) {
         toggleSwapEyes();
     } else {
-        LOG_DEBUG("unhandled key event: key=%d text='%s'", event->key(), qPrintable(event->text()));
+        LOG_DEBUG("Unhandled key event: key=%d text='%s'", event->key(), qPrintable(event->text()));
         event->ignore();
     }
 }

@@ -20,11 +20,14 @@
 
 #pragma once
 
+#include <QtCore>
 #include <QVideoFrame>
 #include <QImage>
 
 class VideoFrame
 {
+Q_DECLARE_TR_FUNCTIONS(VideoFrame)
+
 public:
     enum StereoLayout {
         Layout_Unknown,         // unknown; needs to be guessed

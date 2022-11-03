@@ -15,7 +15,7 @@ project(Bino LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
-find_package(Qt6 6.3.0 REQUIRED COMPONENTS OpenGLWidgets Multimedia)
+find_package(Qt6 6.3.0 REQUIRED COMPONENTS OpenGLWidgets Multimedia LinguistTools)
 find_package(QVR 4.0.0)
 if(QVR_FOUND)
     add_definitions(-DWITH_QVR)
@@ -27,6 +27,9 @@ qt6_add_resources(RESOURCES resources.qrc)
 if(WIN32)
     set(APPICON_RESOURCE appicon.rc)
 endif()
+
+set(TRANSLATIONSDIR "${CMAKE_INSTALL_PREFIX}/share/bino/translations")
+add_definitions(-DTRANSLATIONSDIR="${TRANSLATIONSDIR}")
 
 add_executable(bino
 	main.cpp version.hpp
@@ -42,5 +45,10 @@ add_executable(bino
 	widget.hpp widget.cpp
 	mainwindow.hpp mainwindow.cpp
 	${RESOURCES} ${APPICON_RESOURCE})
+set_target_properties(bino PROPERTIES WIN32_EXECUTABLE TRUE)
+qt6_add_translations(bino
+    TS_FILES bino_de.ts
+    QM_FILES_OUTPUT_VARIABLE qm_files)
+install(FILES ${qm_files} DESTINATION "${TRANSLATIONSDIR}")
 target_link_libraries(bino PRIVATE Qt6::OpenGLWidgets Qt6::Multimedia ${QVR_LIBRARIES})
 install(TARGETS bino RUNTIME DESTINATION bin)

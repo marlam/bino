@@ -29,7 +29,6 @@
 #include <string>
 #include <utility>
 #include <map>
-#include <limits>
 
 #include <QDataStream>
 
@@ -102,7 +101,7 @@ static std::vector<std::string> tinyObjMsgToLines(const std::string& s)
 
 Screen::Screen(const QString& objFileName, const QString& shapeName, float aspectRatio)
 {
-    LOG_INFO("loading screen from %s", qPrintable(objFileName));
+    LOG_INFO("%s", qPrintable(tr("Loading screen from %1").arg(objFileName)));
     tinyobj::ObjReaderConfig conf;
     conf.triangulate = true;
     conf.vertex_color = false;
@@ -111,15 +110,15 @@ Screen::Screen(const QString& objFileName, const QString& shapeName, float aspec
     if (reader.Warning().size() > 0) {
         std::vector<std::string> lines = tinyObjMsgToLines(reader.Warning());
         for (size_t i = 0; i < lines.size(); i++)
-            LOG_WARNING("  warning: %s\n", lines[i].c_str());
+            LOG_WARNING("  %s", qPrintable(tr("warning: %1").arg(lines[i].c_str())));
     }
     if (!reader.Valid()) {
         if (reader.Error().size() > 0) {
             std::vector<std::string> lines = tinyObjMsgToLines(reader.Error());
             for (size_t i = 0; i < lines.size(); i++)
-                LOG_FATAL("  error: %s\n", lines[i].c_str());
+                LOG_FATAL("  %s", qPrintable(tr("error: %1").arg(lines[i].c_str())));
         } else {
-            LOG_FATAL("  unknown error\n");
+            LOG_FATAL("  %s", qPrintable(tr("unknown error")));
         }
         return;
     }

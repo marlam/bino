@@ -29,6 +29,7 @@
 #include <string>
 
 #include <QApplication>
+#include <QTranslator>
 #include <QCommandLineParser>
 #include <QFileInfo>
 #include <QUrl>
@@ -99,46 +100,90 @@ int main(int argc, char* argv[])
 #ifdef WITH_QVR
     QVRManager manager(argc, argv);
 #endif
+    QTranslator qtTranslator;
+    if (qtTranslator.load(QLocale(), "qt", "_", QLibraryInfo::path(QLibraryInfo::TranslationsPath))) {
+        app.installTranslator(&qtTranslator);
+    }
+    QTranslator binoTranslator;
+    if (binoTranslator.load(QLocale(), "bino", "_", TRANSLATIONSDIR)) {
+        app.installTranslator(&binoTranslator);
+    }
 
     // Process command line
     QCommandLineParser parser;
-    parser.setApplicationDescription("3D video player -- see https://bino3d.org");
-    parser.addPositionalArgument("[URL...]", "Media to play.");
+    parser.setApplicationDescription(QCommandLineParser::tr("3D video player -- see https://bino3d.org"));
+    parser.addPositionalArgument("[URL...]", QCommandLineParser::tr("Media to play."));
     parser.addHelpOption();
     parser.addVersionOption();
-    parser.addOption({ "log-level", "Set log level (fatal, warning, info, debug, firehose).", "level" });
-    parser.addOption({ "log-file", "Set log file.", "file" });
-    parser.addOption({ "opengles", "Use OpenGL ES instead of Desktop OpenGL." });
-    parser.addOption({ "stereo", "Use OpenGL quad-buffered stereo in GUI mode."});
-    parser.addOption({ "vr", "Start in VR mode instead of GUI mode."});
-    parser.addOption({ "vr-screen", "Set VR screen geometry, either as a comma-separated list of "
+    parser.addOption({ "log-level",
+            QCommandLineParser::tr("Set log level (%1).").arg("fatal, warning, info, debug, firehose"),
+            "level" });
+    parser.addOption({ "log-file",
+            QCommandLineParser::tr("Set log file."),
+            "file" });
+    parser.addOption({ "opengles",
+            QCommandLineParser::tr("Use OpenGL ES instead of Desktop OpenGL.") });
+    parser.addOption({ "stereo",
+            QCommandLineParser::tr("Use OpenGL quad-buffered stereo in GUI mode.")});
+    parser.addOption({ "vr",
+            QCommandLineParser::tr("Start in VR mode instead of GUI mode.")});
+    parser.addOption({ "vr-screen",
+            QCommandLineParser::tr("Set VR screen geometry, either as a comma-separated list of "
             "nine values representing three 3D coordinates that define a planar screen (bottom left, bottom right, top left) "
-            "or as a name of an OBJ file that contains the screen geometry with texture coordinates.", "screen" });
-    parser.addOption({ "capture", "Capture audio/video input from camera and microphone." });
-    parser.addOption({ "list-audio-outputs", "List audio outputs." });
-    parser.addOption({ "list-audio-inputs", "List audio inputs." });
-    parser.addOption({ "list-video-inputs", "List video inputs." });
-    parser.addOption({ "audio-output", "Choose audio output via its index.", "ao" });
-    parser.addOption({ "audio-input", "Choose audio input via its index. Can be empty.", "ai" });
-    parser.addOption({ "video-input", "Choose video input via its index.", "vi" });
-    parser.addOption({ "preferred-audio", "Set preferred audio track language via ISO639 code (en, de, fr, ...).", "lang" });
-    parser.addOption({ "preferred-subtitle", "Set preferred subtitle track language via ISO639 code (en, de, fr, ...). Can be empty.", "lang" });
-    parser.addOption({ "list-tracks", "List all video, audio and subtitle tracks in the media." });
-    parser.addOption({ "video-track", "Choose video track via its index.", "track" });
-    parser.addOption({ "audio-track", "Choose audio track via its index.", "track" });
-    parser.addOption({ "subtitle-track", "Choose subtitle track via its index. Can be empty.", "track" });
-    parser.addOption({ { "S", "swap-eyes" }, "Swap left/right eye." });
-    parser.addOption({ { "f", "fullscreen" }, "Start in fullscreen mode." });
-    parser.addOption({ { "i", "input" }, "Set input mode (mono, "
+            "or as a name of an OBJ file that contains the screen geometry with texture coordinates."),
+            "screen" });
+    parser.addOption({ "capture",
+            QCommandLineParser::tr("Capture audio/video input from camera and microphone.") });
+    parser.addOption({ "list-audio-outputs",
+            QCommandLineParser::tr("List audio outputs.") });
+    parser.addOption({ "list-audio-inputs",
+            QCommandLineParser::tr("List audio inputs.") });
+    parser.addOption({ "list-video-inputs",
+            QCommandLineParser::tr("List video inputs.") });
+    parser.addOption({ "audio-output",
+            QCommandLineParser::tr("Choose audio output via its index."),
+            "ao" });
+    parser.addOption({ "audio-input",
+            QCommandLineParser::tr("Choose audio input via its index. Can be empty."),
+            "ai" });
+    parser.addOption({ "video-input",
+            QCommandLineParser::tr("Choose video input via its index."),
+            "vi" });
+    parser.addOption({ "preferred-audio",
+            QCommandLineParser::tr("Set preferred audio track language (en, de, fr, ...)."),
+            "lang" });
+    parser.addOption({ "preferred-subtitle",
+            QCommandLineParser::tr("Set preferred subtitle track language (en, de, fr, ...). Can be empty."),
+            "lang" });
+    parser.addOption({ "list-tracks",
+            QCommandLineParser::tr("List all video, audio and subtitle tracks in the media.") });
+    parser.addOption({ "video-track",
+            QCommandLineParser::tr("Choose video track via its index."), "track" });
+    parser.addOption({ "audio-track",
+            QCommandLineParser::tr("Choose audio track via its index."), "track" });
+    parser.addOption({ "subtitle-track",
+            QCommandLineParser::tr("Choose subtitle track via its index. Can be empty."),
+            "track" });
+    parser.addOption({ { "S",
+            QCommandLineParser::tr("swap-eyes") }, "Swap left/right eye." });
+    parser.addOption({ { "f",
+            QCommandLineParser::tr("fullscreen") }, "Start in fullscreen mode." });
+    parser.addOption({ { "i", "input" },
+            QCommandLineParser::tr("Set input mode (%1).").arg("mono, "
             "top-bottom, top-bottom-half, bottom-top, bottom-top-half, "
             "left-right, left-right-half, right-left, right-left-half, "
-            "alternating-left-right, alternating-right-left).", "mode" });
-    parser.addOption({ { "o", "output" }, "Set output mode (left, right, stereo, alternating, "
+            "alternating-left-right, alternating-right-left"),
+            "mode" });
+    parser.addOption({ { "o", "output" },
+            QCommandLineParser::tr("Set output mode (%1).").arg("left, right, stereo, alternating, "
             "red-cyan-dubois, red-cyan-full-color, red-cyan-half-color, red-cyan-monochrome, "
             "green-magenta-dubois, green-magenta-full-color, green-magenta-half-color, green-magenta-monochrome, "
             "amber-blue-dubois, amber-blue-full-color, amber-blue-half-color, amber-blue-monochrome, "
-            "red-green-monochrome, red-blue-monochrome).", "mode" });
-    parser.addOption({ "360", "Set 360° mode (on, off).", "mode" });
+            "red-green-monochrome, red-blue-monochrome"),
+            "mode" });
+    parser.addOption({ "360",
+            QCommandLineParser::tr("Set 360° mode (%1).").arg("on, off"),
+            "mode" });
     parser.process(app);
 
     // Initialize logging
@@ -158,7 +203,7 @@ int main(int argc, char* argv[])
         else if (parser.value("log-level") == "firehose")
             SetLogLevel(Log_Level_Firehose);
         else {
-            LOG_FATAL("invalid log level %s", qPrintable(parser.value("log-level")));
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--log-level")));
             return 1;
         }
     }
@@ -166,7 +211,7 @@ int main(int argc, char* argv[])
     // Check if VR mode is available if requested
 #ifndef WITH_QVR
     if (parser.isSet("vr")) {
-        LOG_FATAL("VR mode unavailable - recompile Bino with QVR support!");
+        LOG_FATAL(QCommandLineParser::tr("VR mode unavailable - recompile Bino with QVR support!"));
         return 1;
     }
 #endif
@@ -179,7 +224,7 @@ int main(int argc, char* argv[])
         } else if (parser.value("360") == "off") {
             threeSixtyMode = VideoFrame::ThreeSixty_Off;
         } else {
-            LOG_FATAL("invalid argument for option %s", "--360");
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--360")));
             return 1;
         }
     }
@@ -208,7 +253,7 @@ int main(int argc, char* argv[])
         else if (parser.value("input") == "alternating-right-left")
             inputMode = VideoFrame::Layout_Alternating_RL;
         else {
-            LOG_FATAL("invalid input mode");
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--input")));
             return 1;
         }
     }
@@ -251,7 +296,7 @@ int main(int argc, char* argv[])
         else if (parser.value("output") == "red-blue-monochrome")
             outputMode = Widget::Mode_Red_Blue_Monochrome;
         else {
-            LOG_FATAL("invalid output mode");
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--output")));
             return 1;
         }
     }
@@ -267,30 +312,30 @@ int main(int argc, char* argv[])
     if (parser.isSet("list-audio-outputs")) {
         audioOutputDevices = QMediaDevices::audioOutputs();
         if (audioOutputDevices.size() == 0) {
-            LOG_REQUESTED("no audio outputDevices available.");
+            LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("No audio outputs available.")));
         } else {
             for (qsizetype i = 0; i < audioOutputDevices.size(); i++)
-                LOG_REQUESTED("no audio output %d: %s", int(i), qPrintable(audioOutputDevices[i].description()));
+                LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("Audio output %1: %2").arg(i).arg(audioOutputDevices[i].description())));
         }
         deviceListRequested = true;
     }
     if (parser.isSet("list-audio-inputs")) {
         audioInputDevices = QMediaDevices::audioInputs();
         if (audioInputDevices.size() == 0) {
-            LOG_REQUESTED("no audio inputs available.");
+            LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("No audio inputs available.")));
         } else {
             for (qsizetype i = 0; i < audioInputDevices.size(); i++)
-                LOG_REQUESTED("audio input %d: %s", int(i), qPrintable(audioInputDevices[i].description()));
+                LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("Audio input %1: %2").arg(i).arg(audioInputDevices[i].description())));
         }
         deviceListRequested = true;
     }
     if (parser.isSet("list-video-inputs")) {
         videoInputDevices = QMediaDevices::videoInputs();
         if (videoInputDevices.size() == 0) {
-            LOG_REQUESTED("no video inputs available.");
+            LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("No video inputs available.")));
         } else {
             for (qsizetype i = 0; i < videoInputDevices.size(); i++)
-                LOG_REQUESTED("video input %d: %s", int(i), qPrintable(videoInputDevices[i].description()));
+                LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("Video input %1: %2").arg(i).arg(videoInputDevices[i].description())));
         }
         deviceListRequested = true;
     }
@@ -309,7 +354,7 @@ int main(int argc, char* argv[])
         if (ok && ao >= 0 && ao < audioOutputDevices.size()) {
             audioOutputDeviceIndex = ao;
         } else {
-            LOG_FATAL("invalid argument for option %s", "--audio-output");
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--audio-output")));
             return 1;
         }
     }
@@ -324,7 +369,7 @@ int main(int argc, char* argv[])
                 if (ok && ai >= 0 && ai < audioInputDevices.size()) {
                     audioInputDeviceIndex = ai;
                 } else {
-                    LOG_FATAL("invalid argument for option %s", "--audio-input");
+                    LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--audio-input")));
                     return 1;
                 }
             }
@@ -335,7 +380,7 @@ int main(int argc, char* argv[])
             if (ok && vi >= 0 && vi < videoInputDevices.size()) {
                 videoInputDeviceIndex = vi;
             } else {
-                LOG_FATAL("invalid argument for option %s", "--video-input");
+                LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--video-input")));
                 return 1;
             }
         }
@@ -346,7 +391,7 @@ int main(int argc, char* argv[])
     if (parser.isSet("preferred-audio")) {
         QLocale::Language lang = QLocale::codeToLanguage(parser.value("preferred-audio"));
         if (lang == QLocale::AnyLanguage) {
-            LOG_FATAL("invalid argument for option %s", "--preferred-audio");
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--preferred-audio")));
             return 1;
         } else {
             playlist.preferredAudio = lang;
@@ -358,7 +403,7 @@ int main(int argc, char* argv[])
         } else {
             QLocale::Language lang = QLocale::codeToLanguage(parser.value("preferred-subtitle"));
             if (lang == QLocale::AnyLanguage) {
-                LOG_FATAL("invalid argument for option %s", "--preferred-subtitle");
+                LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--preferred-subtitle")));
                 return 1;
             } else {
                 playlist.preferredSubtitle = lang;
@@ -374,7 +419,7 @@ int main(int argc, char* argv[])
         if (ok && vt >= 0) {
             videoTrack = vt;
         } else {
-            LOG_FATAL("invalid argument for option %s", "--video-track");
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--video-track")));
             return 1;
         }
     }
@@ -384,7 +429,7 @@ int main(int argc, char* argv[])
         if (ok && at >= 0) {
             audioTrack = at;
         } else {
-            LOG_FATAL("invalid argument for option %s", "--audio-track");
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--audio-track")));
             return 1;
         }
     }
@@ -397,7 +442,7 @@ int main(int argc, char* argv[])
             if (ok && st >= 0) {
                 subtitleTrack = st;
             } else {
-                LOG_FATAL("invalid argument for option %s", "--subtitle-track");
+                LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--subtitle-track")));
                 return 1;
             }
         }
@@ -409,7 +454,7 @@ int main(int argc, char* argv[])
             if (fileInfo.exists()) {
                 url = QUrl::fromLocalFile(fileInfo.canonicalFilePath());
             } else {
-                LOG_WARNING("file does not exist: %s", qPrintable(parser.positionalArguments()[i]));
+                LOG_WARNING("%s", qPrintable(QCommandLineParser::tr("File does not exist: %1").arg(parser.positionalArguments()[i])));
                 continue;
             }
         }
@@ -420,7 +465,7 @@ int main(int argc, char* argv[])
         return 1;
     }
     if (parser.isSet("capture") && playlist.length() > 0) {
-        LOG_FATAL("cannot capture and play URL at the same time.");
+        LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Cannot capture and play URL at the same time.")));
         return 1;
     }
 
@@ -438,14 +483,16 @@ int main(int argc, char* argv[])
             }
             for (int k = 0; k < 3; k++) {
                 QString trackType =
-                    (k == 0 ? "video" : k == 1 ? "audio" : "subtitle");
+                    (k == 0 ? QCommandLineParser::tr("video")
+                     : k == 1 ? QCommandLineParser::tr("audio")
+                     : QCommandLineParser::tr("subtitle"));
                 const QList<QMediaMetaData>& metaDataList =
                     (k == 0 ? metaData.videoTracks : k == 1 ? metaData.audioTracks : metaData.subtitleTracks);
                 if (metaDataList.size() == 0) {
-                    LOG_REQUESTED("  no %s tracks", qPrintable(trackType));
+                    LOG_REQUESTED("  %s", qPrintable(QCommandLineParser::tr("no %1 tracks").arg(trackType)));
                 } else {
                     for (qsizetype l = 0; l < metaDataList.size(); l++) {
-                        LOG_REQUESTED("  %s track %d", qPrintable(trackType), int(l));
+                        LOG_REQUESTED("  %s", qPrintable(QCommandLineParser::tr("%1 track %2").arg(qPrintable(trackType)).arg(l)));
                         QMediaMetaData lmd = metaDataList[l];
                         for (qsizetype m = 0; m < lmd.keys().size(); m++) {
                             QMediaMetaData::Key key = lmd.keys()[m];
@@ -492,18 +539,18 @@ int main(int argc, char* argv[])
                 if (2 == std::sscanf(qPrintable(paramList[0]), "%f:%f", ar2 + 0, ar2 + 1)) {
                     ar = ar2[0] / ar2[1];
                 } else if (1 != std::sscanf(qPrintable(paramList[0]), "%f", &ar)) {
-                    LOG_FATAL("invalid VR screen aspect ratio %s", qPrintable(paramList[0]));
+                    LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--vr-screen")));
                     return 1;
                 }
                 screen = Screen(paramList[1], "", ar);
                 if (screen.indices.size() == 0)
                     return 1;
             } else {
-                LOG_FATAL("invalid VR screen definition: %s", qPrintable(parser.value("screen")));
+                LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--vr-screen")));
                 return 1;
             }
         } else {
-            LOG_INFO("using default VR screen");
+            LOG_DEBUG("using default VR screen");
         }
     }
 
@@ -567,7 +614,7 @@ int main(int argc, char* argv[])
 #ifdef WITH_QVR
         BinoQVRApp qvrapp(&bino);
         if (!manager.init(&qvrapp)) {
-            LOG_FATAL("cannot initialize QVR manager");
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Cannot initialize QVR manager")));
             return 1;
         }
         playlist.start();

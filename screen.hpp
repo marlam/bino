@@ -30,11 +30,14 @@
 
 #pragma once
 
+#include <QtCore>
 #include <QVector>
 #include <QVector3D>
 
 class Screen
 {
+Q_DECLARE_TR_FUNCTIONS(Screen)
+
 public:
     QVector<float> positions; // each position consists of 3 floats
     QVector<float> texcoords; // each texcoord consists of 2 floats

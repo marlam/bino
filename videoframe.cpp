@@ -151,8 +151,8 @@ void VideoFrame::update(StereoLayout sl, ThreeSixtyMode ts, const QVideoFrame& f
         }
         if (fallbackToImage) {
             if (newSrc) {
-                LOG_WARNING("pixel format %s is not hardware accelerated!",
-                        qPrintable(QVideoFrameFormat::pixelFormatToString(qframe.pixelFormat())));
+                LOG_WARNING("%s", qPrintable(tr("Pixel format %1 is not hardware accelerated!")
+                            .arg(QVideoFrameFormat::pixelFormatToString(qframe.pixelFormat()))));
             }
             storage = Storage_Image;
             pixelFormat = QVideoFrameFormat::pixelFormatFromImageFormat(QImage::Format_RGB32);

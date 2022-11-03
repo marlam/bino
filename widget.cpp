@@ -94,13 +94,13 @@ void Widget::initializeGL()
             && context()->format().majorVersion() >= 3
             && context()->format().minorVersion() >= 2);
     if (!contextIsOk) {
-        LOG_FATAL("insufficient OpenGL capabilities");
-        QMessageBox::critical(this, "Error", "Insufficient OpenGL capabilities.");
+        LOG_FATAL("%s", qPrintable(tr("Insufficient OpenGL capabilities")));
+        QMessageBox::critical(this, tr("Error"), tr("Insufficient OpenGL capabilities."));
         std::exit(1);
     }
     if (QSurfaceFormat::defaultFormat().stereo() && !context()->format().stereo()) {
-        LOG_FATAL("OpenGL stereo mode is not available on this system");
-        QMessageBox::critical(this, "Error", "OpenGL stereo mode is not available on this system.");
+        LOG_FATAL("%s", qPrintable(tr("OpenGL stereo mode is not available on this system")));
+        QMessageBox::critical(this, tr("Error"), tr("OpenGL stereo mode is not available on this system."));
         std::exit(1);
     }
 
@@ -285,7 +285,7 @@ void Widget::paintGL()
     glBindTexture(GL_TEXTURE_2D, _viewTex[1]);
     glBindVertexArray(_quadVao);
     if (_openGLStereo) {
-        LOG_FIREHOSE("oglstereo draw");
+        LOG_FIREHOSE("widget draw mode: opengl stereo");
         if (stereoMode == Mode_OpenGL_Stereo) {
             glDrawBuffer(GL_BACK_LEFT);
             _prg.setUniformValue("stereoMode", static_cast<int>(Mode_Left));
@@ -303,7 +303,7 @@ void Widget::paintGL()
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
         }
     } else {
-        LOG_FIREHOSE("normal draw");
+        LOG_FIREHOSE("widget draw mode: normal");
         if (stereoMode == Mode_Alternating)
             stereoMode = (_alternatingLastView == 0 ? Mode_Right : Mode_Left);
         _prg.setUniformValue("stereoMode", static_cast<int>(stereoMode));

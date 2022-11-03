@@ -48,7 +48,7 @@ bool MetaData::detectCached(const QUrl& url, QString* errMsg)
     player.connect(&player, &QMediaPlayer::errorOccurred,
             [&](QMediaPlayer::Error, const QString& errorString) {
             errorMessage = errorString;
-            LOG_WARNING("%s: cannot get meta data: %s", qPrintable(player.source().toString()), qPrintable(errorString));
+            LOG_WARNING("%s", qPrintable(tr("Cannot get meta data from %1: %2").arg(player.source().toString()).arg(errorString)));
             failure = true;
             });
     player.connect(&player, &QMediaPlayer::metaDataChanged, [&]() { available = true; });
