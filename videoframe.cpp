@@ -61,6 +61,12 @@ const char* VideoFrame::layoutToString(StereoLayout sl)
     case Layout_Right_Left_Half:
         return "right-left-half";
         break;
+    case Layout_Alternating_LR:
+        return "alternating-left-right";
+        break;
+    case Layout_Alternating_RL:
+        return "alternating-right-left";
+        break;
     };
     return nullptr;
 }
@@ -94,6 +100,8 @@ void VideoFrame::update(StereoLayout sl, ThreeSixtyMode ts, const QVideoFrame& f
         width = qframe.width();
         height = qframe.height();
         aspectRatio = float(width) / height;
+        LOG_FIREHOSE("videoframe receives new %dx%d frame with pixel format %s", width, height,
+                qPrintable(QVideoFrameFormat::pixelFormatToString(qframe.pixelFormat())));
         if (sl == Layout_Unknown) {
             if (aspectRatio >= 3.0f)
                 sl = VideoFrame::Layout_Left_Right;
@@ -101,7 +109,7 @@ void VideoFrame::update(StereoLayout sl, ThreeSixtyMode ts, const QVideoFrame& f
                 sl = VideoFrame::Layout_Top_Bottom;
             else
                 sl = VideoFrame::Layout_Mono;
-            LOG_FIREHOSE("guessing stereo layout from aspect ratio %g: %s", aspectRatio, layoutToString(sl));
+            LOG_FIREHOSE("videoframe guesses stereo layout from aspect ratio %g: %s", aspectRatio, layoutToString(sl));
         }
         stereoLayout = sl;
         if (ts == ThreeSixty_Unknown) {
@@ -117,12 +125,10 @@ void VideoFrame::update(StereoLayout sl, ThreeSixtyMode ts, const QVideoFrame& f
                 ts = ThreeSixty_On;
             else
                 ts = ThreeSixty_Off;
-            LOG_FIREHOSE("guessing 360°=%s from frame size", (ts == ThreeSixty_On ? "on" : "off"));
+            LOG_FIREHOSE("videoframe guesses 360°=%s from frame size", (ts == ThreeSixty_On ? "on" : "off"));
         }
         threeSixtyMode = ts;
         bool fallbackToImage = true;
-        LOG_FIREHOSE("new frame with pixel format %s",
-                qPrintable(QVideoFrameFormat::pixelFormatToString(qframe.pixelFormat())));
         if (       qframe.pixelFormat() == QVideoFrameFormat::Format_ARGB8888
                 || qframe.pixelFormat() == QVideoFrameFormat::Format_ARGB8888_Premultiplied
                 || qframe.pixelFormat() == QVideoFrameFormat::Format_XRGB8888
@@ -200,7 +206,6 @@ void VideoFrame::update(StereoLayout sl, ThreeSixtyMode ts, const QVideoFrame& f
         // Synthesize a black frame
         stereoLayout = Layout_Mono;
         threeSixtyMode = ThreeSixty_Off;
-        subtitle = QString();
         width = 1;
         height = 1;
         storage = Storage_Image;
@@ -209,6 +214,17 @@ void VideoFrame::update(StereoLayout sl, ThreeSixtyMode ts, const QVideoFrame& f
         aspectRatio = 1.0f;
         subtitle = QString();
     }
+}
+
+void VideoFrame::reUpdate()
+{
+    update(stereoLayout, threeSixtyMode, qframe, false);
+}
+
+void VideoFrame::invalidate()
+{
+    if (qframe.isValid())
+        update(Layout_Unknown, ThreeSixty_Unknown, QVideoFrame(), false);
 }
 
 QDataStream &operator<<(QDataStream& ds, const VideoFrame& f)

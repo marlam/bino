@@ -30,18 +30,18 @@ class VideoSink : public QVideoSink
 Q_OBJECT
 
 public:
-    VideoFrame* frame; // target video frame
-    bool *frameIsNew;  // flag to set when the target frame represents a new frame
-    bool srcIsNew;     // flag to set when a new video source is played
+    unsigned long long frameCounter; // number of frames seen for this URL
+    bool fileFormatIsMPO; // flag to work around MPO glitches
+    VideoFrame* frame;    // target video frame
+    VideoFrame* extFrame; // extension to target video frame, for alternating stereo
+    bool *frameIsNew;     // flag to set when the target frame represents a new frame
+    bool needExtFrame;    // flag to set in alternating stereo when extFrame is not filled yet
     VideoFrame::StereoLayout stereoLayout; // stereo layout of current media
     VideoFrame::ThreeSixtyMode threeSixtyMode; // 360° mode of the current media
 
-    VideoSink(VideoFrame* frame, bool* frameIsNew);
+    VideoSink(VideoFrame* frame, VideoFrame* extFrame, bool* frameIsNew);
 
     void newUrl(const QUrl& url, VideoFrame::StereoLayout stereoLayout, VideoFrame::ThreeSixtyMode mode);
-
-    void setStereoLayout(VideoFrame::StereoLayout layout);
-    void setThreeSixtyMode(VideoFrame::ThreeSixtyMode mode);
 
 public Q_SLOTS:
     void processNewFrame(const QVideoFrame& frame);

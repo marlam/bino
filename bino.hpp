@@ -73,6 +73,7 @@ private:
     unsigned int _cubeVao;
     unsigned int _planeTexs[3];
     unsigned int _frameTex;
+    unsigned int _extFrameTex;
     unsigned int _subtitleTex;
     unsigned int _screenVao;
     QOpenGLShaderProgram _colorPrg;
@@ -80,9 +81,11 @@ private:
 
     /* Dynamic data for rendering */
     VideoFrame _frame;
+    VideoFrame _extFrame; // for alternating stereo
     bool _frameIsNew;
     bool _swapEyes;
 
+    void convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex);
     bool drawSubtitleToImage(int w, int h, const QString& string);
 
 public:

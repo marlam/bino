@@ -36,7 +36,9 @@ public:
         Layout_Left_Right,      // stereoscopic video, left eye left, right eye right
         Layout_Left_Right_Half, // stereoscopic video, left eye left, right eye right, both half width
         Layout_Right_Left,      // stereoscopic video, left eye right, right eye left
-        Layout_Right_Left_Half  // stereoscopic video, left eye right, right eye left, both half width
+        Layout_Right_Left_Half, // stereoscopic video, left eye right, right eye left, both half width
+        Layout_Alternating_LR,  // stereoscopic video, alternating frames, left first
+        Layout_Alternating_RL,  // stereoscopic video, alternating frames, right first
     };
     enum ThreeSixtyMode {
         ThreeSixty_Unknown,     // unknown; needs to be guessed
@@ -100,6 +102,8 @@ public:
     VideoFrame();
 
     void update(StereoLayout sl, ThreeSixtyMode ts, const QVideoFrame& frame, bool newSrc);
+    void reUpdate();
+    void invalidate();
     static const char* layoutToString(StereoLayout sl);
     static const char* modeToString(ThreeSixtyMode ts);
 };

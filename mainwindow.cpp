@@ -136,6 +136,16 @@ MainWindow::MainWindow(Bino* bino, Widget::StereoMode stereoMode, bool fullscree
     _3dInputActionGroup->addAction(threeDInRightLeftHalf)->setData(int(VideoFrame::Layout_Right_Left_Half));
     connect(threeDInRightLeftHalf, SIGNAL(triggered()), this, SLOT(threeDInput()));
     addBinoAction(threeDInRightLeftHalf, threeDMenu);
+    QAction* threeDInAlternatingLR = new QAction("Input alternating left-right", this);
+    threeDInAlternatingLR->setCheckable(true);
+    _3dInputActionGroup->addAction(threeDInAlternatingLR)->setData(int(VideoFrame::Layout_Alternating_LR));
+    connect(threeDInAlternatingLR, SIGNAL(triggered()), this, SLOT(threeDInput()));
+    addBinoAction(threeDInAlternatingLR, threeDMenu);
+    QAction* threeDInAlternatingRL = new QAction("Input alternating right-left", this);
+    threeDInAlternatingRL->setCheckable(true);
+    _3dInputActionGroup->addAction(threeDInAlternatingRL)->setData(int(VideoFrame::Layout_Alternating_RL));
+    connect(threeDInAlternatingRL, SIGNAL(triggered()), this, SLOT(threeDInput()));
+    addBinoAction(threeDInAlternatingRL, threeDMenu);
     threeDMenu->addSeparator();
     _3dOutputActionGroup = new QActionGroup(this);
     QAction* threeDOutLeft = new QAction("Output left", this);
@@ -641,6 +651,8 @@ void MainWindow::updateActions()
     _mediaSeekBwd1MinAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
     _mediaSeekFwd10MinsAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
     _mediaSeekBwd10MinsAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
+
+    _widget->update();
 }
 
 void MainWindow::helpAbout()

@@ -131,7 +131,8 @@ int main(int argc, char* argv[])
     parser.addOption({ { "f", "fullscreen" }, "Start in fullscreen mode." });
     parser.addOption({ { "i", "input" }, "Set input mode (mono, "
             "top-bottom, top-bottom-half, bottom-top, bottom-top-half, "
-            "left-right, left-right-half, right-left, right-left-half).", "mode" });
+            "left-right, left-right-half, right-left, right-left-half, "
+            "alternating-left-right, alternating-right-left).", "mode" });
     parser.addOption({ { "o", "output" }, "Set output mode (left, right, stereo, alternating, "
             "red-cyan-dubois, red-cyan-full-color, red-cyan-half-color, red-cyan-monochrome, "
             "green-magenta-dubois, green-magenta-full-color, green-magenta-half-color, green-magenta-monochrome, "
@@ -202,6 +203,10 @@ int main(int argc, char* argv[])
             inputMode = VideoFrame::Layout_Right_Left;
         else if (parser.value("input") == "right-left-half")
             inputMode = VideoFrame::Layout_Right_Left_Half;
+        else if (parser.value("input") == "alternating-left-right")
+            inputMode = VideoFrame::Layout_Alternating_LR;
+        else if (parser.value("input") == "alternating-right-left")
+            inputMode = VideoFrame::Layout_Alternating_RL;
         else {
             LOG_FATAL("invalid input mode");
             return 1;

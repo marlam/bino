@@ -67,7 +67,7 @@ Bino::~Bino()
 
 void Bino::initializeOutput(const QAudioDevice& audioOutputDevice)
 {
-    _videoSink = new VideoSink(&_frame, &_frameIsNew);
+    _videoSink = new VideoSink(&_frame, &_extFrame, &_frameIsNew);
     connect(_videoSink, &VideoSink::newVideoFrame, [=]() { emit newVideoFrame(); });
     _audioOutput = new QAudioOutput;
     _audioOutput->setDevice(audioOutputDevice);
@@ -319,14 +319,18 @@ void Bino::setSubtitleTrack(int i)
 
 void Bino::setInputLayout(VideoFrame::StereoLayout layout)
 {
-    _videoSink->setStereoLayout(layout);
+    _videoSink->stereoLayout = layout;
+    _frame.stereoLayout = layout;
+    _frame.reUpdate();
     _frameIsNew = true;
     LOG_DEBUG("setting stereo layout to %s", VideoFrame::layoutToString(layout));
 }
 
 void Bino::setThreeSixtyMode(VideoFrame::ThreeSixtyMode mode)
 {
-    _videoSink->setThreeSixtyMode(mode);
+    _videoSink->threeSixtyMode = mode;
+    _frame.threeSixtyMode = mode;
+    _frame.reUpdate();
     _frameIsNew = true;
     LOG_DEBUG("setting 360° mode to %s", VideoFrame::modeToString(mode));
 }
@@ -432,16 +436,26 @@ void Bino::deserializeStaticData(QDataStream& ds)
 void Bino::serializeDynamicData(QDataStream& ds) const
 {
     ds << _frameIsNew;
-    if (_frameIsNew)
+    if (_frameIsNew) {
         ds << _frame;
+        if (_frame.stereoLayout == VideoFrame::Layout_Alternating_LR
+                || _frame.stereoLayout == VideoFrame::Layout_Alternating_RL) {
+            ds << _extFrame;
+        }
+    }
     ds << _swapEyes;
 }
 
 void Bino::deserializeDynamicData(QDataStream& ds)
 {
     ds >> _frameIsNew;
-    if (_frameIsNew)
+    if (_frameIsNew) {
         ds >> _frame;
+        if (_frame.stereoLayout == VideoFrame::Layout_Alternating_LR
+                || _frame.stereoLayout == VideoFrame::Layout_Alternating_RL) {
+            ds >> _extFrame;
+        }
+    }
     ds >> _swapEyes;
 }
 
@@ -610,9 +624,16 @@ bool Bino::initProcess()
     }
     CHECK_GL();
 
-    // Frame texture
+    // Frame textures
     glGenTextures(1, &_frameTex);
     glBindTexture(GL_TEXTURE_2D, _frameTex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0f);
+    glGenTextures(1, &_extFrameTex);
+    glBindTexture(GL_TEXTURE_2D, _extFrameTex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -745,11 +766,156 @@ bool Bino::drawSubtitleToImage(int w, int h, const QString& string)
     return true;
 }
 
+void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
+{
+    bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
+
+    // 1. Get the frame data into plane textures
+    int w = frame.width;
+    int h = frame.height;
+    int planeFormat; // see shader-color.frag.glsl
+    int planeCount;
+    std::array<int, 4> plane0Swizzle = { GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA };
+    if (frame.storage == VideoFrame::Storage_Image) {
+        glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, frame.image.constBits());
+        glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
+        planeFormat = 1;
+        planeCount = 1;
+    } else {
+        std::array<const void*, 3> planeData;
+        if (frame.storage == VideoFrame::Storage_Mapped) {
+            planeData = { frame.mappedBits[0], frame.mappedBits[1], frame.mappedBits[2] };
+        } else {
+            planeData = { frame.bits[0].data(), frame.bits[1].data(), frame.bits[2].data() };
+        }
+        if (frame.pixelFormat == QVideoFrameFormat::Format_ARGB8888
+                || frame.pixelFormat == QVideoFrameFormat::Format_ARGB8888_Premultiplied
+                || frame.pixelFormat == QVideoFrameFormat::Format_XRGB8888) {
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
+            plane0Swizzle = { GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA };
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
+            planeFormat = 1;
+            planeCount = 1;
+        } else if (frame.pixelFormat == QVideoFrameFormat::Format_BGRA8888
+                || frame.pixelFormat == QVideoFrameFormat::Format_BGRA8888_Premultiplied
+                || frame.pixelFormat == QVideoFrameFormat::Format_BGRX8888) {
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
+            plane0Swizzle = { GL_ALPHA, GL_RED, GL_GREEN, GL_BLUE };
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
+            planeFormat = 1;
+            planeCount = 1;
+        } else if (frame.pixelFormat == QVideoFrameFormat::Format_ABGR8888
+                || frame.pixelFormat == QVideoFrameFormat::Format_XBGR8888) {
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
+            plane0Swizzle = { GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA };
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
+            planeFormat = 1;
+            planeCount = 1;
+        } else if (frame.pixelFormat == QVideoFrameFormat::Format_RGBA8888
+                || frame.pixelFormat == QVideoFrameFormat::Format_RGBX8888) {
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
+            plane0Swizzle = { GL_ALPHA, GL_BLUE, GL_GREEN, GL_RED };
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
+            planeFormat = 1;
+            planeCount = 1;
+        } else if (frame.pixelFormat == QVideoFrameFormat::Format_YUV420P) {
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[1]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h / 2, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[1]);
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[2]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h / 2, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[2]);
+            planeFormat = 2;
+            planeCount = 3;
+        } else if (frame.pixelFormat == QVideoFrameFormat::Format_YUV422P) {
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[1]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[1]);
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[2]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[2]);
+            planeFormat = 2;
+            planeCount = 3;
+        } else if (frame.pixelFormat == QVideoFrameFormat::Format_YV12) {
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[1]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h / 2, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[1]);
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[2]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h / 2, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[2]);
+            planeFormat = 3;
+            planeCount = 3;
+        } else if (frame.pixelFormat == QVideoFrameFormat::Format_NV12) {
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[1]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, w / 2, h / 2, 0, GL_RG, GL_UNSIGNED_BYTE, planeData[1]);
+            planeFormat = 4;
+            planeCount = 2;
+        } else if (frame.pixelFormat == QVideoFrameFormat::Format_P010
+                || frame.pixelFormat == QVideoFrameFormat::Format_P016) {
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R16, w, h, 0, GL_RED, GL_UNSIGNED_SHORT, planeData[0]);
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[1]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16, w / 2, h / 2, 0, GL_RG, GL_UNSIGNED_SHORT, planeData[1]);
+            planeFormat = 4;
+            planeCount = 2;
+        } else if (frame.pixelFormat == QVideoFrameFormat::Format_Y8) {
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
+            planeFormat = 5;
+            planeCount = 1;
+        } else if (frame.pixelFormat == QVideoFrameFormat::Format_Y16) {
+            glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R16, w, h, 0, GL_RED, GL_UNSIGNED_SHORT, planeData[0]);
+            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
+            planeFormat = 5;
+            planeCount = 1;
+        } else {
+            LOG_FATAL("unhandled pixel format");
+            std::exit(1);
+        }
+    }
+    // 2. Convert plane textures into linear RGB in the frame texture
+    glBindTexture(GL_TEXTURE_2D, frameTex);
+    if (isGLES)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB10_A2, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, nullptr);
+    else
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16, w, h, 0, GL_BGRA, GL_UNSIGNED_SHORT, nullptr);
+    glBindFramebuffer(GL_FRAMEBUFFER, _frameFbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, frameTex, 0);
+    glViewport(0, 0, w, h);
+    glDisable(GL_DEPTH_TEST);
+    glUseProgram(_colorPrg.programId());
+    _colorPrg.setUniformValue("planeFormat", planeFormat);
+    _colorPrg.setUniformValue("yuvValueRangeSmall", frame.yuvValueRangeSmall ? 1 : 0);
+    _colorPrg.setUniformValue("yuvSpace", int(frame.yuvSpace));
+    for (int p = 0; p < planeCount; p++) {
+        _colorPrg.setUniformValue(qPrintable(QString("plane") + QString::number(p)), p);
+        glActiveTexture(GL_TEXTURE0 + p);
+        glBindTexture(GL_TEXTURE_2D, _planeTexs[p]);
+    }
+    glBindVertexArray(_quadVao);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+    glBindTexture(GL_TEXTURE_2D, frameTex);
+    glGenerateMipmap(GL_TEXTURE_2D);
+}
+
 void Bino::preRenderProcess(int screenWidth, int screenHeight,
         int* viewCountPtr, int* viewWidthPtr, int* viewHeightPtr, float* frameDisplayAspectRatioPtr, bool* threeSixtyPtr)
 {
     Q_ASSERT(_frame.stereoLayout != VideoFrame::Layout_Unknown);
-    bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
 
     int viewCount = 2;
     int viewWidth = _frame.width;
@@ -775,6 +941,9 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
     case VideoFrame::Layout_Left_Right_Half:
     case VideoFrame::Layout_Right_Left_Half:
         viewWidth /= 2;
+        break;
+    case VideoFrame::Layout_Alternating_LR:
+    case VideoFrame::Layout_Alternating_RL:
         break;
     }
     if (subtitleTrack() >= 0 && (screenWidth > viewWidth || screenHeight > viewHeight)) {
@@ -802,147 +971,17 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
      * rendering the screen: _frameTex. */
 
     if (_frameIsNew) {
-        // First copy the plane data into a PBO and from there into the plane textures.
-        // This is faster than using glTexImage2D() directly on the data.
-        int w = _frame.width;
-        int h = _frame.height;
-        int planeFormat; // see shader-color.frag.glsl
-        int planeCount;
-        std::array<int, 4> plane0Swizzle = { GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA };
-        if (_frame.storage == VideoFrame::Storage_Image) {
-            glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, _frame.image.constBits());
-            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
-            planeFormat = 1;
-            planeCount = 1;
-        } else {
-            std::array<const void*, 3> planeData;
-            if (_frame.storage == VideoFrame::Storage_Mapped) {
-                planeData = { _frame.mappedBits[0], _frame.mappedBits[1], _frame.mappedBits[2] };
-            } else {
-                planeData = { _frame.bits[0].data(), _frame.bits[1].data(), _frame.bits[2].data() };
-            }
-            if (   _frame.pixelFormat == QVideoFrameFormat::Format_ARGB8888
-                || _frame.pixelFormat == QVideoFrameFormat::Format_ARGB8888_Premultiplied
-                || _frame.pixelFormat == QVideoFrameFormat::Format_XRGB8888) {
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
-                plane0Swizzle = { GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA };
-                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
-                planeFormat = 1;
-                planeCount = 1;
-            } else if (_frame.pixelFormat == QVideoFrameFormat::Format_BGRA8888
-                    || _frame.pixelFormat == QVideoFrameFormat::Format_BGRA8888_Premultiplied
-                    || _frame.pixelFormat == QVideoFrameFormat::Format_BGRX8888) {
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
-                plane0Swizzle = { GL_ALPHA, GL_RED, GL_GREEN, GL_BLUE };
-                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
-                planeFormat = 1;
-                planeCount = 1;
-            } else if (_frame.pixelFormat == QVideoFrameFormat::Format_ABGR8888
-                    || _frame.pixelFormat == QVideoFrameFormat::Format_XBGR8888) {
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
-                plane0Swizzle = { GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA };
-                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
-                planeFormat = 1;
-                planeCount = 1;
-            } else if (_frame.pixelFormat == QVideoFrameFormat::Format_RGBA8888
-                    || _frame.pixelFormat == QVideoFrameFormat::Format_RGBX8888) {
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
-                plane0Swizzle = { GL_ALPHA, GL_BLUE, GL_GREEN, GL_RED };
-                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
-                planeFormat = 1;
-                planeCount = 1;
-            } else if (_frame.pixelFormat == QVideoFrameFormat::Format_YUV420P) {
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
-                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[1]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h / 2, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[1]);
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[2]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h / 2, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[2]);
-                planeFormat = 2;
-                planeCount = 3;
-            } else if (_frame.pixelFormat == QVideoFrameFormat::Format_YUV422P) {
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
-                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[1]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[1]);
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[2]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[2]);
-                planeFormat = 2;
-                planeCount = 3;
-            } else if (_frame.pixelFormat == QVideoFrameFormat::Format_YV12) {
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
-                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[1]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h / 2, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[1]);
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[2]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h / 2, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[2]);
-                planeFormat = 3;
-                planeCount = 3;
-            } else if (_frame.pixelFormat == QVideoFrameFormat::Format_NV12) {
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
-                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[1]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, w / 2, h / 2, 0, GL_RG, GL_UNSIGNED_BYTE, planeData[1]);
-                planeFormat = 4;
-                planeCount = 2;
-            } else if (_frame.pixelFormat == QVideoFrameFormat::Format_P010
-                    || _frame.pixelFormat == QVideoFrameFormat::Format_P016) {
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_R16, w, h, 0, GL_RED, GL_UNSIGNED_SHORT, planeData[0]);
-                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[1]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16, w / 2, h / 2, 0, GL_RG, GL_UNSIGNED_SHORT, planeData[1]);
-                planeFormat = 4;
-                planeCount = 2;
-            } else if (_frame.pixelFormat == QVideoFrameFormat::Format_Y8) {
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
-                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
-                planeFormat = 5;
-                planeCount = 1;
-            } else if (_frame.pixelFormat == QVideoFrameFormat::Format_Y16) {
-                glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_R16, w, h, 0, GL_RED, GL_UNSIGNED_SHORT, planeData[0]);
-                glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
-                planeFormat = 5;
-                planeCount = 1;
-            } else {
-                LOG_FATAL("unhandled pixel format");
-                std::exit(1);
-            }
+        // Convert _frame into _frameTex and, if needed, _extFrame into _extFrameTex.
+        convertFrameToTexture(_frame, _frameTex);
+        if (_frame.stereoLayout == VideoFrame::Layout_Alternating_LR
+                || _frame.stereoLayout == VideoFrame::Layout_Alternating_RL) {
+            // the user might have switched to this mode without the extFrame
+            // being available, in that case fall back to the standard frame
+            if (_extFrame.width != _frame.width || _extFrame.height != _frame.height)
+                convertFrameToTexture(_frame, _extFrameTex);
+            else
+                convertFrameToTexture(_extFrame, _extFrameTex);
         }
-        // Convert plane data into linear RGB values stored in the RGBA16 texture _frameTex
-        glBindTexture(GL_TEXTURE_2D, _frameTex);
-        if (isGLES)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB10_A2, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, nullptr);
-        else
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16, w, h, 0, GL_BGRA, GL_UNSIGNED_SHORT, nullptr);
-        glBindFramebuffer(GL_FRAMEBUFFER, _frameFbo);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _frameTex, 0);
-        glViewport(0, 0, w, h);
-        glDisable(GL_DEPTH_TEST);
-        glUseProgram(_colorPrg.programId());
-        _colorPrg.setUniformValue("planeFormat", planeFormat);
-        _colorPrg.setUniformValue("yuvValueRangeSmall", _frame.yuvValueRangeSmall ? 1 : 0);
-        _colorPrg.setUniformValue("yuvSpace", int(_frame.yuvSpace));
-        for (int p = 0; p < planeCount; p++) {
-            _colorPrg.setUniformValue(qPrintable(QString("plane") + QString::number(p)), p);
-            glActiveTexture(GL_TEXTURE0 + p);
-            glBindTexture(GL_TEXTURE_2D, _planeTexs[p]);
-        }
-        glBindVertexArray(_quadVao);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-        glBindTexture(GL_TEXTURE_2D, _frameTex);
-        glGenerateMipmap(GL_TEXTURE_2D);
         // Render the subtitle into the subtitle texture
         if (drawSubtitleToImage(viewWidth, viewHeight, _frame.subtitle)) {
             glBindTexture(GL_TEXTURE_2D, _subtitleTex);
@@ -983,13 +1022,14 @@ void Bino::render(
     glViewport(0, 0, texWidth, texHeight);
     glClear(_screen.isPlanar ? GL_COLOR_BUFFER_BIT : (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     // Set up stereo layout
-    if (_swapEyes)
-        view = (view == 0 ? 1 : 0);
+    unsigned int frameTex = _frameTex;
     float frameAspectRatio = _frame.aspectRatio;
     float viewOffsetX = 0.0f;
     float viewFactorX = 1.0f;
     float viewOffsetY = 0.0f;
     float viewFactorY = 1.0f;
+    if (_swapEyes)
+        view = (view == 0 ? 1 : 0);
     switch (_frame.stereoLayout) {
     case VideoFrame::Layout_Unknown: // cannot happen, VideoFrame::update() sets a known layout
     case VideoFrame::Layout_Mono:
@@ -1031,7 +1071,17 @@ void Bino::render(
         viewFactorX = 0.5f;
         viewOffsetX = (view != 1 ? 0.5f : 0.0f);
         break;
+    case VideoFrame::Layout_Alternating_LR:
+        if (view == 1)
+            frameTex = _extFrameTex;
+        break;
+    case VideoFrame::Layout_Alternating_RL:
+        if (view == 0)
+            frameTex = _extFrameTex;
+        break;
     }
+    LOG_FIREHOSE("rendering view %d from %s frame texture fx=%g ox=%g fy=%g oy=%g",
+            view, frameTex == _frameTex ? "standard" : "extended", viewFactorX, viewOffsetX, viewFactorY, viewOffsetY);
     // Determine if we are producing the final rendering result here (which is the
     // case for VR mode) or if we are just rendering to intermediate textures (which
     // is the case for GUI mode). In GUI mode, the screen aspect ratio is unknown.
@@ -1063,7 +1113,7 @@ void Bino::render(
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, _subtitleTex);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _frameTex);
+    glBindTexture(GL_TEXTURE_2D, frameTex);
     if (_frame.threeSixtyMode == VideoFrame::ThreeSixty_On) {
         // Set up filtering to work correctly at the horizontal wraparound:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
