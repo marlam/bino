@@ -294,7 +294,7 @@ MainWindow::MainWindow(Bino* bino, Widget::StereoMode stereoMode, bool fullscree
 
     QMenu* viewMenu = addBinoMenu(tr("&View"));
     _viewToggleFullscreenAction = new QAction(tr("&Fullscreen"), this);
-    _viewToggleFullscreenAction->setShortcuts({ QKeySequence::FullScreen });
+    _viewToggleFullscreenAction->setShortcuts({ Qt::Key_F, QKeySequence::FullScreen });
     _viewToggleFullscreenAction->setCheckable(true);
     connect(_viewToggleFullscreenAction, SIGNAL(triggered()), this, SLOT(viewToggleFullscreen()));
     addBinoAction(_viewToggleFullscreenAction, viewMenu);
