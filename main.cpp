@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
         app.installTranslator(&qtTranslator);
     }
     QTranslator binoTranslator;
-    if (binoTranslator.load(QLocale(), "bino", "_", TRANSLATIONSDIR)) {
+    if (binoTranslator.load(QLocale(), "bino", "_", ":/i18n")) {
         app.installTranslator(&binoTranslator);
     }
 
