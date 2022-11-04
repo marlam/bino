@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
             "or as a name of an OBJ file that contains the screen geometry with texture coordinates."),
             "screen" });
     parser.addOption({ "capture",
-            QCommandLineParser::tr("Capture audio/video input from camera and microphone.") });
+            QCommandLineParser::tr("Capture video/audio input from camera and microphone.") });
     parser.addOption({ "list-audio-outputs",
             QCommandLineParser::tr("List audio outputs.") });
     parser.addOption({ "list-audio-inputs",
@@ -164,10 +164,10 @@ int main(int argc, char* argv[])
     parser.addOption({ "subtitle-track",
             QCommandLineParser::tr("Choose subtitle track via its index. Can be empty."),
             "track" });
-    parser.addOption({ { "S",
-            QCommandLineParser::tr("swap-eyes") }, "Swap left/right eye." });
-    parser.addOption({ { "f",
-            QCommandLineParser::tr("fullscreen") }, "Start in fullscreen mode." });
+    parser.addOption({ { "S", "swap-eyes" },
+            QCommandLineParser::tr("Swap left/right eye.") });
+    parser.addOption({ { "f", "fullscreen" },
+            QCommandLineParser::tr("Start in fullscreen mode.") });
     parser.addOption({ { "i", "input" },
             QCommandLineParser::tr("Set input mode (%1).").arg("mono, "
             "top-bottom, top-bottom-half, bottom-top, bottom-top-half, "

@@ -110,15 +110,15 @@ Screen::Screen(const QString& objFileName, const QString& shapeName, float aspec
     if (reader.Warning().size() > 0) {
         std::vector<std::string> lines = tinyObjMsgToLines(reader.Warning());
         for (size_t i = 0; i < lines.size(); i++)
-            LOG_WARNING("  %s", qPrintable(tr("warning: %1").arg(lines[i].c_str())));
+            LOG_WARNING("  %s", qPrintable(tr("Warning: %1").arg(lines[i].c_str())));
     }
     if (!reader.Valid()) {
         if (reader.Error().size() > 0) {
             std::vector<std::string> lines = tinyObjMsgToLines(reader.Error());
             for (size_t i = 0; i < lines.size(); i++)
-                LOG_FATAL("  %s", qPrintable(tr("error: %1").arg(lines[i].c_str())));
+                LOG_FATAL("  %s", qPrintable(tr("Error: %1").arg(lines[i].c_str())));
         } else {
-            LOG_FATAL("  %s", qPrintable(tr("unknown error")));
+            LOG_FATAL("  %s", qPrintable(tr("Unknown error")));
         }
         return;
     }

@@ -136,12 +136,12 @@ MainWindow::MainWindow(Bino* bino, Widget::StereoMode stereoMode, bool fullscree
     _3dInputActionGroup->addAction(threeDInRightLeftHalf)->setData(int(VideoFrame::Layout_Right_Left_Half));
     connect(threeDInRightLeftHalf, SIGNAL(triggered()), this, SLOT(threeDInput()));
     addBinoAction(threeDInRightLeftHalf, threeDMenu);
-    QAction* threeDInAlternatingLR = new QAction(tr("Input alternating left-right"), this);
+    QAction* threeDInAlternatingLR = new QAction(tr("Input alternating left/right"), this);
     threeDInAlternatingLR->setCheckable(true);
     _3dInputActionGroup->addAction(threeDInAlternatingLR)->setData(int(VideoFrame::Layout_Alternating_LR));
     connect(threeDInAlternatingLR, SIGNAL(triggered()), this, SLOT(threeDInput()));
     addBinoAction(threeDInAlternatingLR, threeDMenu);
-    QAction* threeDInAlternatingRL = new QAction(tr("Input alternating right-left"), this);
+    QAction* threeDInAlternatingRL = new QAction(tr("Input alternating right/left"), this);
     threeDInAlternatingRL->setCheckable(true);
     _3dInputActionGroup->addAction(threeDInAlternatingRL)->setData(int(VideoFrame::Layout_Alternating_RL));
     connect(threeDInAlternatingRL, SIGNAL(triggered()), this, SLOT(threeDInput()));
@@ -305,7 +305,7 @@ MainWindow::MainWindow(Bino* bino, Widget::StereoMode stereoMode, bool fullscree
     addBinoAction(_viewToggleSwapEyesAction, viewMenu);
 
     QMenu* helpMenu = addBinoMenu(tr("&Help"));
-    _helpAboutAction = new QAction(tr("&About"), this);
+    _helpAboutAction = new QAction(tr("&About..."), this);
     connect(_helpAboutAction, SIGNAL(triggered()), this, SLOT(helpAbout()));
     addBinoAction(_helpAboutAction, helpMenu);
 
