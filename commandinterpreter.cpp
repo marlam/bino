@@ -88,6 +88,9 @@ void CommandInterpreter::processNextCommand()
         return;
     }
     _file.commitTransaction();
+    if (lineLen == 0) {
+        return;
+    }
     QString cmd = QString(_lineBuf.data()).simplified();
     LOG_DEBUG("Command line: %s", qPrintable(cmd));
 
@@ -175,7 +178,6 @@ void CommandInterpreter::processNextCommand()
                 Playlist::instance()->clear();
                 Playlist::instance()->append(PlaylistEntry(url, stereoLayout, threeSixtyMode, videoTrack, audioTrack, subtitleTrack));
                 Playlist::instance()->start();
-                Bino::instance()->stop();
             }
         }
     } else if (cmd.startsWith("capture") && (cmd[7] == '\0' || cmd[7] == ' ')) {
