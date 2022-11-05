@@ -108,6 +108,7 @@ public:
     void reUpdate();
     void invalidate();
     static const char* layoutToString(StereoLayout sl);
+    static StereoLayout layoutFromString(const QString& s, bool* ok = nullptr);
     static const char* modeToString(ThreeSixtyMode ts);
 };
 

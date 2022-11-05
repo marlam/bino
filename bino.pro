@@ -14,6 +14,7 @@ HEADERS = version.hpp \
         bino.hpp \
         qvrapp.hpp \
 	widget.hpp \
+	commandinterpreter.hpp \
 	mainwindow.hpp
 
 SOURCES = main.cpp \
@@ -27,6 +28,7 @@ SOURCES = main.cpp \
 	bino.cpp \
 	qvrapp.cpp \
 	widget.cpp \
+	commandinterpreter.cpp \
 	mainwindow.cpp
 
 RESOURCES = resources.qrc

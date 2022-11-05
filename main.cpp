@@ -55,6 +55,7 @@
 #include "screen.hpp"
 #include "qvrapp.hpp"
 #include "mainwindow.hpp"
+#include "commandinterpreter.hpp"
 #include "bino.hpp"
 
 
@@ -184,6 +185,8 @@ int main(int argc, char* argv[])
     parser.addOption({ "360",
             QCommandLineParser::tr("Set 360° mode (%1).").arg("on, off"),
             "mode" });
+    parser.addOption({ "read-commands",
+            QCommandLineParser::tr("Read commands from a script file."), "script" });
     parser.process(app);
 
     // Initialize logging
@@ -211,7 +214,7 @@ int main(int argc, char* argv[])
     // Check if VR mode is available if requested
 #ifndef WITH_QVR
     if (parser.isSet("vr")) {
-        LOG_FATAL(QCommandLineParser::tr("VR mode unavailable - recompile Bino with QVR support!"));
+        LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("VR mode unavailable - recompile Bino with QVR support!")));
         return 1;
     }
 #endif
@@ -230,72 +233,18 @@ int main(int argc, char* argv[])
     }
     VideoFrame::StereoLayout inputMode = VideoFrame::Layout_Unknown;
     if (parser.isSet("input")) {
-        if (parser.value("input") == "mono")
-            inputMode = VideoFrame::Layout_Mono;
-        else if (parser.value("input") == "top-bottom")
-            inputMode = VideoFrame::Layout_Top_Bottom;
-        else if (parser.value("input") == "top-bottom-half")
-            inputMode = VideoFrame::Layout_Top_Bottom_Half;
-        else if (parser.value("input") == "bottom-top")
-            inputMode = VideoFrame::Layout_Bottom_Top;
-        else if (parser.value("input") == "bottom-top-half")
-            inputMode = VideoFrame::Layout_Bottom_Top_Half;
-        else if (parser.value("input") == "left-right")
-            inputMode = VideoFrame::Layout_Left_Right;
-        else if (parser.value("input") == "left-right-half")
-            inputMode = VideoFrame::Layout_Left_Right_Half;
-        else if (parser.value("input") == "right-left")
-            inputMode = VideoFrame::Layout_Right_Left;
-        else if (parser.value("input") == "right-left-half")
-            inputMode = VideoFrame::Layout_Right_Left_Half;
-        else if (parser.value("input") == "alternating-left-right")
-            inputMode = VideoFrame::Layout_Alternating_LR;
-        else if (parser.value("input") == "alternating-right-left")
-            inputMode = VideoFrame::Layout_Alternating_RL;
-        else {
+        bool ok;
+        inputMode = VideoFrame::layoutFromString(parser.value("input"), &ok);
+        if (!ok) {
             LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--input")));
             return 1;
         }
     }
     Widget::StereoMode outputMode = Widget::Mode_Red_Cyan_Dubois;
     if (parser.isSet("output")) {
-        if (parser.value("output") == "left")
-            outputMode = Widget::Mode_Left;
-        else if (parser.value("output") == "right")
-            outputMode = Widget::Mode_Right;
-        else if (parser.value("output") == "stereo")
-            outputMode = Widget::Mode_OpenGL_Stereo;
-        else if (parser.value("output") == "alternating")
-            outputMode = Widget::Mode_Alternating;
-        else if (parser.value("output") == "red-cyan-dubois")
-            outputMode = Widget::Mode_Red_Cyan_Dubois;
-        else if (parser.value("output") == "red-cyan-full-color")
-            outputMode = Widget::Mode_Red_Cyan_FullColor;
-        else if (parser.value("output") == "red-cyan-half-color")
-            outputMode = Widget::Mode_Red_Cyan_HalfColor;
-        else if (parser.value("output") == "red-cyan-monochrome")
-            outputMode = Widget::Mode_Red_Cyan_Monochrome;
-        else if (parser.value("output") == "green-magenta-dubois")
-            outputMode = Widget::Mode_Green_Magenta_Dubois;
-        else if (parser.value("output") == "green-magenta-full-color")
-            outputMode = Widget::Mode_Green_Magenta_FullColor;
-        else if (parser.value("output") == "green-magenta-half-color")
-            outputMode = Widget::Mode_Green_Magenta_HalfColor;
-        else if (parser.value("output") == "green-magenta-monochrome")
-            outputMode = Widget::Mode_Green_Magenta_Monochrome;
-        else if (parser.value("output") == "amber-blue-dubois")
-            outputMode = Widget::Mode_Amber_Blue_Dubois;
-        else if (parser.value("output") == "amber-blue-full-color")
-            outputMode = Widget::Mode_Amber_Blue_FullColor;
-        else if (parser.value("output") == "amber-blue-half-color")
-            outputMode = Widget::Mode_Amber_Blue_HalfColor;
-        else if (parser.value("output") == "amber-blue-monochrome")
-            outputMode = Widget::Mode_Amber_Blue_Monochrome;
-        else if (parser.value("output") == "red-green-monochrome")
-            outputMode = Widget::Mode_Red_Green_Monochrome;
-        else if (parser.value("output") == "red-blue-monochrome")
-            outputMode = Widget::Mode_Red_Blue_Monochrome;
-        else {
+        bool ok;
+        outputMode = Widget::modeFromString(parser.value("output"), &ok);
+        if (!ok) {
             LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--output")));
             return 1;
         }
@@ -554,6 +503,12 @@ int main(int argc, char* argv[])
         }
     }
 
+    // Initialize the command interpreter (but don't start it yet)
+    CommandInterpreter cmdInterpreter;
+    if (parser.isSet("read-commands") && !cmdInterpreter.init(parser.value("read-commands"))) {
+        return 1;
+    }
+
     // Determine VR or GUI mode
     bool vrMainProcess = parser.isSet("vr");
     bool vrMode = (vrMainProcess || vrChildProcess);
@@ -618,16 +573,20 @@ int main(int argc, char* argv[])
             return 1;
         }
         playlist.start();
+        cmdInterpreter.start();
         return app.exec();
+#else
+        return 1;
 #endif
     } else {
-        MainWindow mainwindow(&bino, outputMode, parser.isSet("fullscreen"));
+        MainWindow mainwindow(outputMode, parser.isSet("fullscreen"));
         mainwindow.show();
         // wait for up to 10 seconds to process all events before starting
         // the playlist, because otherwise playing might be finished before
         // the first frame rendering, e.g. if you just want to "play" an image
         QGuiApplication::processEvents(QEventLoop::AllEvents, 3000);
         playlist.start();
+        cmdInterpreter.start();
         return app.exec();
     }
 }

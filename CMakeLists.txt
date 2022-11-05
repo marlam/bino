@@ -40,6 +40,7 @@ add_executable(bino
         bino.hpp bino.cpp
         qvrapp.hpp qvrapp.cpp
 	widget.hpp widget.cpp
+	commandinterpreter.hpp commandinterpreter.cpp
 	mainwindow.hpp mainwindow.cpp
 	${RESOURCES} ${APPICON_RESOURCE})
 qt6_add_translations(bino TS_FILES bino_de.ts)

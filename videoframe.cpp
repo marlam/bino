@@ -71,6 +71,39 @@ const char* VideoFrame::layoutToString(StereoLayout sl)
     return nullptr;
 }
 
+VideoFrame::StereoLayout VideoFrame::layoutFromString(const QString& s, bool* ok)
+{
+    StereoLayout sl = Layout_Unknown;
+    bool r = true;
+    if (s == "mono")
+        sl = Layout_Mono;
+    else if (s == "top-bottom")
+        sl = Layout_Top_Bottom;
+    else if (s == "top-bottom-half")
+        sl = Layout_Top_Bottom_Half;
+    else if (s == "bottom-top")
+        sl = Layout_Bottom_Top;
+    else if (s == "bottom-top-half")
+        sl = Layout_Bottom_Top_Half;
+    else if (s == "left-right")
+        sl = Layout_Left_Right;
+    else if (s == "left-right-half")
+        sl = Layout_Left_Right_Half;
+    else if (s == "right-left")
+        sl = Layout_Right_Left;
+    else if (s == "right-left-half")
+        sl = Layout_Right_Left_Half;
+    else if (s == "alternating-left-right")
+        sl = Layout_Alternating_LR;
+    else if (s == "alternating-right-left")
+        sl = Layout_Alternating_RL;
+    else
+        r = false;
+    if (ok)
+        *ok = r;
+    return sl;
+}
+
 const char* VideoFrame::modeToString(ThreeSixtyMode ts)
 {
     switch (ts)

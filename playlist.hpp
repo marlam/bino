@@ -45,7 +45,7 @@ public:
             VideoFrame::ThreeSixtyMode threeSixtyMode = VideoFrame::ThreeSixty_Unknown,
             int videoTrack = DefaultTrack,
             int audioTrack = DefaultTrack,
-            int subtitleTrack = DefaultTrack);
+            int subtitleTrack = NoTrack);
 
     bool noMedia() const;
 };

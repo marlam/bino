@@ -92,6 +92,8 @@ public:
     Bino(const Screen& screen, bool swapEyes);
     virtual ~Bino();
 
+    static Bino* instance();
+
     /* Initialization functions, to be called by main() before
      * starting either GUI or VR mode */
     void initializeOutput(const QAudioDevice& audioOutputDevice);
@@ -106,13 +108,18 @@ public:
     bool captureMode() const;
 
     /* Interaction functions, can be called while in GUI or VR mode */
+    void quit();
     void seek(qint64 milliseconds);
+    void setPosition(float pos);
     void togglePause();
     void pause();
     void play();
-    void toggleMute();
-    void changeVolume(int offset);
     void stop();
+    void setMute(bool m);
+    void toggleMute();
+    void setVolume(float vol);
+    void changeVolume(float offset);
+    void setSwapEyes(bool s);
     void toggleSwapEyes();
     void setVideoTrack(int i);
     void setAudioTrack(int i);
@@ -167,4 +174,5 @@ signals:
     void newVideoFrame();
     void toggleFullscreen();
     void stateChanged();
+    void wantQuit();
 };

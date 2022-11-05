@@ -41,11 +41,118 @@
 #endif
 
 
+const char* Widget::modeToString(StereoMode mode)
+{
+    switch (mode) {
+    case Mode_Left:
+        return "left";
+        break;
+    case Mode_Right:
+        return "right";
+        break;
+    case Mode_OpenGL_Stereo:
+        return "stereo";
+        break;
+    case Mode_Alternating:
+        return "alternating";
+        break;
+    case Mode_Red_Cyan_Dubois:
+        return "red-cyan-dubois";
+        break;
+    case Mode_Red_Cyan_FullColor:
+        return "red-cyan-fullcolor";
+        break;
+    case Mode_Red_Cyan_HalfColor:
+        return "red-cyan-halfcolor";
+        break;
+    case Mode_Red_Cyan_Monochrome:
+        return "red-cyan-monochrome";
+        break;
+    case Mode_Green_Magenta_Dubois:
+        return "green-magenta-dubois";
+        break;
+    case Mode_Green_Magenta_FullColor:
+        return "green-magenta-fullcolor";
+        break;
+    case Mode_Green_Magenta_HalfColor:
+        return "green-magenta-halfcolor";
+        break;
+    case Mode_Green_Magenta_Monochrome:
+        return "green-magenta-monochrome";
+        break;
+    case Mode_Amber_Blue_Dubois:
+        return "amber-blue-dubois";
+        break;
+    case Mode_Amber_Blue_FullColor:
+        return "amber-blue-fullcolor";
+        break;
+    case Mode_Amber_Blue_HalfColor:
+        return "amber-blue-halfcolor";
+        break;
+    case Mode_Amber_Blue_Monochrome:
+        return "amber-blue-monochrome";
+        break;
+    case Mode_Red_Green_Monochrome:
+        return "red-green-monochrome";
+        break;
+    case Mode_Red_Blue_Monochrome:
+        return "red-blue-monochrome";
+        break;
+    }
+    return nullptr;
+}
+
+Widget::StereoMode Widget::modeFromString(const QString& s, bool* ok)
+{
+    StereoMode mode = Mode_Left;
+    bool r = true;
+    if (s == "left")
+        mode = Mode_Left;
+    else if (s == "right")
+        mode = Mode_Right;
+    else if (s == "stereo")
+        mode = Mode_OpenGL_Stereo;
+    else if (s == "alternating")
+        mode = Mode_Alternating;
+    else if (s == "red-cyan-dubois")
+        mode = Mode_Red_Cyan_Dubois;
+    else if (s == "red-cyan-fullcolor")
+        mode = Mode_Red_Cyan_FullColor;
+    else if (s == "red-cyan-halfcolor")
+        mode = Mode_Red_Cyan_HalfColor;
+    else if (s == "red-cyan-monochrome")
+        mode = Mode_Red_Cyan_Monochrome;
+    else if (s == "green-magenta-dubois")
+        mode = Mode_Green_Magenta_Dubois;
+    else if (s == "green-magenta-fullcolor")
+        mode = Mode_Green_Magenta_FullColor;
+    else if (s == "green-magenta-halfcolor")
+        mode = Mode_Green_Magenta_HalfColor;
+    else if (s == "green-magenta-monochrome")
+        mode = Mode_Green_Magenta_Monochrome;
+    else if (s == "amber-blue-dubois")
+        mode = Mode_Amber_Blue_Dubois;
+    else if (s == "amber-blue-fullcolor")
+        mode = Mode_Amber_Blue_FullColor;
+    else if (s == "amber-blue-halfcolor")
+        mode = Mode_Amber_Blue_HalfColor;
+    else if (s == "amber-blue-monochrome")
+        mode = Mode_Amber_Blue_Monochrome;
+    else if (s == "red-green-monochrome")
+        mode = Mode_Red_Green_Monochrome;
+    else if (s == "red-blue-monochrome")
+        mode = Mode_Red_Blue_Monochrome;
+    else
+        r = false;
+    if (ok)
+        *ok = r;
+    return mode;
+}
+
 static const QSize SizeBase(16, 9);
 
-Widget::Widget(Bino* bino, StereoMode stereoMode, QWidget* parent) :
+Widget::Widget(StereoMode stereoMode, QWidget* parent) :
     QOpenGLWidget(parent),
-    _bino(bino),
     _sizeHint(0.5f * SizeBase),
     _stereoMode(stereoMode),
     _openGLStereo(QSurfaceFormat::defaultFormat().stereo()),
@@ -62,8 +169,8 @@ Widget::Widget(Bino* bino, StereoMode stereoMode, QWidget* parent) :
     QSize screenSize = QGuiApplication::primaryScreen()->availableSize();
     QSize maxSize = 0.75f * screenSize;
     _sizeHint = SizeBase.scaled(maxSize, Qt::KeepAspectRatio);
-    connect(_bino, &Bino::newVideoFrame, [=]() { update(); });
-    connect(_bino, &Bino::toggleFullscreen, [=]() { emit toggleFullscreen(); });
+    connect(Bino::instance(), &Bino::newVideoFrame, [=]() { update(); });
+    connect(Bino::instance(), &Bino::toggleFullscreen, [=]() { emit toggleFullscreen(); });
     connect(Playlist::instance(), SIGNAL(mediaChanged(PlaylistEntry)), this, SLOT(mediaChanged(PlaylistEntry)));
     setFocus();
 }
@@ -178,7 +285,7 @@ void Widget::initializeGL()
     _prg.link();
 
     // Initialize Bino
-    _bino->initProcess();
+    Bino::instance()->initProcess();
 }
 
 void Widget::paintGL()
@@ -189,7 +296,7 @@ void Widget::paintGL()
     int viewCount, viewWidth, viewHeight;
     float frameDisplayAspectRatio;
     bool threeSixty;
-    _bino->preRenderProcess(_width, _height, &viewCount, &viewWidth, &viewHeight, &frameDisplayAspectRatio, &threeSixty);
+    Bino::instance()->preRenderProcess(_width, _height, &viewCount, &viewWidth, &viewHeight, &frameDisplayAspectRatio, &threeSixty);
     LOG_FIREHOSE("%s: %d views, %dx%d, %g, 360°=%s", Q_FUNC_INFO, viewCount, viewWidth, viewHeight, frameDisplayAspectRatio, threeSixty ? "on" : "off");
 
     // Adjust the stereo mode if necessary
@@ -244,7 +351,7 @@ void Widget::paintGL()
         LOG_FIREHOSE("%s: getting view %d for stereo mode %d", Q_FUNC_INFO, v, int(stereoMode));
         QMatrix4x4 projectionMatrix;
         QMatrix4x4 viewMatrix;
-        if (_bino->assumeThreeSixtyMode()) {
+        if (Bino::instance()->assumeThreeSixtyMode()) {
             float verticalVieldOfView = qDegreesToRadians(50.0f);
             float aspectRatio = float(_width) / _height;
             float top = qTan(verticalVieldOfView * 0.5f);
@@ -257,7 +364,7 @@ void Widget::paintGL()
                     -(_threeSixtyHorizontalAngleBase + _threeSixtyHorizontalAngleCurrent), 0.0f);
             viewMatrix.rotate(rotation);
         }
-        _bino->render(projectionMatrix, viewMatrix, v, viewWidth, viewHeight, _viewTex[v]);
+        Bino::instance()->render(projectionMatrix, viewMatrix, v, viewWidth, viewHeight, _viewTex[v]);
         // generate mipmaps for the view texture
         glBindTexture(GL_TEXTURE_2D, _viewTex[v]);
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -327,7 +434,7 @@ void Widget::resizeGL(int w, int h)
 
 void Widget::keyPressEvent(QKeyEvent* e)
 {
-    _bino->keyPressEvent(e);
+    Bino::instance()->keyPressEvent(e);
 }
 
 void Widget::mousePressEvent(QMouseEvent* e)

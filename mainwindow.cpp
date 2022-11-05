@@ -53,10 +53,11 @@ void MainWindow::addBinoAction(QAction* action, QMenu* menu)
     _widget->addAction(action);
 }
 
-MainWindow::MainWindow(Bino* bino, Widget::StereoMode stereoMode, bool fullscreen) :
+static MainWindow* mainWindowSingleton = nullptr;
+
+MainWindow::MainWindow(Widget::StereoMode stereoMode, bool fullscreen) :
     QMainWindow(),
-    _bino(bino),
-    _widget(new Widget(bino, stereoMode, this)),
+    _widget(new Widget(stereoMode, this)),
     _contextMenu(new QMenu(this))
 {
     setWindowTitle("Bino");
@@ -310,17 +311,27 @@ MainWindow::MainWindow(Bino* bino, Widget::StereoMode stereoMode, bool fullscree
     addBinoAction(_helpAboutAction, helpMenu);
 
     updateActions();
-    connect(_bino, SIGNAL(stateChanged()), this, SLOT(updateActions()));
+    connect(Bino::instance(), SIGNAL(stateChanged()), this, SLOT(updateActions()));
 
     connect(_widget, SIGNAL(toggleFullscreen()), this, SLOT(viewToggleFullscreen()));
     setCentralWidget(_widget);
     _widget->show();
+
+    connect(Bino::instance(), SIGNAL(wantQuit()), this, SLOT(fileQuit()));
 
     setMinimumSize(menuBar()->sizeHint().width(), menuBar()->sizeHint().width() / 2);
     setAcceptDrops(true);
 
     if (fullscreen)
         viewToggleFullscreen();
+
+    Q_ASSERT(!mainWindowSingleton);
+    mainWindowSingleton = this;
+}
+
+MainWindow* MainWindow::instance()
+{
+    return mainWindowSingleton;
 }
 
 void MainWindow::fileOpen()
@@ -331,7 +342,7 @@ void MainWindow::fileOpen()
         MetaData metaData;
         QString errMsg;
         if (metaData.detectCached(url, &errMsg)) {
-            _bino->startPlaylistMode();
+            Bino::instance()->startPlaylistMode();
             Playlist::instance()->clear();
             Playlist::instance()->append(url);
             Playlist::instance()->start();
@@ -366,7 +377,7 @@ void MainWindow::fileOpenURL()
         MetaData metaData;
         QString errMsg;
         if (metaData.detectCached(url, &errMsg)) {
-            _bino->startPlaylistMode();
+            Bino::instance()->startPlaylistMode();
             Playlist::instance()->clear();
             Playlist::instance()->append(url);
             Playlist::instance()->start();
@@ -414,7 +425,7 @@ void MainWindow::fileOpenCamera()
     if (dialog->result() == QDialog::Accepted) {
         int videoInputDeviceIndex = videoBox->currentIndex() - 1;
         int audioInputDeviceIndex = audioBox->currentIndex() - 2;
-        _bino->startCaptureMode(audioInputDeviceIndex >= -1,
+        Bino::instance()->startCaptureMode(audioInputDeviceIndex >= -1,
                 audioInputDeviceIndex >= 0
                 ? audioInputDevices[audioInputDeviceIndex]
                 : QMediaDevices::defaultAudioInput(),
@@ -433,26 +444,26 @@ void MainWindow::trackVideo()
 {
     QAction* a = _trackVideoActionGroup->checkedAction();
     if (a)
-        _bino->setVideoTrack(a->data().toInt());
+        Bino::instance()->setVideoTrack(a->data().toInt());
 }
 
 void MainWindow::trackAudio()
 {
     QAction* a = _trackAudioActionGroup->checkedAction();
     if (a)
-        _bino->setAudioTrack(a->data().toInt());
+        Bino::instance()->setAudioTrack(a->data().toInt());
 }
 
 void MainWindow::trackSubtitle()
 {
     QAction* a = _trackSubtitleActionGroup->checkedAction();
     if (a)
-        _bino->setSubtitleTrack(a->data().toInt());
+        Bino::instance()->setSubtitleTrack(a->data().toInt());
 }
 
 void MainWindow::threeD360()
 {
-    _bino->setThreeSixtyMode(_3d360Action->isChecked() ? VideoFrame::ThreeSixty_On : VideoFrame::ThreeSixty_Off);
+    Bino::instance()->setThreeSixtyMode(_3d360Action->isChecked() ? VideoFrame::ThreeSixty_On : VideoFrame::ThreeSixty_Off);
     _widget->update();
 }
 
@@ -460,7 +471,7 @@ void MainWindow::threeDInput()
 {
     QAction* a = _3dInputActionGroup->checkedAction();
     if (a) {
-        _bino->setInputLayout(static_cast<VideoFrame::StereoLayout>(a->data().toInt()));
+        Bino::instance()->setInputLayout(static_cast<VideoFrame::StereoLayout>(a->data().toInt()));
         _widget->update();
     }
 }
@@ -476,62 +487,62 @@ void MainWindow::threeDOutput()
 
 void MainWindow::mediaTogglePause()
 {
-    _bino->togglePause();
+    Bino::instance()->togglePause();
 }
 
 void MainWindow::mediaToggleVolumeMute()
 {
-    _bino->toggleMute();
+    Bino::instance()->toggleMute();
 }
 
 void MainWindow::mediaVolumeInc()
 {
-    _bino->changeVolume(+0.05f);
+    Bino::instance()->changeVolume(+0.05f);
 }
 
 void MainWindow::mediaVolumeDec()
 {
-    _bino->changeVolume(-0.05f);
+    Bino::instance()->changeVolume(-0.05f);
 }
 
 void MainWindow::mediaSeekFwd1Sec()
 {
-    _bino->seek(+1000);
+    Bino::instance()->seek(+1000);
 }
 
 void MainWindow::mediaSeekBwd1Sec()
 {
-    _bino->seek(-1000);
+    Bino::instance()->seek(-1000);
 }
 
 void MainWindow::mediaSeekFwd10Secs()
 {
-    _bino->seek(+10000);
+    Bino::instance()->seek(+10000);
 }
 
 void MainWindow::mediaSeekBwd10Secs()
 {
-    _bino->seek(-10000);
+    Bino::instance()->seek(-10000);
 }
 
 void MainWindow::mediaSeekFwd1Min()
 {
-    _bino->seek(+60000);
+    Bino::instance()->seek(+60000);
 }
 
 void MainWindow::mediaSeekBwd1Min()
 {
-    _bino->seek(-60000);
+    Bino::instance()->seek(-60000);
 }
 
 void MainWindow::mediaSeekFwd10Mins()
 {
-    _bino->seek(+600000);
+    Bino::instance()->seek(+600000);
 }
 
 void MainWindow::mediaSeekBwd10Mins()
 {
-    _bino->seek(-600000);
+    Bino::instance()->seek(-600000);
 }
 
 void MainWindow::viewToggleFullscreen()
@@ -549,109 +560,7 @@ void MainWindow::viewToggleFullscreen()
 
 void MainWindow::viewToggleSwapEyes()
 {
-    _bino->toggleSwapEyes();
-    _widget->update();
-}
-
-void MainWindow::updateActions()
-{
-    LOG_DEBUG("updating mainwindow menu state");
-
-    _viewToggleSwapEyesAction->setChecked(_bino->swapEyes());
-    _mediaTogglePauseAction->setChecked(_bino->paused());
-    _mediaToggleVolumeMuteAction->setChecked(_bino->muted());
-
-    _trackMenu->clear();
-    QUrl url = _bino->url();
-    MetaData metaData;
-    if (!url.isEmpty() && metaData.detectCached(url)) {
-        for (int i = 0; i < metaData.videoTracks.size(); i++) {
-            QString s = QString(tr("Video track %1")).arg(i + 1);
-            QLocale::Language l = static_cast<QLocale::Language>(metaData.videoTracks[i].value(QMediaMetaData::Language).toInt());
-            if (l != QLocale::AnyLanguage)
-                s += QString(tr(" (%1)")).arg(QLocale::languageToString(l));
-            QAction* a = new QAction(s, this);
-            a->setCheckable(true);
-            _trackVideoActionGroup->addAction(a)->setData(i);
-            connect(a, SIGNAL(triggered()), this, SLOT(trackVideo()));
-            addBinoAction(a, _trackMenu);
-            a->setChecked(_bino->videoTrack() == i);
-        }
-        if (metaData.videoTracks.size() > 0)
-            _trackMenu->addSeparator();
-        for (int i = 0; i < metaData.audioTracks.size(); i++) {
-            QString s = QString(tr("Audio track %1")).arg(i + 1);
-            QLocale::Language l = static_cast<QLocale::Language>(metaData.audioTracks[i].value(QMediaMetaData::Language).toInt());
-            if (l != QLocale::AnyLanguage)
-                s += QString(tr(" (%1)")).arg(QLocale::languageToString(l));
-            QAction* a = new QAction(s, this);
-            a->setCheckable(true);
-            _trackAudioActionGroup->addAction(a)->setData(i);
-            connect(a, SIGNAL(triggered()), this, SLOT(trackAudio()));
-            addBinoAction(a, _trackMenu);
-            a->setChecked(_bino->audioTrack() == i);
-        }
-        if (metaData.subtitleTracks.size() > 0) {
-            if (metaData.audioTracks.size() > 0 || metaData.videoTracks.size() > 0)
-                _trackMenu->addSeparator();
-            QAction* a = new QAction(tr("No subtitles"), this);
-            a->setCheckable(true);
-            _trackSubtitleActionGroup->addAction(a)->setData(-1);
-            connect(a, SIGNAL(triggered()), this, SLOT(trackSubtitle()));
-            addBinoAction(a, _trackMenu);
-            a->setChecked(_bino->subtitleTrack() < 0);
-            for (int i = 0; i < metaData.subtitleTracks.size(); i++) {
-                QString s = QString(tr("Subtitle track %1")).arg(i + 1);
-                QLocale::Language l = static_cast<QLocale::Language>(metaData.subtitleTracks[i].value(QMediaMetaData::Language).toInt());
-                if (l != QLocale::AnyLanguage)
-                    s += QString(" (%1)").arg(QLocale::languageToString(l));
-                QAction* a = new QAction(s, this);
-                a->setCheckable(true);
-                _trackSubtitleActionGroup->addAction(a)->setData(i);
-                connect(a, SIGNAL(triggered()), this, SLOT(trackSubtitle()));
-                addBinoAction(a, _trackMenu);
-                a->setChecked(_bino->subtitleTrack() == i);
-            }
-        }
-    } else {
-        QAction* a = new QAction(tr("None"), this);
-        a->setEnabled(false);
-        addBinoAction(a, _trackMenu);
-    }
-    _trackVideoActionGroup->setEnabled(_bino->playlistMode() && !_bino->stopped());
-    _trackAudioActionGroup->setEnabled(_bino->playlistMode() && !_bino->stopped());
-    _trackSubtitleActionGroup->setEnabled(_bino->playlistMode() && !_bino->stopped());
-
-    _3d360Action->setChecked(_bino->assumeThreeSixtyMode());
-    VideoFrame::StereoLayout layout = _bino->assumeInputLayout();
-    for (int i = 0; i < _3dInputActionGroup->actions().size(); i++) {
-        QAction* a = _3dInputActionGroup->actions()[i];
-        a->setChecked(a->data().toInt() == int(layout));
-    }
-    for (int i = 0; i < _3dOutputActionGroup->actions().size(); i++) {
-        QAction* a = _3dOutputActionGroup->actions()[i];
-        if (_bino->assumeStereoInputLayout()) {
-            a->setEnabled(true);
-            a->setChecked(a->data().toInt() == int(_widget->stereoMode()));
-            Widget::StereoMode mode = static_cast<Widget::StereoMode>(a->data().toInt());
-            if (mode == Widget::Mode_OpenGL_Stereo)
-                a->setEnabled(_widget->isOpenGLStereo());
-        } else {
-            a->setEnabled(false);
-            a->setChecked(false);
-        }
-    }
-
-    _mediaTogglePauseAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
-    _mediaSeekFwd1SecAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
-    _mediaSeekBwd1SecAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
-    _mediaSeekFwd10SecsAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
-    _mediaSeekBwd10SecsAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
-    _mediaSeekFwd1MinAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
-    _mediaSeekBwd1MinAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
-    _mediaSeekFwd10MinsAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
-    _mediaSeekBwd10MinsAction->setEnabled(_bino->playlistMode() && !_bino->stopped());
-
+    Bino::instance()->toggleSwapEyes();
     _widget->update();
 }
 
@@ -672,6 +581,123 @@ void MainWindow::helpAbout()
             + QString("</p>"));
 }
 
+void MainWindow::updateActions()
+{
+    LOG_DEBUG("updating mainwindow menu state");
+
+    _viewToggleSwapEyesAction->setChecked(Bino::instance()->swapEyes());
+    _mediaTogglePauseAction->setChecked(Bino::instance()->paused());
+    _mediaToggleVolumeMuteAction->setChecked(Bino::instance()->muted());
+
+    _trackMenu->clear();
+    QUrl url = Bino::instance()->url();
+    MetaData metaData;
+    if (!url.isEmpty() && metaData.detectCached(url)) {
+        for (int i = 0; i < metaData.videoTracks.size(); i++) {
+            QString s = QString(tr("Video track %1")).arg(i + 1);
+            QLocale::Language l = static_cast<QLocale::Language>(metaData.videoTracks[i].value(QMediaMetaData::Language).toInt());
+            if (l != QLocale::AnyLanguage)
+                s += QString(tr(" (%1)")).arg(QLocale::languageToString(l));
+            QAction* a = new QAction(s, this);
+            a->setCheckable(true);
+            _trackVideoActionGroup->addAction(a)->setData(i);
+            connect(a, SIGNAL(triggered()), this, SLOT(trackVideo()));
+            addBinoAction(a, _trackMenu);
+            a->setChecked(Bino::instance()->videoTrack() == i);
+        }
+        if (metaData.videoTracks.size() > 0)
+            _trackMenu->addSeparator();
+        for (int i = 0; i < metaData.audioTracks.size(); i++) {
+            QString s = QString(tr("Audio track %1")).arg(i + 1);
+            QLocale::Language l = static_cast<QLocale::Language>(metaData.audioTracks[i].value(QMediaMetaData::Language).toInt());
+            if (l != QLocale::AnyLanguage)
+                s += QString(tr(" (%1)")).arg(QLocale::languageToString(l));
+            QAction* a = new QAction(s, this);
+            a->setCheckable(true);
+            _trackAudioActionGroup->addAction(a)->setData(i);
+            connect(a, SIGNAL(triggered()), this, SLOT(trackAudio()));
+            addBinoAction(a, _trackMenu);
+            a->setChecked(Bino::instance()->audioTrack() == i);
+        }
+        if (metaData.subtitleTracks.size() > 0) {
+            if (metaData.audioTracks.size() > 0 || metaData.videoTracks.size() > 0)
+                _trackMenu->addSeparator();
+            QAction* a = new QAction(tr("No subtitles"), this);
+            a->setCheckable(true);
+            _trackSubtitleActionGroup->addAction(a)->setData(-1);
+            connect(a, SIGNAL(triggered()), this, SLOT(trackSubtitle()));
+            addBinoAction(a, _trackMenu);
+            a->setChecked(Bino::instance()->subtitleTrack() < 0);
+            for (int i = 0; i < metaData.subtitleTracks.size(); i++) {
+                QString s = QString(tr("Subtitle track %1")).arg(i + 1);
+                QLocale::Language l = static_cast<QLocale::Language>(metaData.subtitleTracks[i].value(QMediaMetaData::Language).toInt());
+                if (l != QLocale::AnyLanguage)
+                    s += QString(" (%1)").arg(QLocale::languageToString(l));
+                QAction* a = new QAction(s, this);
+                a->setCheckable(true);
+                _trackSubtitleActionGroup->addAction(a)->setData(i);
+                connect(a, SIGNAL(triggered()), this, SLOT(trackSubtitle()));
+                addBinoAction(a, _trackMenu);
+                a->setChecked(Bino::instance()->subtitleTrack() == i);
+            }
+        }
+    } else {
+        QAction* a = new QAction(tr("None"), this);
+        a->setEnabled(false);
+        addBinoAction(a, _trackMenu);
+    }
+    _trackVideoActionGroup->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
+    _trackAudioActionGroup->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
+    _trackSubtitleActionGroup->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
+
+    _3d360Action->setChecked(Bino::instance()->assumeThreeSixtyMode());
+    VideoFrame::StereoLayout layout = Bino::instance()->assumeInputLayout();
+    for (int i = 0; i < _3dInputActionGroup->actions().size(); i++) {
+        QAction* a = _3dInputActionGroup->actions()[i];
+        a->setChecked(a->data().toInt() == int(layout));
+    }
+    for (int i = 0; i < _3dOutputActionGroup->actions().size(); i++) {
+        QAction* a = _3dOutputActionGroup->actions()[i];
+        if (Bino::instance()->assumeStereoInputLayout()) {
+            a->setEnabled(true);
+            a->setChecked(a->data().toInt() == int(_widget->stereoMode()));
+            Widget::StereoMode mode = static_cast<Widget::StereoMode>(a->data().toInt());
+            if (mode == Widget::Mode_OpenGL_Stereo)
+                a->setEnabled(_widget->isOpenGLStereo());
+        } else {
+            a->setEnabled(false);
+            a->setChecked(false);
+        }
+    }
+
+    _mediaTogglePauseAction->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
+    _mediaSeekFwd1SecAction->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
+    _mediaSeekBwd1SecAction->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
+    _mediaSeekFwd10SecsAction->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
+    _mediaSeekBwd10SecsAction->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
+    _mediaSeekFwd1MinAction->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
+    _mediaSeekBwd1MinAction->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
+    _mediaSeekFwd10MinsAction->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
+    _mediaSeekBwd10MinsAction->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
+
+    _widget->update();
+}
+
+void MainWindow::setOutputMode(Widget::StereoMode mode)
+{
+    _widget->setStereoMode(mode);
+    _widget->update();
+}
+
+void MainWindow::setFullscreen(bool f)
+{
+    if (f && !(windowState() & Qt::WindowFullScreen)) {
+        viewToggleFullscreen();
+    } else if (!f && (windowState() & Qt::WindowFullScreen)) {
+        viewToggleFullscreen();
+    }
+}
+
 void MainWindow::dragEnterEvent(QDragEnterEvent* event)
 {
     if (event->mimeData()->hasUrls())
@@ -685,7 +711,7 @@ void MainWindow::dropEvent(QDropEvent* event)
         MetaData metaData;
         QString errMsg;
         if (metaData.detectCached(url, &errMsg)) {
-            _bino->startPlaylistMode();
+            Bino::instance()->startPlaylistMode();
             Playlist::instance()->clear();
             Playlist::instance()->append(url);
             Playlist::instance()->start();

@@ -52,8 +52,10 @@ public:
         Mode_Red_Blue_Monochrome = 17
     };
 
+    static const char* modeToString(StereoMode mode);
+    static StereoMode modeFromString(const QString& s, bool* ok = nullptr);
+
 private:
-    Bino* _bino;
     QSize _sizeHint;
     int _width, _height;
 
@@ -74,7 +76,7 @@ private:
     QOpenGLShaderProgram _prg;
 
 public:
-    Widget(Bino* bino, StereoMode stereoMode, QWidget* parent = nullptr);
+    Widget(StereoMode stereoMode, QWidget* parent = nullptr);
 
     bool isOpenGLStereo() const;
     enum StereoMode stereoMode() const;

@@ -35,6 +35,8 @@
 #endif
 
 
+static Bino* binoSingleton = nullptr;
+
 Bino::Bino(const Screen& screen, bool swapEyes) :
     _wantExit(false),
     _videoSink(nullptr),
@@ -51,6 +53,8 @@ Bino::Bino(const Screen& screen, bool swapEyes) :
     _frameIsNew(false),
     _swapEyes(swapEyes)
 {
+    Q_ASSERT(!binoSingleton);
+    binoSingleton = this;
 }
 
 Bino::~Bino()
@@ -63,6 +67,12 @@ Bino::~Bino()
     delete _captureSession;
     delete _tempFile;
     delete _recorder;
+    binoSingleton = nullptr;
+}
+
+Bino* Bino::instance()
+{
+    return binoSingleton;
 }
 
 void Bino::initializeOutput(const QAudioDevice& audioOutputDevice)
@@ -223,11 +233,25 @@ void Bino::mediaChanged(PlaylistEntry entry)
     emit stateChanged();
 }
 
+void Bino::quit()
+{
+    stop();
+    _wantExit = true;
+    emit wantQuit();
+}
+
 void Bino::seek(qint64 milliseconds)
 {
     if (!playlistMode())
         return;
     _player->setPosition(_player->position() + milliseconds);
+}
+
+void Bino::setPosition(float pos)
+{
+    if (!playlistMode())
+        return;
+    _player->setPosition(pos * _player->duration());
 }
 
 void Bino::togglePause()
@@ -257,8 +281,17 @@ void Bino::play()
 {
     if (!playlistMode())
         return;
-    if (_player->playbackState() == QMediaPlayer::PlayingState) {
+    if (_player->playbackState() != QMediaPlayer::PlayingState) {
         _player->play();
+        emit stateChanged();
+    }
+}
+
+void Bino::setMute(bool m)
+{
+    bool isMuted = _player->audioOutput()->isMuted();
+    if (m != isMuted) {
+        _audioOutput->setMuted(m);
         emit stateChanged();
     }
 }
@@ -269,7 +302,12 @@ void Bino::toggleMute()
     emit stateChanged();
 }
 
-void Bino::changeVolume(int offset)
+void Bino::setVolume(float vol)
+{
+    _audioOutput->setVolume(vol);
+}
+
+void Bino::changeVolume(float offset)
 {
     _audioOutput->setVolume(_player->audioOutput()->volume() + offset);
 }
@@ -280,6 +318,14 @@ void Bino::stop()
         return;
     if (_player->playbackState() == QMediaPlayer::StoppedState) {
         _player->stop();
+        emit stateChanged();
+    }
+}
+
+void Bino::setSwapEyes(bool s)
+{
+    if (_swapEyes != s) {
+        _swapEyes = s;
         emit stateChanged();
     }
 }
@@ -1141,8 +1187,7 @@ void Bino::keyPressEvent(QKeyEvent* event)
             || event->matches(QKeySequence::Cancel)
             || event->key() == Qt::Key_Escape
             || event->key() == Qt::Key_MediaStop) {
-        stop();
-        _wantExit = true;
+        quit();
     } else if (event->key() == Qt::Key_MediaTogglePlayPause
             || event->key() == Qt::Key_Space) {
         togglePause();

@@ -29,7 +29,6 @@ class MainWindow : public QMainWindow
 Q_OBJECT
 
 private:
-    Bino* _bino;
     Widget* _widget;
 
     QMenu* _contextMenu;
@@ -64,7 +63,7 @@ private:
     QMenu* addBinoMenu(const QString& title);
     void addBinoAction(QAction* action, QMenu* menu);
 
-private slots:
+public slots:
     void fileOpen();
     void fileOpenURL();
     void fileOpenCamera();
@@ -101,5 +100,10 @@ protected:
 #endif
 
 public:
-    MainWindow(Bino* bino, Widget::StereoMode stereoMode, bool fullscreen);
+    MainWindow(Widget::StereoMode stereoMode, bool fullscreen);
+
+    static MainWindow* instance();
+
+    void setOutputMode(Widget::StereoMode mode);
+    void setFullscreen(bool f);
 };
