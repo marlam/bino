@@ -286,20 +286,22 @@ void Widget::paintGL()
     glBindVertexArray(_quadVao);
     if (_openGLStereo) {
         LOG_FIREHOSE("widget draw mode: opengl stereo");
+        GLenum bufferBackLeft = GL_BACK_LEFT;
+        GLenum bufferBackRight = GL_BACK_RIGHT;
         if (stereoMode == Mode_OpenGL_Stereo) {
-            glDrawBuffer(GL_BACK_LEFT);
+            glDrawBuffers(1, &bufferBackLeft);
             _prg.setUniformValue("stereoMode", static_cast<int>(Mode_Left));
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-            glDrawBuffer(GL_BACK_RIGHT);
+            glDrawBuffers(1, &bufferBackRight);
             _prg.setUniformValue("stereoMode", static_cast<int>(Mode_Right));
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
         } else {
             if (stereoMode == Mode_Alternating)
                 stereoMode = (_alternatingLastView == 0 ? Mode_Right : Mode_Left);
             _prg.setUniformValue("stereoMode", static_cast<int>(stereoMode));
-            glDrawBuffer(GL_BACK_LEFT);
+            glDrawBuffers(1, &bufferBackLeft);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-            glDrawBuffer(GL_BACK_RIGHT);
+            glDrawBuffers(1, &bufferBackRight);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
         }
     } else {
