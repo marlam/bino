@@ -239,6 +239,21 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
     _3dOutputActionGroup->addAction(threeDOutRBM)->setData(int(Output_Red_Blue_Monochrome));
     connect(threeDOutRBM, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutRBM, threeDMenu);
+    QAction* threeDOutEOR = new QAction(tr("Output even/odd rows"), this);
+    threeDOutEOR->setCheckable(true);
+    _3dOutputActionGroup->addAction(threeDOutEOR)->setData(int(Output_Even_Odd_Rows));
+    connect(threeDOutEOR, SIGNAL(triggered()), this, SLOT(threeDOutput()));
+    addBinoAction(threeDOutEOR, threeDMenu);
+    QAction* threeDOutEOC = new QAction(tr("Output even/odd columns"), this);
+    threeDOutEOC->setCheckable(true);
+    _3dOutputActionGroup->addAction(threeDOutEOC)->setData(int(Output_Even_Odd_Columns));
+    connect(threeDOutEOC, SIGNAL(triggered()), this, SLOT(threeDOutput()));
+    addBinoAction(threeDOutEOC, threeDMenu);
+    QAction* threeDOutCheckerboard = new QAction(tr("Output checkerboard"), this);
+    threeDOutCheckerboard->setCheckable(true);
+    _3dOutputActionGroup->addAction(threeDOutCheckerboard)->setData(int(Output_Checkerboard));
+    connect(threeDOutCheckerboard, SIGNAL(triggered()), this, SLOT(threeDOutput()));
+    addBinoAction(threeDOutCheckerboard, threeDMenu);
 
     QMenu* mediaMenu = addBinoMenu(tr("&Media"));
     _mediaToggleVolumeMuteAction = new QAction(tr("Mute audio"), this);
@@ -728,3 +743,12 @@ void Gui::contextMenuEvent(QContextMenuEvent* event)
     _contextMenu->exec(event->globalPos());
 }
 #endif // QT_NO_CONTEXTMENU
+
+void Gui::moveEvent(QMoveEvent*)
+{
+    if (_widget->outputMode() == Output_Even_Odd_Rows
+            || _widget->outputMode() == Output_Even_Odd_Columns
+            || _widget->outputMode() == Output_Checkerboard) {
+        _widget->update();
+    }
+}

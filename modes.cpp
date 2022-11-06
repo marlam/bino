@@ -184,6 +184,15 @@ const char* outputModeToString(OutputMode mode)
     case Output_Red_Blue_Monochrome:
         return "red-blue-monochrome";
         break;
+    case Output_Even_Odd_Rows:
+        return "even-odd-rows";
+        break;
+    case Output_Even_Odd_Columns:
+        return "even-odd-columns";
+        break;
+    case Output_Checkerboard:
+        return "checkeroard";
+        break;
     }
     return nullptr;
 }
@@ -228,6 +237,12 @@ OutputMode outputModeFromString(const QString& s, bool* ok)
         mode = Output_Red_Green_Monochrome;
     else if (s == "red-blue-monochrome")
         mode = Output_Red_Blue_Monochrome;
+    else if (s == "even-odd-rows")
+        mode = Output_Even_Odd_Rows;
+    else if (s == "even-odd-columns")
+        mode = Output_Even_Odd_Columns;
+    else if (s == "checkerboard")
+        mode = Output_Checkerboard;
     else
         r = false;
     if (ok)

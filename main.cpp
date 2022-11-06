@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
             "red-cyan-dubois, red-cyan-full-color, red-cyan-half-color, red-cyan-monochrome, "
             "green-magenta-dubois, green-magenta-full-color, green-magenta-half-color, green-magenta-monochrome, "
             "amber-blue-dubois, amber-blue-full-color, amber-blue-half-color, amber-blue-monochrome, "
-            "red-green-monochrome, red-blue-monochrome"),
+            "red-green-monochrome, red-blue-monochrome, even-odd-rows, even-odd-columns, checkerboard"),
             "mode" });
     parser.addOption({ "360",
             QCommandLineParser::tr("Set 360° mode (%1).").arg("on, off"),

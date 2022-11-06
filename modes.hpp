@@ -74,7 +74,10 @@ enum OutputMode {
     Output_Amber_Blue_HalfColor = 14,
     Output_Amber_Blue_Monochrome = 15,
     Output_Red_Green_Monochrome = 16,
-    Output_Red_Blue_Monochrome = 17
+    Output_Red_Blue_Monochrome = 17,
+    Output_Even_Odd_Rows = 18,
+    Output_Even_Odd_Columns = 19,
+    Output_Checkerboard = 20
 };
 
 const char* outputModeToString(OutputMode mode);

@@ -95,11 +95,12 @@ public slots:
     void updateActions();
 
 protected:
-    void dragEnterEvent(QDragEnterEvent*) override;
-    void dropEvent(QDropEvent*) override;
+    virtual void dragEnterEvent(QDragEnterEvent*) override;
+    virtual void dropEvent(QDropEvent*) override;
 #ifndef QT_NO_CONTEXTMENU
-    void contextMenuEvent(QContextMenuEvent* event) override;
+    virtual void contextMenuEvent(QContextMenuEvent* event) override;
 #endif
+    virtual void moveEvent(QMoveEvent*) override;
 
 public:
     Gui(OutputMode outputMode, bool fullscreen);

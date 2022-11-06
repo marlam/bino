@@ -23,6 +23,8 @@ uniform sampler2D view1;
 
 uniform float relativeWidth;
 uniform float relativeHeight;
+uniform float fragOffsetX;
+uniform float fragOffsetY;
 
 // This must be the same as OutputMode from modes.hpp:
 const int Output_Left = 0;
@@ -43,6 +45,9 @@ const int Output_Amber_Blue_HalfColor = 14;
 const int Output_Amber_Blue_Monochrome = 15;
 const int Output_Red_Green_Monochrome = 16;
 const int Output_Red_Blue_Monochrome = 17;
+const int Output_Even_Odd_Rows = 18;
+const int Output_Even_Odd_Columns = 19;
+const int Output_Checkerboard = 20;
 uniform int outputMode;
 
 smooth in vec2 vtexcoord;
@@ -69,13 +74,35 @@ vec3 rgb_to_nonlinear(vec3 rgb)
 
 void main(void)
 {
-    float tx = (      vtexcoord.x - 0.5 * (1.0 - relativeWidth )) / relativeWidth;
-    float ty = ( vtexcoord.y - 0.5 * (1.0 - relativeHeight)) / relativeHeight;
+    float tx = (vtexcoord.x - 0.5 * (1.0 - relativeWidth )) / relativeWidth;
+    float ty = (vtexcoord.y - 0.5 * (1.0 - relativeHeight)) / relativeHeight;
     vec3 rgb = vec3(1.0, 0.0, 0.0);
     if (outputMode == Output_Left) {
         rgb = texture(view0, vec2(tx, ty)).rgb;
     } else if (outputMode == Output_Right) {
         rgb = texture(view1, vec2(tx, ty)).rgb;
+    } else if (outputMode == Output_Even_Odd_Rows) {
+        float fragmentY = gl_FragCoord.y - 0.5 + fragOffsetY;
+        if (mod(fragmentY, 2.0) < 0.5) {
+            rgb = texture(view0, vec2(tx, ty)).rgb;
+        } else {
+            rgb = texture(view1, vec2(tx, ty)).rgb;
+        }
+    } else if (outputMode == Output_Even_Odd_Columns) {
+        float fragmentX = gl_FragCoord.x - 0.5 + fragOffsetX;
+        if (mod(fragmentX, 2.0) < 0.5) {
+            rgb = texture(view0, vec2(tx, ty)).rgb;
+        } else {
+            rgb = texture(view1, vec2(tx, ty)).rgb;
+        }
+    } else if (outputMode == Output_Checkerboard) {
+        float fragmentX = gl_FragCoord.x - 0.5 + fragOffsetX;
+        float fragmentY = gl_FragCoord.y - 0.5 + fragOffsetY;
+        if (abs(mod(fragmentX, 2.0) - mod(fragmentY, 2.0)) < 0.5) {
+            rgb = texture(view0, vec2(tx, ty)).rgb;
+        } else {
+            rgb = texture(view1, vec2(tx, ty)).rgb;
+        }
     } else {
         vec3 rgb0 = texture(view0, vec2(tx, ty)).rgb;
         vec3 rgb1 = texture(view1, vec2(tx, ty)).rgb;

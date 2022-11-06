@@ -225,6 +225,9 @@ void Widget::paintGL()
         case Output_Amber_Blue_Monochrome:
         case Output_Red_Green_Monochrome:
         case Output_Red_Blue_Monochrome:
+        case Output_Even_Odd_Rows:
+        case Output_Even_Odd_Columns:
+        case Output_Checkerboard:
             break;
         }
         if (!needThisView)
@@ -278,6 +281,10 @@ void Widget::paintGL()
     _prg.setUniformValue("view1", 1);
     _prg.setUniformValue("relativeWidth", relWidth);
     _prg.setUniformValue("relativeHeight", relHeight);
+    QPoint globalLowerLeft = mapToGlobal(QPoint(0, _height - 1));
+    _prg.setUniformValue("fragOffsetX", float(globalLowerLeft.x()));
+    _prg.setUniformValue("fragOffsetY", float(screen()->geometry().height() - 1 - globalLowerLeft.y()));
+    LOG_FIREHOSE("lower left widget corner in screen coordinates: x=%d y=%d", globalLowerLeft.x(), screen()->geometry().height() - 1 - globalLowerLeft.y());
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _viewTex[0]);
     glActiveTexture(GL_TEXTURE1);
