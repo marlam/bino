@@ -23,7 +23,9 @@
 #include <QVideoSink>
 #include <QMediaMetaData>
 
+#include "modes.hpp"
 #include "videoframe.hpp"
+
 
 class VideoSink : public QVideoSink
 {
@@ -36,12 +38,12 @@ public:
     VideoFrame* extFrame; // extension to target video frame, for alternating stereo
     bool *frameIsNew;     // flag to set when the target frame represents a new frame
     bool needExtFrame;    // flag to set in alternating stereo when extFrame is not filled yet
-    VideoFrame::StereoLayout stereoLayout; // stereo layout of current media
-    VideoFrame::ThreeSixtyMode threeSixtyMode; // 360° mode of the current media
+    InputMode inputMode;  // input mode of current media
+    ThreeSixtyMode threeSixtyMode; // 360° mode of the current media
 
     VideoSink(VideoFrame* frame, VideoFrame* extFrame, bool* frameIsNew);
 
-    void newUrl(const QUrl& url, VideoFrame::StereoLayout stereoLayout, VideoFrame::ThreeSixtyMode mode);
+    void newUrl(const QUrl& url, InputMode inputMode, ThreeSixtyMode threeSixtyMode);
 
 public Q_SLOTS:
     void processNewFrame(const QVideoFrame& frame);

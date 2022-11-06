@@ -22,8 +22,9 @@
 #include <QMediaDevices>
 
 #include "commandinterpreter.hpp"
-#include "mainwindow.hpp"
+#include "modes.hpp"
 #include "bino.hpp"
+#include "gui.hpp"
 #include "log.hpp"
 
 
@@ -126,25 +127,21 @@ void CommandInterpreter::processNextCommand()
             LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
         } else {
             QUrl url = parser.positionalArguments()[0];
-            VideoFrame::StereoLayout stereoLayout = VideoFrame::Layout_Unknown;
-            VideoFrame::ThreeSixtyMode threeSixtyMode = VideoFrame::ThreeSixty_Unknown;
+            InputMode inputMode = Input_Unknown;
+            ThreeSixtyMode threeSixtyMode = ThreeSixty_Unknown;
             int videoTrack = PlaylistEntry::DefaultTrack;
             int audioTrack = PlaylistEntry::DefaultTrack;
             int subtitleTrack = PlaylistEntry::NoTrack;
             bool ok = true;
             if (parser.isSet("input")) {
-                stereoLayout = VideoFrame::layoutFromString(parser.value("input"), &ok);
+                inputMode = inputModeFromString(parser.value("input"), &ok);
                 if (!ok)
                     LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--input")));
             }
             if (parser.isSet("360")) {
-                int onoff = getOnOff(parser.value("360"));
-                if (onoff < 0) {
+                threeSixtyMode = threeSixtyModeFromString(parser.value("360"), &ok);
+                if (!ok)
                     LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
-                    ok = false;
-                } else {
-                    threeSixtyMode = (onoff ? VideoFrame::ThreeSixty_On : VideoFrame::ThreeSixty_Off);
-                }
             }
             if (parser.isSet("video-track")) {
                 int t = parser.value("video-track").toInt(&ok);
@@ -176,7 +173,7 @@ void CommandInterpreter::processNextCommand()
             if (ok) {
                 Bino::instance()->startPlaylistMode();
                 Playlist::instance()->clear();
-                Playlist::instance()->append(PlaylistEntry(url, stereoLayout, threeSixtyMode, videoTrack, audioTrack, subtitleTrack));
+                Playlist::instance()->append(PlaylistEntry(url, inputMode, threeSixtyMode, videoTrack, audioTrack, subtitleTrack));
                 Playlist::instance()->start();
             }
         }
@@ -228,13 +225,13 @@ void CommandInterpreter::processNextCommand()
         }
     } else if (cmd.startsWith("set-output-mode ")) {
         bool ok;
-        Widget::StereoMode outputMode = Widget::modeFromString(cmd.mid(16), &ok);
+        OutputMode outputMode = outputModeFromString(cmd.mid(16), &ok);
         if (!ok) {
             LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
         } else {
-            MainWindow* mainwindow = MainWindow::instance();
-            if (mainwindow)
-                mainwindow->setOutputMode(outputMode);
+            Gui* gui = Gui::instance();
+            if (gui)
+                gui->setOutputMode(outputMode);
         }
     } else if (cmd == "play") {
         Bino::instance()->play();
@@ -274,14 +271,14 @@ void CommandInterpreter::processNextCommand()
         if (onoff < 0) {
             LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
         } else {
-            MainWindow* mainwindow = MainWindow::instance();
-            if (mainwindow)
-                mainwindow->setFullscreen(onoff);
+            Gui* gui = Gui::instance();
+            if (gui)
+                gui->setFullscreen(onoff);
         }
     } else if (cmd == "toggle-fullscreen") {
-        MainWindow* mainwindow = MainWindow::instance();
-        if (mainwindow)
-            mainwindow->viewToggleFullscreen();
+        Gui* gui = Gui::instance();
+        if (gui)
+            gui->viewToggleFullscreen();
     } else if (cmd.startsWith("set-mute ")) {
         int onoff = getOnOff(cmd.mid(9));
         if (onoff < 0) {

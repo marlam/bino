@@ -21,45 +21,46 @@
 #ifdef WITH_QVR
 
 #include "qvrapp.hpp"
+#include "bino.hpp"
 
-BinoQVRApp::BinoQVRApp(Bino* bino) :
-    _bino(bino)
+
+BinoQVRApp::BinoQVRApp()
 {
 }
 
 void BinoQVRApp::serializeStaticData(QDataStream& ds) const
 {
-    _bino->serializeStaticData(ds);
+    Bino::instance()->serializeStaticData(ds);
 }
 
 void BinoQVRApp::deserializeStaticData(QDataStream& ds)
 {
-    _bino->deserializeStaticData(ds);
+    Bino::instance()->deserializeStaticData(ds);
 }
 
 void BinoQVRApp::serializeDynamicData(QDataStream& ds) const
 {
-    _bino->serializeDynamicData(ds);
+    Bino::instance()->serializeDynamicData(ds);
 }
 
 void BinoQVRApp::deserializeDynamicData(QDataStream& ds)
 {
-    _bino->deserializeDynamicData(ds);
+    Bino::instance()->deserializeDynamicData(ds);
 }
 
 bool BinoQVRApp::wantExit()
 {
-    return _bino->wantExit();
+    return Bino::instance()->wantExit();
 }
 
 bool BinoQVRApp::initProcess(QVRProcess*)
 {
-    return _bino->initProcess();
+    return Bino::instance()->initProcess();
 }
 
 void BinoQVRApp::preRenderProcess(QVRProcess*)
 {
-    _bino->preRenderProcess();
+    Bino::instance()->preRenderProcess();
 }
 
 void BinoQVRApp::render(QVRWindow*, const QVRRenderContext& context, const unsigned int* textures)
@@ -70,13 +71,13 @@ void BinoQVRApp::render(QVRWindow*, const QVRRenderContext& context, const unsig
         int v = (context.eye(view) == QVR_Eye_Right ? 1 : 0);
         int texWidth = context.textureSize(view).width();
         int texHeight = context.textureSize(view).height();
-        _bino->render(projectionMatrix, viewMatrix, v, texWidth, texHeight, textures[view]);
+        Bino::instance()->render(projectionMatrix, viewMatrix, v, texWidth, texHeight, textures[view]);
     }
 }
 
 void BinoQVRApp::keyPressEvent(const QVRRenderContext&, QKeyEvent* event)
 {
-    _bino->keyPressEvent(event);
+    Bino::instance()->keyPressEvent(event);
 }
 
 #endif

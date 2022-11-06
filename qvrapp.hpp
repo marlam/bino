@@ -27,19 +27,11 @@
 
 #include <qvr/app.hpp>
 
-#include "bino.hpp"
-#include "screen.hpp"
-#include "videoframe.hpp"
-
 
 class BinoQVRApp : public QVRApp, protected QOpenGLExtraFunctions
 {
-private:
-    /* The Bino instance (only on the main process) */
-    Bino* _bino;
-
 public:
-    BinoQVRApp(Bino* bino);
+    BinoQVRApp();
 
     void serializeStaticData(QDataStream& ds) const override;
     void deserializeStaticData(QDataStream& ds) override;

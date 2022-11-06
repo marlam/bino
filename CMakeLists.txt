@@ -30,18 +30,19 @@ endif()
 
 add_executable(bino
 	main.cpp version.hpp
-        log.hpp log.cpp
-        tools.hpp tools.cpp
-        screen.hpp screen.cpp tiny_obj_loader.h
-        metadata.hpp metadata.cpp
+	log.hpp log.cpp
+	tools.hpp tools.cpp
+	screen.hpp screen.cpp tiny_obj_loader.h
+	modes.hpp modes.cpp
+	metadata.hpp metadata.cpp
 	playlist.hpp playlist.cpp
-        videoframe.hpp videoframe.cpp
-        videosink.hpp videosink.cpp
-        bino.hpp bino.cpp
-        qvrapp.hpp qvrapp.cpp
+	videoframe.hpp videoframe.cpp
+	videosink.hpp videosink.cpp
+	bino.hpp bino.cpp
+	qvrapp.hpp qvrapp.cpp
 	widget.hpp widget.cpp
 	commandinterpreter.hpp commandinterpreter.cpp
-	mainwindow.hpp mainwindow.cpp
+	gui.hpp gui.cpp
 	${RESOURCES} ${APPICON_RESOURCE})
 qt6_add_translations(bino TS_FILES bino_de.ts)
 set_target_properties(bino PROPERTIES WIN32_EXECUTABLE TRUE)

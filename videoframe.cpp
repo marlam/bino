@@ -24,104 +24,10 @@
 
 VideoFrame::VideoFrame()
 {
-    update(Layout_Unknown, ThreeSixty_Unknown, QVideoFrame(), false);
+    update(Input_Unknown, ThreeSixty_Unknown, QVideoFrame(), false);
 }
 
-const char* VideoFrame::layoutToString(StereoLayout sl)
-{
-    switch (sl)
-    {
-    case Layout_Unknown:
-        return "unknown";
-        break;
-    case Layout_Mono:
-        return "mono";
-        break;
-    case Layout_Top_Bottom:
-        return "top-bottom";
-        break;
-    case Layout_Top_Bottom_Half:
-        return "top-bottom-half";
-        break;
-    case Layout_Bottom_Top:
-        return "bottom-top";
-        break;
-    case Layout_Bottom_Top_Half:
-        return "bottom-top-half";
-        break;
-    case Layout_Left_Right:
-        return "left-right";
-        break;
-    case Layout_Left_Right_Half:
-        return "left-right-half";
-        break;
-    case Layout_Right_Left:
-        return "right-left";
-        break;
-    case Layout_Right_Left_Half:
-        return "right-left-half";
-        break;
-    case Layout_Alternating_LR:
-        return "alternating-left-right";
-        break;
-    case Layout_Alternating_RL:
-        return "alternating-right-left";
-        break;
-    };
-    return nullptr;
-}
-
-VideoFrame::StereoLayout VideoFrame::layoutFromString(const QString& s, bool* ok)
-{
-    StereoLayout sl = Layout_Unknown;
-    bool r = true;
-    if (s == "mono")
-        sl = Layout_Mono;
-    else if (s == "top-bottom")
-        sl = Layout_Top_Bottom;
-    else if (s == "top-bottom-half")
-        sl = Layout_Top_Bottom_Half;
-    else if (s == "bottom-top")
-        sl = Layout_Bottom_Top;
-    else if (s == "bottom-top-half")
-        sl = Layout_Bottom_Top_Half;
-    else if (s == "left-right")
-        sl = Layout_Left_Right;
-    else if (s == "left-right-half")
-        sl = Layout_Left_Right_Half;
-    else if (s == "right-left")
-        sl = Layout_Right_Left;
-    else if (s == "right-left-half")
-        sl = Layout_Right_Left_Half;
-    else if (s == "alternating-left-right")
-        sl = Layout_Alternating_LR;
-    else if (s == "alternating-right-left")
-        sl = Layout_Alternating_RL;
-    else
-        r = false;
-    if (ok)
-        *ok = r;
-    return sl;
-}
-
-const char* VideoFrame::modeToString(ThreeSixtyMode ts)
-{
-    switch (ts)
-    {
-    case ThreeSixty_Unknown:
-        return "unknown";
-        break;
-    case ThreeSixty_On:
-        return "on";
-        break;
-    case ThreeSixty_Off:
-        return "Off";
-        break;
-    }
-    return nullptr;
-}
-
-void VideoFrame::update(StereoLayout sl, ThreeSixtyMode ts, const QVideoFrame& frame, bool newSrc)
+void VideoFrame::update(InputMode im, ThreeSixtyMode ts, const QVideoFrame& frame, bool newSrc)
 {
     if (qframe.isMapped())
         qframe.unmap();
@@ -135,30 +41,30 @@ void VideoFrame::update(StereoLayout sl, ThreeSixtyMode ts, const QVideoFrame& f
         aspectRatio = float(width) / height;
         LOG_FIREHOSE("videoframe receives new %dx%d frame with pixel format %s", width, height,
                 qPrintable(QVideoFrameFormat::pixelFormatToString(qframe.pixelFormat())));
-        if (sl == Layout_Unknown) {
+        if (im == Input_Unknown) {
             if (aspectRatio >= 3.0f)
-                sl = VideoFrame::Layout_Left_Right;
+                im = Input_Left_Right;
             else if (aspectRatio < 1.0f)
-                sl = VideoFrame::Layout_Top_Bottom;
+                im = Input_Top_Bottom;
             else
-                sl = VideoFrame::Layout_Mono;
-            LOG_FIREHOSE("videoframe guesses stereo layout from aspect ratio %g: %s", aspectRatio, layoutToString(sl));
+                im = Input_Mono;
+            LOG_FIREHOSE("videoframe guesses input mode from aspect ratio %g: %s", aspectRatio, inputModeToString(im));
         }
-        stereoLayout = sl;
+        inputMode = im;
         if (ts == ThreeSixty_Unknown) {
-            if (width == height && (stereoLayout == Layout_Top_Bottom || stereoLayout == Layout_Bottom_Top))
+            if (width == height && (inputMode == Input_Top_Bottom || inputMode == Input_Bottom_Top))
                 ts = ThreeSixty_On;
-            else if (width == 2 * height && stereoLayout == Layout_Mono)
+            else if (width == 2 * height && inputMode == Input_Mono)
                 ts = ThreeSixty_On;
-            else if (width == 2 * height && (stereoLayout == Layout_Top_Bottom_Half || stereoLayout == Layout_Bottom_Top_Half))
+            else if (width == 2 * height && (inputMode == Input_Top_Bottom_Half || inputMode == Input_Bottom_Top_Half))
                 ts = ThreeSixty_On;
-            else if (width == 2 * height && (stereoLayout == Layout_Left_Right_Half || stereoLayout == Layout_Right_Left_Half))
+            else if (width == 2 * height && (inputMode == Input_Left_Right_Half || inputMode == Input_Right_Left_Half))
                 ts = ThreeSixty_On;
-            else if (width == 4 * height && (stereoLayout == Layout_Left_Right || stereoLayout == Layout_Right_Left))
+            else if (width == 4 * height && (inputMode == Input_Left_Right || inputMode == Input_Right_Left))
                 ts = ThreeSixty_On;
             else
                 ts = ThreeSixty_Off;
-            LOG_FIREHOSE("videoframe guesses 360°=%s from frame size", (ts == ThreeSixty_On ? "on" : "off"));
+            LOG_FIREHOSE("videoframe guesses 360° mode %s from frame size", threeSixtyModeToString(ts));
         }
         threeSixtyMode = ts;
         bool fallbackToImage = true;
@@ -237,7 +143,7 @@ void VideoFrame::update(StereoLayout sl, ThreeSixtyMode ts, const QVideoFrame& f
         subtitle.replace(QLatin1Char('\n'), QChar::LineSeparator); // qvideoframe.cpp does this
     } else {
         // Synthesize a black frame
-        stereoLayout = Layout_Mono;
+        inputMode = Input_Mono;
         threeSixtyMode = ThreeSixty_Off;
         width = 1;
         height = 1;
@@ -251,18 +157,18 @@ void VideoFrame::update(StereoLayout sl, ThreeSixtyMode ts, const QVideoFrame& f
 
 void VideoFrame::reUpdate()
 {
-    update(stereoLayout, threeSixtyMode, qframe, false);
+    update(inputMode, threeSixtyMode, qframe, false);
 }
 
 void VideoFrame::invalidate()
 {
     if (qframe.isValid())
-        update(Layout_Unknown, ThreeSixty_Unknown, QVideoFrame(), false);
+        update(Input_Unknown, ThreeSixty_Unknown, QVideoFrame(), false);
 }
 
 QDataStream &operator<<(QDataStream& ds, const VideoFrame& f)
 {
-    ds << static_cast<int>(f.stereoLayout);
+    ds << static_cast<int>(f.inputMode);
     ds << static_cast<int>(f.threeSixtyMode);
     ds << f.subtitle;
     ds << f.width;
@@ -297,9 +203,9 @@ QDataStream &operator>>(QDataStream& ds, VideoFrame& f)
     int tmp;
 
     ds >> tmp;
-    f.stereoLayout = static_cast<VideoFrame::StereoLayout>(tmp);
+    f.inputMode = static_cast<InputMode>(tmp);
     ds >> tmp;
-    f.threeSixtyMode = static_cast<VideoFrame::ThreeSixtyMode>(tmp);
+    f.threeSixtyMode = static_cast<ThreeSixtyMode>(tmp);
     ds >> f.subtitle;
     ds >> f.width;
     ds >> f.height;

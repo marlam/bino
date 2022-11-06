@@ -41,120 +41,12 @@
 #endif
 
 
-const char* Widget::modeToString(StereoMode mode)
-{
-    switch (mode) {
-    case Mode_Left:
-        return "left";
-        break;
-    case Mode_Right:
-        return "right";
-        break;
-    case Mode_OpenGL_Stereo:
-        return "stereo";
-        break;
-    case Mode_Alternating:
-        return "alternating";
-        break;
-    case Mode_Red_Cyan_Dubois:
-        return "red-cyan-dubois";
-        break;
-    case Mode_Red_Cyan_FullColor:
-        return "red-cyan-fullcolor";
-        break;
-    case Mode_Red_Cyan_HalfColor:
-        return "red-cyan-halfcolor";
-        break;
-    case Mode_Red_Cyan_Monochrome:
-        return "red-cyan-monochrome";
-        break;
-    case Mode_Green_Magenta_Dubois:
-        return "green-magenta-dubois";
-        break;
-    case Mode_Green_Magenta_FullColor:
-        return "green-magenta-fullcolor";
-        break;
-    case Mode_Green_Magenta_HalfColor:
-        return "green-magenta-halfcolor";
-        break;
-    case Mode_Green_Magenta_Monochrome:
-        return "green-magenta-monochrome";
-        break;
-    case Mode_Amber_Blue_Dubois:
-        return "amber-blue-dubois";
-        break;
-    case Mode_Amber_Blue_FullColor:
-        return "amber-blue-fullcolor";
-        break;
-    case Mode_Amber_Blue_HalfColor:
-        return "amber-blue-halfcolor";
-        break;
-    case Mode_Amber_Blue_Monochrome:
-        return "amber-blue-monochrome";
-        break;
-    case Mode_Red_Green_Monochrome:
-        return "red-green-monochrome";
-        break;
-    case Mode_Red_Blue_Monochrome:
-        return "red-blue-monochrome";
-        break;
-    }
-    return nullptr;
-}
-
-Widget::StereoMode Widget::modeFromString(const QString& s, bool* ok)
-{
-    StereoMode mode = Mode_Left;
-    bool r = true;
-    if (s == "left")
-        mode = Mode_Left;
-    else if (s == "right")
-        mode = Mode_Right;
-    else if (s == "stereo")
-        mode = Mode_OpenGL_Stereo;
-    else if (s == "alternating")
-        mode = Mode_Alternating;
-    else if (s == "red-cyan-dubois")
-        mode = Mode_Red_Cyan_Dubois;
-    else if (s == "red-cyan-fullcolor")
-        mode = Mode_Red_Cyan_FullColor;
-    else if (s == "red-cyan-halfcolor")
-        mode = Mode_Red_Cyan_HalfColor;
-    else if (s == "red-cyan-monochrome")
-        mode = Mode_Red_Cyan_Monochrome;
-    else if (s == "green-magenta-dubois")
-        mode = Mode_Green_Magenta_Dubois;
-    else if (s == "green-magenta-fullcolor")
-        mode = Mode_Green_Magenta_FullColor;
-    else if (s == "green-magenta-halfcolor")
-        mode = Mode_Green_Magenta_HalfColor;
-    else if (s == "green-magenta-monochrome")
-        mode = Mode_Green_Magenta_Monochrome;
-    else if (s == "amber-blue-dubois")
-        mode = Mode_Amber_Blue_Dubois;
-    else if (s == "amber-blue-fullcolor")
-        mode = Mode_Amber_Blue_FullColor;
-    else if (s == "amber-blue-halfcolor")
-        mode = Mode_Amber_Blue_HalfColor;
-    else if (s == "amber-blue-monochrome")
-        mode = Mode_Amber_Blue_Monochrome;
-    else if (s == "red-green-monochrome")
-        mode = Mode_Red_Green_Monochrome;
-    else if (s == "red-blue-monochrome")
-        mode = Mode_Red_Blue_Monochrome;
-    else
-        r = false;
-    if (ok)
-        *ok = r;
-    return mode;
-}
-
 static const QSize SizeBase(16, 9);
 
-Widget::Widget(StereoMode stereoMode, QWidget* parent) :
+Widget::Widget(OutputMode outputMode, QWidget* parent) :
     QOpenGLWidget(parent),
     _sizeHint(0.5f * SizeBase),
-    _stereoMode(stereoMode),
+    _outputMode(outputMode),
     _openGLStereo(QSurfaceFormat::defaultFormat().stereo()),
     _alternatingLastView(1),
     _inThreeSixtyMovement(false),
@@ -180,14 +72,14 @@ bool Widget::isOpenGLStereo() const
     return _openGLStereo;
 }
 
-Widget::StereoMode Widget::stereoMode() const
+OutputMode Widget::outputMode() const
 {
-    return _stereoMode;
+    return _outputMode;
 }
 
-void Widget::setStereoMode(enum StereoMode mode)
+void Widget::setOutputMode(enum OutputMode mode)
 {
-    _stereoMode = mode;
+    _outputMode = mode;
 }
 
 QSize Widget::sizeHint() const
@@ -297,42 +189,42 @@ void Widget::paintGL()
     float frameDisplayAspectRatio;
     bool threeSixty;
     Bino::instance()->preRenderProcess(_width, _height, &viewCount, &viewWidth, &viewHeight, &frameDisplayAspectRatio, &threeSixty);
-    LOG_FIREHOSE("%s: %d views, %dx%d, %g, 360°=%s", Q_FUNC_INFO, viewCount, viewWidth, viewHeight, frameDisplayAspectRatio, threeSixty ? "on" : "off");
+    LOG_FIREHOSE("%s: %d views, %dx%d, %g, 360° %s", Q_FUNC_INFO, viewCount, viewWidth, viewHeight, frameDisplayAspectRatio, threeSixty ? "on" : "off");
 
     // Adjust the stereo mode if necessary
     bool frameIsStereo = (viewCount == 2);
-    StereoMode stereoMode = _stereoMode;
+    OutputMode outputMode = _outputMode;
     if (!frameIsStereo)
-        stereoMode = Mode_Left;
+        outputMode = Output_Left;
 
     // Fill the view texture(s) as needed
     for (int v = 0; v <= 1; v++) {
         bool needThisView = true;
-        switch (stereoMode) {
-        case Mode_Left:
+        switch (outputMode) {
+        case Output_Left:
             needThisView = (v == 0);
             break;
-        case Mode_Right:
+        case Output_Right:
             needThisView = (v == 1);
             break;
-        case Mode_Alternating:
+        case Output_Alternating:
             needThisView = (v != _alternatingLastView);
             break;
-        case Mode_OpenGL_Stereo:
-        case Mode_Red_Cyan_Dubois:
-        case Mode_Red_Cyan_FullColor:
-        case Mode_Red_Cyan_HalfColor:
-        case Mode_Red_Cyan_Monochrome:
-        case Mode_Green_Magenta_Dubois:
-        case Mode_Green_Magenta_FullColor:
-        case Mode_Green_Magenta_HalfColor:
-        case Mode_Green_Magenta_Monochrome:
-        case Mode_Amber_Blue_Dubois:
-        case Mode_Amber_Blue_FullColor:
-        case Mode_Amber_Blue_HalfColor:
-        case Mode_Amber_Blue_Monochrome:
-        case Mode_Red_Green_Monochrome:
-        case Mode_Red_Blue_Monochrome:
+        case Output_OpenGL_Stereo:
+        case Output_Red_Cyan_Dubois:
+        case Output_Red_Cyan_FullColor:
+        case Output_Red_Cyan_HalfColor:
+        case Output_Red_Cyan_Monochrome:
+        case Output_Green_Magenta_Dubois:
+        case Output_Green_Magenta_FullColor:
+        case Output_Green_Magenta_HalfColor:
+        case Output_Green_Magenta_Monochrome:
+        case Output_Amber_Blue_Dubois:
+        case Output_Amber_Blue_FullColor:
+        case Output_Amber_Blue_HalfColor:
+        case Output_Amber_Blue_Monochrome:
+        case Output_Red_Green_Monochrome:
+        case Output_Red_Blue_Monochrome:
             break;
         }
         if (!needThisView)
@@ -348,7 +240,7 @@ void Widget::paintGL()
             _viewTexHeight[v] = viewHeight;
         }
         // render view into view texture
-        LOG_FIREHOSE("%s: getting view %d for stereo mode %d", Q_FUNC_INFO, v, int(stereoMode));
+        LOG_FIREHOSE("%s: getting view %d for stereo mode %s", Q_FUNC_INFO, v, outputModeToString(outputMode));
         QMatrix4x4 projectionMatrix;
         QMatrix4x4 viewMatrix;
         if (Bino::instance()->assumeThreeSixtyMode()) {
@@ -395,17 +287,17 @@ void Widget::paintGL()
         LOG_FIREHOSE("widget draw mode: opengl stereo");
         GLenum bufferBackLeft = GL_BACK_LEFT;
         GLenum bufferBackRight = GL_BACK_RIGHT;
-        if (stereoMode == Mode_OpenGL_Stereo) {
+        if (outputMode == Output_OpenGL_Stereo) {
             glDrawBuffers(1, &bufferBackLeft);
-            _prg.setUniformValue("stereoMode", static_cast<int>(Mode_Left));
+            _prg.setUniformValue("outputMode", static_cast<int>(Output_Left));
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
             glDrawBuffers(1, &bufferBackRight);
-            _prg.setUniformValue("stereoMode", static_cast<int>(Mode_Right));
+            _prg.setUniformValue("outputMode", static_cast<int>(Output_Right));
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
         } else {
-            if (stereoMode == Mode_Alternating)
-                stereoMode = (_alternatingLastView == 0 ? Mode_Right : Mode_Left);
-            _prg.setUniformValue("stereoMode", static_cast<int>(stereoMode));
+            if (outputMode == Output_Alternating)
+                outputMode = (_alternatingLastView == 0 ? Output_Right : Output_Left);
+            _prg.setUniformValue("outputMode", static_cast<int>(outputMode));
             glDrawBuffers(1, &bufferBackLeft);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
             glDrawBuffers(1, &bufferBackRight);
@@ -413,14 +305,14 @@ void Widget::paintGL()
         }
     } else {
         LOG_FIREHOSE("widget draw mode: normal");
-        if (stereoMode == Mode_Alternating)
-            stereoMode = (_alternatingLastView == 0 ? Mode_Right : Mode_Left);
-        _prg.setUniformValue("stereoMode", static_cast<int>(stereoMode));
+        if (outputMode == Output_Alternating)
+            outputMode = (_alternatingLastView == 0 ? Output_Right : Output_Left);
+        _prg.setUniformValue("outputMode", static_cast<int>(outputMode));
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
     }
 
-    // Update Mode_Alternating
-    if (_stereoMode == Mode_Alternating && frameIsStereo) {
+    // Update Output_Alternating
+    if (_outputMode == Output_Alternating && frameIsStereo) {
         _alternatingLastView = (_alternatingLastView == 0 ? 1 : 0);
         update();
     }

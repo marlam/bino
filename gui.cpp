@@ -33,31 +33,31 @@
 #include <QActionGroup>
 #include <QMimeData>
 
-#include "mainwindow.hpp"
+#include "gui.hpp"
 #include "playlist.hpp"
 #include "metadata.hpp"
 #include "version.hpp"
 #include "log.hpp"
 
 
-QMenu* MainWindow::addBinoMenu(const QString& title)
+QMenu* Gui::addBinoMenu(const QString& title)
 {
     QMenu* menu = menuBar()->addMenu(title);
     _contextMenu->addMenu(menu);
     return menu;
 }
 
-void MainWindow::addBinoAction(QAction* action, QMenu* menu)
+void Gui::addBinoAction(QAction* action, QMenu* menu)
 {
     menu->addAction(action);
     _widget->addAction(action);
 }
 
-static MainWindow* mainWindowSingleton = nullptr;
+static Gui* GuiSingleton = nullptr;
 
-MainWindow::MainWindow(Widget::StereoMode stereoMode, bool fullscreen) :
+Gui::Gui(OutputMode outputMode, bool fullscreen) :
     QMainWindow(),
-    _widget(new Widget(stereoMode, this)),
+    _widget(new Widget(outputMode, this)),
     _contextMenu(new QMenu(this))
 {
     setWindowTitle("Bino");
@@ -86,157 +86,157 @@ MainWindow::MainWindow(Widget::StereoMode stereoMode, bool fullscreen) :
     _trackSubtitleActionGroup = new QActionGroup(this);
 
     QMenu* threeDMenu = addBinoMenu(tr("&3D Modes"));
-    _3d360Action = new QAction(tr("360° mode"));
-    _3d360Action->setCheckable(true);
-    connect(_3d360Action, SIGNAL(triggered()), this, SLOT(threeD360()));
-    addBinoAction(_3d360Action, threeDMenu);
+    _3dThreeSixtyAction = new QAction(tr("360° mode"));
+    _3dThreeSixtyAction->setCheckable(true);
+    connect(_3dThreeSixtyAction, SIGNAL(triggered()), this, SLOT(threeDThreeSixty()));
+    addBinoAction(_3dThreeSixtyAction, threeDMenu);
     threeDMenu->addSeparator();
     _3dInputActionGroup = new QActionGroup(this);
     QAction* threeDInMono = new QAction(tr("Input 2D"), this);
     threeDInMono->setCheckable(true);
-    _3dInputActionGroup->addAction(threeDInMono)->setData(int(VideoFrame::Layout_Mono));
+    _3dInputActionGroup->addAction(threeDInMono)->setData(int(Input_Mono));
     connect(threeDInMono, SIGNAL(triggered()), this, SLOT(threeDInput()));
     addBinoAction(threeDInMono, threeDMenu);
     QAction* threeDInTopBottom = new QAction(tr("Input top/bottom"), this);
     threeDInTopBottom->setCheckable(true);
-    _3dInputActionGroup->addAction(threeDInTopBottom)->setData(int(VideoFrame::Layout_Top_Bottom));
+    _3dInputActionGroup->addAction(threeDInTopBottom)->setData(int(Input_Top_Bottom));
     connect(threeDInTopBottom, SIGNAL(triggered()), this, SLOT(threeDInput()));
     addBinoAction(threeDInTopBottom, threeDMenu);
     QAction* threeDInTopBottomHalf = new QAction(tr("Input top/bottom half height"), this);
     threeDInTopBottomHalf->setCheckable(true);
-    _3dInputActionGroup->addAction(threeDInTopBottomHalf)->setData(int(VideoFrame::Layout_Top_Bottom_Half));
+    _3dInputActionGroup->addAction(threeDInTopBottomHalf)->setData(int(Input_Top_Bottom_Half));
     connect(threeDInTopBottomHalf, SIGNAL(triggered()), this, SLOT(threeDInput()));
     addBinoAction(threeDInTopBottomHalf, threeDMenu);
     QAction* threeDInBottomTop = new QAction(tr("Input bottom/top"), this);
     threeDInBottomTop->setCheckable(true);
-    _3dInputActionGroup->addAction(threeDInBottomTop)->setData(int(VideoFrame::Layout_Bottom_Top));
+    _3dInputActionGroup->addAction(threeDInBottomTop)->setData(int(Input_Bottom_Top));
     connect(threeDInBottomTop, SIGNAL(triggered()), this, SLOT(threeDInput()));
     addBinoAction(threeDInBottomTop, threeDMenu);
     QAction* threeDInBottomTopHalf = new QAction(tr("Input bottom/top half height"), this);
     threeDInBottomTopHalf->setCheckable(true);
-    _3dInputActionGroup->addAction(threeDInBottomTopHalf)->setData(int(VideoFrame::Layout_Bottom_Top_Half));
+    _3dInputActionGroup->addAction(threeDInBottomTopHalf)->setData(int(Input_Bottom_Top_Half));
     connect(threeDInBottomTopHalf, SIGNAL(triggered()), this, SLOT(threeDInput()));
     addBinoAction(threeDInBottomTopHalf, threeDMenu);
     QAction* threeDInLeftRight = new QAction(tr("Input left/right"), this);
     threeDInLeftRight->setCheckable(true);
-    _3dInputActionGroup->addAction(threeDInLeftRight)->setData(int(VideoFrame::Layout_Left_Right));
+    _3dInputActionGroup->addAction(threeDInLeftRight)->setData(int(Input_Left_Right));
     connect(threeDInLeftRight, SIGNAL(triggered()), this, SLOT(threeDInput()));
     addBinoAction(threeDInLeftRight, threeDMenu);
     QAction* threeDInLeftRightHalf = new QAction(tr("Input left/right half width"), this);
     threeDInLeftRightHalf->setCheckable(true);
-    _3dInputActionGroup->addAction(threeDInLeftRightHalf)->setData(int(VideoFrame::Layout_Left_Right_Half));
+    _3dInputActionGroup->addAction(threeDInLeftRightHalf)->setData(int(Input_Left_Right_Half));
     connect(threeDInLeftRightHalf, SIGNAL(triggered()), this, SLOT(threeDInput()));
     addBinoAction(threeDInLeftRightHalf, threeDMenu);
     QAction* threeDInRightLeft = new QAction(tr("Input right/left"), this);
     threeDInRightLeft->setCheckable(true);
-    _3dInputActionGroup->addAction(threeDInRightLeft)->setData(int(VideoFrame::Layout_Right_Left));
+    _3dInputActionGroup->addAction(threeDInRightLeft)->setData(int(Input_Right_Left));
     connect(threeDInRightLeft, SIGNAL(triggered()), this, SLOT(threeDInput()));
     addBinoAction(threeDInRightLeft, threeDMenu);
     QAction* threeDInRightLeftHalf = new QAction(tr("Input right/left half width"), this);
     threeDInRightLeftHalf->setCheckable(true);
-    _3dInputActionGroup->addAction(threeDInRightLeftHalf)->setData(int(VideoFrame::Layout_Right_Left_Half));
+    _3dInputActionGroup->addAction(threeDInRightLeftHalf)->setData(int(Input_Right_Left_Half));
     connect(threeDInRightLeftHalf, SIGNAL(triggered()), this, SLOT(threeDInput()));
     addBinoAction(threeDInRightLeftHalf, threeDMenu);
     QAction* threeDInAlternatingLR = new QAction(tr("Input alternating left/right"), this);
     threeDInAlternatingLR->setCheckable(true);
-    _3dInputActionGroup->addAction(threeDInAlternatingLR)->setData(int(VideoFrame::Layout_Alternating_LR));
+    _3dInputActionGroup->addAction(threeDInAlternatingLR)->setData(int(Input_Alternating_LR));
     connect(threeDInAlternatingLR, SIGNAL(triggered()), this, SLOT(threeDInput()));
     addBinoAction(threeDInAlternatingLR, threeDMenu);
     QAction* threeDInAlternatingRL = new QAction(tr("Input alternating right/left"), this);
     threeDInAlternatingRL->setCheckable(true);
-    _3dInputActionGroup->addAction(threeDInAlternatingRL)->setData(int(VideoFrame::Layout_Alternating_RL));
+    _3dInputActionGroup->addAction(threeDInAlternatingRL)->setData(int(Input_Alternating_RL));
     connect(threeDInAlternatingRL, SIGNAL(triggered()), this, SLOT(threeDInput()));
     addBinoAction(threeDInAlternatingRL, threeDMenu);
     threeDMenu->addSeparator();
     _3dOutputActionGroup = new QActionGroup(this);
     QAction* threeDOutLeft = new QAction(tr("Output left"), this);
     threeDOutLeft->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutLeft)->setData(int(Widget::Mode_Left));
+    _3dOutputActionGroup->addAction(threeDOutLeft)->setData(int(Output_Left));
     connect(threeDOutLeft, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutLeft, threeDMenu);
     QAction* threeDOutRight = new QAction(tr("Output right"), this);
     threeDOutRight->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutRight)->setData(int(Widget::Mode_Right));
+    _3dOutputActionGroup->addAction(threeDOutRight)->setData(int(Output_Right));
     connect(threeDOutRight, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutRight, threeDMenu);
     QAction* threeDOutStereo = new QAction(tr("Output OpenGL Stereo"), this);
     threeDOutStereo->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutStereo)->setData(int(Widget::Mode_OpenGL_Stereo));
+    _3dOutputActionGroup->addAction(threeDOutStereo)->setData(int(Output_OpenGL_Stereo));
     connect(threeDOutStereo, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutStereo, threeDMenu);
     QAction* threeDOutAlternating = new QAction(tr("Output alternating"), this);
     threeDOutAlternating->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutAlternating)->setData(int(Widget::Mode_Alternating));
+    _3dOutputActionGroup->addAction(threeDOutAlternating)->setData(int(Output_Alternating));
     connect(threeDOutAlternating, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutAlternating, threeDMenu);
     QAction* threeDOutRCD = new QAction(tr("Output red/cyan high quality"), this);
     threeDOutRCD->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutRCD)->setData(int(Widget::Mode_Red_Cyan_Dubois));
+    _3dOutputActionGroup->addAction(threeDOutRCD)->setData(int(Output_Red_Cyan_Dubois));
     connect(threeDOutRCD, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutRCD, threeDMenu);
     QAction* threeDOutRCF = new QAction(tr("Output red/cyan full color"), this);
     threeDOutRCF->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutRCF)->setData(int(Widget::Mode_Red_Cyan_FullColor));
+    _3dOutputActionGroup->addAction(threeDOutRCF)->setData(int(Output_Red_Cyan_FullColor));
     connect(threeDOutRCF, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutRCF, threeDMenu);
     QAction* threeDOutRCH = new QAction(tr("Output red/cyan half color"), this);
     threeDOutRCH->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutRCH)->setData(int(Widget::Mode_Red_Cyan_HalfColor));
+    _3dOutputActionGroup->addAction(threeDOutRCH)->setData(int(Output_Red_Cyan_HalfColor));
     connect(threeDOutRCH, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutRCH, threeDMenu);
     QAction* threeDOutRCM = new QAction(tr("Output red/cyan monochrome"), this);
     threeDOutRCM->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutRCM)->setData(int(Widget::Mode_Red_Cyan_Monochrome));
+    _3dOutputActionGroup->addAction(threeDOutRCM)->setData(int(Output_Red_Cyan_Monochrome));
     connect(threeDOutRCM, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutRCM, threeDMenu);
     QAction* threeDOutGMD = new QAction(tr("Output green/magenta high quality"), this);
     threeDOutGMD->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutGMD)->setData(int(Widget::Mode_Green_Magenta_Dubois));
+    _3dOutputActionGroup->addAction(threeDOutGMD)->setData(int(Output_Green_Magenta_Dubois));
     connect(threeDOutGMD, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutGMD, threeDMenu);
     QAction* threeDOutGMF = new QAction(tr("Output green/magenta full color"), this);
     threeDOutGMF->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutGMF)->setData(int(Widget::Mode_Green_Magenta_FullColor));
+    _3dOutputActionGroup->addAction(threeDOutGMF)->setData(int(Output_Green_Magenta_FullColor));
     connect(threeDOutGMF, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutGMF, threeDMenu);
     QAction* threeDOutGMH = new QAction(tr("Output green/magenta half color"), this);
     threeDOutGMH->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutGMH)->setData(int(Widget::Mode_Green_Magenta_HalfColor));
+    _3dOutputActionGroup->addAction(threeDOutGMH)->setData(int(Output_Green_Magenta_HalfColor));
     connect(threeDOutGMH, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutGMH, threeDMenu);
     QAction* threeDOutGMM = new QAction(tr("Output green/magenta monochrome"), this);
     threeDOutGMM->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutGMM)->setData(int(Widget::Mode_Green_Magenta_Monochrome));
+    _3dOutputActionGroup->addAction(threeDOutGMM)->setData(int(Output_Green_Magenta_Monochrome));
     connect(threeDOutGMM, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutGMM, threeDMenu);
     QAction* threeDOutABD = new QAction(tr("Output amber/blue high quality"), this);
     threeDOutABD->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutABD)->setData(int(Widget::Mode_Amber_Blue_Dubois));
+    _3dOutputActionGroup->addAction(threeDOutABD)->setData(int(Output_Amber_Blue_Dubois));
     connect(threeDOutABD, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutABD, threeDMenu);
     QAction* threeDOutABF = new QAction(tr("Output amber/blue full color"), this);
     threeDOutABF->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutABF)->setData(int(Widget::Mode_Amber_Blue_FullColor));
+    _3dOutputActionGroup->addAction(threeDOutABF)->setData(int(Output_Amber_Blue_FullColor));
     connect(threeDOutABF, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutABF, threeDMenu);
     QAction* threeDOutABH = new QAction(tr("Output amber/blue half color"), this);
     threeDOutABH->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutABH)->setData(int(Widget::Mode_Amber_Blue_HalfColor));
+    _3dOutputActionGroup->addAction(threeDOutABH)->setData(int(Output_Amber_Blue_HalfColor));
     connect(threeDOutABH, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutABH, threeDMenu);
     QAction* threeDOutABM = new QAction(tr("Output amber/blue monochrome"), this);
     threeDOutABM->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutABM)->setData(int(Widget::Mode_Amber_Blue_Monochrome));
+    _3dOutputActionGroup->addAction(threeDOutABM)->setData(int(Output_Amber_Blue_Monochrome));
     connect(threeDOutABM, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutABM, threeDMenu);
     QAction* threeDOutRGM = new QAction(tr("Output red/green monochrome"), this);
     threeDOutRGM->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutRGM)->setData(int(Widget::Mode_Red_Green_Monochrome));
+    _3dOutputActionGroup->addAction(threeDOutRGM)->setData(int(Output_Red_Green_Monochrome));
     connect(threeDOutRGM, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutRGM, threeDMenu);
     QAction* threeDOutRBM = new QAction(tr("Output red/blue monochrome"), this);
     threeDOutRBM->setCheckable(true);
-    _3dOutputActionGroup->addAction(threeDOutRBM)->setData(int(Widget::Mode_Red_Blue_Monochrome));
+    _3dOutputActionGroup->addAction(threeDOutRBM)->setData(int(Output_Red_Blue_Monochrome));
     connect(threeDOutRBM, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutRBM, threeDMenu);
 
@@ -325,16 +325,16 @@ MainWindow::MainWindow(Widget::StereoMode stereoMode, bool fullscreen) :
     if (fullscreen)
         viewToggleFullscreen();
 
-    Q_ASSERT(!mainWindowSingleton);
-    mainWindowSingleton = this;
+    Q_ASSERT(!GuiSingleton);
+    GuiSingleton = this;
 }
 
-MainWindow* MainWindow::instance()
+Gui* Gui::instance()
 {
-    return mainWindowSingleton;
+    return GuiSingleton;
 }
 
-void MainWindow::fileOpen()
+void Gui::fileOpen()
 {
     QString name = QFileDialog::getOpenFileName(this);
     if (!name.isEmpty()) {
@@ -352,7 +352,7 @@ void MainWindow::fileOpen()
     }
 }
 
-void MainWindow::fileOpenURL()
+void Gui::fileOpenURL()
 {
     QDialog *dialog = new QDialog(this);
     dialog->setWindowTitle(tr("Open URL"));
@@ -387,7 +387,7 @@ void MainWindow::fileOpenURL()
     }
 }
 
-void MainWindow::fileOpenCamera()
+void Gui::fileOpenCamera()
 {
     QGuiApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     QList<QAudioDevice> audioOutputDevices = QMediaDevices::audioOutputs();
@@ -435,117 +435,117 @@ void MainWindow::fileOpenCamera()
     }
 }
 
-void MainWindow::fileQuit()
+void Gui::fileQuit()
 {
     close();
 }
 
-void MainWindow::trackVideo()
+void Gui::trackVideo()
 {
     QAction* a = _trackVideoActionGroup->checkedAction();
     if (a)
         Bino::instance()->setVideoTrack(a->data().toInt());
 }
 
-void MainWindow::trackAudio()
+void Gui::trackAudio()
 {
     QAction* a = _trackAudioActionGroup->checkedAction();
     if (a)
         Bino::instance()->setAudioTrack(a->data().toInt());
 }
 
-void MainWindow::trackSubtitle()
+void Gui::trackSubtitle()
 {
     QAction* a = _trackSubtitleActionGroup->checkedAction();
     if (a)
         Bino::instance()->setSubtitleTrack(a->data().toInt());
 }
 
-void MainWindow::threeD360()
+void Gui::threeDThreeSixty()
 {
-    Bino::instance()->setThreeSixtyMode(_3d360Action->isChecked() ? VideoFrame::ThreeSixty_On : VideoFrame::ThreeSixty_Off);
+    Bino::instance()->setThreeSixtyMode(_3dThreeSixtyAction->isChecked() ? ThreeSixty_On : ThreeSixty_Off);
     _widget->update();
 }
 
-void MainWindow::threeDInput()
+void Gui::threeDInput()
 {
     QAction* a = _3dInputActionGroup->checkedAction();
     if (a) {
-        Bino::instance()->setInputLayout(static_cast<VideoFrame::StereoLayout>(a->data().toInt()));
+        Bino::instance()->setInputMode(static_cast<InputMode>(a->data().toInt()));
         _widget->update();
     }
 }
 
-void MainWindow::threeDOutput()
+void Gui::threeDOutput()
 {
     QAction* a = _3dOutputActionGroup->checkedAction();
     if (a) {
-        _widget->setStereoMode(static_cast<Widget::StereoMode>(a->data().toInt()));
+        _widget->setOutputMode(static_cast<OutputMode>(a->data().toInt()));
         _widget->update();
     }
 }
 
-void MainWindow::mediaTogglePause()
+void Gui::mediaTogglePause()
 {
     Bino::instance()->togglePause();
 }
 
-void MainWindow::mediaToggleVolumeMute()
+void Gui::mediaToggleVolumeMute()
 {
     Bino::instance()->toggleMute();
 }
 
-void MainWindow::mediaVolumeInc()
+void Gui::mediaVolumeInc()
 {
     Bino::instance()->changeVolume(+0.05f);
 }
 
-void MainWindow::mediaVolumeDec()
+void Gui::mediaVolumeDec()
 {
     Bino::instance()->changeVolume(-0.05f);
 }
 
-void MainWindow::mediaSeekFwd1Sec()
+void Gui::mediaSeekFwd1Sec()
 {
     Bino::instance()->seek(+1000);
 }
 
-void MainWindow::mediaSeekBwd1Sec()
+void Gui::mediaSeekBwd1Sec()
 {
     Bino::instance()->seek(-1000);
 }
 
-void MainWindow::mediaSeekFwd10Secs()
+void Gui::mediaSeekFwd10Secs()
 {
     Bino::instance()->seek(+10000);
 }
 
-void MainWindow::mediaSeekBwd10Secs()
+void Gui::mediaSeekBwd10Secs()
 {
     Bino::instance()->seek(-10000);
 }
 
-void MainWindow::mediaSeekFwd1Min()
+void Gui::mediaSeekFwd1Min()
 {
     Bino::instance()->seek(+60000);
 }
 
-void MainWindow::mediaSeekBwd1Min()
+void Gui::mediaSeekBwd1Min()
 {
     Bino::instance()->seek(-60000);
 }
 
-void MainWindow::mediaSeekFwd10Mins()
+void Gui::mediaSeekFwd10Mins()
 {
     Bino::instance()->seek(+600000);
 }
 
-void MainWindow::mediaSeekBwd10Mins()
+void Gui::mediaSeekBwd10Mins()
 {
     Bino::instance()->seek(-600000);
 }
 
-void MainWindow::viewToggleFullscreen()
+void Gui::viewToggleFullscreen()
 {
     if (windowState() & Qt::WindowFullScreen) {
         showNormal();
@@ -558,13 +558,13 @@ void MainWindow::viewToggleFullscreen()
     }
 }
 
-void MainWindow::viewToggleSwapEyes()
+void Gui::viewToggleSwapEyes()
 {
     Bino::instance()->toggleSwapEyes();
     _widget->update();
 }
 
-void MainWindow::helpAbout()
+void Gui::helpAbout()
 {
     QMessageBox::about(this, tr("About Bino"),
             QString("<p>")
@@ -581,9 +581,9 @@ void MainWindow::helpAbout()
             + QString("</p>"));
 }
 
-void MainWindow::updateActions()
+void Gui::updateActions()
 {
-    LOG_DEBUG("updating mainwindow menu state");
+    LOG_DEBUG("updating Gui menu state");
 
     _viewToggleSwapEyesAction->setChecked(Bino::instance()->swapEyes());
     _mediaTogglePauseAction->setChecked(Bino::instance()->paused());
@@ -650,19 +650,19 @@ void MainWindow::updateActions()
     _trackAudioActionGroup->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
     _trackSubtitleActionGroup->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
 
-    _3d360Action->setChecked(Bino::instance()->assumeThreeSixtyMode());
-    VideoFrame::StereoLayout layout = Bino::instance()->assumeInputLayout();
+    _3dThreeSixtyAction->setChecked(Bino::instance()->assumeThreeSixtyMode());
+    InputMode mode = Bino::instance()->assumeInputMode();
     for (int i = 0; i < _3dInputActionGroup->actions().size(); i++) {
         QAction* a = _3dInputActionGroup->actions()[i];
-        a->setChecked(a->data().toInt() == int(layout));
+        a->setChecked(a->data().toInt() == int(mode));
     }
     for (int i = 0; i < _3dOutputActionGroup->actions().size(); i++) {
         QAction* a = _3dOutputActionGroup->actions()[i];
-        if (Bino::instance()->assumeStereoInputLayout()) {
+        if (Bino::instance()->assumeStereoInputMode()) {
             a->setEnabled(true);
-            a->setChecked(a->data().toInt() == int(_widget->stereoMode()));
-            Widget::StereoMode mode = static_cast<Widget::StereoMode>(a->data().toInt());
-            if (mode == Widget::Mode_OpenGL_Stereo)
+            a->setChecked(a->data().toInt() == int(_widget->outputMode()));
+            OutputMode outputMode = static_cast<OutputMode>(a->data().toInt());
+            if (outputMode == Output_OpenGL_Stereo)
                 a->setEnabled(_widget->isOpenGLStereo());
         } else {
             a->setEnabled(false);
@@ -683,13 +683,13 @@ void MainWindow::updateActions()
     _widget->update();
 }
 
-void MainWindow::setOutputMode(Widget::StereoMode mode)
+void Gui::setOutputMode(OutputMode mode)
 {
-    _widget->setStereoMode(mode);
+    _widget->setOutputMode(mode);
     _widget->update();
 }
 
-void MainWindow::setFullscreen(bool f)
+void Gui::setFullscreen(bool f)
 {
     if (f && !(windowState() & Qt::WindowFullScreen)) {
         viewToggleFullscreen();
@@ -698,13 +698,13 @@ void MainWindow::setFullscreen(bool f)
     }
 }
 
-void MainWindow::dragEnterEvent(QDragEnterEvent* event)
+void Gui::dragEnterEvent(QDragEnterEvent* event)
 {
     if (event->mimeData()->hasUrls())
         event->acceptProposedAction();
 }
 
-void MainWindow::dropEvent(QDropEvent* event)
+void Gui::dropEvent(QDropEvent* event)
 {
     if (event->mimeData()->hasUrls() && event->mimeData()->urls().size() > 0) {
         QUrl url = event->mimeData()->urls()[0];
@@ -723,7 +723,7 @@ void MainWindow::dropEvent(QDropEvent* event)
 }
 
 #ifndef QT_NO_CONTEXTMENU
-void MainWindow::contextMenuEvent(QContextMenuEvent* event)
+void Gui::contextMenuEvent(QContextMenuEvent* event)
 {
     _contextMenu->exec(event->globalPos());
 }

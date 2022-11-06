@@ -7,6 +7,7 @@ HEADERS = version.hpp \
         tools.hpp \
         screen.hpp \
 	tiny_obj_loader.h \
+	modes.hpp \
         metadata.hpp \
 	playlist.hpp \
         videoframe.hpp \
@@ -15,12 +16,13 @@ HEADERS = version.hpp \
         qvrapp.hpp \
 	widget.hpp \
 	commandinterpreter.hpp \
-	mainwindow.hpp
+	gui.hpp
 
 SOURCES = main.cpp \
 	log.cpp \
 	tools.cpp \
 	screen.cpp \
+	modes.cpp \
 	metadata.cpp \
 	playlist.cpp \
 	videoframe.cpp \
@@ -29,7 +31,7 @@ SOURCES = main.cpp \
 	qvrapp.cpp \
 	widget.cpp \
 	commandinterpreter.cpp \
-	mainwindow.cpp
+	gui.cpp
 
 RESOURCES = resources.qrc
 

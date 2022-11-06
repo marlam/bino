@@ -22,9 +22,11 @@
 
 #include <QMainWindow>
 
+#include "modes.hpp"
 #include "widget.hpp"
 
-class MainWindow : public QMainWindow
+
+class Gui : public QMainWindow
 {
 Q_OBJECT
 
@@ -41,7 +43,7 @@ private:
     QActionGroup* _trackVideoActionGroup;
     QActionGroup* _trackAudioActionGroup;
     QActionGroup* _trackSubtitleActionGroup;
-    QAction* _3d360Action;
+    QAction* _3dThreeSixtyAction;
     QActionGroup* _3dInputActionGroup;
     QActionGroup* _3dOutputActionGroup;
     QAction* _mediaTogglePauseAction;
@@ -71,7 +73,7 @@ public slots:
     void trackVideo();
     void trackAudio();
     void trackSubtitle();
-    void threeD360();
+    void threeDThreeSixty();
     void threeDInput();
     void threeDOutput();
     void mediaTogglePause();
@@ -100,10 +102,10 @@ protected:
 #endif
 
 public:
-    MainWindow(Widget::StereoMode stereoMode, bool fullscreen);
+    Gui(OutputMode outputMode, bool fullscreen);
 
-    static MainWindow* instance();
+    static Gui* instance();
 
-    void setOutputMode(Widget::StereoMode mode);
+    void setOutputMode(OutputMode mode);
     void setFullscreen(bool f);
 };

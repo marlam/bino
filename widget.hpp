@@ -23,43 +23,19 @@
 #include <QOpenGLWidget>
 #include <QOpenGLExtraFunctions>
 
+#include "modes.hpp"
 #include "bino.hpp"
+
 
 class Widget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 {
 Q_OBJECT
 
-public:
-    // This is mirrored in shader-display-frag.glsl:
-    enum StereoMode {
-        Mode_Left = 0,
-        Mode_Right = 1,
-        Mode_OpenGL_Stereo = 2,
-        Mode_Alternating = 3,
-        Mode_Red_Cyan_Dubois = 4,
-        Mode_Red_Cyan_FullColor = 5,
-        Mode_Red_Cyan_HalfColor = 6,
-        Mode_Red_Cyan_Monochrome = 7,
-        Mode_Green_Magenta_Dubois = 8,
-        Mode_Green_Magenta_FullColor = 9,
-        Mode_Green_Magenta_HalfColor = 10,
-        Mode_Green_Magenta_Monochrome = 11,
-        Mode_Amber_Blue_Dubois = 12,
-        Mode_Amber_Blue_FullColor = 13,
-        Mode_Amber_Blue_HalfColor = 14,
-        Mode_Amber_Blue_Monochrome = 15,
-        Mode_Red_Green_Monochrome = 16,
-        Mode_Red_Blue_Monochrome = 17
-    };
-
-    static const char* modeToString(StereoMode mode);
-    static StereoMode modeFromString(const QString& s, bool* ok = nullptr);
-
 private:
     QSize _sizeHint;
     int _width, _height;
 
-    enum StereoMode _stereoMode;
+    OutputMode _outputMode;
     bool _openGLStereo;       // is this widget in quad-buffered stereo mode?
     int _alternatingLastView; // last view displayed in Mode_Alternating (0 or 1)
 
@@ -76,11 +52,11 @@ private:
     QOpenGLShaderProgram _prg;
 
 public:
-    Widget(StereoMode stereoMode, QWidget* parent = nullptr);
+    Widget(OutputMode outputMode, QWidget* parent = nullptr);
 
     bool isOpenGLStereo() const;
-    enum StereoMode stereoMode() const;
-    void setStereoMode(enum StereoMode mode);
+    OutputMode outputMode() const;
+    void setOutputMode(OutputMode mode);
 
     virtual QSize sizeHint() const override;
     virtual void initializeGL() override;

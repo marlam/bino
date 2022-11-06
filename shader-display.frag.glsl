@@ -24,26 +24,26 @@ uniform sampler2D view1;
 uniform float relativeWidth;
 uniform float relativeHeight;
 
-// This must be the same as Widget::StereoMode:
-const int Mode_Left = 0;
-const int Mode_Right = 1;
-const int Mode_OpenGL_Stereo = 2;
-const int Mode_Alternating = 3;
-const int Mode_Red_Cyan_Dubois = 4;
-const int Mode_Red_Cyan_FullColor = 5;
-const int Mode_Red_Cyan_HalfColor = 6;
-const int Mode_Red_Cyan_Monochrome = 7;
-const int Mode_Green_Magenta_Dubois = 8;
-const int Mode_Green_Magenta_FullColor = 9;
-const int Mode_Green_Magenta_HalfColor = 10;
-const int Mode_Green_Magenta_Monochrome = 11;
-const int Mode_Amber_Blue_Dubois = 12;
-const int Mode_Amber_Blue_FullColor = 13;
-const int Mode_Amber_Blue_HalfColor = 14;
-const int Mode_Amber_Blue_Monochrome = 15;
-const int Mode_Red_Green_Monochrome = 16;
-const int Mode_Red_Blue_Monochrome = 17;
-uniform int stereoMode;
+// This must be the same as OutputMode from modes.hpp:
+const int Output_Left = 0;
+const int Output_Right = 1;
+const int Output_OpenGL_Stereo = 2;
+const int Output_Alternating = 3;
+const int Output_Red_Cyan_Dubois = 4;
+const int Output_Red_Cyan_FullColor = 5;
+const int Output_Red_Cyan_HalfColor = 6;
+const int Output_Red_Cyan_Monochrome = 7;
+const int Output_Green_Magenta_Dubois = 8;
+const int Output_Green_Magenta_FullColor = 9;
+const int Output_Green_Magenta_HalfColor = 10;
+const int Output_Green_Magenta_Monochrome = 11;
+const int Output_Amber_Blue_Dubois = 12;
+const int Output_Amber_Blue_FullColor = 13;
+const int Output_Amber_Blue_HalfColor = 14;
+const int Output_Amber_Blue_Monochrome = 15;
+const int Output_Red_Green_Monochrome = 16;
+const int Output_Red_Blue_Monochrome = 17;
+uniform int outputMode;
 
 smooth in vec2 vtexcoord;
 
@@ -72,14 +72,14 @@ void main(void)
     float tx = (      vtexcoord.x - 0.5 * (1.0 - relativeWidth )) / relativeWidth;
     float ty = ( vtexcoord.y - 0.5 * (1.0 - relativeHeight)) / relativeHeight;
     vec3 rgb = vec3(1.0, 0.0, 0.0);
-    if (stereoMode == Mode_Left) {
+    if (outputMode == Output_Left) {
         rgb = texture(view0, vec2(tx, ty)).rgb;
-    } else if (stereoMode == Mode_Right) {
+    } else if (outputMode == Output_Right) {
         rgb = texture(view1, vec2(tx, ty)).rgb;
     } else {
         vec3 rgb0 = texture(view0, vec2(tx, ty)).rgb;
         vec3 rgb1 = texture(view1, vec2(tx, ty)).rgb;
-        if (stereoMode == Mode_Red_Cyan_Dubois) {
+        if (outputMode == Output_Red_Cyan_Dubois) {
             // Source of this matrix: http://www.site.uottawa.ca/~edubois/anaglyph/LeastSquaresHowToPhotoshop.pdf
             mat3 m0 = mat3(
                     0.437, -0.062, -0.048,
@@ -90,13 +90,13 @@ void main(void)
                     -0.032,  0.761, -0.093,
                     -0.007,  0.009,  1.234);
             rgb = m0 * rgb0 + m1 * rgb1;
-        } else if (stereoMode == Mode_Red_Cyan_FullColor) {
+        } else if (outputMode == Output_Red_Cyan_FullColor) {
             rgb = vec3(rgb0.r, rgb1.g, rgb1.b);
-        } else if (stereoMode == Mode_Red_Cyan_HalfColor) {
+        } else if (outputMode == Output_Red_Cyan_HalfColor) {
             rgb = vec3(rgb_to_lum(rgb0), rgb1.g, rgb1.b);
-        } else if (stereoMode == Mode_Red_Cyan_Monochrome) {
+        } else if (outputMode == Output_Red_Cyan_Monochrome) {
             rgb = vec3(rgb_to_lum(rgb0), rgb_to_lum(rgb1), rgb_to_lum(rgb1));
-        } else if (stereoMode == Mode_Green_Magenta_Dubois) {
+        } else if (outputMode == Output_Green_Magenta_Dubois) {
             // Source of this matrix: http://www.flickr.com/photos/e_dubois/5132528166/
             mat3 m0 = mat3(
                     -0.062,  0.284, -0.015,
@@ -107,13 +107,13 @@ void main(void)
                     0.705, -0.015,  0.075,
                     0.024, -0.065,  0.937);
             rgb = m0 * rgb0 + m1 * rgb1;
-        } else if (stereoMode == Mode_Green_Magenta_FullColor) {
+        } else if (outputMode == Output_Green_Magenta_FullColor) {
             rgb = vec3(rgb1.r, rgb0.g, rgb1.b);
-        } else if (stereoMode == Mode_Green_Magenta_HalfColor) {
+        } else if (outputMode == Output_Green_Magenta_HalfColor) {
             rgb = vec3(rgb1.r, rgb_to_lum(rgb0), rgb1.b);
-        } else if (stereoMode == Mode_Green_Magenta_Monochrome) {
+        } else if (outputMode == Output_Green_Magenta_Monochrome) {
             rgb = vec3(rgb_to_lum(rgb1), rgb_to_lum(rgb0), rgb_to_lum(rgb1));
-        } else if (stereoMode == Mode_Amber_Blue_Dubois) {
+        } else if (outputMode == Output_Amber_Blue_Dubois) {
             // Source of this matrix: http://www.flickr.com/photos/e_dubois/5230654930/
             mat3 m0 = mat3(
                     1.062, -0.026, -0.038,
@@ -124,15 +124,15 @@ void main(void)
                     -0.123,  0.062,  0.185,
                     -0.017, -0.017,  0.911);
             rgb = m0 * rgb0 + m1 * rgb1;
-        } else if (stereoMode == Mode_Amber_Blue_FullColor) {
+        } else if (outputMode == Output_Amber_Blue_FullColor) {
             rgb = vec3(rgb0.r, rgb0.g, rgb1.b);
-        } else if (stereoMode == Mode_Amber_Blue_HalfColor) {
+        } else if (outputMode == Output_Amber_Blue_HalfColor) {
             rgb = vec3(rgb_to_lum(rgb0), rgb_to_lum(rgb0), rgb1.b);
-        } else if (stereoMode == Mode_Amber_Blue_Monochrome) {
+        } else if (outputMode == Output_Amber_Blue_Monochrome) {
             rgb = vec3(rgb_to_lum(rgb0), rgb_to_lum(rgb0), rgb_to_lum(rgb1));
-        } else if (stereoMode == Mode_Red_Green_Monochrome) {
+        } else if (outputMode == Output_Red_Green_Monochrome) {
             rgb = vec3(rgb_to_lum(rgb0), rgb_to_lum(rgb1), 0.0);
-        } else if (stereoMode == Mode_Red_Blue_Monochrome) {
+        } else if (outputMode == Output_Red_Blue_Monochrome) {
             rgb = vec3(rgb_to_lum(rgb0), 0.0, rgb_to_lum(rgb1));
         }
     }

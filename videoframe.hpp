@@ -24,31 +24,14 @@
 #include <QVideoFrame>
 #include <QImage>
 
+#include "modes.hpp"
+
+
 class VideoFrame
 {
 Q_DECLARE_TR_FUNCTIONS(VideoFrame)
 
 public:
-    enum StereoLayout {
-        Layout_Unknown,         // unknown; needs to be guessed
-        Layout_Mono,            // monoscopic video
-        Layout_Top_Bottom,      // stereoscopic video, left eye top, right eye bottom
-        Layout_Top_Bottom_Half, // stereoscopic video, left eye top, right eye bottom, both half height
-        Layout_Bottom_Top,      // stereoscopic video, left eye bottom, right eye top
-        Layout_Bottom_Top_Half, // stereoscopic video, left eye bottom, right eye top, both half height
-        Layout_Left_Right,      // stereoscopic video, left eye left, right eye right
-        Layout_Left_Right_Half, // stereoscopic video, left eye left, right eye right, both half width
-        Layout_Right_Left,      // stereoscopic video, left eye right, right eye left
-        Layout_Right_Left_Half, // stereoscopic video, left eye right, right eye left, both half width
-        Layout_Alternating_LR,  // stereoscopic video, alternating frames, left first
-        Layout_Alternating_RL,  // stereoscopic video, alternating frames, right first
-    };
-    enum ThreeSixtyMode {
-        ThreeSixty_Unknown,     // unknown; needs to be guessed
-        ThreeSixty_On,          // 360° video
-        ThreeSixty_Off          // conventional video
-    };
-
     // The pixel data can be represented in one of three ways:
     // 1. mapped data, via bytesPerLine and mappedBits
     // 2. copied data, via bytesPerLine and bits
@@ -77,8 +60,8 @@ public:
 
     /* This is a shallow copy of the original QVideoFrame: */
     QVideoFrame qframe;
-    /* The stereo layout of this frame: */
-    StereoLayout stereoLayout;
+    /* The input mode of this frame: */
+    InputMode inputMode;
     /* Whether this is a 360° video: */
     ThreeSixtyMode threeSixtyMode;
     /* The subtitle: */
@@ -104,12 +87,9 @@ public:
 
     VideoFrame();
 
-    void update(StereoLayout sl, ThreeSixtyMode ts, const QVideoFrame& frame, bool newSrc);
+    void update(InputMode im, ThreeSixtyMode ts, const QVideoFrame& frame, bool newSrc);
     void reUpdate();
     void invalidate();
-    static const char* layoutToString(StereoLayout sl);
-    static StereoLayout layoutFromString(const QString& s, bool* ok = nullptr);
-    static const char* modeToString(ThreeSixtyMode ts);
 };
 
 QDataStream &operator<<(QDataStream& ds, const VideoFrame& frame);

@@ -22,15 +22,16 @@
 
 
 PlaylistEntry::PlaylistEntry() :
-    url(), videoTrack(NoTrack), audioTrack(NoTrack), subtitleTrack(NoTrack)
+    url(), inputMode(Input_Unknown), threeSixtyMode(ThreeSixty_Unknown),
+    videoTrack(NoTrack), audioTrack(NoTrack), subtitleTrack(NoTrack)
 {
 }
 
 PlaylistEntry::PlaylistEntry(const QUrl& url,
-        VideoFrame::StereoLayout stereoLayout,
-        VideoFrame::ThreeSixtyMode threeSixtyMode,
+        InputMode inputMode,
+        ThreeSixtyMode threeSixtyMode,
         int videoTrack, int audioTrack, int subtitleTrack) :
-    url(url), stereoLayout(stereoLayout), threeSixtyMode(threeSixtyMode),
+    url(url), inputMode(inputMode), threeSixtyMode(threeSixtyMode),
     videoTrack(videoTrack), audioTrack(audioTrack), subtitleTrack(subtitleTrack)
 {
 }

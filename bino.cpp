@@ -47,8 +47,8 @@ Bino::Bino(const Screen& screen, bool swapEyes) :
     _captureSession(nullptr),
     _tempFile(nullptr),
     _recorder(nullptr),
-    _lastFrameStereoLayout(VideoFrame::Layout_Unknown),
-    _lastFrameThreeSixtyMode(VideoFrame::ThreeSixty_Unknown),
+    _lastFrameInputMode(Input_Unknown),
+    _lastFrameThreeSixtyMode(ThreeSixty_Unknown),
     _screen(screen),
     _frameIsNew(false),
     _swapEyes(swapEyes)
@@ -228,7 +228,7 @@ void Bino::mediaChanged(PlaylistEntry entry)
             _player->setActiveSubtitleTrack(subtitleTrack);
         }
         _player->play();
-        _videoSink->newUrl(entry.url, entry.stereoLayout, entry.threeSixtyMode);
+        _videoSink->newUrl(entry.url, entry.inputMode, entry.threeSixtyMode);
     }
     emit stateChanged();
 }
@@ -363,22 +363,22 @@ void Bino::setSubtitleTrack(int i)
     }
 }
 
-void Bino::setInputLayout(VideoFrame::StereoLayout layout)
+void Bino::setInputMode(InputMode mode)
 {
-    _videoSink->stereoLayout = layout;
-    _frame.stereoLayout = layout;
+    _videoSink->inputMode = mode;
+    _frame.inputMode = mode;
     _frame.reUpdate();
     _frameIsNew = true;
-    LOG_DEBUG("setting stereo layout to %s", VideoFrame::layoutToString(layout));
+    LOG_DEBUG("setting input mode to %s", inputModeToString(mode));
 }
 
-void Bino::setThreeSixtyMode(VideoFrame::ThreeSixtyMode mode)
+void Bino::setThreeSixtyMode(ThreeSixtyMode mode)
 {
     _videoSink->threeSixtyMode = mode;
     _frame.threeSixtyMode = mode;
     _frame.reUpdate();
     _frameIsNew = true;
-    LOG_DEBUG("setting 360° mode to %s", VideoFrame::modeToString(mode));
+    LOG_DEBUG("setting 360° mode to %s", threeSixtyModeToString(mode));
 }
 
 bool Bino::swapEyes() const
@@ -444,29 +444,29 @@ int Bino::subtitleTrack() const
     return t;
 }
 
-VideoFrame::StereoLayout Bino::inputLayout() const
+InputMode Bino::inputMode() const
 {
-    return _videoSink->stereoLayout;
+    return _videoSink->inputMode;
 }
 
-VideoFrame::StereoLayout Bino::assumeInputLayout() const
+InputMode Bino::assumeInputMode() const
 {
-    return _frame.stereoLayout;
+    return _frame.inputMode;
 }
 
-bool Bino::assumeStereoInputLayout() const
+bool Bino::assumeStereoInputMode() const
 {
-    return (assumeInputLayout() != VideoFrame::Layout_Mono);
+    return (assumeInputMode() != Input_Mono);
 }
 
-VideoFrame::ThreeSixtyMode Bino::threeSixtyMode() const
+ThreeSixtyMode Bino::threeSixtyMode() const
 {
     return _videoSink->threeSixtyMode;
 }
 
 bool Bino::assumeThreeSixtyMode() const
 {
-    return _frame.threeSixtyMode == VideoFrame::ThreeSixty_On;
+    return _frame.threeSixtyMode == ThreeSixty_On;
 }
 
 void Bino::serializeStaticData(QDataStream& ds) const
@@ -484,8 +484,8 @@ void Bino::serializeDynamicData(QDataStream& ds) const
     ds << _frameIsNew;
     if (_frameIsNew) {
         ds << _frame;
-        if (_frame.stereoLayout == VideoFrame::Layout_Alternating_LR
-                || _frame.stereoLayout == VideoFrame::Layout_Alternating_RL) {
+        if (_frame.inputMode == Input_Alternating_LR
+                || _frame.inputMode == Input_Alternating_RL) {
             ds << _extFrame;
         }
     }
@@ -497,8 +497,8 @@ void Bino::deserializeDynamicData(QDataStream& ds)
     ds >> _frameIsNew;
     if (_frameIsNew) {
         ds >> _frame;
-        if (_frame.stereoLayout == VideoFrame::Layout_Alternating_LR
-                || _frame.stereoLayout == VideoFrame::Layout_Alternating_RL) {
+        if (_frame.inputMode == Input_Alternating_LR
+                || _frame.inputMode == Input_Alternating_RL) {
             ds >> _extFrame;
         }
     }
@@ -961,35 +961,35 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
 void Bino::preRenderProcess(int screenWidth, int screenHeight,
         int* viewCountPtr, int* viewWidthPtr, int* viewHeightPtr, float* frameDisplayAspectRatioPtr, bool* threeSixtyPtr)
 {
-    Q_ASSERT(_frame.stereoLayout != VideoFrame::Layout_Unknown);
+    Q_ASSERT(_frame.inputMode != Input_Unknown);
 
     int viewCount = 2;
     int viewWidth = _frame.width;
     int viewHeight = _frame.height;
     float frameDisplayAspectRatio = _frame.aspectRatio;
-    switch (_frame.stereoLayout) {
-    case VideoFrame::Layout_Unknown: // cannot happen, VideoFrame::update() sets a known layout
-    case VideoFrame::Layout_Mono:
+    switch (_frame.inputMode) {
+    case Input_Unknown: // cannot happen, update() sets a known mode
+    case Input_Mono:
         viewCount = 1;
         break;
-    case VideoFrame::Layout_Top_Bottom:
-    case VideoFrame::Layout_Bottom_Top:
+    case Input_Top_Bottom:
+    case Input_Bottom_Top:
         frameDisplayAspectRatio *= 2.0f;
         [[fallthrough]];
-    case VideoFrame::Layout_Top_Bottom_Half:
-    case VideoFrame::Layout_Bottom_Top_Half:
+    case Input_Top_Bottom_Half:
+    case Input_Bottom_Top_Half:
         viewHeight /= 2;
         break;
-    case VideoFrame::Layout_Left_Right:
-    case VideoFrame::Layout_Right_Left:
+    case Input_Left_Right:
+    case Input_Right_Left:
         frameDisplayAspectRatio /= 2.0f;
         [[fallthrough]];
-    case VideoFrame::Layout_Left_Right_Half:
-    case VideoFrame::Layout_Right_Left_Half:
+    case Input_Left_Right_Half:
+    case Input_Right_Left_Half:
         viewWidth /= 2;
         break;
-    case VideoFrame::Layout_Alternating_LR:
-    case VideoFrame::Layout_Alternating_RL:
+    case Input_Alternating_LR:
+    case Input_Alternating_RL:
         break;
     }
     if (subtitleTrack() >= 0 && (screenWidth > viewWidth || screenHeight > viewHeight)) {
@@ -1011,7 +1011,7 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
     if (frameDisplayAspectRatioPtr)
         *frameDisplayAspectRatioPtr = frameDisplayAspectRatio;
     if (threeSixtyPtr)
-        *threeSixtyPtr = (_frame.threeSixtyMode == VideoFrame::ThreeSixty_On);
+        *threeSixtyPtr = (_frame.threeSixtyMode == ThreeSixty_On);
 
     /* We need to get new frame data into a texture that is suitable for
      * rendering the screen: _frameTex. */
@@ -1019,8 +1019,8 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
     if (_frameIsNew) {
         // Convert _frame into _frameTex and, if needed, _extFrame into _extFrameTex.
         convertFrameToTexture(_frame, _frameTex);
-        if (_frame.stereoLayout == VideoFrame::Layout_Alternating_LR
-                || _frame.stereoLayout == VideoFrame::Layout_Alternating_RL) {
+        if (_frame.inputMode == Input_Alternating_LR
+                || _frame.inputMode == Input_Alternating_RL) {
             // the user might have switched to this mode without the extFrame
             // being available, in that case fall back to the standard frame
             if (_extFrame.width != _frame.width || _extFrame.height != _frame.height)
@@ -1039,11 +1039,11 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
         // Done.
         _frameIsNew = false;
     }
-    if (_frame.stereoLayout != _lastFrameStereoLayout
+    if (_frame.inputMode != _lastFrameInputMode
             || _frame.threeSixtyMode != _lastFrameThreeSixtyMode) {
         emit stateChanged();
     }
-    _lastFrameStereoLayout = _frame.stereoLayout;
+    _lastFrameInputMode = _frame.inputMode;
     _lastFrameThreeSixtyMode = _frame.threeSixtyMode;
 }
 
@@ -1067,7 +1067,7 @@ void Bino::render(
     // Set up view
     glViewport(0, 0, texWidth, texHeight);
     glClear(_screen.isPlanar ? GL_COLOR_BUFFER_BIT : (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    // Set up stereo layout
+    // Set up input mode
     unsigned int frameTex = _frameTex;
     float frameAspectRatio = _frame.aspectRatio;
     float viewOffsetX = 0.0f;
@@ -1076,52 +1076,52 @@ void Bino::render(
     float viewFactorY = 1.0f;
     if (_swapEyes)
         view = (view == 0 ? 1 : 0);
-    switch (_frame.stereoLayout) {
-    case VideoFrame::Layout_Unknown: // cannot happen, VideoFrame::update() sets a known layout
-    case VideoFrame::Layout_Mono:
+    switch (_frame.inputMode) {
+    case Input_Unknown: // cannot happen, update() sets a known mode
+    case Input_Mono:
         // nothing to do
         break;
-    case VideoFrame::Layout_Top_Bottom:
+    case Input_Top_Bottom:
         viewFactorY = 0.5f;
         viewOffsetY = (view == 1 ? 0.5f : 0.0f);
         frameAspectRatio *= 2.0f;
         break;
-    case VideoFrame::Layout_Top_Bottom_Half:
+    case Input_Top_Bottom_Half:
         viewFactorY = 0.5f;
         viewOffsetY = (view == 1 ? 0.5f : 0.0f);
         break;
-    case VideoFrame::Layout_Bottom_Top:
+    case Input_Bottom_Top:
         viewFactorY = 0.5f;
         viewOffsetY = (view != 1 ? 0.5f : 0.0f);
         frameAspectRatio *= 2.0f;
         break;
-    case VideoFrame::Layout_Bottom_Top_Half:
+    case Input_Bottom_Top_Half:
         viewFactorY = 0.5f;
         viewOffsetY = (view != 1 ? 0.5f : 0.0f);
         break;
-    case VideoFrame::Layout_Left_Right:
+    case Input_Left_Right:
         viewFactorX = 0.5f;
         viewOffsetX = (view == 1 ? 0.5f : 0.0f);
         frameAspectRatio /= 2.0f;
         break;
-    case VideoFrame::Layout_Left_Right_Half:
+    case Input_Left_Right_Half:
         viewFactorX = 0.5f;
         viewOffsetX = (view == 1 ? 0.5f : 0.0f);
         break;
-    case VideoFrame::Layout_Right_Left:
+    case Input_Right_Left:
         viewFactorX = 0.5f;
         viewOffsetX = (view != 1 ? 0.5f : 0.0f);
         frameAspectRatio /= 2.0f;
         break;
-    case VideoFrame::Layout_Right_Left_Half:
+    case Input_Right_Left_Half:
         viewFactorX = 0.5f;
         viewOffsetX = (view != 1 ? 0.5f : 0.0f);
         break;
-    case VideoFrame::Layout_Alternating_LR:
+    case Input_Alternating_LR:
         if (view == 1)
             frameTex = _extFrameTex;
         break;
-    case VideoFrame::Layout_Alternating_RL:
+    case Input_Alternating_RL:
         if (view == 0)
             frameTex = _extFrameTex;
         break;
@@ -1153,14 +1153,14 @@ void Bino::render(
     _viewPrg.setUniformValue("view_factor_y", viewFactorY);
     _viewPrg.setUniformValue("relative_width", relWidth);
     _viewPrg.setUniformValue("relative_height", relHeight);
-    _viewPrg.setUniformValue("three_sixty", _frame.threeSixtyMode == VideoFrame::ThreeSixty_On ? 1 : 0);
+    _viewPrg.setUniformValue("three_sixty", _frame.threeSixtyMode == ThreeSixty_On ? 1 : 0);
     _viewPrg.setUniformValue("nonlinear_output", finalRenderingStep ? 1 : 0);
     // Render scene
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, _subtitleTex);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, frameTex);
-    if (_frame.threeSixtyMode == VideoFrame::ThreeSixty_On) {
+    if (_frame.threeSixtyMode == ThreeSixty_On) {
         // Set up filtering to work correctly at the horizontal wraparound:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

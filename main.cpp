@@ -54,8 +54,9 @@
 #include "metadata.hpp"
 #include "screen.hpp"
 #include "qvrapp.hpp"
-#include "mainwindow.hpp"
+#include "gui.hpp"
 #include "commandinterpreter.hpp"
+#include "modes.hpp"
 #include "bino.hpp"
 
 
@@ -220,30 +221,28 @@ int main(int argc, char* argv[])
 #endif
 
     // Set modes
-    VideoFrame::ThreeSixtyMode threeSixtyMode = VideoFrame::ThreeSixty_Unknown;
+    ThreeSixtyMode threeSixtyMode = ThreeSixty_Unknown;
     if (parser.isSet("360")) {
-        if (parser.value("360") == "on") {
-            threeSixtyMode = VideoFrame::ThreeSixty_On;
-        } else if (parser.value("360") == "off") {
-            threeSixtyMode = VideoFrame::ThreeSixty_Off;
-        } else {
+        bool ok;
+        threeSixtyMode = threeSixtyModeFromString(parser.value("360"), &ok);
+        if (!ok) {
             LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--360")));
             return 1;
         }
     }
-    VideoFrame::StereoLayout inputMode = VideoFrame::Layout_Unknown;
+    InputMode inputMode = Input_Unknown;
     if (parser.isSet("input")) {
         bool ok;
-        inputMode = VideoFrame::layoutFromString(parser.value("input"), &ok);
+        inputMode = inputModeFromString(parser.value("input"), &ok);
         if (!ok) {
             LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--input")));
             return 1;
         }
     }
-    Widget::StereoMode outputMode = Widget::Mode_Red_Cyan_Dubois;
+    OutputMode outputMode = Output_Red_Cyan_Dubois;
     if (parser.isSet("output")) {
         bool ok;
-        outputMode = Widget::modeFromString(parser.value("output"), &ok);
+        outputMode = outputModeFromString(parser.value("output"), &ok);
         if (!ok) {
             LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--output")));
             return 1;
@@ -541,7 +540,7 @@ int main(int argc, char* argv[])
         // quit when we don't get it (see Bino::initializeGL).
         format.setStereo(true);
         if (!parser.isSet("output"))
-            outputMode = Widget::Mode_OpenGL_Stereo;
+            outputMode = Output_OpenGL_Stereo;
     }
     QSurfaceFormat::setDefaultFormat(format);
 
@@ -567,7 +566,7 @@ int main(int argc, char* argv[])
     // Start VR or GUI mode
     if (vrMode) {
 #ifdef WITH_QVR
-        BinoQVRApp qvrapp(&bino);
+        BinoQVRApp qvrapp;
         if (!manager.init(&qvrapp)) {
             LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Cannot initialize QVR manager")));
             return 1;
@@ -579,9 +578,9 @@ int main(int argc, char* argv[])
         return 1;
 #endif
     } else {
-        MainWindow mainwindow(outputMode, parser.isSet("fullscreen"));
-        mainwindow.show();
-        // wait for up to 10 seconds to process all events before starting
+        Gui gui(outputMode, parser.isSet("fullscreen"));
+        gui.show();
+        // wait for several seconds to process all events before starting
         // the playlist, because otherwise playing might be finished before
         // the first frame rendering, e.g. if you just want to "play" an image
         QGuiApplication::processEvents(QEventLoop::AllEvents, 3000);

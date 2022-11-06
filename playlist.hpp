@@ -23,7 +23,7 @@
 #include <QLocale>
 #include <QUrl>
 
-#include "videoframe.hpp"
+#include "modes.hpp"
 
 
 class PlaylistEntry
@@ -33,16 +33,16 @@ public:
     static const int DefaultTrack = -1;
 
     QUrl url;
-    VideoFrame::StereoLayout stereoLayout;
-    VideoFrame::ThreeSixtyMode threeSixtyMode;
+    InputMode inputMode;
+    ThreeSixtyMode threeSixtyMode;
     int videoTrack;
     int audioTrack;
     int subtitleTrack;
 
     PlaylistEntry();
     PlaylistEntry(const QUrl& url,
-            VideoFrame::StereoLayout stereoLayout = VideoFrame::Layout_Unknown,
-            VideoFrame::ThreeSixtyMode threeSixtyMode = VideoFrame::ThreeSixty_Unknown,
+            InputMode inputMode = Input_Unknown,
+            ThreeSixtyMode threeSixtyMode = ThreeSixty_Unknown,
             int videoTrack = DefaultTrack,
             int audioTrack = DefaultTrack,
             int subtitleTrack = NoTrack);

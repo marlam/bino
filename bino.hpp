@@ -59,8 +59,8 @@ private:
     QImage _subtitleImg;
     QString _subtitleImgString;
     // for updating the GUI if necessary
-    VideoFrame::StereoLayout _lastFrameStereoLayout;
-    VideoFrame::ThreeSixtyMode _lastFrameThreeSixtyMode;
+    InputMode _lastFrameInputMode;
+    ThreeSixtyMode _lastFrameThreeSixtyMode;
 
     /* Static data for rendering, initialized on the main process */
     Screen _screen;
@@ -124,8 +124,8 @@ public:
     void setVideoTrack(int i);
     void setAudioTrack(int i);
     void setSubtitleTrack(int i);
-    void setInputLayout(VideoFrame::StereoLayout layout);
-    void setThreeSixtyMode(VideoFrame::ThreeSixtyMode mode);
+    void setInputMode(InputMode mode);
+    void setThreeSixtyMode(ThreeSixtyMode mode);
 
     /* Functions necessary for GUI mode */
     bool swapEyes() const;
@@ -137,10 +137,10 @@ public:
     int videoTrack() const;
     int audioTrack() const;
     int subtitleTrack() const;
-    VideoFrame::StereoLayout inputLayout() const;       // this might be unknown
-    VideoFrame::StereoLayout assumeInputLayout() const; // this is never unknown
-    bool assumeStereoInputLayout() const;               // is the assumed layout stereo?
-    VideoFrame::ThreeSixtyMode threeSixtyMode() const;  // this might be unknown
+    InputMode inputMode() const;                        // this might be unknown
+    InputMode assumeInputMode() const;                  // this is never unknown
+    bool assumeStereoInputMode() const;                 // is the assumed mode stereo?
+    ThreeSixtyMode threeSixtyMode() const;              // this might be unknown
     bool assumeThreeSixtyMode() const;                  // this is never unknown
 
     /* Functions necessary for VR mode */
