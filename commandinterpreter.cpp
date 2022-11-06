@@ -40,7 +40,7 @@ bool CommandInterpreter::init(const QString& fileName)
 {
     _file.setFileName(fileName);
     if (!_file.open(QIODeviceBase::ReadOnly | QIODeviceBase::Text)) {
-        LOG_FATAL("%s", qPrintable(tr("Cannot open %1: %2)").arg(fileName).arg(_file.errorString())));
+        LOG_FATAL("%s", qPrintable(tr("Cannot open %1: %2").arg(fileName).arg(_file.errorString())));
         return false;
     }
     _lineBuf.resize(2048);
@@ -305,6 +305,6 @@ void CommandInterpreter::processNextCommand()
             Bino::instance()->changeVolume(val);
         }
     } else {
-        LOG_FATAL("%s", qPrintable(tr("Invalid command %1").arg(cmd)));
+        LOG_FATAL("%s", qPrintable(tr("Invalid command %1 line %2").arg(cmd).arg(_lineIndex)));
     }
 }
