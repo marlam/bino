@@ -239,498 +239,211 @@
         <translation>Ausgabe rot/blau monochrom</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="243"/>
+        <location filename="gui.cpp" line="242"/>
+        <source>Output even/odd rows</source>
+        <translation>Ausgabe gerade/ungerade Zeilen</translation>
+    </message>
+    <message>
+        <location filename="gui.cpp" line="247"/>
+        <source>Output even/odd columns</source>
+        <translation>Ausgabe gerade/ungerade Spalten</translation>
+    </message>
+    <message>
+        <location filename="gui.cpp" line="252"/>
+        <source>Output checkerboard</source>
+        <translation>Ausgabe Schachbrettmuster</translation>
+    </message>
+    <message>
+        <location filename="gui.cpp" line="258"/>
         <source>&amp;Media</source>
         <translation>&amp;Medium</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="244"/>
+        <location filename="gui.cpp" line="259"/>
         <source>Mute audio</source>
         <translation>Ton stumm</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="249"/>
+        <location filename="gui.cpp" line="264"/>
         <source>Increase audio volume</source>
         <translation>Ton lauter</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="253"/>
+        <location filename="gui.cpp" line="268"/>
         <source>Decrease audio volume</source>
         <translation>Ton leiser</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="258"/>
+        <location filename="gui.cpp" line="273"/>
         <source>Pause</source>
         <translation>Pause</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="263"/>
+        <location filename="gui.cpp" line="278"/>
         <source>Seek forward 1 second</source>
         <translation>Vorwärts spulen 1 Sekunde</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="267"/>
+        <location filename="gui.cpp" line="282"/>
         <source>Seek backwards 1 second</source>
         <translation>Rückwärts spulen 1 Sekunde</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="271"/>
+        <location filename="gui.cpp" line="286"/>
         <source>Seek forward 10 seconds</source>
         <translation>Vorwärts spulen 10 Sekunden</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="275"/>
+        <location filename="gui.cpp" line="290"/>
         <source>Seek backwards 10 seconds</source>
         <translation>Rückwärts spulen 10 Sekunden</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="279"/>
+        <location filename="gui.cpp" line="294"/>
         <source>Seek forward 1 minute</source>
         <translation>Vorwärts spulen 1 Minute</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="283"/>
+        <location filename="gui.cpp" line="298"/>
         <source>Seek backwards 1 minute</source>
         <translation>Rückwärts spulen 1 Minute</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="287"/>
+        <location filename="gui.cpp" line="302"/>
         <source>Seek forward 10 minutes</source>
         <translation>Vorwärts spulen 10 Minuten</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="291"/>
+        <location filename="gui.cpp" line="306"/>
         <source>Seek backwards 10 minutes</source>
         <translation>Rückwärts spulen 10 Minuten</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="296"/>
+        <location filename="gui.cpp" line="311"/>
         <source>&amp;View</source>
         <translation>&amp;Ansicht</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="297"/>
+        <location filename="gui.cpp" line="312"/>
         <source>&amp;Fullscreen</source>
         <translation>&amp;Vollbild</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="302"/>
+        <location filename="gui.cpp" line="317"/>
         <source>&amp;Swap eyes</source>
         <translation>&amp;Augen tauschen</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="308"/>
+        <location filename="gui.cpp" line="323"/>
         <source>&amp;Help</source>
         <translation>&amp;Hilfe</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="309"/>
+        <location filename="gui.cpp" line="324"/>
         <source>&amp;About...</source>
         <translation>&amp;Über...</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="350"/>
-        <location filename="gui.cpp" line="385"/>
-        <location filename="gui.cpp" line="719"/>
+        <location filename="gui.cpp" line="365"/>
+        <location filename="gui.cpp" line="400"/>
+        <location filename="gui.cpp" line="734"/>
         <source>Error</source>
         <translation>Fehler</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="358"/>
+        <location filename="gui.cpp" line="373"/>
         <source>Open URL</source>
         <translation>Öffne URL</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="359"/>
+        <location filename="gui.cpp" line="374"/>
         <source>URL:</source>
         <translation>URL:</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="362"/>
-        <location filename="gui.cpp" line="410"/>
+        <location filename="gui.cpp" line="377"/>
+        <location filename="gui.cpp" line="425"/>
         <source>Cancel</source>
         <translation>Abbrechen</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="363"/>
-        <location filename="gui.cpp" line="411"/>
+        <location filename="gui.cpp" line="378"/>
+        <location filename="gui.cpp" line="426"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="398"/>
+        <location filename="gui.cpp" line="413"/>
         <source>Open Camera</source>
         <translation>Öffne Kamera</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="399"/>
+        <location filename="gui.cpp" line="414"/>
         <source>Video Input:</source>
         <translation>Video Eingabe:</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="401"/>
-        <location filename="gui.cpp" line="407"/>
+        <location filename="gui.cpp" line="416"/>
+        <location filename="gui.cpp" line="422"/>
         <source>Default</source>
         <translation>Standard</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="404"/>
+        <location filename="gui.cpp" line="419"/>
         <source>Audio Input:</source>
         <translation>Ton Eingabe:</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="406"/>
-        <location filename="gui.cpp" line="645"/>
+        <location filename="gui.cpp" line="421"/>
+        <location filename="gui.cpp" line="660"/>
         <source>None</source>
         <translation>Keine</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="569"/>
+        <location filename="gui.cpp" line="584"/>
         <source>About Bino</source>
         <translation>Über Bino</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="571"/>
+        <location filename="gui.cpp" line="586"/>
         <source>Bino version %1</source>
         <translation>Bino Version %1</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="575"/>
+        <location filename="gui.cpp" line="590"/>
         <source>Copyright (C) %1 Martin Lambers</source>
         <translation>Copyright (C) %1 Martin Lambers</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="577"/>
+        <location filename="gui.cpp" line="592"/>
         <source>This is free software. You may redistribute copies of it under the terms of the &lt;a href=&quot;http://www.gnu.org/licenses/gpl.html&quot;&gt;GNU General Public License&lt;/a&gt;. There is NO WARRANTY, to the extent permitted by law.</source>
         <translation>Dieses Programm ist freie Software. Sie dürfen Kopien davon weitergeben gemäß der &lt;a href=&quot;http://www.gnu.org/licenses/gpl.html&quot;&gt;GNU General Public License&lt;/a&gt;.Es gibt KEINERLEI GARANTIE, so weit das Gesetz es erlaubt.</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="597"/>
+        <location filename="gui.cpp" line="612"/>
         <source>Video track %1</source>
         <translation>Videospur %1</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="600"/>
-        <location filename="gui.cpp" line="614"/>
+        <location filename="gui.cpp" line="615"/>
+        <location filename="gui.cpp" line="629"/>
         <source> (%1)</source>
         <translation> (%1)</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="611"/>
+        <location filename="gui.cpp" line="626"/>
         <source>Audio track %1</source>
         <translation>Tonspur %1</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="625"/>
+        <location filename="gui.cpp" line="640"/>
         <source>No subtitles</source>
         <translation>Keine Untertitel</translation>
     </message>
     <message>
-        <location filename="gui.cpp" line="632"/>
+        <location filename="gui.cpp" line="647"/>
         <source>Subtitle track %1</source>
         <translation>Untertitelspur %1</translation>
-    </message>
-</context>
-<context>
-    <name>MainWindow</name>
-    <message>
-        <source>&amp;File</source>
-        <translation type="vanished">&amp;Datei</translation>
-    </message>
-    <message>
-        <source>&amp;Open file...</source>
-        <translation type="vanished">Datei &amp;öffnen...</translation>
-    </message>
-    <message>
-        <source>Open &amp;URL...</source>
-        <translation type="vanished">&amp;URL öffnen...</translation>
-    </message>
-    <message>
-        <source>Open &amp;Camera...</source>
-        <translation type="vanished">&amp;Kamera öffnen...</translation>
-    </message>
-    <message>
-        <source>&amp;Quit</source>
-        <translation type="vanished">&amp;Beenden</translation>
-    </message>
-    <message>
-        <source>&amp;Tracks</source>
-        <translation type="vanished">&amp;Spuren</translation>
-    </message>
-    <message>
-        <source>&amp;3D Modes</source>
-        <translation type="vanished">&amp;3D Modi</translation>
-    </message>
-    <message>
-        <source>360° mode</source>
-        <translation type="vanished">360° Modus</translation>
-    </message>
-    <message>
-        <source>Input 2D</source>
-        <translation type="vanished">Eingabe 2D</translation>
-    </message>
-    <message>
-        <source>Input top/bottom</source>
-        <translation type="vanished">Eingabe oben/unten</translation>
-    </message>
-    <message>
-        <source>Input top/bottom half height</source>
-        <translation type="vanished">Eingabe oben/unten halbhoch</translation>
-    </message>
-    <message>
-        <source>Input bottom/top</source>
-        <translation type="vanished">Eingabe unten/oben</translation>
-    </message>
-    <message>
-        <source>Input bottom/top half height</source>
-        <translation type="vanished">Eingabe unten/oben halbhoch</translation>
-    </message>
-    <message>
-        <source>Input left/right</source>
-        <translation type="vanished">Eingabe links/rechts</translation>
-    </message>
-    <message>
-        <source>Input left/right half width</source>
-        <translation type="vanished">Eingabe links/rechts halbbreit</translation>
-    </message>
-    <message>
-        <source>Input right/left</source>
-        <translation type="vanished">Eingabe rechts/links</translation>
-    </message>
-    <message>
-        <source>Input right/left half width</source>
-        <translation type="vanished">Eingabe rechts/links halbbreit</translation>
-    </message>
-    <message>
-        <source>Input alternating left/right</source>
-        <oldsource>Input alternating left-right</oldsource>
-        <translation type="vanished">Eingabe abwechselnd links/rechts</translation>
-    </message>
-    <message>
-        <source>Input alternating right/left</source>
-        <oldsource>Input alternating right-left</oldsource>
-        <translation type="vanished">Eingabe abwechselnd rechts/links</translation>
-    </message>
-    <message>
-        <source>Output left</source>
-        <translation type="vanished">Ausgabe links</translation>
-    </message>
-    <message>
-        <source>Output right</source>
-        <translation type="vanished">Ausgabe rechts</translation>
-    </message>
-    <message>
-        <source>Output OpenGL Stereo</source>
-        <translation type="vanished">Ausgabe OpenGL Stereo</translation>
-    </message>
-    <message>
-        <source>Output alternating</source>
-        <translation type="vanished">Ausgabe abwechselnd</translation>
-    </message>
-    <message>
-        <source>Output red/cyan high quality</source>
-        <translation type="vanished">Ausgabe rot/cyan hohe Qualität</translation>
-    </message>
-    <message>
-        <source>Output red/cyan full color</source>
-        <translation type="vanished">Ausgabe rot/cyan vollfarbig</translation>
-    </message>
-    <message>
-        <source>Output red/cyan half color</source>
-        <translation type="vanished">Ausgabe rot/cyan halbfarbig</translation>
-    </message>
-    <message>
-        <source>Output red/cyan monochrome</source>
-        <translation type="vanished">Ausgabe rot/cyan monochrom</translation>
-    </message>
-    <message>
-        <source>Output green/magenta high quality</source>
-        <translation type="vanished">Ausgabe grün/magenta hohe Qualität</translation>
-    </message>
-    <message>
-        <source>Output green/magenta full color</source>
-        <translation type="vanished">Ausgabe grün/magenta vollfarbig</translation>
-    </message>
-    <message>
-        <source>Output green/magenta half color</source>
-        <translation type="vanished">Ausgabe grün/magenta halbfarbig</translation>
-    </message>
-    <message>
-        <source>Output green/magenta monochrome</source>
-        <translation type="vanished">Ausgabe grün/magenta monochrom</translation>
-    </message>
-    <message>
-        <source>Output amber/blue high quality</source>
-        <translation type="vanished">Ausgabe bernstein/blau hohe Qualität</translation>
-    </message>
-    <message>
-        <source>Output amber/blue full color</source>
-        <translation type="vanished">Ausgabe bernstein/blau vollfarbig</translation>
-    </message>
-    <message>
-        <source>Output amber/blue half color</source>
-        <translation type="vanished">Ausgabe bernstein/blau halbfarbig</translation>
-    </message>
-    <message>
-        <source>Output amber/blue monochrome</source>
-        <translation type="vanished">Ausgabe bernstein/blau monochrom</translation>
-    </message>
-    <message>
-        <source>Output red/green monochrome</source>
-        <translation type="vanished">Ausgabe rot/grün monochrom</translation>
-    </message>
-    <message>
-        <source>Output red/blue monochrome</source>
-        <translation type="vanished">Ausgabe rot/blau monochrom</translation>
-    </message>
-    <message>
-        <source>&amp;Media</source>
-        <translation type="vanished">&amp;Medium</translation>
-    </message>
-    <message>
-        <source>Mute audio</source>
-        <translation type="vanished">Ton stumm</translation>
-    </message>
-    <message>
-        <source>Increase audio volume</source>
-        <translation type="vanished">Ton lauter</translation>
-    </message>
-    <message>
-        <source>Decrease audio volume</source>
-        <translation type="vanished">Ton leiser</translation>
-    </message>
-    <message>
-        <source>Pause</source>
-        <translation type="vanished">Pause</translation>
-    </message>
-    <message>
-        <source>Seek forward 1 second</source>
-        <translation type="vanished">Vorwärts spulen 1 Sekunde</translation>
-    </message>
-    <message>
-        <source>Seek backwards 1 second</source>
-        <translation type="vanished">Rückwärts spulen 1 Sekunde</translation>
-    </message>
-    <message>
-        <source>Seek forward 10 seconds</source>
-        <translation type="vanished">Vorwärts spulen 10 Sekunden</translation>
-    </message>
-    <message>
-        <source>Seek backwards 10 seconds</source>
-        <translation type="vanished">Rückwärts spulen 10 Sekunden</translation>
-    </message>
-    <message>
-        <source>Seek forward 1 minute</source>
-        <translation type="vanished">Vorwärts spulen 1 Minute</translation>
-    </message>
-    <message>
-        <source>Seek backwards 1 minute</source>
-        <translation type="vanished">Rückwärts spulen 1 Minute</translation>
-    </message>
-    <message>
-        <source>Seek forward 10 minutes</source>
-        <translation type="vanished">Vorwärts spulen 10 Minuten</translation>
-    </message>
-    <message>
-        <source>Seek backwards 10 minutes</source>
-        <translation type="vanished">Rückwärts spulen 10 Minuten</translation>
-    </message>
-    <message>
-        <source>&amp;View</source>
-        <translation type="vanished">&amp;Ansicht</translation>
-    </message>
-    <message>
-        <source>&amp;Fullscreen</source>
-        <translation type="vanished">&amp;Vollbild</translation>
-    </message>
-    <message>
-        <source>&amp;Swap eyes</source>
-        <translation type="vanished">&amp;Augen tauschen</translation>
-    </message>
-    <message>
-        <source>&amp;Help</source>
-        <translation type="vanished">&amp;Hilfe</translation>
-    </message>
-    <message>
-        <source>&amp;About...</source>
-        <oldsource>&amp;About</oldsource>
-        <translation type="vanished">&amp;Über...</translation>
-    </message>
-    <message>
-        <source>Error</source>
-        <translation type="vanished">Fehler</translation>
-    </message>
-    <message>
-        <source>Open URL</source>
-        <translation type="vanished">Öffne URL</translation>
-    </message>
-    <message>
-        <source>URL:</source>
-        <translation type="vanished">URL:</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation type="vanished">Abbrechen</translation>
-    </message>
-    <message>
-        <source>OK</source>
-        <translation type="vanished">OK</translation>
-    </message>
-    <message>
-        <source>Open Camera</source>
-        <translation type="vanished">Öffne Kamera</translation>
-    </message>
-    <message>
-        <source>Video Input:</source>
-        <translation type="vanished">Video Eingabe:</translation>
-    </message>
-    <message>
-        <source>Default</source>
-        <translation type="vanished">Standard</translation>
-    </message>
-    <message>
-        <source>Audio Input:</source>
-        <translation type="vanished">Ton Eingabe:</translation>
-    </message>
-    <message>
-        <source>None</source>
-        <translation type="vanished">Keine</translation>
-    </message>
-    <message>
-        <source>Video track %1</source>
-        <translation type="vanished">Videospur %1</translation>
-    </message>
-    <message>
-        <source> (%1)</source>
-        <translation type="vanished"> (%1)</translation>
-    </message>
-    <message>
-        <source>Audio track %1</source>
-        <translation type="vanished">Tonspur %1</translation>
-    </message>
-    <message>
-        <source>No subtitles</source>
-        <translation type="vanished">Keine Untertitel</translation>
-    </message>
-    <message>
-        <source>Subtitle track %1</source>
-        <translation type="vanished">Untertitelspur %1</translation>
-    </message>
-    <message>
-        <source>About Bino</source>
-        <translation type="vanished">Über Bino</translation>
-    </message>
-    <message>
-        <source>Bino version %1</source>
-        <translation type="vanished">Bino Version %1</translation>
-    </message>
-    <message>
-        <source>Copyright (C) %1 Martin Lambers</source>
-        <translation type="vanished">Copyright (C) %1 Martin Lambers</translation>
-    </message>
-    <message>
-        <source>This is free software. You may redistribute copies of it under the terms of the &lt;a href=&quot;http://www.gnu.org/licenses/gpl.html&quot;&gt;GNU General Public License&lt;/a&gt;. There is NO WARRANTY, to the extent permitted by law.</source>
-        <translation type="vanished">Dieses Programm ist freie Software. Sie dürfen Kopien davon weitergeben gemäß der &lt;a href=&quot;http://www.gnu.org/licenses/gpl.html&quot;&gt;GNU General Public License&lt;/a&gt;.Es gibt KEINERLEI GARANTIE, so weit das Gesetz es erlaubt.</translation>
     </message>
 </context>
 <context>
