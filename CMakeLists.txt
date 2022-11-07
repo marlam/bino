@@ -15,7 +15,9 @@ project(Bino LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
+# Required: Qt6
 find_package(Qt6 6.3.0 REQUIRED COMPONENTS OpenGLWidgets Multimedia LinguistTools)
+# Optional: QVR for Virtual Reality support
 find_package(QVR 4.0.0)
 if(QVR_FOUND)
     add_definitions(-DWITH_QVR)
@@ -23,11 +25,11 @@ if(QVR_FOUND)
     link_directories(${QVR_LIBRARY_DIRS})
 endif()
 
+# The executable
 qt6_add_resources(RESOURCES resources.qrc)
 if(WIN32)
     set(APPICON_RESOURCE appicon.rc)
 endif()
-
 add_executable(bino
 	main.cpp version.hpp
 	log.hpp log.cpp
@@ -48,3 +50,22 @@ qt6_add_translations(bino TS_FILES bino_de.ts)
 set_target_properties(bino PROPERTIES WIN32_EXECUTABLE TRUE)
 target_link_libraries(bino PRIVATE Qt6::OpenGLWidgets Qt6::Multimedia ${QVR_LIBRARIES})
 install(TARGETS bino RUNTIME DESTINATION bin)
+
+# The manual and man page (optional, only if pandoc is found)
+find_program(PANDOC NAMES pandoc DOC "pandoc executable")
+if(PANDOC)
+    add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/bino-manual.html"
+	COMMAND ${PANDOC} "-s" "-t" "html" "--toc" "--css" "bino-manual.css" "${CMAKE_SOURCE_DIR}/doc/bino-manual.md" "-o" "${CMAKE_BINARY_DIR}/bino-manual.html"
+	WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+	DEPENDS "${CMAKE_SOURCE_DIR}/doc/bino-manual.md"
+	COMMENT "Generating HTML manual with pandoc" VERBATIM)
+    add_custom_target(manual ALL DEPENDS "${CMAKE_BINARY_DIR}/bino-manual.html")
+    install(FILES "doc/bino-manual.css" "${CMAKE_BINARY_DIR}/bino-manual.html" DESTINATION share/doc/bino)
+    add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/bino.1"
+	COMMAND ${PANDOC} "-s" "-t" "man" "${CMAKE_SOURCE_DIR}/doc/bino-manual.md" "-o" "${CMAKE_BINARY_DIR}/bino.1"
+	WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+	DEPENDS "${CMAKE_SOURCE_DIR}/doc/bino-manual.md"
+	COMMENT "Generating man page with pandoc" VERBATIM)
+    add_custom_target(manpage ALL DEPENDS "${CMAKE_BINARY_DIR}/bino.1")
+    install(FILES "${CMAKE_BINARY_DIR}/bino.1" DESTINATION share/man/man1)
+endif()

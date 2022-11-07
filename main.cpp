@@ -123,6 +123,8 @@ int main(int argc, char* argv[])
     parser.addOption({ "log-file",
             QCommandLineParser::tr("Set log file."),
             "file" });
+    parser.addOption({ "read-commands",
+            QCommandLineParser::tr("Read commands from a script file."), "script" });
     parser.addOption({ "opengles",
             QCommandLineParser::tr("Use OpenGL ES instead of Desktop OpenGL.") });
     parser.addOption({ "stereo",
@@ -151,14 +153,14 @@ int main(int argc, char* argv[])
     parser.addOption({ "video-input",
             QCommandLineParser::tr("Choose video input via its index."),
             "vi" });
+    parser.addOption({ "list-tracks",
+            QCommandLineParser::tr("List all video, audio and subtitle tracks in the media.") });
     parser.addOption({ "preferred-audio",
             QCommandLineParser::tr("Set preferred audio track language (en, de, fr, ...)."),
             "lang" });
     parser.addOption({ "preferred-subtitle",
             QCommandLineParser::tr("Set preferred subtitle track language (en, de, fr, ...). Can be empty."),
             "lang" });
-    parser.addOption({ "list-tracks",
-            QCommandLineParser::tr("List all video, audio and subtitle tracks in the media.") });
     parser.addOption({ "video-track",
             QCommandLineParser::tr("Choose video track via its index."), "track" });
     parser.addOption({ "audio-track",
@@ -166,10 +168,6 @@ int main(int argc, char* argv[])
     parser.addOption({ "subtitle-track",
             QCommandLineParser::tr("Choose subtitle track via its index. Can be empty."),
             "track" });
-    parser.addOption({ { "S", "swap-eyes" },
-            QCommandLineParser::tr("Swap left/right eye.") });
-    parser.addOption({ { "f", "fullscreen" },
-            QCommandLineParser::tr("Start in fullscreen mode.") });
     parser.addOption({ { "i", "input" },
             QCommandLineParser::tr("Set input mode (%1).").arg("mono, "
             "top-bottom, top-bottom-half, bottom-top, bottom-top-half, "
@@ -186,8 +184,10 @@ int main(int argc, char* argv[])
     parser.addOption({ "360",
             QCommandLineParser::tr("Set 360° mode (%1).").arg("on, off"),
             "mode" });
-    parser.addOption({ "read-commands",
-            QCommandLineParser::tr("Read commands from a script file."), "script" });
+    parser.addOption({ { "S", "swap-eyes" },
+            QCommandLineParser::tr("Swap left/right eye.") });
+    parser.addOption({ { "f", "fullscreen" },
+            QCommandLineParser::tr("Start in fullscreen mode.") });
     parser.process(app);
 
     // Initialize logging

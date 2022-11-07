@@ -1,0 +1,265 @@
+---
+title: Bino
+date: November 6, 2022
+section: 1
+---
+
+# Overview
+
+Bino is a video player with a focus on 3D and Virtual Reality:
+
+- Support for stereoscopic 3D videos in various formats
+
+- Support for 360° videos, with and without stereoscopic 3D
+
+- Support for Virtual Reality environments, including SteamVR,
+  CAVEs, powerwalls, and other multi-display / multi-GPU / multi-host systems
+
+# Invocation
+
+`bino` [*options*] *URL*...
+
+- `-h`, `--help`
+  
+  Displays help on commandline options.
+
+- `--help-all`
+
+  Displays help including Qt specific options.
+
+- `-v`, `--version`
+
+  Displays version information.
+
+- `--log-level` *level*
+
+  Set log level (fatal, warning, info, debug, firehose).
+
+- `--log-file` *file*
+
+  Set log file.
+
+- `--read-commands` *script*
+
+  Read commands from a script file. See [Scripting].
+
+- `--opengles`
+
+  Use OpenGL ES instead of Desktop OpenGL.
+
+- `--stereo`
+
+  Use OpenGL quad-buffered stereo in GUI mode.
+
+- `--vr`
+
+  Start in Vitrual Reality mode instead of GUI mode. See [Virtual Reality].
+
+- `--vr-screen` *screen*
+  
+  Set VR screen geometry, either as a comma-separated list of nine values
+  representing three 3D coordinates that define a planar screen (bottom left,
+  bottom right, top left) or as a name of an OBJ file that contains the screen
+  geometry with texture coordinates.
+
+- `--capture`
+
+  Capture video/audio input from camera and microphone.
+
+- `--list-audio-outputs`
+
+  List audio outputs.
+
+- `--list-audio-inputs`
+
+  List audio inputs.
+
+- `--list-video-inputs`
+
+  List video inputs.
+
+- `--audio-output` *ao*
+
+  Choose audio output via its index.
+  
+- `--audio-input` *ai*
+
+  Choose audio input via its index. Can be empty.
+
+- `--video-input` *vi*
+
+  Choose video input via its index.
+
+- `--list-tracks`
+
+  List all video, audio and subtitle tracks in the media.
+
+- `--preferred-audio` *lang*
+
+  Set preferred audio track language (en, de, fr, ...).
+
+- `--preferred-subtitle` *lang*
+
+  Set preferred subtitle track language (en, de, fr, ...). Can be empty.
+
+- `--video-track` *track*
+
+  Choose video track via its index.
+
+- `--audio-track` *track*
+
+  Choose audio track via its index.
+
+- `--subtitle-track` *track*
+
+  Choose subtitle track via its index. Can be empty.
+
+- `-i`, `--input` *mode*
+
+  Set input mode (mono, top-bottom, top-bottom-half, bottom-top,
+  bottom-top-half, left-right, left-right-half, right-left, right-left-half,
+  alternating-left-right, alternating-right-left).
+
+- `-o`, `--output` *mode*
+
+  Set output mode (left, right, stereo, alternating, red-cyan-dubois,
+  red-cyan-full-color, red-cyan-half-color, red-cyan-monochrome,
+  green-magenta-dubois, green-magenta-full-color, green-magenta-half-color,
+  green-magenta-monochrome, amber-blue-dubois, amber-blue-full-color,
+  amber-blue-half-color, amber-blue-monochrome, red-green-monochrome,
+  red-blue-monochrome, even-odd-rows, even-odd-columns, checkerboard).
+
+- `--360` *mode*
+
+  Set 360° mode (on, off).
+
+- `-S`, `--swap-eyes`
+
+  Swap left/right eye.
+
+- `-f`, `--fullscreen`
+
+  Start in fullscreen mode.
+
+# Scripting
+
+Bino can read commands from a script file and execute them via the option
+`--read-commands` *scriptfile*. This works both in GUI mode and in Virtual
+Reality mode.
+
+The script file can also be a named pipe so that you can have arbitraty remote
+control interfaces write commands into it as they come in.
+
+Empty lines and comment lines (which begin with `#`) are ignored.
+The following commands are supported:
+
+- `open` `[--input` *mode*`]` `[--360` *mode*`]` `[--video-track` *vt*`]` `[--audio-track` *at*`]` `[--subtitle-track` *st*`]` *URL*
+  
+  Open the URL and start playing. The options have the same meaning as the corresponding command line options.
+
+- `capture` `[--audio-input` *ai*`]` `[--video-input` *vi*`]`
+
+  Start capturing camera and microphone. The options have the same meaning as the corresponding command line options.
+
+- `play`
+
+  Start playing.
+
+- `pause`
+
+  Pause.
+
+- `toggle-pause`
+
+  Switch between pause and play.
+
+- `stop`
+
+  Stop playing.
+
+- `quit`
+
+  Quit Bino.
+
+- `set-position` *p*
+
+  Set the video position to *p*, where *p*=0 is the beginning and *p*=1 is the end.
+
+- `seek` *seconds*
+
+  Seek the given amounts of seconds forward or, if the number of seconds is negative, backwards.
+
+- `wait` `stop`|*seconds*
+
+  Wait until the video stops, or wait for the given number of seconds, before executing the next command.
+
+- `set-mute` `on`|`off`
+  
+  Set the volume mute status.
+
+- `toggle-mute`
+
+  Switch between mute and unmute.
+
+- `set-volume` *vol*
+
+  Set the volume level to *vol* (between 0 and 1).
+
+- `adjust-volume` *offset*
+
+  Adjust the volume by the given amount (the final volume is clamped between 0 and 1).
+
+- `set-output-mode` *mode*
+
+  Set the given output mode. See the command line option `--output` for a list of modes.
+
+- `set-swap-eyes` `on`|`off`
+
+  Set left/right eye swap.
+
+- `toggle-swap-eyes`
+
+  Toggle left/right eye swap.
+
+- `set-fullscreen` `on`|`off`
+
+  Set fullscreen mode.
+
+- `toggle-fullscreen`
+
+  Toggle fullscreen mode.
+
+# Virtual Reality
+
+Bino supports all sorts of Virtual Reality environments via [QVR](https://marlam.de/qvr):
+
+- When QVR is compiled with just with Qt6, CAVEs and powerwalls and similar
+  multi-display setups are supported, including multi-GPU and multi-host
+  rendering.
+
+- When QVR is additionally compiled with [VRPN](https://github.com/vrpn/vrpn),
+  all sorts of tracking and interaction hardware for such systems are
+  supported.
+
+- When QVR is additionally compiled with
+  [OpenVR](https://github.com/ValveSoftware/openvr), SteamVR is supported and
+  automatically detected (e.g. HTC Vive).
+
+To start Bino in VR mode, use the option `--vr`.
+Bino will then display a screen in the virtual world, and the video will be
+displayed on that screen, unless the input is a 360° video, which will of course
+be displayed all around the viewer.
+
+The default is a 16:9 screen in a few meters distance from the viewer, but you
+can use the `--vr-screen` option to either define arbitrary planar screens via
+their bottom left, bottom right and top left corners, or to load arbitrary
+screen geometry from an OBJ file. The latter case is useful e.g. if you want
+Bino's virtual screen to coincide with a curved physical screen.
+
+Bino uses QVRs default navigation, which may be based on autodetected
+controllers such as the HTC Vive controllers, or on tracking and interaction
+hardware configured via QVR for your VR system, or on the mouse and WASDQE keys
+if nothing else is available.
+
+Additional interaction in VR mode is currently limited to the same keyboard
+shortcuts that also work in GUI mode.

@@ -1,0 +1,42 @@
+/* General */
+body {
+    background: #ffffff;
+    margin: 0;
+    line-height: 1.5em;
+    color: #333333;
+    font-family: helvetica, arial, sans-serif;
+    max-width: 50em;
+    margin-left: 1em;
+    margin-right: auto;
+    padding: 0 0.5em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin-bottom: 0;
+    line-height: 1.2em;
+    margin-top: 1em;
+}
+
+a:link, a:visited {
+    color: #0000e0;
+    text-decoration: none
+}
+
+a:hover, a:active {
+    color: #0000ff;
+    text-decoration: underline
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #333333;
+	color: #cccccc;
+    }
+    a:link, a:visited {
+        color: #7777e0;
+    }
+    a:hover, a:active {
+        color: #9999ff;
+    }
+}
