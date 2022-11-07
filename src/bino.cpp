@@ -723,10 +723,10 @@ bool Bino::initProcess()
     CHECK_GL();
 
     // Shader program
-    QString colorVS = readFile(":shader-color.vert.glsl");
-    QString colorFS = readFile(":shader-color.frag.glsl");
-    QString viewVS = readFile(":shader-view.vert.glsl");
-    QString viewFS = readFile(":shader-view.frag.glsl");
+    QString colorVS = readFile(":src/shader-color.vert.glsl");
+    QString colorFS = readFile(":src/shader-color.frag.glsl");
+    QString viewVS = readFile(":src/shader-view.vert.glsl");
+    QString viewFS = readFile(":src/shader-view.frag.glsl");
     if (isGLES) {
         colorVS.prepend("#version 320 es\n");
         colorFS.prepend("#version 320 es\n"

@@ -27,29 +27,29 @@ endif()
 
 # The executable
 add_executable(bino
-	main.cpp version.hpp
-	log.hpp log.cpp
-	tools.hpp tools.cpp
-	screen.hpp screen.cpp tiny_obj_loader.h
-	modes.hpp modes.cpp
-	metadata.hpp metadata.cpp
-	playlist.hpp playlist.cpp
-	videoframe.hpp videoframe.cpp
-	videosink.hpp videosink.cpp
-	bino.hpp bino.cpp
-	qvrapp.hpp qvrapp.cpp
-	widget.hpp widget.cpp
-	commandinterpreter.hpp commandinterpreter.cpp
-	gui.hpp gui.cpp
-	appicon.rc)
-qt6_add_translations(bino TS_FILES bino_de.ts)
+	src/main.cpp src/version.hpp
+	src/log.hpp src/log.cpp
+	src/tools.hpp src/tools.cpp
+	src/screen.hpp src/screen.cpp src/tiny_obj_loader.h
+	src/modes.hpp src/modes.cpp
+	src/metadata.hpp src/metadata.cpp
+	src/playlist.hpp src/playlist.cpp
+	src/videoframe.hpp src/videoframe.cpp
+	src/videosink.hpp src/videosink.cpp
+	src/bino.hpp src/bino.cpp
+	src/qvrapp.hpp src/qvrapp.cpp
+	src/widget.hpp src/widget.cpp
+	src/commandinterpreter.hpp src/commandinterpreter.cpp
+	src/gui.hpp src/gui.cpp
+	src/appicon.rc)
+qt6_add_translations(bino TS_FILES i18n/bino_de.ts)
 qt6_add_resources(bino "misc" PREFIX "/" FILES
-	shader-color.vert.glsl
-	shader-color.frag.glsl
-	shader-view.vert.glsl
-	shader-view.frag.glsl
-	shader-display.vert.glsl
-	shader-display.frag.glsl
+	src/shader-color.vert.glsl
+	src/shader-color.frag.glsl
+	src/shader-view.vert.glsl
+	src/shader-view.frag.glsl
+	src/shader-display.vert.glsl
+	src/shader-display.frag.glsl
 	aux/bino-logo-small-512.png)
 set_target_properties(bino PROPERTIES WIN32_EXECUTABLE TRUE)
 target_link_libraries(bino PRIVATE Qt6::OpenGLWidgets Qt6::Multimedia ${QVR_LIBRARIES})

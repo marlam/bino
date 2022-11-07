@@ -162,8 +162,8 @@ void Widget::initializeGL()
     CHECK_GL();
 
     // Shader program
-    QString vertexShaderSource = readFile(":shader-display.vert.glsl");
-    QString fragmentShaderSource = readFile(":shader-display.frag.glsl");
+    QString vertexShaderSource = readFile(":src/shader-display.vert.glsl");
+    QString fragmentShaderSource = readFile(":src/shader-display.frag.glsl");
     if (isGLES) {
         vertexShaderSource.prepend("#version 320 es\n");
         fragmentShaderSource.prepend("#version 320 es\n"
