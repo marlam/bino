@@ -45,8 +45,6 @@ Bino::Bino(const Screen& screen, bool swapEyes) :
     _audioInput(nullptr),
     _videoInput(nullptr),
     _captureSession(nullptr),
-    _tempFile(nullptr),
-    _recorder(nullptr),
     _lastFrameInputMode(Input_Unknown),
     _lastFrameThreeSixtyMode(ThreeSixty_Unknown),
     _screen(screen),
@@ -65,8 +63,6 @@ Bino::~Bino()
     delete _audioInput;
     delete _videoInput;
     delete _captureSession;
-    delete _tempFile;
-    delete _recorder;
     binoSingleton = nullptr;
 }
 
@@ -139,31 +135,18 @@ void Bino::startCaptureMode(
     _videoInput = new QCamera;
     _videoInput->setCameraDevice(videoInputDevice);
     _captureSession = new QMediaCaptureSession;
-    _captureSession->setAudioOutput(_audioOutput);
     if (_audioInput)
         _captureSession->setAudioInput(_audioInput);
     _captureSession->setCamera(_videoInput);
+    _captureSession->setAudioOutput(_audioOutput);
     _captureSession->setVideoSink(_videoSink);
-    _recorder = new QMediaRecorder;
-    /* Unfortunately we have to encode a media file even though we don't need to.
-     * Use a temporary file with lowest possible quality settings. */
-    _recorder->setQuality(QMediaRecorder::VeryLowQuality);
-    _tempFile = new QTemporaryFile;
-    _tempFile->open();
-    _recorder->setOutputLocation(QUrl::fromLocalFile(_tempFile->fileName()));
-    _captureSession->setRecorder(_recorder);
-    _recorder->record();
 
     emit stateChanged();
 }
 
 void Bino::stopCaptureMode()
 {
-    if (_recorder) {
-        delete _recorder;
-        _recorder = nullptr;
-        delete _tempFile;
-        _tempFile = nullptr;
+    if (_captureSession) {
         delete _captureSession;
         _captureSession = nullptr;
         delete _videoInput;
@@ -183,7 +166,7 @@ bool Bino::playlistMode() const
 
 bool Bino::captureMode() const
 {
-    return _recorder;
+    return _captureSession;
 }
 
 void Bino::mediaChanged(PlaylistEntry entry)

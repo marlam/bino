@@ -27,10 +27,8 @@
 #include <QAudioOutput>
 #include <QAudioInput>
 #include <QCamera>
-#include <QTemporaryFile>
 #include <QMediaPlayer>
 #include <QMediaCaptureSession>
-#include <QMediaRecorder>
 #include <QKeyEvent>
 
 #include "screen.hpp"
@@ -53,8 +51,6 @@ private:
     QAudioInput* _audioInput;
     QCamera* _videoInput;
     QMediaCaptureSession* _captureSession;
-    QTemporaryFile* _tempFile;
-    QMediaRecorder* _recorder;
     // for rendering subtitles:
     QImage _subtitleImg;
     QString _subtitleImgString;
