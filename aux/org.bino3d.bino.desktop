@@ -1,0 +1,14 @@
+[Desktop Entry]
+Name=Bino
+GenericName=3D Video Player
+GenericName[de]=3D Videospieler
+GenericName[fr]=Lecteur vidéo 3D
+GenericName[pl]=Odtwarzacz 3D
+GenericName[ru]=3D видео плеер
+Icon=org.bino3d.bino
+Categories=AudioVideo;Video;Player;
+Type=Application
+Exec=bino %u
+StartupNotify=true
+Terminal=false
+MimeType=video/mp4;video/mpeg;video/ogg;video/quicktime;video/webm;video/x-matroska;video/x-mng;video/x-ms-wmv;video/x-msvideo;

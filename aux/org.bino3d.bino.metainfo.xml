@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.bino3d.bino</id>
+  
+  <name>Bino</name>
+  <summary>3D Video Player</summary>
+  
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  
+  <description>
+    <p>
+      A video player with emphasis on 3D and Virtual Reality.
+    </p>
+  </description>
+  
+  <launchable type="desktop-id">org.bino3d.bino.desktop</launchable>
+</component>
