@@ -16,7 +16,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 # Required: Qt6
-find_package(Qt6 6.3.0 REQUIRED COMPONENTS OpenGLWidgets Multimedia LinguistTools)
+find_package(Qt6 6.3.0 REQUIRED COMPONENTS OpenGLWidgets Multimedia Svg LinguistTools)
 # Optional: QVR for Virtual Reality support
 find_package(QVR 4.0.0)
 if(QVR_FOUND)
@@ -50,9 +50,9 @@ qt6_add_resources(bino "misc" PREFIX "/" FILES
 	src/shader-view.frag.glsl
 	src/shader-display.vert.glsl
 	src/shader-display.frag.glsl
-	aux/bino-logo-small-512.png)
+	aux/bino-logo-small.svg)
 set_target_properties(bino PROPERTIES WIN32_EXECUTABLE TRUE)
-target_link_libraries(bino PRIVATE Qt6::OpenGLWidgets Qt6::Multimedia ${QVR_LIBRARIES})
+target_link_libraries(bino PRIVATE Qt6::OpenGLWidgets Qt6::Multimedia Qt6::Svg ${QVR_LIBRARIES})
 install(TARGETS bino RUNTIME DESTINATION bin)
 
 # The manual and man page (optional, only if pandoc is found)
@@ -76,15 +76,15 @@ endif()
 
 # Add auxiliary files for Linux-ish systems
 if(UNIX)
-    install(FILES "aux/bino-logo-small-16.png"  RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/16x16)
-    install(FILES "aux/bino-logo-small-22.png"  RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/22x22)
-    install(FILES "aux/bino-logo-small-32.png"  RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/32x32)
-    install(FILES "aux/bino-logo-small-48.png"  RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/48x48)
-    install(FILES "aux/bino-logo-small-64.png"  RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/64x64)
-    install(FILES "aux/bino-logo-small-128.png" RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/128x128)
-    install(FILES "aux/bino-logo-small-256.png" RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/256x256)
-    install(FILES "aux/bino-logo-small-512.png" RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/512x512)
-    install(FILES "aux/bino-logo-small.svg"     RENAME "org.bino3d.bino.svg" DESTINATION share/icons/hicolor/scalable)
+    install(FILES "aux/bino-logo-small-16.png"  RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/16x16/apps)
+    install(FILES "aux/bino-logo-small-22.png"  RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/22x22/apps)
+    install(FILES "aux/bino-logo-small-32.png"  RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/32x32/apps)
+    install(FILES "aux/bino-logo-small-48.png"  RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/48x48/apps)
+    install(FILES "aux/bino-logo-small-64.png"  RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/64x64/apps)
+    install(FILES "aux/bino-logo-small-128.png" RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/128x128/apps)
+    install(FILES "aux/bino-logo-small-256.png" RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/256x256/apps)
+    install(FILES "aux/bino-logo-small-512.png" RENAME "org.bino3d.bino.png" DESTINATION share/icons/hicolor/512x512/apps)
+    install(FILES "aux/bino-logo-small.svg"     RENAME "org.bino3d.bino.svg" DESTINATION share/icons/hicolor/scalable/apps)
     install(FILES "aux/org.bino3d.bino.desktop" DESTINATION share/applications)
     install(FILES "aux/org.bino3d.bino.metainfo.xml" DESTINATION share/metainfo)
 endif()
