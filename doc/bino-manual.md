@@ -1,6 +1,7 @@
 ---
 title: Bino
-date: November 6, 2022
+header: Version 2.0
+date: November 8, 2022
 section: 1
 ---
 
