@@ -10,7 +10,13 @@
   
   <description>
     <p>
-      A video player with emphasis on 3D and Virtual Reality.
+      A video player with a focus on 3D and Virtual Reality:
+      <ul>
+      <li>Support for 3D videos in various formats</li>
+      <li>Support for 360° videos, with and without 3D</li>
+      <li>Support for 3D displays with various modes</li>
+      <li>Support for Virtual Reality environments, including Steam VR, CAVEs, and multi-host / multi-GPU render clusters</li>
+      </ul>
     </p>
   </description>
   
