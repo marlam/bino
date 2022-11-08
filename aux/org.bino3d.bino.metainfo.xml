@@ -15,7 +15,7 @@
       <li>Support for 3D videos in various formats</li>
       <li>Support for 360° videos, with and without 3D</li>
       <li>Support for 3D displays with various modes</li>
-      <li>Support for Virtual Reality environments, including Steam VR, CAVEs, and multi-host / multi-GPU render clusters</li>
+      <li>Support for Virtual Reality environments, including SteamVR, CAVEs, powerwalls, and other multi-display / multi-GPU / multi-host systems</li>
       </ul>
     </p>
   </description>
