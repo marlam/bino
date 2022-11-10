@@ -822,7 +822,7 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
                 || frame.pixelFormat == QVideoFrameFormat::Format_ARGB8888_Premultiplied
                 || frame.pixelFormat == QVideoFrameFormat::Format_XRGB8888) {
             glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
             plane0Swizzle = { GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA };
             glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
             planeFormat = 1;
@@ -831,7 +831,7 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
                 || frame.pixelFormat == QVideoFrameFormat::Format_BGRA8888_Premultiplied
                 || frame.pixelFormat == QVideoFrameFormat::Format_BGRX8888) {
             glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
             plane0Swizzle = { GL_ALPHA, GL_RED, GL_GREEN, GL_BLUE };
             glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
             planeFormat = 1;
@@ -839,7 +839,7 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
         } else if (frame.pixelFormat == QVideoFrameFormat::Format_ABGR8888
                 || frame.pixelFormat == QVideoFrameFormat::Format_XBGR8888) {
             glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
             plane0Swizzle = { GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA };
             glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
             planeFormat = 1;
@@ -847,7 +847,7 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
         } else if (frame.pixelFormat == QVideoFrameFormat::Format_RGBA8888
                 || frame.pixelFormat == QVideoFrameFormat::Format_RGBX8888) {
             glBindTexture(GL_TEXTURE_2D, _planeTexs[0]);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, planeData[0]);
             plane0Swizzle = { GL_ALPHA, GL_BLUE, GL_GREEN, GL_RED };
             glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, plane0Swizzle.data());
             planeFormat = 1;
