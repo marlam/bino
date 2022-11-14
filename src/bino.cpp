@@ -705,33 +705,70 @@ bool Bino::initProcess()
             _screen.indices.constData(), GL_STATIC_DRAW);
     CHECK_GL();
 
-    // Shader program
+    return true;
+}
+
+void Bino::rebuildColorPrgIfNecessary(int planeFormat, bool yuvValueRangeSmall, int yuvSpace)
+{
+    if (_colorPrg.isLinked()
+            && _colorPrgPlaneFormat == planeFormat
+            && _colorPrgYuvValueRangeSmall == yuvValueRangeSmall
+            && _colorPrgYuvSpace == yuvSpace)
+        return;
+
+    LOG_DEBUG("rebuilding color conversion program for plane format %d, value range %s, yuv space %s",
+            planeFormat, yuvValueRangeSmall ? "small" : "full", yuvSpace ? "true" : "false");
+    bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
     QString colorVS = readFile(":src/shader-color.vert.glsl");
     QString colorFS = readFile(":src/shader-color.frag.glsl");
-    QString viewVS = readFile(":src/shader-view.vert.glsl");
-    QString viewFS = readFile(":src/shader-view.frag.glsl");
+    colorFS.replace("$PLANE_FORMAT", QString::number(planeFormat));
+    colorFS.replace("$VALUE_RANGE_SMALL", yuvValueRangeSmall ? "true" : "false");
+    colorFS.replace("$YUV_SPACE", QString::number(yuvSpace));
     if (isGLES) {
         colorVS.prepend("#version 320 es\n");
         colorFS.prepend("#version 320 es\n"
                 "precision mediump float;\n");
+    } else {
+        colorVS.prepend("#version 330\n");
+        colorFS.prepend("#version 330\n");
+    }
+    _colorPrg.removeAllShaders();
+    _colorPrg.addShaderFromSourceCode(QOpenGLShader::Vertex, colorVS);
+    _colorPrg.addShaderFromSourceCode(QOpenGLShader::Fragment, colorFS);
+    _colorPrg.link();
+    _colorPrgPlaneFormat = planeFormat;
+    _colorPrgYuvValueRangeSmall = yuvValueRangeSmall;
+    _colorPrgYuvSpace = yuvSpace;
+}
+
+void Bino::rebuildViewPrgIfNecessary(bool threeSixty, bool nonLinearOutput)
+{
+    if (_viewPrg.isLinked()
+            && _viewPrgThreeSixty == threeSixty
+            && _viewPrgNonlinearOutput == nonLinearOutput)
+        return;
+
+    LOG_DEBUG("rebuilding view program for 360° mode %s, non linear output %s",
+            threeSixty ? "on" : "off", nonLinearOutput ? "true" : "false");
+    bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
+    QString viewVS = readFile(":src/shader-view.vert.glsl");
+    QString viewFS = readFile(":src/shader-view.frag.glsl");
+    viewFS.replace("$THREE_SIXTY", threeSixty ? "true" : "false");
+    viewFS.replace("$NONLINEAR_OUTPUT", nonLinearOutput ? "true" : "false");
+    if (isGLES) {
         viewVS.prepend("#version 320 es\n");
         viewFS.prepend("#version 320 es\n"
                 "precision mediump float;\n");
     } else {
-        colorVS.prepend("#version 330\n");
-        colorFS.prepend("#version 330\n");
         viewVS.prepend("#version 330\n");
         viewFS.prepend("#version 330\n");
     }
-    _colorPrg.addShaderFromSourceCode(QOpenGLShader::Vertex, colorVS);
-    _colorPrg.addShaderFromSourceCode(QOpenGLShader::Fragment, colorFS);
-    _colorPrg.link();
+    _viewPrg.removeAllShaders();
     _viewPrg.addShaderFromSourceCode(QOpenGLShader::Vertex, viewVS);
     _viewPrg.addShaderFromSourceCode(QOpenGLShader::Fragment, viewFS);
     _viewPrg.link();
-    CHECK_GL();
-
-    return true;
+    _viewPrgThreeSixty = threeSixty;
+    _viewPrgNonlinearOutput = nonLinearOutput;
 }
 
 bool Bino::drawSubtitleToImage(int w, int h, const QString& string)
@@ -919,10 +956,8 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, frameTex, 0);
     glViewport(0, 0, w, h);
     glDisable(GL_DEPTH_TEST);
+    rebuildColorPrgIfNecessary(planeFormat, frame.yuvValueRangeSmall, frame.yuvSpace);
     glUseProgram(_colorPrg.programId());
-    _colorPrg.setUniformValue("planeFormat", planeFormat);
-    _colorPrg.setUniformValue("yuvValueRangeSmall", frame.yuvValueRangeSmall ? 1 : 0);
-    _colorPrg.setUniformValue("yuvSpace", int(frame.yuvSpace));
     for (int p = 0; p < planeCount; p++) {
         _colorPrg.setUniformValue(qPrintable(QString("plane") + QString::number(p)), p);
         glActiveTexture(GL_TEXTURE0 + p);
@@ -1118,6 +1153,7 @@ void Bino::render(
             relWidth = frameAspectRatio / _screen.aspectRatio;
     }
     // Set up shader program
+    rebuildViewPrgIfNecessary(_frame.threeSixtyMode == ThreeSixty_On, finalRenderingStep);
     glUseProgram(_viewPrg.programId());
     _viewPrg.setUniformValue("projection_matrix", projectionMatrix);
     _viewPrg.setUniformValue("model_view_matrix", viewMatrix);
@@ -1129,8 +1165,6 @@ void Bino::render(
     _viewPrg.setUniformValue("view_factor_y", viewFactorY);
     _viewPrg.setUniformValue("relative_width", relWidth);
     _viewPrg.setUniformValue("relative_height", relHeight);
-    _viewPrg.setUniformValue("three_sixty", _frame.threeSixtyMode == ThreeSixty_On ? 1 : 0);
-    _viewPrg.setUniformValue("nonlinear_output", finalRenderingStep ? 1 : 0);
     // Render scene
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, _subtitleTex);

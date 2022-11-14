@@ -28,15 +28,15 @@ const int Format_YUVp = 2;
 const int Format_YVUp = 3;
 const int Format_YUVsp = 4;
 const int Format_Y = 5;
-uniform int planeFormat;
+const int planeFormat = $PLANE_FORMAT;
 
-uniform bool yuvValueRangeSmall;
+const bool yuvValueRangeSmall = $VALUE_RANGE_SMALL;
 
 const int YUV_BT601 = 1;
 const int YUV_BT709 = 2;
 const int YUV_AdobeRGB = 3;
 const int YUV_BT2020 = 4;
-uniform int yuvSpace;
+const int yuvSpace = $YUV_SPACE;
 
 smooth in vec2 vtexcoord;
 

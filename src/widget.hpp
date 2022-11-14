@@ -49,7 +49,10 @@ private:
     unsigned int _viewTex[2];
     int _viewTexWidth[2], _viewTexHeight[2];
     unsigned int _quadVao;
-    QOpenGLShaderProgram _prg;
+    QOpenGLShaderProgram _displayPrg;
+    int _displayPrgOutputMode;
+
+    void rebuildDisplayPrgIfNecessary(OutputMode outputMode);
 
 public:
     Widget(OutputMode outputMode, QWidget* parent = nullptr);

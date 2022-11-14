@@ -73,7 +73,12 @@ private:
     unsigned int _subtitleTex;
     unsigned int _screenVao;
     QOpenGLShaderProgram _colorPrg;
+    int _colorPrgPlaneFormat;
+    bool _colorPrgYuvValueRangeSmall;
+    int _colorPrgYuvSpace;
     QOpenGLShaderProgram _viewPrg;
+    bool _viewPrgThreeSixty;
+    bool _viewPrgNonlinearOutput;
 
     /* Dynamic data for rendering */
     VideoFrame _frame;
@@ -81,8 +86,10 @@ private:
     bool _frameIsNew;
     bool _swapEyes;
 
-    void convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex);
+    void rebuildColorPrgIfNecessary(int planeFormat, bool yuvValueRangeSmall, int yuvSpace);
+    void rebuildViewPrgIfNecessary(bool threeSixty, bool nonLinearOutput);
     bool drawSubtitleToImage(int w, int h, const QString& string);
+    void convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex);
 
 public:
     Bino(const Screen& screen, bool swapEyes);

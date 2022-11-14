@@ -161,9 +161,22 @@ void Widget::initializeGL()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quadIndices), quadIndices, GL_STATIC_DRAW);
     CHECK_GL();
 
-    // Shader program
+    // Initialize Bino
+    Bino::instance()->initProcess();
+}
+
+void Widget::rebuildDisplayPrgIfNecessary(OutputMode outputMode)
+{
+    if (outputMode == Output_Right)
+        outputMode = Output_Left; // these are handled specially; see shader
+    if (_displayPrg.isLinked() && _displayPrgOutputMode == outputMode)
+        return;
+
+    LOG_DEBUG("rebuilding display program for output mode %s", outputModeToString(outputMode));
+    bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
     QString vertexShaderSource = readFile(":src/shader-display.vert.glsl");
     QString fragmentShaderSource = readFile(":src/shader-display.frag.glsl");
+    fragmentShaderSource.replace("$OUTPUT_MODE", QString::number(int(outputMode)));
     if (isGLES) {
         vertexShaderSource.prepend("#version 320 es\n");
         fragmentShaderSource.prepend("#version 320 es\n"
@@ -172,12 +185,11 @@ void Widget::initializeGL()
         vertexShaderSource.prepend("#version 330\n");
         fragmentShaderSource.prepend("#version 330\n");
     }
-    _prg.addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
-    _prg.addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
-    _prg.link();
-
-    // Initialize Bino
-    Bino::instance()->initProcess();
+    _displayPrg.removeAllShaders();
+    _displayPrg.addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
+    _displayPrg.addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
+    _displayPrg.link();
+    _displayPrgOutputMode = outputMode;
 }
 
 void Widget::paintGL()
@@ -288,14 +300,16 @@ void Widget::paintGL()
         relHeight = screenAspectRatio / frameDisplayAspectRatio;
     else
         relWidth = frameDisplayAspectRatio / screenAspectRatio;
-    glUseProgram(_prg.programId());
-    _prg.setUniformValue("view0", 0);
-    _prg.setUniformValue("view1", 1);
-    _prg.setUniformValue("relativeWidth", relWidth);
-    _prg.setUniformValue("relativeHeight", relHeight);
+    rebuildDisplayPrgIfNecessary((outputMode == Output_OpenGL_Stereo || outputMode == Output_Alternating)
+            ? Output_Left /* also covers Output_Right */ : outputMode);
+    glUseProgram(_displayPrg.programId());
+    _displayPrg.setUniformValue("view0", 0);
+    _displayPrg.setUniformValue("view1", 1);
+    _displayPrg.setUniformValue("relativeWidth", relWidth);
+    _displayPrg.setUniformValue("relativeHeight", relHeight);
     QPoint globalLowerLeft = mapToGlobal(QPoint(0, _height - 1));
-    _prg.setUniformValue("fragOffsetX", float(globalLowerLeft.x()));
-    _prg.setUniformValue("fragOffsetY", float(screen()->geometry().height() - 1 - globalLowerLeft.y()));
+    _displayPrg.setUniformValue("fragOffsetX", float(globalLowerLeft.x()));
+    _displayPrg.setUniformValue("fragOffsetY", float(screen()->geometry().height() - 1 - globalLowerLeft.y()));
     LOG_FIREHOSE("lower left widget corner in screen coordinates: x=%d y=%d", globalLowerLeft.x(), screen()->geometry().height() - 1 - globalLowerLeft.y());
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _viewTex[0]);
@@ -308,15 +322,15 @@ void Widget::paintGL()
         GLenum bufferBackRight = GL_BACK_RIGHT;
         if (outputMode == Output_OpenGL_Stereo) {
             glDrawBuffers(1, &bufferBackLeft);
-            _prg.setUniformValue("outputMode", static_cast<int>(Output_Left));
+            _displayPrg.setUniformValue("outputModeLeftRightView", 0);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
             glDrawBuffers(1, &bufferBackRight);
-            _prg.setUniformValue("outputMode", static_cast<int>(Output_Right));
+            _displayPrg.setUniformValue("outputModeLeftRightView", 1);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
         } else {
             if (outputMode == Output_Alternating)
                 outputMode = (_alternatingLastView == 0 ? Output_Right : Output_Left);
-            _prg.setUniformValue("outputMode", static_cast<int>(outputMode));
+            _displayPrg.setUniformValue("outputModeLeftRightView", outputMode == Output_Left ? 0 : 1);
             glDrawBuffers(1, &bufferBackLeft);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
             glDrawBuffers(1, &bufferBackRight);
@@ -326,7 +340,7 @@ void Widget::paintGL()
         LOG_FIREHOSE("widget draw mode: normal");
         if (outputMode == Output_Alternating)
             outputMode = (_alternatingLastView == 0 ? Output_Right : Output_Left);
-        _prg.setUniformValue("outputMode", static_cast<int>(outputMode));
+        _displayPrg.setUniformValue("outputModeLeftRightView", outputMode == Output_Left ? 0 : 1);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
     }
 

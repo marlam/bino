@@ -26,8 +26,8 @@ uniform float view_offset_x;
 uniform float view_factor_x;
 uniform float view_offset_y;
 uniform float view_factor_y;
-uniform bool three_sixty;
-uniform bool nonlinear_output;
+const bool three_sixty = $THREE_SIXTY;
+const bool nonlinear_output = $NONLINEAR_OUTPUT;
 
 smooth in vec2 vtexcoord;
 smooth in vec3 vdirection;

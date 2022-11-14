@@ -56,7 +56,11 @@ const int Output_Amber_Blue_HalfColor = 25;
 const int Output_Amber_Blue_Monochrome = 26;
 const int Output_Red_Green_Monochrome = 27;
 const int Output_Red_Blue_Monochrome = 28;
-uniform int outputMode;
+const int outputMode = $OUTPUT_MODE;
+uniform int outputModeLeftRightView; // to distinguish betwenen Output_Left and Output_Right;
+                                     // we don't want both in separate shaders because
+                                     // Output_OpenGL_Stereo and Ouput_Alternating switch
+                                     // in-frame or between frames between those two.
 
 smooth in vec2 vtexcoord;
 
@@ -85,10 +89,11 @@ void main(void)
     float tx = (vtexcoord.x - 0.5 * (1.0 - relativeWidth )) / relativeWidth;
     float ty = (vtexcoord.y - 0.5 * (1.0 - relativeHeight)) / relativeHeight;
     vec3 rgb = vec3(0.0, 0.0, 0.0);
-    if (outputMode == Output_Left) {
-        rgb = texture(view0, vec2(tx, ty)).rgb;
-    } else if (outputMode == Output_Right) {
-        rgb = texture(view1, vec2(tx, ty)).rgb;
+    if (outputMode == Output_Left || outputMode == Output_Right) {
+        if (outputModeLeftRightView == 0)
+            rgb = texture(view0, vec2(tx, ty)).rgb;
+        else
+            rgb = texture(view1, vec2(tx, ty)).rgb;
     } else if (outputMode == Output_Left_Right || outputMode == Output_Left_Right_Half) {
         if (tx < 0.5) {
             if (ty >= 0.0 && ty <= 1.0)
