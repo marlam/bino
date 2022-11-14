@@ -61,7 +61,12 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
     _contextMenu(new QMenu(this))
 {
     setWindowTitle("Bino");
-    setWindowIcon(QIcon(":aux/bino-logo-small.svg"));
+    QPixmap icon;
+    if (!icon.load(":aux/bino-logo-small.svg")) {
+        LOG_DEBUG("Gui: falling back to raster icon");
+        icon.load(":aux/bino-logo-small-512.png");
+    }
+    setWindowIcon(QIcon(icon));
 
     QMenu* fileMenu = addBinoMenu(tr("&File"));
     _fileOpenAction = new QAction(tr("&Open file..."), this);
