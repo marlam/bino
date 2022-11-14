@@ -31,23 +31,31 @@ const int Output_Left = 0;
 const int Output_Right = 1;
 const int Output_OpenGL_Stereo = 2;
 const int Output_Alternating = 3;
-const int Output_Red_Cyan_Dubois = 4;
-const int Output_Red_Cyan_FullColor = 5;
-const int Output_Red_Cyan_HalfColor = 6;
-const int Output_Red_Cyan_Monochrome = 7;
-const int Output_Green_Magenta_Dubois = 8;
-const int Output_Green_Magenta_FullColor = 9;
-const int Output_Green_Magenta_HalfColor = 10;
-const int Output_Green_Magenta_Monochrome = 11;
-const int Output_Amber_Blue_Dubois = 12;
-const int Output_Amber_Blue_FullColor = 13;
-const int Output_Amber_Blue_HalfColor = 14;
-const int Output_Amber_Blue_Monochrome = 15;
-const int Output_Red_Green_Monochrome = 16;
-const int Output_Red_Blue_Monochrome = 17;
-const int Output_Even_Odd_Rows = 18;
-const int Output_Even_Odd_Columns = 19;
-const int Output_Checkerboard = 20;
+const int Output_Left_Right = 4;
+const int Output_Left_Right_Half = 5;
+const int Output_Right_Left = 6;
+const int Output_Right_Left_Half = 7;
+const int Output_Top_Bottom = 8;
+const int Output_Top_Bottom_Half = 9;
+const int Output_Bottom_Top = 10;
+const int Output_Bottom_Top_Half = 11;
+const int Output_Even_Odd_Rows = 12;
+const int Output_Even_Odd_Columns = 13;
+const int Output_Checkerboard = 14;
+const int Output_Red_Cyan_Dubois = 15;
+const int Output_Red_Cyan_FullColor = 16;
+const int Output_Red_Cyan_HalfColor = 17;
+const int Output_Red_Cyan_Monochrome = 18;
+const int Output_Green_Magenta_Dubois = 19;
+const int Output_Green_Magenta_FullColor = 20;
+const int Output_Green_Magenta_HalfColor = 21;
+const int Output_Green_Magenta_Monochrome = 22;
+const int Output_Amber_Blue_Dubois = 23;
+const int Output_Amber_Blue_FullColor = 24;
+const int Output_Amber_Blue_HalfColor = 25;
+const int Output_Amber_Blue_Monochrome = 26;
+const int Output_Red_Green_Monochrome = 27;
+const int Output_Red_Blue_Monochrome = 28;
 uniform int outputMode;
 
 smooth in vec2 vtexcoord;
@@ -76,11 +84,43 @@ void main(void)
 {
     float tx = (vtexcoord.x - 0.5 * (1.0 - relativeWidth )) / relativeWidth;
     float ty = (vtexcoord.y - 0.5 * (1.0 - relativeHeight)) / relativeHeight;
-    vec3 rgb = vec3(1.0, 0.0, 0.0);
+    vec3 rgb = vec3(0.0, 0.0, 0.0);
     if (outputMode == Output_Left) {
         rgb = texture(view0, vec2(tx, ty)).rgb;
     } else if (outputMode == Output_Right) {
         rgb = texture(view1, vec2(tx, ty)).rgb;
+    } else if (outputMode == Output_Left_Right || outputMode == Output_Left_Right_Half) {
+        if (tx < 0.5) {
+            if (ty >= 0.0 && ty <= 1.0)
+                rgb = texture(view0, vec2(2.0 * tx, ty)).rgb;
+        } else {
+            if (ty >= 0.0 && ty <= 1.0)
+                rgb = texture(view1, vec2(2.0 * tx - 1.0, ty)).rgb;
+        }
+    } else if (outputMode == Output_Right_Left || outputMode == Output_Right_Left_Half) {
+        if (tx < 0.5) {
+            if (ty >= 0.0 && ty <= 1.0)
+                rgb = texture(view1, vec2(2.0 * tx, ty)).rgb;
+        } else {
+            if (ty >= 0.0 && ty <= 1.0)
+                rgb = texture(view0, vec2(2.0 * tx - 1.0, ty)).rgb;
+        }
+    } else if (outputMode == Output_Top_Bottom || outputMode == Output_Top_Bottom_Half) {
+        if (ty >= 0.5) {
+            if (tx >= 0.0 && tx <= 1.0)
+                rgb = texture(view0, vec2(tx, 2.0 * ty - 1.0)).rgb;
+        } else {
+            if (tx >= 0.0 && tx <= 1.0)
+                rgb = texture(view1, vec2(tx, 2.0 * ty)).rgb;
+        }
+    } else if (outputMode == Output_Bottom_Top || outputMode == Output_Bottom_Top_Half) {
+        if (ty >= 0.5) {
+            if (tx >= 0.0 && tx <= 1.0)
+                rgb = texture(view1, vec2(tx, 2.0 * ty - 1.0)).rgb;
+        } else {
+            if (tx >= 0.0 && tx <= 1.0)
+                rgb = texture(view0, vec2(tx, 2.0 * ty)).rgb;
+        }
     } else if (outputMode == Output_Even_Odd_Rows) {
         float fragmentY = gl_FragCoord.y - 0.5 + fragOffsetY;
         if (mod(fragmentY, 2.0) < 0.5) {

@@ -189,13 +189,17 @@ void Widget::paintGL()
     float frameDisplayAspectRatio;
     bool threeSixty;
     Bino::instance()->preRenderProcess(_width, _height, &viewCount, &viewWidth, &viewHeight, &frameDisplayAspectRatio, &threeSixty);
-    LOG_FIREHOSE("%s: %d views, %dx%d, %g, 360° %s", Q_FUNC_INFO, viewCount, viewWidth, viewHeight, frameDisplayAspectRatio, threeSixty ? "on" : "off");
 
     // Adjust the stereo mode if necessary
     bool frameIsStereo = (viewCount == 2);
     OutputMode outputMode = _outputMode;
     if (!frameIsStereo)
         outputMode = Output_Left;
+    if (outputMode == Output_Left_Right || outputMode == Output_Right_Left)
+        frameDisplayAspectRatio *= 2.0f;
+    else if (outputMode == Output_Top_Bottom || outputMode == Output_Bottom_Top)
+        frameDisplayAspectRatio *= 0.5f;
+    LOG_FIREHOSE("%s: %d views, %dx%d, %g, 360° %s", Q_FUNC_INFO, viewCount, viewWidth, viewHeight, frameDisplayAspectRatio, threeSixty ? "on" : "off");
 
     // Fill the view texture(s) as needed
     for (int v = 0; v <= 1; v++) {
@@ -211,6 +215,17 @@ void Widget::paintGL()
             needThisView = (v != _alternatingLastView);
             break;
         case Output_OpenGL_Stereo:
+        case Output_Left_Right:
+        case Output_Left_Right_Half:
+        case Output_Right_Left:
+        case Output_Right_Left_Half:
+        case Output_Top_Bottom:
+        case Output_Top_Bottom_Half:
+        case Output_Bottom_Top:
+        case Output_Bottom_Top_Half:
+        case Output_Even_Odd_Rows:
+        case Output_Even_Odd_Columns:
+        case Output_Checkerboard:
         case Output_Red_Cyan_Dubois:
         case Output_Red_Cyan_FullColor:
         case Output_Red_Cyan_HalfColor:
@@ -225,9 +240,6 @@ void Widget::paintGL()
         case Output_Amber_Blue_Monochrome:
         case Output_Red_Green_Monochrome:
         case Output_Red_Blue_Monochrome:
-        case Output_Even_Odd_Rows:
-        case Output_Even_Odd_Columns:
-        case Output_Checkerboard:
             break;
         }
         if (!needThisView)

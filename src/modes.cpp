@@ -142,6 +142,39 @@ const char* outputModeToString(OutputMode mode)
     case Output_Alternating:
         return "alternating";
         break;
+    case Output_Left_Right:
+        return "left-right";
+        break;
+    case Output_Left_Right_Half:
+        return "left-right-half";
+        break;
+    case Output_Right_Left:
+        return "right-left";
+        break;
+    case Output_Right_Left_Half:
+        return "right-left-half";
+        break;
+    case Output_Top_Bottom:
+        return "top-bottom";
+        break;
+    case Output_Top_Bottom_Half:
+        return "top-bottom-half";
+        break;
+    case Output_Bottom_Top:
+        return "bottom-top";
+        break;
+    case Output_Bottom_Top_Half:
+        return "bottom-top-half";
+        break;
+    case Output_Even_Odd_Rows:
+        return "even-odd-rows";
+        break;
+    case Output_Even_Odd_Columns:
+        return "even-odd-columns";
+        break;
+    case Output_Checkerboard:
+        return "checkeroard";
+        break;
     case Output_Red_Cyan_Dubois:
         return "red-cyan-dubois";
         break;
@@ -184,15 +217,6 @@ const char* outputModeToString(OutputMode mode)
     case Output_Red_Blue_Monochrome:
         return "red-blue-monochrome";
         break;
-    case Output_Even_Odd_Rows:
-        return "even-odd-rows";
-        break;
-    case Output_Even_Odd_Columns:
-        return "even-odd-columns";
-        break;
-    case Output_Checkerboard:
-        return "checkeroard";
-        break;
     }
     return nullptr;
 }
@@ -209,6 +233,28 @@ OutputMode outputModeFromString(const QString& s, bool* ok)
         mode = Output_OpenGL_Stereo;
     else if (s == "alternating")
         mode = Output_Alternating;
+    else if (s == "left-right")
+        mode = Output_Left_Right;
+    else if (s == "left-right-half")
+        mode = Output_Left_Right_Half;
+    else if (s == "right-left")
+        mode = Output_Right_Left;
+    else if (s == "right-left-half")
+        mode = Output_Right_Left_Half;
+    else if (s == "top-bottom")
+        mode = Output_Top_Bottom;
+    else if (s == "top-bottom-half")
+        mode = Output_Top_Bottom_Half;
+    else if (s == "bottom-top")
+        mode = Output_Bottom_Top;
+    else if (s == "bottom-top-half")
+        mode = Output_Bottom_Top_Half;
+    else if (s == "even-odd-rows")
+        mode = Output_Even_Odd_Rows;
+    else if (s == "even-odd-columns")
+        mode = Output_Even_Odd_Columns;
+    else if (s == "checkerboard")
+        mode = Output_Checkerboard;
     else if (s == "red-cyan-dubois")
         mode = Output_Red_Cyan_Dubois;
     else if (s == "red-cyan-fullcolor")
@@ -237,12 +283,6 @@ OutputMode outputModeFromString(const QString& s, bool* ok)
         mode = Output_Red_Green_Monochrome;
     else if (s == "red-blue-monochrome")
         mode = Output_Red_Blue_Monochrome;
-    else if (s == "even-odd-rows")
-        mode = Output_Even_Odd_Rows;
-    else if (s == "even-odd-columns")
-        mode = Output_Even_Odd_Columns;
-    else if (s == "checkerboard")
-        mode = Output_Checkerboard;
     else
         r = false;
     if (ok)
