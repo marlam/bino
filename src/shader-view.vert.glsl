@@ -18,9 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-uniform mat4 projection_matrix;
-uniform mat4 model_view_matrix;
-uniform bool three_sixty;
+uniform mat4 projectionModelViewMatrix;
+uniform mat4 orientationMatrix;
 
 layout(location = 0) in vec4 position;
 layout(location = 1) in vec2 texcoord;
@@ -31,11 +30,6 @@ smooth out vec3 vdirection;
 void main(void)
 {
     vtexcoord = texcoord;
-    vdirection = (position * model_view_matrix).xyz;
-    vec4 out_pos;
-    if (three_sixty)
-        out_pos = projection_matrix * position;
-    else
-        out_pos = projection_matrix * model_view_matrix * position;
-    gl_Position = out_pos;
+    vdirection = (position * orientationMatrix).xyz;
+    gl_Position = projectionModelViewMatrix * position;
 }

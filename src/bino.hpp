@@ -165,6 +165,7 @@ public:
             bool* threeSixty = nullptr);
     void render(
             const QMatrix4x4& projectionMatrix,
+            const QMatrix4x4& orientationMatrix,
             const QMatrix4x4& viewMatrix,
             int view, // 0 = left, 1 = right
             int texWidth, int texHeight, unsigned int texture);

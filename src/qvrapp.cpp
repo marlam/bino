@@ -162,12 +162,15 @@ void BinoQVRApp::render(QVRWindow*, const QVRRenderContext& context, const unsig
     for (int view = 0; view < context.viewCount(); view++) {
         // Render Bino view
         QMatrix4x4 projectionMatrix = context.frustum(view).toMatrix4x4();
+        QMatrix4x4 orientationMatrix;
+        orientationMatrix.rotate(context.navigationOrientation().inverted());
+        orientationMatrix.rotate(context.trackingOrientation(view).inverted());
         QMatrix4x4 viewMatrix = context.viewMatrix(view);
         QMatrix4x4 viewMatrixPure = context.viewMatrixPure(view);
         int v = (context.eye(view) == QVR_Eye_Right ? 1 : 0);
         int texWidth = context.textureSize(view).width();
         int texHeight = context.textureSize(view).height();
-        Bino::instance()->render(projectionMatrix, viewMatrix, v, texWidth, texHeight, textures[view]);
+        Bino::instance()->render(projectionMatrix, orientationMatrix, viewMatrix, v, texWidth, texHeight, textures[view]);
         // Render VR device models (optional)
         glUseProgram(_prg.programId());
         for (int i = 0; i < QVRManager::deviceCount(); i++) {

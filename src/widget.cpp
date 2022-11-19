@@ -269,6 +269,7 @@ void Widget::paintGL()
         // render view into view texture
         LOG_FIREHOSE("%s: getting view %d for stereo mode %s", Q_FUNC_INFO, v, outputModeToString(outputMode));
         QMatrix4x4 projectionMatrix;
+        QMatrix4x4 orientationMatrix;
         QMatrix4x4 viewMatrix;
         if (Bino::instance()->assumeThreeSixtyMode()) {
             float verticalVieldOfView = qDegreesToRadians(50.0f);
@@ -278,12 +279,12 @@ void Widget::paintGL()
             float right = top * aspectRatio;
             float left = -right;
             projectionMatrix.frustum(left, right, bottom, top, 1.0f, 100.0f);
-            QQuaternion rotation = QQuaternion::fromEulerAngles(
+            QQuaternion orientation = QQuaternion::fromEulerAngles(
                     (_threeSixtyVerticalAngleBase + _threeSixtyVerticalAngleCurrent),
                     (_threeSixtyHorizontalAngleBase + _threeSixtyHorizontalAngleCurrent), 0.0f);
-            viewMatrix.rotate(rotation.inverted());
+            orientationMatrix.rotate(orientation.inverted());
         }
-        Bino::instance()->render(projectionMatrix, viewMatrix, v, viewWidth, viewHeight, _viewTex[v]);
+        Bino::instance()->render(projectionMatrix, orientationMatrix, viewMatrix, v, viewWidth, viewHeight, _viewTex[v]);
         // generate mipmaps for the view texture
         glBindTexture(GL_TEXTURE_2D, _viewTex[v]);
         glGenerateMipmap(GL_TEXTURE_2D);

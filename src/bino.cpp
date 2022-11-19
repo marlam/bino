@@ -1056,6 +1056,7 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
 
 void Bino::render(
         const QMatrix4x4& projectionMatrix,
+        const QMatrix4x4& orientationMatrix,
         const QMatrix4x4& viewMatrix,
         int view, // 0 = left, 1 = right
         int texWidth, int texHeight, unsigned int texture)
@@ -1147,8 +1148,11 @@ void Bino::render(
     // Set up shader program
     rebuildViewPrgIfNecessary(_frame.threeSixtyMode == ThreeSixty_On, finalRenderingStep);
     glUseProgram(_viewPrg.programId());
-    _viewPrg.setUniformValue("projection_matrix", projectionMatrix);
-    _viewPrg.setUniformValue("model_view_matrix", viewMatrix);
+    QMatrix4x4 projectionModelViewMatrix = projectionMatrix;
+    if (_frame.threeSixtyMode == ThreeSixty_Off)
+        projectionModelViewMatrix = projectionModelViewMatrix * viewMatrix;
+    _viewPrg.setUniformValue("projectionModelViewMatrix", projectionModelViewMatrix);
+    _viewPrg.setUniformValue("orientationMatrix", orientationMatrix);
     _viewPrg.setUniformValue("frameTex", 0);
     _viewPrg.setUniformValue("subtitleTex", 1);
     _viewPrg.setUniformValue("view_offset_x", viewOffsetX);
