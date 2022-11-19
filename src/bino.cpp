@@ -504,18 +504,14 @@ bool Bino::initProcess()
     // FBO and PBO
     glGenFramebuffers(1, &_viewFbo);
     glGenFramebuffers(1, &_frameFbo);
-    if (_screen.isPlanar) {
-        _depthTex = 0;
-    } else {
-        glGenTextures(1, &_depthTex);
-        glBindTexture(GL_TEXTURE_2D, _depthTex);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, 1, 1,
-                0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
-        glBindFramebuffer(GL_FRAMEBUFFER, _viewFbo);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTex, 0);
-    }
+    glGenTextures(1, &_depthTex);
+    glBindTexture(GL_TEXTURE_2D, _depthTex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, 1, 1,
+            0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+    glBindFramebuffer(GL_FRAMEBUFFER, _viewFbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTex, 0);
     CHECK_GL();
 
     // Quad geometry
@@ -1065,19 +1061,15 @@ void Bino::render(
         int texWidth, int texHeight, unsigned int texture)
 {
     // Set up framebuffer object to render into
-    if (!_screen.isPlanar) {
-        glBindTexture(GL_TEXTURE_2D, _depthTex);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, texWidth, texHeight,
-                0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
-        glEnable(GL_DEPTH_TEST);
-    } else {
-        glDisable(GL_DEPTH_TEST);
-    }
+    glBindTexture(GL_TEXTURE_2D, _depthTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, texWidth, texHeight,
+            0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+    glEnable(GL_DEPTH_TEST);
     glBindFramebuffer(GL_FRAMEBUFFER, _viewFbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
     // Set up view
     glViewport(0, 0, texWidth, texHeight);
-    glClear(_screen.isPlanar ? GL_COLOR_BUFFER_BIT : (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // Set up input mode
     unsigned int frameTex = _frameTex;
     float frameAspectRatio = _frame.aspectRatio;
@@ -1183,11 +1175,6 @@ void Bino::render(
     } else {
         glBindVertexArray(_screenVao);
         glDrawElements(GL_TRIANGLES, _screen.indices.size(), GL_UNSIGNED_INT, 0);
-    }
-    // Invalidate depth attachment (to help OpenGL ES performance)
-    if (!_screen.isPlanar) {
-        const GLenum fboInvalidations[] = { GL_DEPTH_ATTACHMENT };
-        glInvalidateFramebuffer(GL_FRAMEBUFFER, 1, fboInvalidations);
     }
 }
 

@@ -50,6 +50,8 @@ qt6_add_resources(bino "misc" PREFIX "/" FILES
 	src/shader-view.frag.glsl
 	src/shader-display.vert.glsl
 	src/shader-display.frag.glsl
+	src/shader-vrdevice.vert.glsl
+	src/shader-vrdevice.frag.glsl
 	aux/bino-logo-small.svg aux/bino-logo-small-512.png)
 set_target_properties(bino PROPERTIES WIN32_EXECUTABLE TRUE)
 target_link_libraries(bino PRIVATE Qt6::OpenGLWidgets Qt6::Multimedia ${QVR_LIBRARIES})

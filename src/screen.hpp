@@ -43,7 +43,6 @@ public:
     QVector<float> texcoords; // each texcoord consists of 2 floats
     QVector<unsigned int> indices;
     float aspectRatio;
-    bool isPlanar;
 
     // Default constructor for a viewport-filling quad for GUI mode.
     // The aspectRatio will unknown (set to 0) since it depends on the viewport.

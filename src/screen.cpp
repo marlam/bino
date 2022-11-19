@@ -55,7 +55,6 @@ Screen::Screen()
     };
     indices = { 0, 3, 1, 1, 3, 2 };
     aspectRatio = 0.0f;
-    isPlanar = true;
 }
 
 Screen::Screen(const QVector3D& bottomLeftCorner,
@@ -79,7 +78,6 @@ Screen::Screen(const QVector3D& bottomLeftCorner,
     float width = (bottomRightCorner - bottomLeftCorner).length();
     float height = (topLeftCorner - bottomLeftCorner).length();
     aspectRatio = width / height;
-    isPlanar = true;
 }
 
 /* Helper function to split a multiline TinyObjLoader message */
@@ -166,17 +164,16 @@ Screen::Screen(const QString& objFileName, const QString& shapeName, float aspec
     }
 
     this->aspectRatio = aspectRatio;
-    isPlanar = false;
 }
 
 QDataStream &operator<<(QDataStream& ds, const Screen& s)
 {
-    ds << s.positions << s.texcoords << s.indices << s.aspectRatio << s.isPlanar;
+    ds << s.positions << s.texcoords << s.indices << s.aspectRatio;
     return ds;
 }
 
 QDataStream &operator>>(QDataStream& ds, Screen& s)
 {
-    ds >> s.positions >> s.texcoords >> s.indices >> s.aspectRatio >> s.isPlanar;
+    ds >> s.positions >> s.texcoords >> s.indices >> s.aspectRatio;
     return ds;
 }

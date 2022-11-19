@@ -30,6 +30,21 @@
 
 class BinoQVRApp : public QVRApp, protected QOpenGLExtraFunctions
 {
+private:
+    /* Static per-process data for rendering */
+    QOpenGLShaderProgram _prg;
+    // Data to render device models
+    QVector<unsigned int> _devModelVaos;
+    QVector<unsigned int> _devModelVaoIndices;
+    QVector<unsigned int> _devModelTextures;
+
+    /* Helper function for texture loading */
+    unsigned int setupTex(const QImage& img);
+    /* Helper function for VAO setup */
+    unsigned int setupVao(int vertexCount,
+            const float* positions, const float* normals, const float* texcoords,
+            int indexCount, const unsigned short* indices);
+
 public:
     BinoQVRApp();
 
