@@ -74,10 +74,24 @@ void CommandInterpreter::processNextCommand()
         return;
     _waitForStop = false;
 
-    _lineIndex++;
+    if (_file.isSequential() && _file.bytesAvailable() == 0)
+        return;
+
     _file.startTransaction();
     qint64 lineLen = _file.readLine(_lineBuf.data(), _lineBuf.size());
-    if (lineLen < 0 || (lineLen == _lineBuf.size() - 1 && _lineBuf[lineLen - 1] != '\n')) {
+    if (lineLen < 0 && !_file.isSequential() && _file.atEnd()) {
+        // eof
+        _timer.stop();
+        return;
+    }
+    if (lineLen < 0) {
+        // input error
+        _timer.stop();
+        LOG_FATAL("%s", qPrintable(tr("Cannot read command from %1").arg(_file.fileName())));
+        return;
+    }
+    if (lineLen == _lineBuf.size() - 1 && _lineBuf[lineLen - 1] != '\n') {
+        // overflow of the line buffer
         _timer.stop();
         LOG_FATAL("%s", qPrintable(tr("Cannot read command from %1").arg(_file.fileName())));
         return;
@@ -89,11 +103,12 @@ void CommandInterpreter::processNextCommand()
         return;
     }
     _file.commitTransaction();
+    _lineIndex++;
     if (lineLen == 0) {
         return;
     }
     QString cmd = QString(_lineBuf.data()).simplified();
-    LOG_DEBUG("Command line: %s", qPrintable(cmd));
+    LOG_DEBUG("Command line %d: %s", _lineIndex, qPrintable(cmd));
 
     // empty lines and comments
     if (cmd.length() == 0 || cmd[0] == '#')
@@ -115,12 +130,12 @@ void CommandInterpreter::processNextCommand()
         }
     } else if (cmd.startsWith("open ")) {
         QCommandLineParser parser;
-        parser.addPositionalArgument("URL", "");
-        parser.addOption({ "input", "", "" });
-        parser.addOption({ "360", "", "" });
-        parser.addOption({ "video-track", "", "" });
-        parser.addOption({ "audio-track", "", "" });
-        parser.addOption({ "subtitle-track", "", "" });
+        parser.addPositionalArgument("URL", "x");
+        parser.addOption({ "input", "", "x" });
+        parser.addOption({ "360", "", "x" });
+        parser.addOption({ "video-track", "", "x" });
+        parser.addOption({ "audio-track", "", "x" });
+        parser.addOption({ "subtitle-track", "", "x" });
         if (!parser.parse(cmd.split(' '))) {
             LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
         } else if (parser.positionalArguments().length() == 0 || parser.positionalArguments().length() > 1) {
@@ -179,8 +194,8 @@ void CommandInterpreter::processNextCommand()
         }
     } else if (cmd.startsWith("capture") && (cmd[7] == '\0' || cmd[7] == ' ')) {
         QCommandLineParser parser;
-        parser.addOption({ "audio-input", "", "" });
-        parser.addOption({ "video-input", "", "" });
+        parser.addOption({ "audio-input", "", "x" });
+        parser.addOption({ "video-input", "", "x" });
         if (!parser.parse(cmd.split(' '))) {
             LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
         } else {
