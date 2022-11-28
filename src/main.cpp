@@ -369,16 +369,13 @@ int main(int argc, char* argv[])
         }
     }
     if (parser.isSet("loop")) {
-        if (parser.value("loop") == "off") {
-            playlist.setLoopMode(Loop_Off);
-        } else if (parser.value("loop") == "one") {
-            playlist.setLoopMode(Loop_One);
-        } else if (parser.value("loop") == "all") {
-            playlist.setLoopMode(Loop_All);
-        } else {
+        bool ok;
+        LoopMode loopMode = loopModeFromString(parser.value("loop"), &ok);
+        if (!ok) {
             LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--loop")));
             return 1;
         }
+        playlist.setLoopMode(loopMode);
     }
     int videoTrack = PlaylistEntry::DefaultTrack;
     int audioTrack = PlaylistEntry::DefaultTrack;

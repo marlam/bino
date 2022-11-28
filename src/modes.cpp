@@ -289,3 +289,37 @@ OutputMode outputModeFromString(const QString& s, bool* ok)
         *ok = r;
     return mode;
 }
+
+const char* loopModeToString(LoopMode mode)
+{
+    switch (mode) {
+    case Loop_Off:
+        return "off";
+        break;
+    case Loop_One:
+        return "one";
+        break;
+    case Loop_All:
+        return "all";
+        break;
+    }
+    return nullptr;
+
+}
+
+LoopMode loopModeFromString(const QString& s, bool* ok)
+{
+    LoopMode mode = Loop_Off;
+    bool r = true;
+    if (s == "off")
+        mode = Loop_Off;
+    else if (s == "one")
+        mode = Loop_One;
+    else if (s == "all")
+        mode = Loop_All;
+    else
+        r = false;
+    if (ok)
+        *ok = r;
+    return mode;
+}

@@ -274,12 +274,12 @@ void Playlist::setCurrentIndex(int index)
     }
 }
 
-PlaylistLoopMode Playlist::loopMode() const
+LoopMode Playlist::loopMode() const
 {
     return _loopMode;
 }
 
-void Playlist::setLoopMode(PlaylistLoopMode loopMode)
+void Playlist::setLoopMode(LoopMode loopMode)
 {
     _loopMode = loopMode;
 }
@@ -311,7 +311,7 @@ bool Playlist::save(const QString& fileName, QString& errStr) const
     out << QString("--preferred-audio=%1 --preferred-subtitle=%2 --loop=%3\n")
         .arg(QLocale::languageToCode(preferredAudio()))
         .arg(wantSubtitle() ? QString("") : QLocale::languageToCode(preferredSubtitle()))
-        .arg(loopMode() == Loop_Off ? "off" : loopMode() == Loop_One ? "one" : "all");
+        .arg(loopModeToString(loopMode()));
     for (int i = 0; i < length(); i++) {
         out << entries()[i].toString() << "\n";
     }
@@ -346,7 +346,7 @@ bool Playlist::load(const QString& fileName, QString& errStr)
     QLocale::Language preferredAudio = QLocale::system().language();
     QLocale::Language preferredSubtitle = QLocale::system().language();
     bool wantSubtitle = false;
-    PlaylistLoopMode loopMode = Loop_Off;
+    LoopMode loopMode = Loop_Off;
     QString secondLine;
     while (!in.atEnd()) {
         secondLine = in.readLine().simplified();
@@ -384,15 +384,10 @@ bool Playlist::load(const QString& fileName, QString& errStr)
         }
     }
     if (parser.isSet("loop")) {
-        if (parser.value("loop") == "off") {
-            loopMode = Loop_Off;
-        } else if (parser.value("loop") == "one") {
-            loopMode = Loop_One;
-        } else if (parser.value("loop") == "all") {
-            loopMode = Loop_All;
-        } else {
+        bool ok;
+        loopMode = loopModeFromString(parser.value("loop"), &ok);
+        if (!ok)
             return false;
-        }
     }
 
     QList<PlaylistEntry> entries;

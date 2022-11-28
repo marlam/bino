@@ -90,3 +90,15 @@ enum OutputMode {
 
 const char* outputModeToString(OutputMode mode);
 OutputMode outputModeFromString(const QString& s, bool* ok = nullptr);
+
+/* Loop mode for the playlist */
+
+enum LoopMode
+{
+    Loop_Off,
+    Loop_One,
+    Loop_All
+};
+
+const char* loopModeToString(LoopMode mode);
+LoopMode loopModeFromString(const QString& s, bool* ok = nullptr);

@@ -53,14 +53,6 @@ public:
 };
 
 
-enum PlaylistLoopMode
-{
-    Loop_Off,
-    Loop_One,
-    Loop_All
-};
-
-
 class Playlist : public QObject
 {
 Q_OBJECT
@@ -69,7 +61,7 @@ private:
     QLocale::Language _preferredAudio;
     QLocale::Language _preferredSubtitle;
     bool _wantSubtitle;
-    PlaylistLoopMode _loopMode;
+    LoopMode _loopMode;
 
     QList<PlaylistEntry> _entries;
     int _currentIndex;
@@ -94,7 +86,7 @@ public:
     void remove(int index);
     void clear();
 
-    PlaylistLoopMode loopMode() const;
+    LoopMode loopMode() const;
 
     bool save(const QString& fileName, QString& errStr) const;
     bool load(const QString& fileName, QString& errStr);
@@ -105,7 +97,7 @@ public slots:
     void next();
     void prev();
     void setCurrentIndex(int index);
-    void setLoopMode(PlaylistLoopMode loopMode);
+    void setLoopMode(LoopMode loopMode);
 
     void mediaEnded();
 
