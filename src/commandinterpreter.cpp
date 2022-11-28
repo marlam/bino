@@ -74,12 +74,9 @@ void CommandInterpreter::processNextCommand()
         return;
     _waitForStop = false;
 
-    if (_file.isSequential() && _file.bytesAvailable() == 0)
-        return;
-
     _file.startTransaction();
     qint64 lineLen = _file.readLine(_lineBuf.data(), _lineBuf.size());
-    if (lineLen < 0 && !_file.isSequential() && _file.atEnd()) {
+    if (lineLen < 0 && _file.atEnd()) {
         // eof
         _timer.stop();
         return;
