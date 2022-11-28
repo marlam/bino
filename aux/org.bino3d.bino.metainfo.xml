@@ -10,13 +10,9 @@
   
   <description>
     <p>
-      A video player with a focus on 3D and Virtual Reality:
-      <ul>
-      <li>Support for 3D videos in various formats</li>
-      <li>Support for 360° videos, with and without 3D</li>
-      <li>Support for 3D displays with various modes</li>
-      <li>Support for Virtual Reality environments, including SteamVR, CAVEs, powerwalls, and other multi-display / multi-GPU / multi-host systems</li>
-      </ul>
+      A video player with a focus on 3D and Virtual Reality. Bino can
+      play stereoscopic 3D and 360° videos, and display them on 3D displays
+      and in Virtual Reality environments including SteamVR and CAVEs.
     </p>
   </description>
   
