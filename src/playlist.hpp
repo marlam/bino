@@ -48,6 +48,8 @@ public:
             int subtitleTrack = NoTrack);
 
     bool noMedia() const;
+    QString toString() const;
+    bool fromString(const QString& s);
 };
 
 
@@ -64,15 +66,15 @@ class Playlist : public QObject
 Q_OBJECT
 
 private:
-    void emitMediaChanged();
-
     QLocale::Language _preferredAudio;
     QLocale::Language _preferredSubtitle;
     bool _wantSubtitle;
+    PlaylistLoopMode _loopMode;
 
     QList<PlaylistEntry> _entries;
     int _currentIndex;
-    PlaylistLoopMode _loopMode;
+
+    void emitMediaChanged();
 
 public:
     Playlist();
@@ -93,6 +95,9 @@ public:
     void clear();
 
     PlaylistLoopMode loopMode() const;
+
+    bool save(const QString& fileName, QString& errStr) const;
+    bool load(const QString& fileName, QString& errStr);
 
 public slots:
     void start();

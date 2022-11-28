@@ -18,6 +18,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QFile>
+#include <QTextStream>
+#include <QCommandLineParser>
+
 #include "playlist.hpp"
 
 
@@ -41,6 +45,82 @@ bool PlaylistEntry::noMedia() const
     return url.isEmpty();
 }
 
+QString PlaylistEntry::toString() const
+{
+    QString s = url.toString();
+    if (inputMode != Input_Unknown) {
+        s.append(" --input=");
+        s.append(inputModeToString(inputMode));
+    }
+    if (threeSixtyMode != ThreeSixty_Unknown) {
+        s.append(" --360=");
+        s.append(threeSixtyModeToString(threeSixtyMode));
+    }
+    if (videoTrack != PlaylistEntry::DefaultTrack) {
+        s.append(" --video-track=");
+        s.append(QString::number(videoTrack));
+    }
+    if (audioTrack != PlaylistEntry::DefaultTrack) {
+        s.append(" --audio-track=");
+        s.append(QString::number(audioTrack));
+    }
+    if (subtitleTrack != PlaylistEntry::NoTrack) {
+        s.append(" --subtitle-track=");
+        s.append(QString::number(subtitleTrack));
+    }
+    return s;
+}
+
+bool PlaylistEntry::fromString(const QString& s)
+{
+    QCommandLineParser parser;
+    parser.addPositionalArgument("URL", "x");
+    parser.addOption({ "input", "", "x" });
+    parser.addOption({ "360", "", "x" });
+    parser.addOption({ "video-track", "", "x" });
+    parser.addOption({ "audio-track", "", "x" });
+    parser.addOption({ "subtitle-track", "", "x" });
+    if (!parser.parse((QString("dummy ") + s).split(' ')) || parser.positionalArguments().length() != 1) {
+        return false;
+    }
+    QUrl url = parser.positionalArguments()[0];
+    InputMode inputMode = Input_Unknown;
+    ThreeSixtyMode threeSixtyMode = ThreeSixty_Unknown;
+    int videoTrack = PlaylistEntry::DefaultTrack;
+    int audioTrack = PlaylistEntry::DefaultTrack;
+    int subtitleTrack = PlaylistEntry::NoTrack;
+    bool ok = true;
+    if (parser.isSet("input")) {
+        inputMode = inputModeFromString(parser.value("input"), &ok);
+    }
+    if (parser.isSet("360")) {
+        threeSixtyMode = threeSixtyModeFromString(parser.value("360"), &ok);
+    }
+    if (parser.isSet("video-track")) {
+        int t = parser.value("video-track").toInt(&ok);
+        if (ok && t >= 0)
+            videoTrack = t;
+        else
+            ok = false;
+    }
+    if (parser.isSet("audio-track")) {
+        int t = parser.value("audio-track").toInt(&ok);
+        if (ok && t >= 0)
+            audioTrack = t;
+        else
+            ok = false;
+    }
+    if (parser.isSet("subtitle-track") && parser.value("subtitle-track").length() > 0) {
+        int t = parser.value("subtitle-track").toInt(&ok);
+        if (ok && t >= 0)
+            subtitleTrack = t;
+        else
+            ok = false;
+    }
+    *this = PlaylistEntry(url, inputMode, threeSixtyMode, videoTrack, audioTrack, subtitleTrack);
+    return ok;
+}
+
 
 static Playlist* playlistSingleton = nullptr;
 
@@ -48,8 +128,8 @@ Playlist::Playlist() :
     _preferredAudio(QLocale::system().language()),
     _preferredSubtitle(QLocale::system().language()),
     _wantSubtitle(false),
-    _currentIndex(-1),
-    _loopMode(Loop_Off)
+    _loopMode(Loop_Off),
+    _currentIndex(-1)
 {
     Q_ASSERT(!playlistSingleton);
     playlistSingleton = this;
@@ -215,5 +295,129 @@ void Playlist::mediaEnded()
     } else if (_currentIndex < length() - 1) {
         // start with next index
         setCurrentIndex(_currentIndex + 1);
+    }
+}
+
+bool Playlist::save(const QString& fileName, QString& errStr) const
+{
+    QFile file(fileName);
+    if (!file.open(QIODeviceBase::WriteOnly | QIODeviceBase::Truncate | QIODeviceBase::Text)) {
+        errStr = file.errorString();
+        return false;
+    }
+
+    QTextStream out(&file);
+    out << "# Bino playlist format 1\n";
+    out << QString("--preferred-audio=%1 --preferred-subtitle=%2 --loop=%3\n")
+        .arg(QLocale::languageToCode(preferredAudio()))
+        .arg(wantSubtitle() ? QString("") : QLocale::languageToCode(preferredSubtitle()))
+        .arg(loopMode() == Loop_Off ? "off" : loopMode() == Loop_One ? "one" : "all");
+    for (int i = 0; i < length(); i++) {
+        out << entries()[i].toString() << "\n";
+    }
+    file.flush();
+    file.close();
+    if (file.error() != QFileDevice::NoError) {
+        errStr = file.errorString();
+        return false;
+    }
+    return true;
+}
+
+
+bool Playlist::load(const QString& fileName, QString& errStr)
+{
+    QFile file(fileName);
+    if (!file.open(QIODeviceBase::ReadOnly | QIODeviceBase::Text)) {
+        errStr = file.errorString();
+        return false;
+    }
+
+    QTextStream in(&file);
+    QString firstLine = in.readLine();
+    if (!firstLine.startsWith("# Bino playlist format "))
+        return false;
+    bool ok;
+    int format = firstLine.mid(23).toInt(&ok);
+    if (!ok || format != 1)
+        return false;
+
+
+    QLocale::Language preferredAudio = QLocale::system().language();
+    QLocale::Language preferredSubtitle = QLocale::system().language();
+    bool wantSubtitle = false;
+    PlaylistLoopMode loopMode = Loop_Off;
+    QString secondLine;
+    while (!in.atEnd()) {
+        secondLine = in.readLine().simplified();
+        if (secondLine.isEmpty() || secondLine.startsWith("#"))
+            continue;
+        else
+            break;
+    }
+    QCommandLineParser parser;
+    parser.addOption({ "preferred-audio", "", "x" });
+    parser.addOption({ "preferred-subtitle", "", "x" });
+    parser.addOption({ "loop", "", "x" });
+    if (!parser.parse((QString("dummy ") + secondLine).split(' ')) || parser.positionalArguments().length() != 0) {
+        return false;
+    }
+    if (parser.isSet("preferred-audio")) {
+        QLocale::Language lang = QLocale::codeToLanguage(parser.value("preferred-audio"));
+        if (lang == QLocale::AnyLanguage) {
+            return false;
+        } else {
+            preferredAudio = lang;
+        }
+    }
+    if (parser.isSet("preferred-subtitle")) {
+        if (parser.value("preferred-subtitle").length() == 0) {
+            wantSubtitle = false;
+        } else {
+            QLocale::Language lang = QLocale::codeToLanguage(parser.value("preferred-subtitle"));
+            if (lang == QLocale::AnyLanguage) {
+                return false;
+            } else {
+                wantSubtitle = true;
+                preferredSubtitle = lang;
+            }
+        }
+    }
+    if (parser.isSet("loop")) {
+        if (parser.value("loop") == "off") {
+            loopMode = Loop_Off;
+        } else if (parser.value("loop") == "one") {
+            loopMode = Loop_One;
+        } else if (parser.value("loop") == "all") {
+            loopMode = Loop_All;
+        } else {
+            return false;
+        }
+    }
+
+    QList<PlaylistEntry> entries;
+    while (!in.atEnd()) {
+        QString line = in.readLine().simplified();
+        if (line.isEmpty() || line.startsWith("#"))
+            continue;
+        PlaylistEntry entry;
+        if (entry.fromString(line)) {
+            entries.append(entry);
+        } else {
+            return false;
+        }
+    }
+    if (file.error() == QFileDevice::NoError) {
+        // overwrite this playlist with new information
+        setPreferredAudio(preferredAudio);
+        setPreferredSubtitle(preferredSubtitle);
+        setWantSubtitle(wantSubtitle);
+        setLoopMode(loopMode);
+        _entries = entries;
+        _currentIndex = -1;
+        return true;
+    } else {
+        errStr = file.errorString();
+        return false;
     }
 }

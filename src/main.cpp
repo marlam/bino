@@ -168,6 +168,9 @@ int main(int argc, char* argv[])
     parser.addOption({ "subtitle-track",
             QCommandLineParser::tr("Choose subtitle track via its index. Can be empty."),
             "track" });
+    parser.addOption({ { "p", "playlist" },
+            QCommandLineParser::tr("Load playlist."),
+            "file" });
     parser.addOption({ { "l", "loop" },
             QCommandLineParser::tr("Set loop mode (%1).").arg("off, one, all"),
             "mode" });
@@ -430,6 +433,15 @@ int main(int argc, char* argv[])
     }
     if (parser.positionalArguments().length() > 0 && playlist.length() == 0) {
         return 1;
+    }
+    if (parser.isSet("playlist")) {
+        QString errStr;
+        if (!playlist.load(parser.value("playlist"), errStr)) {
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("%1: %2")
+                        .arg(parser.value("playlist"))
+                        .arg(errStr.isEmpty() ? QString("invalid playlist file") : errStr)));
+            return 1;
+        }
     }
     if (parser.isSet("capture") && playlist.length() > 0) {
         LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Cannot capture and play URL at the same time.")));
