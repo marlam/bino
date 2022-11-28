@@ -104,6 +104,8 @@ void Bino::startPlaylistMode()
                     : state == QMediaPlayer::PlayingState ? "playing"
                     : state == QMediaPlayer::PausedState ? "paused"
                     : "unknown");
+            if (state == QMediaPlayer::StoppedState)
+                Playlist::instance()->mediaEnded();
             });
 
     emit stateChanged();
@@ -184,11 +186,11 @@ void Bino::mediaChanged(PlaylistEntry entry)
         }
         if (entry.audioTrack >= 0) {
             _player->setActiveAudioTrack(entry.audioTrack);
-        } else if (Playlist::instance()->preferredAudio != QLocale::AnyLanguage) {
+        } else if (Playlist::instance()->preferredAudio() != QLocale::AnyLanguage) {
             int audioTrack = -1;
             for (int i = 0; i < int(metaData.audioTracks.length()); i++) {
                 QLocale audioLanguage = metaData.audioTracks[i].value(QMediaMetaData::Language).toLocale();
-                if (audioLanguage == Playlist::instance()->preferredAudio) {
+                if (audioLanguage == Playlist::instance()->preferredAudio()) {
                     audioTrack = i;
                     break;
                 }
@@ -199,11 +201,11 @@ void Bino::mediaChanged(PlaylistEntry entry)
         }
         if (entry.subtitleTrack >= 0) {
             _player->setActiveSubtitleTrack(entry.subtitleTrack);
-        } else if (metaData.subtitleTracks.size() > 0 && Playlist::instance()->wantSubtitle) {
+        } else if (metaData.subtitleTracks.size() > 0 && Playlist::instance()->wantSubtitle()) {
             int subtitleTrack = 0;
             for (int i = 0; i < int(metaData.subtitleTracks.length()); i++) {
                 QLocale subtitleLanguage = metaData.subtitleTracks[i].value(QMediaMetaData::Language).toLocale();
-                if (subtitleLanguage == Playlist::instance()->preferredSubtitle) {
+                if (subtitleLanguage == Playlist::instance()->preferredSubtitle()) {
                     subtitleTrack = i;
                     break;
                 }

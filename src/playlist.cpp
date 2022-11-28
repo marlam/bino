@@ -45,10 +45,11 @@ bool PlaylistEntry::noMedia() const
 static Playlist* playlistSingleton = nullptr;
 
 Playlist::Playlist() :
-    preferredAudio(QLocale::system().language()),
-    preferredSubtitle(QLocale::system().language()),
-    wantSubtitle(false),
-    currentIndex(-1)
+    _preferredAudio(QLocale::system().language()),
+    _preferredSubtitle(QLocale::system().language()),
+    _wantSubtitle(false),
+    _currentIndex(-1),
+    _loopMode(Loop_Off)
 {
     Q_ASSERT(!playlistSingleton);
     playlistSingleton = this;
@@ -59,10 +60,45 @@ Playlist* Playlist::instance()
     return playlistSingleton;
 }
 
+QLocale::Language Playlist::preferredAudio() const
+{
+    return _preferredAudio;
+}
+
+void Playlist::setPreferredAudio(const QLocale::Language& lang)
+{
+    _preferredAudio = lang;
+}
+
+QLocale::Language Playlist::preferredSubtitle() const
+{
+    return _preferredSubtitle;
+}
+
+void Playlist::setPreferredSubtitle(const QLocale::Language& lang)
+{
+    _preferredSubtitle = lang;
+}
+
+bool Playlist::wantSubtitle() const
+{
+    return _wantSubtitle;
+}
+
+void Playlist::setWantSubtitle(bool want)
+{
+    _wantSubtitle = want;
+}
+
+const QList<PlaylistEntry>& Playlist::entries() const
+{
+    return _entries;
+}
+
 void Playlist::emitMediaChanged()
 {
-    if (currentIndex >= 0 && currentIndex < length()) {
-        emit mediaChanged(entries[currentIndex]);
+    if (_currentIndex >= 0 && _currentIndex < length()) {
+        emit mediaChanged(_entries[_currentIndex]);
     } else {
         emit mediaChanged(PlaylistEntry());
     }
@@ -70,45 +106,45 @@ void Playlist::emitMediaChanged()
 
 int Playlist::length() const
 {
-    return entries.length();
+    return _entries.length();
 }
 
 void Playlist::append(const PlaylistEntry& entry)
 {
-    entries.append(entry);
+    _entries.append(entry);
 }
 
 void Playlist::insert(int index, const PlaylistEntry& entry)
 {
-    entries.insert(index, entry);
+    _entries.insert(index, entry);
 }
 
 void Playlist::remove(int index)
 {
     if (index >= 0 && index < length()) {
-        entries.remove(index);
-        if (currentIndex == index) {
-            if (currentIndex >= length())
-                currentIndex--;
+        _entries.remove(index);
+        if (_currentIndex == index) {
+            if (_currentIndex >= length())
+                _currentIndex--;
             emitMediaChanged();
-        } else if (currentIndex > index) {
-            currentIndex--;
+        } else if (_currentIndex > index) {
+            _currentIndex--;
         }
     }
 }
 
 void Playlist::clear()
 {
-    entries.clear();
-    int prevIndex = currentIndex;
-    currentIndex = -1;
+    _entries.clear();
+    int prevIndex = _currentIndex;
+    _currentIndex = -1;
     if (prevIndex >= 0)
         emitMediaChanged();
 }
 
 void Playlist::start()
 {
-    if (length() > 0 && currentIndex < 0)
+    if (length() > 0 && _currentIndex < 0)
         setCurrentIndex(0);
 }
 
@@ -120,31 +156,31 @@ void Playlist::stop()
 void Playlist::next()
 {
     if (length() > 0) {
-        if (currentIndex == length() - 1)
+        if (_currentIndex == length() - 1)
             setCurrentIndex(0);
         else
-            setCurrentIndex(currentIndex++);
+            setCurrentIndex(_currentIndex++);
     }
 }
 
 void Playlist::prev()
 {
     if (length() > 0) {
-        if (currentIndex == 0)
+        if (_currentIndex == 0)
             setCurrentIndex(length() - 1);
         else
-            setCurrentIndex(currentIndex--);
+            setCurrentIndex(_currentIndex--);
     }
 }
 
 void Playlist::setCurrentIndex(int index)
 {
-    if (index == currentIndex) {
+    if (index == _currentIndex) {
         return;
     }
 
     if (length() == 0 || index < 0) {
-        currentIndex = -1;
+        _currentIndex = -1;
         emitMediaChanged();
         return;
     }
@@ -152,8 +188,32 @@ void Playlist::setCurrentIndex(int index)
     if (index >= length()) {
         index = length() - 1;
     }
-    if (currentIndex != index) {
-        currentIndex = index;
+    if (_currentIndex != index) {
+        _currentIndex = index;
         emitMediaChanged();
+    }
+}
+
+PlaylistLoopMode Playlist::loopMode() const
+{
+    return _loopMode;
+}
+
+void Playlist::setLoopMode(PlaylistLoopMode loopMode)
+{
+    _loopMode = loopMode;
+}
+
+void Playlist::mediaEnded()
+{
+    if (loopMode() == Loop_One) {
+        // keep current index but play again
+        emitMediaChanged();
+    } else if (_currentIndex == length() - 1 && loopMode() == Loop_All) {
+        // start with first index
+        setCurrentIndex(0);
+    } else if (_currentIndex < length() - 1) {
+        // start with next index
+        setCurrentIndex(_currentIndex + 1);
     }
 }

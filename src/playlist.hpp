@@ -51,6 +51,14 @@ public:
 };
 
 
+enum PlaylistLoopMode
+{
+    Loop_Off,
+    Loop_One,
+    Loop_All
+};
+
+
 class Playlist : public QObject
 {
 Q_OBJECT
@@ -58,16 +66,25 @@ Q_OBJECT
 private:
     void emitMediaChanged();
 
+    QLocale::Language _preferredAudio;
+    QLocale::Language _preferredSubtitle;
+    bool _wantSubtitle;
+
+    QList<PlaylistEntry> _entries;
+    int _currentIndex;
+    PlaylistLoopMode _loopMode;
+
 public:
-    QLocale::Language preferredAudio;
-    QLocale::Language preferredSubtitle;
-    bool wantSubtitle;
-
-    QList<PlaylistEntry> entries;
-    int currentIndex;
-
     Playlist();
     static Playlist* instance();
+
+    QLocale::Language preferredAudio() const;
+    void setPreferredAudio(const QLocale::Language& lang);
+    QLocale::Language preferredSubtitle() const;
+    void setPreferredSubtitle(const QLocale::Language& lang);
+    bool wantSubtitle() const;
+    void setWantSubtitle(bool want);
+    const QList<PlaylistEntry>& entries() const;
 
     int length() const;
     void append(const PlaylistEntry& entry);
@@ -75,12 +92,17 @@ public:
     void remove(int index);
     void clear();
 
+    PlaylistLoopMode loopMode() const;
+
 public slots:
     void start();
     void stop();
     void next();
     void prev();
     void setCurrentIndex(int index);
+    void setLoopMode(PlaylistLoopMode loopMode);
+
+    void mediaEnded();
 
 signals:
     void mediaChanged(PlaylistEntry entry);

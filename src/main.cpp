@@ -168,6 +168,9 @@ int main(int argc, char* argv[])
     parser.addOption({ "subtitle-track",
             QCommandLineParser::tr("Choose subtitle track via its index. Can be empty."),
             "track" });
+    parser.addOption({ { "l", "loop" },
+            QCommandLineParser::tr("Set loop mode (%1).").arg("off, one, all"),
+            "mode" });
     parser.addOption({ { "i", "input" },
             QCommandLineParser::tr("Set input mode (%1).").arg("mono, "
             "top-bottom, top-bottom-half, bottom-top, bottom-top-half, "
@@ -345,20 +348,33 @@ int main(int argc, char* argv[])
             LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--preferred-audio")));
             return 1;
         } else {
-            playlist.preferredAudio = lang;
+            playlist.setPreferredAudio(lang);
         }
     }
     if (parser.isSet("preferred-subtitle")) {
         if (parser.value("preferred-subtitle").length() == 0) {
-            playlist.wantSubtitle = false;
+            playlist.setWantSubtitle(false);
         } else {
             QLocale::Language lang = QLocale::codeToLanguage(parser.value("preferred-subtitle"));
             if (lang == QLocale::AnyLanguage) {
                 LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--preferred-subtitle")));
                 return 1;
             } else {
-                playlist.preferredSubtitle = lang;
+                playlist.setWantSubtitle(true);
+                playlist.setPreferredSubtitle(lang);
             }
+        }
+    }
+    if (parser.isSet("loop")) {
+        if (parser.value("loop") == "off") {
+            playlist.setLoopMode(Loop_Off);
+        } else if (parser.value("loop") == "one") {
+            playlist.setLoopMode(Loop_One);
+        } else if (parser.value("loop") == "all") {
+            playlist.setLoopMode(Loop_All);
+        } else {
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--loop")));
+            return 1;
         }
     }
     int videoTrack = PlaylistEntry::DefaultTrack;
@@ -424,7 +440,7 @@ int main(int argc, char* argv[])
     if (parser.isSet("list-tracks")) {
         MetaData metaData;
         for (qsizetype i = 0; i < playlist.length(); i++) {
-            if (!metaData.detectCached(playlist.entries[i].url))
+            if (!metaData.detectCached(playlist.entries()[i].url))
                 return 1;
             LOG_REQUESTED("%s", qPrintable(metaData.url.toString()));
             for (qsizetype l = 0; l < metaData.global.keys().size(); l++) {
