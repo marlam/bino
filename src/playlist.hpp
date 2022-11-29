@@ -48,8 +48,8 @@ public:
             int subtitleTrack = NoTrack);
 
     bool noMedia() const;
-    QString toString() const;
-    bool fromString(const QString& s);
+    QString optionsToString() const;
+    bool optionsFromString(const QString& s);
 };
 
 

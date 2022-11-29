@@ -23,6 +23,7 @@
 #include <QCommandLineParser>
 
 #include "playlist.hpp"
+#include "log.hpp"
 
 
 PlaylistEntry::PlaylistEntry() :
@@ -45,9 +46,9 @@ bool PlaylistEntry::noMedia() const
     return url.isEmpty();
 }
 
-QString PlaylistEntry::toString() const
+QString PlaylistEntry::optionsToString() const
 {
-    QString s = url.toString();
+    QString s;
     if (inputMode != Input_Unknown) {
         s.append(" --input=");
         s.append(inputModeToString(inputMode));
@@ -71,19 +72,17 @@ QString PlaylistEntry::toString() const
     return s;
 }
 
-bool PlaylistEntry::fromString(const QString& s)
+bool PlaylistEntry::optionsFromString(const QString& s)
 {
     QCommandLineParser parser;
-    parser.addPositionalArgument("URL", "x");
     parser.addOption({ "input", "", "x" });
     parser.addOption({ "360", "", "x" });
     parser.addOption({ "video-track", "", "x" });
     parser.addOption({ "audio-track", "", "x" });
     parser.addOption({ "subtitle-track", "", "x" });
-    if (!parser.parse((QString("dummy ") + s).split(' ')) || parser.positionalArguments().length() != 1) {
+    if (!parser.parse((QString("dummy ") + s).split(' ')) || parser.positionalArguments().length() != 0) {
         return false;
     }
-    QUrl url = parser.positionalArguments()[0];
     InputMode inputMode = Input_Unknown;
     ThreeSixtyMode threeSixtyMode = ThreeSixty_Unknown;
     int videoTrack = PlaylistEntry::DefaultTrack;
@@ -117,7 +116,9 @@ bool PlaylistEntry::fromString(const QString& s)
         else
             ok = false;
     }
-    *this = PlaylistEntry(url, inputMode, threeSixtyMode, videoTrack, audioTrack, subtitleTrack);
+    if (ok) {
+        *this = PlaylistEntry(this->url, inputMode, threeSixtyMode, videoTrack, audioTrack, subtitleTrack);
+    }
     return ok;
 }
 
@@ -307,13 +308,11 @@ bool Playlist::save(const QString& fileName, QString& errStr) const
     }
 
     QTextStream out(&file);
-    out << "# Bino playlist format 1\n";
-    out << QString("--preferred-audio=%1 --preferred-subtitle=%2 --loop=%3\n")
-        .arg(QLocale::languageToCode(preferredAudio()))
-        .arg(wantSubtitle() ? QString("") : QLocale::languageToCode(preferredSubtitle()))
-        .arg(loopModeToString(loopMode()));
+    out << "#EXTM3U\n";
     for (int i = 0; i < length(); i++) {
-        out << entries()[i].toString() << "\n";
+        out << "#EXTINF:0,\n";
+        out << "#EXTBINOOPT:" << entries()[i].optionsToString() << "\n";
+        out << entries()[i].url.toString() << "\n";
     }
     file.flush();
     file.close();
@@ -333,81 +332,33 @@ bool Playlist::load(const QString& fileName, QString& errStr)
         return false;
     }
 
-    QTextStream in(&file);
-    QString firstLine = in.readLine();
-    if (!firstLine.startsWith("# Bino playlist format "))
-        return false;
-    bool ok;
-    int format = firstLine.mid(23).toInt(&ok);
-    if (!ok || format != 1)
-        return false;
-
-
-    QLocale::Language preferredAudio = QLocale::system().language();
-    QLocale::Language preferredSubtitle = QLocale::system().language();
-    bool wantSubtitle = false;
-    LoopMode loopMode = Loop_Off;
-    QString secondLine;
-    while (!in.atEnd()) {
-        secondLine = in.readLine().simplified();
-        if (secondLine.isEmpty() || secondLine.startsWith("#"))
-            continue;
-        else
-            break;
-    }
-    QCommandLineParser parser;
-    parser.addOption({ "preferred-audio", "", "x" });
-    parser.addOption({ "preferred-subtitle", "", "x" });
-    parser.addOption({ "loop", "", "x" });
-    if (!parser.parse((QString("dummy ") + secondLine).split(' ')) || parser.positionalArguments().length() != 0) {
-        return false;
-    }
-    if (parser.isSet("preferred-audio")) {
-        QLocale::Language lang = QLocale::codeToLanguage(parser.value("preferred-audio"));
-        if (lang == QLocale::AnyLanguage) {
-            return false;
-        } else {
-            preferredAudio = lang;
-        }
-    }
-    if (parser.isSet("preferred-subtitle")) {
-        if (parser.value("preferred-subtitle").length() == 0) {
-            wantSubtitle = false;
-        } else {
-            QLocale::Language lang = QLocale::codeToLanguage(parser.value("preferred-subtitle"));
-            if (lang == QLocale::AnyLanguage) {
-                return false;
-            } else {
-                wantSubtitle = true;
-                preferredSubtitle = lang;
-            }
-        }
-    }
-    if (parser.isSet("loop")) {
-        bool ok;
-        loopMode = loopModeFromString(parser.value("loop"), &ok);
-        if (!ok)
-            return false;
-    }
-
     QList<PlaylistEntry> entries;
+    PlaylistEntry entry;
+    QTextStream in(&file);
+    int lineIndex = 0;
     while (!in.atEnd()) {
-        QString line = in.readLine().simplified();
-        if (line.isEmpty() || line.startsWith("#"))
+        QString line = in.readLine();
+        lineIndex++;
+        if (line.startsWith("#EXTBINOOPT: ")) {
+            if (!entry.optionsFromString(line.mid(13))) {
+                LOG_DEBUG("%s line %d: ignoring invalid Bino options", qPrintable(fileName), lineIndex);
+            }
+        } else if (line.isEmpty() || line.startsWith("#")) {
             continue;
-        PlaylistEntry entry;
-        if (entry.fromString(line)) {
-            entries.append(entry);
         } else {
-            return false;
+            entry.url = QUrl::fromUserInput(line, QString("."), QUrl::AssumeLocalFile);
+            if (entry.url.isValid() && (
+                        entry.url.scheme() == "file"
+                        || entry.url.scheme() == "https"
+                        || entry.url.scheme() == "http")) {
+                entries.append(entry);
+            } else {
+                LOG_DEBUG("%s line %d: ignoring invalid URL", qPrintable(fileName), lineIndex);
+            }
         }
     }
     if (file.error() == QFileDevice::NoError) {
         // overwrite this playlist with new information
-        setPreferredAudio(preferredAudio);
-        setPreferredSubtitle(preferredSubtitle);
-        setWantSubtitle(wantSubtitle);
-        setLoopMode(loopMode);
         _entries = entries;
         _currentIndex = -1;
         return true;
