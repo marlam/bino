@@ -39,11 +39,11 @@ public:
     bool *frameIsNew;     // flag to set when the target frame represents a new frame
     bool needExtFrame;    // flag to set in alternating stereo when extFrame is not filled yet
     InputMode inputMode;  // input mode of current media
-    ThreeSixtyMode threeSixtyMode; // 360° mode of the current media
+    SurroundMode surroundMode; // surround mode of the current media
 
     VideoSink(VideoFrame* frame, VideoFrame* extFrame, bool* frameIsNew);
 
-    void newUrl(const QUrl& url, InputMode inputMode, ThreeSixtyMode threeSixtyMode);
+    void newUrl(const QUrl& url, InputMode inputMode, SurroundMode surroundMode);
 
 public Q_SLOTS:
     void processNewFrame(const QVideoFrame& frame);

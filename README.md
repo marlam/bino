@@ -4,7 +4,7 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 
 - Support for 3D videos in various formats
 
-- Support for 360° videos, with and without 3D
+- Support for 360° and 180° videos, with and without 3D
 
 - Support for 3D displays with various modes
 

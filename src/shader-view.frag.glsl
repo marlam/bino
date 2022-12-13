@@ -26,7 +26,7 @@ uniform float view_offset_x;
 uniform float view_factor_x;
 uniform float view_offset_y;
 uniform float view_factor_y;
-const bool three_sixty = $THREE_SIXTY;
+int surroundDegrees = $SURROUND_DEGREES;
 const bool nonlinear_output = $NONLINEAR_OUTPUT;
 
 smooth in vec2 vtexcoord;
@@ -50,11 +50,12 @@ vec3 rgb_to_nonlinear(vec3 rgb)
 void main(void)
 {
     vec3 rgb;
-    if (three_sixty) {
+    if (surroundDegrees > 0) {
         vec3 dir = normalize(vdirection);
         float theta = asin(clamp(-dir.y, -1.0, 1.0));
         float phi = atan(dir.x, -dir.z);
-        float u = phi / (2.0f * pi) + 0.5;
+	float tmp = (surroundDegrees == 360 ? 2.0f * pi : pi);
+        float u = phi / tmp + 0.5;
         float v = theta / pi + 0.5;
         float vtx = view_offset_x + view_factor_x * u;
         float vty = view_offset_y + view_factor_y * v;

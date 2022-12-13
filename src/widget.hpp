@@ -39,12 +39,12 @@ private:
     bool _openGLStereo;       // is this widget in quad-buffered stereo mode?
     int _alternatingLastView; // last view displayed in Mode_Alternating (0 or 1)
 
-    bool _inThreeSixtyMovement;
-    QPointF _threeSixtyMovementStart;
-    float _threeSixtyHorizontalAngleBase;
-    float _threeSixtyVerticalAngleBase;
-    float _threeSixtyHorizontalAngleCurrent;
-    float _threeSixtyVerticalAngleCurrent;
+    bool _inSurroundMovement;
+    QPointF _surroundMovementStart;
+    float _surroundHorizontalAngleBase;
+    float _surroundVerticalAngleBase;
+    float _surroundHorizontalAngleCurrent;
+    float _surroundVerticalAngleCurrent;
 
     unsigned int _viewTex[2];
     int _viewTexWidth[2], _viewTexHeight[2];

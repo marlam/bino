@@ -129,7 +129,7 @@ void CommandInterpreter::processNextCommand()
         QCommandLineParser parser;
         parser.addPositionalArgument("URL", "x");
         parser.addOption({ "input", "", "x" });
-        parser.addOption({ "360", "", "x" });
+        parser.addOption({ "surround", "", "x" });
         parser.addOption({ "video-track", "", "x" });
         parser.addOption({ "audio-track", "", "x" });
         parser.addOption({ "subtitle-track", "", "x" });
@@ -140,7 +140,7 @@ void CommandInterpreter::processNextCommand()
         } else {
             QUrl url = parser.positionalArguments()[0];
             InputMode inputMode = Input_Unknown;
-            ThreeSixtyMode threeSixtyMode = ThreeSixty_Unknown;
+            SurroundMode surroundMode = Surround_Unknown;
             int videoTrack = PlaylistEntry::DefaultTrack;
             int audioTrack = PlaylistEntry::DefaultTrack;
             int subtitleTrack = PlaylistEntry::NoTrack;
@@ -150,8 +150,8 @@ void CommandInterpreter::processNextCommand()
                 if (!ok)
                     LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--input")));
             }
-            if (parser.isSet("360")) {
-                threeSixtyMode = threeSixtyModeFromString(parser.value("360"), &ok);
+            if (parser.isSet("surround")) {
+                surroundMode = surroundModeFromString(parser.value("surround"), &ok);
                 if (!ok)
                     LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
             }
@@ -185,7 +185,7 @@ void CommandInterpreter::processNextCommand()
             if (ok) {
                 Bino::instance()->startPlaylistMode();
                 Playlist::instance()->clear();
-                Playlist::instance()->append(PlaylistEntry(url, inputMode, threeSixtyMode, videoTrack, audioTrack, subtitleTrack));
+                Playlist::instance()->append(PlaylistEntry(url, inputMode, surroundMode, videoTrack, audioTrack, subtitleTrack));
                 Playlist::instance()->start();
             }
         }

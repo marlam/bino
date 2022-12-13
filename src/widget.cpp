@@ -49,11 +49,11 @@ Widget::Widget(OutputMode outputMode, QWidget* parent) :
     _outputMode(outputMode),
     _openGLStereo(QSurfaceFormat::defaultFormat().stereo()),
     _alternatingLastView(1),
-    _inThreeSixtyMovement(false),
-    _threeSixtyHorizontalAngleBase(0.0f),
-    _threeSixtyVerticalAngleBase(0.0f),
-    _threeSixtyHorizontalAngleCurrent(0.0f),
-    _threeSixtyVerticalAngleCurrent(0.0f)
+    _inSurroundMovement(false),
+    _surroundHorizontalAngleBase(0.0f),
+    _surroundVerticalAngleBase(0.0f),
+    _surroundHorizontalAngleCurrent(0.0f),
+    _surroundVerticalAngleCurrent(0.0f)
 {
     setUpdateBehavior(QOpenGLWidget::PartialUpdate);
     setMouseTracking(true);
@@ -199,8 +199,8 @@ void Widget::paintGL()
     // Find out about the views we have
     int viewCount, viewWidth, viewHeight;
     float frameDisplayAspectRatio;
-    bool threeSixty;
-    Bino::instance()->preRenderProcess(_width, _height, &viewCount, &viewWidth, &viewHeight, &frameDisplayAspectRatio, &threeSixty);
+    bool surround;
+    Bino::instance()->preRenderProcess(_width, _height, &viewCount, &viewWidth, &viewHeight, &frameDisplayAspectRatio, &surround);
 
     // Adjust the stereo mode if necessary
     bool frameIsStereo = (viewCount == 2);
@@ -211,7 +211,7 @@ void Widget::paintGL()
         frameDisplayAspectRatio *= 2.0f;
     else if (outputMode == Output_Top_Bottom || outputMode == Output_Bottom_Top)
         frameDisplayAspectRatio *= 0.5f;
-    LOG_FIREHOSE("%s: %d views, %dx%d, %g, 360° %s", Q_FUNC_INFO, viewCount, viewWidth, viewHeight, frameDisplayAspectRatio, threeSixty ? "on" : "off");
+    LOG_FIREHOSE("%s: %d views, %dx%d, %g, surround %s", Q_FUNC_INFO, viewCount, viewWidth, viewHeight, frameDisplayAspectRatio, surround ? "on" : "off");
 
     // Fill the view texture(s) as needed
     for (int v = 0; v <= 1; v++) {
@@ -271,7 +271,7 @@ void Widget::paintGL()
         QMatrix4x4 projectionMatrix;
         QMatrix4x4 orientationMatrix;
         QMatrix4x4 viewMatrix;
-        if (Bino::instance()->assumeThreeSixtyMode()) {
+        if (Bino::instance()->assumeSurroundMode() != Surround_Off) {
             float verticalVieldOfView = qDegreesToRadians(50.0f);
             float aspectRatio = float(_width) / _height;
             float top = qTan(verticalVieldOfView * 0.5f);
@@ -280,8 +280,8 @@ void Widget::paintGL()
             float left = -right;
             projectionMatrix.frustum(left, right, bottom, top, 1.0f, 100.0f);
             QQuaternion orientation = QQuaternion::fromEulerAngles(
-                    (_threeSixtyVerticalAngleBase + _threeSixtyVerticalAngleCurrent),
-                    (_threeSixtyHorizontalAngleBase + _threeSixtyHorizontalAngleCurrent), 0.0f);
+                    (_surroundVerticalAngleBase + _surroundVerticalAngleCurrent),
+                    (_surroundHorizontalAngleBase + _surroundHorizontalAngleCurrent), 0.0f);
             orientationMatrix.rotate(orientation.inverted());
         }
         Bino::instance()->render(projectionMatrix, orientationMatrix, viewMatrix, v, viewWidth, viewHeight, _viewTex[v]);
@@ -365,43 +365,43 @@ void Widget::keyPressEvent(QKeyEvent* e)
 
 void Widget::mousePressEvent(QMouseEvent* e)
 {
-    _inThreeSixtyMovement = true;
-    _threeSixtyMovementStart = e->position();
-    _threeSixtyHorizontalAngleCurrent = 0.0f;
-    _threeSixtyVerticalAngleCurrent = 0.0f;
+    _inSurroundMovement = true;
+    _surroundMovementStart = e->position();
+    _surroundHorizontalAngleCurrent = 0.0f;
+    _surroundVerticalAngleCurrent = 0.0f;
 }
 
 void Widget::mouseReleaseEvent(QMouseEvent*)
 {
-    _inThreeSixtyMovement = false;
-    _threeSixtyHorizontalAngleBase += _threeSixtyHorizontalAngleCurrent;
-    _threeSixtyVerticalAngleBase += _threeSixtyVerticalAngleCurrent;
-    _threeSixtyHorizontalAngleCurrent = 0.0f;
-    _threeSixtyVerticalAngleCurrent = 0.0f;
+    _inSurroundMovement = false;
+    _surroundHorizontalAngleBase += _surroundHorizontalAngleCurrent;
+    _surroundVerticalAngleBase += _surroundVerticalAngleCurrent;
+    _surroundHorizontalAngleCurrent = 0.0f;
+    _surroundVerticalAngleCurrent = 0.0f;
 }
 
 void Widget::mouseMoveEvent(QMouseEvent* e)
 {
-    if (_inThreeSixtyMovement) {
+    if (_inSurroundMovement) {
         // position delta
-        QPointF posDelta = e->position() - _threeSixtyMovementStart;
+        QPointF posDelta = e->position() - _surroundMovementStart;
         // horizontal angle delta
         float dx = posDelta.x();
         float xf = dx / _width; // in [-1,+1]
-        _threeSixtyHorizontalAngleCurrent = -xf * 180.0f;
+        _surroundHorizontalAngleCurrent = -xf * 180.0f;
         // vertical angle
         float dy = posDelta.y();
         float yf = dy / _height; // in [-1,+1]
-        _threeSixtyVerticalAngleCurrent = -yf * 90.0f;
+        _surroundVerticalAngleCurrent = -yf * 90.0f;
         update();
     }
 }
 
 void Widget::mediaChanged(PlaylistEntry)
 {
-    _inThreeSixtyMovement = false;
-    _threeSixtyHorizontalAngleBase = 0.0f;
-    _threeSixtyVerticalAngleBase = 0.0f;
-    _threeSixtyHorizontalAngleCurrent = 0.0f;
-    _threeSixtyVerticalAngleCurrent = 0.0f;
+    _inSurroundMovement = false;
+    _surroundHorizontalAngleBase = 0.0f;
+    _surroundVerticalAngleBase = 0.0f;
+    _surroundHorizontalAngleCurrent = 0.0f;
+    _surroundVerticalAngleCurrent = 0.0f;
 }

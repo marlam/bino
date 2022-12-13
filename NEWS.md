@@ -1,3 +1,6 @@
+Version 2.1:
+- Added support for 180° videos, with and without 3D
+
 Version 2.0:
 - This is a complete rewrite of Bino. All code is new and based on Qt6:
   - Builds with CMake instead of autoconf

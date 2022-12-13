@@ -190,8 +190,8 @@ int main(int argc, char* argv[])
             "amber-blue-dubois, amber-blue-full-color, amber-blue-half-color, amber-blue-monochrome, "
             "red-green-monochrome, red-blue-monochrome"),
             "mode" });
-    parser.addOption({ "360",
-            QCommandLineParser::tr("Set 360° mode (%1).").arg("on, off"),
+    parser.addOption({ "surround",
+            QCommandLineParser::tr("Set surround mode (%1).").arg("360, 180, off"),
             "mode" });
     parser.addOption({ { "S", "swap-eyes" },
             QCommandLineParser::tr("Swap left/right eye.") });
@@ -230,12 +230,12 @@ int main(int argc, char* argv[])
 #endif
 
     // Set modes
-    ThreeSixtyMode threeSixtyMode = ThreeSixty_Unknown;
-    if (parser.isSet("360")) {
+    SurroundMode surroundMode = Surround_Unknown;
+    if (parser.isSet("surround")) {
         bool ok;
-        threeSixtyMode = threeSixtyModeFromString(parser.value("360"), &ok);
+        surroundMode = surroundModeFromString(parser.value("surround"), &ok);
         if (!ok) {
-            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--360")));
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--surround")));
             return 1;
         }
     }
@@ -425,7 +425,7 @@ int main(int argc, char* argv[])
                 continue;
             }
         }
-        playlist.append(PlaylistEntry(url, inputMode, threeSixtyMode,
+        playlist.append(PlaylistEntry(url, inputMode, surroundMode,
                     videoTrack, audioTrack, subtitleTrack));
     }
     if (parser.positionalArguments().length() > 0 && playlist.length() == 0) {

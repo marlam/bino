@@ -34,7 +34,7 @@ public:
 
     QUrl url;
     InputMode inputMode;
-    ThreeSixtyMode threeSixtyMode;
+    SurroundMode surroundMode;
     int videoTrack;
     int audioTrack;
     int subtitleTrack;
@@ -42,7 +42,7 @@ public:
     PlaylistEntry();
     PlaylistEntry(const QUrl& url,
             InputMode inputMode = Input_Unknown,
-            ThreeSixtyMode threeSixtyMode = ThreeSixty_Unknown,
+            SurroundMode surroundMode = Surround_Unknown,
             int videoTrack = DefaultTrack,
             int audioTrack = DefaultTrack,
             int subtitleTrack = NoTrack);

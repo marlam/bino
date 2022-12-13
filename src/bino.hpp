@@ -56,7 +56,7 @@ private:
     QString _subtitleImgString;
     // for updating the GUI if necessary
     InputMode _lastFrameInputMode;
-    ThreeSixtyMode _lastFrameThreeSixtyMode;
+    SurroundMode _lastFrameSurroundMode;
 
     /* Static data for rendering, initialized on the main process */
     Screen _screen;
@@ -77,7 +77,7 @@ private:
     bool _colorPrgYuvValueRangeSmall;
     int _colorPrgYuvSpace;
     QOpenGLShaderProgram _viewPrg;
-    bool _viewPrgThreeSixty;
+    SurroundMode _viewPrgSurroundMode;
     bool _viewPrgNonlinearOutput;
 
     /* Dynamic data for rendering */
@@ -87,7 +87,7 @@ private:
     bool _swapEyes;
 
     void rebuildColorPrgIfNecessary(int planeFormat, bool yuvValueRangeSmall, int yuvSpace);
-    void rebuildViewPrgIfNecessary(bool threeSixty, bool nonLinearOutput);
+    void rebuildViewPrgIfNecessary(SurroundMode surroundMode, bool nonLinearOutput);
     bool drawSubtitleToImage(int w, int h, const QString& string);
     void convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex);
 
@@ -128,7 +128,7 @@ public:
     void setAudioTrack(int i);
     void setSubtitleTrack(int i);
     void setInputMode(InputMode mode);
-    void setThreeSixtyMode(ThreeSixtyMode mode);
+    void setSurroundMode(SurroundMode mode);
 
     /* Functions necessary for GUI mode */
     bool swapEyes() const;
@@ -143,8 +143,8 @@ public:
     InputMode inputMode() const;                        // this might be unknown
     InputMode assumeInputMode() const;                  // this is never unknown
     bool assumeStereoInputMode() const;                 // is the assumed mode stereo?
-    ThreeSixtyMode threeSixtyMode() const;              // this might be unknown
-    bool assumeThreeSixtyMode() const;                  // this is never unknown
+    SurroundMode surroundMode() const;                  // this might be unknown
+    SurroundMode assumeSurroundMode() const;            // this is never unknown
 
     /* Functions necessary for VR mode */
     void serializeStaticData(QDataStream& ds) const;
@@ -162,7 +162,7 @@ public:
             int* viewWidth = nullptr,
             int* viewHeight = nullptr,
             float* frameDisplayAspectRatio = nullptr,
-            bool* threeSixty = nullptr);
+            bool* surround = nullptr);
     void render(
             const QMatrix4x4& projectionMatrix,
             const QMatrix4x4& orientationMatrix,

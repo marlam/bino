@@ -46,7 +46,7 @@ Bino::Bino(const Screen& screen, bool swapEyes) :
     _videoInput(nullptr),
     _captureSession(nullptr),
     _lastFrameInputMode(Input_Unknown),
-    _lastFrameThreeSixtyMode(ThreeSixty_Unknown),
+    _lastFrameSurroundMode(Surround_Unknown),
     _screen(screen),
     _frameIsNew(false),
     _swapEyes(swapEyes)
@@ -213,7 +213,7 @@ void Bino::mediaChanged(PlaylistEntry entry)
             _player->setActiveSubtitleTrack(subtitleTrack);
         }
         _player->play();
-        _videoSink->newUrl(entry.url, entry.inputMode, entry.threeSixtyMode);
+        _videoSink->newUrl(entry.url, entry.inputMode, entry.surroundMode);
     }
     emit stateChanged();
 }
@@ -357,13 +357,13 @@ void Bino::setInputMode(InputMode mode)
     LOG_DEBUG("setting input mode to %s", inputModeToString(mode));
 }
 
-void Bino::setThreeSixtyMode(ThreeSixtyMode mode)
+void Bino::setSurroundMode(SurroundMode mode)
 {
-    _videoSink->threeSixtyMode = mode;
-    _frame.threeSixtyMode = mode;
+    _videoSink->surroundMode = mode;
+    _frame.surroundMode = mode;
     _frame.reUpdate();
     _frameIsNew = true;
-    LOG_DEBUG("setting 360° mode to %s", threeSixtyModeToString(mode));
+    LOG_DEBUG("setting surround mode to %s", surroundModeToString(mode));
 }
 
 bool Bino::swapEyes() const
@@ -444,14 +444,14 @@ bool Bino::assumeStereoInputMode() const
     return (assumeInputMode() != Input_Mono);
 }
 
-ThreeSixtyMode Bino::threeSixtyMode() const
+SurroundMode Bino::surroundMode() const
 {
-    return _videoSink->threeSixtyMode;
+    return _videoSink->surroundMode;
 }
 
-bool Bino::assumeThreeSixtyMode() const
+SurroundMode Bino::assumeSurroundMode() const
 {
-    return _frame.threeSixtyMode == ThreeSixty_On;
+    return _frame.surroundMode;
 }
 
 void Bino::serializeStaticData(QDataStream& ds) const
@@ -739,19 +739,22 @@ void Bino::rebuildColorPrgIfNecessary(int planeFormat, bool yuvValueRangeSmall, 
     _colorPrgYuvSpace = yuvSpace;
 }
 
-void Bino::rebuildViewPrgIfNecessary(bool threeSixty, bool nonLinearOutput)
+void Bino::rebuildViewPrgIfNecessary(SurroundMode surroundMode, bool nonLinearOutput)
 {
     if (_viewPrg.isLinked()
-            && _viewPrgThreeSixty == threeSixty
+            && _viewPrgSurroundMode == surroundMode
             && _viewPrgNonlinearOutput == nonLinearOutput)
         return;
 
-    LOG_DEBUG("rebuilding view program for 360° mode %s, non linear output %s",
-            threeSixty ? "on" : "off", nonLinearOutput ? "true" : "false");
+    LOG_DEBUG("rebuilding view program for surround mode %s, non linear output %s",
+            surroundModeToString(surroundMode), nonLinearOutput ? "true" : "false");
     bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
     QString viewVS = readFile(":src/shader-view.vert.glsl");
     QString viewFS = readFile(":src/shader-view.frag.glsl");
-    viewFS.replace("$THREE_SIXTY", threeSixty ? "true" : "false");
+    viewFS.replace("$SURROUND_DEGREES",
+              surroundMode == Surround_360 ? "360"
+            : surroundMode == Surround_180 ? "180"
+            : "0");
     viewFS.replace("$NONLINEAR_OUTPUT", nonLinearOutput ? "true" : "false");
     if (isGLES) {
         viewVS.prepend("#version 320 es\n");
@@ -765,7 +768,7 @@ void Bino::rebuildViewPrgIfNecessary(bool threeSixty, bool nonLinearOutput)
     _viewPrg.addShaderFromSourceCode(QOpenGLShader::Vertex, viewVS);
     _viewPrg.addShaderFromSourceCode(QOpenGLShader::Fragment, viewFS);
     _viewPrg.link();
-    _viewPrgThreeSixty = threeSixty;
+    _viewPrgSurroundMode = surroundMode;
     _viewPrgNonlinearOutput = nonLinearOutput;
 }
 
@@ -968,7 +971,7 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
 }
 
 void Bino::preRenderProcess(int screenWidth, int screenHeight,
-        int* viewCountPtr, int* viewWidthPtr, int* viewHeightPtr, float* frameDisplayAspectRatioPtr, bool* threeSixtyPtr)
+        int* viewCountPtr, int* viewWidthPtr, int* viewHeightPtr, float* frameDisplayAspectRatioPtr, bool* surroundPtr)
 {
     Q_ASSERT(_frame.inputMode != Input_Unknown);
 
@@ -1001,6 +1004,16 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
     case Input_Alternating_RL:
         break;
     }
+    switch (_frame.surroundMode) {
+    case Surround_Unknown: // cannot happen, update() sets a known mode
+    case Surround_Off:
+        break;
+    case Surround_180:
+        frameDisplayAspectRatio *= 2.0f;
+        break;
+    case Surround_360:
+        break;
+    }
     if (subtitleTrack() >= 0 && (screenWidth > viewWidth || screenHeight > viewHeight)) {
         if (screenWidth / viewWidth > screenHeight / viewHeight) {
             viewWidth = screenWidth;
@@ -1019,8 +1032,8 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
         *viewHeightPtr = viewHeight;
     if (frameDisplayAspectRatioPtr)
         *frameDisplayAspectRatioPtr = frameDisplayAspectRatio;
-    if (threeSixtyPtr)
-        *threeSixtyPtr = (_frame.threeSixtyMode == ThreeSixty_On);
+    if (surroundPtr)
+        *surroundPtr = (_frame.surroundMode != Surround_Off);
 
     /* We need to get new frame data into a texture that is suitable for
      * rendering the screen: _frameTex. */
@@ -1049,11 +1062,11 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
         _frameIsNew = false;
     }
     if (_frame.inputMode != _lastFrameInputMode
-            || _frame.threeSixtyMode != _lastFrameThreeSixtyMode) {
+            || _frame.surroundMode != _lastFrameSurroundMode) {
         emit stateChanged();
     }
     _lastFrameInputMode = _frame.inputMode;
-    _lastFrameThreeSixtyMode = _frame.threeSixtyMode;
+    _lastFrameSurroundMode = _frame.surroundMode;
 }
 
 void Bino::render(
@@ -1148,10 +1161,10 @@ void Bino::render(
             relWidth = frameAspectRatio / _screen.aspectRatio;
     }
     // Set up shader program
-    rebuildViewPrgIfNecessary(_frame.threeSixtyMode == ThreeSixty_On, finalRenderingStep);
+    rebuildViewPrgIfNecessary(_frame.surroundMode, finalRenderingStep);
     glUseProgram(_viewPrg.programId());
     QMatrix4x4 projectionModelViewMatrix = projectionMatrix;
-    if (_frame.threeSixtyMode == ThreeSixty_Off)
+    if (_frame.surroundMode == Surround_Off)
         projectionModelViewMatrix = projectionModelViewMatrix * viewMatrix;
     _viewPrg.setUniformValue("projectionModelViewMatrix", projectionModelViewMatrix);
     _viewPrg.setUniformValue("orientationMatrix", orientationMatrix);
@@ -1168,15 +1181,18 @@ void Bino::render(
     glBindTexture(GL_TEXTURE_2D, _subtitleTex);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, frameTex);
-    if (_frame.threeSixtyMode == ThreeSixty_On) {
+    if (_frame.surroundMode != Surround_Off) {
         // Set up filtering to work correctly at the horizontal wraparound:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        if (_frame.surroundMode == Surround_360)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         // Render
         glBindVertexArray(_cubeVao);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
         // Reset filtering parameters to their defaults
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     } else {
         glBindVertexArray(_screenVao);

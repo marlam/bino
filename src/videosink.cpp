@@ -32,13 +32,13 @@ VideoSink::VideoSink(VideoFrame* frame, VideoFrame* extFrame, bool* frameIsNew) 
     frameIsNew(frameIsNew),
     needExtFrame(false),
     inputMode(Input_Unknown),
-    threeSixtyMode(ThreeSixty_Unknown)
+    surroundMode(Surround_Unknown)
 {
     connect(this, SIGNAL(videoFrameChanged(const QVideoFrame&)), this, SLOT(processNewFrame(const QVideoFrame&)));
 }
 
 // called whenever a new media URL is played:
-void VideoSink::newUrl(const QUrl& url, InputMode im, ThreeSixtyMode ts)
+void VideoSink::newUrl(const QUrl& url, InputMode im, SurroundMode sm)
 {
     frameCounter = 0;
     fileFormatIsMPO = false;
@@ -93,18 +93,20 @@ void VideoSink::newUrl(const QUrl& url, InputMode im, ThreeSixtyMode ts)
         if (inputMode != Input_Unknown)
             LOG_DEBUG("setting input mode %s from file name marker %s", inputModeToString(inputMode), qPrintable(marker));
     }
-    threeSixtyMode = ts;
-    if (threeSixtyMode == ThreeSixty_Unknown) {
-        /* TODO: we should set the 360° mode from media meta data,
+    surroundMode = sm;
+    if (surroundMode == Surround_Unknown) {
+        /* TODO: we should set the 180°/360° mode from media meta data,
          * but QMediaMetaData currently does not provide that information */
     }
-    if (threeSixtyMode == ThreeSixty_Unknown) {
+    if (surroundMode == Surround_Unknown) {
         /* Try to guess the mode from the URL. */
         QString fileName = url.fileName();
-        if (fileName.startsWith("360") || fileName.left(fileName.lastIndexOf('.')).endsWith("360"))
-            threeSixtyMode = ThreeSixty_On;
-        if (threeSixtyMode != ThreeSixty_Unknown)
-            LOG_DEBUG("guessing 360° mode %s from file name %s", threeSixtyModeToString(threeSixtyMode), qPrintable(fileName));
+        if (fileName.contains("360"))
+            surroundMode = Surround_360;
+        else if (fileName.contains("180"))
+            surroundMode = Surround_180;
+        if (surroundMode != Surround_Unknown)
+            LOG_DEBUG("guessing surround mode %s from file name %s", surroundModeToString(surroundMode), qPrintable(fileName));
     }
 }
 
@@ -137,9 +139,9 @@ void VideoSink::processNewFrame(const QVideoFrame& frame)
         needExtFrame = false;
     }
     if (updateExtFrame) {
-        this->extFrame->update(inputMode, threeSixtyMode, frame, frameCounter == 0);
+        this->extFrame->update(inputMode, surroundMode, frame, frameCounter == 0);
     } else {
-        this->frame->update(inputMode, threeSixtyMode, frame, frameCounter == 0);
+        this->frame->update(inputMode, surroundMode, frame, frameCounter == 0);
         this->extFrame->invalidate();
     }
     if (!needExtFrame) {

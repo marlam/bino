@@ -43,7 +43,7 @@ private:
     QActionGroup* _trackVideoActionGroup;
     QActionGroup* _trackAudioActionGroup;
     QActionGroup* _trackSubtitleActionGroup;
-    QAction* _3dThreeSixtyAction;
+    QActionGroup* _3dSurroundActionGroup;
     QActionGroup* _3dInputActionGroup;
     QActionGroup* _3dOutputActionGroup;
     QAction* _mediaTogglePauseAction;
@@ -73,7 +73,7 @@ public slots:
     void trackVideo();
     void trackAudio();
     void trackSubtitle();
-    void threeDThreeSixty();
+    void threeDSurround();
     void threeDInput();
     void threeDOutput();
     void mediaTogglePause();

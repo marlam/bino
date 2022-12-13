@@ -11,7 +11,7 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 
 - Support for stereoscopic 3D videos in various formats
 
-- Support for 360° videos, with and without stereoscopic 3D
+- Support for 360° and 180° videos, with and without stereoscopic 3D
 
 - Support for Virtual Reality environments, including SteamVR,
   CAVEs, powerwalls, and other multi-display / multi-GPU / multi-host systems
@@ -130,9 +130,9 @@ Bino is a video player with a focus on 3D and Virtual Reality:
   amber-blue-half-color, amber-blue-monochrome, red-green-monochrome,
   red-blue-monochrome, even-odd-rows, even-odd-columns, checkerboard).
 
-- `--360` *mode*
+- `--surround` *mode*
 
-  Set 360° mode (on, off).
+  Set surround mode (360, 180, off).
 
 - `-S`, `--swap-eyes`
 
@@ -154,7 +154,7 @@ control interfaces write commands into it as they come in.
 Empty lines and comment lines (which begin with `#`) are ignored.
 The following commands are supported:
 
-- `open` `[--input` *mode*`]` `[--360` *mode*`]` `[--video-track` *vt*`]` `[--audio-track` *at*`]` `[--subtitle-track` *st*`]` *URL*
+- `open` `[--input` *mode*`]` `[--surround` *mode*`]` `[--video-track` *vt*`]` `[--audio-track` *at*`]` `[--subtitle-track` *st*`]` *URL*
   
   Open the URL and start playing. The options have the same meaning as the corresponding command line options.
 
@@ -248,8 +248,8 @@ Bino supports all sorts of Virtual Reality environments via [QVR](https://marlam
 
 To start Bino in VR mode, use the option `--vr`.
 Bino will then display a screen in the virtual world, and the video will be
-displayed on that screen, unless the input is a 360° video, which will of course
-be displayed all around the viewer.
+displayed on that screen, unless the input is a surround video (360° or 180°),
+which will of course be displayed all around the viewer.
 
 The default is a 16:9 screen in a few meters distance from the viewer, but you
 can use the `--vr-screen` option to either define arbitrary planar screens via

@@ -96,30 +96,35 @@ InputMode inputModeFromString(const QString& s, bool* ok)
     return mode;
 }
 
-const char* threeSixtyModeToString(ThreeSixtyMode mode)
+const char* surroundModeToString(SurroundMode mode)
 {
     switch (mode) {
-    case ThreeSixty_Unknown:
+    case Surround_Unknown:
         return "unknown";
         break;
-    case ThreeSixty_On:
-        return "on";
-        break;
-    case ThreeSixty_Off:
+    case Surround_Off:
         return "Off";
+        break;
+    case Surround_180:
+        return "180";
+        break;
+    case Surround_360:
+        return "360";
         break;
     }
     return nullptr;
 }
 
-ThreeSixtyMode threeSixtyModeFromString(const QString& s, bool* ok)
+SurroundMode surroundModeFromString(const QString& s, bool* ok)
 {
-    ThreeSixtyMode mode = ThreeSixty_Unknown;
+    SurroundMode mode = Surround_Unknown;
     bool r = true;
-    if (s == "on")
-        mode = ThreeSixty_On;
-    else if (s == "off")
-        mode = ThreeSixty_Off;
+    if (s == "off")
+        mode = Surround_Off;
+    else if (s == "180")
+        mode = Surround_180;
+    else if (s == "360")
+        mode = Surround_360;
     else
         r = false;
     if (ok)

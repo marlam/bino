@@ -24,10 +24,10 @@
 
 VideoFrame::VideoFrame()
 {
-    update(Input_Unknown, ThreeSixty_Unknown, QVideoFrame(), false);
+    update(Input_Unknown, Surround_Unknown, QVideoFrame(), false);
 }
 
-void VideoFrame::update(InputMode im, ThreeSixtyMode ts, const QVideoFrame& frame, bool newSrc)
+void VideoFrame::update(InputMode im, SurroundMode sm, const QVideoFrame& frame, bool newSrc)
 {
     if (qframe.isMapped())
         qframe.unmap();
@@ -51,22 +51,32 @@ void VideoFrame::update(InputMode im, ThreeSixtyMode ts, const QVideoFrame& fram
             LOG_FIREHOSE("videoframe guesses input mode from aspect ratio %g: %s", aspectRatio, inputModeToString(im));
         }
         inputMode = im;
-        if (ts == ThreeSixty_Unknown) {
+        if (sm == Surround_Unknown) {
             if (width == height && (inputMode == Input_Top_Bottom || inputMode == Input_Bottom_Top))
-                ts = ThreeSixty_On;
+                sm = Surround_360;
             else if (width == 2 * height && inputMode == Input_Mono)
-                ts = ThreeSixty_On;
+                sm = Surround_360;
             else if (width == 2 * height && (inputMode == Input_Top_Bottom_Half || inputMode == Input_Bottom_Top_Half))
-                ts = ThreeSixty_On;
+                sm = Surround_360;
             else if (width == 2 * height && (inputMode == Input_Left_Right_Half || inputMode == Input_Right_Left_Half))
-                ts = ThreeSixty_On;
+                sm = Surround_360;
             else if (width == 4 * height && (inputMode == Input_Left_Right || inputMode == Input_Right_Left))
-                ts = ThreeSixty_On;
+                sm = Surround_360;
+            else if (2 * width == height && (inputMode == Input_Top_Bottom || inputMode == Input_Bottom_Top))
+                sm = Surround_180;
+            else if (width == height && inputMode == Input_Mono)
+                sm = Surround_180;
+            else if (width == height && (inputMode == Input_Top_Bottom_Half || inputMode == Input_Bottom_Top_Half))
+                sm = Surround_180;
+            else if (width == height && (inputMode == Input_Left_Right_Half || inputMode == Input_Right_Left_Half))
+                sm = Surround_180;
+            else if (width == 2 * height && (inputMode == Input_Left_Right || inputMode == Input_Right_Left))
+                sm = Surround_180;
             else
-                ts = ThreeSixty_Off;
-            LOG_FIREHOSE("videoframe guesses 360° mode %s from frame size", threeSixtyModeToString(ts));
+                sm = Surround_Off;
+            LOG_FIREHOSE("videoframe guesses surround mode %s from frame size", surroundModeToString(sm));
         }
-        threeSixtyMode = ts;
+        surroundMode = sm;
         bool fallbackToImage = true;
         if (       qframe.pixelFormat() == QVideoFrameFormat::Format_ARGB8888
                 || qframe.pixelFormat() == QVideoFrameFormat::Format_ARGB8888_Premultiplied
@@ -144,7 +154,7 @@ void VideoFrame::update(InputMode im, ThreeSixtyMode ts, const QVideoFrame& fram
     } else {
         // Synthesize a black frame
         inputMode = Input_Mono;
-        threeSixtyMode = ThreeSixty_Off;
+        surroundMode = Surround_Off;
         width = 1;
         height = 1;
         storage = Storage_Image;
@@ -157,19 +167,19 @@ void VideoFrame::update(InputMode im, ThreeSixtyMode ts, const QVideoFrame& fram
 
 void VideoFrame::reUpdate()
 {
-    update(inputMode, threeSixtyMode, qframe, false);
+    update(inputMode, surroundMode, qframe, false);
 }
 
 void VideoFrame::invalidate()
 {
     if (qframe.isValid())
-        update(Input_Unknown, ThreeSixty_Unknown, QVideoFrame(), false);
+        update(Input_Unknown, Surround_Unknown, QVideoFrame(), false);
 }
 
 QDataStream &operator<<(QDataStream& ds, const VideoFrame& f)
 {
     ds << static_cast<int>(f.inputMode);
-    ds << static_cast<int>(f.threeSixtyMode);
+    ds << static_cast<int>(f.surroundMode);
     ds << f.subtitle;
     ds << f.width;
     ds << f.height;
@@ -205,7 +215,7 @@ QDataStream &operator>>(QDataStream& ds, VideoFrame& f)
     ds >> tmp;
     f.inputMode = static_cast<InputMode>(tmp);
     ds >> tmp;
-    f.threeSixtyMode = static_cast<ThreeSixtyMode>(tmp);
+    f.surroundMode = static_cast<SurroundMode>(tmp);
     ds >> f.subtitle;
     ds >> f.width;
     ds >> f.height;

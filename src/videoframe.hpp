@@ -62,8 +62,8 @@ public:
     QVideoFrame qframe;
     /* The input mode of this frame: */
     InputMode inputMode;
-    /* Whether this is a 360° video: */
-    ThreeSixtyMode threeSixtyMode;
+    /* The surround mode of this frame: */
+    SurroundMode surroundMode;
     /* The subtitle: */
     QString subtitle;
     /* The following can mirror the data of QVideoFrame: */
@@ -87,7 +87,7 @@ public:
 
     VideoFrame();
 
-    void update(InputMode im, ThreeSixtyMode ts, const QVideoFrame& frame, bool newSrc);
+    void update(InputMode im, SurroundMode ts, const QVideoFrame& frame, bool newSrc);
     void reUpdate();
     void invalidate();
 };

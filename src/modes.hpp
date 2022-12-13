@@ -43,15 +43,16 @@ enum InputMode {
 const char* inputModeToString(InputMode mode);
 InputMode inputModeFromString(const QString& s, bool* ok = nullptr);
 
-/* 360° mode: Is this a 360° video or not? */
-enum ThreeSixtyMode {
-    ThreeSixty_Unknown,     // unknown; needs to be guessed
-    ThreeSixty_On,          // 360° video
-    ThreeSixty_Off          // conventional video
+/* Surround mode (180° / 360°) */
+enum SurroundMode {
+    Surround_Unknown,     // unknown; needs to be guessed
+    Surround_Off,         // conventional video
+    Surround_180,         // 180° video
+    Surround_360,         // 360° video
 };
 
-const char* threeSixtyModeToString(ThreeSixtyMode mode);
-ThreeSixtyMode threeSixtyModeFromString(const QString& s, bool* ok = nullptr);
+const char* surroundModeToString(SurroundMode mode);
+SurroundMode surroundModeFromString(const QString& s, bool* ok = nullptr);
 
 /* Output mode: Is the output 2D or 3D, and in the latter case, how should
  * the left and right view be arranged on screen? */

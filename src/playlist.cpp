@@ -27,16 +27,16 @@
 
 
 PlaylistEntry::PlaylistEntry() :
-    url(), inputMode(Input_Unknown), threeSixtyMode(ThreeSixty_Unknown),
+    url(), inputMode(Input_Unknown), surroundMode(Surround_Unknown),
     videoTrack(NoTrack), audioTrack(NoTrack), subtitleTrack(NoTrack)
 {
 }
 
 PlaylistEntry::PlaylistEntry(const QUrl& url,
         InputMode inputMode,
-        ThreeSixtyMode threeSixtyMode,
+        SurroundMode surroundMode,
         int videoTrack, int audioTrack, int subtitleTrack) :
-    url(url), inputMode(inputMode), threeSixtyMode(threeSixtyMode),
+    url(url), inputMode(inputMode), surroundMode(surroundMode),
     videoTrack(videoTrack), audioTrack(audioTrack), subtitleTrack(subtitleTrack)
 {
 }
@@ -53,9 +53,9 @@ QString PlaylistEntry::optionsToString() const
         s.append(" --input=");
         s.append(inputModeToString(inputMode));
     }
-    if (threeSixtyMode != ThreeSixty_Unknown) {
-        s.append(" --360=");
-        s.append(threeSixtyModeToString(threeSixtyMode));
+    if (surroundMode != Surround_Unknown) {
+        s.append(" --surround=");
+        s.append(surroundModeToString(surroundMode));
     }
     if (videoTrack != PlaylistEntry::DefaultTrack) {
         s.append(" --video-track=");
@@ -76,7 +76,7 @@ bool PlaylistEntry::optionsFromString(const QString& s)
 {
     QCommandLineParser parser;
     parser.addOption({ "input", "", "x" });
-    parser.addOption({ "360", "", "x" });
+    parser.addOption({ "surround", "", "x" });
     parser.addOption({ "video-track", "", "x" });
     parser.addOption({ "audio-track", "", "x" });
     parser.addOption({ "subtitle-track", "", "x" });
@@ -84,7 +84,7 @@ bool PlaylistEntry::optionsFromString(const QString& s)
         return false;
     }
     InputMode inputMode = Input_Unknown;
-    ThreeSixtyMode threeSixtyMode = ThreeSixty_Unknown;
+    SurroundMode surroundMode = Surround_Unknown;
     int videoTrack = PlaylistEntry::DefaultTrack;
     int audioTrack = PlaylistEntry::DefaultTrack;
     int subtitleTrack = PlaylistEntry::NoTrack;
@@ -92,8 +92,8 @@ bool PlaylistEntry::optionsFromString(const QString& s)
     if (parser.isSet("input")) {
         inputMode = inputModeFromString(parser.value("input"), &ok);
     }
-    if (parser.isSet("360")) {
-        threeSixtyMode = threeSixtyModeFromString(parser.value("360"), &ok);
+    if (parser.isSet("surround")) {
+        surroundMode = surroundModeFromString(parser.value("surround"), &ok);
     }
     if (parser.isSet("video-track")) {
         int t = parser.value("video-track").toInt(&ok);
@@ -117,7 +117,7 @@ bool PlaylistEntry::optionsFromString(const QString& s)
             ok = false;
     }
     if (ok) {
-        *this = PlaylistEntry(this->url, inputMode, threeSixtyMode, videoTrack, audioTrack, subtitleTrack);
+        *this = PlaylistEntry(this->url, inputMode, surroundMode, videoTrack, audioTrack, subtitleTrack);
     }
     return ok;
 }

@@ -91,10 +91,22 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
     _trackSubtitleActionGroup = new QActionGroup(this);
 
     QMenu* threeDMenu = addBinoMenu(tr("&3D Modes"));
-    _3dThreeSixtyAction = new QAction(tr("360° mode"));
-    _3dThreeSixtyAction->setCheckable(true);
-    connect(_3dThreeSixtyAction, SIGNAL(triggered()), this, SLOT(threeDThreeSixty()));
-    addBinoAction(_3dThreeSixtyAction, threeDMenu);
+    _3dSurroundActionGroup = new QActionGroup(this);
+    QAction* threeDSurroundOff = new QAction(tr("Surround off"), this);
+    threeDSurroundOff->setCheckable(true);
+    _3dSurroundActionGroup->addAction(threeDSurroundOff)->setData(int(Surround_Off));
+    connect(threeDSurroundOff, SIGNAL(triggered()), this, SLOT(threeDSurround()));
+    addBinoAction(threeDSurroundOff, threeDMenu);
+    QAction* threeDSurround180 = new QAction(tr("Surround 180°"), this);
+    threeDSurround180->setCheckable(true);
+    _3dSurroundActionGroup->addAction(threeDSurround180)->setData(int(Surround_180));
+    connect(threeDSurround180, SIGNAL(triggered()), this, SLOT(threeDSurround()));
+    addBinoAction(threeDSurround180, threeDMenu);
+    QAction* threeDSurround360 = new QAction(tr("Surround 360°"), this);
+    threeDSurround360->setCheckable(true);
+    _3dSurroundActionGroup->addAction(threeDSurround360)->setData(int(Surround_360));
+    connect(threeDSurround360, SIGNAL(triggered()), this, SLOT(threeDSurround()));
+    addBinoAction(threeDSurround360, threeDMenu);
     threeDMenu->addSeparator();
     _3dInputActionGroup = new QActionGroup(this);
     QAction* threeDInMono = new QAction(tr("Input 2D"), this);
@@ -528,10 +540,13 @@ void Gui::trackSubtitle()
         Bino::instance()->setSubtitleTrack(a->data().toInt());
 }
 
-void Gui::threeDThreeSixty()
+void Gui::threeDSurround()
 {
-    Bino::instance()->setThreeSixtyMode(_3dThreeSixtyAction->isChecked() ? ThreeSixty_On : ThreeSixty_Off);
-    _widget->update();
+    QAction* a = _3dSurroundActionGroup->checkedAction();
+    if (a) {
+        Bino::instance()->setSurroundMode(static_cast<SurroundMode>(a->data().toInt()));
+        _widget->update();
+    }
 }
 
 void Gui::threeDInput()
@@ -717,11 +732,15 @@ void Gui::updateActions()
     _trackAudioActionGroup->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
     _trackSubtitleActionGroup->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
 
-    _3dThreeSixtyAction->setChecked(Bino::instance()->assumeThreeSixtyMode());
-    InputMode mode = Bino::instance()->assumeInputMode();
+    SurroundMode surroundMode = Bino::instance()->assumeSurroundMode();
+    for (int i = 0; i < _3dSurroundActionGroup->actions().size(); i++) {
+        QAction* a = _3dSurroundActionGroup->actions()[i];
+        a->setChecked(a->data().toInt() == int(surroundMode));
+    }
+    InputMode inputMode = Bino::instance()->assumeInputMode();
     for (int i = 0; i < _3dInputActionGroup->actions().size(); i++) {
         QAction* a = _3dInputActionGroup->actions()[i];
-        a->setChecked(a->data().toInt() == int(mode));
+        a->setChecked(a->data().toInt() == int(inputMode));
     }
     for (int i = 0; i < _3dOutputActionGroup->actions().size(); i++) {
         QAction* a = _3dOutputActionGroup->actions()[i];
