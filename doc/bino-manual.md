@@ -286,4 +286,6 @@ hardware configured via QVR for your VR system, or on the mouse and WASDQE keys
 if nothing else is available.
 
 Additional interaction in VR mode is currently limited to the same keyboard
-shortcuts that also work in GUI mode.
+shortcuts that also work in GUI mode. That means you currently must specify the
+video to play on the command line, and have no way to pause, skip or seek --
+this will be added in a future version.
