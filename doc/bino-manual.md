@@ -230,6 +230,29 @@ The following commands are supported:
 
   Toggle fullscreen mode.
 
+# File Name Conventions
+
+Bino currently cannot detect the stereoscopic layout or the surround video mode
+from metadata because Qt does not provide that information. It therefore has to
+guess.
+
+Bino recognizes the following hints at the last part of the file name, just
+before the file name extension (.ext):
+
+- `*-tb.ext`, `*-ab.ext`: Input mode `top-bottom`
+- `*-tbh.ext`, `*-abq.ext`: Input mode `top-bottom-half`
+- `*-bt.ext`, `*-ba.ext`: Input mode `bottom-top`
+- `*-bth.ext`, `*-baq.ext`: Input mode `bottom-top-half`
+- `*-lr.ext`: Input mode `left-right`
+- `*-lrh.ext`, `*-lrq.ext`: Input mode `left-right-half`
+- `*-rl.ext`: Input mode `right-left`
+- `*-rlh.ext`, `*-rlq.ext`: Input mode `right-left-half`
+- `*-2d.ext`: Input mode `mono`
+
+Additionally, if the number `180` or `360` is part of the file name and separated
+by neighboring digits or letters by other characters, then the corresponding surround
+mode is assumed.
+
 # Virtual Reality
 
 Bino supports all sorts of Virtual Reality environments via [QVR](https://marlam.de/qvr):
