@@ -1,5 +1,10 @@
 Version 2.1:
 - Added support for 180° videos, with and without 3D
+- Added 3D output modes left-right(-half), right-left(-half),
+  top-bottom(-half), bottom-top(-half)
+- Fixed color space conversion for several pixel formats, mostly used by image
+  file formats.
+- VR: render controller models.
 
 Version 2.0:
 - This is a complete rewrite of Bino. All code is new and based on Qt6:
