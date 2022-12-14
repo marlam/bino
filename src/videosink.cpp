@@ -101,10 +101,14 @@ void VideoSink::newUrl(const QUrl& url, InputMode im, SurroundMode sm)
     if (surroundMode == Surround_Unknown) {
         /* Try to guess the mode from the URL. */
         QString fileName = url.fileName();
-        if (fileName.contains("360"))
+        int i360 = fileName.indexOf("360");
+        if (i360 >= 0 && (i360 == 0 || !fileName[i360 - 1].isLetterOrNumber()) && !fileName[i360 + 3].isLetterOrNumber()) {
             surroundMode = Surround_360;
-        else if (fileName.contains("180"))
-            surroundMode = Surround_180;
+        } else {
+            int i180 = fileName.indexOf("180");
+            if (i180 >= 0 && (i180 == 0 || !fileName[i180 - 1].isLetterOrNumber()) && !fileName[i180 + 3].isLetterOrNumber())
+                surroundMode = Surround_180;
+        }
         if (surroundMode != Surround_Unknown)
             LOG_DEBUG("guessing surround mode %s from file name %s", surroundModeToString(surroundMode), qPrintable(fileName));
     }
