@@ -388,11 +388,11 @@ void Widget::mouseMoveEvent(QMouseEvent* e)
         // horizontal angle delta
         float dx = posDelta.x();
         float xf = dx / _width; // in [-1,+1]
-        _surroundHorizontalAngleCurrent = -xf * 180.0f;
+        _surroundHorizontalAngleCurrent = xf * 180.0f;
         // vertical angle
         float dy = posDelta.y();
         float yf = dy / _height; // in [-1,+1]
-        _surroundVerticalAngleCurrent = -yf * 90.0f;
+        _surroundVerticalAngleCurrent = yf * 90.0f;
         update();
     }
 }
