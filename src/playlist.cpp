@@ -240,7 +240,7 @@ void Playlist::next()
         if (_currentIndex == length() - 1)
             setCurrentIndex(0);
         else
-            setCurrentIndex(_currentIndex++);
+            setCurrentIndex(_currentIndex + 1);
     }
 }
 
@@ -250,7 +250,7 @@ void Playlist::prev()
         if (_currentIndex == 0)
             setCurrentIndex(length() - 1);
         else
-            setCurrentIndex(_currentIndex--);
+            setCurrentIndex(_currentIndex - 1);
     }
 }
 
@@ -270,6 +270,7 @@ void Playlist::setCurrentIndex(int index)
         index = length() - 1;
     }
     if (_currentIndex != index) {
+        LOG_DEBUG("playlist: switching index from %d to %d", _currentIndex, index);
         _currentIndex = index;
         emitMediaChanged();
     }
