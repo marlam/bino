@@ -35,10 +35,6 @@ private:
 
     QMenu* _contextMenu;
 
-    QAction* _fileOpenAction;
-    QAction* _fileOpenURLAction;
-    QAction* _fileOpenCameraAction;
-    QAction* _fileQuitAction;
     QMenu* _trackMenu;
     QActionGroup* _trackVideoActionGroup;
     QActionGroup* _trackAudioActionGroup;
@@ -60,7 +56,6 @@ private:
     QAction* _mediaSeekBwd10MinsAction;
     QAction* _viewToggleFullscreenAction;
     QAction* _viewToggleSwapEyesAction;
-    QAction* _helpAboutAction;
 
     QMenu* addBinoMenu(const QString& title);
     void addBinoAction(QAction* action, QMenu* menu);

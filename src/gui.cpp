@@ -69,21 +69,21 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
     setWindowIcon(QIcon(icon));
 
     QMenu* fileMenu = addBinoMenu(tr("&File"));
-    _fileOpenAction = new QAction(tr("&Open file..."), this);
-    _fileOpenAction->setShortcuts({ QKeySequence::Open });
-    connect(_fileOpenAction, SIGNAL(triggered()), this, SLOT(fileOpen()));
-    addBinoAction(_fileOpenAction, fileMenu);
-    _fileOpenURLAction = new QAction(tr("Open &URL..."), this);
-    connect(_fileOpenURLAction, SIGNAL(triggered()), this, SLOT(fileOpenURL()));
-    addBinoAction(_fileOpenURLAction, fileMenu);
-    _fileOpenCameraAction = new QAction(tr("Open &Camera..."), this);
-    connect(_fileOpenCameraAction, SIGNAL(triggered()), this, SLOT(fileOpenCamera()));
-    addBinoAction(_fileOpenCameraAction, fileMenu);
+    QAction* fileOpenAction = new QAction(tr("&Open file..."), this);
+    fileOpenAction->setShortcuts({ QKeySequence::Open });
+    connect(fileOpenAction, SIGNAL(triggered()), this, SLOT(fileOpen()));
+    addBinoAction(fileOpenAction, fileMenu);
+    QAction* fileOpenURLAction = new QAction(tr("Open &URL..."), this);
+    connect(fileOpenURLAction, SIGNAL(triggered()), this, SLOT(fileOpenURL()));
+    addBinoAction(fileOpenURLAction, fileMenu);
+    QAction* fileOpenCameraAction = new QAction(tr("Open &Camera..."), this);
+    connect(fileOpenCameraAction, SIGNAL(triggered()), this, SLOT(fileOpenCamera()));
+    addBinoAction(fileOpenCameraAction, fileMenu);
     fileMenu->addSeparator();
-    _fileQuitAction = new QAction(tr("&Quit"), this);
-    _fileQuitAction->setShortcuts({ QKeySequence::Quit });
-    connect(_fileQuitAction, SIGNAL(triggered()), this, SLOT(fileQuit()));
-    addBinoAction(_fileQuitAction, fileMenu);
+    QAction* fileQuitAction = new QAction(tr("&Quit"), this);
+    fileQuitAction->setShortcuts({ QKeySequence::Quit });
+    connect(fileQuitAction, SIGNAL(triggered()), this, SLOT(fileQuit()));
+    addBinoAction(fileQuitAction, fileMenu);
 
     _trackMenu = addBinoMenu(tr("&Tracks"));
     _trackVideoActionGroup = new QActionGroup(this);
@@ -385,9 +385,9 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
     addBinoAction(_viewToggleSwapEyesAction, viewMenu);
 
     QMenu* helpMenu = addBinoMenu(tr("&Help"));
-    _helpAboutAction = new QAction(tr("&About..."), this);
-    connect(_helpAboutAction, SIGNAL(triggered()), this, SLOT(helpAbout()));
-    addBinoAction(_helpAboutAction, helpMenu);
+    QAction* helpAboutAction = new QAction(tr("&About..."), this);
+    connect(helpAboutAction, SIGNAL(triggered()), this, SLOT(helpAbout()));
+    addBinoAction(helpAboutAction, helpMenu);
 
     updateActions();
     connect(Bino::instance(), SIGNAL(stateChanged()), this, SLOT(updateActions()));
