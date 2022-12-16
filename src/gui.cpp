@@ -90,6 +90,31 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
     _trackAudioActionGroup = new QActionGroup(this);
     _trackSubtitleActionGroup = new QActionGroup(this);
 
+    QMenu* playlistMenu = addBinoMenu(tr("&Playlist"));
+    QAction* playlistNextAction = new QAction(tr("&Next"));
+    connect(playlistNextAction, SIGNAL(triggered()), this, SLOT(playlistNext()));
+    addBinoAction(playlistNextAction, playlistMenu);
+    QAction* playlistPreviousAction = new QAction(tr("&Previous"));
+    connect(playlistPreviousAction, SIGNAL(triggered()), this, SLOT(playlistPrevious()));
+    addBinoAction(playlistPreviousAction, playlistMenu);
+    fileMenu->addSeparator();
+    _playlistLoopActionGroup = new QActionGroup(this);
+    QAction* playlistLoopOff = new QAction(tr("Loop off"), this);
+    playlistLoopOff->setCheckable(true);
+    _playlistLoopActionGroup->addAction(playlistLoopOff)->setData(int(Loop_Off));
+    connect(playlistLoopOff, SIGNAL(triggered()), this, SLOT(playlistLoop()));
+    addBinoAction(playlistLoopOff, playlistMenu);
+    QAction* playlistLoopOne = new QAction(tr("Loop one"), this);
+    playlistLoopOne->setCheckable(true);
+    _playlistLoopActionGroup->addAction(playlistLoopOne)->setData(int(Loop_One));
+    connect(playlistLoopOne, SIGNAL(triggered()), this, SLOT(playlistLoop()));
+    addBinoAction(playlistLoopOne, playlistMenu);
+    QAction* playlistLoopAll = new QAction(tr("Loop all"), this);
+    playlistLoopAll->setCheckable(true);
+    _playlistLoopActionGroup->addAction(playlistLoopAll)->setData(int(Loop_All));
+    connect(playlistLoopAll, SIGNAL(triggered()), this, SLOT(playlistLoop()));
+    addBinoAction(playlistLoopAll, playlistMenu);
+
     QMenu* threeDMenu = addBinoMenu(tr("&3D Modes"));
     _3dSurroundActionGroup = new QActionGroup(this);
     QAction* threeDSurroundOff = new QAction(tr("Surround off"), this);
@@ -540,6 +565,23 @@ void Gui::trackSubtitle()
         Bino::instance()->setSubtitleTrack(a->data().toInt());
 }
 
+void Gui::playlistNext()
+{
+    Playlist::instance()->next();
+}
+
+void Gui::playlistPrevious()
+{
+    Playlist::instance()->prev();
+}
+
+void Gui::playlistLoop()
+{
+    QAction* a = _playlistLoopActionGroup->checkedAction();
+    if (a)
+        Playlist::instance()->setLoopMode(static_cast<LoopMode>(a->data().toInt()));
+}
+
 void Gui::threeDSurround()
 {
     QAction* a = _3dSurroundActionGroup->checkedAction();
@@ -731,6 +773,12 @@ void Gui::updateActions()
     _trackVideoActionGroup->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
     _trackAudioActionGroup->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
     _trackSubtitleActionGroup->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
+
+    LoopMode loopMode = Playlist::instance()->loopMode();
+    for (int i = 0; i < _playlistLoopActionGroup->actions().size(); i++) {
+        QAction* a = _playlistLoopActionGroup->actions()[i];
+        a->setChecked(a->data().toInt() == int(loopMode));
+    }
 
     SurroundMode surroundMode = Bino::instance()->assumeSurroundMode();
     for (int i = 0; i < _3dSurroundActionGroup->actions().size(); i++) {

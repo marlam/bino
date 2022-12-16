@@ -35,6 +35,7 @@ private:
 
     QMenu* _contextMenu;
 
+    QActionGroup* _playlistLoopActionGroup;
     QMenu* _trackMenu;
     QActionGroup* _trackVideoActionGroup;
     QActionGroup* _trackAudioActionGroup;
@@ -68,6 +69,9 @@ public slots:
     void trackVideo();
     void trackAudio();
     void trackSubtitle();
+    void playlistNext();
+    void playlistPrevious();
+    void playlistLoop();
     void threeDSurround();
     void threeDInput();
     void threeDOutput();
