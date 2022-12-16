@@ -178,6 +178,18 @@ The following commands are supported:
 
   Stop playing.
 
+- `playlist-next`
+
+  Switch to next playlist entry.
+
+- `playlist-prev`
+
+  Switch to previous playlist entry.
+
+- `playlist-loop` *mode*
+
+  Set loop mode (off, one, all).
+
 - `quit`
 
   Quit Bino.
