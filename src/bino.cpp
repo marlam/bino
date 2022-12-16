@@ -178,6 +178,13 @@ void Bino::mediaChanged(PlaylistEntry entry)
     if (entry.noMedia()) {
         _player->stop();
     } else {
+        // QMediaPlayer does not work with simply setting a new source via setSource().
+        // Apparently we at least need to flush all buffers with setSource(QUrl()) first.
+        // But that triggers playbackstateChanged() events which mess up our playlist.
+        // To work around this problem, we use the big hammer and destroy and recreate
+        // the QMediaPlayer before setting the new URL. Not exactly elegant...
+        stopPlaylistMode();
+        startPlaylistMode();
         _player->setSource(entry.url);
         MetaData metaData;
         metaData.detectCached(entry.url);
