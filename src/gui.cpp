@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,6 +35,7 @@
 
 #include "gui.hpp"
 #include "playlist.hpp"
+#include "playlisteditor.hpp"
 #include "metadata.hpp"
 #include "version.hpp"
 #include "log.hpp"
@@ -91,13 +92,23 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
     _trackSubtitleActionGroup = new QActionGroup(this);
 
     QMenu* playlistMenu = addBinoMenu(tr("&Playlist"));
+    QAction* playlistLoadAction = new QAction(tr("&Load..."));
+    connect(playlistLoadAction, SIGNAL(triggered()), this, SLOT(playlistLoad()));
+    addBinoAction(playlistLoadAction, playlistMenu);
+    QAction* playlistSaveAction = new QAction(tr("&Save..."));
+    connect(playlistSaveAction, SIGNAL(triggered()), this, SLOT(playlistSave()));
+    addBinoAction(playlistSaveAction, playlistMenu);
+    QAction* playlistEditAction = new QAction(tr("&Edit..."));
+    connect(playlistEditAction, SIGNAL(triggered()), this, SLOT(playlistEdit()));
+    addBinoAction(playlistEditAction, playlistMenu);
+    playlistMenu->addSeparator();
     QAction* playlistNextAction = new QAction(tr("&Next"));
     connect(playlistNextAction, SIGNAL(triggered()), this, SLOT(playlistNext()));
     addBinoAction(playlistNextAction, playlistMenu);
     QAction* playlistPreviousAction = new QAction(tr("&Previous"));
     connect(playlistPreviousAction, SIGNAL(triggered()), this, SLOT(playlistPrevious()));
     addBinoAction(playlistPreviousAction, playlistMenu);
-    fileMenu->addSeparator();
+    playlistMenu->addSeparator();
     _playlistLoopActionGroup = new QActionGroup(this);
     QAction* playlistLoopOff = new QAction(tr("Loop off"), this);
     playlistLoopOff->setCheckable(true);
@@ -565,6 +576,37 @@ void Gui::trackSubtitle()
         Bino::instance()->setSubtitleTrack(a->data().toInt());
 }
 
+void Gui::playlistLoad()
+{
+    QString name = QFileDialog::getOpenFileName(this, QString(), QString(), tr("Playlists (*.m3u)"));
+    if (!name.isEmpty()) {
+        QString errStr;
+        if (!Playlist::instance()->load(name, errStr)) {
+            QMessageBox::critical(this, tr("Error"), errStr);
+        }
+    }
+}
+
+void Gui::playlistSave()
+{
+    QFileDialog fileDialog(this, QString(), QString(), tr("Playlists (*.m3u)"));
+    fileDialog.setDefaultSuffix(".m3u");
+    fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+    if (fileDialog.exec()) {
+        QString name = fileDialog.selectedFiles().front();
+        QString errStr;
+        if (!Playlist::instance()->save(name, errStr)) {
+            QMessageBox::critical(this, tr("Error"), errStr);
+        }
+    }
+}
+
+void Gui::playlistEdit()
+{
+    PlaylistEditor editor(this);
+    editor.exec();
+}
+
 void Gui::playlistNext()
 {
     Playlist::instance()->next();
@@ -696,7 +738,7 @@ void Gui::helpAbout()
             + QString("<br>")
             + QString("<a href=\"https://bino3d.org\">https://bino3d.org</a>")
             + QString("</p><p>")
-            + tr("Copyright (C) %1 Martin Lambers").arg(2022)
+            + tr("Copyright (C) %1 Martin Lambers").arg(2023)
             + QString("<br>")
             + tr("This is free software. You may redistribute copies of it "
                 "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"

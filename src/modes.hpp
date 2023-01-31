@@ -26,18 +26,18 @@
 /* Input mode: Is this 2D or 3D, and in the latter case, how are the
  * left and right view arranged in one frame? */
 enum InputMode {
-    Input_Unknown,         // unknown; needs to be guessed
-    Input_Mono,            // monoscopic video (2D)
-    Input_Top_Bottom,      // stereoscopic video, left eye top, right eye bottom
-    Input_Top_Bottom_Half, // stereoscopic video, left eye top, right eye bottom, both half height
-    Input_Bottom_Top,      // stereoscopic video, left eye bottom, right eye top
-    Input_Bottom_Top_Half, // stereoscopic video, left eye bottom, right eye top, both half height
-    Input_Left_Right,      // stereoscopic video, left eye left, right eye right
-    Input_Left_Right_Half, // stereoscopic video, left eye left, right eye right, both half width
-    Input_Right_Left,      // stereoscopic video, left eye right, right eye left
-    Input_Right_Left_Half, // stereoscopic video, left eye right, right eye left, both half width
-    Input_Alternating_LR,  // stereoscopic video, alternating frames, left first
-    Input_Alternating_RL,  // stereoscopic video, alternating frames, right first
+    Input_Unknown = 0,         // unknown; needs to be guessed
+    Input_Mono = 1,            // monoscopic video (2D)
+    Input_Top_Bottom = 2,      // stereoscopic video, left eye top, right eye bottom
+    Input_Top_Bottom_Half = 3, // stereoscopic video, left eye top, right eye bottom, both half height
+    Input_Bottom_Top = 4,      // stereoscopic video, left eye bottom, right eye top
+    Input_Bottom_Top_Half = 5, // stereoscopic video, left eye bottom, right eye top, both half height
+    Input_Left_Right = 6,      // stereoscopic video, left eye left, right eye right
+    Input_Left_Right_Half = 7, // stereoscopic video, left eye left, right eye right, both half width
+    Input_Right_Left = 8,      // stereoscopic video, left eye right, right eye left
+    Input_Right_Left_Half = 9, // stereoscopic video, left eye right, right eye left, both half width
+    Input_Alternating_LR = 10, // stereoscopic video, alternating frames, left first
+    Input_Alternating_RL = 11, // stereoscopic video, alternating frames, right first
 };
 
 const char* inputModeToString(InputMode mode);
@@ -45,10 +45,10 @@ InputMode inputModeFromString(const QString& s, bool* ok = nullptr);
 
 /* Surround mode (180° / 360°) */
 enum SurroundMode {
-    Surround_Unknown,     // unknown; needs to be guessed
-    Surround_Off,         // conventional video
-    Surround_180,         // 180° video
-    Surround_360,         // 360° video
+    Surround_Unknown = 0,     // unknown; needs to be guessed
+    Surround_Off = 1,         // conventional video
+    Surround_180 = 2,         // 180° video
+    Surround_360 = 3,         // 360° video
 };
 
 const char* surroundModeToString(SurroundMode mode);

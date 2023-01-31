@@ -40,6 +40,7 @@ add_executable(bino
 	src/qvrapp.hpp src/qvrapp.cpp
 	src/widget.hpp src/widget.cpp
 	src/commandinterpreter.hpp src/commandinterpreter.cpp
+	src/playlisteditor.hpp src/playlisteditor.cpp
 	src/gui.hpp src/gui.cpp
 	src/appicon.rc)
 qt6_add_translations(bino TS_FILES i18n/bino_de.ts i18n/bino_ka.ts)

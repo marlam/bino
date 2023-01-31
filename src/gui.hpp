@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -69,6 +69,9 @@ public slots:
     void trackVideo();
     void trackAudio();
     void trackSubtitle();
+    void playlistLoad();
+    void playlistSave();
+    void playlistEdit();
     void playlistNext();
     void playlistPrevious();
     void playlistLoop();

@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -169,6 +169,11 @@ bool Playlist::wantSubtitle() const
 void Playlist::setWantSubtitle(bool want)
 {
     _wantSubtitle = want;
+}
+
+QList<PlaylistEntry>& Playlist::entries()
+{
+    return _entries;
 }
 
 const QList<PlaylistEntry>& Playlist::entries() const
