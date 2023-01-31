@@ -421,6 +421,8 @@ struct attrib_t {
 struct callback_t {
   // W is optional and set to 1 if there is no `w` item in `v` line
   void (*vertex_cb)(void *user_data, real_t x, real_t y, real_t z, real_t w);
+  void (*vertex_color_cb)(void *user_data, real_t x, real_t y, real_t z,
+                          real_t r, real_t g, real_t b, bool has_color);
   void (*normal_cb)(void *user_data, real_t x, real_t y, real_t z);
 
   // y and z are optional and set to 0 if there is no `y` and/or `z` item(s) in
@@ -796,8 +798,21 @@ static std::istream &safeGetline(std::istream &is, std::string &t) {
   (static_cast<unsigned int>((x) - '0') < static_cast<unsigned int>(10))
 #define IS_NEW_LINE(x) (((x) == '\r') || ((x) == '\n') || ((x) == '\0'))
 
+template <typename T>
+static inline std::string toString(const T &t) {
+  std::stringstream ss;
+  ss << t;
+  return ss.str();
+}
+
+struct warning_context
+{
+	std::string *warn;
+	size_t line_number;
+};
+
 // Make index zero-base, and also support relative index.
-static inline bool fixIndex(int idx, int n, int *ret) {
+static inline bool fixIndex(int idx, int n, int *ret, bool allow_zero, const warning_context &context) {
   if (!ret) {
     return false;
   }
@@ -809,11 +824,20 @@ static inline bool fixIndex(int idx, int n, int *ret) {
 
   if (idx == 0) {
     // zero is not allowed according to the spec.
-    return false;
+    if (context.warn) {
+      (*context.warn) += "A zero value index found (will have a value of -1 for normal and tex indices. Line "
+          + toString(context.line_number) + ").\n";
+    }
+
+    (*ret) = idx - 1;
+    return allow_zero;
   }
 
   if (idx < 0) {
     (*ret) = n + idx;  // negative value = relative
+    if((*ret) < 0){
+      return false;  // invalid relative index
+    }
     return true;
   }
 
@@ -1134,14 +1158,14 @@ static tag_sizes parseTagTriple(const char **token) {
 
 // Parse triples with index offsets: i, i/j/k, i//k, i/j
 static bool parseTriple(const char **token, int vsize, int vnsize, int vtsize,
-                        vertex_index_t *ret) {
+                        vertex_index_t *ret, const warning_context &context) {
   if (!ret) {
     return false;
   }
 
   vertex_index_t vi(-1);
 
-  if (!fixIndex(atoi((*token)), vsize, &(vi.v_idx))) {
+  if (!fixIndex(atoi((*token)), vsize, &vi.v_idx, false, context)) {
     return false;
   }
 
@@ -1155,7 +1179,7 @@ static bool parseTriple(const char **token, int vsize, int vnsize, int vtsize,
   // i//k
   if ((*token)[0] == '/') {
     (*token)++;
-    if (!fixIndex(atoi((*token)), vnsize, &(vi.vn_idx))) {
+    if (!fixIndex(atoi((*token)), vnsize, &vi.vn_idx, true, context)) {
       return false;
     }
     (*token) += strcspn((*token), "/ \t\r");
@@ -1164,7 +1188,7 @@ static bool parseTriple(const char **token, int vsize, int vnsize, int vtsize,
   }
 
   // i/j/k or i/j
-  if (!fixIndex(atoi((*token)), vtsize, &(vi.vt_idx))) {
+  if (!fixIndex(atoi((*token)), vtsize, &vi.vt_idx, true, context)) {
     return false;
   }
 
@@ -1176,7 +1200,7 @@ static bool parseTriple(const char **token, int vsize, int vnsize, int vtsize,
 
   // i/j/k
   (*token)++;  // skip '/'
-  if (!fixIndex(atoi((*token)), vnsize, &(vi.vn_idx))) {
+  if (!fixIndex(atoi((*token)), vnsize, &vi.vn_idx, true, context)) {
     return false;
   }
   (*token) += strcspn((*token), "/ \t\r");
@@ -1419,7 +1443,7 @@ inline real_t GetLength(TinyObjPoint &e) {
 }
 
 inline TinyObjPoint Normalize(TinyObjPoint e) {
-	real_t inv_length = 1.0 / GetLength(e);
+	real_t inv_length = real_t(1) / GetLength(e);
 	return TinyObjPoint(e.x * inv_length, e.y * inv_length, e.z * inv_length );
 }
 
@@ -1597,7 +1621,7 @@ static bool exportGroupsToShape(shape_t *shape, const PrimGroup &prim_group,
             TinyObjPoint a(point1.x - point2.x, point1.y - point2.y, point1.z - point2.z);
             TinyObjPoint b(point1.x + point2.x, point1.y + point2.y, point1.z + point2.z);
 
-            n.x += (a.x * b.z);
+            n.x += (a.y * b.z);
             n.y += (a.z * b.x);
             n.z += (a.x * b.y);
           }
@@ -1607,7 +1631,7 @@ static bool exportGroupsToShape(shape_t *shape, const PrimGroup &prim_group,
             continue;
           }
           //Negative is to flip the normal to the correct direction
-          real_t inv_length = -1.0f / length_n;
+          real_t inv_length = -real_t(1.0) / length_n;
           n.x *= inv_length;
           n.y *= inv_length;
           n.z *= inv_length;
@@ -1615,7 +1639,7 @@ static bool exportGroupsToShape(shape_t *shape, const PrimGroup &prim_group,
           TinyObjPoint axis_w, axis_v, axis_u;
           axis_w = n;
           TinyObjPoint a;
-          if(abs(axis_w.x) > 0.9999999) {
+          if(std::abs(axis_w.x) > real_t(0.9999999)) {
             a = TinyObjPoint(0,1,0);
           } else {
             a = TinyObjPoint(1,0,0);
@@ -2087,9 +2111,14 @@ void LoadMtl(std::map<std::string, int> *material_map,
       // set new mtl name
       token += 7;
       {
-        std::stringstream sstr;
-        sstr << token;
-        material.name = sstr.str();
+        std::string namebuf = parseString(&token);
+        // TODO: empty name check?
+        if (namebuf.empty()) {
+          if (warning) {
+            (*warning) += "empty material name in `newmtl`\n";
+          }
+        }
+        material.name = namebuf;
       }
       continue;
     }
@@ -2678,6 +2707,10 @@ bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes,
       vw.push_back(sw);
     }
 
+    warning_context context;
+    context.warn = warn;
+    context.line_number = line_num;
+
     // line
     if (token[0] == 'l' && IS_SPACE((token[1]))) {
       token += 2;
@@ -2688,13 +2721,10 @@ bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes,
         vertex_index_t vi;
         if (!parseTriple(&token, static_cast<int>(v.size() / 3),
                          static_cast<int>(vn.size() / 3),
-                         static_cast<int>(vt.size() / 2), &vi)) {
+                         static_cast<int>(vt.size() / 2), &vi, context)) {
           if (err) {
-            std::stringstream ss;
-            ss << "Failed parse `l' line(e.g. zero value for vertex index. "
-                  "line "
-               << line_num << ".)\n";
-            (*err) += ss.str();
+            (*err) += "Failed to parse `l' line (e.g. a zero value for vertex index. Line " +
+                toString(line_num) + ").\n";
           }
           return false;
         }
@@ -2720,13 +2750,10 @@ bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes,
         vertex_index_t vi;
         if (!parseTriple(&token, static_cast<int>(v.size() / 3),
                          static_cast<int>(vn.size() / 3),
-                         static_cast<int>(vt.size() / 2), &vi)) {
+                         static_cast<int>(vt.size() / 2), &vi, context)) {
           if (err) {
-            std::stringstream ss;
-            ss << "Failed parse `p' line(e.g. zero value for vertex index. "
-                  "line "
-               << line_num << ".)\n";
-            (*err) += ss.str();
+            (*err) += "Failed to parse `p' line (e.g. a zero value for vertex index. Line " +
+                toString(line_num) + ").\n";
           }
           return false;
         }
@@ -2756,12 +2783,10 @@ bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes,
         vertex_index_t vi;
         if (!parseTriple(&token, static_cast<int>(v.size() / 3),
                          static_cast<int>(vn.size() / 3),
-                         static_cast<int>(vt.size() / 2), &vi)) {
+                         static_cast<int>(vt.size() / 2), &vi, context)) {
           if (err) {
-            std::stringstream ss;
-            ss << "Failed parse `f' line(e.g. zero value for face index. line "
-               << line_num << ".)\n";
-            (*err) += ss.str();
+            (*err) += "Failed to parse `f' line (e.g. a zero value for vertex index or invalid relative vertex index). Line " +
+                toString(line_num) + ").\n";
           }
           return false;
         }
@@ -3138,11 +3163,15 @@ bool LoadObjWithCallback(std::istream &inStream, const callback_t &callback,
     // vertex
     if (token[0] == 'v' && IS_SPACE((token[1]))) {
       token += 2;
-      // TODO(syoyo): Support parsing vertex color extension.
-      real_t x, y, z, w;  // w is optional. default = 1.0
-      parseV(&x, &y, &z, &w, &token);
+      real_t x, y, z;
+      real_t r, g, b;
+
+      bool found_color = parseVertexWithColor(&x, &y, &z, &r, &g, &b, &token);
       if (callback.vertex_cb) {
-        callback.vertex_cb(user_data, x, y, z, w);
+        callback.vertex_cb(user_data, x, y, z, r);  // r=w is optional
+      }
+      if (callback.vertex_color_cb) {
+        callback.vertex_color_cb(user_data, x, y, z, r, g, b, found_color);
       }
       continue;
     }
