@@ -1,10 +1,14 @@
 Version 2.1:
-- Added support for 180° videos, with and without 3D
+- Added support for loading/saving/editing play lists, with loop modes
+  off/one/all.
+- Added support for 180° videos, with and without 3D.
 - Added 3D output modes left-right(-half), right-left(-half),
-  top-bottom(-half), bottom-top(-half)
+  top-bottom(-half), bottom-top(-half).
+- Added support for rendering controller models in VR mode.
+- Improved GUI menu structure.
 - Fixed color space conversion for several pixel formats, mostly used by image
   file formats.
-- VR: render controller models.
+- Fixed various scripting mode problems.
 
 Version 2.0:
 - This is a complete rewrite of Bino. All code is new and based on Qt6:
