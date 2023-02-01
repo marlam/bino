@@ -334,13 +334,13 @@ void PlaylistEditor::down()
 
 void PlaylistEditor::add()
 {
-    Playlist* playlist = Playlist::instance();
     int row = selectedRow();
-    if (row < 0 || row >= table->rowCount())
-        row = playlist->length();
-    playlist->insert(row, PlaylistEntry(QUrl("")));
+    if (row < 0 || row > table->rowCount() - 1)
+        row = table->rowCount() - 1;
+    Playlist* playlist = Playlist::instance();
+    playlist->insert(row + 1, PlaylistEntry(QUrl("")));
     updateTable();
-    table->setCurrentCell(row, 0);
+    table->setCurrentCell(row + 1, 0);
     updateButtonState();
     edit();
 }
