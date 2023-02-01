@@ -103,9 +103,11 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
     addBinoAction(playlistEditAction, playlistMenu);
     playlistMenu->addSeparator();
     QAction* playlistNextAction = new QAction(tr("&Next"));
+    playlistNextAction->setShortcuts({ Qt::Key_N });
     connect(playlistNextAction, SIGNAL(triggered()), this, SLOT(playlistNext()));
     addBinoAction(playlistNextAction, playlistMenu);
     QAction* playlistPreviousAction = new QAction(tr("&Previous"));
+    playlistPreviousAction->setShortcuts({ Qt::Key_P });
     connect(playlistPreviousAction, SIGNAL(triggered()), this, SLOT(playlistPrevious()));
     addBinoAction(playlistPreviousAction, playlistMenu);
     playlistMenu->addSeparator();

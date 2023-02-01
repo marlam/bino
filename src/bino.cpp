@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1247,6 +1247,10 @@ void Bino::keyPressEvent(QKeyEvent* event)
         seek(-600000);
     } else if (event->key() == Qt::Key_PageUp) {
         seek(+600000);
+    } else if (event->key() == Qt::Key_N) {
+        Playlist::instance()->next();
+    } else if (event->key() == Qt::Key_P) {
+        Playlist::instance()->prev();
     } else if (event->matches(QKeySequence::FullScreen) || event->key() == Qt::Key_F) {
         emit toggleFullscreen();
     } else if (event->key() == Qt::Key_E || event->key() == Qt::Key_F7) {
