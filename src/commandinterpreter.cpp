@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -260,6 +260,13 @@ void CommandInterpreter::processNextCommand()
             LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
         } else {
             Bino::instance()->setPosition(val);
+        }
+    } else if (cmd.startsWith("playlist-load ")) {
+        QString name = cmd.mid(14);
+        QString errStr;
+        bool load(const QString& fileName, QString& errStr);
+        if (!(Playlist::instance()->load(name, errStr))) {
+            LOG_FATAL("%s", qPrintable(tr("%1: %2").arg(name).arg(errStr)));
         }
     } else if (cmd == "playlist-next") {
         Playlist::instance()->next();
