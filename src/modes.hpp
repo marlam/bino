@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -41,6 +41,7 @@ enum InputMode {
 };
 
 const char* inputModeToString(InputMode mode);
+QString inputModeToStringUI(InputMode mode);
 InputMode inputModeFromString(const QString& s, bool* ok = nullptr);
 
 /* Surround mode (180° / 360°) */
@@ -52,6 +53,7 @@ enum SurroundMode {
 };
 
 const char* surroundModeToString(SurroundMode mode);
+QString surroundModeToStringUI(SurroundMode mode);
 SurroundMode surroundModeFromString(const QString& s, bool* ok = nullptr);
 
 /* Output mode: Is the output 2D or 3D, and in the latter case, how should
@@ -90,6 +92,7 @@ enum OutputMode {
 };
 
 const char* outputModeToString(OutputMode mode);
+QString outputModeToStringUI(OutputMode mode);
 OutputMode outputModeFromString(const QString& s, bool* ok = nullptr);
 
 /* Loop mode for the playlist */
@@ -102,4 +105,5 @@ enum LoopMode
 };
 
 const char* loopModeToString(LoopMode mode);
+QString loopModeToStringUI(LoopMode mode);
 LoopMode loopModeFromString(const QString& s, bool* ok = nullptr);

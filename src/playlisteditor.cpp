@@ -19,9 +19,11 @@
  */
 
 #include <QGridLayout>
+#include <QSpacerItem>
 #include <QPushButton>
 #include <QLabel>
 #include <QTableWidget>
+#include <QHeaderView>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QLineEdit>
@@ -33,8 +35,8 @@
 
 
 PlaylistEntryEditor::PlaylistEntryEditor(const PlaylistEntry& entry, QWidget* parent) :
-    entry(entry),
-    QDialog(parent)
+    QDialog(parent),
+    entry(entry)
 {
     setModal(true);
     setWindowTitle(tr("Edit Playlist Entry"));
@@ -57,7 +59,7 @@ PlaylistEntryEditor::PlaylistEntryEditor(const PlaylistEntry& entry, QWidget* pa
     layout->addWidget(inputModeLabel, 2, 0);
     inputModeBox = new QComboBox(this);
     for (int i = 0; i < 12; i++)
-        inputModeBox->addItem(inputModeToString(static_cast<enum InputMode>(i)));
+        inputModeBox->addItem(inputModeToStringUI(static_cast<InputMode>(i)));
     connect(inputModeBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateEntry()));
     layout->addWidget(inputModeBox, 2, 1, 1, 2);
 
@@ -65,7 +67,7 @@ PlaylistEntryEditor::PlaylistEntryEditor(const PlaylistEntry& entry, QWidget* pa
     layout->addWidget(surroundModeLabel, 3, 0);
     surroundModeBox = new QComboBox(this);
     for (int i = 0; i < 4; i++)
-        surroundModeBox->addItem(surroundModeToString(static_cast<enum SurroundMode>(i)));
+        surroundModeBox->addItem(surroundModeToStringUI(static_cast<SurroundMode>(i)));
     connect(surroundModeBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateEntry()));
     layout->addWidget(surroundModeBox, 3, 1, 1, 2);
 
@@ -74,13 +76,13 @@ PlaylistEntryEditor::PlaylistEntryEditor(const PlaylistEntry& entry, QWidget* pa
     videoTrackBox = new QComboBox(this);
     connect(videoTrackBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateEntry()));
     layout->addWidget(videoTrackBox, 4, 1, 1, 2);
-    
+
     QLabel* audioTrackLabel = new QLabel(tr("Audio Track:"));
     layout->addWidget(audioTrackLabel, 5, 0);
     audioTrackBox = new QComboBox(this);
     connect(audioTrackBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateEntry()));
     layout->addWidget(audioTrackBox, 5, 1, 1, 2);
-    
+
     QLabel* subtitleTrackLabel = new QLabel(tr("Subtitle Track:"));
     layout->addWidget(subtitleTrackLabel, 6, 0);
     subtitleTrackBox = new QComboBox(this);
@@ -213,7 +215,7 @@ PlaylistEditor::PlaylistEditor(QWidget* parent) :
     setWindowTitle(tr("Edit Playlist"));
 
     QGridLayout* layout = new QGridLayout;
-    
+
     table = new QTableWidget(this);
     table->setColumnCount(6);
     table->setHorizontalHeaderLabels({
@@ -221,12 +223,15 @@ PlaylistEditor::PlaylistEditor(QWidget* parent) :
             tr("Input Mode"),
             tr("Surround Mode"),
             tr("Video Track"),
-            tr("Audio Track"), 
-            tr("Subtitle Track") }); 
+            tr("Audio Track"),
+            tr("Subtitle Track") });
     table->setSelectionMode(QAbstractItemView::SingleSelection);
     table->setSelectionBehavior(QAbstractItemView::SelectRows);
+    table->horizontalHeader()->setHighlightSections(false);
+    table->verticalHeader()->setHighlightSections(false);
+    table->resizeColumnsToContents();
     connect(table, SIGNAL(itemSelectionChanged()), this, SLOT(updateButtonState()));
-    layout->addWidget(table, 0, 0, 6, 7);
+    layout->addWidget(table, 0, 0, 7, 7);
 
     upBtn = new QPushButton(tr("Move up"), this);
     connect(upBtn, SIGNAL(clicked()), this, SLOT(up()));
@@ -234,26 +239,27 @@ PlaylistEditor::PlaylistEditor(QWidget* parent) :
     downBtn = new QPushButton(tr("Move down"), this);
     connect(downBtn, SIGNAL(clicked()), this, SLOT(down()));
     layout->addWidget(downBtn, 1, 7, 1, 1);
-    addBtn = new QPushButton(tr("Add"), this);
+    addBtn = new QPushButton(tr("Add..."), this);
     connect(addBtn, SIGNAL(clicked()), this, SLOT(add()));
-    layout->addWidget(addBtn, 2, 7, 1, 1); 
+    layout->addWidget(addBtn, 2, 7, 1, 1);
     delBtn = new QPushButton(tr("Remove"), this);
     connect(delBtn, SIGNAL(clicked()), this, SLOT(del()));
-    layout->addWidget(delBtn, 3, 7, 1, 1); 
+    layout->addWidget(delBtn, 3, 7, 1, 1);
     editBtn = new QPushButton(tr("Edit..."), this);
     connect(editBtn, SIGNAL(clicked()), this, SLOT(edit()));
-    layout->addWidget(editBtn, 4, 7, 1, 1); 
+    layout->addWidget(editBtn, 4, 7, 1, 1);
     QPushButton* doneBtn = new QPushButton(tr("Done"), this);
     doneBtn->setDefault(true);
     connect(doneBtn, SIGNAL(clicked()), this, SLOT(accept()));
     layout->addWidget(doneBtn, 5, 7, 1, 1);
 
-    updateTable();
-    updateButtonState();
-
+    layout->addItem(new QSpacerItem(0, 0), 6, 7, 1, 1);
     layout->setColumnStretch(0, 1);
     layout->setRowStretch(0, 1);
     setLayout(layout);
+
+    updateTable();
+    updateButtonState();
 }
 
 void PlaylistEditor::updateTable()
@@ -265,8 +271,8 @@ void PlaylistEditor::updateTable()
     for (int i = 0; i < playlist->length(); i++) {
         const PlaylistEntry& entry = playlist->entries()[i];
         table->setItem(i, 0, new QTableWidgetItem(entry.url.toString()));
-        table->setItem(i, 1, new QTableWidgetItem(inputModeToString(entry.inputMode)));
-        table->setItem(i, 2, new QTableWidgetItem(surroundModeToString(entry.surroundMode)));
+        table->setItem(i, 1, new QTableWidgetItem(inputModeToStringUI(entry.inputMode)));
+        table->setItem(i, 2, new QTableWidgetItem(surroundModeToStringUI(entry.surroundMode)));
         table->setItem(i, 3, new QTableWidgetItem(
                     entry.videoTrack < 0 ? tr("default") :
                     QString::number(entry.videoTrack)));
@@ -281,6 +287,7 @@ void PlaylistEditor::updateTable()
             table->item(i, j)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemNeverHasChildren);
     }
     table->setCurrentCell(row, 0, QItemSelectionModel::Rows);
+    table->resizeColumnsToContents();
 }
 
 void PlaylistEditor::updateButtonState()
@@ -335,6 +342,7 @@ void PlaylistEditor::add()
     updateTable();
     table->setCurrentCell(row, 0);
     updateButtonState();
+    edit();
 }
 
 void PlaylistEditor::del()
