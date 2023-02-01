@@ -65,7 +65,7 @@ QString PlaylistEntry::optionsToString() const
         s.append(" --audio-track=");
         s.append(QString::number(audioTrack));
     }
-    if (subtitleTrack != PlaylistEntry::NoTrack) {
+    if (subtitleTrack != PlaylistEntry::DefaultTrack) {
         s.append(" --subtitle-track=");
         s.append(QString::number(subtitleTrack));
     }
@@ -87,7 +87,7 @@ bool PlaylistEntry::optionsFromString(const QString& s)
     SurroundMode surroundMode = Surround_Unknown;
     int videoTrack = PlaylistEntry::DefaultTrack;
     int audioTrack = PlaylistEntry::DefaultTrack;
-    int subtitleTrack = PlaylistEntry::NoTrack;
+    int subtitleTrack = PlaylistEntry::DefaultTrack;
     bool ok = true;
     if (parser.isSet("input")) {
         inputMode = inputModeFromString(parser.value("input"), &ok);

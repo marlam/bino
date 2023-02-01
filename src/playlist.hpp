@@ -45,7 +45,7 @@ public:
             SurroundMode surroundMode = Surround_Unknown,
             int videoTrack = DefaultTrack,
             int audioTrack = DefaultTrack,
-            int subtitleTrack = NoTrack);
+            int subtitleTrack = DefaultTrack);
 
     bool noMedia() const;
     QString optionsToString() const;

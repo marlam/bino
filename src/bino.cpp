@@ -208,6 +208,8 @@ void Bino::mediaChanged(PlaylistEntry entry)
         }
         if (entry.subtitleTrack >= 0) {
             _player->setActiveSubtitleTrack(entry.subtitleTrack);
+        } else if (entry.subtitleTrack == PlaylistEntry::NoTrack) {
+            // do nothing
         } else if (metaData.subtitleTracks.size() > 0 && Playlist::instance()->wantSubtitle()) {
             int subtitleTrack = 0;
             for (int i = 0; i < int(metaData.subtitleTracks.length()); i++) {
