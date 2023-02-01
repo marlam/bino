@@ -442,6 +442,9 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
 
     Q_ASSERT(!GuiSingleton);
     GuiSingleton = this;
+
+    // Use this to make a 800x450 screenshot for the website and Flathub:
+    //resize(800 - 24, 450 - 70);
 }
 
 Gui* Gui::instance()
