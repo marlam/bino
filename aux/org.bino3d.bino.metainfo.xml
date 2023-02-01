@@ -30,6 +30,11 @@
   <url type="homepage">https://bino3d.org</url>
 
   <releases>
+    <release version="2.1" date="2023-02-01">
+      <description>
+        <p>Added support for 180° video, playlists, and more output formats. Fixed color conversion bugs.</p>
+      </description>
+    </release>
     <release version="2.0" date="2022-11-08">
       <description>
         <p>Rewritten based on Qt, with new support for 360° video and more powerful Virtual Reality support including autodetection of SteamVR.</p>
