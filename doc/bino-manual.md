@@ -22,7 +22,7 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 
 - `-h`, `--help`
   
-  Displays help on commandline options.
+  Displays help on command line options.
 
 - `--help-all`
 
@@ -54,7 +54,7 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 
 - `--vr`
 
-  Start in Vitrual Reality mode instead of GUI mode. See [Virtual Reality].
+  Start in Virtual Reality mode instead of GUI mode. See [Virtual Reality].
 
 - `--vr-screen` *screen*
   
@@ -148,7 +148,7 @@ Bino can read commands from a script file and execute them via the option
 `--read-commands` *scriptfile*. This works both in GUI mode and in Virtual
 Reality mode.
 
-The script file can also be a named pipe so that you can have arbitraty remote
+The script file can also be a named pipe so that you can have arbitrary remote
 control interfaces write commands into it as they come in.
 
 Empty lines and comment lines (which begin with `#`) are ignored.
@@ -269,17 +269,16 @@ mode is assumed.
 
 Bino supports all sorts of Virtual Reality environments via [QVR](https://marlam.de/qvr):
 
-- When QVR is compiled with just with Qt6, CAVEs and powerwalls and similar
+- When QVR is compiled just with Qt6, CAVEs and powerwalls and similar
   multi-display setups are supported, including multi-GPU and multi-host
   rendering.
 
-- When QVR is additionally compiled with [VRPN](https://github.com/vrpn/vrpn),
+- When QVR is compiled with [VRPN](https://github.com/vrpn/vrpn),
   all sorts of tracking and interaction hardware for such systems are
   supported.
 
-- When QVR is additionally compiled with
-  [OpenVR](https://github.com/ValveSoftware/openvr), SteamVR is supported and
-  automatically detected (e.g. HTC Vive).
+- When QVR is compiled with [OpenVR](https://github.com/ValveSoftware/openvr),
+  SteamVR is supported and automatically detected (e.g. HTC Vive).
 
 To start Bino in VR mode, use the option `--vr`.
 Bino will then display a screen in the virtual world, and the video will be
@@ -299,5 +298,5 @@ if nothing else is available.
 
 Additional interaction in VR mode is currently limited to the same keyboard
 shortcuts that also work in GUI mode. That means you currently must specify the
-video to play on the command line, and have no way to pause, skip or seek --
-this will be added in a future version.
+video to play on the command line, and have no way to pause, skip or seek with
+VR controllers. This will be added in a future version.
