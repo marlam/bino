@@ -298,6 +298,8 @@ void Widget::paintGL()
     float relWidth = 1.0f;
     float relHeight = 1.0f;
     float screenAspectRatio = _width / float(_height);
+    if (outputMode == Output_HDMI_Frame_Pack)
+        screenAspectRatio = _width / (_height - _height / 49.0f);
     if (screenAspectRatio < frameDisplayAspectRatio)
         relHeight = screenAspectRatio / frameDisplayAspectRatio;
     else
