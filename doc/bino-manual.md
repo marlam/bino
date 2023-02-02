@@ -123,12 +123,14 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 
 - `-o`, `--output` *mode*
 
-  Set output mode (left, right, stereo, alternating, red-cyan-dubois,
-  red-cyan-full-color, red-cyan-half-color, red-cyan-monochrome,
-  green-magenta-dubois, green-magenta-full-color, green-magenta-half-color,
-  green-magenta-monochrome, amber-blue-dubois, amber-blue-full-color,
-  amber-blue-half-color, amber-blue-monochrome, red-green-monochrome,
-  red-blue-monochrome, even-odd-rows, even-odd-columns, checkerboard).
+  Set output mode (left, right, stereo, alternating, hdmi-frame-pack,
+  left-right, left-right-half, right-left, right-left-half, top-bottom,
+  top-bottom-half, bottom-top, bottom-top-half, even-odd-rows,
+  even-odd-columns, checkerboard, red-cyan-dubois, red-cyan-full-color,
+  red-cyan-half-color, red-cyan-monochrome, green-magenta-dubois,
+  green-magenta-full-color, green-magenta-half-color, green-magenta-monochrome,
+  amber-blue-dubois, amber-blue-full-color, amber-blue-half-color,
+  amber-blue-monochrome, red-green-monochrome, red-blue-monochrome).
 
 - `--surround` *mode*
 
