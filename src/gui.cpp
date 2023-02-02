@@ -227,6 +227,11 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
     _3dOutputActionGroup->addAction(threeDOutAlternating)->setData(int(Output_Alternating));
     connect(threeDOutAlternating, SIGNAL(triggered()), this, SLOT(threeDOutput()));
     addBinoAction(threeDOutAlternating, threeDMenu);
+    QAction* threeDOutHDMIFramePack = new QAction(outputModeToStringUI(Output_HDMI_Frame_Pack), this);
+    threeDOutHDMIFramePack->setCheckable(true);
+    _3dOutputActionGroup->addAction(threeDOutHDMIFramePack)->setData(int(Output_HDMI_Frame_Pack));
+    connect(threeDOutHDMIFramePack, SIGNAL(triggered()), this, SLOT(threeDOutput()));
+    addBinoAction(threeDOutHDMIFramePack, threeDMenu);
     QMenu* threeDOutputSideBySideMenu = threeDMenu->addMenu(tr("Output 3D side-by-side"));
     QAction* threeDOutLR = new QAction(outputModeToStringUI(Output_Left_Right), this);
     threeDOutLR->setCheckable(true);

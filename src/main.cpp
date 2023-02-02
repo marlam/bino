@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -182,6 +182,7 @@ int main(int argc, char* argv[])
             "mode" });
     parser.addOption({ { "o", "output" },
             QCommandLineParser::tr("Set output mode (%1).").arg("left, right, stereo, alternating, "
+            "hdmi-frame-pack, "
             "left-right, left-right-half, right-left, right-left-half, "
             "top-bottom, top-bottom-half, bottom-top, bottom-top-half, "
             "even-odd-rows, even-odd-columns, checkerboard, "

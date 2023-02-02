@@ -209,7 +209,7 @@ void Widget::paintGL()
         outputMode = Output_Left;
     if (outputMode == Output_Left_Right || outputMode == Output_Right_Left)
         frameDisplayAspectRatio *= 2.0f;
-    else if (outputMode == Output_Top_Bottom || outputMode == Output_Bottom_Top)
+    else if (outputMode == Output_Top_Bottom || outputMode == Output_Bottom_Top || outputMode == Output_HDMI_Frame_Pack)
         frameDisplayAspectRatio *= 0.5f;
     LOG_FIREHOSE("%s: %d views, %dx%d, %g, surround %s", Q_FUNC_INFO, viewCount, viewWidth, viewHeight, frameDisplayAspectRatio, surround ? "on" : "off");
 
@@ -226,6 +226,7 @@ void Widget::paintGL()
         case Output_Alternating:
             needThisView = (v != _alternatingLastView);
             break;
+        case Output_HDMI_Frame_Pack:
         case Output_OpenGL_Stereo:
         case Output_Left_Right:
         case Output_Left_Right_Half:

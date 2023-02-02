@@ -212,6 +212,9 @@ const char* outputModeToString(OutputMode mode)
     case Output_Alternating:
         return "alternating";
         break;
+    case Output_HDMI_Frame_Pack:
+        return "hdmi-frame-pack";
+        break;
     case Output_Left_Right:
         return "left-right";
         break;
@@ -306,6 +309,9 @@ QString outputModeToStringUI(OutputMode mode)
     case Output_Alternating:
         return QCoreApplication::translate("Mode", "Output 3D alternating");
         break;
+    case Output_HDMI_Frame_Pack:
+        return QCoreApplication::translate("Mode", "Output HDMI frame pack");
+        break;
     case Output_Left_Right:
         return QCoreApplication::translate("Mode", "Output left/right");
         break;
@@ -397,6 +403,8 @@ OutputMode outputModeFromString(const QString& s, bool* ok)
         mode = Output_OpenGL_Stereo;
     else if (s == "alternating")
         mode = Output_Alternating;
+    else if (s == "hmdi-frame-pack")
+        mode = Output_HDMI_Frame_Pack;
     else if (s == "left-right")
         mode = Output_Left_Right;
     else if (s == "left-right-half")

@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,31 +31,32 @@ const int Output_Left = 0;
 const int Output_Right = 1;
 const int Output_OpenGL_Stereo = 2;
 const int Output_Alternating = 3;
-const int Output_Left_Right = 4;
-const int Output_Left_Right_Half = 5;
-const int Output_Right_Left = 6;
-const int Output_Right_Left_Half = 7;
-const int Output_Top_Bottom = 8;
-const int Output_Top_Bottom_Half = 9;
-const int Output_Bottom_Top = 10;
-const int Output_Bottom_Top_Half = 11;
-const int Output_Even_Odd_Rows = 12;
-const int Output_Even_Odd_Columns = 13;
-const int Output_Checkerboard = 14;
-const int Output_Red_Cyan_Dubois = 15;
-const int Output_Red_Cyan_FullColor = 16;
-const int Output_Red_Cyan_HalfColor = 17;
-const int Output_Red_Cyan_Monochrome = 18;
-const int Output_Green_Magenta_Dubois = 19;
-const int Output_Green_Magenta_FullColor = 20;
-const int Output_Green_Magenta_HalfColor = 21;
-const int Output_Green_Magenta_Monochrome = 22;
-const int Output_Amber_Blue_Dubois = 23;
-const int Output_Amber_Blue_FullColor = 24;
-const int Output_Amber_Blue_HalfColor = 25;
-const int Output_Amber_Blue_Monochrome = 26;
-const int Output_Red_Green_Monochrome = 27;
-const int Output_Red_Blue_Monochrome = 28;
+const int Output_HDMI_Frame_Pack = 4;
+const int Output_Left_Right = 5;
+const int Output_Left_Right_Half = 6;
+const int Output_Right_Left = 7;
+const int Output_Right_Left_Half = 8;
+const int Output_Top_Bottom = 9;
+const int Output_Top_Bottom_Half = 10;
+const int Output_Bottom_Top = 11;
+const int Output_Bottom_Top_Half = 12;
+const int Output_Even_Odd_Rows = 13;
+const int Output_Even_Odd_Columns = 14;
+const int Output_Checkerboard = 15;
+const int Output_Red_Cyan_Dubois = 16;
+const int Output_Red_Cyan_FullColor = 17;
+const int Output_Red_Cyan_HalfColor = 18;
+const int Output_Red_Cyan_Monochrome = 19;
+const int Output_Green_Magenta_Dubois = 20;
+const int Output_Green_Magenta_FullColor = 21;
+const int Output_Green_Magenta_HalfColor = 22;
+const int Output_Green_Magenta_Monochrome = 23;
+const int Output_Amber_Blue_Dubois = 24;
+const int Output_Amber_Blue_FullColor = 25;
+const int Output_Amber_Blue_HalfColor = 26;
+const int Output_Amber_Blue_Monochrome = 27;
+const int Output_Red_Green_Monochrome = 28;
+const int Output_Red_Blue_Monochrome = 29;
 const int outputMode = $OUTPUT_MODE;
 uniform int outputModeLeftRightView; // to distinguish betwenen Output_Left and Output_Right;
                                      // we don't want both in separate shaders because
@@ -89,7 +90,28 @@ void main(void)
     float tx = (vtexcoord.x - 0.5 * (1.0 - relativeWidth )) / relativeWidth;
     float ty = (vtexcoord.y - 0.5 * (1.0 - relativeHeight)) / relativeHeight;
     vec3 rgb = vec3(0.0, 0.0, 0.0);
-    if (outputMode == Output_Left || outputMode == Output_Right) {
+    if (outputMode == Output_HDMI_Frame_Pack) {
+        // HDMI frame pack has left view on top, right view at bottom, and adds 1/49 vertical blank space
+        // between the two views:
+        // - For 720p: 720 lines left view, 30 blank lines, 720 lines right view = 1470 lines; 1470/49=30
+        // - For 1080p: 1080 lines left view, 45 blank lines, 1080 lines right view = 2205 lines; 2205/49=45
+        // See the document "High-Definition Multimedia Interface Specification Version 1.4a Extraction
+        // of 3D Signaling Portion" from hdmi.org.
+        const float blankPortion = 1.0 / 49.0;
+        const float a = 0.5 + 0.5 * blankPortion;
+        const float b = 0.5 - 0.5 * blankPortion;
+        if (ty >= a) {
+            if (tx >= 0.0 && tx <= 1.0) {
+                float tty = (ty - a) / (1.0 - a);
+                rgb = texture(view0, vec2(tx, tty)).rgb;
+            }
+        } else if (ty < b) {
+            if (tx >= 0.0 && tx <= 1.0) {
+                float tty = ty / b;
+                rgb = texture(view1, vec2(tx, tty)).rgb;
+            }
+        }
+    } else if (outputMode == Output_Left || outputMode == Output_Right) {
         if (outputModeLeftRightView == 0)
             rgb = texture(view0, vec2(tx, ty)).rgb;
         else
