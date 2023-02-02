@@ -144,6 +144,26 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 
   Start in fullscreen mode.
 
+# Output modes
+
+Most output modes should be self explanatory, but there are some exceptions:
+
+- `stereo` requires OpenGL quad-buffered stereo support, typically limited to
+  high-end graphics cards.
+- `alternating` tries to mimic stereo mode by displaying the left and right
+  frames alternating, ideally at display speed. This is unreliable since Bino
+  has no way of making sure that its output frames actually correspond to
+  display output frames, but it might work, depending on your hardware and
+  system setup.
+- `hdmi-frame-pack` is a special mode supported by some 3D TVs via HDMI 1.4a,
+  where the left view is placed in the top part of a frame and the right view
+  in the bottom part, and both parts are separated by a blank area that takes
+  1/49 of the vertical space. To use this mode, force your display output
+  resolution into either 1280x1470 (720p 3D: 720+30+720=1470; 1470/49=30) or
+  1920x2205 (1080p 3D: 1080+45+1080=2205; 2205/49=45).
+- `even-odd-rows`, `even-odd-columns` and `checkerboard` are for (older) 3D
+  TVs.
+
 # Scripting
 
 Bino can read commands from a script file and execute them via the option
