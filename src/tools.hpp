@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,3 +35,13 @@ QString readFile(const char* fileName);
             std::exit(1); \
         } \
     }
+
+// Check for existence of GL_ARB_texture_filter_anisotropic
+// or GL_EXT_texture_filter_anisotropic (which does the same)
+#ifndef GL_TEXTURE_MAX_ANISOTROPY
+# define GL_TEXTURE_MAX_ANISOTROPY 0x84FE
+#endif
+bool checkTextureAnisotropicFilterAvailability();
+
+// Shortcut to get a string from OpenGL
+const char* getOpenGLString(QOpenGLExtraFunctions* gl, GLenum p);

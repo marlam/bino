@@ -4,7 +4,7 @@
  * Copyright (C) 2016, 2017, 2018, 2019, 2020, 2021, 2022
  * Computer Graphics Group, University of Siegen
  * Written by Martin Lambers <martin.lambers@uni-siegen.de>
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -30,12 +30,6 @@
 #include "bino.hpp"
 #include "tools.hpp"
 
-/* These might not be defined in OpenGL ES environments.
- * Define them here to fix compilation. */
-#ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
-# define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
-#endif
-
 
 BinoQVRApp::BinoQVRApp()
 {
@@ -57,7 +51,8 @@ unsigned int BinoQVRApp::setupTex(const QImage& img)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0f);
+    if (_haveAnisotropicFiltering)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 4.0f);
     return tex;
 }
 
@@ -120,6 +115,7 @@ bool BinoQVRApp::initProcess(QVRProcess*)
 {
     initializeOpenGLFunctions();
     bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
+    _haveAnisotropicFiltering = checkTextureAnisotropicFilterAvailability();
     // Shader program
     QString vrdeviceVS = readFile(":src/shader-vrdevice.vert.glsl");
     QString vrdeviceFS = readFile(":src/shader-vrdevice.frag.glsl");

@@ -20,8 +20,11 @@
 
 #include <QFile>
 #include <QTextStream>
+#include <QOpenGLContext>
+#include <QOpenGLExtraFunctions>
 
 #include "tools.hpp"
+
 
 QString readFile(const char* fileName)
 {
@@ -29,4 +32,15 @@ QString readFile(const char* fileName)
     f.open(QIODevice::ReadOnly);
     QTextStream in(&f);
     return in.readAll();
+}
+
+bool checkTextureAnisotropicFilterAvailability()
+{
+    return QOpenGLContext::currentContext()->hasExtension("GL_ARB_texture_filter_anisotropic")
+        || QOpenGLContext::currentContext()->hasExtension("GL_EXT_texture_filter_anisotropic");
+}
+
+const char* getOpenGLString(QOpenGLExtraFunctions* gl, GLenum p)
+{
+    return reinterpret_cast<const char*>(gl->glGetString(p));
 }

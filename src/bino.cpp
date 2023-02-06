@@ -28,12 +28,6 @@
 #include "tools.hpp"
 #include "metadata.hpp"
 
-/* These might not be defined in OpenGL ES environments.
- * Define them here to fix compilation. */
-#ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
-# define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
-#endif
-
 
 static Bino* binoSingleton = nullptr;
 
@@ -507,6 +501,7 @@ bool Bino::wantExit() const
 bool Bino::initProcess()
 {
     bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
+    bool haveAnisotropicFiltering = checkTextureAnisotropicFilterAvailability();
     LOG_DEBUG("Using OpenGL in the %s variant", isGLES ? "ES" : "Desktop");
 
     // Qt-based OpenGL initialization
@@ -667,14 +662,16 @@ bool Bino::initProcess()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0f);
+    if (haveAnisotropicFiltering)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 4.0f);
     glGenTextures(1, &_extFrameTex);
     glBindTexture(GL_TEXTURE_2D, _extFrameTex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0f);
+    if (haveAnisotropicFiltering)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 4.0f);
     CHECK_GL();
 
     // Subtitle texture
@@ -684,7 +681,8 @@ bool Bino::initProcess()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0f);
+    if (haveAnisotropicFiltering)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 4.0f);
     CHECK_GL();
 
     // Screen geometry

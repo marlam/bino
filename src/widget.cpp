@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,9 +35,6 @@
 #endif
 #ifndef GL_BACK_RIGHT
 # define GL_BACK_RIGHT 0x0403
-#endif
-#ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
-# define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
 #endif
 
 
@@ -104,7 +101,19 @@ void Widget::initializeGL()
     }
 
     bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
+    bool haveAnisotropicFiltering = checkTextureAnisotropicFilterAvailability();
     initializeOpenGLFunctions();
+    bool isCoreProfile = (QOpenGLContext::currentContext()->format().profile() == QSurfaceFormat::CoreProfile);
+
+    QString variantString = isGLES ? "OpenGL ES" : "OpenGL";
+    if (!isGLES)
+        variantString += isCoreProfile ? " core profile" : " compatibility profile";
+    LOG_INFO("OpenGL Variant:      %s", qPrintable(variantString));
+    LOG_INFO("OpenGL Version:      %s", getOpenGLString(this, GL_VERSION));
+    LOG_INFO("OpenGL GLSL Version: %s", getOpenGLString(this, GL_SHADING_LANGUAGE_VERSION));
+    LOG_INFO("OpenGL Vendor:       %s", getOpenGLString(this, GL_VENDOR));
+    LOG_INFO("OpenGL Renderer:     %s", getOpenGLString(this, GL_RENDERER));
+    LOG_INFO("OpenGL AnisoTexFilt: %s", haveAnisotropicFiltering ? "yes" : "no");
 
     // View textures
     glGenTextures(2, _viewTex);
@@ -119,7 +128,8 @@ void Widget::initializeGL()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0f);
+        if (haveAnisotropicFiltering)
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 4.0f);
         _viewTexWidth[i] = 1;
         _viewTexHeight[i] = 1;
     }

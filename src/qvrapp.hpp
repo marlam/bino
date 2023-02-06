@@ -32,6 +32,7 @@ class BinoQVRApp : public QVRApp, protected QOpenGLExtraFunctions
 {
 private:
     /* Static per-process data for rendering */
+    bool _haveAnisotropicFiltering;
     QOpenGLShaderProgram _prg;
     // Data to render device models
     QVector<unsigned int> _devModelVaos;
