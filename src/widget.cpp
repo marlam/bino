@@ -87,8 +87,8 @@ QSize Widget::sizeHint() const
 void Widget::initializeGL()
 {
     bool contextIsOk = (context()->isValid()
-            && context()->format().majorVersion() >= 3
-            && context()->format().minorVersion() >= 2);
+            && (context()->format().majorVersion() > 3
+                || (context()->format().majorVersion() == 3 && context()->format().minorVersion() >= 2)));
     if (!contextIsOk) {
         LOG_FATAL("%s", qPrintable(tr("Insufficient OpenGL capabilities.")));
         QMessageBox::critical(this, tr("Error"), tr("Insufficient OpenGL capabilities."));
