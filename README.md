@@ -11,6 +11,10 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 - Support for Virtual Reality environments, including SteamVR, CAVEs,
   powerwalls, and other multi-display / multi-GPU / multi-host systems
 
+- Automatic 3D mode based on file name
+
+See [online documentation](https://bino3d.org/bino-manual.html)
+
 Bino is based on [Qt](https://www.qt.io/). The optional Virtual Reality
 and multi-GPU support is based on [QVR](https://marlam.de/qvr/). No other
 libraries are required.
