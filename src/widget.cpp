@@ -206,11 +206,15 @@ void Widget::paintGL()
 {
     bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
 
+    // Support for HighDPI output
+    int width = _width * devicePixelRatioF();
+    int height = _height * devicePixelRatioF();
+
     // Find out about the views we have
     int viewCount, viewWidth, viewHeight;
     float frameDisplayAspectRatio;
     bool surround;
-    Bino::instance()->preRenderProcess(_width, _height, &viewCount, &viewWidth, &viewHeight, &frameDisplayAspectRatio, &surround);
+    Bino::instance()->preRenderProcess(width, height, &viewCount, &viewWidth, &viewHeight, &frameDisplayAspectRatio, &surround);
 
     // Adjust the stereo mode if necessary
     bool frameIsStereo = (viewCount == 2);
@@ -284,7 +288,7 @@ void Widget::paintGL()
         QMatrix4x4 viewMatrix;
         if (Bino::instance()->assumeSurroundMode() != Surround_Off) {
             float verticalVieldOfView = qDegreesToRadians(50.0f);
-            float aspectRatio = float(_width) / _height;
+            float aspectRatio = float(width) / height;
             float top = qTan(verticalVieldOfView * 0.5f);
             float bottom = -top;
             float right = top * aspectRatio;
@@ -303,13 +307,13 @@ void Widget::paintGL()
 
     // Put the views on screen in the current mode
     glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
-    glViewport(0, 0, _width, _height);
+    glViewport(0, 0, width, height);
     glDisable(GL_DEPTH_TEST);
     float relWidth = 1.0f;
     float relHeight = 1.0f;
-    float screenAspectRatio = _width / float(_height);
+    float screenAspectRatio = width / float(height);
     if (outputMode == Output_HDMI_Frame_Pack)
-        screenAspectRatio = _width / (_height - _height / 49.0f);
+        screenAspectRatio = width / (height - height / 49.0f);
     if (screenAspectRatio < frameDisplayAspectRatio)
         relHeight = screenAspectRatio / frameDisplayAspectRatio;
     else
@@ -321,7 +325,7 @@ void Widget::paintGL()
     _displayPrg.setUniformValue("view1", 1);
     _displayPrg.setUniformValue("relativeWidth", relWidth);
     _displayPrg.setUniformValue("relativeHeight", relHeight);
-    QPoint globalLowerLeft = mapToGlobal(QPoint(0, _height - 1));
+    QPoint globalLowerLeft = mapToGlobal(QPoint(0, height - 1));
     _displayPrg.setUniformValue("fragOffsetX", float(globalLowerLeft.x()));
     _displayPrg.setUniformValue("fragOffsetY", float(screen()->geometry().height() - 1 - globalLowerLeft.y()));
     LOG_FIREHOSE("lower left widget corner in screen coordinates: x=%d y=%d", globalLowerLeft.x(), screen()->geometry().height() - 1 - globalLowerLeft.y());
@@ -395,16 +399,20 @@ void Widget::mouseReleaseEvent(QMouseEvent*)
 
 void Widget::mouseMoveEvent(QMouseEvent* e)
 {
+    // Support for HighDPI output
+    int width = _width * devicePixelRatioF();
+    int height = _height * devicePixelRatioF();
+
     if (_inSurroundMovement) {
         // position delta
         QPointF posDelta = e->position() - _surroundMovementStart;
         // horizontal angle delta
         float dx = posDelta.x();
-        float xf = dx / _width; // in [-1,+1]
+        float xf = dx / width; // in [-1,+1]
         _surroundHorizontalAngleCurrent = xf * 180.0f;
         // vertical angle
         float dy = posDelta.y();
-        float yf = dy / _height; // in [-1,+1]
+        float yf = dy / height; // in [-1,+1]
         _surroundVerticalAngleCurrent = yf * 90.0f;
         update();
     }
