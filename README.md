@@ -15,4 +15,4 @@ Bino is based on [Qt](https://www.qt.io/). The optional Virtual Reality
 and multi-GPU support is based on [QVR](https://marlam.de/qvr/). No other
 libraries are required.
 
-See [bino3d.org](https://bino3d.org/).
+See [bino3d.org](https://bino3d.org/) and the [manual](https://bino3d.org/bino-manual.html).
