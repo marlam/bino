@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -84,6 +84,7 @@ private:
     VideoFrame _frame;
     VideoFrame _extFrame; // for alternating stereo
     bool _frameIsNew;
+    bool _frameWasSerialized;
     bool _swapEyes;
 
     void rebuildColorPrgIfNecessary(int planeFormat, bool yuvValueRangeSmall, int yuvSpace);
@@ -149,7 +150,7 @@ public:
     /* Functions necessary for VR mode */
     void serializeStaticData(QDataStream& ds) const;
     void deserializeStaticData(QDataStream& ds);
-    void serializeDynamicData(QDataStream& ds) const;
+    void serializeDynamicData(QDataStream& ds);
     void deserializeDynamicData(QDataStream& ds);
     bool wantExit() const;
 

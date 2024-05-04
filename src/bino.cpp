@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -43,6 +43,7 @@ Bino::Bino(const Screen& screen, bool swapEyes) :
     _lastFrameSurroundMode(Surround_Unknown),
     _screen(screen),
     _frameIsNew(false),
+    _frameWasSerialized(true),
     _swapEyes(swapEyes)
 {
     Q_ASSERT(!binoSingleton);
@@ -69,6 +70,7 @@ void Bino::initializeOutput(const QAudioDevice& audioOutputDevice)
 {
     _videoSink = new VideoSink(&_frame, &_extFrame, &_frameIsNew);
     connect(_videoSink, &VideoSink::newVideoFrame, [=]() { emit newVideoFrame(); });
+    connect(_videoSink, &VideoSink::newVideoFrame, [=]() { _frameWasSerialized = false; });
     _audioOutput = new QAudioOutput;
     _audioOutput->setDevice(audioOutputDevice);
 }
@@ -467,28 +469,31 @@ void Bino::deserializeStaticData(QDataStream& ds)
     ds >> _screen;
 }
 
-void Bino::serializeDynamicData(QDataStream& ds) const
+void Bino::serializeDynamicData(QDataStream& ds)
 {
-    ds << _frameIsNew;
-    if (_frameIsNew) {
+    ds << _frameWasSerialized;
+    if (!_frameWasSerialized) {
         ds << _frame;
         if (_frame.inputMode == Input_Alternating_LR
                 || _frame.inputMode == Input_Alternating_RL) {
             ds << _extFrame;
         }
+        _frameWasSerialized = true;
     }
     ds << _swapEyes;
 }
 
 void Bino::deserializeDynamicData(QDataStream& ds)
 {
-    ds >> _frameIsNew;
-    if (_frameIsNew) {
+    bool noNewFrame;
+    ds >> noNewFrame;
+    if (!noNewFrame) {
         ds >> _frame;
         if (_frame.inputMode == Input_Alternating_LR
                 || _frame.inputMode == Input_Alternating_RL) {
             ds >> _extFrame;
         }
+        _frameIsNew = true;
     }
     ds >> _swapEyes;
 }
