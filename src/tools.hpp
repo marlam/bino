@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,6 +42,13 @@ QString readFile(const char* fileName);
 # define GL_TEXTURE_MAX_ANISOTROPY 0x84FE
 #endif
 bool checkTextureAnisotropicFilterAvailability();
+
+// Mipmap generation does not work on MacOS OpenGL 4.1, see https://github.com/marlam/bino/issues/25
+// Simply disable all use of mipmaps as a crude workaround.
+#if __APPLE__
+    #undef  GL_LINEAR_MIPMAP_LINEAR
+    #define GL_LINEAR_MIPMAP_LINEAR GL_LINEAR
+#endif
 
 // Shortcut to get a string from OpenGL
 const char* getOpenGLString(QOpenGLExtraFunctions* gl, GLenum p);
