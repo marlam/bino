@@ -1,7 +1,7 @@
 ---
 title: Bino
-header: Version 2.1
-date: February 1, 2023
+header: Version 2.2
+date: May 31, 2024
 section: 1
 ---
 
@@ -65,7 +65,7 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 
 - `--capture`
 
-  Capture video/audio input from camera and microphone.
+  Capture audio/video input from microphone and camera/screen/window.
 
 - `--list-audio-outputs`
 
@@ -79,6 +79,14 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 
   List video inputs.
 
+- `--list-screen-inputs`
+
+  List screen inputs.
+
+- `--list-window-inputs`
+
+  List window inputs.
+
 - `--audio-output` *ao*
 
   Choose audio output via its index.
@@ -90,6 +98,14 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 - `--video-input` *vi*
 
   Choose video input via its index.
+
+- `--screen-input` *si*
+
+  Choose screen input via its index.
+
+- `--window-input` *wi*
+
+  Choose window input via its index.
 
 - `--list-tracks`
 
@@ -180,7 +196,7 @@ The following commands are supported:
   
   Open the URL and start playing. The options have the same meaning as the corresponding command line options.
 
-- `capture` `[--audio-input` *ai*`]` `[--video-input` *vi*`]`
+- `capture` `[--audio-input` *ai*`]` `[--video-input` *vi*`]` `[--screen-input` *si*`]` `[--window-input` *wi*`]`
 
   Start capturing camera and microphone. The options have the same meaning as the corresponding command line options.
 

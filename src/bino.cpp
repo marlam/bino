@@ -38,6 +38,8 @@ Bino::Bino(const Screen& screen, bool swapEyes) :
     _player(nullptr),
     _audioInput(nullptr),
     _videoInput(nullptr),
+    _screenInput(nullptr),
+    _windowInput(nullptr),
     _captureSession(nullptr),
     _lastFrameInputMode(Input_Unknown),
     _lastFrameSurroundMode(Surround_Unknown),
@@ -57,6 +59,8 @@ Bino::~Bino()
     delete _player;
     delete _audioInput;
     delete _videoInput;
+    delete _screenInput;
+    delete _windowInput;
     delete _captureSession;
     binoSingleton = nullptr;
 }
@@ -116,29 +120,56 @@ void Bino::stopPlaylistMode()
     }
 }
 
-void Bino::startCaptureMode(
-        bool withAudioInput,
-        const QAudioDevice& audioInputDevice,
-        const QCameraDevice& videoInputDevice)
+void Bino::startCaptureMode(bool withAudioInput, const QAudioDevice& audioInputDevice)
 {
     if (playlistMode())
         stopPlaylistMode();
     if (captureMode())
         stopCaptureMode();
 
+    _captureSession = new QMediaCaptureSession;
+    _captureSession->setAudioOutput(_audioOutput);
+    _captureSession->setVideoSink(_videoSink);
     if (withAudioInput) {
         _audioInput = new QAudioInput;
         _audioInput->setDevice(audioInputDevice);
+        _captureSession->setAudioInput(_audioInput);
     }
+}
+
+void Bino::startCaptureModeCamera(
+        bool withAudioInput,
+        const QAudioDevice& audioInputDevice,
+        const QCameraDevice& videoInputDevice)
+{
+    startCaptureMode(withAudioInput, audioInputDevice);
     _videoInput = new QCamera;
     _videoInput->setCameraDevice(videoInputDevice);
-    _captureSession = new QMediaCaptureSession;
-    if (_audioInput)
-        _captureSession->setAudioInput(_audioInput);
     _captureSession->setCamera(_videoInput);
-    _captureSession->setAudioOutput(_audioOutput);
-    _captureSession->setVideoSink(_videoSink);
+    emit stateChanged();
+}
 
+void Bino::startCaptureModeScreen(
+        bool withAudioInput,
+        const QAudioDevice& audioInputDevice,
+        QScreen* screenInputDevice)
+{
+    startCaptureMode(withAudioInput, audioInputDevice);
+    _screenInput = new QScreenCapture;
+    _screenInput->setScreen(screenInputDevice);
+    _captureSession->setScreenCapture(_screenInput);
+    emit stateChanged();
+}
+
+void Bino::startCaptureModeWindow(
+        bool withAudioInput,
+        const QAudioDevice& audioInputDevice,
+        const QCapturableWindow& windowInputDevice)
+{
+    startCaptureMode(withAudioInput, audioInputDevice);
+    _windowInput = new QWindowCapture;
+    _windowInput->setWindow(windowInputDevice);
+    _captureSession->setWindowCapture(_windowInput);
     emit stateChanged();
 }
 
@@ -149,6 +180,10 @@ void Bino::stopCaptureMode()
         _captureSession = nullptr;
         delete _videoInput;
         _videoInput = nullptr;
+        delete _screenInput;
+        _screenInput = nullptr;
+        delete _windowInput;
+        _windowInput = nullptr;
         if (_audioInput) {
             delete _audioInput;
             _audioInput = nullptr;

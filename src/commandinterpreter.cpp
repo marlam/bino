@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -193,14 +193,20 @@ void CommandInterpreter::processNextCommand()
         QCommandLineParser parser;
         parser.addOption({ "audio-input", "", "x" });
         parser.addOption({ "video-input", "", "x" });
+        parser.addOption({ "screen-input", "", "x" });
+        parser.addOption({ "window-input", "", "x" });
         if (!parser.parse(cmd.split(' '))) {
             LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
         } else {
             bool ok;
             QList<QAudioDevice> audioInputDevices;
             QList<QCameraDevice> videoInputDevices;
+            QList<QScreen*> screenInputDevices;
+            QList<QCapturableWindow> windowInputDevices;
             int audioInputDeviceIndex = -1;
             int videoInputDeviceIndex = -1;
+            int screenInputDeviceIndex = -1;
+            int windowInputDeviceIndex = -1;
             if (parser.isSet("audio-input")) {
                 if (parser.value("audio-input").length() == 0) {
                     audioInputDeviceIndex = -2; // this means no audio input
@@ -225,14 +231,48 @@ void CommandInterpreter::processNextCommand()
                     ok = false;
                 }
             }
+            if (parser.isSet("screen-input")) {
+                screenInputDevices = QGuiApplication::screens();
+                int vi = parser.value("screen-input").toInt(&ok);
+                if (ok && vi >= 0 && vi < screenInputDevices.size()) {
+                    screenInputDeviceIndex = vi;
+                } else {
+                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+                    ok = false;
+                }
+            }
+            if (parser.isSet("window-input")) {
+                windowInputDevices = QWindowCapture::capturableWindows();
+                int vi = parser.value("window-input").toInt(&ok);
+                if (ok && vi >= 0 && vi < windowInputDevices.size()) {
+                    windowInputDeviceIndex = vi;
+                } else {
+                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+                    ok = false;
+                }
+            }
             if (ok) {
-                Bino::instance()->startCaptureMode(audioInputDeviceIndex >= -1,
-                        audioInputDeviceIndex >= 0
-                        ? audioInputDevices[audioInputDeviceIndex]
-                        : QMediaDevices::defaultAudioInput(),
-                        videoInputDeviceIndex >= 0
-                        ? videoInputDevices[videoInputDeviceIndex]
-                        : QMediaDevices::defaultVideoInput());
+                if (screenInputDeviceIndex < 0 && windowInputDeviceIndex < 0) {
+                    Bino::instance()->startCaptureModeCamera(audioInputDeviceIndex >= -1,
+                            audioInputDeviceIndex >= 0
+                            ? audioInputDevices[audioInputDeviceIndex]
+                            : QMediaDevices::defaultAudioInput(),
+                            videoInputDeviceIndex >= 0
+                            ? videoInputDevices[videoInputDeviceIndex]
+                            : QMediaDevices::defaultVideoInput());
+                } else if (screenInputDeviceIndex >= 0) {
+                    Bino::instance()->startCaptureModeScreen(audioInputDeviceIndex >= -1,
+                            audioInputDeviceIndex >= 0
+                            ? audioInputDevices[audioInputDeviceIndex]
+                            : QMediaDevices::defaultAudioInput(),
+                            screenInputDevices[screenInputDeviceIndex]);
+                } else {
+                    Bino::instance()->startCaptureModeWindow(audioInputDeviceIndex >= -1,
+                            audioInputDeviceIndex >= 0
+                            ? audioInputDevices[audioInputDeviceIndex]
+                            : QMediaDevices::defaultAudioInput(),
+                            windowInputDevices[windowInputDeviceIndex]);
+                }
             }
         }
     } else if (cmd.startsWith("set-output-mode ")) {

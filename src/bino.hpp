@@ -27,6 +27,8 @@
 #include <QAudioOutput>
 #include <QAudioInput>
 #include <QCamera>
+#include <QScreenCapture>
+#include <QWindowCapture>
 #include <QMediaPlayer>
 #include <QMediaCaptureSession>
 #include <QKeyEvent>
@@ -50,6 +52,8 @@ private:
     // for capturing audio/video:
     QAudioInput* _audioInput;
     QCamera* _videoInput;
+    QScreenCapture* _screenInput;
+    QWindowCapture* _windowInput;
     QMediaCaptureSession* _captureSession;
     // for rendering subtitles:
     QImage _subtitleImg;
@@ -87,6 +91,7 @@ private:
     bool _frameWasSerialized;
     bool _swapEyes;
 
+    void startCaptureMode(bool withAudioInput, const QAudioDevice& audioInputDevice);
     void rebuildColorPrgIfNecessary(int planeFormat, bool yuvValueRangeSmall, int yuvSpace);
     void rebuildViewPrgIfNecessary(SurroundMode surroundMode, bool nonLinearOutput);
     bool drawSubtitleToImage(int w, int h, const QString& string);
@@ -103,10 +108,18 @@ public:
     void initializeOutput(const QAudioDevice& audioOutputDevice);
     void startPlaylistMode();
     void stopPlaylistMode();
-    void startCaptureMode(
+    void startCaptureModeCamera(
             bool withAudioInput,
             const QAudioDevice& audioInputDevice,
             const QCameraDevice& videoInputDevice);
+    void startCaptureModeScreen(
+            bool withAudioInput,
+            const QAudioDevice& audioInputDevice,
+            QScreen* screenInputDevice);
+    void startCaptureModeWindow(
+            bool withAudioInput,
+            const QAudioDevice& audioInputDevice,
+            const QCapturableWindow& windowInputDevice);
     void stopCaptureMode();
     bool playlistMode() const;
     bool captureMode() const;

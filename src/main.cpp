@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -40,6 +40,7 @@
 #include <QAudioOutput>
 #include <QAudioInput>
 #include <QCamera>
+#include <QWindowCapture>
 #include <QSurfaceFormat>
 #include <QOpenGLContext>
 
@@ -137,13 +138,17 @@ int main(int argc, char* argv[])
             "or as a name of an OBJ file that contains the screen geometry with texture coordinates."),
             "screen" });
     parser.addOption({ "capture",
-            QCommandLineParser::tr("Capture video/audio input from camera and microphone.") });
+            QCommandLineParser::tr("Capture audio/video input from microphone and camera/screen/window.") });
     parser.addOption({ "list-audio-outputs",
             QCommandLineParser::tr("List audio outputs.") });
     parser.addOption({ "list-audio-inputs",
             QCommandLineParser::tr("List audio inputs.") });
     parser.addOption({ "list-video-inputs",
             QCommandLineParser::tr("List video inputs.") });
+    parser.addOption({ "list-screen-inputs",
+            QCommandLineParser::tr("List screen inputs.") });
+    parser.addOption({ "list-window-inputs",
+            QCommandLineParser::tr("List window inputs.") });
     parser.addOption({ "audio-output",
             QCommandLineParser::tr("Choose audio output via its index."),
             "ao" });
@@ -153,6 +158,12 @@ int main(int argc, char* argv[])
     parser.addOption({ "video-input",
             QCommandLineParser::tr("Choose video input via its index."),
             "vi" });
+    parser.addOption({ "screen-input",
+            QCommandLineParser::tr("Choose screen input via its index."),
+            "si" });
+    parser.addOption({ "window-input",
+            QCommandLineParser::tr("Choose window input via its index."),
+            "si" });
     parser.addOption({ "list-tracks",
             QCommandLineParser::tr("List all video, audio and subtitle tracks in the media.") });
     parser.addOption({ "preferred-audio",
@@ -264,6 +275,8 @@ int main(int argc, char* argv[])
     QList<QAudioDevice> audioOutputDevices;
     QList<QAudioDevice> audioInputDevices;
     QList<QCameraDevice> videoInputDevices;
+    QList<QScreen*> screenInputDevices;
+    QList<QCapturableWindow> windowInputDevices;
 
     // List devices
     bool deviceListRequested = false;
@@ -297,6 +310,26 @@ int main(int argc, char* argv[])
         }
         deviceListRequested = true;
     }
+    if (parser.isSet("list-screen-inputs")) {
+        screenInputDevices = QGuiApplication::screens();
+        if (screenInputDevices.size() == 0) {
+            LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("No screen inputs available.")));
+        } else {
+            for (qsizetype i = 0; i < screenInputDevices.size(); i++)
+                LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("Screen input %1: %2").arg(i).arg(screenInputDevices[i]->name())));
+        }
+        deviceListRequested = true;
+    }
+    if (parser.isSet("list-window-inputs")) {
+        windowInputDevices = QWindowCapture::capturableWindows();
+        if (windowInputDevices.size() == 0) {
+            LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("No window inputs available.")));
+        } else {
+            for (qsizetype i = 0; i < windowInputDevices.size(); i++)
+                LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("Window input %1: %2").arg(i).arg(windowInputDevices[i].description())));
+        }
+        deviceListRequested = true;
+    }
     if (deviceListRequested) {
         return 0;
     }
@@ -305,6 +338,8 @@ int main(int argc, char* argv[])
     int audioOutputDeviceIndex = -1;
     int audioInputDeviceIndex = -1;
     int videoInputDeviceIndex = -1;
+    int screenInputDeviceIndex = -1;
+    int windowInputDeviceIndex = -1;
     if (parser.isSet("audio-output")) {
         audioOutputDevices = QMediaDevices::audioOutputs();
         bool ok;
@@ -322,7 +357,8 @@ int main(int argc, char* argv[])
             if (parser.value("audio-input").length() == 0) {
                 audioInputDeviceIndex = -2; // this means no audio input
             } else {
-                audioInputDevices = QMediaDevices::audioInputs();
+                if (audioInputDevices.size() == 0)
+                    audioInputDevices = QMediaDevices::audioInputs();
                 int ai = parser.value("audio-input").toInt(&ok);
                 if (ok && ai >= 0 && ai < audioInputDevices.size()) {
                     audioInputDeviceIndex = ai;
@@ -333,12 +369,35 @@ int main(int argc, char* argv[])
             }
         }
         if (parser.isSet("video-input")) {
-            videoInputDevices = QMediaDevices::videoInputs();
+            if (videoInputDevices.size() == 0)
+                videoInputDevices = QMediaDevices::videoInputs();
             int vi = parser.value("video-input").toInt(&ok);
             if (ok && vi >= 0 && vi < videoInputDevices.size()) {
                 videoInputDeviceIndex = vi;
             } else {
                 LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--video-input")));
+                return 1;
+            }
+        }
+        if (parser.isSet("screen-input")) {
+            if (screenInputDevices.size() == 0)
+                screenInputDevices = QGuiApplication::screens();
+            int vi = parser.value("screen-input").toInt(&ok);
+            if (ok && vi >= 0 && vi < screenInputDevices.size()) {
+                screenInputDeviceIndex = vi;
+            } else {
+                LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--screen-input")));
+                return 1;
+            }
+        }
+        if (parser.isSet("window-input")) {
+            if (windowInputDevices.size() == 0)
+                windowInputDevices = QWindowCapture::capturableWindows();
+            int vi = parser.value("window-input").toInt(&ok);
+            if (ok && vi >= 0 && vi < windowInputDevices.size()) {
+                windowInputDeviceIndex = vi;
+            } else {
+                LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--window-input")));
                 return 1;
             }
         }
@@ -580,13 +639,27 @@ int main(int argc, char* argv[])
                 ? audioOutputDevices[audioOutputDeviceIndex]
                 : QMediaDevices::defaultAudioOutput());
         if (parser.isSet("capture")) {
-            bino.startCaptureMode(audioInputDeviceIndex >= -1,
-                    audioInputDeviceIndex >= 0
-                    ? audioInputDevices[audioInputDeviceIndex]
-                    : QMediaDevices::defaultAudioInput(),
-                    videoInputDeviceIndex >= 0
-                    ? videoInputDevices[videoInputDeviceIndex]
-                    : QMediaDevices::defaultVideoInput());
+            if (screenInputDeviceIndex < 0 && windowInputDeviceIndex < 0) {
+                bino.startCaptureModeCamera(audioInputDeviceIndex >= -1,
+                        audioInputDeviceIndex >= 0
+                        ? audioInputDevices[audioInputDeviceIndex]
+                        : QMediaDevices::defaultAudioInput(),
+                        videoInputDeviceIndex >= 0
+                        ? videoInputDevices[videoInputDeviceIndex]
+                        : QMediaDevices::defaultVideoInput());
+            } else if (screenInputDeviceIndex >= 0) {
+                bino.startCaptureModeScreen(audioInputDeviceIndex >= -1,
+                        audioInputDeviceIndex >= 0
+                        ? audioInputDevices[audioInputDeviceIndex]
+                        : QMediaDevices::defaultAudioInput(),
+                        screenInputDevices[screenInputDeviceIndex]);
+            } else {
+                bino.startCaptureModeWindow(audioInputDeviceIndex >= -1,
+                        audioInputDeviceIndex >= 0
+                        ? audioInputDevices[audioInputDeviceIndex]
+                        : QMediaDevices::defaultAudioInput(),
+                        windowInputDevices[windowInputDeviceIndex]);
+            }
         } else {
             bino.startPlaylistMode();
         }

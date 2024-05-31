@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,6 +29,7 @@
 #include <QGridLayout>
 #include <QPushButton>
 #include <QMediaDevices>
+#include <QRadioButton>
 #include <QComboBox>
 #include <QActionGroup>
 #include <QMimeData>
@@ -518,45 +519,95 @@ void Gui::fileOpenCamera()
     QList<QAudioDevice> audioOutputDevices = QMediaDevices::audioOutputs();
     QList<QAudioDevice> audioInputDevices = QMediaDevices::audioInputs();
     QList<QCameraDevice> videoInputDevices = QMediaDevices::videoInputs();
+    QList<QScreen*> screenInputDevices = QGuiApplication::screens();
+    QList<QCapturableWindow> windowInputDevices = QWindowCapture::capturableWindows();
     QGuiApplication::restoreOverrideCursor();
+
     QDialog *dialog = new QDialog(this);
     dialog->setWindowTitle(tr("Open Camera"));
-    QLabel *videoLabel = new QLabel(tr("Video Input:"));
+
+    QRadioButton *videoBtn = new QRadioButton(tr("Video Input:"));
     QComboBox* videoBox = new QComboBox;
     videoBox->addItem(tr("Default"));
     for (int i = 0; i < videoInputDevices.size(); i++)
         videoBox->addItem(videoInputDevices[i].description());
+
+    QRadioButton *screenBtn = new QRadioButton(tr("Screen Input:"));
+    QComboBox* screenBox = new QComboBox;
+    for (int i = 0; i < screenInputDevices.size(); i++)
+        screenBox->addItem(screenInputDevices[i]->name());
+
+    QRadioButton *windowBtn = new QRadioButton(tr("Window Input:"));
+    QComboBox* windowBox = new QComboBox;
+    for (int i = 0; i < windowInputDevices.size(); i++)
+        windowBox->addItem(windowInputDevices[i].description());
+
+    videoBtn->setChecked(true);
+    screenBtn->setChecked(false);
+    windowBtn->setChecked(false);
+    if (screenInputDevices.size() == 0) {
+        screenBtn->setEnabled(false);
+        screenBox->setEnabled(false);
+    }
+    if (windowInputDevices.size() == 0) {
+        windowBtn->setEnabled(false);
+        windowBox->setEnabled(false);
+    }
+
     QLabel *audioLabel = new QLabel(tr("Audio Input:"));
     QComboBox* audioBox = new QComboBox;
     audioBox->addItem(tr("None"));
     audioBox->addItem(tr("Default"));
     for (int i = 0; i < audioInputDevices.size(); i++)
         audioBox->addItem(audioInputDevices[i].description());
+
     QPushButton *cancelBtn = new QPushButton(tr("Cancel"));
     QPushButton *okBtn = new QPushButton(tr("OK"));
     okBtn->setDefault(true);
     connect(cancelBtn, SIGNAL(clicked()), dialog, SLOT(reject()));
     connect(okBtn, SIGNAL(clicked()), dialog, SLOT(accept()));
+
     QGridLayout *layout = new QGridLayout();
-    layout->addWidget(videoLabel, 0, 0);
+    layout->addWidget(videoBtn, 0, 0);
     layout->addWidget(videoBox, 0, 1, 1, 3);
-    layout->addWidget(audioLabel, 1, 0);
-    layout->addWidget(audioBox, 1, 1, 1, 3);
-    layout->addWidget(cancelBtn, 2, 2);
-    layout->addWidget(okBtn, 2, 3);
+    layout->addWidget(screenBtn, 1, 0);
+    layout->addWidget(screenBox, 1, 1, 1, 3);
+    layout->addWidget(windowBtn, 2, 0);
+    layout->addWidget(windowBox, 2, 1, 1, 3);
+    layout->addWidget(audioLabel, 3, 0);
+    layout->addWidget(audioBox, 3, 1, 1, 3);
+    layout->addWidget(cancelBtn, 4, 2);
+    layout->addWidget(okBtn, 4, 3);
     layout->setColumnStretch(1, 1);
     dialog->setLayout(layout);
     dialog->exec();
+
     if (dialog->result() == QDialog::Accepted) {
-        int videoInputDeviceIndex = videoBox->currentIndex() - 1;
         int audioInputDeviceIndex = audioBox->currentIndex() - 2;
-        Bino::instance()->startCaptureMode(audioInputDeviceIndex >= -1,
-                audioInputDeviceIndex >= 0
-                ? audioInputDevices[audioInputDeviceIndex]
-                : QMediaDevices::defaultAudioInput(),
-                videoInputDeviceIndex >= 0
-                ? videoInputDevices[videoInputDeviceIndex]
-                : QMediaDevices::defaultVideoInput());
+        if (videoBtn->isChecked()) {
+            int videoInputDeviceIndex = videoBox->currentIndex() - 1;
+            Bino::instance()->startCaptureModeCamera(audioInputDeviceIndex >= -1,
+                    audioInputDeviceIndex >= 0
+                    ? audioInputDevices[audioInputDeviceIndex]
+                    : QMediaDevices::defaultAudioInput(),
+                    videoInputDeviceIndex >= 0
+                    ? videoInputDevices[videoInputDeviceIndex]
+                    : QMediaDevices::defaultVideoInput());
+        } else if (screenBtn->isChecked()) {
+            int screenInputDeviceIndex = screenBox->currentIndex();
+            Bino::instance()->startCaptureModeScreen(audioInputDeviceIndex >= -1,
+                    audioInputDeviceIndex >= 0
+                    ? audioInputDevices[audioInputDeviceIndex]
+                    : QMediaDevices::defaultAudioInput(),
+                    screenInputDevices[screenInputDeviceIndex]);
+        } else if (windowBtn->isChecked()) {
+            int windowInputDeviceIndex = windowBox->currentIndex();
+            Bino::instance()->startCaptureModeWindow(audioInputDeviceIndex >= -1,
+                    audioInputDeviceIndex >= 0
+                    ? audioInputDevices[audioInputDeviceIndex]
+                    : QMediaDevices::defaultAudioInput(),
+                    windowInputDevices[windowInputDeviceIndex]);
+        }
     }
 }
 
