@@ -146,6 +146,7 @@ void Bino::startCaptureModeCamera(
     _videoInput = new QCamera;
     _videoInput->setCameraDevice(videoInputDevice);
     _captureSession->setCamera(_videoInput);
+    _videoInput->setActive(true);
     emit stateChanged();
 }
 
@@ -158,6 +159,7 @@ void Bino::startCaptureModeScreen(
     _screenInput = new QScreenCapture;
     _screenInput->setScreen(screenInputDevice);
     _captureSession->setScreenCapture(_screenInput);
+    _screenInput->setActive(true);
     emit stateChanged();
 }
 
@@ -170,6 +172,7 @@ void Bino::startCaptureModeWindow(
     _windowInput = new QWindowCapture;
     _windowInput->setWindow(windowInputDevice);
     _captureSession->setWindowCapture(_windowInput);
+    _windowInput->setActive(true);
     emit stateChanged();
 }
 
