@@ -68,9 +68,8 @@
         <translation>&amp;Datei</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="74"/>
         <source>&amp;Open file...</source>
-        <translation>Datei &amp;öffnen...</translation>
+        <translation type="vanished">Datei &amp;öffnen...</translation>
     </message>
     <message>
         <location filename="../src/gui.cpp" line="78"/>
@@ -78,9 +77,8 @@
         <translation>&amp;URL öffnen...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="81"/>
         <source>Open &amp;Camera...</source>
-        <translation>&amp;Kamera öffnen...</translation>
+        <translation type="vanished">&amp;Kamera öffnen...</translation>
     </message>
     <message>
         <location filename="../src/gui.cpp" line="85"/>
@@ -261,6 +259,16 @@
         <translation type="vanished">Ausgabe Schachbrettmuster</translation>
     </message>
     <message>
+        <location filename="../src/gui.cpp" line="74"/>
+        <source>&amp;Open File...</source>
+        <translation>Datei &amp;öffnen...</translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="81"/>
+        <source>Open &amp;Capture Device...</source>
+        <translation>&amp;Aufnahmegerät öffnen...</translation>
+    </message>
+    <message>
         <location filename="../src/gui.cpp" line="156"/>
         <source>Input 3D above-below</source>
         <translation>Eingabe 3D übereinander</translation>
@@ -418,13 +426,21 @@
     </message>
     <message>
         <location filename="../src/gui.cpp" line="527"/>
-        <source>Open Camera</source>
-        <translation>Öffne Kamera</translation>
+        <source>Open Capture Device</source>
+        <translation>Aufnahmegerät öffnen</translation>
     </message>
     <message>
         <location filename="../src/gui.cpp" line="529"/>
+        <source>Camera Input:</source>
+        <translation>Kamera Eingabe:</translation>
+    </message>
+    <message>
+        <source>Open Camera</source>
+        <translation type="vanished">Öffne Kamera</translation>
+    </message>
+    <message>
         <source>Video Input:</source>
-        <translation>Video Eingabe:</translation>
+        <translation type="vanished">Video Eingabe:</translation>
     </message>
     <message>
         <location filename="../src/gui.cpp" line="531"/>

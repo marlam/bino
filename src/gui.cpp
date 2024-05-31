@@ -71,14 +71,14 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
     setWindowIcon(QIcon(icon));
 
     QMenu* fileMenu = addBinoMenu(tr("&File"));
-    QAction* fileOpenAction = new QAction(tr("&Open file..."), this);
+    QAction* fileOpenAction = new QAction(tr("&Open File..."), this);
     fileOpenAction->setShortcuts({ QKeySequence::Open });
     connect(fileOpenAction, SIGNAL(triggered()), this, SLOT(fileOpen()));
     addBinoAction(fileOpenAction, fileMenu);
     QAction* fileOpenURLAction = new QAction(tr("Open &URL..."), this);
     connect(fileOpenURLAction, SIGNAL(triggered()), this, SLOT(fileOpenURL()));
     addBinoAction(fileOpenURLAction, fileMenu);
-    QAction* fileOpenCameraAction = new QAction(tr("Open &Camera..."), this);
+    QAction* fileOpenCameraAction = new QAction(tr("Open &Capture Device..."), this);
     connect(fileOpenCameraAction, SIGNAL(triggered()), this, SLOT(fileOpenCamera()));
     addBinoAction(fileOpenCameraAction, fileMenu);
     fileMenu->addSeparator();
@@ -524,9 +524,9 @@ void Gui::fileOpenCamera()
     QGuiApplication::restoreOverrideCursor();
 
     QDialog *dialog = new QDialog(this);
-    dialog->setWindowTitle(tr("Open Camera"));
+    dialog->setWindowTitle(tr("Open Capture Device"));
 
-    QRadioButton *videoBtn = new QRadioButton(tr("Video Input:"));
+    QRadioButton *videoBtn = new QRadioButton(tr("Camera Input:"));
     QComboBox* videoBox = new QComboBox;
     videoBox->addItem(tr("Default"));
     for (int i = 0; i < videoInputDevices.size(); i++)
