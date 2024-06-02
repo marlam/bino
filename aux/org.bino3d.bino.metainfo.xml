@@ -30,6 +30,11 @@
   <url type="homepage">https://bino3d.org</url>
 
   <releases>
+    <release version="2.2" date="2024-06-02">
+      <description>
+        <p>Added support for capturing screens and windows and for HDMI frame packing output. Fixed various bugs.</p>
+      </description>
+    </release>
     <release version="2.1" date="2023-02-01">
       <description>
         <p>Added support for 180° video, playlists, and more output formats. Fixed color conversion bugs.</p>
