@@ -5,6 +5,10 @@
   <name>Bino</name>
   <summary>3D Video Player</summary>
   
+  <developer id="org.bino3d">
+    <name>Martin Lambers</name>
+  </developer>
+
   <metadata_license>FSFAP</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   
