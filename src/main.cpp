@@ -603,20 +603,17 @@ int main(int argc, char* argv[])
 
     // Set the OpenGL context parameters
     QSurfaceFormat format;
+    format.setRedBufferSize(10);
+    format.setGreenBufferSize(10);
+    format.setBlueBufferSize(10);
     format.setAlphaBufferSize(0);
     format.setStencilBufferSize(0);
     if (parser.isSet("opengles"))
         format.setRenderableType(QSurfaceFormat::OpenGLES);
     if (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGLES
             || format.renderableType() == QSurfaceFormat::OpenGLES) {
-        format.setRedBufferSize(8);
-        format.setGreenBufferSize(8);
-        format.setBlueBufferSize(8);
-        format.setVersion(3, 1);
+        format.setVersion(3, 2);
     } else {
-        format.setRedBufferSize(10);
-        format.setGreenBufferSize(10);
-        format.setBlueBufferSize(10);
         format.setProfile(QSurfaceFormat::CoreProfile);
         format.setVersion(3, 3);
     }
