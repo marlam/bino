@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -86,9 +86,7 @@ QSize Widget::sizeHint() const
 
 void Widget::initializeGL()
 {
-    bool contextIsOk = (context()->isValid()
-            && (context()->format().majorVersion() > 3
-                || (context()->format().majorVersion() == 3 && context()->format().minorVersion() >= 2)));
+    bool contextIsOk = (context()->isValid() && context()->format().majorVersion() >= 3);
     if (!contextIsOk) {
         LOG_FATAL("%s", qPrintable(tr("Insufficient OpenGL capabilities.")));
         QMessageBox::critical(this, tr("Error"), tr("Insufficient OpenGL capabilities."));
