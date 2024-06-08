@@ -20,6 +20,8 @@
 
 #include <QCommandLineParser>
 #include <QMediaDevices>
+#include <QGuiApplication>
+#include <QWindowCapture>
 
 #include "commandinterpreter.hpp"
 #include "modes.hpp"
