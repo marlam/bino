@@ -33,6 +33,7 @@
 #include <QComboBox>
 #include <QActionGroup>
 #include <QMimeData>
+#include <QWindowCapture>
 
 #include "gui.hpp"
 #include "playlist.hpp"
