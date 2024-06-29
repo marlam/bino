@@ -612,7 +612,7 @@ int main(int argc, char* argv[])
         format.setRenderableType(QSurfaceFormat::OpenGLES);
     if (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGLES
             || format.renderableType() == QSurfaceFormat::OpenGLES) {
-        format.setVersion(3, 2);
+        format.setVersion(3, 1);
     } else {
         format.setProfile(QSurfaceFormat::CoreProfile);
         format.setVersion(3, 3);
