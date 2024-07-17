@@ -65,9 +65,9 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
 {
     setWindowTitle("Bino");
     QPixmap icon;
-    if (!icon.load(":aux/bino-logo-small.svg")) {
+    if (!icon.load(":res/bino-logo-small.svg")) {
         LOG_DEBUG("Gui: falling back to raster icon");
-        icon.load(":aux/bino-logo-small-512.png");
+        icon.load(":res/bino-logo-small-512.png");
     }
     setWindowIcon(QIcon(icon));
 
