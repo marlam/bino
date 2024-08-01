@@ -42,6 +42,13 @@ class Bino : public QObject, QOpenGLExtraFunctions
 {
 Q_OBJECT
 
+public:
+    enum ScreenType {
+        ScreenUnited,           // global 2D united screen given by QVR
+        ScreenIntersected,      // global 2D intersected screen given by QVR
+        ScreenGeometry          // explicit geometry stored in _screen
+    };
+
 private:
     /* Data not directly relevant for rendering */
     bool _wantExit;
@@ -63,6 +70,7 @@ private:
     SurroundMode _lastFrameSurroundMode;
 
     /* Static data for rendering, initialized on the main process */
+    ScreenType _screenType;
     Screen _screen;
 
     /* Static data for rendering, initialized in initProcess() */
@@ -75,7 +83,7 @@ private:
     unsigned int _frameTex;
     unsigned int _extFrameTex;
     unsigned int _subtitleTex;
-    unsigned int _screenVao;
+    unsigned int _screenVao, _positionBuf, _texcoordBuf, _indexBuf;
     QOpenGLShaderProgram _colorPrg;
     int _colorPrgPlaneFormat;
     bool _colorPrgYuvValueRangeSmall;
@@ -98,7 +106,7 @@ private:
     void convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex);
 
 public:
-    Bino(const Screen& screen, bool swapEyes);
+    Bino(ScreenType screenType, const Screen& screen, bool swapEyes);
     virtual ~Bino();
 
     static Bino* instance();
@@ -178,6 +186,8 @@ public:
             float* frameDisplayAspectRatio = nullptr,
             bool* surround = nullptr);
     void render(
+            const QVector3D& unitedScreenBottomLeft, const QVector3D& unitedScreenBottomRight, const QVector3D& unitedScreenTopLeft,
+            const QVector3D& intersectedScreenBottomLeft, const QVector3D& intersectedScreenBottomRight, const QVector3D& intersectedScreenTopLeft,
             const QMatrix4x4& projectionMatrix,
             const QMatrix4x4& orientationMatrix,
             const QMatrix4x4& viewMatrix,

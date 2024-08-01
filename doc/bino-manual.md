@@ -58,10 +58,10 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 
 - `--vr-screen` *screen*
   
-  Set VR screen geometry, either as a comma-separated list of nine values
-  representing three 3D coordinates that define a planar screen (bottom left,
-  bottom right, top left) or as a name of an OBJ file that contains the screen
-  geometry with texture coordinates.
+  Set VR screen geometry, either as the special values 'united' or 'intersected', or as a comma-separated list of nine
+  values representing three 3D coordinates that define a planar screen (bottom left, bottom right, top left), or as a an
+  aspect ratio followed by the name of an OBJ file that contains the screen geometry with texture coordinates (example:
+  '16:9,myscreen.obj').
 
 - `--capture`
 
@@ -328,6 +328,12 @@ can use the `--vr-screen` option to either define arbitrary planar screens via
 their bottom left, bottom right and top left corners, or to load arbitrary
 screen geometry from an OBJ file. The latter case is useful e.g. if you want
 Bino's virtual screen to coincide with a curved physical screen.
+
+The `--vr-screen` option also accepts the special values `united` and
+`intersected`. This will unite (or intersect) the 2D geometries of all VR windows
+at runtime. For example, use `--vr-screen=united --qvr-config=two-screen-stereo.qvr`
+for a two-screen stereo setup, where the left view goes on the first screen and
+the right view goes on the second screen.
 
 Bino uses QVRs default navigation, which may be based on autodetected
 controllers such as the HTC Vive controllers, or on tracking and interaction

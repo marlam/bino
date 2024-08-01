@@ -133,9 +133,10 @@ int main(int argc, char* argv[])
     parser.addOption({ "vr",
             QCommandLineParser::tr("Start in VR mode instead of GUI mode.")});
     parser.addOption({ "vr-screen",
-            QCommandLineParser::tr("Set VR screen geometry, either as a comma-separated list of "
-            "nine values representing three 3D coordinates that define a planar screen (bottom left, bottom right, top left) "
-            "or as a name of an OBJ file that contains the screen geometry with texture coordinates."),
+            QCommandLineParser::tr("Set VR screen geometry, either as the special values 'united' or 'intersected', or "
+            "as a comma-separated list of nine values representing three 3D coordinates that define a planar screen (bottom left, bottom right, top left), "
+            "or as a an aspect ratio followed by the name of an OBJ file that contains the screen geometry with texture coordinates "
+            "(example: '16:9,myscreen.obj')."),
             "screen" });
     parser.addOption({ "capture",
             QCommandLineParser::tr("Capture audio/video input from microphone and camera/screen/window.") });
@@ -546,30 +547,37 @@ int main(int argc, char* argv[])
     }
 
     // Handle the VR Screen
-    Screen screen;
+    Bino::ScreenType screenType = Bino::ScreenGeometry;
+    Screen screen; // default screen for non-VR mode
     if (parser.isSet("vr")) {
         float screenCenterHeight = 1.76f - 0.15f; // does not matter, never used
 #ifdef WITH_QVR
         screenCenterHeight = QVRObserverConfig::defaultEyeHeight;
 #endif
-        screen = Screen(
+        screen = Screen( // default screen for VR mode
                 QVector3D(-16.0f / 9.0f, -1.0f + screenCenterHeight, -8.0f),
                 QVector3D(+16.0f / 9.0f, -1.0f + screenCenterHeight, -8.0f),
                 QVector3D(-16.0f / 9.0f, +1.0f + screenCenterHeight, -8.0f));
         if (parser.isSet("vr-screen")) {
             QStringList paramList = parser.value("vr-screen").split(',');
             float values[9];
-            if (paramList.length() == 9
+            if (parser.value("vr-screen") == "united") {
+                screenType = Bino::ScreenUnited;
+            } else if (parser.value("vr-screen") == "intersected") {
+                screenType = Bino::ScreenIntersected;
+            } else if (paramList.length() == 9
                     && 9 == std::sscanf(qPrintable(parser.value("vr-screen")),
                         "%f,%f,%f,%f,%f,%f,%f,%f,%f",
                         values + 0, values + 1, values + 2,
                         values + 3, values + 4, values + 5,
                         values + 6, values + 7, values + 8)) {
+                screenType = Bino::ScreenGeometry;
                 screen = Screen(
                         QVector3D(values[0], values[1], values[2]),
                         QVector3D(values[3], values[4], values[5]),
                         QVector3D(values[6], values[7], values[8]));
             } else if (paramList.length() == 2) {
+                screenType = Bino::ScreenGeometry;
                 float ar;
                 float ar2[2];
                 if (2 == std::sscanf(qPrintable(paramList[0]), "%f:%f", ar2 + 0, ar2 + 1)) {
@@ -633,7 +641,7 @@ int main(int argc, char* argv[])
     QSurfaceFormat::setDefaultFormat(format);
 
     // Initialize Bino (in VR mode: only from the main process!)
-    Bino bino(screen, parser.isSet("swap-eyes"));
+    Bino bino(screenType, screen, parser.isSet("swap-eyes"));
     if (guiMode || !vrChildProcess) {
         bino.initializeOutput(audioOutputDeviceIndex >= 0
                 ? audioOutputDevices[audioOutputDeviceIndex]

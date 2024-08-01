@@ -297,7 +297,9 @@ void Widget::paintGL()
                     (_surroundHorizontalAngleBase + _surroundHorizontalAngleCurrent), 0.0f);
             orientationMatrix.rotate(orientation.inverted());
         }
-        Bino::instance()->render(projectionMatrix, orientationMatrix, viewMatrix, v, viewWidth, viewHeight, _viewTex[v]);
+        Bino::instance()->render(
+                QVector3D(), QVector3D(), QVector3D(), QVector3D(), QVector3D(), QVector3D(),
+                projectionMatrix, orientationMatrix, viewMatrix, v, viewWidth, viewHeight, _viewTex[v]);
         // generate mipmaps for the view texture
         glBindTexture(GL_TEXTURE_2D, _viewTex[v]);
         glGenerateMipmap(GL_TEXTURE_2D);

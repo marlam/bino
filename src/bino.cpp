@@ -31,7 +31,7 @@
 
 static Bino* binoSingleton = nullptr;
 
-Bino::Bino(const Screen& screen, bool swapEyes) :
+Bino::Bino(ScreenType screenType, const Screen& screen, bool swapEyes) :
     _wantExit(false),
     _videoSink(nullptr),
     _audioOutput(nullptr),
@@ -43,6 +43,7 @@ Bino::Bino(const Screen& screen, bool swapEyes) :
     _captureSession(nullptr),
     _lastFrameInputMode(Input_Unknown),
     _lastFrameSurroundMode(Surround_Unknown),
+    _screenType(screenType),
     _screen(screen),
     _frameIsNew(false),
     _frameWasSerialized(true),
@@ -499,12 +500,12 @@ SurroundMode Bino::assumeSurroundMode() const
 
 void Bino::serializeStaticData(QDataStream& ds) const
 {
-    ds << _screen;
+    ds << _screenType << _screen;
 }
 
 void Bino::deserializeStaticData(QDataStream& ds)
 {
-    ds >> _screen;
+    ds >> _screenType >> _screen;
 }
 
 void Bino::serializeDynamicData(QDataStream& ds)
@@ -731,23 +732,20 @@ bool Bino::initProcess()
     // Screen geometry
     glGenVertexArrays(1, &_screenVao);
     glBindVertexArray(_screenVao);
-    GLuint positionBuf;
-    glGenBuffers(1, &positionBuf);
-    glBindBuffer(GL_ARRAY_BUFFER, positionBuf);
+    glGenBuffers(1, &_positionBuf);
+    glBindBuffer(GL_ARRAY_BUFFER, _positionBuf);
     glBufferData(GL_ARRAY_BUFFER, _screen.positions.size() * sizeof(float),
             _screen.positions.constData(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
-    GLuint texcoordBuf;
-    glGenBuffers(1, &texcoordBuf);
-    glBindBuffer(GL_ARRAY_BUFFER, texcoordBuf);
+    glGenBuffers(1, &_texcoordBuf);
+    glBindBuffer(GL_ARRAY_BUFFER, _texcoordBuf);
     glBufferData(GL_ARRAY_BUFFER, _screen.texcoords.size() * sizeof(float),
             _screen.texcoords.constData(), GL_STATIC_DRAW);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(1);
-    GLuint indexBuf;
-    glGenBuffers(1, &indexBuf);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuf);
+    glGenBuffers(1, &_indexBuf);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuf);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
             _screen.indices.length() * sizeof(unsigned int),
             _screen.indices.constData(), GL_STATIC_DRAW);
@@ -1120,12 +1118,26 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
 }
 
 void Bino::render(
+        const QVector3D& unitedScreenBottomLeft, const QVector3D& unitedScreenBottomRight, const QVector3D& unitedScreenTopLeft,
+        const QVector3D& intersectedScreenBottomLeft, const QVector3D& intersectedScreenBottomRight, const QVector3D& intersectedScreenTopLeft,
         const QMatrix4x4& projectionMatrix,
         const QMatrix4x4& orientationMatrix,
         const QMatrix4x4& viewMatrix,
         int view, // 0 = left, 1 = right
         int texWidth, int texHeight, unsigned int texture)
 {
+    // Update screen
+    switch (_screenType) {
+    case ScreenUnited:
+        _screen = Screen(unitedScreenBottomLeft, unitedScreenBottomRight, unitedScreenTopLeft);
+        break;
+    case ScreenIntersected:
+        _screen = Screen(intersectedScreenBottomLeft, intersectedScreenBottomRight, intersectedScreenTopLeft);
+        break;
+    case ScreenGeometry:
+        // do nothing
+        break;
+    }
     // Set up framebuffer object to render into
     glBindTexture(GL_TEXTURE_2D, _depthTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, texWidth, texHeight,
@@ -1246,6 +1258,21 @@ void Bino::render(
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     } else {
         glBindVertexArray(_screenVao);
+        if (_screenType == ScreenUnited || _screenType == ScreenIntersected) {
+            // the geometry might have changed; re-upload it
+            glBindBuffer(GL_ARRAY_BUFFER, _positionBuf);
+            glBufferData(GL_ARRAY_BUFFER, _screen.positions.size() * sizeof(float),
+                    _screen.positions.constData(), GL_STATIC_DRAW);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+            glBindBuffer(GL_ARRAY_BUFFER, _texcoordBuf);
+            glBufferData(GL_ARRAY_BUFFER, _screen.texcoords.size() * sizeof(float),
+                    _screen.texcoords.constData(), GL_STATIC_DRAW);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuf);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                    _screen.indices.length() * sizeof(unsigned int),
+                    _screen.indices.constData(), GL_STATIC_DRAW);
+        }
         glDrawElements(GL_TRIANGLES, _screen.indices.size(), GL_UNSIGNED_INT, 0);
     }
 }

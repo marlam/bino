@@ -4,7 +4,7 @@
  * Copyright (C) 2016, 2017, 2018, 2019, 2020, 2021, 2022
  * Computer Graphics Group, University of Siegen
  * Written by Martin Lambers <martin.lambers@uni-siegen.de>
- * Copyright (C) 2022, 2023
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -166,7 +166,10 @@ void BinoQVRApp::render(QVRWindow*, const QVRRenderContext& context, const unsig
         int v = (context.eye(view) == QVR_Eye_Right ? 1 : 0);
         int texWidth = context.textureSize(view).width();
         int texHeight = context.textureSize(view).height();
-        Bino::instance()->render(projectionMatrix, orientationMatrix, viewMatrix, v, texWidth, texHeight, textures[view]);
+        Bino::instance()->render(
+                context.unitedScreenWallBottomLeft(), context.unitedScreenWallBottomRight(), context.unitedScreenWallTopLeft(),
+                context.intersectedScreenWallBottomLeft(), context.intersectedScreenWallBottomRight(), context.intersectedScreenWallTopLeft(),
+                projectionMatrix, orientationMatrix, viewMatrix, v, texWidth, texHeight, textures[view]);
         // Render VR device models (optional)
         glUseProgram(_prg.programId());
         for (int i = 0; i < QVRManager::deviceCount(); i++) {

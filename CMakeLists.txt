@@ -18,7 +18,7 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 # Required: Qt6
 find_package(Qt6 6.6.0 REQUIRED COMPONENTS OpenGLWidgets Multimedia LinguistTools)
 # Optional: QVR for Virtual Reality support
-find_package(QVR 4.0.0 QUIET)
+find_package(QVR 4.1.0 QUIET)
 if(QVR_FOUND)
     add_definitions(-DWITH_QVR)
     include_directories(${QVR_INCLUDE_DIRS})
