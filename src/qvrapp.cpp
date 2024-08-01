@@ -120,8 +120,8 @@ bool BinoQVRApp::initProcess(QVRProcess*)
     QString vrdeviceVS = readFile(":src/shader-vrdevice.vert.glsl");
     QString vrdeviceFS = readFile(":src/shader-vrdevice.frag.glsl");
     if (isGLES) {
-        vrdeviceVS.prepend("#version 320 es\n");
-        vrdeviceFS.prepend("#version 320 es\n"
+        vrdeviceVS.prepend("#version 310 es\n");
+        vrdeviceFS.prepend("#version 310 es\n"
                 "precision mediump float;\n");
     } else {
         vrdeviceVS.prepend("#version 330\n");

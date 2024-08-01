@@ -773,8 +773,8 @@ void Bino::rebuildColorPrgIfNecessary(int planeFormat, bool yuvValueRangeSmall, 
     colorFS.replace("$VALUE_RANGE_SMALL", yuvValueRangeSmall ? "true" : "false");
     colorFS.replace("$YUV_SPACE", QString::number(yuvSpace));
     if (isGLES) {
-        colorVS.prepend("#version 320 es\n");
-        colorFS.prepend("#version 320 es\n"
+        colorVS.prepend("#version 310 es\n");
+        colorFS.prepend("#version 310 es\n"
                 "precision mediump float;\n");
     } else {
         colorVS.prepend("#version 330\n");
@@ -807,8 +807,8 @@ void Bino::rebuildViewPrgIfNecessary(SurroundMode surroundMode, bool nonLinearOu
             : "0");
     viewFS.replace("$NONLINEAR_OUTPUT", nonLinearOutput ? "true" : "false");
     if (isGLES) {
-        viewVS.prepend("#version 320 es\n");
-        viewFS.prepend("#version 320 es\n"
+        viewVS.prepend("#version 310 es\n");
+        viewFS.prepend("#version 310 es\n"
                 "precision mediump float;\n");
     } else {
         viewVS.prepend("#version 330\n");

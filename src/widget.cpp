@@ -186,8 +186,8 @@ void Widget::rebuildDisplayPrgIfNecessary(OutputMode outputMode)
     QString fragmentShaderSource = readFile(":src/shader-display.frag.glsl");
     fragmentShaderSource.replace("$OUTPUT_MODE", QString::number(int(outputMode)));
     if (isGLES) {
-        vertexShaderSource.prepend("#version 320 es\n");
-        fragmentShaderSource.prepend("#version 320 es\n"
+        vertexShaderSource.prepend("#version 310 es\n");
+        fragmentShaderSource.prepend("#version 310 es\n"
                 "precision mediump float;\n");
     } else {
         vertexShaderSource.prepend("#version 330\n");
