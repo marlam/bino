@@ -151,6 +151,7 @@ void Bino::startCaptureModeCamera(
     emit stateChanged();
 }
 
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
 void Bino::startCaptureModeScreen(
         bool withAudioInput,
         const QAudioDevice& audioInputDevice,
@@ -163,7 +164,9 @@ void Bino::startCaptureModeScreen(
     _screenInput->setActive(true);
     emit stateChanged();
 }
+#endif
 
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
 void Bino::startCaptureModeWindow(
         bool withAudioInput,
         const QAudioDevice& audioInputDevice,
@@ -176,6 +179,7 @@ void Bino::startCaptureModeWindow(
     _windowInput->setActive(true);
     emit stateChanged();
 }
+#endif
 
 void Bino::stopCaptureMode()
 {

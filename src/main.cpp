@@ -276,8 +276,12 @@ int main(int argc, char* argv[])
     QList<QAudioDevice> audioOutputDevices;
     QList<QAudioDevice> audioInputDevices;
     QList<QCameraDevice> videoInputDevices;
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
     QList<QScreen*> screenInputDevices;
+#endif
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
     QList<QCapturableWindow> windowInputDevices;
+#endif
 
     // List devices
     bool deviceListRequested = false;
@@ -312,6 +316,7 @@ int main(int argc, char* argv[])
         deviceListRequested = true;
     }
     if (parser.isSet("list-screen-inputs")) {
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
         screenInputDevices = QGuiApplication::screens();
         if (screenInputDevices.size() == 0) {
             LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("No screen inputs available.")));
@@ -319,9 +324,13 @@ int main(int argc, char* argv[])
             for (qsizetype i = 0; i < screenInputDevices.size(); i++)
                 LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("Screen input %1: %2").arg(i).arg(screenInputDevices[i]->name())));
         }
+#else
+        LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("No screen inputs available.")));
+#endif
         deviceListRequested = true;
     }
     if (parser.isSet("list-window-inputs")) {
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
         windowInputDevices = QWindowCapture::capturableWindows();
         if (windowInputDevices.size() == 0) {
             LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("No window inputs available.")));
@@ -329,6 +338,9 @@ int main(int argc, char* argv[])
             for (qsizetype i = 0; i < windowInputDevices.size(); i++)
                 LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("Window input %1: %2").arg(i).arg(windowInputDevices[i].description())));
         }
+#else
+        LOG_REQUESTED("%s", qPrintable(QCommandLineParser::tr("No window inputs available.")));
+#endif
         deviceListRequested = true;
     }
     if (deviceListRequested) {
@@ -381,6 +393,7 @@ int main(int argc, char* argv[])
             }
         }
         if (parser.isSet("screen-input")) {
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
             if (screenInputDevices.size() == 0)
                 screenInputDevices = QGuiApplication::screens();
             int vi = parser.value("screen-input").toInt(&ok);
@@ -390,8 +403,13 @@ int main(int argc, char* argv[])
                 LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--screen-input")));
                 return 1;
             }
+#else
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--screen-input")));
+            return 1;
+#endif
         }
         if (parser.isSet("window-input")) {
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
             if (windowInputDevices.size() == 0)
                 windowInputDevices = QWindowCapture::capturableWindows();
             int vi = parser.value("window-input").toInt(&ok);
@@ -401,6 +419,10 @@ int main(int argc, char* argv[])
                 LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--window-input")));
                 return 1;
             }
+#else
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--window-input")));
+            return 1;
+#endif
         }
     }
 
@@ -656,17 +678,21 @@ int main(int argc, char* argv[])
                         ? videoInputDevices[videoInputDeviceIndex]
                         : QMediaDevices::defaultVideoInput());
             } else if (screenInputDeviceIndex >= 0) {
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
                 bino.startCaptureModeScreen(audioInputDeviceIndex >= -1,
                         audioInputDeviceIndex >= 0
                         ? audioInputDevices[audioInputDeviceIndex]
                         : QMediaDevices::defaultAudioInput(),
                         screenInputDevices[screenInputDeviceIndex]);
+#endif
             } else {
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
                 bino.startCaptureModeWindow(audioInputDeviceIndex >= -1,
                         audioInputDeviceIndex >= 0
                         ? audioInputDevices[audioInputDeviceIndex]
                         : QMediaDevices::defaultAudioInput(),
                         windowInputDevices[windowInputDeviceIndex]);
+#endif
             }
         } else {
             bino.startPlaylistMode();

@@ -16,7 +16,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 # Required: Qt6
-find_package(Qt6 6.6.0 REQUIRED COMPONENTS OpenGLWidgets Multimedia LinguistTools)
+find_package(Qt6 6.4.0 REQUIRED COMPONENTS OpenGLWidgets Multimedia LinguistTools)
 # Optional: QVR for Virtual Reality support
 find_package(QVR 4.1.0 QUIET)
 if(QVR_FOUND)

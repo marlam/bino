@@ -33,7 +33,9 @@
 #include <QComboBox>
 #include <QActionGroup>
 #include <QMimeData>
-#include <QWindowCapture>
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
+# include <QWindowCapture>
+#endif
 
 #include "gui.hpp"
 #include "playlist.hpp"
@@ -520,8 +522,12 @@ void Gui::fileOpenCamera()
     QList<QAudioDevice> audioOutputDevices = QMediaDevices::audioOutputs();
     QList<QAudioDevice> audioInputDevices = QMediaDevices::audioInputs();
     QList<QCameraDevice> videoInputDevices = QMediaDevices::videoInputs();
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
     QList<QScreen*> screenInputDevices = QGuiApplication::screens();
+#endif
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
     QList<QCapturableWindow> windowInputDevices = QWindowCapture::capturableWindows();
+#endif
     QGuiApplication::restoreOverrideCursor();
 
     QDialog *dialog = new QDialog(this);
@@ -535,25 +541,39 @@ void Gui::fileOpenCamera()
 
     QRadioButton *screenBtn = new QRadioButton(tr("Screen Input:"));
     QComboBox* screenBox = new QComboBox;
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
     for (int i = 0; i < screenInputDevices.size(); i++)
         screenBox->addItem(screenInputDevices[i]->name());
+#endif
 
     QRadioButton *windowBtn = new QRadioButton(tr("Window Input:"));
     QComboBox* windowBox = new QComboBox;
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
     for (int i = 0; i < windowInputDevices.size(); i++)
         windowBox->addItem(windowInputDevices[i].description());
+#endif
 
     videoBtn->setChecked(true);
     screenBtn->setChecked(false);
     windowBtn->setChecked(false);
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
     if (screenInputDevices.size() == 0) {
         screenBtn->setEnabled(false);
         screenBox->setEnabled(false);
     }
+#else
+    screenBtn->setEnabled(false);
+    screenBox->setEnabled(false);
+#endif
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
     if (windowInputDevices.size() == 0) {
         windowBtn->setEnabled(false);
         windowBox->setEnabled(false);
     }
+#else
+    windowBtn->setEnabled(false);
+    windowBox->setEnabled(false);
+#endif
 
     QLabel *audioLabel = new QLabel(tr("Audio Input:"));
     QComboBox* audioBox = new QComboBox;
@@ -595,19 +615,23 @@ void Gui::fileOpenCamera()
                     ? videoInputDevices[videoInputDeviceIndex]
                     : QMediaDevices::defaultVideoInput());
         } else if (screenBtn->isChecked()) {
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
             int screenInputDeviceIndex = screenBox->currentIndex();
             Bino::instance()->startCaptureModeScreen(audioInputDeviceIndex >= -1,
                     audioInputDeviceIndex >= 0
                     ? audioInputDevices[audioInputDeviceIndex]
                     : QMediaDevices::defaultAudioInput(),
                     screenInputDevices[screenInputDeviceIndex]);
+#endif
         } else if (windowBtn->isChecked()) {
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
             int windowInputDeviceIndex = windowBox->currentIndex();
             Bino::instance()->startCaptureModeWindow(audioInputDeviceIndex >= -1,
                     audioInputDeviceIndex >= 0
                     ? audioInputDevices[audioInputDeviceIndex]
                     : QMediaDevices::defaultAudioInput(),
                     windowInputDevices[windowInputDeviceIndex]);
+#endif
         }
     }
 }
