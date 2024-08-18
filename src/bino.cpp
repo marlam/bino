@@ -38,8 +38,12 @@ Bino::Bino(ScreenType screenType, const Screen& screen, bool swapEyes) :
     _player(nullptr),
     _audioInput(nullptr),
     _videoInput(nullptr),
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
     _screenInput(nullptr),
+#endif
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
     _windowInput(nullptr),
+#endif
     _captureSession(nullptr),
     _lastFrameInputMode(Input_Unknown),
     _lastFrameSurroundMode(Surround_Unknown),
@@ -60,8 +64,12 @@ Bino::~Bino()
     delete _player;
     delete _audioInput;
     delete _videoInput;
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
     delete _screenInput;
+#endif
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
     delete _windowInput;
+#endif
     delete _captureSession;
     binoSingleton = nullptr;
 }
@@ -188,10 +196,14 @@ void Bino::stopCaptureMode()
         _captureSession = nullptr;
         delete _videoInput;
         _videoInput = nullptr;
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
         delete _screenInput;
         _screenInput = nullptr;
+#endif
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
         delete _windowInput;
         _windowInput = nullptr;
+#endif
         if (_audioInput) {
             delete _audioInput;
             _audioInput = nullptr;
