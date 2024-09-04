@@ -40,9 +40,11 @@
 #include <QAudioOutput>
 #include <QAudioInput>
 #include <QCamera>
-#include <QWindowCapture>
 #include <QSurfaceFormat>
 #include <QOpenGLContext>
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
+# include <QWindowCapture>
+#endif
 
 #ifdef WITH_QVR
 #  include <qvr/manager.hpp>

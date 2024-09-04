@@ -21,7 +21,9 @@
 #include <QCommandLineParser>
 #include <QMediaDevices>
 #include <QGuiApplication>
-#include <QWindowCapture>
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
+# include <QWindowCapture>
+#endif
 
 #include "commandinterpreter.hpp"
 #include "modes.hpp"
