@@ -205,8 +205,12 @@ void CommandInterpreter::processNextCommand()
             bool ok;
             QList<QAudioDevice> audioInputDevices;
             QList<QCameraDevice> videoInputDevices;
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
             QList<QScreen*> screenInputDevices;
+#endif
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
             QList<QCapturableWindow> windowInputDevices;
+#endif
             int audioInputDeviceIndex = -1;
             int videoInputDeviceIndex = -1;
             int screenInputDeviceIndex = -1;
