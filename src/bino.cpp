@@ -560,9 +560,8 @@ bool Bino::wantExit() const
 
 bool Bino::initProcess()
 {
-    bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
     bool haveAnisotropicFiltering = checkTextureAnisotropicFilterAvailability();
-    LOG_DEBUG("Using OpenGL in the %s variant", isGLES ? "ES" : "Desktop");
+    LOG_DEBUG("Using OpenGL in the %s variant", IsOpenGLES ? "ES" : "Desktop");
 
     // Qt-based OpenGL initialization
     initializeOpenGLFunctions();
@@ -780,15 +779,14 @@ void Bino::rebuildColorPrgIfNecessary(int planeFormat, bool yuvValueRangeSmall, 
 
     LOG_DEBUG("rebuilding color conversion program for plane format %d, value range %s, yuv space %s",
             planeFormat, yuvValueRangeSmall ? "small" : "full", yuvSpace ? "true" : "false");
-    bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
     QString colorVS = readFile(":src/shader-color.vert.glsl");
     QString colorFS = readFile(":src/shader-color.frag.glsl");
     colorFS.replace("$PLANE_FORMAT", QString::number(planeFormat));
     colorFS.replace("$VALUE_RANGE_SMALL", yuvValueRangeSmall ? "true" : "false");
     colorFS.replace("$YUV_SPACE", QString::number(yuvSpace));
-    if (isGLES) {
-        colorVS.prepend("#version 310 es\n");
-        colorFS.prepend("#version 310 es\n"
+    if (IsOpenGLES) {
+        colorVS.prepend("#version 300 es\n");
+        colorFS.prepend("#version 300 es\n"
                 "precision mediump float;\n");
     } else {
         colorVS.prepend("#version 330\n");
@@ -812,7 +810,6 @@ void Bino::rebuildViewPrgIfNecessary(SurroundMode surroundMode, bool nonLinearOu
 
     LOG_DEBUG("rebuilding view program for surround mode %s, non linear output %s",
             surroundModeToString(surroundMode), nonLinearOutput ? "true" : "false");
-    bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
     QString viewVS = readFile(":src/shader-view.vert.glsl");
     QString viewFS = readFile(":src/shader-view.frag.glsl");
     viewFS.replace("$SURROUND_DEGREES",
@@ -820,9 +817,9 @@ void Bino::rebuildViewPrgIfNecessary(SurroundMode surroundMode, bool nonLinearOu
             : surroundMode == Surround_180 ? "180"
             : "0");
     viewFS.replace("$NONLINEAR_OUTPUT", nonLinearOutput ? "true" : "false");
-    if (isGLES) {
-        viewVS.prepend("#version 310 es\n");
-        viewFS.prepend("#version 310 es\n"
+    if (IsOpenGLES) {
+        viewVS.prepend("#version 300 es\n");
+        viewFS.prepend("#version 300 es\n"
                 "precision mediump float;\n");
     } else {
         viewVS.prepend("#version 330\n");
@@ -899,8 +896,6 @@ bool Bino::drawSubtitleToImage(int w, int h, const QString& string)
 
 void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
 {
-    bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
-
     // 1. Get the frame data into plane textures
     int w = frame.width;
     int h = frame.height;
@@ -1013,7 +1008,7 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
     }
     // 2. Convert plane textures into linear RGB in the frame texture
     glBindTexture(GL_TEXTURE_2D, frameTex);
-    if (isGLES)
+    if (IsOpenGLES)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB10_A2, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, nullptr);
     else
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16, w, h, 0, GL_BGRA, GL_UNSIGNED_SHORT, nullptr);

@@ -60,6 +60,7 @@
 #include "gui.hpp"
 #include "commandinterpreter.hpp"
 #include "modes.hpp"
+#include "tools.hpp"
 #include "bino.hpp"
 
 
@@ -642,8 +643,8 @@ int main(int argc, char* argv[])
     format.setStencilBufferSize(0);
     if (parser.isSet("opengles"))
         format.setRenderableType(QSurfaceFormat::OpenGLES);
-    if (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGLES
-            || format.renderableType() == QSurfaceFormat::OpenGLES) {
+    initializeIsOpenGLES(format);
+    if (IsOpenGLES) {
         format.setVersion(3, 1);
     } else {
         format.setProfile(QSurfaceFormat::CoreProfile);

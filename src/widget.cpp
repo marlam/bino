@@ -98,13 +98,12 @@ void Widget::initializeGL()
         std::exit(1);
     }
 
-    bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
     bool haveAnisotropicFiltering = checkTextureAnisotropicFilterAvailability();
     initializeOpenGLFunctions();
     bool isCoreProfile = (QOpenGLContext::currentContext()->format().profile() == QSurfaceFormat::CoreProfile);
 
-    QString variantString = isGLES ? "OpenGL ES" : "OpenGL";
-    if (!isGLES)
+    QString variantString = IsOpenGLES ? "OpenGL ES" : "OpenGL";
+    if (!IsOpenGLES)
         variantString += isCoreProfile ? " core profile" : " compatibility profile";
     LOG_INFO("OpenGL Variant:      %s", qPrintable(variantString));
     LOG_INFO("OpenGL Version:      %s", getOpenGLString(this, GL_VERSION));
@@ -118,7 +117,7 @@ void Widget::initializeGL()
     for (int i = 0; i < 2; i++) {
         glBindTexture(GL_TEXTURE_2D, _viewTex[i]);
         unsigned char nullBytes[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-        if (isGLES)
+        if (IsOpenGLES)
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB10_A2, 1, 1, 0, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, nullBytes);
         else
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16, 1, 1, 0, GL_RGBA, GL_UNSIGNED_SHORT, nullBytes);
@@ -181,13 +180,12 @@ void Widget::rebuildDisplayPrgIfNecessary(OutputMode outputMode)
         return;
 
     LOG_DEBUG("rebuilding display program for output mode %s", outputModeToString(outputMode));
-    bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
     QString vertexShaderSource = readFile(":src/shader-display.vert.glsl");
     QString fragmentShaderSource = readFile(":src/shader-display.frag.glsl");
     fragmentShaderSource.replace("$OUTPUT_MODE", QString::number(int(outputMode)));
-    if (isGLES) {
-        vertexShaderSource.prepend("#version 310 es\n");
-        fragmentShaderSource.prepend("#version 310 es\n"
+    if (IsOpenGLES) {
+        vertexShaderSource.prepend("#version 300 es\n");
+        fragmentShaderSource.prepend("#version 300 es\n"
                 "precision mediump float;\n");
     } else {
         vertexShaderSource.prepend("#version 330\n");
@@ -202,8 +200,6 @@ void Widget::rebuildDisplayPrgIfNecessary(OutputMode outputMode)
 
 void Widget::paintGL()
 {
-    bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
-
     // Support for HighDPI output
     int width = _width * devicePixelRatioF();
     int height = _height * devicePixelRatioF();
@@ -272,7 +268,7 @@ void Widget::paintGL()
         // prepare view texture
         glBindTexture(GL_TEXTURE_2D, _viewTex[v]);
         if (_viewTexWidth[v] != viewWidth || _viewTexHeight[v] != viewHeight) {
-            if (isGLES)
+            if (IsOpenGLES)
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB10_A2, viewWidth, viewHeight, 0, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, nullptr);
             else
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16, viewWidth, viewHeight, 0, GL_RGBA, GL_UNSIGNED_SHORT, nullptr);

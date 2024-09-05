@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,6 +25,13 @@
 
 #include "tools.hpp"
 
+
+bool IsOpenGLES;
+void initializeIsOpenGLES(const QSurfaceFormat& format)
+{
+    IsOpenGLES = (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGLES
+            || format.renderableType() == QSurfaceFormat::OpenGLES);
+}
 
 QString readFile(const char* fileName)
 {

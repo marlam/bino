@@ -114,14 +114,13 @@ bool BinoQVRApp::wantExit()
 bool BinoQVRApp::initProcess(QVRProcess*)
 {
     initializeOpenGLFunctions();
-    bool isGLES = QOpenGLContext::currentContext()->isOpenGLES();
     _haveAnisotropicFiltering = checkTextureAnisotropicFilterAvailability();
     // Shader program
     QString vrdeviceVS = readFile(":src/shader-vrdevice.vert.glsl");
     QString vrdeviceFS = readFile(":src/shader-vrdevice.frag.glsl");
-    if (isGLES) {
-        vrdeviceVS.prepend("#version 310 es\n");
-        vrdeviceFS.prepend("#version 310 es\n"
+    if (IsOpenGLES) {
+        vrdeviceVS.prepend("#version 300 es\n");
+        vrdeviceFS.prepend("#version 300 es\n"
                 "precision mediump float;\n");
     } else {
         vrdeviceVS.prepend("#version 330\n");

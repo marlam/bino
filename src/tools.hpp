@@ -21,6 +21,11 @@
 #pragma once
 
 #include <QString>
+#include <QSurfaceFormat>
+
+// Global boolean variable that tells if the OpenGL flavor is OpenGL ES or desktop GL
+extern bool IsOpenGLES;
+void initializeIsOpenGLES(const QSurfaceFormat& format);
 
 // Read a complete file into a QString (without error checking;
 // intended to be used for resource files)
