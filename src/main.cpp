@@ -28,6 +28,7 @@
 #include <cstdio>
 #include <string>
 
+#include <QtProcessorDetection>
 #include <QApplication>
 #include <QTranslator>
 #include <QCommandLineParser>
@@ -641,7 +642,11 @@ int main(int argc, char* argv[])
     format.setBlueBufferSize(10);
     format.setAlphaBufferSize(0);
     format.setStencilBufferSize(0);
-    if (parser.isSet("opengles"))
+    bool wantOpenGLES = parser.isSet("opengles");
+#if defined Q_PROCESSOR_ARM
+    wantOpenGLES = true;
+#endif
+    if (wantOpenGLES)
         format.setRenderableType(QSurfaceFormat::OpenGLES);
     initializeIsOpenGLES(format);
     if (IsOpenGLES) {
