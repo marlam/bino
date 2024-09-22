@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -87,6 +87,7 @@ public:
 
     VideoFrame();
 
+    bool isValid() const;
     void update(InputMode im, SurroundMode ts, const QVideoFrame& frame, bool newSrc);
     void reUpdate();
     void invalidate();

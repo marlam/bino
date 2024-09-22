@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,7 +32,8 @@ VideoSink::VideoSink(VideoFrame* frame, VideoFrame* extFrame, bool* frameIsNew) 
     frameIsNew(frameIsNew),
     needExtFrame(false),
     inputMode(Input_Unknown),
-    surroundMode(Surround_Unknown)
+    surroundMode(Surround_Unknown),
+    lastFrameWasValid(false)
 {
     connect(this, SIGNAL(videoFrameChanged(const QVideoFrame&)), this, SLOT(processNewFrame(const QVideoFrame&)));
 }
@@ -42,6 +43,7 @@ void VideoSink::newUrl(const QUrl& url, InputMode im, SurroundMode sm)
 {
     frameCounter = 0;
     fileFormatIsMPO = false;
+    lastFrameWasValid = false;
 
     LOG_DEBUG("initial input mode for %s: %s", qPrintable(url.toString()), inputModeToString(im));
     inputMode = im;
@@ -116,6 +118,16 @@ void VideoSink::newUrl(const QUrl& url, InputMode im, SurroundMode sm)
 
 void VideoSink::processNewFrame(const QVideoFrame& frame)
 {
+    if (!frame.isValid() && lastFrameWasValid) {
+        // keep showing the last frame of the current media; ignore that QtMultiMedia
+        // with the FFmpeg backend gives us an invalid frame as soon as the media stops
+        // (it does not do this with the GStreamer backend)
+        LOG_DEBUG("video sink gets invalid frame and ignores it since last frame of current media was valid");
+        return;
+    }
+    if (frame.isValid())
+        lastFrameWasValid = true;
+
     // Workaround a glitch in the MPO file format:
     // Gstreamer reads three frames from such files, the first two being the left
     // view and the last one being the right view.

@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,14 +27,18 @@ VideoFrame::VideoFrame()
     update(Input_Unknown, Surround_Unknown, QVideoFrame(), false);
 }
 
+bool VideoFrame::isValid() const
+{
+    return (qframe.isValid() && qframe.pixelFormat() != QVideoFrameFormat::Format_Invalid);
+}
+
 void VideoFrame::update(InputMode im, SurroundMode sm, const QVideoFrame& frame, bool newSrc)
 {
     if (qframe.isMapped())
         qframe.unmap();
     qframe = frame;
 
-    bool valid = (qframe.isValid() && qframe.pixelFormat() != QVideoFrameFormat::Format_Invalid);
-    if (valid) {
+    if (isValid()) {
         subtitle = qframe.subtitleText();
         width = qframe.width();
         height = qframe.height();
@@ -172,7 +176,7 @@ void VideoFrame::reUpdate()
 
 void VideoFrame::invalidate()
 {
-    if (qframe.isValid())
+    if (isValid())
         update(Input_Unknown, Surround_Unknown, QVideoFrame(), false);
 }
 

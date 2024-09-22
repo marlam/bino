@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -40,6 +40,7 @@ public:
     bool needExtFrame;    // flag to set in alternating stereo when extFrame is not filled yet
     InputMode inputMode;  // input mode of current media
     SurroundMode surroundMode; // surround mode of the current media
+    bool lastFrameWasValid; // last frame of current media was valid
 
     VideoSink(VideoFrame* frame, VideoFrame* extFrame, bool* frameIsNew);
 
