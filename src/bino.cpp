@@ -26,6 +26,7 @@
 #include "bino.hpp"
 #include "log.hpp"
 #include "tools.hpp"
+#include "digestiblemedia.hpp"
 #include "metadata.hpp"
 
 
@@ -229,9 +230,13 @@ void Bino::mediaChanged(PlaylistEntry entry)
     if (entry.noMedia()) {
         _player->stop();
     } else {
-        _player->setSource(entry.url);
+        // Get meta data
         MetaData metaData;
         metaData.detectCached(entry.url);
+        // Special handling of files that cannot be digested by QtMultimedia directly
+        QUrl digestibleUrl = digestibleMediaUrl(entry.url);
+        // Set new source
+        _player->setSource(digestibleUrl);
         if (entry.videoTrack >= 0) {
             _player->setActiveVideoTrack(entry.videoTrack);
         }

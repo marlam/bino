@@ -33,7 +33,6 @@ Q_OBJECT
 
 public:
     unsigned long long frameCounter; // number of frames seen for this URL
-    bool fileFormatIsMPO; // flag to work around MPO glitches
     VideoFrame* frame;    // target video frame
     VideoFrame* extFrame; // extension to target video frame, for alternating stereo
     bool *frameIsNew;     // flag to set when the target frame represents a new frame

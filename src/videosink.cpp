@@ -26,7 +26,6 @@
 
 VideoSink::VideoSink(VideoFrame* frame, VideoFrame* extFrame, bool* frameIsNew) :
     frameCounter(0),
-    fileFormatIsMPO(false),
     frame(frame),
     extFrame(extFrame),
     frameIsNew(frameIsNew),
@@ -42,7 +41,6 @@ VideoSink::VideoSink(VideoFrame* frame, VideoFrame* extFrame, bool* frameIsNew) 
 void VideoSink::newUrl(const QUrl& url, InputMode im, SurroundMode sm)
 {
     frameCounter = 0;
-    fileFormatIsMPO = false;
     lastFrameWasValid = false;
 
     LOG_DEBUG("initial input mode for %s: %s", qPrintable(url.toString()), inputModeToString(im));
@@ -61,8 +59,7 @@ void VideoSink::newUrl(const QUrl& url, InputMode im, SurroundMode sm)
         if (extension == ".jps" || extension == ".pns") {
             inputMode = Input_Right_Left;
         } else if (extension == ".mpo") {
-            inputMode = Input_Alternating_LR;
-            fileFormatIsMPO = true;
+            inputMode = Input_Top_Bottom;       // this was converted; see digestiblemedia
         }
         if (inputMode != Input_Unknown)
             LOG_DEBUG("setting input mode %s from file name extension %s", inputModeToString(inputMode), qPrintable(extension));
@@ -125,17 +122,9 @@ void VideoSink::processNewFrame(const QVideoFrame& frame)
         LOG_DEBUG("video sink gets invalid frame and ignores it since last frame of current media was valid");
         return;
     }
-    if (frame.isValid())
+    if (frame.isValid()) {
+        LOG_DEBUG("video sink gets a valid frame");
         lastFrameWasValid = true;
-
-    // Workaround a glitch in the MPO file format:
-    // Gstreamer reads three frames from such files, the first two being the left
-    // view and the last one being the right view.
-    // We therefore ignore the first frame to get a proper left-right pair.
-    if (fileFormatIsMPO && frameCounter == 0) {
-        LOG_DEBUG("video sink ignores first frame from MPO file to work around glitch");
-        frameCounter++;
-        return;
     }
 
     bool updateExtFrame;

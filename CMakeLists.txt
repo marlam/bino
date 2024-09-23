@@ -42,6 +42,8 @@ add_executable(bino
 	src/commandinterpreter.hpp src/commandinterpreter.cpp
 	src/playlisteditor.hpp src/playlisteditor.cpp
 	src/gui.hpp src/gui.cpp
+	src/urlloader.hpp src/urlloader.cpp
+	src/digestiblemedia.hpp src/digestiblemedia.cpp
 	src/appicon.rc)
 qt6_add_translations(bino TS_FILES i18n/bino_de.ts i18n/bino_ka.ts i18n/bino_zh.ts)
 qt6_add_resources(bino "misc" PREFIX "/" FILES
