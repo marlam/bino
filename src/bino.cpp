@@ -892,6 +892,19 @@ bool Bino::drawSubtitleToImage(int w, int h, const QString& string)
     return true;
 }
 
+static int alignmentFromBytesPerLine(const void* data, int bpl)
+{
+    int alignment = 1;
+    if (uint64_t(data) % 8 == 0 && bpl % 8 == 0)
+        alignment = 8;
+    else if (uint64_t(data) % 4 == 0 && bpl % 4 == 0)
+        alignment = 4;
+    else if (uint64_t(data) % 2 == 0 && bpl % 2 == 0)
+        alignment = 2;
+    LOG_FIREHOSE("convertFrameToTexture: alignment is %d (from data %p, bpl %d)", alignment, data, bpl);
+    return alignment;
+}
+
 void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
 {
     // 1. Get the frame data into plane textures
@@ -906,6 +919,9 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_BLUE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_A, GL_ALPHA);
     if (frame.storage == VideoFrame::Storage_Image) {
+        LOG_FIREHOSE("convertFrameToTexture: format is image");
+        glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(frame.image.constBits(), frame.image.bytesPerLine()));
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.image.bytesPerLine() / 4);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, frame.image.constBits());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_BLUE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, GL_GREEN);
@@ -923,6 +939,9 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
         if (frame.pixelFormat == QVideoFrameFormat::Format_ARGB8888
                 || frame.pixelFormat == QVideoFrameFormat::Format_ARGB8888_Premultiplied
                 || frame.pixelFormat == QVideoFrameFormat::Format_XRGB8888) {
+            LOG_FIREHOSE("convertFrameToTexture: format argb8888");
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[0], frame.qframe.bytesPerLine(0)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(0) / 4);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, planeData[0]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_ALPHA);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, GL_RED);
@@ -933,6 +952,9 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
         } else if (frame.pixelFormat == QVideoFrameFormat::Format_BGRA8888
                 || frame.pixelFormat == QVideoFrameFormat::Format_BGRA8888_Premultiplied
                 || frame.pixelFormat == QVideoFrameFormat::Format_BGRX8888) {
+            LOG_FIREHOSE("convertFrameToTexture: format bgra8888");
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[0], frame.qframe.bytesPerLine(0)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(0) / 4);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, planeData[0]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_BLUE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, GL_GREEN);
@@ -942,6 +964,9 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
             planeCount = 1;
         } else if (frame.pixelFormat == QVideoFrameFormat::Format_ABGR8888
                 || frame.pixelFormat == QVideoFrameFormat::Format_XBGR8888) {
+            LOG_FIREHOSE("convertFrameToTexture: format abgr8888");
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[0], frame.qframe.bytesPerLine(0)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(0) / 4);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, planeData[0]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_ALPHA);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, GL_BLUE);
@@ -951,51 +976,91 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
             planeCount = 1;
         } else if (frame.pixelFormat == QVideoFrameFormat::Format_RGBA8888
                 || frame.pixelFormat == QVideoFrameFormat::Format_RGBX8888) {
+            LOG_FIREHOSE("convertFrameToTexture: format rgba8888");
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[0], frame.qframe.bytesPerLine(0)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(0) / 4);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, planeData[0]);
             planeFormat = 1;
             planeCount = 1;
         } else if (frame.pixelFormat == QVideoFrameFormat::Format_YUV420P) {
+            LOG_FIREHOSE("convertFrameToTexture: format yuv420p");
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[0], frame.qframe.bytesPerLine(0)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(0));
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
             glBindTexture(GL_TEXTURE_2D, _planeTexs[1]);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[1], frame.qframe.bytesPerLine(1)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(1));
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h / 2, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[1]);
             glBindTexture(GL_TEXTURE_2D, _planeTexs[2]);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[2], frame.qframe.bytesPerLine(2)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(2));
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h / 2, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[2]);
             planeFormat = 2;
             planeCount = 3;
         } else if (frame.pixelFormat == QVideoFrameFormat::Format_YUV422P) {
+            LOG_FIREHOSE("convertFrameToTexture: format yuv422p");
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[0], frame.qframe.bytesPerLine(0)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(0));
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
             glBindTexture(GL_TEXTURE_2D, _planeTexs[1]);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[1], frame.qframe.bytesPerLine(1)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(1));
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[1]);
             glBindTexture(GL_TEXTURE_2D, _planeTexs[2]);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[2], frame.qframe.bytesPerLine(2)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(2));
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[2]);
             planeFormat = 2;
             planeCount = 3;
         } else if (frame.pixelFormat == QVideoFrameFormat::Format_YV12) {
+            LOG_FIREHOSE("convertFrameToTexture: format yv12");
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[0], frame.qframe.bytesPerLine(0)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(0));
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
             glBindTexture(GL_TEXTURE_2D, _planeTexs[1]);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[1], frame.qframe.bytesPerLine(1)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(1));
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h / 2, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[1]);
             glBindTexture(GL_TEXTURE_2D, _planeTexs[2]);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[2], frame.qframe.bytesPerLine(2)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(2));
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w / 2, h / 2, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[2]);
             planeFormat = 3;
             planeCount = 3;
         } else if (frame.pixelFormat == QVideoFrameFormat::Format_NV12) {
+            LOG_FIREHOSE("convertFrameToTexture: format nv12");
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[0], frame.qframe.bytesPerLine(0)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(0));
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
             glBindTexture(GL_TEXTURE_2D, _planeTexs[1]);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[1], frame.qframe.bytesPerLine(1)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(1) / 2);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, w / 2, h / 2, 0, GL_RG, GL_UNSIGNED_BYTE, planeData[1]);
             planeFormat = 4;
             planeCount = 2;
         } else if (frame.pixelFormat == QVideoFrameFormat::Format_P010
                 || frame.pixelFormat == QVideoFrameFormat::Format_P016) {
+            LOG_FIREHOSE("convertFrameToTexture: format p010/p016");
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[0], frame.qframe.bytesPerLine(0)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(0) / 2);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R16, w, h, 0, GL_RED, GL_UNSIGNED_SHORT, planeData[0]);
             glBindTexture(GL_TEXTURE_2D, _planeTexs[1]);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[1], frame.qframe.bytesPerLine(1)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(1) / 4);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16, w / 2, h / 2, 0, GL_RG, GL_UNSIGNED_SHORT, planeData[1]);
             planeFormat = 4;
             planeCount = 2;
         } else if (frame.pixelFormat == QVideoFrameFormat::Format_Y8) {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[0], frame.qframe.bytesPerLine(0)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(0));
+            LOG_FIREHOSE("convertFrameToTexture: format y8");
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, planeData[0]);
             planeFormat = 5;
             planeCount = 1;
         } else if (frame.pixelFormat == QVideoFrameFormat::Format_Y16) {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, alignmentFromBytesPerLine(planeData[0], frame.qframe.bytesPerLine(0)));
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.qframe.bytesPerLine(0) / 2);
+            LOG_FIREHOSE("convertFrameToTexture: format y16");
             glTexImage2D(GL_TEXTURE_2D, 0, GL_R16, w, h, 0, GL_RED, GL_UNSIGNED_SHORT, planeData[0]);
             planeFormat = 5;
             planeCount = 1;
@@ -1004,6 +1069,8 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
             std::exit(1);
         }
     }
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     // 2. Convert plane textures into linear RGB in the frame texture
     glBindTexture(GL_TEXTURE_2D, frameTex);
     if (IsOpenGLES)
