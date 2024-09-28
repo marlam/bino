@@ -328,6 +328,14 @@ void CommandInterpreter::processNextCommand()
         Playlist::instance()->next();
     } else if (cmd == "playlist-prev") {
         Playlist::instance()->prev();
+    } else if (cmd.startsWith("playlist-wait ")) {
+        bool ok;
+        WaitMode waitMode = waitModeFromString(cmd.mid(14), &ok);
+        if (!ok) {
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+        } else {
+            Playlist::instance()->setWaitMode(waitMode);
+        }
     } else if (cmd.startsWith("playlist-loop ")) {
         bool ok;
         LoopMode loopMode = loopModeFromString(cmd.mid(14), &ok);
