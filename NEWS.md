@@ -1,3 +1,19 @@
+Version 2.3:
+- Added support for slideshow mode.
+- Improved support for image file formats, including MPO.
+- Added new capabilities to `--vr-screen` for easy configuration of two-screen
+  stereo setups.
+- Made `--opengles` the default on ARM platforms.
+- Lowered minimum Qt version to 6.4.
+- Lowered minimum OpenGL ES requirements.
+
+Version 2.2:
+- Added support for capturing windows and screens.
+- Added support for HighDPI output.
+- Added support for 3D HDMI frame-pack output mode.
+- Improved performance in multi-host/multi-GPU Virtual Reality setups.
+- Improved compatibility for various OpenGL implementations.
+
 Version 2.1:
 - Added support for loading/saving/editing play lists, with loop modes
   off/one/all.
