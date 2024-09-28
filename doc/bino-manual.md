@@ -216,6 +216,10 @@ The following commands are supported:
 
   Stop playing.
 
+- `playlist-load` *playlist.m3u*
+
+  Load the playlist.
+
 - `playlist-next`
 
   Switch to next playlist entry.
@@ -223,6 +227,10 @@ The following commands are supported:
 - `playlist-prev`
 
   Switch to previous playlist entry.
+
+- `playlist-wait` *mode*
+
+  Set wait mode (off, on).
 
 - `playlist-loop` *mode*
 
