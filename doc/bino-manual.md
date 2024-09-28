@@ -131,6 +131,18 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 
   Choose subtitle track via its index. Can be empty.
 
+- `-p`, `--playlist` *file*
+
+  Load playlist.
+
+- `-l`, `--loop` *mode*
+
+  Set loop mode (off, one, all).
+
+- `-w`, `--wait` *mode*
+
+  Set wait mode (off, on).
+
 - `-i`, `--input` *mode*
 
   Set input mode (mono, top-bottom, top-bottom-half, bottom-top,
