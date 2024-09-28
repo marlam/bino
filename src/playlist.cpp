@@ -58,15 +58,15 @@ QString PlaylistEntry::optionsToString() const
         s.append(" --surround=");
         s.append(surroundModeToString(surroundMode));
     }
-    if (videoTrack != PlaylistEntry::DefaultTrack) {
+    if (videoTrack >= 0) {
         s.append(" --video-track=");
         s.append(QString::number(videoTrack));
     }
-    if (audioTrack != PlaylistEntry::DefaultTrack) {
+    if (audioTrack >= 0) {
         s.append(" --audio-track=");
         s.append(QString::number(audioTrack));
     }
-    if (subtitleTrack != PlaylistEntry::DefaultTrack) {
+    if (subtitleTrack >= 0) {
         s.append(" --subtitle-track=");
         s.append(QString::number(subtitleTrack));
     }
