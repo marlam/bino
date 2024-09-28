@@ -51,3 +51,17 @@ const char* getOpenGLString(QOpenGLExtraFunctions* gl, GLenum p)
 {
     return reinterpret_cast<const char*>(gl->glGetString(p));
 }
+
+QString getExtension(const QString& fileName)
+{
+    QString extension;
+    int lastDot = fileName.lastIndexOf('.');
+    if (lastDot > 0)
+        extension = (fileName.right(fileName.length() - lastDot - 1)).toLower();
+    return extension;
+}
+
+QString getExtension(const QUrl& url)
+{
+    return getExtension(url.fileName());
+}

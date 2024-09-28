@@ -25,6 +25,7 @@
 #include <cstring>
 
 #include "urlloader.hpp"
+#include "tools.hpp"
 #include "log.hpp"
 #include "digestiblemedia.hpp"
 
@@ -50,10 +51,8 @@ QUrl digestibleMediaUrl(const QUrl& url)
     static QMap<QUrl, QSharedPointer<QTemporaryFile>> cache;
 
     // check if we need conversion
-    bool needsConversion = url.fileName().endsWith(".jpg", Qt::CaseInsensitive)
-        || url.fileName().endsWith(".jpeg", Qt::CaseInsensitive)
-        || url.fileName().endsWith(".jps", Qt::CaseInsensitive)
-        || url.fileName().endsWith(".mpo", Qt::CaseInsensitive);
+    QString extension = getExtension(url);
+    bool needsConversion = (extension == "jpg" || extension == "jpeg" || extension == "jps" || extension == "mpo");
     if (!needsConversion) {
         LOG_DEBUG("%s", qPrintable(QString("digestibleMediaUrl: %1 needs no conversion").arg(url.toString())));
         return url;

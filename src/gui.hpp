@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,6 +36,7 @@ private:
     QMenu* _contextMenu;
 
     QActionGroup* _playlistLoopActionGroup;
+    QActionGroup* _playlistWaitActionGroup;
     QMenu* _trackMenu;
     QActionGroup* _trackVideoActionGroup;
     QActionGroup* _trackAudioActionGroup;
@@ -75,6 +76,7 @@ public slots:
     void playlistNext();
     void playlistPrevious();
     void playlistLoop();
+    void playlistWait();
     void threeDSurround();
     void threeDInput();
     void threeDOutput();

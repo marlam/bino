@@ -20,8 +20,10 @@
 
 #pragma once
 
+#include <QUrl>
 #include <QString>
 #include <QSurfaceFormat>
+#include <QOpenGLExtraFunctions>
 
 // Global boolean variable that tells if the OpenGL flavor is OpenGL ES or desktop GL
 extern bool IsOpenGLES;
@@ -57,3 +59,7 @@ bool checkTextureAnisotropicFilterAvailability();
 
 // Shortcut to get a string from OpenGL
 const char* getOpenGLString(QOpenGLExtraFunctions* gl, GLenum p);
+
+// Shortcut to get an extension from a file name
+QString getExtension(const QString& fileName);
+QString getExtension(const QUrl& url);

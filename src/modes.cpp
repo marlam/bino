@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -505,6 +505,48 @@ LoopMode loopModeFromString(const QString& s, bool* ok)
         mode = Loop_One;
     else if (s == "all")
         mode = Loop_All;
+    else
+        r = false;
+    if (ok)
+        *ok = r;
+    return mode;
+}
+
+const char* waitModeToString(WaitMode mode)
+{
+    switch (mode) {
+    case Wait_Off:
+        return "off";
+        break;
+    case Wait_On:
+        return "on";
+        break;
+    }
+    return nullptr;
+
+}
+
+QString waitModeToStringUI(WaitMode mode)
+{
+    switch (mode) {
+    case Wait_Off:
+        return QCoreApplication::translate("Mode", "Wait off");
+        break;
+    case Wait_On:
+        return QCoreApplication::translate("Mode", "Wait on");
+        break;
+    }
+    return QString();
+}
+
+WaitMode waitModeFromString(const QString& s, bool* ok)
+{
+    WaitMode mode = Wait_Off;
+    bool r = true;
+    if (s == "off")
+        mode = Wait_Off;
+    else if (s == "on")
+        mode = Wait_On;
     else
         r = false;
     if (ok)

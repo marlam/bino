@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -62,6 +62,7 @@ private:
     QLocale::Language _preferredSubtitle;
     bool _wantSubtitle;
     LoopMode _loopMode;
+    WaitMode _waitMode;
 
     QList<PlaylistEntry> _entries;
     int _currentIndex;
@@ -88,6 +89,7 @@ public:
     void clear();
 
     LoopMode loopMode() const;
+    WaitMode waitMode() const;
 
     bool save(const QString& fileName, QString& errStr) const;
     bool load(const QString& fileName, QString& errStr);
@@ -99,6 +101,8 @@ public slots:
     void prev();
     void setCurrentIndex(int index);
     void setLoopMode(LoopMode loopMode);
+    void setWaitMode(WaitMode waitMode);
+    void setWaitModeAuto();
 
     void mediaEnded();
 

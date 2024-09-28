@@ -192,6 +192,9 @@ int main(int argc, char* argv[])
     parser.addOption({ { "l", "loop" },
             QCommandLineParser::tr("Set loop mode (%1).").arg("off, one, all"),
             "mode" });
+    parser.addOption({ { "w", "wait" },
+            QCommandLineParser::tr("Set wait mode (%1).").arg("off, on"),
+            "mode" });
     parser.addOption({ { "i", "input" },
             QCommandLineParser::tr("Set input mode (%1).").arg("mono, "
             "top-bottom, top-bottom-half, bottom-top, bottom-top-half, "
@@ -466,6 +469,15 @@ int main(int argc, char* argv[])
         }
         playlist.setLoopMode(loopMode);
     }
+    if (parser.isSet("wait")) {
+        bool ok;
+        WaitMode waitMode = waitModeFromString(parser.value("wait"), &ok);
+        if (!ok) {
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--wait")));
+            return 1;
+        }
+        playlist.setWaitMode(waitMode);
+    }
     int videoTrack = PlaylistEntry::DefaultTrack;
     int audioTrack = PlaylistEntry::DefaultTrack;
     int subtitleTrack = PlaylistEntry::DefaultTrack;
@@ -528,6 +540,9 @@ int main(int argc, char* argv[])
                         .arg(errStr.isEmpty() ? QString("invalid playlist file") : errStr)));
             return 1;
         }
+    }
+    if (!parser.isSet("wait")) {
+        playlist.setWaitModeAuto();
     }
     if (parser.isSet("capture") && playlist.length() > 0) {
         LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Cannot capture and play URL at the same time.")));

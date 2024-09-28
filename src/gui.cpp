@@ -131,6 +131,18 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
     _playlistLoopActionGroup->addAction(playlistLoopAll)->setData(int(Loop_All));
     connect(playlistLoopAll, SIGNAL(triggered()), this, SLOT(playlistLoop()));
     addBinoAction(playlistLoopAll, playlistMenu);
+    playlistMenu->addSeparator();
+    _playlistWaitActionGroup = new QActionGroup(this);
+    QAction* playlistWaitOff = new QAction(waitModeToStringUI(Wait_Off), this);
+    playlistWaitOff->setCheckable(true);
+    _playlistWaitActionGroup->addAction(playlistWaitOff)->setData(int(Wait_Off));
+    connect(playlistWaitOff, SIGNAL(triggered()), this, SLOT(playlistWait()));
+    addBinoAction(playlistWaitOff, playlistMenu);
+    QAction* playlistWaitOn = new QAction(waitModeToStringUI(Wait_On), this);
+    playlistWaitOn->setCheckable(true);
+    _playlistWaitActionGroup->addAction(playlistWaitOn)->setData(int(Wait_On));
+    connect(playlistWaitOn, SIGNAL(triggered()), this, SLOT(playlistWait()));
+    addBinoAction(playlistWaitOn, playlistMenu);
 
     QMenu* threeDMenu = addBinoMenu(tr("&3D Modes"));
     _3dSurroundActionGroup = new QActionGroup(this);
@@ -710,6 +722,13 @@ void Gui::playlistLoop()
         Playlist::instance()->setLoopMode(static_cast<LoopMode>(a->data().toInt()));
 }
 
+void Gui::playlistWait()
+{
+    QAction* a = _playlistWaitActionGroup->checkedAction();
+    if (a)
+        Playlist::instance()->setWaitMode(static_cast<WaitMode>(a->data().toInt()));
+}
+
 void Gui::threeDSurround()
 {
     QAction* a = _3dSurroundActionGroup->checkedAction();
@@ -906,6 +925,12 @@ void Gui::updateActions()
     for (int i = 0; i < _playlistLoopActionGroup->actions().size(); i++) {
         QAction* a = _playlistLoopActionGroup->actions()[i];
         a->setChecked(a->data().toInt() == int(loopMode));
+    }
+
+    WaitMode waitMode = Playlist::instance()->waitMode();
+    for (int i = 0; i < _playlistWaitActionGroup->actions().size(); i++) {
+        QAction* a = _playlistWaitActionGroup->actions()[i];
+        a->setChecked(a->data().toInt() == int(waitMode));
     }
 
     SurroundMode surroundMode = Bino::instance()->assumeSurroundMode();

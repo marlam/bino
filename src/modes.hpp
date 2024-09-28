@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -108,3 +108,15 @@ enum LoopMode
 const char* loopModeToString(LoopMode mode);
 QString loopModeToStringUI(LoopMode mode);
 LoopMode loopModeFromString(const QString& s, bool* ok = nullptr);
+
+/* Wait mode for the playlist */
+
+enum WaitMode
+{
+    Wait_Off,
+    Wait_On
+};
+
+const char* waitModeToString(WaitMode mode);
+QString waitModeToStringUI(WaitMode mode);
+WaitMode waitModeFromString(const QString& s, bool* ok = nullptr);

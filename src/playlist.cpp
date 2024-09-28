@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 #include <QCommandLineParser>
 
 #include "playlist.hpp"
+#include "tools.hpp"
 #include "log.hpp"
 
 
@@ -130,6 +131,7 @@ Playlist::Playlist() :
     _preferredSubtitle(QLocale::system().language()),
     _wantSubtitle(false),
     _loopMode(Loop_Off),
+    _waitMode(Wait_Off),
     _currentIndex(-1)
 {
     Q_ASSERT(!playlistSingleton);
@@ -242,20 +244,44 @@ void Playlist::stop()
 void Playlist::next()
 {
     if (length() > 0) {
-        if (_currentIndex == length() - 1)
-            setCurrentIndex(0);
-        else
-            setCurrentIndex(_currentIndex + 1);
+        switch (loopMode()) {
+        case Loop_Off:
+            if (_currentIndex < length() - 1)
+                setCurrentIndex(_currentIndex + 1);
+            break;
+        case Loop_One:
+            // keep current index but play again
+            emitMediaChanged();
+            break;
+        case Loop_All:
+            if (_currentIndex == length() - 1)
+                setCurrentIndex(0);
+            else
+                setCurrentIndex(_currentIndex + 1);
+            break;
+        }
     }
 }
 
 void Playlist::prev()
 {
     if (length() > 0) {
-        if (_currentIndex == 0)
-            setCurrentIndex(length() - 1);
-        else
-            setCurrentIndex(_currentIndex - 1);
+        switch (loopMode()) {
+        case Loop_Off:
+            if (_currentIndex > 0)
+                setCurrentIndex(_currentIndex - 1);
+            break;
+        case Loop_One:
+            // keep current index but play again
+            emitMediaChanged();
+            break;
+        case Loop_All:
+            if (_currentIndex == 0)
+                setCurrentIndex(length() - 1);
+            else
+                setCurrentIndex(_currentIndex - 1);
+            break;
+        }
     }
 }
 
@@ -286,22 +312,41 @@ LoopMode Playlist::loopMode() const
     return _loopMode;
 }
 
+WaitMode Playlist::waitMode() const
+{
+    return _waitMode;
+}
+
 void Playlist::setLoopMode(LoopMode loopMode)
 {
     _loopMode = loopMode;
 }
 
+void Playlist::setWaitMode(WaitMode waitMode)
+{
+    _waitMode = waitMode;
+}
+
+void Playlist::setWaitModeAuto()
+{
+    WaitMode waitMode = Wait_Off;
+    for (int i = 0; i < length(); i++) {
+        QString extension = getExtension(entries()[i].url);
+        if (extension == "jpg" || extension == "jpeg"
+                || extension == "png"
+                || extension == "jps"
+                || extension == "mpo") {
+            waitMode = Wait_On;
+            break;
+        }
+    }
+    _waitMode = waitMode;
+}
+
 void Playlist::mediaEnded()
 {
-    if (loopMode() == Loop_One) {
-        // keep current index but play again
-        emitMediaChanged();
-    } else if (_currentIndex == length() - 1 && loopMode() == Loop_All) {
-        // start with first index
-        setCurrentIndex(0);
-    } else if (_currentIndex < length() - 1) {
-        // start with next index
-        setCurrentIndex(_currentIndex + 1);
+    if (waitMode() == Wait_Off) {
+        next();
     }
 }
 

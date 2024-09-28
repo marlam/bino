@@ -21,6 +21,7 @@
 #include <QUrl>
 
 #include "videosink.hpp"
+#include "tools.hpp"
 #include "log.hpp"
 
 
@@ -51,14 +52,10 @@ void VideoSink::newUrl(const QUrl& url, InputMode im, SurroundMode sm)
     }
     if (inputMode == Input_Unknown) {
         /* Try to guess from the file name extension */
-        QString fileName = url.fileName();
-        QString extension;
-        if (fileName.lastIndexOf('.') > 0)
-            extension = fileName.right(fileName.length() - fileName.lastIndexOf('.'));
-        extension = extension.toLower();
-        if (extension == ".jps" || extension == ".pns") {
+        QString extension = getExtension(url);
+        if (extension == "jps" || extension == "pns") {
             inputMode = Input_Right_Left;
-        } else if (extension == ".mpo") {
+        } else if (extension == "mpo") {
             inputMode = Input_Top_Bottom;       // this was converted; see digestiblemedia
         }
         if (inputMode != Input_Unknown)
