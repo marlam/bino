@@ -4,7 +4,7 @@
 <context>
     <name>Bino</name>
     <message>
-        <location filename="../src/bino.cpp" line="98"/>
+        <location filename="../src/bino.cpp" line="108"/>
         <source>Media player error: %1</source>
         <translation>Medienwiedergabefehler: %1</translation>
     </message>
@@ -12,49 +12,50 @@
 <context>
     <name>CommandInterpreter</name>
     <message>
-        <location filename="../src/commandinterpreter.cpp" line="43"/>
+        <location filename="../src/commandinterpreter.cpp" line="47"/>
         <source>Cannot open %1: %2</source>
         <oldsource>Cannot open %1: %2)</oldsource>
         <translation>Kann %1 nicht öffnen: %2</translation>
     </message>
     <message>
-        <location filename="../src/commandinterpreter.cpp" line="87"/>
-        <location filename="../src/commandinterpreter.cpp" line="93"/>
+        <location filename="../src/commandinterpreter.cpp" line="91"/>
+        <location filename="../src/commandinterpreter.cpp" line="97"/>
         <source>Cannot read command from %1</source>
         <translation>Kann kein Kommando von %1 lesen</translation>
     </message>
     <message>
-        <location filename="../src/commandinterpreter.cpp" line="123"/>
-        <location filename="../src/commandinterpreter.cpp" line="137"/>
-        <location filename="../src/commandinterpreter.cpp" line="139"/>
-        <location filename="../src/commandinterpreter.cpp" line="156"/>
-        <location filename="../src/commandinterpreter.cpp" line="163"/>
-        <location filename="../src/commandinterpreter.cpp" line="172"/>
-        <location filename="../src/commandinterpreter.cpp" line="181"/>
-        <location filename="../src/commandinterpreter.cpp" line="199"/>
-        <location filename="../src/commandinterpreter.cpp" line="219"/>
-        <location filename="../src/commandinterpreter.cpp" line="230"/>
-        <location filename="../src/commandinterpreter.cpp" line="240"/>
-        <location filename="../src/commandinterpreter.cpp" line="250"/>
-        <location filename="../src/commandinterpreter.cpp" line="282"/>
-        <location filename="../src/commandinterpreter.cpp" line="300"/>
-        <location filename="../src/commandinterpreter.cpp" line="319"/>
-        <location filename="../src/commandinterpreter.cpp" line="327"/>
-        <location filename="../src/commandinterpreter.cpp" line="334"/>
+        <location filename="../src/commandinterpreter.cpp" line="127"/>
+        <location filename="../src/commandinterpreter.cpp" line="141"/>
+        <location filename="../src/commandinterpreter.cpp" line="143"/>
+        <location filename="../src/commandinterpreter.cpp" line="160"/>
+        <location filename="../src/commandinterpreter.cpp" line="167"/>
+        <location filename="../src/commandinterpreter.cpp" line="176"/>
+        <location filename="../src/commandinterpreter.cpp" line="185"/>
+        <location filename="../src/commandinterpreter.cpp" line="203"/>
+        <location filename="../src/commandinterpreter.cpp" line="227"/>
+        <location filename="../src/commandinterpreter.cpp" line="238"/>
+        <location filename="../src/commandinterpreter.cpp" line="249"/>
+        <location filename="../src/commandinterpreter.cpp" line="261"/>
+        <location filename="../src/commandinterpreter.cpp" line="298"/>
+        <location filename="../src/commandinterpreter.cpp" line="316"/>
+        <location filename="../src/commandinterpreter.cpp" line="335"/>
         <location filename="../src/commandinterpreter.cpp" line="343"/>
-        <location filename="../src/commandinterpreter.cpp" line="356"/>
-        <location filename="../src/commandinterpreter.cpp" line="366"/>
-        <location filename="../src/commandinterpreter.cpp" line="374"/>
+        <location filename="../src/commandinterpreter.cpp" line="351"/>
+        <location filename="../src/commandinterpreter.cpp" line="358"/>
+        <location filename="../src/commandinterpreter.cpp" line="367"/>
+        <location filename="../src/commandinterpreter.cpp" line="380"/>
+        <location filename="../src/commandinterpreter.cpp" line="390"/>
+        <location filename="../src/commandinterpreter.cpp" line="398"/>
         <source>Invalid argument in %1 line %2</source>
         <translation>Ungültiges Argument in %1 Zeile %2</translation>
     </message>
     <message>
-        <location filename="../src/commandinterpreter.cpp" line="309"/>
+        <location filename="../src/commandinterpreter.cpp" line="325"/>
         <source>%1: %2</source>
         <translation>%1: %2</translation>
     </message>
     <message>
-        <location filename="../src/commandinterpreter.cpp" line="379"/>
+        <location filename="../src/commandinterpreter.cpp" line="403"/>
         <source>Invalid command %1 line %2</source>
         <oldsource>Invalid command %1</oldsource>
         <translation>Ungültiges Kommando in %1 Zeile %2</translation>
@@ -63,7 +64,7 @@
 <context>
     <name>Gui</name>
     <message>
-        <location filename="../src/gui.cpp" line="73"/>
+        <location filename="../src/gui.cpp" line="76"/>
         <source>&amp;File</source>
         <translation>&amp;Datei</translation>
     </message>
@@ -72,7 +73,7 @@
         <translation type="vanished">Datei &amp;öffnen...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="78"/>
+        <location filename="../src/gui.cpp" line="81"/>
         <source>Open &amp;URL...</source>
         <translation>&amp;URL öffnen...</translation>
     </message>
@@ -81,47 +82,47 @@
         <translation type="vanished">&amp;Kamera öffnen...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="85"/>
+        <location filename="../src/gui.cpp" line="88"/>
         <source>&amp;Quit</source>
         <translation>&amp;Beenden</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="90"/>
+        <location filename="../src/gui.cpp" line="93"/>
         <source>&amp;Tracks</source>
         <translation>&amp;Spuren</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="95"/>
+        <location filename="../src/gui.cpp" line="98"/>
         <source>&amp;Playlist</source>
         <translation>&amp;Wiedergabeliste</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="96"/>
+        <location filename="../src/gui.cpp" line="99"/>
         <source>&amp;Load...</source>
         <translation>&amp;Laden...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="99"/>
+        <location filename="../src/gui.cpp" line="102"/>
         <source>&amp;Save...</source>
         <translation>&amp;Speichern...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="102"/>
+        <location filename="../src/gui.cpp" line="105"/>
         <source>&amp;Edit...</source>
         <translation>&amp;Editieren...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="106"/>
+        <location filename="../src/gui.cpp" line="109"/>
         <source>&amp;Next</source>
         <translation>&amp;Nächster Eintrag</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="110"/>
+        <location filename="../src/gui.cpp" line="113"/>
         <source>&amp;Previous</source>
         <translation>&amp;Vorheriger Eintrag</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="132"/>
+        <location filename="../src/gui.cpp" line="147"/>
         <source>&amp;3D Modes</source>
         <translation>&amp;3D Modi</translation>
     </message>
@@ -130,7 +131,7 @@
         <translation type="vanished">360° Modus</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="151"/>
+        <location filename="../src/gui.cpp" line="166"/>
         <source>Input 2D</source>
         <translation>Eingabe 2D</translation>
     </message>
@@ -259,178 +260,182 @@
         <translation type="vanished">Ausgabe Schachbrettmuster</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="74"/>
         <source>&amp;Open File...</source>
-        <translation>Datei &amp;öffnen...</translation>
+        <translation type="vanished">Datei &amp;öffnen...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="81"/>
+        <location filename="../src/gui.cpp" line="77"/>
+        <source>&amp;Open File(s)...</source>
+        <translation>Datei(en) &amp;amp;öffnen...</translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="84"/>
         <source>Open &amp;Capture Device...</source>
         <translation>&amp;Aufnahmegerät öffnen...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="156"/>
+        <location filename="../src/gui.cpp" line="171"/>
         <source>Input 3D above-below</source>
         <translation>Eingabe 3D übereinander</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="177"/>
+        <location filename="../src/gui.cpp" line="192"/>
         <source>Input 3D side-by-side</source>
         <translation>Eingabe 3D nebeneinander</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="198"/>
+        <location filename="../src/gui.cpp" line="213"/>
         <source>Input 3D alternating</source>
         <translation>Eingabe 3D abwechselnd</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="236"/>
+        <location filename="../src/gui.cpp" line="251"/>
         <source>Output 3D side-by-side</source>
         <translation>Ausgabe 3D nebeneinander</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="257"/>
+        <location filename="../src/gui.cpp" line="272"/>
         <source>Output 3D above-below</source>
         <translation>Ausgabe 3D übereinander</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="278"/>
+        <location filename="../src/gui.cpp" line="293"/>
         <source>Output 3D interleaved</source>
         <translation>Ausgabe 3D verwoben</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="294"/>
+        <location filename="../src/gui.cpp" line="309"/>
         <source>Output 3D anaglyph</source>
         <translation>Ausgabe 3D Anaglyph</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="366"/>
+        <location filename="../src/gui.cpp" line="381"/>
         <source>&amp;Media</source>
         <translation>&amp;Medium</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="367"/>
+        <location filename="../src/gui.cpp" line="382"/>
         <source>Mute audio</source>
         <translation>Ton stumm</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="372"/>
+        <location filename="../src/gui.cpp" line="387"/>
         <source>Increase audio volume</source>
         <translation>Ton lauter</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="376"/>
+        <location filename="../src/gui.cpp" line="391"/>
         <source>Decrease audio volume</source>
         <translation>Ton leiser</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="381"/>
+        <location filename="../src/gui.cpp" line="396"/>
         <source>Pause</source>
         <translation>Pause</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="386"/>
+        <location filename="../src/gui.cpp" line="401"/>
         <source>Seek forward 1 second</source>
         <translation>Vorwärts spulen 1 Sekunde</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="390"/>
+        <location filename="../src/gui.cpp" line="405"/>
         <source>Seek backwards 1 second</source>
         <translation>Rückwärts spulen 1 Sekunde</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="394"/>
+        <location filename="../src/gui.cpp" line="409"/>
         <source>Seek forward 10 seconds</source>
         <translation>Vorwärts spulen 10 Sekunden</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="398"/>
+        <location filename="../src/gui.cpp" line="413"/>
         <source>Seek backwards 10 seconds</source>
         <translation>Rückwärts spulen 10 Sekunden</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="402"/>
+        <location filename="../src/gui.cpp" line="417"/>
         <source>Seek forward 1 minute</source>
         <translation>Vorwärts spulen 1 Minute</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="406"/>
+        <location filename="../src/gui.cpp" line="421"/>
         <source>Seek backwards 1 minute</source>
         <translation>Rückwärts spulen 1 Minute</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="410"/>
+        <location filename="../src/gui.cpp" line="425"/>
         <source>Seek forward 10 minutes</source>
         <translation>Vorwärts spulen 10 Minuten</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="414"/>
+        <location filename="../src/gui.cpp" line="429"/>
         <source>Seek backwards 10 minutes</source>
         <translation>Rückwärts spulen 10 Minuten</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="419"/>
+        <location filename="../src/gui.cpp" line="434"/>
         <source>&amp;View</source>
         <translation>&amp;Ansicht</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="420"/>
+        <location filename="../src/gui.cpp" line="435"/>
         <source>&amp;Fullscreen</source>
         <translation>&amp;Vollbild</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="425"/>
+        <location filename="../src/gui.cpp" line="440"/>
         <source>&amp;Swap eyes</source>
         <translation>&amp;Augen tauschen</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="431"/>
+        <location filename="../src/gui.cpp" line="446"/>
         <source>&amp;Help</source>
         <translation>&amp;Hilfe</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="432"/>
+        <location filename="../src/gui.cpp" line="447"/>
         <source>&amp;About...</source>
         <translation>&amp;Über...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="476"/>
-        <location filename="../src/gui.cpp" line="511"/>
-        <location filename="../src/gui.cpp" line="646"/>
-        <location filename="../src/gui.cpp" line="660"/>
-        <location filename="../src/gui.cpp" line="956"/>
+        <location filename="../src/gui.cpp" line="491"/>
+        <location filename="../src/gui.cpp" line="530"/>
+        <location filename="../src/gui.cpp" line="687"/>
+        <location filename="../src/gui.cpp" line="701"/>
+        <location filename="../src/gui.cpp" line="1010"/>
         <source>Error</source>
         <translation>Fehler</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="484"/>
+        <location filename="../src/gui.cpp" line="503"/>
         <source>Open URL</source>
         <translation>Öffne URL</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="485"/>
+        <location filename="../src/gui.cpp" line="504"/>
         <source>URL:</source>
         <translation>URL:</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="488"/>
-        <location filename="../src/gui.cpp" line="564"/>
+        <location filename="../src/gui.cpp" line="507"/>
+        <location filename="../src/gui.cpp" line="601"/>
         <source>Cancel</source>
         <translation>Abbrechen</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="489"/>
-        <location filename="../src/gui.cpp" line="565"/>
+        <location filename="../src/gui.cpp" line="508"/>
+        <location filename="../src/gui.cpp" line="602"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="527"/>
+        <location filename="../src/gui.cpp" line="550"/>
         <source>Open Capture Device</source>
         <translation>Aufnahmegerät öffnen</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="529"/>
+        <location filename="../src/gui.cpp" line="552"/>
         <source>Camera Input:</source>
         <translation>Kamera Eingabe:</translation>
     </message>
@@ -443,81 +448,81 @@
         <translation type="vanished">Video Eingabe:</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="531"/>
-        <location filename="../src/gui.cpp" line="560"/>
+        <location filename="../src/gui.cpp" line="554"/>
+        <location filename="../src/gui.cpp" line="597"/>
         <source>Default</source>
         <translation>Standard</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="535"/>
+        <location filename="../src/gui.cpp" line="558"/>
         <source>Screen Input:</source>
         <translation>Bildschirm Eingabe:</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="540"/>
+        <location filename="../src/gui.cpp" line="565"/>
         <source>Window Input:</source>
         <translation>Fenster Eingabe:</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="557"/>
+        <location filename="../src/gui.cpp" line="594"/>
         <source>Audio Input:</source>
         <translation>Ton Eingabe:</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="559"/>
-        <location filename="../src/gui.cpp" line="872"/>
+        <location filename="../src/gui.cpp" line="596"/>
+        <location filename="../src/gui.cpp" line="920"/>
         <source>None</source>
         <translation>Keine</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="642"/>
-        <location filename="../src/gui.cpp" line="653"/>
+        <location filename="../src/gui.cpp" line="683"/>
+        <location filename="../src/gui.cpp" line="694"/>
         <source>Playlists (*.m3u)</source>
         <translation>Wiedergabelisten (*.m3u)</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="796"/>
+        <location filename="../src/gui.cpp" line="844"/>
         <source>About Bino</source>
         <translation>Über Bino</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="798"/>
+        <location filename="../src/gui.cpp" line="846"/>
         <source>Bino version %1</source>
         <translation>Bino Version %1</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="802"/>
+        <location filename="../src/gui.cpp" line="850"/>
         <source>Copyright (C) %1 Martin Lambers</source>
         <translation>Copyright (C) %1 Martin Lambers</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="804"/>
+        <location filename="../src/gui.cpp" line="852"/>
         <source>This is free software. You may redistribute copies of it under the terms of the &lt;a href=&quot;http://www.gnu.org/licenses/gpl.html&quot;&gt;GNU General Public License&lt;/a&gt;. There is NO WARRANTY, to the extent permitted by law.</source>
         <translation>Dieses Programm ist freie Software. Sie dürfen Kopien davon weitergeben gemäß der &lt;a href=&quot;http://www.gnu.org/licenses/gpl.html&quot;&gt;GNU General Public License&lt;/a&gt;.Es gibt KEINERLEI GARANTIE, so weit das Gesetz es erlaubt.</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="824"/>
+        <location filename="../src/gui.cpp" line="872"/>
         <source>Video track %1</source>
         <translation>Videospur %1</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="827"/>
-        <location filename="../src/gui.cpp" line="841"/>
+        <location filename="../src/gui.cpp" line="875"/>
+        <location filename="../src/gui.cpp" line="889"/>
         <source> (%1)</source>
         <translation> (%1)</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="838"/>
+        <location filename="../src/gui.cpp" line="886"/>
         <source>Audio track %1</source>
         <translation>Tonspur %1</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="852"/>
+        <location filename="../src/gui.cpp" line="900"/>
         <source>No subtitles</source>
         <translation>Keine Untertitel</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="859"/>
+        <location filename="../src/gui.cpp" line="907"/>
         <source>Subtitle track %1</source>
         <translation>Untertitelspur %1</translation>
     </message>
@@ -777,6 +782,16 @@
         <source>Loop all</source>
         <translation>Wiederholung alle</translation>
     </message>
+    <message>
+        <location filename="../src/modes.cpp" line="533"/>
+        <source>Wait off</source>
+        <translation>Warten aus</translation>
+    </message>
+    <message>
+        <location filename="../src/modes.cpp" line="536"/>
+        <source>Wait on</source>
+        <translation>Warten an</translation>
+    </message>
 </context>
 <context>
     <name>PlaylistEditor</name>
@@ -953,44 +968,43 @@
 <context>
     <name>QCommandLineParser</name>
     <message>
-        <location filename="../src/main.cpp" line="117"/>
+        <location filename="../src/main.cpp" line="123"/>
         <source>3D video player -- see https://bino3d.org</source>
         <translation>3D Videoplayer -- siehe https://bino3d.org</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="118"/>
+        <location filename="../src/main.cpp" line="124"/>
         <source>Media to play.</source>
         <translation>Medium zum Abspielen.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="122"/>
+        <location filename="../src/main.cpp" line="128"/>
         <source>Set log level (%1).</source>
         <translation>Setze Logstufe (%1).</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="125"/>
+        <location filename="../src/main.cpp" line="131"/>
         <source>Set log file.</source>
         <translation>Setze Logdatei.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="130"/>
+        <location filename="../src/main.cpp" line="136"/>
         <source>Use OpenGL ES instead of Desktop OpenGL.</source>
         <translation>Nutze OpenGL ES statt Desktop OpenGL.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="132"/>
+        <location filename="../src/main.cpp" line="138"/>
         <source>Use OpenGL quad-buffered stereo in GUI mode.</source>
         <translation>Nutze OpenGL Stereo in der Benutzeroberfläche.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="134"/>
+        <location filename="../src/main.cpp" line="140"/>
         <source>Start in VR mode instead of GUI mode.</source>
         <translation>Starte im VR Modus statt mit der Benutzerobefläche.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="136"/>
         <source>Set VR screen geometry, either as a comma-separated list of nine values representing three 3D coordinates that define a planar screen (bottom left, bottom right, top left) or as a name of an OBJ file that contains the screen geometry with texture coordinates.</source>
-        <translation>Setze die VR Bildschirmgeometrie, entweder als Liste aus neun mit Kommas abgegrenzten Werten die drei 3D Koordinaten repräsentieren welche einen flachen Bildschirm definieren (unten links, unten rechts, oben links) oder als Name einer OBJ Datei die die Bildschirmgeometrie und Texturkoordinaten enthält.</translation>
+        <translation type="vanished">Setze die VR Bildschirmgeometrie, entweder als Liste aus neun mit Kommas abgegrenzten Werten die drei 3D Koordinaten repräsentieren welche einen flachen Bildschirm definieren (unten links, unten rechts, oben links) oder als Name einer OBJ Datei die die Bildschirmgeometrie und Texturkoordinaten enthält.</translation>
     </message>
     <message>
         <source>Capture video/audio input from camera and microphone.</source>
@@ -998,67 +1012,67 @@
         <translation type="vanished">Nehme Bild und Ton von Kamera und Mikrofon auf.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="143"/>
+        <location filename="../src/main.cpp" line="150"/>
         <source>List audio outputs.</source>
         <translation>Liste die Tonausgabegeräte.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="145"/>
+        <location filename="../src/main.cpp" line="152"/>
         <source>List audio inputs.</source>
         <translation>Liste die Toneingabegeräte.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="147"/>
+        <location filename="../src/main.cpp" line="154"/>
         <source>List video inputs.</source>
         <translation>Liste die Bildeingabegeräte.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="153"/>
+        <location filename="../src/main.cpp" line="160"/>
         <source>Choose audio output via its index.</source>
         <translation>Wähle eine Tonausgabe mit ihrem Index.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="156"/>
+        <location filename="../src/main.cpp" line="163"/>
         <source>Choose audio input via its index. Can be empty.</source>
         <translation>Wähle eine Toneingabe mit ihrem Index. Kann leer sein.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="159"/>
+        <location filename="../src/main.cpp" line="166"/>
         <source>Choose video input via its index.</source>
         <translation>Wähle eine Bildeingabe mit ihrem Index.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="170"/>
+        <location filename="../src/main.cpp" line="177"/>
         <source>Set preferred audio track language (en, de, fr, ...).</source>
         <translation>Setze bevorzugte Tonspursprache (en, de, fr, ...).</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="173"/>
+        <location filename="../src/main.cpp" line="180"/>
         <source>Set preferred subtitle track language (en, de, fr, ...). Can be empty.</source>
         <translation>Setze bevorzugte Untertitelsprache (en, de, fr, ...). Kann leer sein.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="168"/>
+        <location filename="../src/main.cpp" line="175"/>
         <source>List all video, audio and subtitle tracks in the media.</source>
         <translation>Liste alle Bild-, Ton- und Untertitelspuren im Medium.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="176"/>
+        <location filename="../src/main.cpp" line="183"/>
         <source>Choose video track via its index.</source>
         <translation>Wähle eine Bildspur mit ihrem Index.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="178"/>
+        <location filename="../src/main.cpp" line="185"/>
         <source>Choose audio track via its index.</source>
         <translation>Wähle eine Tonspur mit ihrem Index.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="180"/>
+        <location filename="../src/main.cpp" line="187"/>
         <source>Choose subtitle track via its index. Can be empty.</source>
         <translation>Wähle eine Untertitelspur mit ihrem Index. Kann leer sein.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="209"/>
+        <location filename="../src/main.cpp" line="219"/>
         <source>Swap left/right eye.</source>
         <translation>Tausche linkes/rechtes Auge.</translation>
     </message>
@@ -1067,18 +1081,18 @@
         <translation type="vanished">Tausche Augen.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="211"/>
+        <location filename="../src/main.cpp" line="221"/>
         <source>Start in fullscreen mode.</source>
         <oldsource>fullscreen</oldsource>
         <translation>Starte im Vollbildmodus.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="189"/>
+        <location filename="../src/main.cpp" line="199"/>
         <source>Set input mode (%1).</source>
         <translation>Setze Eingabemodus (%1).</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="195"/>
+        <location filename="../src/main.cpp" line="205"/>
         <source>Set output mode (%1).</source>
         <translation>Setze Ausgabemodus (%1).</translation>
     </message>
@@ -1087,169 +1101,184 @@
         <translation type="vanished">Setze 360° Modus (%1).</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="128"/>
+        <location filename="../src/main.cpp" line="134"/>
         <source>Read commands from a script file.</source>
         <translation>Lese Kommandos aus einer Skriptdatei.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="141"/>
+        <location filename="../src/main.cpp" line="142"/>
+        <source>Set VR screen geometry, either as the special values &apos;united&apos; or &apos;intersected&apos;, or as a comma-separated list of nine values representing three 3D coordinates that define a planar screen (bottom left, bottom right, top left), or as a an aspect ratio followed by the name of an OBJ file that contains the screen geometry with texture coordinates (example: &apos;16:9,myscreen.obj&apos;).</source>
+        <translation>Setze die VR Bildschirmgeometrie, entweder als spezielle Werte &apos;united&apos; oder &apos;intersected&apos;, oder als Liste aus neun mit Kommas abgegrenzten Werten die drei 3D Koordinaten repräsentieren welche einen flachen Bildschirm definieren (unten links, unten rechts, oben links), oder als Seitenverhätlnis gefolgt vom Namen einer OBJ Datei die die Bildschirmgeometrie und Texturkoordinaten enthält (Beispiel: &apos;16:9,meinschirm.obj&apos;).</translation>
+    </message>
+    <message>
+        <location filename="../src/main.cpp" line="148"/>
         <source>Capture audio/video input from microphone and camera/screen/window.</source>
         <translation>Hole Audio/Video von Mikrofon und Kamera/Bildschirm/Fenster.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="149"/>
+        <location filename="../src/main.cpp" line="156"/>
         <source>List screen inputs.</source>
         <translation>Liste die Bildschirm-Eingabegeräte.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="151"/>
+        <location filename="../src/main.cpp" line="158"/>
         <source>List window inputs.</source>
         <translation>Liste die Fenster-Eingabegeräte.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="162"/>
+        <location filename="../src/main.cpp" line="169"/>
         <source>Choose screen input via its index.</source>
         <translation>Wähle eine Bildschirmeingabe mit ihrem Index.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="165"/>
+        <location filename="../src/main.cpp" line="172"/>
         <source>Choose window input via its index.</source>
         <translation>Wähle eine Fenstereingabe mit ihrem Index.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="183"/>
+        <location filename="../src/main.cpp" line="190"/>
         <source>Load playlist.</source>
         <translation>Lade Wiedergabeliste.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="186"/>
+        <location filename="../src/main.cpp" line="193"/>
         <source>Set loop mode (%1).</source>
         <translation>Setze Wiederholungsmodus (%1).</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="206"/>
+        <location filename="../src/main.cpp" line="196"/>
+        <source>Set wait mode (%1).</source>
+        <translation>Setze Wartemodus</translation>
+    </message>
+    <message>
+        <location filename="../src/main.cpp" line="216"/>
         <source>Set surround mode (%1).</source>
         <translation>Setze Surroundmodus (%1).</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="231"/>
-        <location filename="../src/main.cpp" line="250"/>
-        <location filename="../src/main.cpp" line="259"/>
-        <location filename="../src/main.cpp" line="268"/>
-        <location filename="../src/main.cpp" line="350"/>
-        <location filename="../src/main.cpp" line="366"/>
-        <location filename="../src/main.cpp" line="378"/>
-        <location filename="../src/main.cpp" line="389"/>
+        <location filename="../src/main.cpp" line="241"/>
+        <location filename="../src/main.cpp" line="260"/>
+        <location filename="../src/main.cpp" line="269"/>
+        <location filename="../src/main.cpp" line="278"/>
+        <location filename="../src/main.cpp" line="372"/>
+        <location filename="../src/main.cpp" line="388"/>
         <location filename="../src/main.cpp" line="400"/>
-        <location filename="../src/main.cpp" line="411"/>
-        <location filename="../src/main.cpp" line="423"/>
-        <location filename="../src/main.cpp" line="435"/>
-        <location filename="../src/main.cpp" line="449"/>
-        <location filename="../src/main.cpp" line="459"/>
-        <location filename="../src/main.cpp" line="472"/>
-        <location filename="../src/main.cpp" line="578"/>
-        <location filename="../src/main.cpp" line="585"/>
-        <location filename="../src/commandinterpreter.cpp" line="151"/>
+        <location filename="../src/main.cpp" line="412"/>
+        <location filename="../src/main.cpp" line="416"/>
+        <location filename="../src/main.cpp" line="428"/>
+        <location filename="../src/main.cpp" line="432"/>
+        <location filename="../src/main.cpp" line="443"/>
+        <location filename="../src/main.cpp" line="455"/>
+        <location filename="../src/main.cpp" line="467"/>
+        <location filename="../src/main.cpp" line="476"/>
+        <location filename="../src/main.cpp" line="490"/>
+        <location filename="../src/main.cpp" line="500"/>
+        <location filename="../src/main.cpp" line="513"/>
+        <location filename="../src/main.cpp" line="629"/>
+        <location filename="../src/main.cpp" line="636"/>
+        <location filename="../src/commandinterpreter.cpp" line="155"/>
         <source>Invalid argument for option %1</source>
         <translation>Ungültiges Argument für Option %1</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="239"/>
+        <location filename="../src/main.cpp" line="249"/>
         <source>VR mode unavailable - recompile Bino with QVR support!</source>
         <translation>VR Modus nicht verfügbar - rekompiliere Bino mit QVR Unterstützung!</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="286"/>
+        <location filename="../src/main.cpp" line="300"/>
         <source>No audio outputs available.</source>
         <translation>Keine Tonausgaben verfügbar.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="289"/>
+        <location filename="../src/main.cpp" line="303"/>
         <source>Audio output %1: %2</source>
         <translation>Tonausgabe %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="296"/>
+        <location filename="../src/main.cpp" line="310"/>
         <source>No audio inputs available.</source>
         <translation>Keine Toneingaben verfügbar.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="299"/>
+        <location filename="../src/main.cpp" line="313"/>
         <source>Audio input %1: %2</source>
         <translation>Toneingabe %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="306"/>
+        <location filename="../src/main.cpp" line="320"/>
         <source>No video inputs available.</source>
         <translation>Keine Bildeingaben verfügbar.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="309"/>
+        <location filename="../src/main.cpp" line="323"/>
         <source>Video input %1: %2</source>
         <translation>Bildeingabe %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="316"/>
+        <location filename="../src/main.cpp" line="331"/>
+        <location filename="../src/main.cpp" line="337"/>
         <source>No screen inputs available.</source>
         <translation>Keine Bildschirmeingabegeräte vorhanden.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="319"/>
+        <location filename="../src/main.cpp" line="334"/>
         <source>Screen input %1: %2</source>
         <translation>Bildschirmeingabe %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="326"/>
+        <location filename="../src/main.cpp" line="345"/>
+        <location filename="../src/main.cpp" line="351"/>
         <source>No window inputs available.</source>
         <translation>Keine Fenstereingabegeräte vorhanden.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="329"/>
+        <location filename="../src/main.cpp" line="348"/>
         <source>Window input %1: %2</source>
         <translation>Fenstereingabe %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="484"/>
+        <location filename="../src/main.cpp" line="525"/>
         <source>File does not exist: %1</source>
         <translation>Datei existiert nicht: %1</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="497"/>
+        <location filename="../src/main.cpp" line="538"/>
         <source>%1: %2</source>
         <translation>%1: %2</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="504"/>
+        <location filename="../src/main.cpp" line="548"/>
         <source>Cannot capture and play URL at the same time.</source>
         <translation>Kann nicht gleichzeitig aufnehmen und URL wiedergeben.</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="522"/>
+        <location filename="../src/main.cpp" line="566"/>
         <source>video</source>
         <translation>Bild</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="523"/>
+        <location filename="../src/main.cpp" line="567"/>
         <source>audio</source>
         <translation>Ton</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="524"/>
+        <location filename="../src/main.cpp" line="568"/>
         <source>subtitle</source>
         <translation>Untertitel</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="528"/>
+        <location filename="../src/main.cpp" line="572"/>
         <source>no %1 tracks</source>
         <translation>Keine %1spuren</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="531"/>
+        <location filename="../src/main.cpp" line="575"/>
         <source>%1 track %2</source>
         <translation>%1spur %2</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="673"/>
+        <location filename="../src/main.cpp" line="738"/>
         <source>Cannot initialize QVR manager</source>
         <translation>Kann QVR Manager nicht initialisieren</translation>
     </message>
@@ -1283,7 +1312,7 @@
 <context>
     <name>VideoFrame</name>
     <message>
-        <location filename="../src/videoframe.cpp" line="103"/>
+        <location filename="../src/videoframe.cpp" line="107"/>
         <source>Pixel format %1 is not hardware accelerated!</source>
         <translation>Pixelformat %1 ist nicht hardwarebeschleunigt!</translation>
     </message>
@@ -1291,21 +1320,21 @@
 <context>
     <name>Widget</name>
     <message>
-        <location filename="../src/widget.cpp" line="93"/>
-        <location filename="../src/widget.cpp" line="94"/>
+        <location filename="../src/widget.cpp" line="91"/>
+        <location filename="../src/widget.cpp" line="92"/>
         <source>Insufficient OpenGL capabilities.</source>
         <oldsource>Insufficient OpenGL capabilities</oldsource>
         <translation>Unzureichende OpenGL Fähigkeiten.</translation>
     </message>
     <message>
-        <location filename="../src/widget.cpp" line="94"/>
-        <location filename="../src/widget.cpp" line="99"/>
+        <location filename="../src/widget.cpp" line="92"/>
+        <location filename="../src/widget.cpp" line="97"/>
         <source>Error</source>
         <translation>Fehler</translation>
     </message>
     <message>
-        <location filename="../src/widget.cpp" line="98"/>
-        <location filename="../src/widget.cpp" line="99"/>
+        <location filename="../src/widget.cpp" line="96"/>
+        <location filename="../src/widget.cpp" line="97"/>
         <source>OpenGL stereo mode is not available on this system.</source>
         <oldsource>OpenGL stereo mode is not available on this system</oldsource>
         <translation>OpenGL Stereo Modus ist nicht verfügbar auf diesem System.</translation>
