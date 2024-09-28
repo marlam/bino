@@ -180,6 +180,29 @@ Most output modes should be self explanatory, but there are some exceptions:
 - `even-odd-rows`, `even-odd-columns` and `checkerboard` are for (older) 3D
   TVs.
 
+# File Name Conventions
+
+Bino currently cannot detect the stereoscopic layout or the surround video mode
+from metadata because Qt does not provide that information. It therefore has to
+guess.
+
+Bino recognizes the following hints at the last part of the file name, just
+before the file name extension (.ext):
+
+- `*-tb.ext`, `*-ab.ext`: Input mode `top-bottom`
+- `*-tbh.ext`, `*-abq.ext`: Input mode `top-bottom-half`
+- `*-bt.ext`, `*-ba.ext`: Input mode `bottom-top`
+- `*-bth.ext`, `*-baq.ext`: Input mode `bottom-top-half`
+- `*-lr.ext`: Input mode `left-right`
+- `*-lrh.ext`, `*-lrq.ext`: Input mode `left-right-half`
+- `*-rl.ext`: Input mode `right-left`
+- `*-rlh.ext`, `*-rlq.ext`: Input mode `right-left-half`
+- `*-2d.ext`: Input mode `mono`
+
+Additionally, if the number `180` or `360` is part of the file name and separated
+by neighboring digits or letters by other characters, then the corresponding surround
+mode is assumed.
+
 # Scripting
 
 Bino can read commands from a script file and execute them via the option
@@ -288,28 +311,31 @@ The following commands are supported:
 
   Toggle fullscreen mode.
 
-# File Name Conventions
+# Slideshows
 
-Bino currently cannot detect the stereoscopic layout or the surround video mode
-from metadata because Qt does not provide that information. It therefore has to
-guess.
+You can play slideshows of images (or videos) simply by making a playlist and
+switching on its *wait* status. This is the default whenever one or more of the
+files you open are images instead of videos; this works from the command line
+as well as from the GUI.
 
-Bino recognizes the following hints at the last part of the file name, just
-before the file name extension (.ext):
+With *wait* enabled, the next media in the playlist will only be displayed after
+you press the N key, or choose Playlist/Next from the menu.
 
-- `*-tb.ext`, `*-ab.ext`: Input mode `top-bottom`
-- `*-tbh.ext`, `*-abq.ext`: Input mode `top-bottom-half`
-- `*-bt.ext`, `*-ba.ext`: Input mode `bottom-top`
-- `*-bth.ext`, `*-baq.ext`: Input mode `bottom-top-half`
-- `*-lr.ext`: Input mode `left-right`
-- `*-lrh.ext`, `*-lrq.ext`: Input mode `left-right-half`
-- `*-rl.ext`: Input mode `right-left`
-- `*-rlh.ext`, `*-rlq.ext`: Input mode `right-left-half`
-- `*-2d.ext`: Input mode `mono`
-
-Additionally, if the number `180` or `360` is part of the file name and separated
-by neighboring digits or letters by other characters, then the corresponding surround
-mode is assumed.
+For automatic media switching based on predefined presentation times, use the
+scripting mode as in the following example:
+```
+set-fullscreen on
+playlist-load my-slideshow.m3u
+playlist-loop on
+playlist-wait on
+playlist-next
+wait 4
+playlist-next
+wait 7
+playlist-next
+wait 5
+quit
+```
 
 # Virtual Reality
 
