@@ -74,7 +74,7 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
     setWindowIcon(QIcon(icon));
 
     QMenu* fileMenu = addBinoMenu(tr("&File"));
-    QAction* fileOpenAction = new QAction(tr("&Open File..."), this);
+    QAction* fileOpenAction = new QAction(tr("&Open File(s)..."), this);
     fileOpenAction->setShortcuts({ QKeySequence::Open });
     connect(fileOpenAction, SIGNAL(triggered()), this, SLOT(fileOpen()));
     addBinoAction(fileOpenAction, fileMenu);
@@ -477,19 +477,23 @@ Gui* Gui::instance()
 
 void Gui::fileOpen()
 {
-    QString name = QFileDialog::getOpenFileName(this);
-    if (!name.isEmpty()) {
-        QUrl url = QUrl::fromLocalFile(name);
-        MetaData metaData;
-        QString errMsg;
-        if (metaData.detectCached(url, &errMsg)) {
-            Bino::instance()->startPlaylistMode();
-            Playlist::instance()->clear();
-            Playlist::instance()->append(url);
-            Playlist::instance()->start();
-        } else {
-            QMessageBox::critical(this, tr("Error"), errMsg);
+    QStringList names = QFileDialog::getOpenFileNames(this);
+    if (!names.isEmpty()) {
+        bool playlistWasEmpty = Playlist::instance()->length() == 0;
+        Bino::instance()->startPlaylistMode();
+        for (int i = 0; i < names.size(); i++) {
+            QUrl url = QUrl::fromLocalFile(names[i]);
+            MetaData metaData;
+            QString errMsg;
+            if (metaData.detectCached(url, &errMsg)) {
+                Playlist::instance()->append(url);
+            } else {
+                QMessageBox::critical(this, tr("Error"), errMsg);
+            }
         }
+        Playlist::instance()->setWaitModeAuto();
+        if (playlistWasEmpty)
+            Playlist::instance()->next();
     }
 }
 
