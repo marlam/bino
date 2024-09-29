@@ -120,7 +120,7 @@ void VideoSink::processNewFrame(const QVideoFrame& frame)
         return;
     }
     if (frame.isValid()) {
-        LOG_DEBUG("video sink gets a valid frame");
+        LOG_FIREHOSE("video sink gets a valid frame");
         lastFrameWasValid = true;
     }
 
