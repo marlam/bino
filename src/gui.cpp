@@ -433,7 +433,7 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
 
     QMenu* viewMenu = addBinoMenu(tr("&View"));
     _viewToggleFullscreenAction = new QAction(tr("&Fullscreen"), this);
-    _viewToggleFullscreenAction->setShortcuts({ Qt::Key_F, QKeySequence::FullScreen });
+    _viewToggleFullscreenAction->setShortcuts({ Qt::Key_F11, Qt::Key_F, QKeySequence::FullScreen });
     _viewToggleFullscreenAction->setCheckable(true);
     connect(_viewToggleFullscreenAction, SIGNAL(triggered()), this, SLOT(viewToggleFullscreen()));
     addBinoAction(_viewToggleFullscreenAction, viewMenu);

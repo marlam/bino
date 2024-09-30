@@ -1395,7 +1395,7 @@ void Bino::keyPressEvent(QKeyEvent* event)
         Playlist::instance()->next();
     } else if (event->key() == Qt::Key_P) {
         Playlist::instance()->prev();
-    } else if (event->matches(QKeySequence::FullScreen) || event->key() == Qt::Key_F) {
+    } else if (event->matches(QKeySequence::FullScreen) || event->key() == Qt::Key_F || event->key() == Qt::Key_F11) {
         emit toggleFullscreen();
     } else if (event->key() == Qt::Key_E || event->key() == Qt::Key_F7) {
         toggleSwapEyes();
