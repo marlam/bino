@@ -34,6 +34,11 @@
   <url type="homepage">https://bino3d.org</url>
 
   <releases>
+    <release version="2.3" date="2024-10-06">
+      <description>
+        <p>Added support for slideshow mode and improved compatibility with ARM platforms. Fixed various bugs.</p>
+      </description>
+    </release>
     <release version="2.2" date="2024-06-02">
       <description>
         <p>Added support for capturing screens and windows and for HDMI frame packing output. Fixed various bugs.</p>
