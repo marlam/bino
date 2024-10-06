@@ -18,6 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QStandardPaths>
 #include <QDir>
 #include <QTemporaryFile>
 #include <QSharedPointer>
@@ -108,7 +109,13 @@ QUrl digestibleMediaUrl(const QUrl& url)
             }
         }
 
-        QString tmpl = QDir::tempPath() + '/' + QString("bino-XXXXXX") + QString(".ppm");
+        QString cacheDirName = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+        QDir cacheDir(cacheDirName);
+        if (!cacheDir.mkpath(cacheDirName)) {
+            LOG_DEBUG("%s", qPrintable(QString("digestibleMediaUrl: %1: cannot create cache directory %2").arg(url.toString()).arg(cacheDirName)));
+            return url;
+        }
+        QString tmpl = cacheDirName + '/' + QString("bino-XXXXXX") + QString(".ppm");
         tempFile.reset(new QTemporaryFile(tmpl));
         if (!img.save(tempFile.get(), "PPM")) {
             LOG_DEBUG("%s", qPrintable(QString("digestibleMediaUrl: %1: cannot save to %2").arg(url.toString()).arg(tempFile->fileName())));
