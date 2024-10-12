@@ -266,7 +266,7 @@
     <message>
         <location filename="../src/gui.cpp" line="77"/>
         <source>&amp;Open File(s)...</source>
-        <translation>Datei(en) &amp;amp;öffnen...</translation>
+        <translation>Datei(en) &amp;öffnen...</translation>
     </message>
     <message>
         <location filename="../src/gui.cpp" line="84"/>
