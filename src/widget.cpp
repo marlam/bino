@@ -105,12 +105,18 @@ void Widget::initializeGL()
     QString variantString = IsOpenGLES ? "OpenGL ES" : "OpenGL";
     if (!IsOpenGLES)
         variantString += isCoreProfile ? " core profile" : " compatibility profile";
+    GLint maxTexSize, maxFBWidth, maxFBHeight;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
+    glGetIntegerv(GL_MAX_FRAMEBUFFER_WIDTH, &maxFBWidth);
+    glGetIntegerv(GL_MAX_FRAMEBUFFER_HEIGHT, &maxFBHeight);
     LOG_INFO("OpenGL Variant:      %s", qPrintable(variantString));
     LOG_INFO("OpenGL Version:      %s", getOpenGLString(this, GL_VERSION));
     LOG_INFO("OpenGL GLSL Version: %s", getOpenGLString(this, GL_SHADING_LANGUAGE_VERSION));
     LOG_INFO("OpenGL Vendor:       %s", getOpenGLString(this, GL_VENDOR));
     LOG_INFO("OpenGL Renderer:     %s", getOpenGLString(this, GL_RENDERER));
     LOG_INFO("OpenGL AnisoTexFilt: %s", haveAnisotropicFiltering ? "yes" : "no");
+    LOG_INFO("OpenGL Max Tex Size: %d", maxTexSize);
+    LOG_INFO("OpenGL Max FB Size:  %dx%d", maxFBWidth, maxFBHeight);
 
     // View textures
     glGenTextures(2, _viewTex);
