@@ -15,6 +15,14 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 
 - Support for Virtual Reality environments, including SteamVR,
   CAVEs, powerwalls, and other multi-display / multi-GPU / multi-host systems
+  
+# Controls
+
+In `surround` mode, you can use the mouse wheel to adjust the field of view of the camera:
+
+- `Wheel`: Zoom in/out
+- `Shift` + `Wheel`: Adjust horizontal FOV
+- `Ctrl` + `Wheel`: Adjust vertical FOV
 
 # Invocation
 
