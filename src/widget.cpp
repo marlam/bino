@@ -50,7 +50,9 @@ Widget::Widget(OutputMode outputMode, QWidget* parent) :
     _surroundHorizontalAngleBase(0.0f),
     _surroundVerticalAngleBase(0.0f),
     _surroundHorizontalAngleCurrent(0.0f),
-    _surroundVerticalAngleCurrent(0.0f)
+    _surroundVerticalAngleCurrent(50.0f),
+    _horizontalFOVDelta(0.0f),
+    _verticalFOVDelta(0.0f)
 {
     setUpdateBehavior(QOpenGLWidget::PartialUpdate);
     setMouseTracking(true);
@@ -287,13 +289,28 @@ void Widget::paintGL()
         QMatrix4x4 orientationMatrix;
         QMatrix4x4 viewMatrix;
         if (Bino::instance()->assumeSurroundMode() != Surround_Off) {
-            float verticalVieldOfView = qDegreesToRadians(50.0f);
-            float aspectRatio = float(width) / height;
-            float top = qTan(verticalVieldOfView * 0.5f);
+            // Capture the content to fit the camera's FOV, then stretch it to fit the screen aspect ratio
+            float baseVerticalFOV = 50.0f;
+            float verticalFOV = qDegreesToRadians(baseVerticalFOV + _verticalFOVDelta);
+            float screenAspectRatio = float(width) / height;
+
+            float baseHorizontalFOV = baseVerticalFOV * screenAspectRatio;
+            float horizontalFOV = qDegreesToRadians(baseHorizontalFOV + _horizontalFOVDelta);
+
+            float viewAspectRatio = float(horizontalFOV) / verticalFOV;
+
+            // Note: We're not dealing with actual FOV angle here, since we don't know the actual FOV of the content
+            float top = qTan(verticalFOV * 0.5f);
             float bottom = -top;
-            float right = top * aspectRatio;
+            float right = top * viewAspectRatio;
             float left = -right;
+
             projectionMatrix.frustum(left, right, bottom, top, 1.0f, 100.0f);
+
+            // Stretch (or shrink) the horizontal view to fit the screen aspect ratio, keeping the height
+            float stretch = screenAspectRatio / viewAspectRatio;
+            projectionMatrix.scale(stretch, 1.0f, 1.0f);
+
             QQuaternion orientation = QQuaternion::fromEulerAngles(
                     (_surroundVerticalAngleBase + _surroundVerticalAngleCurrent),
                     (_surroundHorizontalAngleBase + _surroundHorizontalAngleCurrent), 0.0f);

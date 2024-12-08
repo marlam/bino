@@ -45,6 +45,8 @@ private:
     float _surroundVerticalAngleBase;
     float _surroundHorizontalAngleCurrent;
     float _surroundVerticalAngleCurrent;
+    float _horizontalFOVDelta;
+    float _verticalFOVDelta;
 
     unsigned int _viewTex[2];
     int _viewTexWidth[2], _viewTexHeight[2];
