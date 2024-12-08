@@ -27,3 +27,9 @@ To build Bino from source, you need Qt6 dev packages. It will comes with the nec
 4. `cmake -G "MinGW Makefiles" ..`
 5. `cmake --build .`
 6. `windeployqt bino.exe`
+
+Certain `windeployqt` bug will cause the [multimedia plugin to not properly copied](https://bugreports.qt.io/browse/QTBUG-105984). So, you can do this:
+
+1. Copy the `./multimedia/plugins` dir of your Qt, such as: `C:\Qt\6.4.0\msvc2019_64\plugins\multimedia\`
+2. Paste it to the build dir, directly where the `bino.exe` is located.
+
