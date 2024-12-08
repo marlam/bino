@@ -437,6 +437,42 @@ void Widget::mouseMoveEvent(QMouseEvent* e)
     }
 }
 
+void Widget::wheelEvent(QWheelEvent* e)
+{
+    if (Bino::instance()->assumeSurroundMode() == Surround_Off) {
+        _horizontalFOVDelta = 0.0f;
+        _verticalFOVDelta = 0.0f;
+    }
+    if (e->modifiers() & Qt::ShiftModifier) {
+        // Adjust horizontal FOV
+        if (e->angleDelta().y() > 0) {
+            _horizontalFOVDelta -= 1.0f;
+        } else {
+            _horizontalFOVDelta += 1.0f;
+        }
+        _horizontalFOVDelta = qBound(-90.0f, _horizontalFOVDelta, 90.0f);
+    } else if (e->modifiers() & Qt::ControlModifier) {
+        // Adjust vertical FOV
+        if (e->angleDelta().y() > 0) {
+            _verticalFOVDelta -= 1.0f;
+        } else {
+            _verticalFOVDelta += 1.0f;
+        }
+        _verticalFOVDelta = qBound(-90.0f, _verticalFOVDelta, 90.0f);
+    } else {
+        // Adjust both, basically zooming
+        if (e->angleDelta().y() > 0) {
+            _verticalFOVDelta -= 1.0f;
+            _horizontalFOVDelta -= 1.0f;
+        } else {
+            _verticalFOVDelta += 1.0f;
+            _horizontalFOVDelta += 1.0f;
+        }
+    }
+
+    update();
+}
+
 void Widget::mediaChanged(PlaylistEntry)
 {
     _inSurroundMovement = false;

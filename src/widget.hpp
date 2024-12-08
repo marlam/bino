@@ -72,6 +72,7 @@ public:
     virtual void mousePressEvent(QMouseEvent* e) override;
     virtual void mouseReleaseEvent(QMouseEvent* e) override;
     virtual void mouseMoveEvent(QMouseEvent* e) override;
+    virtual void wheelEvent(QWheelEvent* e) override;
 
 public slots:
     void mediaChanged(PlaylistEntry entry);
