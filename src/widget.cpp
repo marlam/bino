@@ -302,7 +302,7 @@ void Widget::paintGL()
             // Note: We're not dealing with actual FOV angle here, since we don't know the actual FOV of the content
             float top = qTan(verticalFOV * 0.5f);
             float bottom = -top;
-            float right = top * viewAspectRatio;
+            float right = top * screenAspectRatio;
             float left = -right;
 
             projectionMatrix.frustum(left, right, bottom, top, 1.0f, 100.0f);
@@ -458,7 +458,7 @@ void Widget::wheelEvent(QWheelEvent* e)
         } else {
             _verticalFOVDelta += 1.0f;
         }
-        _verticalFOVDelta = qBound(-90.0f, _verticalFOVDelta, 90.0f);
+        _verticalFOVDelta = qBound(-40.0f, _verticalFOVDelta, 90.0f);
     } else {
         // Adjust both, basically zooming
         if (e->angleDelta().y() > 0) {
@@ -468,6 +468,8 @@ void Widget::wheelEvent(QWheelEvent* e)
             _verticalFOVDelta += 1.0f;
             _horizontalFOVDelta += 1.0f;
         }
+        _horizontalFOVDelta = qBound(-90.0f, _horizontalFOVDelta, 90.0f);
+        _verticalFOVDelta = qBound(-40.0f, _verticalFOVDelta, 90.0f);
     }
 
     update();
