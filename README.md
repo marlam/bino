@@ -16,3 +16,14 @@ and multi-GPU support is based on [QVR](https://marlam.de/qvr/). No other
 libraries are required.
 
 See [bino3d.org](https://bino3d.org/) and the [manual](https://bino3d.org/bino-manual.html).
+
+## Building from source
+
+To build Bino from source, you need Qt6 dev packages. It will comes with the necessary tools to build Bino (such as MinGW, CMake, etc):
+
+1. Cd into the source directory.
+2. `mkdir build`
+3. `cd build`
+4. `cmake -G "MinGW Makefiles" ..`
+5. `cmake --build .`
+6. `windeployqt bino.exe`
