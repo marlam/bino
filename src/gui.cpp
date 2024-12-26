@@ -60,9 +60,9 @@ void Gui::addBinoAction(QAction* action, QMenu* menu)
 
 static Gui* GuiSingleton = nullptr;
 
-Gui::Gui(OutputMode outputMode, bool fullscreen) :
+Gui::Gui(OutputMode outputMode, float surroundVerticalFOV, bool fullscreen) :
     QMainWindow(),
-    _widget(new Widget(outputMode, this)),
+    _widget(new Widget(outputMode, surroundVerticalFOV, this)),
     _contextMenu(new QMenu(this))
 {
     setWindowTitle("Bino");
@@ -442,6 +442,11 @@ Gui::Gui(OutputMode outputMode, bool fullscreen) :
     _viewToggleSwapEyesAction->setCheckable(true);
     connect(_viewToggleSwapEyesAction, SIGNAL(triggered()), this, SLOT(viewToggleSwapEyes()));
     addBinoAction(_viewToggleSwapEyesAction, viewMenu);
+    viewMenu->addSeparator();
+    _viewResetSurroundAction = new QAction(tr("Reset surround view"), this);
+    _viewResetSurroundAction->setShortcuts({ Qt::Key_Z });
+    connect(_viewResetSurroundAction, SIGNAL(triggered()), this, SLOT(viewResetSurround()));
+    addBinoAction(_viewResetSurroundAction, viewMenu);
 
     QMenu* helpMenu = addBinoMenu(tr("&Help"));
     QAction* helpAboutAction = new QAction(tr("&About..."), this);
@@ -839,6 +844,12 @@ void Gui::viewToggleSwapEyes()
     _widget->update();
 }
 
+void Gui::viewResetSurround()
+{
+    _widget->resetSurroundView();
+    _widget->update();
+}
+
 void Gui::helpAbout()
 {
     QMessageBox::about(this, tr("About Bino"),
@@ -938,6 +949,7 @@ void Gui::updateActions()
     }
 
     SurroundMode surroundMode = Bino::instance()->assumeSurroundMode();
+    _viewResetSurroundAction->setEnabled(surroundMode != Surround_Off);
     for (int i = 0; i < _3dSurroundActionGroup->actions().size(); i++) {
         QAction* a = _3dSurroundActionGroup->actions()[i];
         a->setChecked(a->data().toInt() == int(surroundMode));
@@ -977,6 +989,12 @@ void Gui::updateActions()
 void Gui::setOutputMode(OutputMode mode)
 {
     _widget->setOutputMode(mode);
+    _widget->update();
+}
+
+void Gui::setSurroundVerticalFieldOfView(float vfov)
+{
+    _widget->setSurroundVerticalFieldOfView(vfov);
     _widget->update();
 }
 

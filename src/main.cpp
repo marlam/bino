@@ -215,6 +215,9 @@ int main(int argc, char* argv[])
     parser.addOption({ "surround",
             QCommandLineParser::tr("Set surround mode (%1).").arg("360, 180, off"),
             "mode" });
+    parser.addOption({ "surround-vfov",
+            QCommandLineParser::tr("Set surround vertical field of view (default 50, range 5-115)."),
+            "degrees" });
     parser.addOption({ { "S", "swap-eyes" },
             QCommandLineParser::tr("Swap left/right eye.") });
     parser.addOption({ { "f", "fullscreen" },
@@ -258,6 +261,15 @@ int main(int argc, char* argv[])
         surroundMode = surroundModeFromString(parser.value("surround"), &ok);
         if (!ok) {
             LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--surround")));
+            return 1;
+        }
+    }
+    float surroundVerticalFOV = 50.0f;
+    if (parser.isSet("surround-vfov")) {
+        bool ok;
+        surroundVerticalFOV = parser.value("surround-vfov").toFloat(&ok);
+        if (!ok || surroundVerticalFOV < 5.0f || surroundVerticalFOV > 115.0f) {
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--surround-vfov")));
             return 1;
         }
     }
@@ -745,7 +757,7 @@ int main(int argc, char* argv[])
         return 1;
 #endif
     } else {
-        Gui gui(outputMode, parser.isSet("fullscreen"));
+        Gui gui(outputMode, surroundVerticalFOV, parser.isSet("fullscreen"));
         gui.show();
         // wait for several seconds to process all events before starting
         // the playlist, because otherwise playing might be finished before

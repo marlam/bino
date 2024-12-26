@@ -58,6 +58,7 @@ private:
     QAction* _mediaSeekBwd10MinsAction;
     QAction* _viewToggleFullscreenAction;
     QAction* _viewToggleSwapEyesAction;
+    QAction* _viewResetSurroundAction;
 
     QMenu* addBinoMenu(const QString& title);
     void addBinoAction(QAction* action, QMenu* menu);
@@ -94,6 +95,7 @@ public slots:
     void mediaSeekBwd10Mins();
     void viewToggleFullscreen();
     void viewToggleSwapEyes();
+    void viewResetSurround();
     void helpAbout();
 
     void updateActions();
@@ -107,10 +109,11 @@ protected:
     virtual void moveEvent(QMoveEvent*) override;
 
 public:
-    Gui(OutputMode outputMode, bool fullscreen);
+    Gui(OutputMode outputMode, float surroundVerticalFOV, bool fullscreen);
 
     static Gui* instance();
 
     void setOutputMode(OutputMode mode);
+    void setSurroundVerticalFieldOfView(float vfov);
     void setFullscreen(bool f);
 };

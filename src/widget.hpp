@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023, 2024
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -39,6 +39,8 @@ private:
     bool _openGLStereo;       // is this widget in quad-buffered stereo mode?
     int _alternatingLastView; // last view displayed in Mode_Alternating (0 or 1)
 
+    float _surroundVerticalFOVDefault;
+    float _surroundVerticalFOV;
     bool _inSurroundMovement;
     QPointF _surroundMovementStart;
     float _surroundHorizontalAngleBase;
@@ -55,11 +57,13 @@ private:
     void rebuildDisplayPrgIfNecessary(OutputMode outputMode);
 
 public:
-    Widget(OutputMode outputMode, QWidget* parent = nullptr);
+    Widget(OutputMode outputMode, float surroundVerticalFOV, QWidget* parent = nullptr);
 
     bool isOpenGLStereo() const;
     OutputMode outputMode() const;
     void setOutputMode(OutputMode mode);
+    void setSurroundVerticalFieldOfView(float vfov);
+    void resetSurroundView();
 
     virtual QSize sizeHint() const override;
     virtual void initializeGL() override;
@@ -70,6 +74,7 @@ public:
     virtual void mousePressEvent(QMouseEvent* e) override;
     virtual void mouseReleaseEvent(QMouseEvent* e) override;
     virtual void mouseMoveEvent(QMouseEvent* e) override;
+    virtual void wheelEvent(QWheelEvent* e) override;
 
 public slots:
     void mediaChanged(PlaylistEntry entry);
