@@ -218,6 +218,9 @@ int main(int argc, char* argv[])
     parser.addOption({ "surround-vfov",
             QCommandLineParser::tr("Set surround vertical field of view (default 50, range 5-115)."),
             "degrees" });
+    parser.addOption({ "surround-ar",
+            QCommandLineParser::tr("Set surround aspect ratio (default 2, range 1.0-4.0)."),
+            "ratio" });
     parser.addOption({ { "S", "swap-eyes" },
             QCommandLineParser::tr("Swap left/right eye.") });
     parser.addOption({ { "f", "fullscreen" },
@@ -270,6 +273,15 @@ int main(int argc, char* argv[])
         surroundVerticalFOV = parser.value("surround-vfov").toFloat(&ok);
         if (!ok || surroundVerticalFOV < 5.0f || surroundVerticalFOV > 115.0f) {
             LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--surround-vfov")));
+            return 1;
+        }
+    }
+    float surroundAspectRatio = 2.0f;
+    if (parser.isSet("surround-ar")) {
+        bool ok;
+        surroundAspectRatio = parser.value("surround-ar").toFloat(&ok);
+        if (!ok || surroundAspectRatio < 1.0f || surroundAspectRatio > 4.0f) {
+            LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--surround-ar")));
             return 1;
         }
     }
@@ -757,7 +769,7 @@ int main(int argc, char* argv[])
         return 1;
 #endif
     } else {
-        Gui gui(outputMode, surroundVerticalFOV, parser.isSet("fullscreen"));
+        Gui gui(outputMode, surroundVerticalFOV, surroundAspectRatio, parser.isSet("fullscreen"));
         gui.show();
         // wait for several seconds to process all events before starting
         // the playlist, because otherwise playing might be finished before

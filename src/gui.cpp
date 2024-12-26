@@ -60,9 +60,9 @@ void Gui::addBinoAction(QAction* action, QMenu* menu)
 
 static Gui* GuiSingleton = nullptr;
 
-Gui::Gui(OutputMode outputMode, float surroundVerticalFOV, bool fullscreen) :
+Gui::Gui(OutputMode outputMode, float surroundVerticalFOV, float surroundAspectRatio, bool fullscreen) :
     QMainWindow(),
-    _widget(new Widget(outputMode, surroundVerticalFOV, this)),
+    _widget(new Widget(outputMode, surroundVerticalFOV, surroundAspectRatio, this)),
     _contextMenu(new QMenu(this))
 {
     setWindowTitle("Bino");
@@ -995,6 +995,12 @@ void Gui::setOutputMode(OutputMode mode)
 void Gui::setSurroundVerticalFieldOfView(float vfov)
 {
     _widget->setSurroundVerticalFieldOfView(vfov);
+    _widget->update();
+}
+
+void Gui::setSurroundAspectRatio(float ar)
+{
+    _widget->setSurroundAspectRatio(ar);
     _widget->update();
 }
 

@@ -109,11 +109,12 @@ protected:
     virtual void moveEvent(QMoveEvent*) override;
 
 public:
-    Gui(OutputMode outputMode, float surroundVerticalFOV, bool fullscreen);
+    Gui(OutputMode outputMode, float surroundVerticalFOV, float surroundAspectRatio, bool fullscreen);
 
     static Gui* instance();
 
     void setOutputMode(OutputMode mode);
     void setSurroundVerticalFieldOfView(float vfov);
+    void setSurroundAspectRatio(float ar);
     void setFullscreen(bool f);
 };

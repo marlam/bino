@@ -311,6 +311,16 @@ void CommandInterpreter::processNextCommand()
             if (gui)
                 gui->setSurroundVerticalFieldOfView(surroundVerticalFOV);
         }
+    } else if (cmd.startsWith("set-surround-ar ")) {
+        bool ok;
+        float surroundAspectRatio = cmd.mid(16).toFloat(&ok);
+        if (!ok || surroundAspectRatio < 1.0f || surroundAspectRatio > 4.0f) {
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+        } else {
+            Gui* gui = Gui::instance();
+            if (gui)
+                gui->setSurroundAspectRatio(surroundAspectRatio);
+        }
     } else if (cmd == "play") {
         Bino::instance()->play();
     } else if (cmd == "stop") {
