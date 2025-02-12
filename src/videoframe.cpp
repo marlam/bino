@@ -118,6 +118,9 @@ void VideoFrame::update(InputMode im, SurroundMode sm, const QVideoFrame& frame,
             pixelFormat = qframe.pixelFormat();
             switch (qframe.surfaceFormat().colorSpace()) {
             case QVideoFrameFormat::ColorSpace_Undefined:
+                // Heuristic used in qtmultimedia/src/multimedia/video/qvideotexturehelper.cpp
+                colorSpace = (qframe.surfaceFormat().frameHeight() > 576 ? CS_BT709 : CS_BT601);
+                break;
             case QVideoFrameFormat::ColorSpace_BT601:
                 colorSpace = CS_BT601;
                 break;
