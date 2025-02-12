@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024
+ * Copyright (C) 2022, 2023, 2024, 2025
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -50,12 +50,12 @@ public:
         Storage_Image   // QImage
     };
 
-    enum YUVSpace {
+    enum ColorSpace {
         // see shader-color.frag.glsl
-        YUV_BT601 = 1,
-        YUV_BT709 = 2,
-        YUV_AdobeRgb = 3,
-        YUV_BT2020 = 4
+        CS_BT601 = 1,
+        CS_BT709 = 2,
+        CS_AdobeRgb = 3,
+        CS_BT2020 = 4
     };
 
     /* This is a shallow copy of the original QVideoFrame: */
@@ -73,8 +73,8 @@ public:
     enum Storage storage;
     // for mapped and copied data:
     QVideoFrameFormat::PixelFormat pixelFormat;
-    bool yuvValueRangeSmall;
-    enum YUVSpace yuvSpace;
+    bool colorRangeSmall;
+    enum ColorSpace colorSpace;
     int planeCount; // 1-3
     int bytesPerLine[3];
     int bytesPerPlane[3];

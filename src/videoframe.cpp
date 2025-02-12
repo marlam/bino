@@ -109,8 +109,8 @@ void VideoFrame::update(InputMode im, SurroundMode sm, const QVideoFrame& frame,
             }
             storage = Storage_Image;
             pixelFormat = QVideoFrameFormat::pixelFormatFromImageFormat(QImage::Format_RGB32);
-            yuvValueRangeSmall = false;
-            yuvSpace = YUV_AdobeRgb;
+            colorRangeSmall = false;
+            colorSpace = CS_AdobeRgb;
             image = qframe.toImage();
             image.convertTo(QImage::Format_RGB32);
         } else {
@@ -119,25 +119,25 @@ void VideoFrame::update(InputMode im, SurroundMode sm, const QVideoFrame& frame,
             switch (qframe.surfaceFormat().colorSpace()) {
             case QVideoFrameFormat::ColorSpace_Undefined:
             case QVideoFrameFormat::ColorSpace_BT601:
-                yuvSpace = YUV_BT601;
+                colorSpace = CS_BT601;
                 break;
             case QVideoFrameFormat::ColorSpace_BT709:
-                yuvSpace = YUV_BT709;
+                colorSpace = CS_BT709;
                 break;
             case QVideoFrameFormat::ColorSpace_AdobeRgb:
-                yuvSpace = YUV_AdobeRgb;
+                colorSpace = CS_AdobeRgb;
                 break;
             case QVideoFrameFormat::ColorSpace_BT2020:
-                yuvSpace = YUV_BT2020;
+                colorSpace = CS_BT2020;
                 break;
             }
             switch (qframe.surfaceFormat().colorRange()) {
             case QVideoFrameFormat::ColorRange_Unknown:
             case QVideoFrameFormat::ColorRange_Video:
-                yuvValueRangeSmall = true;
+                colorRangeSmall = true;
                 break;
             case QVideoFrameFormat::ColorRange_Full:
-                yuvValueRangeSmall = false;
+                colorRangeSmall = false;
                 break;
             }
             // TODO: handle .colorTransfer()
@@ -189,8 +189,8 @@ QDataStream &operator<<(QDataStream& ds, const VideoFrame& f)
     case VideoFrame::Storage_Copied:
         ds << static_cast<int>(VideoFrame::Storage_Copied);
         ds << static_cast<int>(f.pixelFormat);
-        ds << f.yuvValueRangeSmall;
-        ds << static_cast<int>(f.yuvSpace);
+        ds << f.colorRangeSmall;
+        ds << static_cast<int>(f.colorSpace);
         ds << f.planeCount;
         for (int p = 0; p < f.planeCount; p++) {
             ds << f.bytesPerLine[p];
@@ -228,9 +228,9 @@ QDataStream &operator>>(QDataStream& ds, VideoFrame& f)
         f.image = QImage();
         ds >> tmp;
         f.pixelFormat = static_cast<QVideoFrameFormat::PixelFormat>(tmp);
-        ds >> f.yuvValueRangeSmall;
+        ds >> f.colorRangeSmall;
         ds >> tmp;
-        f.yuvSpace = static_cast<enum VideoFrame::YUVSpace>(tmp);
+        f.colorSpace = static_cast<enum VideoFrame::ColorSpace>(tmp);
         ds >> f.planeCount;
         for (int p = 0; p < 3; p++) {
             if (p < f.planeCount) {
@@ -248,8 +248,8 @@ QDataStream &operator>>(QDataStream& ds, VideoFrame& f)
         break;
     case VideoFrame::Storage_Image:
         f.pixelFormat = QVideoFrameFormat::pixelFormatFromImageFormat(QImage::Format_RGB32);
-        f.yuvValueRangeSmall = false;
-        f.yuvSpace = VideoFrame::YUV_AdobeRgb;
+        f.colorRangeSmall = false;
+        f.colorSpace = VideoFrame::CS_AdobeRgb;
         f.planeCount = 0;
         for (int p = 0; p < 3; p++) {
             f.bytesPerLine[p] = 0;

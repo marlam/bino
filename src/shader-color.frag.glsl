@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023, 2024, 2025
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -30,13 +30,13 @@ const int Format_YUVsp = 4;
 const int Format_Y = 5;
 const int planeFormat = $PLANE_FORMAT;
 
-const bool yuvValueRangeSmall = $VALUE_RANGE_SMALL;
+const bool colorRangeSmall = $COLOR_RANGE_SMALL;
 
-const int YUV_BT601 = 1;
-const int YUV_BT709 = 2;
-const int YUV_AdobeRGB = 3;
-const int YUV_BT2020 = 4;
-const int yuvSpace = $YUV_SPACE;
+const int CS_BT601 = 1;
+const int CS_BT709 = 2;
+const int CS_AdobeRGB = 3;
+const int CS_BT2020 = 4;
+const int colorSpace = $COLOR_SPACE;
 
 smooth in vec2 vtexcoord;
 
@@ -81,14 +81,14 @@ void main(void)
         mat4 m;
         // The following matrices are the same as used by Qt,
         // see qtmultimedia/src/multimedia/video/qvideotexturehelper.cpp
-        if (yuvSpace == YUV_AdobeRGB) {
+        if (colorSpace == CS_AdobeRGB) {
             m = mat4(
                     1.0, 1.0, 1.0, 0.0,
                     0.0, -0.344, 1.772, 0.0,
                     1.402, -0.714, 0.0, 0.0,
                     -0.701, 0.529, -0.886, 1.0);
-        } else if (yuvSpace == YUV_BT709) {
-            if (yuvValueRangeSmall) {
+        } else if (colorSpace == CS_BT709) {
+            if (colorRangeSmall) {
                 m = mat4(
                         1.1644, 1.1644, 1.1644, 0.0,
                         0.0, -0.5329, 2.1124, 0.0,
@@ -101,8 +101,8 @@ void main(void)
                         1.5748, -0.468124, 0.0, 0.0,
                         -0.8774, 0.327724, -0.9278, 1.0);
             }
-        } else if (yuvSpace == YUV_BT2020) {
-            if (yuvValueRangeSmall) {
+        } else if (colorSpace == CS_BT2020) {
+            if (colorRangeSmall) {
                 m = mat4(
                         1.1644, 1.1644, 1.1644, 0.0,
                         0.0, -0.1874, 2.1418, 0.0,
@@ -116,7 +116,7 @@ void main(void)
                         -0.7373, 0.5984, -0.9407, 1.0);
             }
         } else {
-            if (yuvValueRangeSmall) {
+            if (colorRangeSmall) {
                 m = mat4(
                         1.164, 1.164, 1.164, 0.0,
                         0.0, -0.392, 2.017, 0.0,

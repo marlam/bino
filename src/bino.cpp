@@ -751,21 +751,25 @@ bool Bino::initProcess()
     return true;
 }
 
-void Bino::rebuildColorPrgIfNecessary(int planeFormat, bool yuvValueRangeSmall, int yuvSpace)
+void Bino::rebuildColorPrgIfNecessary(int planeFormat, bool colorRangeSmall, int colorSpace)
 {
     if (_colorPrg.isLinked()
             && _colorPrgPlaneFormat == planeFormat
-            && _colorPrgYuvValueRangeSmall == yuvValueRangeSmall
-            && _colorPrgYuvSpace == yuvSpace)
+            && _colorPrgColorRangeSmall == colorRangeSmall
+            && _colorPrgColorSpace == colorSpace)
         return;
 
-    LOG_DEBUG("rebuilding color conversion program for plane format %d, value range %s, yuv space %s",
-            planeFormat, yuvValueRangeSmall ? "small" : "full", yuvSpace ? "true" : "false");
+    LOG_DEBUG("rebuilding color conversion program for plane format %d, value range %s, color space %s",
+            planeFormat, colorRangeSmall ? "small" : "full",
+            colorSpace == VideoFrame::CS_BT601 ? "bt601"
+            : colorSpace == VideoFrame::CS_BT709 ? "bt709"
+            : colorSpace == VideoFrame::CS_AdobeRgb ? "rgb"
+            : "bt2020");
     QString colorVS = readFile(":src/shader-color.vert.glsl");
     QString colorFS = readFile(":src/shader-color.frag.glsl");
     colorFS.replace("$PLANE_FORMAT", QString::number(planeFormat));
-    colorFS.replace("$VALUE_RANGE_SMALL", yuvValueRangeSmall ? "true" : "false");
-    colorFS.replace("$YUV_SPACE", QString::number(yuvSpace));
+    colorFS.replace("$COLOR_RANGE_SMALL", colorRangeSmall ? "true" : "false");
+    colorFS.replace("$COLOR_SPACE", QString::number(colorSpace));
     if (IsOpenGLES) {
         colorVS.prepend("#version 300 es\n");
         colorFS.prepend("#version 300 es\n"
@@ -779,8 +783,8 @@ void Bino::rebuildColorPrgIfNecessary(int planeFormat, bool yuvValueRangeSmall, 
     _colorPrg.addShaderFromSourceCode(QOpenGLShader::Fragment, colorFS);
     _colorPrg.link();
     _colorPrgPlaneFormat = planeFormat;
-    _colorPrgYuvValueRangeSmall = yuvValueRangeSmall;
-    _colorPrgYuvSpace = yuvSpace;
+    _colorPrgColorRangeSmall = colorRangeSmall;
+    _colorPrgColorSpace = colorSpace;
 }
 
 void Bino::rebuildViewPrgIfNecessary(SurroundMode surroundMode, bool nonLinearOutput)
@@ -1065,7 +1069,7 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, frameTex, 0);
     glViewport(0, 0, w, h);
     glDisable(GL_DEPTH_TEST);
-    rebuildColorPrgIfNecessary(planeFormat, frame.yuvValueRangeSmall, frame.yuvSpace);
+    rebuildColorPrgIfNecessary(planeFormat, frame.colorRangeSmall, frame.colorSpace);
     glUseProgram(_colorPrg.programId());
     for (int p = 0; p < planeCount; p++) {
         _colorPrg.setUniformValue(qPrintable(QString("plane") + QString::number(p)), p);
