@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024
+ * Copyright (C) 2022, 2023, 2024, 2025
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -30,12 +30,8 @@
 #include <QMediaPlayer>
 #include <QMediaCaptureSession>
 #include <QKeyEvent>
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
-# include <QScreenCapture>
-#endif
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
-# include <QWindowCapture>
-#endif
+#include <QScreenCapture>
+#include <QWindowCapture>
 
 #include "screen.hpp"
 #include "videosink.hpp"
@@ -63,12 +59,8 @@ private:
     // for capturing audio/video:
     QAudioInput* _audioInput;
     QCamera* _videoInput;
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
     QScreenCapture* _screenInput;
-#endif
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
     QWindowCapture* _windowInput;
-#endif
     QMediaCaptureSession* _captureSession;
     // for rendering subtitles:
     QImage _subtitleImg;
@@ -128,18 +120,14 @@ public:
             bool withAudioInput,
             const QAudioDevice& audioInputDevice,
             const QCameraDevice& videoInputDevice);
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
     void startCaptureModeScreen(
             bool withAudioInput,
             const QAudioDevice& audioInputDevice,
             QScreen* screenInputDevice);
-#endif
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 6, 0))
     void startCaptureModeWindow(
             bool withAudioInput,
             const QAudioDevice& audioInputDevice,
             const QCapturableWindow& windowInputDevice);
-#endif
     void stopCaptureMode();
     bool playlistMode() const;
     bool captureMode() const;
