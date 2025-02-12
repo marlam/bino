@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024
+ * Copyright (C) 2022, 2023, 2024, 2025
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -116,35 +116,31 @@ void VideoFrame::update(InputMode im, SurroundMode sm, const QVideoFrame& frame,
         } else {
             storage = Storage_Mapped;
             pixelFormat = qframe.pixelFormat();
-            // TODO: update this for Qt6.4 (and require Qt6.4!) once
-            // that version is in Debian unstable
-            switch (qframe.surfaceFormat().yCbCrColorSpace()) {
-            case QVideoFrameFormat::YCbCr_Undefined:
-            case QVideoFrameFormat::YCbCr_BT601:
-                yuvValueRangeSmall = true;
+            switch (qframe.surfaceFormat().colorSpace()) {
+            case QVideoFrameFormat::ColorSpace_Undefined:
+            case QVideoFrameFormat::ColorSpace_BT601:
                 yuvSpace = YUV_BT601;
                 break;
-            case QVideoFrameFormat::YCbCr_BT709:
-                yuvValueRangeSmall = true;
+            case QVideoFrameFormat::ColorSpace_BT709:
                 yuvSpace = YUV_BT709;
                 break;
-            case QVideoFrameFormat::YCbCr_xvYCC601:
-                yuvValueRangeSmall = false;
-                yuvSpace = YUV_BT601;
-                break;
-            case QVideoFrameFormat::YCbCr_xvYCC709:
-                yuvValueRangeSmall = false;
-                yuvSpace = YUV_BT709;
-                break;
-            case QVideoFrameFormat::YCbCr_JPEG:
-                yuvValueRangeSmall = false;
+            case QVideoFrameFormat::ColorSpace_AdobeRgb:
                 yuvSpace = YUV_AdobeRgb;
                 break;
-            case QVideoFrameFormat::YCbCr_BT2020:
-                yuvValueRangeSmall = true;
-                yuvSpace = YUV_AdobeRgb;
+            case QVideoFrameFormat::ColorSpace_BT2020:
+                yuvSpace = YUV_BT2020;
                 break;
             }
+            switch (qframe.surfaceFormat().colorRange()) {
+            case QVideoFrameFormat::ColorRange_Unknown:
+            case QVideoFrameFormat::ColorRange_Video:
+                yuvValueRangeSmall = true;
+                break;
+            case QVideoFrameFormat::ColorRange_Full:
+                yuvValueRangeSmall = false;
+                break;
+            }
+            // TODO: handle .colorTransfer()
             qframe.map(QVideoFrame::ReadOnly);
             planeCount = qframe.planeCount();
             for (int p = 0; p < planeCount; p++) {
