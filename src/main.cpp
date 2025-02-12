@@ -18,15 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// for isatty():
-#if __has_include(<unistd.h>)
-# include <unistd.h>
-#elif __has_include(<io.h>)
-# include <io.h>
-#endif
-
 #include <cstdio>
-#include <string>
 
 #include <QApplication>
 #include <QTranslator>
