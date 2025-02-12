@@ -41,8 +41,6 @@ private:
 
     float _surroundVerticalFOVDefault;
     float _surroundVerticalFOV;
-    float _surroundAspectRatioDefault;
-    float _surroundAspectRatio;
     bool _inSurroundMovement;
     QPointF _surroundMovementStart;
     float _surroundHorizontalAngleBase;
@@ -59,13 +57,12 @@ private:
     void rebuildDisplayPrgIfNecessary(OutputMode outputMode);
 
 public:
-    Widget(OutputMode outputMode, float surroundVerticalFOV, float surroundAspectRatio, QWidget* parent = nullptr);
+    Widget(OutputMode outputMode, float surroundVerticalFOV, QWidget* parent = nullptr);
 
     bool isOpenGLStereo() const;
     OutputMode outputMode() const;
     void setOutputMode(OutputMode mode);
     void setSurroundVerticalFieldOfView(float vfov);
-    void setSurroundAspectRatio(float ar);
     void resetSurroundView();
 
     virtual QSize sizeHint() const override;
