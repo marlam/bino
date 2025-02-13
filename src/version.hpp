@@ -1,1 +1,1 @@
-#define BINO_VERSION "2.3"
+#define BINO_VERSION "2.4"
