@@ -751,25 +751,31 @@ bool Bino::initProcess()
     return true;
 }
 
-void Bino::rebuildColorPrgIfNecessary(int planeFormat, bool colorRangeSmall, int colorSpace)
+void Bino::rebuildColorPrgIfNecessary(int planeFormat, bool colorRangeSmall, int colorSpace, int colorTransfer)
 {
     if (_colorPrg.isLinked()
             && _colorPrgPlaneFormat == planeFormat
             && _colorPrgColorRangeSmall == colorRangeSmall
-            && _colorPrgColorSpace == colorSpace)
+            && _colorPrgColorSpace == colorSpace
+            && _colorPrgColorTransfer == colorTransfer) {
         return;
+    }
 
-    LOG_DEBUG("rebuilding color conversion program for plane format %d, value range %s, color space %s",
+    LOG_DEBUG("rebuilding color conversion program for plane format %d, value range %s, color space %s, color transfer %s",
             planeFormat, colorRangeSmall ? "small" : "full",
             colorSpace == VideoFrame::CS_BT601 ? "bt601"
             : colorSpace == VideoFrame::CS_BT709 ? "bt709"
             : colorSpace == VideoFrame::CS_AdobeRgb ? "rgb"
-            : "bt2020");
+            : "bt2020",
+            colorTransfer == VideoFrame::CT_NOOP ? "none"
+            : colorTransfer == VideoFrame::CT_ST2084 ? "st2084"
+            : "std_b67");
     QString colorVS = readFile(":src/shader-color.vert.glsl");
     QString colorFS = readFile(":src/shader-color.frag.glsl");
     colorFS.replace("$PLANE_FORMAT", QString::number(planeFormat));
     colorFS.replace("$COLOR_RANGE_SMALL", colorRangeSmall ? "true" : "false");
     colorFS.replace("$COLOR_SPACE", QString::number(colorSpace));
+    colorFS.replace("$COLOR_TRANSFER", QString::number(colorTransfer));
     if (IsOpenGLES) {
         colorVS.prepend("#version 300 es\n");
         colorFS.prepend("#version 300 es\n"
@@ -785,6 +791,7 @@ void Bino::rebuildColorPrgIfNecessary(int planeFormat, bool colorRangeSmall, int
     _colorPrgPlaneFormat = planeFormat;
     _colorPrgColorRangeSmall = colorRangeSmall;
     _colorPrgColorSpace = colorSpace;
+    _colorPrgColorTransfer = colorTransfer;
 }
 
 void Bino::rebuildViewPrgIfNecessary(SurroundMode surroundMode, bool nonLinearOutput)
@@ -1069,8 +1076,9 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, frameTex, 0);
     glViewport(0, 0, w, h);
     glDisable(GL_DEPTH_TEST);
-    rebuildColorPrgIfNecessary(planeFormat, frame.colorRangeSmall, frame.colorSpace);
+    rebuildColorPrgIfNecessary(planeFormat, frame.colorRangeSmall, frame.colorSpace, frame.colorTransfer);
     glUseProgram(_colorPrg.programId());
+    _colorPrg.setUniformValue("masteringWhite", frame.masteringWhite);
     for (int p = 0; p < planeCount; p++) {
         _colorPrg.setUniformValue(qPrintable(QString("plane") + QString::number(p)), p);
         glActiveTexture(GL_TEXTURE0 + p);

@@ -58,6 +58,13 @@ public:
         CS_BT2020 = 4
     };
 
+    enum ColorTransfer {
+        // see shader-color.frag.glsl
+        CT_NOOP = 1,
+        CT_ST2084 = 2,
+        CT_STD_B67 = 3
+    };
+
     /* This is a shallow copy of the original QVideoFrame: */
     QVideoFrame qframe;
     /* The input mode of this frame: */
@@ -75,6 +82,8 @@ public:
     QVideoFrameFormat::PixelFormat pixelFormat;
     bool colorRangeSmall;
     enum ColorSpace colorSpace;
+    enum ColorTransfer colorTransfer;
+    float masteringWhite;
     int planeCount; // 1-3
     int bytesPerLine[3];
     int bytesPerPlane[3];

@@ -32,6 +32,33 @@ bool VideoFrame::isValid() const
     return (qframe.isValid() && qframe.pixelFormat() != QVideoFrameFormat::Format_Invalid);
 }
 
+// from qtmultimedia/src/multimedia/shaders/qvideotexturehelper.cpp
+static float linearToPQ(float sig)
+{
+    const float m1 = 1305.0f / 8192.0f;
+    const float m2 = 2523.0f / 32.0f;
+    const float c1 = 107.0f / 128.0f;
+    const float c2 = 2413.0f / 128.0f;
+    const float c3 = 2392.0f / 128.0f;
+    const float SDR_LEVEL = 100.f;
+    sig *= SDR_LEVEL / 10000.0f;
+    float psig = powf(sig, m1);
+    float num = c1 + c2 * psig;
+    float den = 1.0f + c3 * psig;
+    return powf(num / den, m2);
+}
+
+// from qtmultimedia/src/multimedia/shaders/qvideotexturehelper.cpp
+static float linearToHLG(float sig)
+{
+    const float a = 0.17883277f;
+    const float b = 0.28466892f; // = 1 - 4a
+    const float c = 0.55991073f; // = 0.5 - a ln(4a)
+    if (sig < 1.0f / 12.0f)
+        return sqrtf(3.0f * sig);
+    return a * logf(12.0f * sig - b) + c;
+}
+
 void VideoFrame::update(InputMode im, SurroundMode sm, const QVideoFrame& frame, bool newSrc)
 {
     if (qframe.isMapped())
@@ -116,10 +143,11 @@ void VideoFrame::update(InputMode im, SurroundMode sm, const QVideoFrame& frame,
         } else {
             storage = Storage_Mapped;
             pixelFormat = qframe.pixelFormat();
+            // Heuristic used in qtmultimedia/src/multimedia/video/qvideotexturehelper.cpp:
+            colorSpace = (qframe.surfaceFormat().frameHeight() > 576 ? CS_BT709 : CS_BT601);
             switch (qframe.surfaceFormat().colorSpace()) {
             case QVideoFrameFormat::ColorSpace_Undefined:
-                // Heuristic used in qtmultimedia/src/multimedia/video/qvideotexturehelper.cpp
-                colorSpace = (qframe.surfaceFormat().frameHeight() > 576 ? CS_BT709 : CS_BT601);
+                // nothing to do: default was already guessed
                 break;
             case QVideoFrameFormat::ColorSpace_BT601:
                 colorSpace = CS_BT601;
@@ -134,16 +162,36 @@ void VideoFrame::update(InputMode im, SurroundMode sm, const QVideoFrame& frame,
                 colorSpace = CS_BT2020;
                 break;
             }
+            colorRangeSmall = true;
             switch (qframe.surfaceFormat().colorRange()) {
             case QVideoFrameFormat::ColorRange_Unknown:
             case QVideoFrameFormat::ColorRange_Video:
-                colorRangeSmall = true;
+                // nothing to do: default value already set
                 break;
             case QVideoFrameFormat::ColorRange_Full:
                 colorRangeSmall = false;
                 break;
             }
-            // TODO: handle .colorTransfer()
+            colorTransfer = CT_NOOP; // color was already transferred by color space conversion
+            masteringWhite = 1.0f;
+            switch (qframe.surfaceFormat().colorTransfer()) {
+            case QVideoFrameFormat::ColorTransfer_Unknown:
+            case QVideoFrameFormat::ColorTransfer_BT709:
+            case QVideoFrameFormat::ColorTransfer_BT601:
+            case QVideoFrameFormat::ColorTransfer_Linear:
+            case QVideoFrameFormat::ColorTransfer_Gamma22:
+            case QVideoFrameFormat::ColorTransfer_Gamma28:
+                // nothing to do: default was already set
+                break;
+            case QVideoFrameFormat::ColorTransfer_ST2084:
+                colorTransfer = CT_ST2084;
+                masteringWhite = linearToPQ(qframe.surfaceFormat().maxLuminance() / 100.0f);
+                break;
+            case QVideoFrameFormat::ColorTransfer_STD_B67:
+                colorTransfer = CT_STD_B67;
+                masteringWhite = linearToHLG(qframe.surfaceFormat().maxLuminance() / 100.0f);
+                break;
+            }
             qframe.map(QVideoFrame::ReadOnly);
             planeCount = qframe.planeCount();
             for (int p = 0; p < planeCount; p++) {

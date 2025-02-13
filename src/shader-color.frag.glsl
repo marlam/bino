@@ -38,6 +38,12 @@ const int CS_AdobeRGB = 3;
 const int CS_BT2020 = 4;
 const int colorSpace = $COLOR_SPACE;
 
+const int CT_NOOP = 1;
+const int CT_ST2084 = 2;
+const int CT_STD_B67 = 3;
+const int colorTransfer = $COLOR_TRANSFER;
+uniform float masteringWhite;
+
 smooth in vec2 vtexcoord;
 
 layout(location = 0) out vec4 fcolor;
@@ -56,13 +62,13 @@ vec3 rgb_to_linear(vec3 rgb)
 
 void main(void)
 {
+    vec3 yuv = vec3(1.0, 0.0, 0.0);
     vec3 rgb = vec3(0.0, 1.0, 0.0);
     if (planeFormat == Format_RGB) {
         rgb = texture(plane0, vtexcoord).rgb;
     } else if (planeFormat == Format_Y) {
         rgb = texture(plane0, vtexcoord).rrr;
     } else {
-        vec3 yuv;
         if (planeFormat == Format_YUVp) {
             yuv = vec3(
                     texture(plane0, vtexcoord).r,
@@ -132,7 +138,55 @@ void main(void)
         }
         rgb = (m * vec4(yuv, 1.0)).rgb;
     }
-
-    rgb = rgb_to_linear(rgb);
+    if (colorTransfer == CT_ST2084 || colorTransfer == CT_STD_B67) {
+        // This code was reconstructed from the mess in qtmultimedia/src/multimedia/video;
+        // it is distributed there over various shaders and C++ files.
+        // 1. scale
+        const float maxLum = 1.0;
+        float scale = 1.0;
+        float y = (yuv.x - 16.0 / 256.0) * 256.0 / 219.0; // XXX This looks wrong!?
+        float p = y / masteringWhite;
+        float ks = 1.5 * maxLum - 0.5;
+        if (p > ks) {
+            float t = (p - ks) / (1.0 - ks);
+            float t2 = t * t;
+            float t3 = t * t2;
+            p = (2.0 * t3 - 3.0 * t2 + 1.0) * ks + (t3 - 2.0 * t2 + t) * (1.0 - ks) + (-2.0 * t3 + 3.0 * t2) * maxLum;
+            float newY = p * masteringWhite;
+            scale = newY / y;
+        }
+        rgb *= scale;
+        // 2. tonemap
+        if (colorTransfer == CT_ST2084) {
+            const vec3 one_over_m1 = vec3(8192.0 / 1305.0);
+            const vec3 one_over_m2 = vec3(32.0 / 2523.0);
+            const float c1 = 107.0 / 128.0;
+            const float c2 = 2413.0 / 128.0;
+            const float c3 = 2392.0 / 128.0;
+            vec3 e = pow(rgb, one_over_m2);
+            vec3 num = max(e - c1, 0.0);
+            vec3 den = c2 - c3 * e;
+            rgb = pow(num / den, one_over_m1) * 10000.0 / 100.0;
+        } else if (colorTransfer == CT_STD_B67) {
+            const float a = 0.17883277;
+            const float b = 0.28466892; // = 1 - 4a
+            const float c = 0.55991073; // = 0.5 - a ln(4a)
+            bvec3 cutoff = lessThan(rgb, vec3(0.5));
+            vec3 low = rgb * rgb / 3.0;
+            vec3 high = (exp((rgb - c) / a) + b) / 12.0;
+            rgb = mix(high, low, cutoff);
+            float lum = dot(rgb, vec3(0.2627, 0.6780, 0.0593));
+            float y = pow(lum, 0.2); // gamma-1 with gamma = 1.2
+            rgb *= y;
+        }
+        // 3. convert rec2020 to sRGB
+        rgb = rgb * mat3(
+                1.6605, -0.5876, -0.0728,
+                -0.1246,  1.1329, -0.0083,
+                -0.0182, -0.1006,  1.1187);
+    } else {
+        rgb = rgb_to_linear(rgb);
+    }
     fcolor = vec4(rgb, 1.0);
 }
+

@@ -88,6 +88,7 @@ private:
     int _colorPrgPlaneFormat;
     bool _colorPrgColorRangeSmall;
     int _colorPrgColorSpace;
+    int _colorPrgColorTransfer;
     QOpenGLShaderProgram _viewPrg;
     SurroundMode _viewPrgSurroundMode;
     bool _viewPrgNonlinearOutput;
@@ -100,7 +101,7 @@ private:
     bool _swapEyes;
 
     void startCaptureMode(bool withAudioInput, const QAudioDevice& audioInputDevice);
-    void rebuildColorPrgIfNecessary(int planeFormat, bool colorRangeSmall, int colorSpace);
+    void rebuildColorPrgIfNecessary(int planeFormat, bool colorRangeSmall, int colorSpace, int colorTransfer);
     void rebuildViewPrgIfNecessary(SurroundMode surroundMode, bool nonLinearOutput);
     bool drawSubtitleToImage(int w, int h, const QString& string);
     void convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex);
