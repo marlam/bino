@@ -34,6 +34,11 @@
   <url type="homepage">https://bino3d.org</url>
 
   <releases>
+    <release version="2.4" date="2025-02-13">
+      <description>
+        <p>Added support for HDR video input with tone mapping, and for zooming in surround videos.</p>
+      </description>
+    </release>
     <release version="2.3" date="2024-10-06">
       <description>
         <p>Added support for slideshow mode and improved compatibility with ARM platforms. Fixed various bugs.</p>
