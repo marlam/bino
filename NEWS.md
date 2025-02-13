@@ -1,3 +1,8 @@
+Version 2.4:
+- Added support for HDR video input.
+- Added support for zooming in surround videos.
+- Increased minimum Qt version to 6.6.
+
 Version 2.3:
 - Added support for slideshow mode.
 - Improved support for image file formats, including MPO.
