@@ -236,7 +236,7 @@ void Bino::mediaChanged(PlaylistEntry entry)
                 }
             }
             if (audioTrack >= 0) {
-                _player->setActiveVideoTrack(entry.audioTrack);
+                _player->setActiveAudioTrack(entry.audioTrack);
             }
         }
         if (entry.subtitleTrack >= 0) {
