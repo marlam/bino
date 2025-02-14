@@ -242,6 +242,8 @@ QDataStream &operator<<(QDataStream& ds, const VideoFrame& f)
         ds << static_cast<int>(f.pixelFormat);
         ds << f.colorRangeSmall;
         ds << static_cast<int>(f.colorSpace);
+        ds << static_cast<int>(f.colorTransfer);
+        ds << f.masteringWhite;
         ds << f.planeCount;
         for (int p = 0; p < f.planeCount; p++) {
             ds << f.bytesPerLine[p];
@@ -282,6 +284,9 @@ QDataStream &operator>>(QDataStream& ds, VideoFrame& f)
         ds >> f.colorRangeSmall;
         ds >> tmp;
         f.colorSpace = static_cast<enum VideoFrame::ColorSpace>(tmp);
+        ds >> tmp;
+        f.colorTransfer = static_cast<enum VideoFrame::ColorTransfer>(tmp);
+        ds >> f.masteringWhite;
         ds >> f.planeCount;
         for (int p = 0; p < 3; p++) {
             if (p < f.planeCount) {
