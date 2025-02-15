@@ -1,3 +1,6 @@
+Version 2.5:
+- Improved meta data detection via ffprobe (if available).
+
 Version 2.4:
 - Added support for HDR video input.
 - Added support for zooming in surround videos.
