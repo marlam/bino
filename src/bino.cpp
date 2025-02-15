@@ -255,7 +255,7 @@ void Bino::mediaChanged(PlaylistEntry entry)
             _player->setActiveSubtitleTrack(subtitleTrack);
         }
         _player->play();
-        _videoSink->newUrl(entry.url, entry.inputMode, entry.surroundMode);
+        _videoSink->newPlaylistEntry(entry, metaData);
     }
     emit stateChanged();
 }

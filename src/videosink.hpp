@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024
+ * Copyright (C) 2022, 2023, 2024, 2025
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,10 +21,11 @@
 #pragma once
 
 #include <QVideoSink>
-#include <QMediaMetaData>
 
 #include "modes.hpp"
 #include "videoframe.hpp"
+#include "metadata.hpp"
+#include "playlist.hpp"
 
 
 class VideoSink : public QVideoSink
@@ -43,7 +44,7 @@ public:
 
     VideoSink(VideoFrame* frame, VideoFrame* extFrame, bool* frameIsNew);
 
-    void newUrl(const QUrl& url, InputMode inputMode, SurroundMode surroundMode);
+    void newPlaylistEntry(const PlaylistEntry& entry, const MetaData& metaData);
 
 public Q_SLOTS:
     void processNewFrame(const QVideoFrame& frame);

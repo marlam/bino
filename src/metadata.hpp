@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023
+ * Copyright (C) 2022, 2023, 2024, 2025
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,10 +25,15 @@
 #include <QList>
 #include <QMediaMetaData>
 
+#include "modes.hpp"
+
 
 class MetaData
 {
 Q_DECLARE_TR_FUNCTIONS(MetaData)
+
+private:
+    void detectViaFFprobe(const QUrl& url, InputMode& defaultInputMode, SurroundMode& defaultSurroundMode);
 
 public:
     QUrl url;
@@ -36,6 +41,9 @@ public:
     QList<QMediaMetaData> videoTracks;
     QList<QMediaMetaData> audioTracks;
     QList<QMediaMetaData> subtitleTracks;
+    // additional information for each video track:
+    QList<InputMode> inputModes;
+    QList<SurroundMode> surroundModes;
 
     MetaData();
     bool detectCached(const QUrl& url, QString* errMsg = nullptr);

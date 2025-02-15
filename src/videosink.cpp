@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024
+ * Copyright (C) 2022, 2023, 2024, 2025
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,7 +21,6 @@
 #include <QUrl>
 
 #include "videosink.hpp"
-#include "tools.hpp"
 #include "log.hpp"
 
 
@@ -38,76 +37,28 @@ VideoSink::VideoSink(VideoFrame* frame, VideoFrame* extFrame, bool* frameIsNew) 
     connect(this, SIGNAL(videoFrameChanged(const QVideoFrame&)), this, SLOT(processNewFrame(const QVideoFrame&)));
 }
 
-// called whenever a new media URL is played:
-void VideoSink::newUrl(const QUrl& url, InputMode im, SurroundMode sm)
+// called whenever new media is played:
+void VideoSink::newPlaylistEntry(const PlaylistEntry& entry, const MetaData& metaData)
 {
     frameCounter = 0;
     lastFrameWasValid = false;
 
-    LOG_DEBUG("initial input mode for %s: %s", qPrintable(url.toString()), inputModeToString(im));
-    inputMode = im;
+    int vt = entry.videoTrack;
+    if (vt < 0)
+        vt = 0;
+
+    inputMode = entry.inputMode;
     if (inputMode == Input_Unknown) {
-        /* TODO: we should set the input mode from media meta data,
-         * but QMediaMetaData currently does not provide that information */
+        if (vt < metaData.inputModes.size())
+            inputMode = metaData.inputModes[vt];
     }
-    if (inputMode == Input_Unknown) {
-        /* Try to guess from the file name extension */
-        QString extension = getExtension(url);
-        if (extension == "jps" || extension == "pns") {
-            inputMode = Input_Right_Left;
-        } else if (extension == "mpo") {
-            inputMode = Input_Top_Bottom;       // this was converted; see digestiblemedia
-        }
-        if (inputMode != Input_Unknown)
-            LOG_DEBUG("setting input mode %s from file name extension %s", inputModeToString(inputMode), qPrintable(extension));
-    }
-    if (inputMode == Input_Unknown) {
-        /* Try to guess the input mode from a marker contained in the file name.
-         * This should be compatible to the Bino 1.x naming conventions. */
-        QString fileName = url.fileName();
-        QString marker = fileName.left(fileName.lastIndexOf('.'));
-        marker = marker.right(marker.length() - marker.lastIndexOf('-') - 1);
-        marker = marker.toLower();
-        if (marker == "lr")
-            inputMode = Input_Left_Right;
-        else if (marker == "rl")
-            inputMode = Input_Right_Left;
-        else if (marker == "lrh" || marker == "lrq")
-            inputMode = Input_Left_Right_Half;
-        else if (marker == "rlh" || marker == "rlq")
-            inputMode = Input_Right_Left_Half;
-        else if (marker == "tb" || marker == "ab")
-            inputMode = Input_Top_Bottom;
-        else if (marker == "bt" || marker == "ba")
-            inputMode = Input_Bottom_Top;
-        else if (marker == "tbh" || marker == "abq")
-            inputMode = Input_Top_Bottom_Half;
-        else if (marker == "bth" || marker == "baq")
-            inputMode = Input_Bottom_Top_Half;
-        else if (marker == "2d")
-            inputMode = Input_Mono;
-        if (inputMode != Input_Unknown)
-            LOG_DEBUG("setting input mode %s from file name marker %s", inputModeToString(inputMode), qPrintable(marker));
-    }
-    surroundMode = sm;
+    LOG_DEBUG("input mode for %s: %s", qPrintable(entry.url.toString()), inputModeToString(inputMode));
+    surroundMode = entry.surroundMode;
     if (surroundMode == Surround_Unknown) {
-        /* TODO: we should set the 180°/360° mode from media meta data,
-         * but QMediaMetaData currently does not provide that information */
+        if (vt < metaData.surroundModes.size())
+            surroundMode = metaData.surroundModes[vt];
     }
-    if (surroundMode == Surround_Unknown) {
-        /* Try to guess the mode from the URL. */
-        QString fileName = url.fileName();
-        int i360 = fileName.indexOf("360");
-        if (i360 >= 0 && (i360 == 0 || !fileName[i360 - 1].isLetterOrNumber()) && !fileName[i360 + 3].isLetterOrNumber()) {
-            surroundMode = Surround_360;
-        } else {
-            int i180 = fileName.indexOf("180");
-            if (i180 >= 0 && (i180 == 0 || !fileName[i180 - 1].isLetterOrNumber()) && !fileName[i180 + 3].isLetterOrNumber())
-                surroundMode = Surround_180;
-        }
-        if (surroundMode != Surround_Unknown)
-            LOG_DEBUG("guessing surround mode %s from file name %s", surroundModeToString(surroundMode), qPrintable(fileName));
-    }
+    LOG_DEBUG("surround mode for %s: %s", qPrintable(entry.url.toString()), surroundModeToString(surroundMode));
 }
 
 void VideoSink::processNewFrame(const QVideoFrame& frame)
