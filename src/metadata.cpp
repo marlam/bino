@@ -24,6 +24,7 @@
 #include <QMap>
 #include <QProcess>
 #include <QJsonDocument>
+#include <QJsonValue>
 
 #include "metadata.hpp"
 #include "tools.hpp"
