@@ -451,6 +451,15 @@ Gui::Gui(OutputMode outputMode, float surroundVerticalFOV, bool fullscreen) :
     connect(helpAboutAction, SIGNAL(triggered()), this, SLOT(helpAbout()));
     addBinoAction(helpAboutAction, helpMenu);
 
+    // create seekbar
+    _toolBar = new QToolBar(_widget);
+    _toolBarSlider = new QSlider(Qt::Horizontal, _toolBar);
+    connect(_toolBarSlider, SIGNAL(sliderReleased()), this, SLOT(sliderReleased()));
+    connect(_toolBarSlider, SIGNAL(sliderMoved(int)), this, SLOT(sliderMoved(int)));
+    connect(Bino::instance(), SIGNAL(updatePlayerPosition(qint64)), this, SLOT(updateSliderPosition(qint64)));
+    _toolBar->addWidget(_toolBarSlider);
+    addToolBar(Qt::BottomToolBarArea, _toolBar);
+
     updateActions();
     connect(Bino::instance(), SIGNAL(stateChanged()), this, SLOT(updateActions()));
 
@@ -959,7 +968,37 @@ void Gui::updateActions()
     _mediaSeekFwd10MinsAction->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
     _mediaSeekBwd10MinsAction->setEnabled(Bino::instance()->playlistMode() && !Bino::instance()->stopped());
 
+    if ( Bino::instance()->playlistMode() ) {
+        _toolBarSlider->setRange(0, Bino::instance()->duration());
+    } else {
+        _toolBarSlider->setRange(0, 0);
+    }
+
     _widget->update();
+}
+
+void Gui::sliderReleased()
+{
+    if ( Bino::instance()->playlistMode() ) {
+        Bino::instance()->play();
+    }
+}
+
+void Gui::sliderMoved(int value)
+{
+    if ( Bino::instance()->playlistMode() ) {
+        qint64 val = value;
+        if ( 0 <= val && val < Bino::instance()->duration() )
+            Bino::instance()->setPosition(val);
+    }
+}
+
+void Gui::updateSliderPosition(qint64 position)
+{
+    if ( Bino::instance()->playlistMode() ) {
+        _toolBarSlider->setSliderPosition(position);
+        _widget->update();
+    }
 }
 
 void Gui::setOutputMode(OutputMode mode)
