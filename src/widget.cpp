@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024
+ * Copyright (C) 2022, 2023, 2024, 2025
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,6 +35,13 @@
 #endif
 #ifndef GL_BACK_RIGHT
 # define GL_BACK_RIGHT 0x0403
+#endif
+/* These might not be defined on Mac OS. Use crude replacements. */
+#ifndef GL_MAX_FRAMEBUFFER_WIDTH
+# define GL_MAX_FRAMEBUFFER_WIDTH GL_MAX_TEXTURE_SIZE
+#endif
+#ifndef GL_MAX_FRAMEBUFFER_HEIGHT
+# define GL_MAX_FRAMEBUFFER_HEIGHT GL_MAX_TEXTURE_SIZE
 #endif
 
 
