@@ -35,6 +35,7 @@
 #include <QSurfaceFormat>
 #include <QOpenGLContext>
 #include <QWindowCapture>
+#include <QtSystemDetection>
 #include <QtProcessorDetection>
 
 #ifdef WITH_QVR
@@ -638,8 +639,12 @@ int main(int argc, char* argv[])
     format.setAlphaBufferSize(0);
     format.setStencilBufferSize(0);
     bool wantOpenGLES = parser.isSet("opengles");
-#if defined Q_PROCESSOR_ARM
+#if defined Q_OS_LINUX
+# if defined Q_PROCESSOR_ARM
+    // Use OpenGL ES by default on Linux/ARM, for Raspberry Pi 5 which has crappy desktop GL.
+    // But don't do this on other systems. For example, MacOS on ARM needs desktop GL.
     wantOpenGLES = true;
+# endif
 #endif
     if (wantOpenGLES)
         format.setRenderableType(QSurfaceFormat::OpenGLES);
