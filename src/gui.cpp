@@ -482,21 +482,35 @@ void Gui::fileOpen()
 {
     QStringList names = QFileDialog::getOpenFileNames(this);
     if (!names.isEmpty()) {
-        bool playlistWasEmpty = Playlist::instance()->length() == 0;
-        Bino::instance()->startPlaylistMode();
-        for (int i = 0; i < names.size(); i++) {
-            QUrl url = QUrl::fromLocalFile(names[i]);
+        if (names.size() == 1) {
+            QUrl url = QUrl::fromLocalFile(names[0]);
             MetaData metaData;
             QString errMsg;
             if (metaData.detectCached(url, &errMsg)) {
+                Bino::instance()->startPlaylistMode();
+                Playlist::instance()->clear();
                 Playlist::instance()->append(url);
+                Playlist::instance()->start();
             } else {
                 QMessageBox::critical(this, tr("Error"), errMsg);
             }
+        } else {
+            bool playlistWasEmpty = Playlist::instance()->length() == 0;
+            Bino::instance()->startPlaylistMode();
+            for (int i = 0; i < names.size(); i++) {
+                QUrl url = QUrl::fromLocalFile(names[i]);
+                MetaData metaData;
+                QString errMsg;
+                if (metaData.detectCached(url, &errMsg)) {
+                    Playlist::instance()->append(url);
+                } else {
+                    QMessageBox::critical(this, tr("Error"), errMsg);
+                }
+            }
+            Playlist::instance()->setWaitModeAuto();
+            if (playlistWasEmpty)
+                Playlist::instance()->next();
         }
-        Playlist::instance()->setWaitModeAuto();
-        if (playlistWasEmpty)
-            Playlist::instance()->next();
     }
 }
 
