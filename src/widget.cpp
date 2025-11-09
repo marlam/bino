@@ -28,14 +28,6 @@
 #include "tools.hpp"
 #include "log.hpp"
 
-/* These might not be defined in OpenGL ES environments.
- * Define them here to fix compilation. */
-#ifndef GL_BACK_LEFT
-# define GL_BACK_LEFT 0x0402
-#endif
-#ifndef GL_BACK_RIGHT
-# define GL_BACK_RIGHT 0x0403
-#endif
 /* These might not be defined on Mac OS. Use crude replacements. */
 #ifndef GL_MAX_FRAMEBUFFER_WIDTH
 # define GL_MAX_FRAMEBUFFER_WIDTH GL_MAX_TEXTURE_SIZE
@@ -331,7 +323,6 @@ void Widget::paintGL()
     }
 
     // Put the views on screen in the current mode
-    glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
     glViewport(0, 0, width, height);
     glDisable(GL_DEPTH_TEST);
     float relWidth = 1.0f;
@@ -361,26 +352,25 @@ void Widget::paintGL()
     glBindVertexArray(_quadVao);
     if (_openGLStereo) {
         LOG_FIREHOSE("widget draw mode: opengl stereo");
-        GLenum bufferBackLeft = GL_BACK_LEFT;
-        GLenum bufferBackRight = GL_BACK_RIGHT;
         if (outputMode == Output_OpenGL_Stereo) {
-            glDrawBuffers(1, &bufferBackLeft);
+            glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject(QOpenGLWidget::LeftBuffer));
             _displayPrg.setUniformValue("outputModeLeftRightView", 0);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-            glDrawBuffers(1, &bufferBackRight);
+            glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject(QOpenGLWidget::RightBuffer));
             _displayPrg.setUniformValue("outputModeLeftRightView", 1);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
         } else {
             if (outputMode == Output_Alternating)
                 outputMode = (_alternatingLastView == 0 ? Output_Right : Output_Left);
             _displayPrg.setUniformValue("outputModeLeftRightView", outputMode == Output_Left ? 0 : 1);
-            glDrawBuffers(1, &bufferBackLeft);
+            glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject(QOpenGLWidget::LeftBuffer));
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-            glDrawBuffers(1, &bufferBackRight);
+            glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject(QOpenGLWidget::RightBuffer));
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
         }
     } else {
         LOG_FIREHOSE("widget draw mode: normal");
+        glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
         if (outputMode == Output_Alternating)
             outputMode = (_alternatingLastView == 0 ? Output_Right : Output_Left);
         _displayPrg.setUniformValue("outputModeLeftRightView", outputMode == Output_Left ? 0 : 1);
