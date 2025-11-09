@@ -21,6 +21,7 @@
 #include <cstdio>
 
 #include <QApplication>
+#include <QSettings>
 #include <QTranslator>
 #include <QCommandLineParser>
 #include <QFileInfo>
@@ -106,6 +107,10 @@ int main(int argc, char* argv[])
     if (binoTranslator.load(QLocale(), "bino", "_", ":/i18n")) {
         app.installTranslator(&binoTranslator);
     }
+    QCoreApplication::setOrganizationName("Bino3D");
+    QCoreApplication::setOrganizationDomain("bino3d.org");
+    QCoreApplication::setApplicationName("Bino");
+    QSettings settings;
 
     // Process command line
     QCommandLineParser parser;
@@ -706,6 +711,14 @@ int main(int argc, char* argv[])
         return 1;
 #endif
     } else {
+        // Restore GUI settings unless they were overwritten on the command line
+        if (!parser.isSet("output")) {
+            bool ok = false;
+            OutputMode om = outputModeFromString(qPrintable(settings.value("OutputMode").toString()), &ok);
+            if (ok)
+                outputMode = om;
+        }
+        // Start the GUI
         Gui gui(outputMode, surroundVerticalFOV, parser.isSet("fullscreen"));
         gui.show();
         // wait for several seconds to process all events before starting

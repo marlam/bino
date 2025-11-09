@@ -19,11 +19,13 @@
  */
 
 #include <QGuiApplication>
+#include <QSettings>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QContextMenuEvent>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QLabel>
 #include <QLineEdit>
 #include <QGridLayout>
@@ -480,13 +482,16 @@ Gui* Gui::instance()
 
 void Gui::fileOpen()
 {
-    QStringList names = QFileDialog::getOpenFileNames(this);
+    QSettings settings;
+    QString lastOpenDir = settings.value("Directory").toString();
+    QStringList names = QFileDialog::getOpenFileNames(this, QString(), lastOpenDir);
     if (!names.isEmpty()) {
         if (names.size() == 1) {
             QUrl url = QUrl::fromLocalFile(names[0]);
             MetaData metaData;
             QString errMsg;
             if (metaData.detectCached(url, &errMsg)) {
+                settings.setValue("Directory", QFileInfo(names.last()).absolutePath());
                 Bino::instance()->startPlaylistMode();
                 Playlist::instance()->clear();
                 Playlist::instance()->append(url);
@@ -502,6 +507,7 @@ void Gui::fileOpen()
                 MetaData metaData;
                 QString errMsg;
                 if (metaData.detectCached(url, &errMsg)) {
+                    settings.setValue("Directory", QFileInfo(names.last()).absolutePath());
                     Playlist::instance()->append(url);
                 } else {
                     QMessageBox::critical(this, tr("Error"), errMsg);
@@ -675,18 +681,24 @@ void Gui::trackSubtitle()
 
 void Gui::playlistLoad()
 {
-    QString name = QFileDialog::getOpenFileName(this, QString(), QString(), tr("Playlists (*.m3u)"));
+    QSettings settings;
+    QString lastOpenDir = settings.value("Directory").toString();
+    QString name = QFileDialog::getOpenFileName(this, QString(), lastOpenDir, tr("Playlists (*.m3u)"));
     if (!name.isEmpty()) {
         QString errStr;
         if (!Playlist::instance()->load(name, errStr)) {
             QMessageBox::critical(this, tr("Error"), errStr);
+        } else {
+            settings.setValue("Directory", QFileInfo(name).absolutePath());
         }
     }
 }
 
 void Gui::playlistSave()
 {
-    QFileDialog fileDialog(this, QString(), QString(), tr("Playlists (*.m3u)"));
+    QSettings settings;
+    QString lastOpenDir = settings.value("Directory").toString();
+    QFileDialog fileDialog(this, QString(), lastOpenDir, tr("Playlists (*.m3u)"));
     fileDialog.setDefaultSuffix(".m3u");
     fileDialog.setAcceptMode(QFileDialog::AcceptSave);
     if (fileDialog.exec()) {
@@ -694,6 +706,8 @@ void Gui::playlistSave()
         QString errStr;
         if (!Playlist::instance()->save(name, errStr)) {
             QMessageBox::critical(this, tr("Error"), errStr);
+        } else {
+            settings.setValue("Directory", QFileInfo(name).absolutePath());
         }
     }
 }
@@ -751,6 +765,8 @@ void Gui::threeDOutput()
     QAction* a = _3dOutputActionGroup->checkedAction();
     if (a) {
         _widget->setOutputMode(static_cast<OutputMode>(a->data().toInt()));
+        QSettings settings;
+        settings.setValue("OutputMode", outputModeToString(_widget->outputMode()));
         _widget->update();
     }
 }
