@@ -204,7 +204,7 @@ void VideoFrame::update(InputMode im, SurroundMode sm, const QVideoFrame& frame,
         subtitle.replace(QLatin1Char('\n'), QChar::LineSeparator); // qvideoframe.cpp does this
     } else {
         // Synthesize a black frame
-        inputMode = Input_Mono;
+        inputMode = Input_Unknown;
         surroundMode = Surround_Off;
         width = 1;
         height = 1;
