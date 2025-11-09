@@ -869,7 +869,7 @@ void Gui::helpAbout()
             + QString("<br>")
             + QString("<a href=\"https://bino3d.org\">https://bino3d.org</a>")
             + QString("</p><p>")
-            + tr("Copyright (C) %1 Martin Lambers").arg(2023)
+            + tr("Copyright (C) %1 Martin Lambers").arg(2025)
             + QString("<br>")
             + tr("This is free software. You may redistribute copies of it "
                 "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
