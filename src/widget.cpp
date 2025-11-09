@@ -66,7 +66,7 @@ Widget::Widget(OutputMode outputMode, float surroundVerticalFOV, QWidget* parent
 
 bool Widget::isOpenGLStereo() const
 {
-    return context()->format().stereo();
+    return (context() ? context()->format().stereo() : false);
 }
 
 OutputMode Widget::outputMode() const
