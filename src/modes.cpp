@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024
+ * Copyright (C) 2022, 2023, 2024, 2025
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -403,7 +403,7 @@ OutputMode outputModeFromString(const QString& s, bool* ok)
         mode = Output_OpenGL_Stereo;
     else if (s == "alternating")
         mode = Output_Alternating;
-    else if (s == "hmdi-frame-pack")
+    else if (s == "hdmi-frame-pack")
         mode = Output_HDMI_Frame_Pack;
     else if (s == "left-right")
         mode = Output_Left_Right;
