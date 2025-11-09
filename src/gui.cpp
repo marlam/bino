@@ -459,6 +459,7 @@ Gui::Gui(OutputMode outputMode, float surroundVerticalFOV, bool fullscreen) :
     connect(_widget, SIGNAL(toggleFullscreen()), this, SLOT(viewToggleFullscreen()));
     setCentralWidget(_widget);
     _widget->show();
+    _widget->setFocus();
 
     connect(Bino::instance(), SIGNAL(wantQuit()), this, SLOT(fileQuit()));
 
@@ -837,10 +838,12 @@ void Gui::viewToggleFullscreen()
         showNormal();
         menuBar()->show();
         activateWindow();
+        _widget->setFocus();
     } else {
         menuBar()->hide();
         showFullScreen();
         activateWindow();
+        _widget->setFocus();
     }
 }
 
