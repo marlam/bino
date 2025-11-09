@@ -123,8 +123,6 @@ int main(int argc, char* argv[])
             QCommandLineParser::tr("Read commands from a script file."), "script" });
     parser.addOption({ "opengles",
             QCommandLineParser::tr("Use OpenGL ES instead of Desktop OpenGL.") });
-    parser.addOption({ "stereo",
-            QCommandLineParser::tr("Use OpenGL quad-buffered stereo in GUI mode.")});
     parser.addOption({ "vr",
             QCommandLineParser::tr("Start in VR mode instead of GUI mode.")});
     parser.addOption({ "vr-screen",
@@ -655,18 +653,8 @@ int main(int argc, char* argv[])
         format.setProfile(QSurfaceFormat::CoreProfile);
         format.setVersion(3, 3);
     }
-    if (guiMode && (parser.isSet("stereo") || parser.value("output") == "stereo")) {
-        // The user has to explicitly request stereo mode, we cannot simply
-        // try it and fall back to normal mode if it is not available:
-        // Somehow Qt messes up something in the OpenGL context or widget setup
-        // when stereo was requested but is not available. This was a problem at
-        // least from Qt 5.7-5.9 (see comments in Bino 1.x src/video_output_qt.cpp),
-        // and now again with Qt 6.3.
-        // So now we only try to use it when explicitly requested, and we immediately
-        // quit when we don't get it (see Bino::initializeGL).
-        format.setStereo(true);
-        if (!parser.isSet("output"))
-            outputMode = Output_OpenGL_Stereo;
+    if (guiMode) {
+        format.setStereo(true); // Try to get quad-buffered stereo; it's ok if this fails
     }
     QSurfaceFormat::setDefaultFormat(format);
 

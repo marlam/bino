@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024
+ * Copyright (C) 2022, 2023, 2024, 2025
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,7 +36,6 @@ private:
     int _width, _height;
 
     OutputMode _outputMode;
-    bool _openGLStereo;       // is this widget in quad-buffered stereo mode?
     int _alternatingLastView; // last view displayed in Mode_Alternating (0 or 1)
 
     float _surroundVerticalFOVDefault;

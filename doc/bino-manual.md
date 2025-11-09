@@ -1,7 +1,7 @@
 ---
 title: Bino
-header: Version 2.5
-date: Feburary 15, 2025
+header: Version 2.6
+date: November 9, 2025
 section: 1
 ---
 
@@ -47,10 +47,6 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 - `--opengles`
 
   Use OpenGL ES instead of Desktop OpenGL.
-
-- `--stereo`
-
-  Use OpenGL quad-buffered stereo in GUI mode.
 
 - `--vr`
 

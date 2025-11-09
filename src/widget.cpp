@@ -43,7 +43,6 @@ Widget::Widget(OutputMode outputMode, float surroundVerticalFOV, QWidget* parent
     QOpenGLWidget(parent),
     _sizeHint(0.5f * SizeBase),
     _outputMode(outputMode),
-    _openGLStereo(QSurfaceFormat::defaultFormat().stereo()),
     _alternatingLastView(1),
     _inSurroundMovement(false),
     _surroundHorizontalAngleBase(0.0f),
@@ -67,7 +66,7 @@ Widget::Widget(OutputMode outputMode, float surroundVerticalFOV, QWidget* parent
 
 bool Widget::isOpenGLStereo() const
 {
-    return _openGLStereo;
+    return context()->format().stereo();
 }
 
 OutputMode Widget::outputMode() const
@@ -107,7 +106,7 @@ void Widget::initializeGL()
         QMessageBox::critical(this, tr("Error"), tr("Insufficient OpenGL capabilities."));
         std::exit(1);
     }
-    if (QSurfaceFormat::defaultFormat().stereo() && !context()->format().stereo()) {
+    if (outputMode() == Output_OpenGL_Stereo && !isOpenGLStereo()) {
         LOG_FATAL("%s", qPrintable(tr("OpenGL stereo mode is not available on this system.")));
         QMessageBox::critical(this, tr("Error"), tr("OpenGL stereo mode is not available on this system."));
         std::exit(1);
@@ -350,7 +349,7 @@ void Widget::paintGL()
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, _viewTex[1]);
     glBindVertexArray(_quadVao);
-    if (_openGLStereo) {
+    if (isOpenGLStereo()) {
         LOG_FIREHOSE("widget draw mode: opengl stereo");
         if (outputMode == Output_OpenGL_Stereo) {
             glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject(QOpenGLWidget::LeftBuffer));
