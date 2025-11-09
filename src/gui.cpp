@@ -839,11 +839,13 @@ void Gui::viewToggleFullscreen()
         menuBar()->show();
         activateWindow();
         _widget->setFocus();
+        QGuiApplication::processEvents();
     } else {
         menuBar()->hide();
         showFullScreen();
         activateWindow();
         _widget->setFocus();
+        QGuiApplication::processEvents();
     }
 }
 
