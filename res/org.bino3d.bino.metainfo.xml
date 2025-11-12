@@ -34,6 +34,11 @@
   <url type="homepage">https://bino3d.org</url>
 
   <releases>
+    <release version="2.6" date="2025-11-09">
+      <description>
+        <p>Improvements to the user interface and improved support for OpenGL quad-buffered stereo mode.</p>
+      </description>
+    </release>
     <release version="2.5" date="2025-02-15">
       <description>
         <p>Improved meta data detection, for automatic selection of stereoscopic 3D and surround modes.</p>

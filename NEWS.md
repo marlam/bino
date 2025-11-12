@@ -1,3 +1,8 @@
+Version 2.6:
+- Improved portability to Mac OS
+- Improved and fixed OpenGL quad-buffered stereo support
+- The GUI now remembers the last 3D output mode and the last directory
+
 Version 2.5:
 - Improved meta data detection via ffprobe (if available).
 
