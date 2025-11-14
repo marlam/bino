@@ -137,6 +137,7 @@ public:
     void quit();
     void seek(qint64 milliseconds);
     void setPosition(float pos);
+    void setPosition(qint64 pos);
     void togglePause();
     void pause();
     void play();
@@ -159,6 +160,7 @@ public:
     bool paused() const;
     bool playing() const;
     bool stopped() const;
+    qint64 duration() const;
     QUrl url() const;
     int videoTrack() const;
     int audioTrack() const;
@@ -204,4 +206,6 @@ signals:
     void toggleFullscreen();
     void stateChanged();
     void wantQuit();
+    void updatePlayerPosition(qint64);
+    
 };
