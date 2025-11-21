@@ -635,21 +635,24 @@ void Gui::fileOpenCamera()
                     : QMediaDevices::defaultAudioInput(),
                     videoInputDeviceIndex >= 0
                     ? videoInputDevices[videoInputDeviceIndex]
-                    : QMediaDevices::defaultVideoInput());
+                    : QMediaDevices::defaultVideoInput(),
+                    Input_Unknown);
         } else if (screenBtn->isChecked()) {
             int screenInputDeviceIndex = screenBox->currentIndex();
             Bino::instance()->startCaptureModeScreen(audioInputDeviceIndex >= -1,
                     audioInputDeviceIndex >= 0
                     ? audioInputDevices[audioInputDeviceIndex]
                     : QMediaDevices::defaultAudioInput(),
-                    screenInputDevices[screenInputDeviceIndex]);
+                    screenInputDevices[screenInputDeviceIndex],
+                    Input_Unknown);
         } else if (windowBtn->isChecked()) {
             int windowInputDeviceIndex = windowBox->currentIndex();
             Bino::instance()->startCaptureModeWindow(audioInputDeviceIndex >= -1,
                     audioInputDeviceIndex >= 0
                     ? audioInputDevices[audioInputDeviceIndex]
                     : QMediaDevices::defaultAudioInput(),
-                    windowInputDevices[windowInputDeviceIndex]);
+                    windowInputDevices[windowInputDeviceIndex],
+                    Input_Unknown);
         }
     }
 }

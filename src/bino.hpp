@@ -100,7 +100,7 @@ private:
     bool _frameWasSerialized;
     bool _swapEyes;
 
-    void startCaptureMode(bool withAudioInput, const QAudioDevice& audioInputDevice);
+    void startCaptureMode(bool withAudioInput, const QAudioDevice& audioInputDevice, InputMode inputMode);
     void rebuildColorPrgIfNecessary(int planeFormat, bool colorRangeSmall, int colorSpace, int colorTransfer);
     void rebuildViewPrgIfNecessary(SurroundMode surroundMode, bool nonLinearOutput);
     bool drawSubtitleToImage(int w, int h, const QString& string);
@@ -120,15 +120,18 @@ public:
     void startCaptureModeCamera(
             bool withAudioInput,
             const QAudioDevice& audioInputDevice,
-            const QCameraDevice& videoInputDevice);
+            const QCameraDevice& videoInputDevice,
+            InputMode inputMode);
     void startCaptureModeScreen(
             bool withAudioInput,
             const QAudioDevice& audioInputDevice,
-            QScreen* screenInputDevice);
+            QScreen* screenInputDevice,
+            InputMode inputMode);
     void startCaptureModeWindow(
             bool withAudioInput,
             const QAudioDevice& audioInputDevice,
-            const QCapturableWindow& windowInputDevice);
+            const QCapturableWindow& windowInputDevice,
+            InputMode inputMode);
     void stopCaptureMode();
     bool playlistMode() const;
     bool captureMode() const;

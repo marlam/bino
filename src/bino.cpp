@@ -122,7 +122,7 @@ void Bino::stopPlaylistMode()
     }
 }
 
-void Bino::startCaptureMode(bool withAudioInput, const QAudioDevice& audioInputDevice)
+void Bino::startCaptureMode(bool withAudioInput, const QAudioDevice& audioInputDevice, InputMode inputMode)
 {
     if (playlistMode())
         stopPlaylistMode();
@@ -137,14 +137,16 @@ void Bino::startCaptureMode(bool withAudioInput, const QAudioDevice& audioInputD
         _audioInput->setDevice(audioInputDevice);
         _captureSession->setAudioInput(_audioInput);
     }
+    setInputMode(inputMode);
 }
 
 void Bino::startCaptureModeCamera(
         bool withAudioInput,
         const QAudioDevice& audioInputDevice,
-        const QCameraDevice& videoInputDevice)
+        const QCameraDevice& videoInputDevice,
+        InputMode inputMode)
 {
-    startCaptureMode(withAudioInput, audioInputDevice);
+    startCaptureMode(withAudioInput, audioInputDevice, inputMode);
     _videoInput = new QCamera;
     _videoInput->setCameraDevice(videoInputDevice);
     _captureSession->setCamera(_videoInput);
@@ -155,9 +157,10 @@ void Bino::startCaptureModeCamera(
 void Bino::startCaptureModeScreen(
         bool withAudioInput,
         const QAudioDevice& audioInputDevice,
-        QScreen* screenInputDevice)
+        QScreen* screenInputDevice,
+        InputMode inputMode)
 {
-    startCaptureMode(withAudioInput, audioInputDevice);
+    startCaptureMode(withAudioInput, audioInputDevice, inputMode);
     _screenInput = new QScreenCapture;
     _screenInput->setScreen(screenInputDevice);
     _captureSession->setScreenCapture(_screenInput);
@@ -168,9 +171,10 @@ void Bino::startCaptureModeScreen(
 void Bino::startCaptureModeWindow(
         bool withAudioInput,
         const QAudioDevice& audioInputDevice,
-        const QCapturableWindow& windowInputDevice)
+        const QCapturableWindow& windowInputDevice,
+        InputMode inputMode)
 {
-    startCaptureMode(withAudioInput, audioInputDevice);
+    startCaptureMode(withAudioInput, audioInputDevice, inputMode);
     _windowInput = new QWindowCapture;
     _windowInput->setWindow(windowInputDevice);
     _captureSession->setWindowCapture(_windowInput);

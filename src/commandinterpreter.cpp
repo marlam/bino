@@ -193,6 +193,7 @@ void CommandInterpreter::processNextCommand()
         }
     } else if (cmd.startsWith("capture") && (cmd[7] == '\0' || cmd[7] == ' ')) {
         QCommandLineParser parser;
+        parser.addOption({ "input", "", "x" });
         parser.addOption({ "audio-input", "", "x" });
         parser.addOption({ "video-input", "", "x" });
         parser.addOption({ "screen-input", "", "x" });
@@ -201,6 +202,7 @@ void CommandInterpreter::processNextCommand()
             LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
         } else {
             bool ok;
+            InputMode inputMode = Input_Unknown;
             QList<QAudioDevice> audioInputDevices;
             QList<QCameraDevice> videoInputDevices;
             QList<QScreen*> screenInputDevices;
@@ -209,6 +211,11 @@ void CommandInterpreter::processNextCommand()
             int videoInputDeviceIndex = -1;
             int screenInputDeviceIndex = -1;
             int windowInputDeviceIndex = -1;
+            if (parser.isSet("input")) {
+                inputMode = inputModeFromString(parser.value("input"), &ok);
+                if (!ok)
+                    LOG_FATAL("%s", qPrintable(QCommandLineParser::tr("Invalid argument for option %1").arg("--input")));
+            }
             if (parser.isSet("audio-input")) {
                 if (parser.value("audio-input").length() == 0) {
                     audioInputDeviceIndex = -2; // this means no audio input
@@ -261,19 +268,22 @@ void CommandInterpreter::processNextCommand()
                             : QMediaDevices::defaultAudioInput(),
                             videoInputDeviceIndex >= 0
                             ? videoInputDevices[videoInputDeviceIndex]
-                            : QMediaDevices::defaultVideoInput());
+                            : QMediaDevices::defaultVideoInput(),
+                            inputMode);
                 } else if (screenInputDeviceIndex >= 0) {
                     Bino::instance()->startCaptureModeScreen(audioInputDeviceIndex >= -1,
                             audioInputDeviceIndex >= 0
                             ? audioInputDevices[audioInputDeviceIndex]
                             : QMediaDevices::defaultAudioInput(),
-                            screenInputDevices[screenInputDeviceIndex]);
+                            screenInputDevices[screenInputDeviceIndex],
+                            inputMode);
                 } else {
                     Bino::instance()->startCaptureModeWindow(audioInputDeviceIndex >= -1,
                             audioInputDeviceIndex >= 0
                             ? audioInputDevices[audioInputDeviceIndex]
                             : QMediaDevices::defaultAudioInput(),
-                            windowInputDevices[windowInputDeviceIndex]);
+                            windowInputDevices[windowInputDeviceIndex],
+                            inputMode);
                 }
             }
         }

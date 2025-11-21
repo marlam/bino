@@ -677,19 +677,22 @@ int main(int argc, char* argv[])
                         : QMediaDevices::defaultAudioInput(),
                         videoInputDeviceIndex >= 0
                         ? videoInputDevices[videoInputDeviceIndex]
-                        : QMediaDevices::defaultVideoInput());
+                        : QMediaDevices::defaultVideoInput(),
+                        inputMode);
             } else if (screenInputDeviceIndex >= 0) {
                 bino.startCaptureModeScreen(audioInputDeviceIndex >= -1,
                         audioInputDeviceIndex >= 0
                         ? audioInputDevices[audioInputDeviceIndex]
                         : QMediaDevices::defaultAudioInput(),
-                        screenInputDevices[screenInputDeviceIndex]);
+                        screenInputDevices[screenInputDeviceIndex],
+                        inputMode);
             } else {
                 bino.startCaptureModeWindow(audioInputDeviceIndex >= -1,
                         audioInputDeviceIndex >= 0
                         ? audioInputDevices[audioInputDeviceIndex]
                         : QMediaDevices::defaultAudioInput(),
-                        windowInputDevices[windowInputDeviceIndex]);
+                        windowInputDevices[windowInputDeviceIndex],
+                        inputMode);
             }
         } else {
             bino.startPlaylistMode();
