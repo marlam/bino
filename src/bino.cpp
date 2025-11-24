@@ -109,6 +109,10 @@ void Bino::startPlaylistMode()
             if (state == QMediaPlayer::StoppedState)
                 Playlist::instance()->mediaEnded();
             });
+    _player->connect(_player, &QMediaPlayer::positionChanged,
+            [=](qint64 position) {
+                emit updatePlayerPosition(position);
+            });
 
     emit stateChanged();
 }
@@ -285,6 +289,13 @@ void Bino::setPosition(float pos)
     _player->setPosition(pos * _player->duration());
 }
 
+void Bino::setPosition(qint64 pos)
+{
+    if (!playlistMode())
+        return;
+    _player->setPosition(pos);
+}
+
 void Bino::togglePause()
 {
     if (!playlistMode())
@@ -435,6 +446,11 @@ bool Bino::playing() const
 bool Bino::stopped() const
 {
     return (playlistMode() && _player->playbackState() == QMediaPlayer::StoppedState);
+}
+
+qint64 Bino::duration() const
+{
+    return _player->duration();
 }
 
 QUrl Bino::url() const
