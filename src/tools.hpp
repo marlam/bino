@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024
+ * Copyright (C) 2022, 2023, 2024, 2025
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,8 +26,11 @@
 #include <QOpenGLExtraFunctions>
 
 // Global boolean variable that tells if the OpenGL flavor is OpenGL ES or desktop GL
-extern bool IsOpenGLES;
-void initializeIsOpenGLES(const QSurfaceFormat& format);
+typedef enum {
+    OpenGL_Type_WebGL, OpenGL_Type_OpenGLES, OpenGL_Type_Desktop
+} OpenGL_Type;
+extern OpenGL_Type OpenGLType;
+void initializeOpenGLType(const QSurfaceFormat& format);
 
 // Read a complete file into a QString (without error checking;
 // intended to be used for resource files)
@@ -55,6 +58,17 @@ bool checkTextureAnisotropicFilterAvailability();
 #if __APPLE__
     #undef  GL_LINEAR_MIPMAP_LINEAR
     #define GL_LINEAR_MIPMAP_LINEAR GL_LINEAR
+#endif
+
+// Some fixups for WebGL
+// TODO: these are not correct; each case hase to be fixed individually
+#ifdef Q_OS_WASM
+# define GL_CLAMP_TO_BORDER GL_CLAMP_TO_EDGE
+# define GL_RGBA16 GL_RGBA
+# define GL_RGB16 GL_RGB
+# define GL_RG16 GL_RG
+# define GL_R16 GL_RED
+# define GL_BGRA GL_RGBA
 #endif
 
 // Shortcut to get a string from OpenGL

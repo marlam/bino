@@ -4,7 +4,7 @@
  * Copyright (C) 2016, 2017, 2018, 2019, 2020, 2021, 2022
  * Computer Graphics Group, University of Siegen
  * Written by Martin Lambers <martin.lambers@uni-siegen.de>
- * Copyright (C) 2022, 2023, 2024
+ * Copyright (C) 2022, 2023, 2024, 2025
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -118,7 +118,7 @@ bool BinoQVRApp::initProcess(QVRProcess*)
     // Shader program
     QString vrdeviceVS = readFile(":src/shader-vrdevice.vert.glsl");
     QString vrdeviceFS = readFile(":src/shader-vrdevice.frag.glsl");
-    if (IsOpenGLES) {
+    if (OpenGLType != OpenGL_Type_Desktop) {
         vrdeviceVS.prepend("#version 300 es\n");
         vrdeviceFS.prepend("#version 300 es\n"
                 "precision mediump float;\n");

@@ -22,9 +22,11 @@
 #include <QGuiApplication>
 #include <QThread>
 #include <QMap>
-#include <QProcess>
 #include <QJsonDocument>
 #include <QJsonValue>
+#ifndef Q_OS_WASM
+# include <QProcess>
+#endif
 
 #include "metadata.hpp"
 #include "tools.hpp"
@@ -137,6 +139,7 @@ bool MetaData::detectCached(const QUrl& url, QString* errMsg)
 
 void MetaData::detectViaFFprobe(const QUrl& url, InputMode& defaultInputMode, SurroundMode& defaultSurroundMode)
 {
+#ifndef Q_OS_WASM
     /* Detection via ffprobe (if available) */
     if (haveFFprobe == -1) {
         // check once whether we can run ffprobe
@@ -228,4 +231,5 @@ void MetaData::detectViaFFprobe(const QUrl& url, InputMode& defaultInputMode, Su
                     prc.exitStatus() == QProcess::NormalExit ? 0 : 1, prc.exitCode());
         }
     }
+#endif
 }

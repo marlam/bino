@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024
+ * Copyright (C) 2022, 2023, 2024, 2025
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,11 +26,16 @@
 #include "tools.hpp"
 
 
-bool IsOpenGLES;
-void initializeIsOpenGLES(const QSurfaceFormat& format)
+OpenGL_Type OpenGLType;
+void initializeOpenGLType(const QSurfaceFormat& format)
 {
-    IsOpenGLES = (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGLES
-            || format.renderableType() == QSurfaceFormat::OpenGLES);
+#ifdef Q_OS_WASM
+    OpenGLType = OpenGL_Type_WebGL;
+#else
+    OpenGLType = (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGLES
+            || format.renderableType() == QSurfaceFormat::OpenGLES)
+        ? OpenGL_Type_OpenGLES : OpenGL_Type_Desktop;
+#endif
 }
 
 QString readFile(const char* fileName)

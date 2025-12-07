@@ -100,12 +100,14 @@ QSize Widget::sizeHint() const
 
 void Widget::initializeGL()
 {
+#ifndef Q_OS_WASM
     bool contextIsOk = (context()->isValid() && context()->format().majorVersion() >= 3);
     if (!contextIsOk) {
         LOG_FATAL("%s", qPrintable(tr("Insufficient OpenGL capabilities.")));
         QMessageBox::critical(this, tr("Error"), tr("Insufficient OpenGL capabilities."));
         std::exit(1);
     }
+#endif
     if (outputMode() == Output_OpenGL_Stereo && !isOpenGLStereo()) {
         LOG_FATAL("%s", qPrintable(tr("OpenGL stereo mode is not available on this system.")));
         QMessageBox::critical(this, tr("Error"), tr("OpenGL stereo mode is not available on this system."));
@@ -116,8 +118,8 @@ void Widget::initializeGL()
     initializeOpenGLFunctions();
     bool isCoreProfile = (QOpenGLContext::currentContext()->format().profile() == QSurfaceFormat::CoreProfile);
 
-    QString variantString = IsOpenGLES ? "OpenGL ES" : "OpenGL";
-    if (!IsOpenGLES)
+    QString variantString = (OpenGLType == OpenGL_Type_WebGL ? "WebGL" : OpenGLType == OpenGL_Type_OpenGLES ? "ES" : "Desktop");
+    if (OpenGLType == OpenGL_Type_Desktop)
         variantString += isCoreProfile ? " core profile" : " compatibility profile";
     GLint maxTexSize, maxFBWidth, maxFBHeight;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
@@ -134,23 +136,32 @@ void Widget::initializeGL()
 
     // View textures
     glGenTextures(2, _viewTex);
+    CHECK_GL();
     for (int i = 0; i < 2; i++) {
         glBindTexture(GL_TEXTURE_2D, _viewTex[i]);
         unsigned char nullBytes[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-        if (IsOpenGLES)
+        switch (OpenGLType) {
+        case OpenGL_Type_WebGL:
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullBytes);
+            break;
+        case OpenGL_Type_OpenGLES:
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB10_A2, 1, 1, 0, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, nullBytes);
-        else
+            break;
+        case OpenGL_Type_Desktop:
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16, 1, 1, 0, GL_RGBA, GL_UNSIGNED_SHORT, nullBytes);
+            break;
+        }
+        CHECK_GL();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         if (haveAnisotropicFiltering)
             glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 4.0f);
+        CHECK_GL();
         _viewTexWidth[i] = 1;
         _viewTexHeight[i] = 1;
     }
-    CHECK_GL();
 
     // Quad geometry
     const float quadPositions[] = {
@@ -203,7 +214,7 @@ void Widget::rebuildDisplayPrgIfNecessary(OutputMode outputMode)
     QString vertexShaderSource = readFile(":src/shader-display.vert.glsl");
     QString fragmentShaderSource = readFile(":src/shader-display.frag.glsl");
     fragmentShaderSource.replace("$OUTPUT_MODE", QString::number(int(outputMode)));
-    if (IsOpenGLES) {
+    if (OpenGLType != OpenGL_Type_Desktop) {
         vertexShaderSource.prepend("#version 300 es\n");
         fragmentShaderSource.prepend("#version 300 es\n"
                 "precision mediump float;\n");
@@ -288,10 +299,17 @@ void Widget::paintGL()
         // prepare view texture
         glBindTexture(GL_TEXTURE_2D, _viewTex[v]);
         if (_viewTexWidth[v] != viewWidth || _viewTexHeight[v] != viewHeight) {
-            if (IsOpenGLES)
+            switch (OpenGLType) {
+            case OpenGL_Type_WebGL:
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, viewWidth, viewHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+                break;
+            case OpenGL_Type_OpenGLES:
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB10_A2, viewWidth, viewHeight, 0, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, nullptr);
-            else
+                break;
+            case OpenGL_Type_Desktop:
                 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16, viewWidth, viewHeight, 0, GL_RGBA, GL_UNSIGNED_SHORT, nullptr);
+                break;
+            }
             _viewTexWidth[v] = viewWidth;
             _viewTexHeight[v] = viewHeight;
         }

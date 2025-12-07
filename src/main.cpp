@@ -651,17 +651,19 @@ int main(int argc, char* argv[])
 #endif
     if (wantOpenGLES)
         format.setRenderableType(QSurfaceFormat::OpenGLES);
-    initializeIsOpenGLES(format);
-    if (IsOpenGLES) {
-        format.setVersion(3, 1);
-    } else {
-        format.setProfile(QSurfaceFormat::CoreProfile);
-        format.setVersion(3, 3);
+    initializeOpenGLType(format);
+    if (OpenGLType != OpenGL_Type_WebGL) {
+        if (OpenGLType == OpenGL_Type_OpenGLES) {
+            format.setVersion(3, 1);
+        } else {
+            format.setProfile(QSurfaceFormat::CoreProfile);
+            format.setVersion(3, 3);
+        }
+        if (guiMode) {
+            format.setStereo(true); // Try to get quad-buffered stereo; it's ok if this fails
+        }
+        QSurfaceFormat::setDefaultFormat(format);
     }
-    if (guiMode) {
-        format.setStereo(true); // Try to get quad-buffered stereo; it's ok if this fails
-    }
-    QSurfaceFormat::setDefaultFormat(format);
 
     // Initialize Bino (in VR mode: only from the main process!)
     Bino bino(screenType, screen, parser.isSet("swap-eyes"));

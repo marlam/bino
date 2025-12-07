@@ -547,7 +547,8 @@ bool Bino::wantExit() const
 bool Bino::initProcess()
 {
     bool haveAnisotropicFiltering = checkTextureAnisotropicFilterAvailability();
-    LOG_DEBUG("Using OpenGL in the %s variant", IsOpenGLES ? "ES" : "Desktop");
+    LOG_DEBUG("Using OpenGL in the %s variant",
+            OpenGLType == OpenGL_Type_WebGL ? "WebGL" : OpenGLType == OpenGL_Type_OpenGLES ? "ES" : "Desktop");
 
     // Qt-based OpenGL initialization
     initializeOpenGLFunctions();
@@ -780,7 +781,7 @@ void Bino::rebuildColorPrgIfNecessary(int planeFormat, bool colorRangeSmall, int
     colorFS.replace("$COLOR_RANGE_SMALL", colorRangeSmall ? "true" : "false");
     colorFS.replace("$COLOR_SPACE", QString::number(colorSpace));
     colorFS.replace("$COLOR_TRANSFER", QString::number(colorTransfer));
-    if (IsOpenGLES) {
+    if (OpenGLType != OpenGL_Type_Desktop) {
         colorVS.prepend("#version 300 es\n");
         colorFS.prepend("#version 300 es\n"
                 "precision mediump float;\n");
@@ -814,7 +815,7 @@ void Bino::rebuildViewPrgIfNecessary(SurroundMode surroundMode, bool nonLinearOu
             : surroundMode == Surround_180 ? "180"
             : "0");
     viewFS.replace("$NONLINEAR_OUTPUT", nonLinearOutput ? "true" : "false");
-    if (IsOpenGLES) {
+    if (OpenGLType != OpenGL_Type_Desktop) {
         viewVS.prepend("#version 300 es\n");
         viewFS.prepend("#version 300 es\n"
                 "precision mediump float;\n");
@@ -1072,7 +1073,9 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     // 2. Convert plane textures into linear RGB in the frame texture
     glBindTexture(GL_TEXTURE_2D, frameTex);
-    if (IsOpenGLES)
+    if (OpenGLType == OpenGL_Type_WebGL)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_BGRA, GL_UNSIGNED_SHORT, nullptr);
+    else if (OpenGLType == OpenGL_Type_OpenGLES)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB10_A2, w, h, 0, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, nullptr);
     else
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16, w, h, 0, GL_BGRA, GL_UNSIGNED_SHORT, nullptr);
