@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023, 2024, 2025, 2026
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,6 +35,7 @@ private:
     bool _haveAnisotropicFiltering;
     QOpenGLShaderProgram _prg;
     // Data to render device models
+    bool _renderDevices;
     QVector<unsigned int> _devModelVaos;
     QVector<unsigned int> _devModelVaoIndices;
     QVector<unsigned int> _devModelTextures;
@@ -47,7 +48,7 @@ private:
             int indexCount, const unsigned short* indices);
 
 public:
-    BinoQVRApp();
+    BinoQVRApp(bool renderDevices);
 
     void serializeStaticData(QDataStream& ds) const override;
     void deserializeStaticData(QDataStream& ds) override;

@@ -4,7 +4,7 @@
  * Copyright (C) 2016, 2017, 2018, 2019, 2020, 2021, 2022
  * Computer Graphics Group, University of Siegen
  * Written by Martin Lambers <martin.lambers@uni-siegen.de>
- * Copyright (C) 2022, 2023, 2024, 2025
+ * Copyright (C) 2022, 2023, 2024, 2025, 2026
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 #include "tools.hpp"
 
 
-BinoQVRApp::BinoQVRApp()
+BinoQVRApp::BinoQVRApp(bool renderDevices) : _renderDevices(renderDevices)
 {
 }
 
@@ -170,25 +170,27 @@ void BinoQVRApp::render(QVRWindow*, const QVRRenderContext& context, const unsig
                 context.intersectedScreenWallBottomLeft(), context.intersectedScreenWallBottomRight(), context.intersectedScreenWallTopLeft(),
                 projectionMatrix, orientationMatrix, viewMatrix, v, texWidth, texHeight, textures[view]);
         // Render VR device models (optional)
-        glUseProgram(_prg.programId());
-        for (int i = 0; i < QVRManager::deviceCount(); i++) {
-            const QVRDevice& device = QVRManager::device(i);
-            for (int j = 0; j < device.modelNodeCount(); j++) {
-                QMatrix4x4 nodeMatrix = device.matrix();
-                nodeMatrix.translate(device.modelNodePosition(j));
-                nodeMatrix.rotate(device.modelNodeOrientation(j));
-                QMatrix4x4 modelViewMatrix = viewMatrixPure * nodeMatrix;
-                int vertexDataIndex = device.modelNodeVertexDataIndex(j);
-                int textureIndex = device.modelNodeTextureIndex(j);
-                _prg.setUniformValue("modelViewMatrix", modelViewMatrix);
-                _prg.setUniformValue("projectionModelViewMatrix", projectionMatrix * modelViewMatrix);
-                _prg.setUniformValue("normalMatrix", modelViewMatrix.normalMatrix());
-                _prg.setUniformValue("hasDiffTex", _devModelTextures[textureIndex] == 0 ? 0 : 1);
-                _prg.setUniformValue("diffTex", 0);
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, _devModelTextures[textureIndex]);
-                glBindVertexArray(_devModelVaos[vertexDataIndex]);
-                glDrawElements(GL_TRIANGLES, _devModelVaoIndices[vertexDataIndex], GL_UNSIGNED_SHORT, 0);
+        if (_renderDevices) {
+            glUseProgram(_prg.programId());
+            for (int i = 0; i < QVRManager::deviceCount(); i++) {
+                const QVRDevice& device = QVRManager::device(i);
+                for (int j = 0; j < device.modelNodeCount(); j++) {
+                    QMatrix4x4 nodeMatrix = device.matrix();
+                    nodeMatrix.translate(device.modelNodePosition(j));
+                    nodeMatrix.rotate(device.modelNodeOrientation(j));
+                    QMatrix4x4 modelViewMatrix = viewMatrixPure * nodeMatrix;
+                    int vertexDataIndex = device.modelNodeVertexDataIndex(j);
+                    int textureIndex = device.modelNodeTextureIndex(j);
+                    _prg.setUniformValue("modelViewMatrix", modelViewMatrix);
+                    _prg.setUniformValue("projectionModelViewMatrix", projectionMatrix * modelViewMatrix);
+                    _prg.setUniformValue("normalMatrix", modelViewMatrix.normalMatrix());
+                    _prg.setUniformValue("hasDiffTex", _devModelTextures[textureIndex] == 0 ? 0 : 1);
+                    _prg.setUniformValue("diffTex", 0);
+                    glActiveTexture(GL_TEXTURE0);
+                    glBindTexture(GL_TEXTURE_2D, _devModelTextures[textureIndex]);
+                    glBindVertexArray(_devModelVaos[vertexDataIndex]);
+                    glDrawElements(GL_TRIANGLES, _devModelVaoIndices[vertexDataIndex], GL_UNSIGNED_SHORT, 0);
+                }
             }
         }
     }
