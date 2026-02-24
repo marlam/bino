@@ -21,6 +21,8 @@
 #pragma once
 
 #include <QMainWindow>
+#include <QSlider>
+#include <QToolBar>
 
 #include "modes.hpp"
 #include "widget.hpp"
@@ -59,6 +61,9 @@ private:
     QAction* _viewToggleFullscreenAction;
     QAction* _viewToggleSwapEyesAction;
     QAction* _viewResetSurroundAction;
+
+    QToolBar* _toolBar;
+    QSlider* _toolBarSlider;
 
     QMenu* addBinoMenu(const QString& title);
     void addBinoAction(QAction* action, QMenu* menu);
@@ -99,6 +104,9 @@ public slots:
     void helpAbout();
 
     void updateActions();
+    void sliderReleased();
+    void sliderMoved(int);
+    void updateSliderPosition(qint64);
 
 protected:
     virtual void dragEnterEvent(QDragEnterEvent*) override;
