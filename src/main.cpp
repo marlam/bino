@@ -38,6 +38,7 @@
 #include <QWindowCapture>
 #include <QtSystemDetection>
 #include <QtProcessorDetection>
+#include <QtVersion>
 
 #ifdef WITH_QVR
 #  include <qvr/manager.hpp>
@@ -240,6 +241,9 @@ int main(int argc, char* argv[])
             return 1;
         }
     }
+    LOG_DEBUG("Bino version " BINO_VERSION);
+    LOG_DEBUG("Built against Qt version " QT_VERSION_STR);
+    LOG_DEBUG("Running with Qt version %s", qVersion());
 
     // Check if VR mode is available if requested
 #ifndef WITH_QVR
