@@ -133,6 +133,7 @@ void Widget::initializeGL()
     LOG_INFO("OpenGL AnisoTexFilt: %s", haveAnisotropicFiltering ? "yes" : "no");
     LOG_INFO("OpenGL Max Tex Size: %d", maxTexSize);
     LOG_INFO("OpenGL Max FB Size:  %dx%d", maxFBWidth, maxFBHeight);
+    LOG_INFO("OpenGL Stereo:       %s", isOpenGLStereo() ? "yes" : "no");
 
     // View textures
     glGenTextures(2, _viewTex);
@@ -370,19 +371,23 @@ void Widget::paintGL()
     if (isOpenGLStereo()) {
         LOG_FIREHOSE("widget draw mode: opengl stereo");
         if (outputMode == Output_OpenGL_Stereo) {
-            glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject(QOpenGLWidget::LeftBuffer));
-            _displayPrg.setUniformValue("outputModeLeftRightView", 0);
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-            glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject(QOpenGLWidget::RightBuffer));
-            _displayPrg.setUniformValue("outputModeLeftRightView", 1);
+            if (currentTargetBuffer() == QOpenGLWidget::LeftBuffer) {
+                glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject(QOpenGLWidget::LeftBuffer));
+                _displayPrg.setUniformValue("outputModeLeftRightView", 0);
+            } else {
+                glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject(QOpenGLWidget::RightBuffer));
+                _displayPrg.setUniformValue("outputModeLeftRightView", 1);
+            }
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
         } else {
             if (outputMode == Output_Alternating)
                 outputMode = (_alternatingLastView == 0 ? Output_Right : Output_Left);
             _displayPrg.setUniformValue("outputModeLeftRightView", outputMode == Output_Left ? 0 : 1);
-            glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject(QOpenGLWidget::LeftBuffer));
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-            glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject(QOpenGLWidget::RightBuffer));
+            if (currentTargetBuffer() == QOpenGLWidget::LeftBuffer) {
+                glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject(QOpenGLWidget::LeftBuffer));
+            } else {
+                glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject(QOpenGLWidget::RightBuffer));
+            }
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
         }
     } else {

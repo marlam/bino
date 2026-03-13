@@ -244,6 +244,7 @@ int main(int argc, char* argv[])
     LOG_DEBUG("Bino version " BINO_VERSION);
     LOG_DEBUG("Built against Qt version " QT_VERSION_STR);
     LOG_DEBUG("Running with Qt version %s", qVersion());
+    LOG_DEBUG("Running on Qt platform %s", qPrintable(QGuiApplication::platformName()));
 
     // Check if VR mode is available if requested
 #ifndef WITH_QVR
@@ -678,7 +679,7 @@ int main(int argc, char* argv[])
             format.setVersion(3, 3);
         }
         if (guiMode) {
-            format.setStereo(true); // Try to get quad-buffered stereo; it's ok if this fails
+            format.setOption(QSurfaceFormat::StereoBuffers); // Try to get quad-buffered stereo; it's ok if this fails
         }
         QSurfaceFormat::setDefaultFormat(format);
     }
