@@ -34,6 +34,13 @@
   <url type="homepage">https://bino3d.org</url>
 
   <releases>
+    <release version="2.7" date="2026-03-13">
+      <description>
+        <p>This release fixes several minor problems. If you experience problems with the NVIDIA
+	   proprietary driver on Linux, try adding the options <code>--platform xcb --disable-stereo</code>
+	   to your Bino command line.</p>
+      </description>
+    </release>
     <release version="2.6" date="2025-11-09">
       <description>
         <p>Improvements to the user interface and improved support for OpenGL quad-buffered stereo mode.</p>
