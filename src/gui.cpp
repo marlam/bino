@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024, 2025
+ * Copyright (C) 2022, 2023, 2024, 2025, 2026
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -872,7 +872,7 @@ void Gui::helpAbout()
             + QString("<br>")
             + QString("<a href=\"https://bino3d.org\">https://bino3d.org</a>")
             + QString("</p><p>")
-            + tr("Copyright (C) %1 Martin Lambers").arg(2025)
+            + tr("Copyright (C) %1 Martin Lambers").arg(2026)
             + QString("<br>")
             + tr("This is free software. You may redistribute copies of it "
                 "under the terms of the <a href=\"http://www.gnu.org/licenses/gpl.html\">"
