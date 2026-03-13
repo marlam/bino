@@ -127,6 +127,8 @@ int main(int argc, char* argv[])
             "file" });
     parser.addOption({ "read-commands",
             QCommandLineParser::tr("Read commands from a script file."), "script" });
+    parser.addOption({ "disable-stereo",
+            QCommandLineParser::tr("Disable OpenGL quad-buffered stereo support.") });
     parser.addOption({ "opengles",
             QCommandLineParser::tr("Use OpenGL ES instead of Desktop OpenGL.") });
     parser.addOption({ "vr",
@@ -678,8 +680,9 @@ int main(int argc, char* argv[])
             format.setProfile(QSurfaceFormat::CoreProfile);
             format.setVersion(3, 3);
         }
-        if (guiMode) {
-            format.setOption(QSurfaceFormat::StereoBuffers); // Try to get quad-buffered stereo; it's ok if this fails
+        if (guiMode && !parser.isSet("disable-stereo")) {
+            // Try to get quad-buffered stereo; it's ok if this fails
+            format.setOption(QSurfaceFormat::StereoBuffers);
         }
         QSurfaceFormat::setDefaultFormat(format);
     }
