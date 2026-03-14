@@ -263,12 +263,12 @@
     <message>
         <location filename="../src/gui.cpp" line="77"/>
         <source>&amp;Open File(s)...</source>
-        <translation type="unfinished"></translation>
+        <translation>打开文件[&amp;O]...</translation>
     </message>
     <message>
         <location filename="../src/gui.cpp" line="84"/>
         <source>Open &amp;Capture Device...</source>
-        <translation type="unfinished"></translation>
+        <translation>打开捕获设备[&amp;C]...</translation>
     </message>
     <message>
         <location filename="../src/gui.cpp" line="171"/>
@@ -388,7 +388,7 @@
     <message>
         <location filename="../src/gui.cpp" line="446"/>
         <source>Reset surround view</source>
-        <translation type="unfinished"></translation>
+        <translation>重置环绕视角</translation>
     </message>
     <message>
         <location filename="../src/gui.cpp" line="451"/>
@@ -435,12 +435,12 @@
     <message>
         <location filename="../src/gui.cpp" line="570"/>
         <source>Open Capture Device</source>
-        <translation type="unfinished"></translation>
+        <translation>打开捕获设备</translation>
     </message>
     <message>
         <location filename="../src/gui.cpp" line="572"/>
         <source>Camera Input:</source>
-        <translation type="unfinished"></translation>
+        <translation>摄像头输入:</translation>
     </message>
     <message>
         <source>Open Camera</source>
@@ -459,12 +459,12 @@
     <message>
         <location filename="../src/gui.cpp" line="578"/>
         <source>Screen Input:</source>
-        <translation type="unfinished"></translation>
+        <translation>屏幕输入:</translation>
     </message>
     <message>
         <location filename="../src/gui.cpp" line="583"/>
         <source>Window Input:</source>
-        <translation type="unfinished"></translation>
+        <translation>窗口输入:</translation>
     </message>
     <message>
         <location filename="../src/gui.cpp" line="600"/>
@@ -788,12 +788,12 @@
     <message>
         <location filename="../src/modes.cpp" line="533"/>
         <source>Wait off</source>
-        <translation type="unfinished"></translation>
+        <translation>等待关</translation>
     </message>
     <message>
         <location filename="../src/modes.cpp" line="536"/>
         <source>Wait on</source>
-        <translation type="unfinished"></translation>
+        <translation>等待开</translation>
     </message>
 </context>
 <context>
@@ -978,7 +978,7 @@
     <message>
         <location filename="../src/main.cpp" line="119"/>
         <source>Media to play.</source>
-        <translation>播放的媒体</translation>
+        <translation>待播放的媒体。</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="123"/>
@@ -1086,7 +1086,7 @@
         <location filename="../src/main.cpp" line="222"/>
         <source>Start in fullscreen mode.</source>
         <oldsource>fullscreen</oldsource>
-        <translation>进入全屏</translation>
+        <translation>以全屏模式启动。</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="197"/>
@@ -1110,42 +1110,42 @@
     <message>
         <location filename="../src/main.cpp" line="131"/>
         <source>Disable OpenGL quad-buffered stereo support.</source>
-        <translation type="unfinished"></translation>
+        <translation>关闭OpenGL四重缓冲立体支持。</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="137"/>
         <source>Set VR screen geometry, either as the special values &apos;united&apos; or &apos;intersected&apos;, or as a comma-separated list of nine values representing three 3D coordinates that define a planar screen (bottom left, bottom right, top left), or as a an aspect ratio followed by the name of an OBJ file that contains the screen geometry with texture coordinates (example: &apos;16:9,myscreen.obj&apos;).</source>
-        <translation type="unfinished"></translation>
+        <translation>设置VR屏幕几何形状，可以设置为特殊值 &apos;united&apos; 或 &apos;intersected&apos;，也可以是用逗号分隔的九个值，表示定义平面屏幕（左下角、右下角、左上角）的三个3D坐标，又可以是一个宽高比后跟一个OBJ文件的名称，该文件包含了屏幕几何形状和纹理坐标 (示例: &apos;16:9,myscreen.obj&apos;)。</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="143"/>
         <source>Set show-devices mode (%1).</source>
-        <translation type="unfinished"></translation>
+        <translation>设置设备显示模式 (%1)。</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="146"/>
         <source>Capture audio/video input from microphone and camera/screen/window.</source>
-        <translation type="unfinished"></translation>
+        <translation>从摄像头/屏幕/窗口和麦克风捕获音视频输入。</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="154"/>
         <source>List screen inputs.</source>
-        <translation type="unfinished"></translation>
+        <translation>列出屏幕输入。</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="156"/>
         <source>List window inputs.</source>
-        <translation type="unfinished"></translation>
+        <translation>列出窗口输入。</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="167"/>
         <source>Choose screen input via its index.</source>
-        <translation type="unfinished"></translation>
+        <translation>通过索引选择屏幕输入。</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="170"/>
         <source>Choose window input via its index.</source>
-        <translation type="unfinished"></translation>
+        <translation>通过索引选择窗口输入。</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="188"/>
@@ -1160,7 +1160,7 @@
     <message>
         <location filename="../src/main.cpp" line="194"/>
         <source>Set wait mode (%1).</source>
-        <translation type="unfinished"></translation>
+        <translation>设置等待模式 (%1)。</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="214"/>
@@ -1170,7 +1170,7 @@
     <message>
         <location filename="../src/main.cpp" line="217"/>
         <source>Set surround vertical field of view (default 50, range 5-115).</source>
-        <translation type="unfinished"></translation>
+        <translation>设置环绕垂直视场角 (默认 50, 范围 5-115).</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="242"/>
@@ -1196,7 +1196,7 @@
         <location filename="../src/commandinterpreter.cpp" line="153"/>
         <location filename="../src/commandinterpreter.cpp" line="217"/>
         <source>Invalid argument for option %1</source>
-        <translation> %1 选项中的参数无效</translation>
+        <translation>选项 %1 中的参数无效</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="254"/>
@@ -1221,7 +1221,7 @@
     <message>
         <location filename="../src/main.cpp" line="323"/>
         <source>Audio input %1: %2</source>
-        <translation>音频输出 %1: %2</translation>
+        <translation>音频输入 %1: %2</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="330"/>
@@ -1236,22 +1236,22 @@
     <message>
         <location filename="../src/main.cpp" line="340"/>
         <source>No screen inputs available.</source>
-        <translation type="unfinished"></translation>
+        <translation>无有效屏幕输入。</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="343"/>
         <source>Screen input %1: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>屏幕输入 %1: %2</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="350"/>
         <source>No window inputs available.</source>
-        <translation type="unfinished"></translation>
+        <translation>无有效窗口输入。</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="353"/>
         <source>Window input %1: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>窗口输入 %1: %2</translation>
     </message>
     <message>
         <location filename="../src/main.cpp" line="517"/>
@@ -1330,7 +1330,7 @@
     <message>
         <location filename="../src/videoframe.cpp" line="134"/>
         <source>Pixel format %1 is not hardware accelerated!</source>
-        <translation>像素格式 %1 没有硬件加速</translation>
+        <translation>像素格式 %1 没有硬件加速！</translation>
     </message>
 </context>
 <context>
@@ -1340,7 +1340,7 @@
         <location filename="../src/widget.cpp" line="107"/>
         <source>Insufficient OpenGL capabilities.</source>
         <oldsource>Insufficient OpenGL capabilities</oldsource>
-        <translation>OpenGL功能不足</translation>
+        <translation>OpenGL功能不足。</translation>
     </message>
     <message>
         <location filename="../src/widget.cpp" line="107"/>
@@ -1353,7 +1353,7 @@
         <location filename="../src/widget.cpp" line="113"/>
         <source>OpenGL stereo mode is not available on this system.</source>
         <oldsource>OpenGL stereo mode is not available on this system</oldsource>
-        <translation>OpenGL立体模式在此系统上不可用</translation>
+        <translation>OpenGL立体模式在此系统上不可用。</translation>
     </message>
 </context>
 </TS>
