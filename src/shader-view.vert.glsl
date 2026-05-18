@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022
+ * Copyright (C) 2022, 2023, 2024, 2025, 2026
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,6 +20,7 @@
 
 uniform mat4 projectionModelViewMatrix;
 uniform mat4 orientationMatrix;
+uniform int rotation; // 0=none, 1=90°, 2=180°, 3=270° (all clockwise)
 
 layout(location = 0) in vec4 position;
 layout(location = 1) in vec2 texcoord;
@@ -29,7 +30,15 @@ smooth out vec3 vdirection;
 
 void main(void)
 {
-    vtexcoord = texcoord;
+    vec2 tc = texcoord;
+    if (rotation == 1) {
+        tc = vec2(1.0 - texcoord.y, texcoord.x);
+    } else if (rotation == 2) {
+        tc = vec2(1.0 - texcoord.x, 1.0 - texcoord.y);
+    } else if (rotation == 3) {
+        tc = vec2(texcoord.y, 1.0 - texcoord.x);
+    }
+    vtexcoord = tc;
     vdirection = (position * orientationMatrix).xyz;
     gl_Position = projectionModelViewMatrix * position;
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024, 2025
+ * Copyright (C) 2022, 2023, 2024, 2025, 2026
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1106,6 +1106,20 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
     int viewWidth = _frame.width;
     int viewHeight = _frame.height;
     float frameDisplayAspectRatio = _frame.aspectRatio;
+    switch (_frame.qframe.rotation()) {
+    case QtVideo::Rotation::None:
+        break;
+    case QtVideo::Rotation::Clockwise90:
+        std::swap(viewWidth, viewHeight);
+        frameDisplayAspectRatio = 1.0f / frameDisplayAspectRatio;
+        break;
+    case QtVideo::Rotation::Clockwise180:
+        break;
+    case QtVideo::Rotation::Clockwise270:
+        std::swap(viewWidth, viewHeight);
+        frameDisplayAspectRatio = 1.0f / frameDisplayAspectRatio;
+        break;
+    }
     switch (_frame.inputMode) {
     case Input_Unknown: // cannot happen, update() sets a known mode
     case Input_Mono:
@@ -1288,6 +1302,24 @@ void Bino::render(
     }
     LOG_FIREHOSE("Rendering view %d from %s frame texture fx=%g ox=%g fy=%g oy=%g",
             view, frameTex == _frameTex ? "standard" : "extended", viewFactorX, viewOffsetX, viewFactorY, viewOffsetY);
+    // Handle rotations
+    int rotation = 0;
+    switch (_frame.qframe.rotation()) {
+    case QtVideo::Rotation::None:
+        break;
+    case QtVideo::Rotation::Clockwise90:
+        frameAspectRatio = 1.0f / frameAspectRatio;
+        rotation = 1;
+        break;
+    case QtVideo::Rotation::Clockwise180:
+        rotation = 2;
+        break;
+    case QtVideo::Rotation::Clockwise270:
+        frameAspectRatio = 1.0f / frameAspectRatio;
+        rotation = 3;
+        break;
+    }
+    LOG_FIREHOSE("rotation = %d", rotation);
     // Determine if we are producing the final rendering result here (which is the
     // case for VR mode) or if we are just rendering to intermediate textures (which
     // is the case for GUI mode). In GUI mode, the screen aspect ratio is unknown.
@@ -1300,6 +1332,9 @@ void Bino::render(
             relHeight = _screen.aspectRatio / frameAspectRatio;
         else
             relWidth = frameAspectRatio / _screen.aspectRatio;
+        if (rotation == 1 || rotation == 3) {
+            std::swap(relWidth, relHeight);
+        }
     }
     // Set up shader program
     rebuildViewPrgIfNecessary(_frame.surroundMode, finalRenderingStep);
@@ -1311,6 +1346,7 @@ void Bino::render(
     _viewPrg.setUniformValue("orientationMatrix", orientationMatrix);
     _viewPrg.setUniformValue("frameTex", 0);
     _viewPrg.setUniformValue("subtitleTex", 1);
+    _viewPrg.setUniformValue("rotation", rotation);
     _viewPrg.setUniformValue("view_offset_x", viewOffsetX);
     _viewPrg.setUniformValue("view_factor_x", viewFactorX);
     _viewPrg.setUniformValue("view_offset_y", viewOffsetY);
