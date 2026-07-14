@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024, 2025
+ * Copyright (C) 2022, 2023, 2024, 2025, 2026
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,6 +36,8 @@
 #include "screen.hpp"
 #include "videosink.hpp"
 #include "playlist.hpp"
+#include "overlay-ui.hpp"
+#include "overlay-subtitle.hpp"
 
 
 class Bino : public QObject, QOpenGLExtraFunctions
@@ -63,8 +65,13 @@ private:
     QWindowCapture* _windowInput;
     QMediaCaptureSession* _captureSession;
     // for rendering subtitles:
-    QImage _subtitleImg;
-    QString _subtitleImgString;
+    OverlaySubtitle _overlaySubtitle;
+    QString _overlaySubtitleString;
+    // for rendering the overlay UI:
+    OverlayUI _overlayUI;
+    bool _overlayUIShow;
+    qint64 _overlayUILastTrigger;
+    QPointF _overlayUIPointerInView;
     // for updating the GUI if necessary
     InputMode _lastFrameInputMode;
     SurroundMode _lastFrameSurroundMode;
@@ -82,7 +89,7 @@ private:
     unsigned int _planeTexs[3];
     unsigned int _frameTex;
     unsigned int _extFrameTex;
-    unsigned int _subtitleTex;
+    unsigned int _overlayTexs[2];
     unsigned int _screenVao, _positionBuf, _texcoordBuf, _indexBuf;
     QOpenGLShaderProgram _colorPrg;
     int _colorPrgPlaneFormat;
@@ -103,8 +110,8 @@ private:
     void startCaptureMode(bool withAudioInput, const QAudioDevice& audioInputDevice, InputMode inputMode);
     void rebuildColorPrgIfNecessary(int planeFormat, bool colorRangeSmall, int colorSpace, int colorTransfer);
     void rebuildViewPrgIfNecessary(SurroundMode surroundMode, bool nonLinearOutput);
-    bool drawSubtitleToImage(int w, int h, const QString& string);
     void convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex);
+    void overlayToTexture(const QImage& img, unsigned int text);
 
 public:
     Bino(ScreenType screenType, const Screen& screen, bool swapEyes);
@@ -197,6 +204,9 @@ public:
             const QMatrix4x4& viewMatrix,
             int view, // 0 = left, 1 = right
             int texWidth, int texHeight, unsigned int texture);
+    bool overlayUIPointerPress(const QPointF& pointerInView);
+    void overlayUIPointerRelease(const QPointF& pointerInView);
+    void overlayUIPointerMove(const QPointF& pointerInView);
     void keyPressEvent(QKeyEvent* event);
 
 public slots:

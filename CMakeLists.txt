@@ -1,4 +1,4 @@
-# Copyright (C) 2022, 2023, 2024, 2025
+# Copyright (C) 2022, 2023, 2024, 2025, 2026
 # Martin Lambers <marlam@marlam.de>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -42,6 +42,9 @@ add_executable(bino
 	src/commandinterpreter.hpp src/commandinterpreter.cpp
 	src/playlisteditor.hpp src/playlisteditor.cpp
 	src/gui.hpp src/gui.cpp
+	src/overlay.hpp src/overlay.cpp
+	src/overlay-subtitle.hpp src/overlay-subtitle.cpp
+	src/overlay-ui.hpp src/overlay-ui.cpp
 	src/urlloader.hpp src/urlloader.cpp
 	src/digestiblemedia.hpp src/digestiblemedia.cpp
 	src/appicon.rc)

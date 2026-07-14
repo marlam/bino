@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024, 2025
+ * Copyright (C) 2022, 2023, 2024, 2025, 2026
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,8 +42,10 @@ static const QSize SizeBase(16, 9);
 Widget::Widget(OutputMode outputMode, float surroundVerticalFOV, QWidget* parent) :
     QOpenGLWidget(parent),
     _sizeHint(0.5f * SizeBase),
+    _lastFrameRelWidth(1.0f), _lastFrameRelHeight(1.0f),
     _outputMode(outputMode),
     _alternatingLastView(1),
+    _inOverlayUIEvent(false),
     _inSurroundMovement(false),
     _surroundHorizontalAngleBase(0.0f),
     _surroundVerticalAngleBase(0.0f),
@@ -352,6 +354,8 @@ void Widget::paintGL()
         relHeight = screenAspectRatio / frameDisplayAspectRatio;
     else
         relWidth = frameDisplayAspectRatio / screenAspectRatio;
+    _lastFrameRelWidth = relWidth;
+    _lastFrameRelHeight = relHeight;
     rebuildDisplayPrgIfNecessary((outputMode == Output_OpenGL_Stereo || outputMode == Output_Alternating)
             ? Output_Left /* also covers Output_Right */ : outputMode);
     glUseProgram(_displayPrg.programId());
@@ -417,21 +421,87 @@ void Widget::keyPressEvent(QKeyEvent* e)
     Bino::instance()->keyPressEvent(e);
 }
 
-void Widget::mousePressEvent(QMouseEvent* e)
+QPointF Widget::toView(const QPointF& pos) const
 {
-    _inSurroundMovement = true;
-    _surroundMovementStart = e->position();
-    _surroundHorizontalAngleCurrent = 0.0f;
-    _surroundVerticalAngleCurrent = 0.0f;
+    float tx = (pos.x() / _width  - 0.5f * (1.0f - _lastFrameRelWidth )) / _lastFrameRelWidth ;
+    float ty = (pos.y() / _height - 0.5f * (1.0f - _lastFrameRelHeight)) / _lastFrameRelHeight;
+    switch (_outputMode) {
+    case Output_Left:
+    case Output_Right:
+    case Output_OpenGL_Stereo:
+    case Output_Alternating:
+    case Output_Even_Odd_Rows:
+    case Output_Even_Odd_Columns:
+    case Output_Checkerboard:
+    case Output_Red_Cyan_Dubois:
+    case Output_Red_Cyan_FullColor:
+    case Output_Red_Cyan_HalfColor:
+    case Output_Red_Cyan_Monochrome:
+    case Output_Green_Magenta_Dubois:
+    case Output_Green_Magenta_FullColor:
+    case Output_Green_Magenta_HalfColor:
+    case Output_Green_Magenta_Monochrome:
+    case Output_Amber_Blue_Dubois:
+    case Output_Amber_Blue_FullColor:
+    case Output_Amber_Blue_HalfColor:
+    case Output_Amber_Blue_Monochrome:
+    case Output_Red_Green_Monochrome:
+    case Output_Red_Blue_Monochrome:
+        // nothing to do
+        break;
+    case Output_HDMI_Frame_Pack:
+        if (ty >= 0.5f) {
+            ty -= 0.5f;
+            ty -= (0.25f / 49.0f);
+        } else {
+            ty += (0.25f / 49.0f);
+        }
+        ty *= 2.0f;
+        break;
+    case Output_Left_Right:
+    case Output_Left_Right_Half:
+    case Output_Right_Left:
+    case Output_Right_Left_Half:
+        if (tx >= 0.5f)
+            tx -= 0.5f;
+        tx *= 2.0f;
+        break;
+    case Output_Top_Bottom:
+    case Output_Top_Bottom_Half:
+    case Output_Bottom_Top:
+    case Output_Bottom_Top_Half:
+        if (ty >= 0.5f)
+            ty -= 0.5f;
+        ty *= 2.0f;
+        break;
+    }
+    return QPointF(tx, ty);
 }
 
-void Widget::mouseReleaseEvent(QMouseEvent*)
+void Widget::mousePressEvent(QMouseEvent* e)
 {
-    _inSurroundMovement = false;
-    _surroundHorizontalAngleBase += _surroundHorizontalAngleCurrent;
-    _surroundVerticalAngleBase += _surroundVerticalAngleCurrent;
-    _surroundHorizontalAngleCurrent = 0.0f;
-    _surroundVerticalAngleCurrent = 0.0f;
+    if (Bino::instance()->overlayUIPointerPress(toView(e->position()))) {
+        _inOverlayUIEvent = true;
+    } else {
+        _inSurroundMovement = true;
+        _surroundMovementStart = e->position();
+        _surroundHorizontalAngleCurrent = 0.0f;
+        _surroundVerticalAngleCurrent = 0.0f;
+    }
+}
+
+void Widget::mouseReleaseEvent(QMouseEvent* e)
+{
+    if (_inOverlayUIEvent) {
+        Bino::instance()->overlayUIPointerRelease(toView(e->position()));
+        _inOverlayUIEvent = false;
+    } else {
+        _inSurroundMovement = false;
+        _surroundHorizontalAngleBase += _surroundHorizontalAngleCurrent;
+        _surroundVerticalAngleBase += _surroundVerticalAngleCurrent;
+        _surroundHorizontalAngleCurrent = 0.0f;
+        _surroundVerticalAngleCurrent = 0.0f;
+    }
 }
 
 void Widget::mouseMoveEvent(QMouseEvent* e)
@@ -451,6 +521,9 @@ void Widget::mouseMoveEvent(QMouseEvent* e)
         float dy = posDelta.y();
         float yf = dy / height; // in [-1,+1]
         _surroundVerticalAngleCurrent = yf * 90.0f;
+        update();
+    } else {
+        Bino::instance()->overlayUIPointerMove(toView(e->position()));
         update();
     }
 }

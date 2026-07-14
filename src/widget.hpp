@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024, 2025
+ * Copyright (C) 2022, 2023, 2024, 2025, 2026
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -34,10 +34,12 @@ Q_OBJECT
 private:
     QSize _sizeHint;
     int _width, _height;
+    float _lastFrameRelWidth, _lastFrameRelHeight;
 
     OutputMode _outputMode;
     int _alternatingLastView; // last view displayed in Mode_Alternating (0 or 1)
 
+    bool _inOverlayUIEvent;
     float _surroundVerticalFOVDefault;
     float _surroundVerticalFOV;
     bool _inSurroundMovement;
@@ -54,6 +56,7 @@ private:
     int _displayPrgOutputMode;
 
     void rebuildDisplayPrgIfNecessary(OutputMode outputMode);
+    QPointF toView(const QPointF& pos) const;
 
 public:
     Widget(OutputMode outputMode, float surroundVerticalFOV, QWidget* parent = nullptr);

@@ -18,10 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QFont>
-#include <QFontMetrics>
-#include <QTextLayout>
-#include <QPainter>
+#include <QDateTime>
 
 #include "bino.hpp"
 #include "log.hpp"
@@ -720,16 +717,18 @@ bool Bino::initProcess()
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 4.0f);
     CHECK_GL();
 
-    // Subtitle texture
-    glGenTextures(1, &_subtitleTex);
-    glBindTexture(GL_TEXTURE_2D, _subtitleTex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    if (haveAnisotropicFiltering)
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 4.0f);
-    CHECK_GL();
+    // Overlay textures (subtitles and UI)
+    glGenTextures(2, _overlayTexs);
+    for (int i = 0; i < 2; i++) {
+        glBindTexture(GL_TEXTURE_2D, _overlayTexs[i]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        if (haveAnisotropicFiltering)
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 4.0f);
+        CHECK_GL();
+    }
 
     // Screen geometry
     glGenVertexArrays(1, &_screenVao);
@@ -829,67 +828,6 @@ void Bino::rebuildViewPrgIfNecessary(SurroundMode surroundMode, bool nonLinearOu
     _viewPrg.link();
     _viewPrgSurroundMode = surroundMode;
     _viewPrgNonlinearOutput = nonLinearOutput;
-}
-
-bool Bino::drawSubtitleToImage(int w, int h, const QString& string)
-{
-    if (_subtitleImg.width() == w && _subtitleImg.height() == h && _subtitleImgString == string)
-        return false;
-
-    if (_subtitleImg.width() != w || _subtitleImg.height() != h)
-        _subtitleImg = QImage(w, h, QImage::Format_ARGB32_Premultiplied);
-    _subtitleImgString = string;
-
-    QColor bgColor = Qt::black;
-    bgColor.setAlpha(0);
-    _subtitleImg.fill(bgColor);
-    if (string.isEmpty())
-        return true;
-
-    // this tries to reproduce what qvideotexturehelper.cpp does since it is entirely
-    // unclear and undocumented how subtitles are expected to be handled
-
-    QFont font;
-    float fontSize = h * 0.045f;
-    font.setPointSize(fontSize);
-    QTextLayout layout;
-    layout.setText(string);
-    layout.setFont(font);
-    QTextOption option;
-    option.setUseDesignMetrics(true);
-    option.setAlignment(Qt::AlignCenter);
-    layout.setTextOption(option);
-    QFontMetrics metrics(font);
-    float lineWidth = w * 0.9f;
-    float margin = w * 0.05f;
-    float height = 0.0f;
-    float textWidth = 0.0f;
-    layout.beginLayout();
-    for (;;) {
-        QTextLine line = layout.createLine();
-        if (!line.isValid())
-            break;
-        line.setLineWidth(lineWidth);
-        height += metrics.leading();
-        line.setPosition(QPointF(margin, height));
-        height += line.height();
-        textWidth = qMax(textWidth, line.naturalTextWidth());
-    }
-    layout.endLayout();
-    int bottomMargin = h / 20;
-    float y = h - bottomMargin - height;
-    layout.setPosition(QPointF(0.0f, y));
-    textWidth += fontSize / 4.0f;
-    //QRectF bounds = QRectF((w - textWidth) * 0.5f, y, textWidth, height);
-
-    QPainter painter(&_subtitleImg);
-    QTextLayout::FormatRange range;
-    range.start = 0;
-    range.length = layout.text().size();
-    range.format.setForeground(Qt::white);
-    layout.draw(&painter, {}, { range });
-
-    return true;
 }
 
 static int alignmentFromBytesPerLine(const void* data, int bpl)
@@ -1097,6 +1035,15 @@ void Bino::convertFrameToTexture(const VideoFrame& frame, unsigned int frameTex)
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
+void Bino::overlayToTexture(const QImage& img, unsigned int tex)
+{
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8,
+            img.width(), img.height(), 0, GL_BGRA,
+            GL_UNSIGNED_BYTE, img.bits());
+    glGenerateMipmap(GL_TEXTURE_2D);
+}
+
 void Bino::preRenderProcess(int screenWidth, int screenHeight,
         int* viewCountPtr, int* viewWidthPtr, int* viewHeightPtr, float* frameDisplayAspectRatioPtr, bool* surroundPtr)
 {
@@ -1155,7 +1102,12 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
     case Surround_360:
         break;
     }
-    if (subtitleTrack() >= 0 && (screenWidth > viewWidth || screenHeight > viewHeight)) {
+
+    /* If the screen resolution is better than the video resolution,
+     * we want the screen resolution to determine the view texture size
+     * so that overlays (subtitles and/or UI) don't look as crappy as the
+     * video. */
+    if (screenWidth > viewWidth || screenHeight > viewHeight) {
         if (screenWidth / viewWidth > screenHeight / viewHeight) {
             viewWidth = screenWidth;
             viewHeight = viewWidth / frameDisplayAspectRatio;
@@ -1165,6 +1117,7 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
         }
     }
 
+    /* Store results */
     if (viewCountPtr)
         *viewCountPtr = viewCount;
     if (viewWidthPtr)
@@ -1192,16 +1145,27 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
                 convertFrameToTexture(_extFrame, _extFrameTex);
         }
         // Render the subtitle into the subtitle texture
-        if (drawSubtitleToImage(viewWidth, viewHeight, _frame.subtitle)) {
-            glBindTexture(GL_TEXTURE_2D, _subtitleTex);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8,
-                    _subtitleImg.width(), _subtitleImg.height(), 0, GL_RGBA,
-                    GL_UNSIGNED_BYTE, _subtitleImg.bits());
-            glGenerateMipmap(GL_TEXTURE_2D);
+        _overlaySubtitle.updateParameters(_frame.subtitle);
+        if (_overlaySubtitle.redraw(viewWidth, viewHeight)) {
+            overlayToTexture(_overlaySubtitle.image(), _overlayTexs[0]);
         }
         // Done.
         _frameIsNew = false;
     }
+    // Render the overlay UI into the overlay texture
+    _overlayUIShow = (_player && QDateTime::currentMSecsSinceEpoch() - _overlayUILastTrigger < 3000);
+    if (_overlayUIShow) {
+        _overlayUI.updateParameters(
+                _player->position(),
+                _player->duration(),
+                _player->isSeekable(),
+                _player->playbackState() == QMediaPlayer::PausedState,
+                _overlayUIPointerInView);
+        if (_overlayUI.redraw(viewWidth, viewHeight)) {
+            overlayToTexture(_overlayUI.image(), _overlayTexs[1]);
+        }
+    }
+
     if (_frame.inputMode != _lastFrameInputMode
             || _frame.surroundMode != _lastFrameSurroundMode) {
         emit stateChanged();
@@ -1345,7 +1309,9 @@ void Bino::render(
     _viewPrg.setUniformValue("projectionModelViewMatrix", projectionModelViewMatrix);
     _viewPrg.setUniformValue("orientationMatrix", orientationMatrix);
     _viewPrg.setUniformValue("frameTex", 0);
-    _viewPrg.setUniformValue("subtitleTex", 1);
+    _viewPrg.setUniformValue("overlayTex0", 1);
+    _viewPrg.setUniformValue("overlayTex1", 2);
+    _viewPrg.setUniformValue("showOverlay1", _overlayUIShow);
     _viewPrg.setUniformValue("rotation", rotation);
     _viewPrg.setUniformValue("view_offset_x", viewOffsetX);
     _viewPrg.setUniformValue("view_factor_x", viewFactorX);
@@ -1355,7 +1321,9 @@ void Bino::render(
     _viewPrg.setUniformValue("relative_height", relHeight);
     // Render scene
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, _subtitleTex);
+    glBindTexture(GL_TEXTURE_2D, _overlayTexs[0]);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, _overlayTexs[1]);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, frameTex);
     if (_frame.surroundMode != Surround_Off) {
@@ -1390,6 +1358,22 @@ void Bino::render(
         }
         glDrawElements(GL_TRIANGLES, _screen.indices.size(), GL_UNSIGNED_INT, 0);
     }
+}
+
+bool Bino::overlayUIPointerPress(const QPointF& pointerInView)
+{
+    return _overlayUI.pointerPress(pointerInView);
+}
+
+void Bino::overlayUIPointerRelease(const QPointF& pointerInView)
+{
+    _overlayUI.pointerRelease(pointerInView);
+}
+
+void Bino::overlayUIPointerMove(const QPointF& pointerInView)
+{
+    _overlayUILastTrigger = QDateTime::currentMSecsSinceEpoch();
+    _overlayUIPointerInView = pointerInView;
 }
 
 void Bino::keyPressEvent(QKeyEvent* event)
