@@ -65,9 +65,6 @@ void main(void)
         float vty = view_offset_y + view_factor_y * v;
         rgb = texture(frameTex, vec2(vtx, vty)).rgb;
         overlay_x = 1.0 - overlay_x;
-        if (surroundDegrees == 360) {
-            overlay_x = 0.5 * (overlay_x - 0.5) + 0.5;
-        }
     } else {
         float vtx = view_offset_x + view_factor_x * vtexcoord.x;
         float vty = view_offset_y + view_factor_y * vtexcoord.y;
@@ -75,11 +72,16 @@ void main(void)
         float ty = (1.0 - vty - 0.5 * (1.0 - relative_height)) / relative_height;
         rgb = texture(frameTex, vec2(tx, ty)).rgb;
     }
-    vec4 ovl0 = texture(overlayTex0, vec2(overlay_x, overlay_y)).rgba;
-    rgb = mix(rgb, ovl0.rgb, ovl0.a);
-    if (showOverlay1) {
-        vec4 ovl1 = texture(overlayTex1, vec2(overlay_x, overlay_y)).rgba;
-        rgb = mix(rgb, ovl1.rgb, ovl1.a);
+    // Only show overlays for the cube side that is directly in front
+    // of the viewer. In our cube VAO, this cube side is rendered via
+    // triangles 2 and 3.
+    if (gl_PrimitiveID == 2 || gl_PrimitiveID == 3) {
+        vec4 ovl0 = texture(overlayTex0, vec2(overlay_x, overlay_y)).rgba;
+        rgb = mix(rgb, ovl0.rgb, ovl0.a);
+        if (showOverlay1) {
+            vec4 ovl1 = texture(overlayTex1, vec2(overlay_x, overlay_y)).rgba;
+            rgb = mix(rgb, ovl1.rgb, ovl1.a);
+        }
     }
     if (nonlinear_output) {
         rgb = rgb_to_nonlinear(rgb);

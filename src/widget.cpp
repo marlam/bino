@@ -333,6 +333,8 @@ void Widget::paintGL()
                     (_surroundVerticalAngleBase + _surroundVerticalAngleCurrent),
                     (_surroundHorizontalAngleBase + _surroundHorizontalAngleCurrent), 0.0f);
             orientationMatrix.rotate(orientation.inverted());
+            // Remember projection matrix for overlay UI in surround mode
+            _surroundProjectionMatrix = projectionMatrix;
         }
         Bino::instance()->render(
                 QVector3D(), QVector3D(), QVector3D(), QVector3D(), QVector3D(), QVector3D(),
@@ -421,6 +423,13 @@ void Widget::keyPressEvent(QKeyEvent* e)
     Bino::instance()->keyPressEvent(e);
 }
 
+static QPointF toPixelCoord(const QMatrix4x4 P, const QVector3D& v, int w, int h)
+{
+    QVector4D clipSpace = P.map(QVector4D(v, 1.0f));
+    QVector2D ndc(clipSpace.x() / clipSpace.w(), clipSpace.y() / clipSpace.w());
+    return QPointF((ndc.x() + 1.0f) * 0.5f * w, (ndc.y() + 1.0f) * 0.5f * h);
+}
+
 QPointF Widget::toView(const QPointF& pos) const
 {
     float tx = (pos.x() / _width  - 0.5f * (1.0f - _lastFrameRelWidth )) / _lastFrameRelWidth ;
@@ -474,6 +483,13 @@ QPointF Widget::toView(const QPointF& pos) const
             ty -= 0.5f;
         ty *= 2.0f;
         break;
+    }
+    if (Bino::instance()->assumeSurroundMode() != Surround_Off) {
+        QPointF tl = toPixelCoord(_surroundProjectionMatrix, QVector3D(+10.0f, +10.0f, +10.0f), _width, _height);
+        QPointF br = toPixelCoord(_surroundProjectionMatrix, QVector3D(-10.0f, -10.0f, +10.0f), _width, _height);
+        QRectF cubeSide(tl, br);
+        tx = (tx * _width  - cubeSide.left()) / cubeSide.width();
+        ty = (ty * _height - cubeSide.top()) / cubeSide.height();
     }
     return QPointF(tx, ty);
 }

@@ -26,6 +26,7 @@
 
 
 OverlayUI::OverlayUI() :
+    _lastSurround(false),
     _lastPosition(-1),
     _lastDuration(-1),
     _lastSeekable(false),
@@ -42,13 +43,22 @@ OverlayUI::~OverlayUI()
 
 void OverlayUI::computeBoxes()
 {
-    _buttonSize = image().width() / 18.0f;
+    float xOffset = 0.0f;
+    float xFactor = 1.0f;
+    float yOffset = 0.0f;
+    if (_currentSurround) {
+        xOffset = 0.15f * image().width();
+        xFactor = 0.7f;
+        yOffset = -0.3f * image().height();
+    }
+    _buttonSize = image().width() / 18.0f * xFactor;
+
     _penWidth = _buttonSize / 10.0f;
     bool isReallySeekable = (_currentSeekable && _currentDuration > 0 && _currentPosition >= 0);
 
     // 9 buttons
-    float x = 0.5f * _buttonSize;
-    float y = image().height() - 2.5f * _buttonSize;
+    float x = 0.5f * _buttonSize + xOffset;
+    float y = image().height() - 2.5f * _buttonSize + yOffset;
     for (int i = 0; i < 9; i++) {
         _boxIsActive[i] = true;
         if (i == 0 || i == 8) {
@@ -63,9 +73,9 @@ void OverlayUI::computeBoxes()
     }
 
     // seek bar
-    float barX = 0.5f * _buttonSize;
-    float barY = image().height() - _buttonSize;
-    float barW = image().width() - _buttonSize;
+    float barX = 0.5f * _buttonSize + xOffset;
+    float barY = image().height() - _buttonSize + yOffset;
+    float barW = (image().width() - _buttonSize) * xFactor;
     float barH = 0.5f * _buttonSize;
     _boxes[9] = QRectF(barX, barY, barW, barH);
     _boxIsActive[9] = isReallySeekable;
@@ -98,9 +108,11 @@ float OverlayUI::pointerToSeekPos(const QPointF& pointer)
     return seekPos;
 }
 
-void OverlayUI::updateParameters(qint64 position, qint64 duration, bool seekable,
-            bool paused, const QPointF& pointer)
+void OverlayUI::updateParameters(bool surround,
+        qint64 position, qint64 duration, bool seekable,
+        bool paused, const QPointF& pointer)
 {
+    _currentSurround = surround;
     _currentPosition = position;
     _currentDuration = duration;
     _currentSeekable = seekable;
@@ -110,8 +122,13 @@ void OverlayUI::updateParameters(qint64 position, qint64 duration, bool seekable
 
 bool OverlayUI::redraw(int w, int h)
 {
+    if (_currentSurround) {
+        int d = qMin(w, h);
+        w = h = d;
+    }
     bool redraw = resize(w, h);
-    if (_currentPosition != _lastPosition
+    if (_currentSurround != _lastSurround
+            || _currentPosition != _lastPosition
             || _currentDuration != _lastDuration
             || _currentSeekable != _lastSeekable
             || _currentPaused != _lastPaused
@@ -182,6 +199,7 @@ bool OverlayUI::redraw(int w, int h)
         }
     }
 
+    _lastSurround = _currentSurround;
     _lastPosition = _currentPosition;
     _lastDuration = _currentDuration;
     _lastSeekable = _currentSeekable;

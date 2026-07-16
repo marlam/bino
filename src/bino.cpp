@@ -1156,6 +1156,7 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
     _overlayUIShow = (_player && QDateTime::currentMSecsSinceEpoch() - _overlayUILastTrigger < 3000);
     if (_overlayUIShow) {
         _overlayUI.updateParameters(
+                (_frame.surroundMode != Surround_Off),
                 _player->position(),
                 _player->duration(),
                 _player->isSeekable(),

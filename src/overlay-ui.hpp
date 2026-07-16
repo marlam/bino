@@ -28,11 +28,13 @@
 class OverlayUI : public Overlay
 {
 private:
+    bool _currentSurround;
     qint64 _currentPosition;
     qint64 _currentDuration;
     bool _currentSeekable;
     bool _currentPaused;
     QPointF _currentPointer;
+    bool _lastSurround;
     qint64 _lastPosition;
     qint64 _lastDuration;
     bool _lastSeekable;
@@ -54,7 +56,8 @@ public:
     OverlayUI();
     ~OverlayUI();
 
-    void updateParameters(qint64 position, qint64 duration, bool seekable,
+    void updateParameters(bool surround,
+            qint64 position, qint64 duration, bool seekable,
             bool paused, const QPointF& pointer);
 
     virtual bool redraw(int w, int h) override;

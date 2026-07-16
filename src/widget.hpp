@@ -48,6 +48,7 @@ private:
     float _surroundVerticalAngleBase;
     float _surroundHorizontalAngleCurrent;
     float _surroundVerticalAngleCurrent;
+    QMatrix4x4 _surroundProjectionMatrix;
 
     unsigned int _viewTex[2];
     int _viewTexWidth[2], _viewTexHeight[2];
