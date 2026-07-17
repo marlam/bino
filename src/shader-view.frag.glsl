@@ -75,7 +75,7 @@ void main(void)
     // Only show overlays for the cube side that is directly in front
     // of the viewer. In our cube VAO, this cube side is rendered via
     // triangles 2 and 3.
-    if (gl_PrimitiveID == 2 || gl_PrimitiveID == 3) {
+    if (surroundDegrees == 0 || gl_PrimitiveID == 2 || gl_PrimitiveID == 3) {
         vec4 ovl0 = texture(overlayTex0, vec2(overlay_x, overlay_y)).rgba;
         rgb = mix(rgb, ovl0.rgb, ovl0.a);
         if (showOverlay1) {
