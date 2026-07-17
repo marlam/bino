@@ -147,9 +147,17 @@ bool BinoQVRApp::initProcess(QVRProcess*)
     return Bino::instance()->initProcess();
 }
 
+void BinoQVRApp::update(const QList<QVRObserver*>& /* observers */)
+{
+    Bino::instance()->updateMainProcess();
+}
+
 void BinoQVRApp::preRenderProcess(QVRProcess*)
 {
-    Bino::instance()->preRenderProcess();
+    // We cannot know our screen geometry or even the screen aspect ratio,
+    // but it's safe to assume that we want at least Full HD resolution
+    // for the audio, subtitle, and UI overlays.
+    Bino::instance()->preRenderProcess(1920, 1080);
 }
 
 void BinoQVRApp::render(QVRWindow*, const QVRRenderContext& context, const unsigned int* textures)

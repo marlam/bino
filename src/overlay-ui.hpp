@@ -40,7 +40,6 @@ private:
     bool _lastSeekable;
     bool _lastPaused;
     QPointF _lastPointer;
-    bool _pointerPressed;
 
     float _buttonSize;
     float _penWidth;
@@ -51,6 +50,9 @@ private:
     QPointF pointerToImage(const QPointF& pointer);
     int boxIndex(const QPointF& pointer);
     float pointerToSeekPos(const QPointF& pointer);
+
+    friend QDataStream &operator<<(QDataStream& ds, const OverlayUI& o);
+    friend QDataStream &operator>>(QDataStream& ds, OverlayUI& o);
 
 public:
     OverlayUI();
@@ -65,3 +67,6 @@ public:
     bool pointerPress(const QPointF& pointer);
     void pointerRelease(const QPointF& pointer);
 };
+
+QDataStream &operator<<(QDataStream& ds, const OverlayUI& o);
+QDataStream &operator>>(QDataStream& ds, OverlayUI& o);

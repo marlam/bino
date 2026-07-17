@@ -32,7 +32,6 @@ OverlayUI::OverlayUI() :
     _lastSeekable(false),
     _lastPaused(false),
     _lastPointer(-1.0f, -1.0f),
-    _pointerPressed(false),
     _boxIsActive { false, false, false, false, false, false, false, false, false, false }
 {
 }
@@ -239,4 +238,26 @@ void OverlayUI::pointerRelease(const QPointF& pointer)
         Playlist::instance()->next();
     else if (i == 9)
         Bino::instance()->setPosition(pointerToSeekPos(pointer));
+}
+
+QDataStream &operator<<(QDataStream& ds, const OverlayUI& o)
+{
+    ds << o._currentSurround;
+    ds << o._currentPosition;
+    ds << o._currentDuration;
+    ds << o._currentSeekable;
+    ds << o._currentPaused;
+    ds << o._currentPointer;
+    return ds;
+}
+
+QDataStream &operator>>(QDataStream& ds, OverlayUI& o)
+{
+    ds >> o._currentSurround;
+    ds >> o._currentPosition;
+    ds >> o._currentDuration;
+    ds >> o._currentSeekable;
+    ds >> o._currentPaused;
+    ds >> o._currentPointer;
+    return ds;
 }

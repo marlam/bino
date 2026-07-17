@@ -39,7 +39,6 @@ Bino::Bino(ScreenType screenType, const Screen& screen, bool swapEyes) :
     _screenInput(nullptr),
     _windowInput(nullptr),
     _captureSession(nullptr),
-    _overlayUIShow(false),
     _overlayUILocked(false),
     _overlayUILastTrigger(0),
     _lastFrameInputMode(Input_Unknown),
@@ -48,7 +47,8 @@ Bino::Bino(ScreenType screenType, const Screen& screen, bool swapEyes) :
     _screen(screen),
     _frameIsNew(false),
     _frameWasSerialized(true),
-    _swapEyes(swapEyes)
+    _swapEyes(swapEyes),
+    _overlayUIShow(false)
 {
     Q_ASSERT(!binoSingleton);
     binoSingleton = this;
@@ -523,7 +523,11 @@ void Bino::serializeDynamicData(QDataStream& ds)
         }
         _frameWasSerialized = true;
     }
+    // the subtitle is serialized with the frame
     ds << _swapEyes;
+    ds << _overlayAudio;
+    ds << _overlayUI;
+    ds << _overlayUIShow;
 }
 
 void Bino::deserializeDynamicData(QDataStream& ds)
@@ -538,7 +542,11 @@ void Bino::deserializeDynamicData(QDataStream& ds)
         }
         _frameIsNew = true;
     }
+    // the subtitle is serialized with the frame
     ds >> _swapEyes;
+    ds >> _overlayAudio;
+    ds >> _overlayUI;
+    ds >> _overlayUIShow;
 }
 
 bool Bino::wantExit() const
@@ -758,6 +766,23 @@ bool Bino::initProcess()
     CHECK_GL();
 
     return true;
+}
+
+void Bino::updateMainProcess()
+{
+    // This function must handle the overlay UI updates because the _player object is
+    // only available in the main process
+    _overlayUIShow = (_player && (_overlayUILocked
+                || QDateTime::currentMSecsSinceEpoch() - _overlayUILastTrigger < 3000));
+    if (_overlayUIShow) {
+        _overlayUI.updateParameters(
+                (_frame.surroundMode != Surround_Off),
+                _player->position(),
+                _player->duration(),
+                _player->isSeekable(),
+                _player->playbackState() == QMediaPlayer::PausedState,
+                _overlayUIPointerInView);
+    }
 }
 
 void Bino::rebuildColorPrgIfNecessary(int planeFormat, bool colorRangeSmall, int colorSpace, int colorTransfer)
@@ -1158,22 +1183,13 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
         _frameIsNew = false;
     }
     // Render the audio overlay
-    if (_player && _player->videoTracks().isEmpty()) {
+    if (!_frame.isValid()) {
         if (_overlayAudio.redraw(viewWidth, viewHeight)) {
             overlayToTexture(_overlayAudio.image(), _overlayTexs[0]);
         }
     }
     // Render the overlay UI into
-    _overlayUIShow = (_player && (_overlayUILocked
-                || QDateTime::currentMSecsSinceEpoch() - _overlayUILastTrigger < 3000));
     if (_overlayUIShow) {
-        _overlayUI.updateParameters(
-                (_frame.surroundMode != Surround_Off),
-                _player->position(),
-                _player->duration(),
-                _player->isSeekable(),
-                _player->playbackState() == QMediaPlayer::PausedState,
-                _overlayUIPointerInView);
         if (_overlayUI.redraw(viewWidth, viewHeight)) {
             overlayToTexture(_overlayUI.image(), _overlayTexs[2]);
         }
@@ -1325,7 +1341,7 @@ void Bino::render(
     _viewPrg.setUniformValue("overlayTex0", 1);
     _viewPrg.setUniformValue("overlayTex1", 2);
     _viewPrg.setUniformValue("overlayTex2", 3);
-    _viewPrg.setUniformValue("showOverlayAudio", _player && _player->videoTracks().isEmpty());
+    _viewPrg.setUniformValue("showOverlayAudio", !_frame.isValid());
     _viewPrg.setUniformValue("showOverlaySubtitle", !_frame.subtitle.isEmpty());
     _viewPrg.setUniformValue("showOverlayUI", _overlayUIShow);
     _viewPrg.setUniformValue("rotation", rotation);

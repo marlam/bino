@@ -30,6 +30,9 @@ private:
     QString _currentString;
     QString _lastString;
 
+    friend QDataStream &operator<<(QDataStream& ds, const OverlayAudio& o);
+    friend QDataStream &operator>>(QDataStream& ds, OverlayAudio& o);
+
 public:
     OverlayAudio();
     ~OverlayAudio();
@@ -38,3 +41,6 @@ public:
 
     virtual bool redraw(int w, int h) override;
 };
+
+QDataStream &operator<<(QDataStream& ds, const OverlayAudio& o);
+QDataStream &operator>>(QDataStream& ds, OverlayAudio& o);

@@ -111,3 +111,15 @@ bool OverlayAudio::redraw(int w, int h)
     _lastString = _currentString;
     return true;
 }
+
+QDataStream &operator<<(QDataStream& ds, const OverlayAudio& o)
+{
+    ds << o._currentString;
+    return ds;
+}
+
+QDataStream &operator>>(QDataStream& ds, OverlayAudio& o)
+{
+    ds >> o._currentString;
+    return ds;
+}

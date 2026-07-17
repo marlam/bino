@@ -245,6 +245,7 @@ void Widget::paintGL()
     int viewCount, viewWidth, viewHeight;
     float frameDisplayAspectRatio;
     bool surround;
+    Bino::instance()->updateMainProcess();
     Bino::instance()->preRenderProcess(width, height, &viewCount, &viewWidth, &viewHeight, &frameDisplayAspectRatio, &surround);
 
     // Adjust the stereo mode if necessary

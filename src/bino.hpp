@@ -65,14 +65,7 @@ private:
     QScreenCapture* _screenInput;
     QWindowCapture* _windowInput;
     QMediaCaptureSession* _captureSession;
-    // for rendering the audio overlay:
-    OverlayAudio _overlayAudio;
-    // for rendering subtitles:
-    OverlaySubtitle _overlaySubtitle;
-    QString _overlaySubtitleString;
-    // for rendering the overlay UI:
-    OverlayUI _overlayUI;
-    bool _overlayUIShow;
+    // for managing the overlay UI:
     bool _overlayUILocked;
     qint64 _overlayUILastTrigger;
     QPointF _overlayUIPointerInView;
@@ -110,6 +103,14 @@ private:
     bool _frameIsNew;
     bool _frameWasSerialized;
     bool _swapEyes;
+    // for rendering the audio overlay:
+    OverlayAudio _overlayAudio;
+    // for rendering subtitles:
+    OverlaySubtitle _overlaySubtitle;
+    QString _overlaySubtitleString;
+    // for rendering the overlay UI:
+    OverlayUI _overlayUI;
+    bool _overlayUIShow;
 
     void startCaptureMode(bool withAudioInput, const QAudioDevice& audioInputDevice, InputMode inputMode);
     void rebuildColorPrgIfNecessary(int planeFormat, bool colorRangeSmall, int colorSpace, int colorTransfer);
@@ -192,9 +193,10 @@ public:
 
     /* Functions shared by GUI and VR mode */
     bool initProcess();
+    void updateMainProcess();
     void preRenderProcess(
-            int screenWidth = 0,
-            int screenHeight = 0,
+            int screenWidth,
+            int screenHeight,
             int* viewCount = nullptr,
             int* viewWidth = nullptr,
             int* viewHeight = nullptr,

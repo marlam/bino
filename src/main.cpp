@@ -523,6 +523,7 @@ int main(int argc, char* argv[])
         }
         playlist.append(PlaylistEntry(url, inputMode, surroundMode,
                     videoTrack, audioTrack, subtitleTrack));
+        fprintf(stderr, "appending with tracks v=%d a=%d s=%d\n", videoTrack, audioTrack, subtitleTrack);
     }
     if (parser.positionalArguments().length() > 0 && playlist.length() == 0) {
         return 1;
