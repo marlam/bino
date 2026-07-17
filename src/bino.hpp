@@ -70,6 +70,7 @@ private:
     // for rendering the overlay UI:
     OverlayUI _overlayUI;
     bool _overlayUIShow;
+    bool _overlayUILocked;
     qint64 _overlayUILastTrigger;
     QPointF _overlayUIPointerInView;
     // for updating the GUI if necessary

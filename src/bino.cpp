@@ -39,6 +39,9 @@ Bino::Bino(ScreenType screenType, const Screen& screen, bool swapEyes) :
     _screenInput(nullptr),
     _windowInput(nullptr),
     _captureSession(nullptr),
+    _overlayUIShow(false),
+    _overlayUILocked(false),
+    _overlayUILastTrigger(0),
     _lastFrameInputMode(Input_Unknown),
     _lastFrameSurroundMode(Surround_Unknown),
     _screenType(screenType),
@@ -1153,7 +1156,8 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
         _frameIsNew = false;
     }
     // Render the overlay UI into the overlay texture
-    _overlayUIShow = (_player && QDateTime::currentMSecsSinceEpoch() - _overlayUILastTrigger < 3000);
+    _overlayUIShow = (_player && (_overlayUILocked
+                || QDateTime::currentMSecsSinceEpoch() - _overlayUILastTrigger < 3000));
     if (_overlayUIShow) {
         _overlayUI.updateParameters(
                 (_frame.surroundMode != Surround_Off),
@@ -1363,12 +1367,16 @@ void Bino::render(
 
 bool Bino::overlayUIPointerPress(const QPointF& pointerInView)
 {
-    return _overlayUI.pointerPress(pointerInView);
+    bool r = _overlayUI.pointerPress(pointerInView);
+    if (r)
+        _overlayUILocked = true;
+    return r;
 }
 
 void Bino::overlayUIPointerRelease(const QPointF& pointerInView)
 {
     _overlayUI.pointerRelease(pointerInView);
+    _overlayUILocked = false;
 }
 
 void Bino::overlayUIPointerMove(const QPointF& pointerInView)
