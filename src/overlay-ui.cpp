@@ -75,7 +75,7 @@ void OverlayUI::computeBoxes()
     // seek bar
     float barX = 0.5f * _buttonSize + xOffset;
     float barY = image().height() - _buttonSize + yOffset;
-    float barW = (image().width() - _buttonSize) * xFactor;
+    float barW = image().width() - 2.0f * barX;
     float barH = 0.5f * _buttonSize;
     _boxes[9] = QRectF(barX, barY, barW, barH);
     _boxIsActive[9] = isReallySeekable;
