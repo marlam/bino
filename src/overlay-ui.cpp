@@ -64,7 +64,10 @@ void OverlayUI::computeBoxes()
         if (i == 0 || i == 8) {
             _boxIsActive[i] = Bino::instance()->playlistMode() && Playlist::instance()->length() > 1;
         } else if (i == 4) {
-            // TODO: disable if input is an image
+            if (_currentPosition <= 0 && _currentDuration <= 40) {
+                // guess this is an image
+                _boxIsActive[4] = false;
+            }
         } else {
             _boxIsActive[i] = isReallySeekable;
         }
