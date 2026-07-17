@@ -127,8 +127,8 @@ int main(int argc, char* argv[])
             "file" });
     parser.addOption({ "read-commands",
             QCommandLineParser::tr("Read commands from a script file."), "script" });
-    parser.addOption({ "disable-stereo",
-            QCommandLineParser::tr("Disable OpenGL quad-buffered stereo support.") });
+    parser.addOption({ "stereo",
+            QCommandLineParser::tr("Enable OpenGL quad-buffered stereo support.") });
     parser.addOption({ "opengles",
             QCommandLineParser::tr("Use OpenGL ES instead of Desktop OpenGL.") });
     parser.addOption({ "vr",
@@ -285,6 +285,9 @@ int main(int argc, char* argv[])
         }
     }
     OutputMode outputMode = Output_Red_Cyan_Dubois;
+    if (parser.isSet("stereo")) {
+        outputMode = Output_OpenGL_Stereo;
+    }
     if (parser.isSet("output")) {
         bool ok;
         outputMode = outputModeFromString(parser.value("output"), &ok);
@@ -680,8 +683,10 @@ int main(int argc, char* argv[])
             format.setProfile(QSurfaceFormat::CoreProfile);
             format.setVersion(3, 3);
         }
-        if (guiMode && !parser.isSet("disable-stereo")) {
-            // Try to get quad-buffered stereo; it's ok if this fails
+        if (guiMode && parser.isSet("stereo")) {
+            // Try to get quad-buffered stereo.
+            // On modern systems it's ok if this fails.
+            // On legacy proprietary NVIDIA crap, it breaks.
             format.setOption(QSurfaceFormat::StereoBuffers);
         }
         QSurfaceFormat::setDefaultFormat(format);

@@ -44,10 +44,11 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 
   Read commands from a script file. See [Scripting].
 
-- `--disable-stereo`
+- `--stereo`
 
-  Disable OpenGL quad-buffered stereo support. This is a workaround for broken
-  drivers, mostly the NVIDIA proprietary drivers on Linux.
+  Enable OpenGL quad-buffered stereo support. This typically only works
+  with legacy proprietary GPU drivers, and autodetection breaks with these
+  drivers, so this feature has to be enabled manually.
 
 - `--opengles`
 
