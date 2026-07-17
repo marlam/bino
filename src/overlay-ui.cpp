@@ -62,7 +62,7 @@ void OverlayUI::computeBoxes()
     for (int i = 0; i < 9; i++) {
         _boxIsActive[i] = true;
         if (i == 0 || i == 8) {
-            _boxIsActive[i] = Bino::instance()->playlistMode();
+            _boxIsActive[i] = Bino::instance()->playlistMode() && Playlist::instance()->length() > 1;
         } else if (i == 4) {
             // TODO: disable if input is an image
         } else {
