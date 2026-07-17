@@ -43,6 +43,7 @@ add_executable(bino
 	src/playlisteditor.hpp src/playlisteditor.cpp
 	src/gui.hpp src/gui.cpp
 	src/overlay.hpp src/overlay.cpp
+	src/overlay-audio.hpp src/overlay-audio.cpp
 	src/overlay-subtitle.hpp src/overlay-subtitle.cpp
 	src/overlay-ui.hpp src/overlay-ui.cpp
 	src/urlloader.hpp src/urlloader.cpp

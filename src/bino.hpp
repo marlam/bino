@@ -36,8 +36,9 @@
 #include "screen.hpp"
 #include "videosink.hpp"
 #include "playlist.hpp"
-#include "overlay-ui.hpp"
+#include "overlay-audio.hpp"
 #include "overlay-subtitle.hpp"
+#include "overlay-ui.hpp"
 
 
 class Bino : public QObject, QOpenGLExtraFunctions
@@ -64,6 +65,8 @@ private:
     QScreenCapture* _screenInput;
     QWindowCapture* _windowInput;
     QMediaCaptureSession* _captureSession;
+    // for rendering the audio overlay:
+    OverlayAudio _overlayAudio;
     // for rendering subtitles:
     OverlaySubtitle _overlaySubtitle;
     QString _overlaySubtitleString;
@@ -90,7 +93,7 @@ private:
     unsigned int _planeTexs[3];
     unsigned int _frameTex;
     unsigned int _extFrameTex;
-    unsigned int _overlayTexs[2];
+    unsigned int _overlayTexs[3];
     unsigned int _screenVao, _positionBuf, _texcoordBuf, _indexBuf;
     QOpenGLShaderProgram _colorPrg;
     int _colorPrgPlaneFormat;

@@ -225,7 +225,9 @@ void Bino::mediaChanged(PlaylistEntry entry)
         QUrl digestibleUrl = digestibleMediaUrl(entry.url);
         // Set new source
         _player->setSource(digestibleUrl);
-        if (entry.videoTrack >= 0) {
+        if (metaData.videoTracks.isEmpty()) {
+            _overlayAudio.updateParameters(metaData);
+        } else if (entry.videoTrack >= 0) {
             _player->setActiveVideoTrack(entry.videoTrack);
         }
         if (entry.audioTrack >= 0) {
@@ -721,8 +723,8 @@ bool Bino::initProcess()
     CHECK_GL();
 
     // Overlay textures (subtitles and UI)
-    glGenTextures(2, _overlayTexs);
-    for (int i = 0; i < 2; i++) {
+    glGenTextures(3, _overlayTexs);
+    for (int i = 0; i < 3; i++) {
         glBindTexture(GL_TEXTURE_2D, _overlayTexs[i]);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
@@ -1147,15 +1149,21 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
             else
                 convertFrameToTexture(_extFrame, _extFrameTex);
         }
-        // Render the subtitle into the subtitle texture
+        // Render the subtitle
         _overlaySubtitle.updateParameters(_frame.subtitle);
         if (_overlaySubtitle.redraw(viewWidth, viewHeight)) {
-            overlayToTexture(_overlaySubtitle.image(), _overlayTexs[0]);
+            overlayToTexture(_overlaySubtitle.image(), _overlayTexs[1]);
         }
         // Done.
         _frameIsNew = false;
     }
-    // Render the overlay UI into the overlay texture
+    // Render the audio overlay
+    if (_player && _player->videoTracks().isEmpty()) {
+        if (_overlayAudio.redraw(viewWidth, viewHeight)) {
+            overlayToTexture(_overlayAudio.image(), _overlayTexs[0]);
+        }
+    }
+    // Render the overlay UI into
     _overlayUIShow = (_player && (_overlayUILocked
                 || QDateTime::currentMSecsSinceEpoch() - _overlayUILastTrigger < 3000));
     if (_overlayUIShow) {
@@ -1167,7 +1175,7 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
                 _player->playbackState() == QMediaPlayer::PausedState,
                 _overlayUIPointerInView);
         if (_overlayUI.redraw(viewWidth, viewHeight)) {
-            overlayToTexture(_overlayUI.image(), _overlayTexs[1]);
+            overlayToTexture(_overlayUI.image(), _overlayTexs[2]);
         }
     }
 
@@ -1316,7 +1324,10 @@ void Bino::render(
     _viewPrg.setUniformValue("frameTex", 0);
     _viewPrg.setUniformValue("overlayTex0", 1);
     _viewPrg.setUniformValue("overlayTex1", 2);
-    _viewPrg.setUniformValue("showOverlay1", _overlayUIShow);
+    _viewPrg.setUniformValue("overlayTex2", 3);
+    _viewPrg.setUniformValue("showOverlayAudio", _player && _player->videoTracks().isEmpty());
+    _viewPrg.setUniformValue("showOverlaySubtitle", !_frame.subtitle.isEmpty());
+    _viewPrg.setUniformValue("showOverlayUI", _overlayUIShow);
     _viewPrg.setUniformValue("rotation", rotation);
     _viewPrg.setUniformValue("view_offset_x", viewOffsetX);
     _viewPrg.setUniformValue("view_factor_x", viewFactorX);
@@ -1325,12 +1336,14 @@ void Bino::render(
     _viewPrg.setUniformValue("relative_width", relWidth);
     _viewPrg.setUniformValue("relative_height", relHeight);
     // Render scene
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, frameTex);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, _overlayTexs[0]);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, _overlayTexs[1]);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, frameTex);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, _overlayTexs[2]);
     if (_frame.surroundMode != Surround_Off) {
         // Set up filtering to work correctly at the horizontal wraparound:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

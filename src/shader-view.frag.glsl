@@ -19,9 +19,12 @@
  */
 
 uniform sampler2D frameTex;
-uniform sampler2D overlayTex0;
-uniform sampler2D overlayTex1;
-uniform bool showOverlay1;
+uniform sampler2D overlayTex0; // audio
+uniform sampler2D overlayTex1; // subtitle
+uniform sampler2D overlayTex2; // ui
+uniform bool showOverlayAudio;
+uniform bool showOverlaySubtitle;
+uniform bool showOverlayUI;
 uniform float relative_width;
 uniform float relative_height;
 uniform float view_offset_x;
@@ -55,6 +58,7 @@ void main(void)
     float overlay_y = 1.0 - vtexcoord.y;
     float overlay_x = vtexcoord.x;
     if (surroundDegrees > 0) {
+        overlay_x = 1.0 - overlay_x;
         vec3 dir = normalize(vdirection);
         float theta = asin(clamp(-dir.y, -1.0, 1.0));
         float phi = atan(dir.x, -dir.z);
@@ -64,7 +68,6 @@ void main(void)
         float vtx = view_offset_x + view_factor_x * u;
         float vty = view_offset_y + view_factor_y * v;
         rgb = texture(frameTex, vec2(vtx, vty)).rgb;
-        overlay_x = 1.0 - overlay_x;
     } else {
         float vtx = view_offset_x + view_factor_x * vtexcoord.x;
         float vty = view_offset_y + view_factor_y * vtexcoord.y;
@@ -76,11 +79,17 @@ void main(void)
     // of the viewer. In our cube VAO, this cube side is rendered via
     // triangles 2 and 3.
     if (surroundDegrees == 0 || gl_PrimitiveID == 2 || gl_PrimitiveID == 3) {
-        vec4 ovl0 = texture(overlayTex0, vec2(overlay_x, overlay_y)).rgba;
-        rgb = mix(rgb, ovl0.rgb, ovl0.a);
-        if (showOverlay1) {
+        if (showOverlayAudio) {
+            vec4 ovl0 = texture(overlayTex0, vec2(overlay_x, overlay_y)).rgba;
+            rgb = mix(rgb, ovl0.rgb, ovl0.a);
+        }
+        if (showOverlaySubtitle) {
             vec4 ovl1 = texture(overlayTex1, vec2(overlay_x, overlay_y)).rgba;
             rgb = mix(rgb, ovl1.rgb, ovl1.a);
+        }
+        if (showOverlayUI) {
+            vec4 ovl2 = texture(overlayTex2, vec2(overlay_x, overlay_y)).rgba;
+            rgb = mix(rgb, ovl2.rgb, ovl2.a);
         }
     }
     if (nonlinear_output) {
