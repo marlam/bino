@@ -22,6 +22,7 @@
 
 #include <QOpenGLWidget>
 #include <QOpenGLExtraFunctions>
+#include <QTimer>
 
 #include "modes.hpp"
 #include "bino.hpp"
@@ -32,6 +33,7 @@ class Widget : public QOpenGLWidget, protected QOpenGLExtraFunctions
 Q_OBJECT
 
 private:
+    QTimer _updateTimer;
     QSize _sizeHint;
     int _width, _height;
     float _lastFrameRelWidth, _lastFrameRelHeight;

@@ -63,6 +63,9 @@ Widget::Widget(OutputMode outputMode, float surroundVerticalFOV, QWidget* parent
     connect(Bino::instance(), &Bino::newVideoFrame, [=]() { update(); });
     connect(Bino::instance(), &Bino::toggleFullscreen, [=]() { emit toggleFullscreen(); });
     connect(Playlist::instance(), SIGNAL(mediaChanged(PlaylistEntry)), this, SLOT(mediaChanged(PlaylistEntry)));
+    _updateTimer.setSingleShot(true);
+    _updateTimer.setTimerType(Qt::CoarseTimer);
+    connect(&_updateTimer, SIGNAL(timeout()), this, SLOT(update()));
     setFocus();
 }
 
@@ -410,6 +413,9 @@ void Widget::paintGL()
         _alternatingLastView = (_alternatingLastView == 0 ? 1 : 0);
         update();
     }
+
+    // Redraw at least 25 times per second, for overlay UI updates
+    _updateTimer.start(40);
 }
 
 void Widget::resizeGL(int w, int h)
