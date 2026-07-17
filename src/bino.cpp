@@ -224,7 +224,21 @@ void Bino::mediaChanged(PlaylistEntry entry)
         // Special handling of files that cannot be digested by QtMultimedia directly
         QUrl digestibleUrl = digestibleMediaUrl(entry.url);
         // Set new source
+        bool failure = false;
+        bool available = false;
+        QString errorMessage;
+        _player->connect(_player, &QMediaPlayer::errorOccurred,
+                [&](QMediaPlayer::Error, const QString& errorString) {
+                errorMessage = errorString;
+                LOG_WARNING("%s", qPrintable(tr("Cannot set media source %1: %2").arg(_player->source().toString()).arg(errorString)));
+                failure = true;
+                });
+        _player->connect(_player, &QMediaPlayer::metaDataChanged, [&]() { available = true; });
         _player->setSource(digestibleUrl);
+        do {
+            QGuiApplication::processEvents();
+        }
+        while (!failure && !available);
         if (metaData.videoTracks.isEmpty()) {
             _overlayAudio.updateParameters(metaData);
         } else if (entry.videoTrack >= 0) {
