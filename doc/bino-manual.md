@@ -1,7 +1,7 @@
 ---
 title: Bino
-header: Version 2.6
-date: November 9, 2025
+header: Version 2.8
+date: July 18, 2026
 section: 1
 ---
 
@@ -9,9 +9,9 @@ section: 1
 
 Bino is a video player with a focus on 3D and Virtual Reality:
 
-- Support for stereoscopic 3D videos in various formats
+- Support for stereoscopic 3D images and videos in various formats
 
-- Support for 360° and 180° surround videos, with and without stereoscopic 3D
+- Support for 180° and 360° surround images and videos, with and without stereoscopic 3D
 
 - Support for Virtual Reality environments, including SteamVR,
   CAVEs, powerwalls, and other multi-display / multi-GPU / multi-host systems
