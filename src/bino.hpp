@@ -59,6 +59,9 @@ private:
     QAudioOutput* _audioOutput;
     // for playing a play list:
     QMediaPlayer* _player;
+    bool _playerAvailable;
+    bool _playerFailure;
+    bool _playerIgnoreNextStop;
     // for capturing audio/video:
     QAudioInput* _audioInput;
     QCamera* _videoInput;

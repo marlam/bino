@@ -92,11 +92,17 @@ void Bino::startPlaylistMode()
 
     connect(Playlist::instance(), SIGNAL(mediaChanged(PlaylistEntry)), this, SLOT(mediaChanged(PlaylistEntry)));
 
+    _playerAvailable = false;
+    _playerFailure = false;
+    _playerIgnoreNextStop = false;
     _player = new QMediaPlayer;
     _player->setVideoOutput(_videoSink);
     _player->setAudioOutput(_audioOutput);
+    _player->connect(_player, &QMediaPlayer::metaDataChanged,
+            [&]() { _playerAvailable = true; });
     _player->connect(_player, &QMediaPlayer::errorOccurred,
             [=](QMediaPlayer::Error /* error */, const QString& errorString) {
+            _playerFailure = true;
             LOG_WARNING("%s", qPrintable(tr("Media player error: %1").arg(errorString)));
             });
     _player->connect(_player, &QMediaPlayer::playbackStateChanged,
@@ -106,8 +112,13 @@ void Bino::startPlaylistMode()
                     : state == QMediaPlayer::PlayingState ? "playing"
                     : state == QMediaPlayer::PausedState ? "paused"
                     : "unknown");
-            if (state == QMediaPlayer::StoppedState)
-                Playlist::instance()->mediaEnded();
+            if (state == QMediaPlayer::StoppedState) {
+                if (_playerIgnoreNextStop) {
+                    _playerIgnoreNextStop = false;
+                } else {
+                    Playlist::instance()->mediaEnded();
+                }
+            }
             });
 
     emit stateChanged();
@@ -215,30 +226,26 @@ void Bino::mediaChanged(PlaylistEntry entry)
 {
     if (!playlistMode())
         return;
-    if (entry.noMedia()) {
-        _player->stop();
-    } else {
+    _playerIgnoreNextStop = true;
+    _player->stop();
+    while (_player->playbackState() != QMediaPlayer::StoppedState) {
+        QGuiApplication::processEvents();
+    }
+    if (!entry.noMedia()) {
         // Get meta data
         MetaData metaData;
         metaData.detectCached(entry.url);
         // Special handling of files that cannot be digested by QtMultimedia directly
         QUrl digestibleUrl = digestibleMediaUrl(entry.url);
         // Set new source
-        bool failure = false;
-        bool available = false;
-        QString errorMessage;
-        _player->connect(_player, &QMediaPlayer::errorOccurred,
-                [&](QMediaPlayer::Error, const QString& errorString) {
-                errorMessage = errorString;
-                LOG_WARNING("%s", qPrintable(tr("Cannot set media source %1: %2").arg(_player->source().toString()).arg(errorString)));
-                failure = true;
-                });
-        _player->connect(_player, &QMediaPlayer::metaDataChanged, [&]() { available = true; });
+        _playerAvailable = false;
+        _playerFailure = false;
+        _playerIgnoreNextStop = false;
         _player->setSource(digestibleUrl);
         do {
             QGuiApplication::processEvents();
         }
-        while (!failure && !available);
+        while (!_playerFailure && !_playerAvailable);
         if (metaData.videoTracks.isEmpty()) {
             _overlayAudio.updateParameters(metaData);
         } else if (entry.videoTrack >= 0) {
