@@ -54,7 +54,7 @@ vec3 rgb_to_nonlinear(vec3 rgb)
 
 void main(void)
 {
-    vec3 rgb;
+    vec3 rgb = vec3(0.0, 0.0, 0.0);
     float overlay_y = 1.0 - vtexcoord.y;
     float overlay_x = vtexcoord.x;
     if (surroundDegrees > 0) {
@@ -69,11 +69,13 @@ void main(void)
         float vty = view_offset_y + view_factor_y * v;
         rgb = texture(frameTex, vec2(vtx, vty)).rgb;
     } else {
-        float vtx = view_offset_x + view_factor_x * vtexcoord.x;
-        float vty = view_offset_y + view_factor_y * vtexcoord.y;
-        float tx = (      vtx - 0.5 * (1.0 - relative_width )) / relative_width;
-        float ty = (1.0 - vty - 0.5 * (1.0 - relative_height)) / relative_height;
-        rgb = texture(frameTex, vec2(tx, ty)).rgb;
+        float vtx = (      vtexcoord.x - 0.5) / relative_width  + 0.5;
+        float vty = (1.0 - vtexcoord.y - 0.5) / relative_height + 0.5;
+        if (vtx >= 0.0 && vtx <= 1.0 && vty >= 0.0 && vty <= 1.0) {
+            float tx = view_offset_x + view_factor_x * vtx;
+            float ty = view_offset_y + view_factor_y * vty;
+            rgb = texture(frameTex, vec2(tx, ty)).rgb;
+        }
     }
     // Only show overlays for the cube side that is directly in front
     // of the viewer. In our cube VAO, this cube side is rendered via
