@@ -40,6 +40,11 @@ private:
     QVector<unsigned int> _devModelVaoIndices;
     QVector<unsigned int> _devModelTextures;
 
+    // Dynamic data, only needed on the main process to handle controller input
+    float _lastAnalogTriggerValue;
+    bool _haveButtonPressEvent;
+    bool _haveButtonReleaseEvent;
+
     /* Helper function for texture loading */
     unsigned int setupTex(const QImage& img);
     /* Helper function for VAO setup */
@@ -67,6 +72,12 @@ public:
     void render(QVRWindow* w, const QVRRenderContext& c, const unsigned int* textures) override;
 
     void keyPressEvent(const QVRRenderContext& context, QKeyEvent* event) override;
+    void mouseMoveEvent(const QVRRenderContext& context, QMouseEvent* event) override;
+    void mousePressEvent(const QVRRenderContext& context, QMouseEvent* event) override;
+    void mouseReleaseEvent(const QVRRenderContext& context, QMouseEvent* event) override;
+    void deviceButtonPressEvent(QVRDeviceEvent* event) override;
+    void deviceButtonReleaseEvent(QVRDeviceEvent* event) override;
+    void deviceAnalogChangeEvent(QVRDeviceEvent* event) override;
 };
 
 #endif

@@ -32,6 +32,7 @@ OverlayUI::OverlayUI() :
     _lastSeekable(false),
     _lastPaused(false),
     _lastPointer(-1.0f, -1.0f),
+    _lastShowPointer(false),
     _boxIsActive { false, false, false, false, false, false, false, false, false, false }
 {
 }
@@ -112,7 +113,7 @@ float OverlayUI::pointerToSeekPos(const QPointF& pointer)
 
 void OverlayUI::updateParameters(bool surround,
         qint64 position, qint64 duration, bool seekable,
-        bool paused, const QPointF& pointer)
+        bool paused, const QPointF& pointer, bool showPointer)
 {
     _currentSurround = surround;
     _currentPosition = position;
@@ -120,6 +121,7 @@ void OverlayUI::updateParameters(bool surround,
     _currentSeekable = seekable;
     _currentPaused = paused;
     _currentPointer = pointer;
+    _currentShowPointer = showPointer;
 }
 
 bool OverlayUI::redraw(int w, int h)
@@ -134,7 +136,8 @@ bool OverlayUI::redraw(int w, int h)
             || _currentDuration != _lastDuration
             || _currentSeekable != _lastSeekable
             || _currentPaused != _lastPaused
-            || _currentPointer != _lastPointer) {
+            || _currentPointer != _lastPointer
+            || _currentShowPointer != _lastShowPointer) {
         redraw = true;
     }
 
@@ -201,12 +204,21 @@ bool OverlayUI::redraw(int w, int h)
         }
     }
 
+    // pointer
+    if (_currentShowPointer) {
+        painter()->setPen(highlightPen);
+        painter()->drawEllipse(
+                QPointF(_currentPointer.x() * w, _currentPointer.y() * h),
+                _penWidth * 2.0f, _penWidth * 2.0f);
+    }
+
     _lastSurround = _currentSurround;
     _lastPosition = _currentPosition;
     _lastDuration = _currentDuration;
     _lastSeekable = _currentSeekable;
     _lastPaused = _currentPaused;
     _lastPointer = _currentPointer;
+    _lastShowPointer = _currentShowPointer;
     return true;
 }
 
@@ -248,6 +260,7 @@ QDataStream &operator<<(QDataStream& ds, const OverlayUI& o)
     ds << o._currentSeekable;
     ds << o._currentPaused;
     ds << o._currentPointer;
+    ds << o._currentShowPointer;
     return ds;
 }
 
@@ -259,5 +272,6 @@ QDataStream &operator>>(QDataStream& ds, OverlayUI& o)
     ds >> o._currentSeekable;
     ds >> o._currentPaused;
     ds >> o._currentPointer;
+    ds >> o._currentShowPointer;
     return ds;
 }

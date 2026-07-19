@@ -34,12 +34,14 @@ private:
     bool _currentSeekable;
     bool _currentPaused;
     QPointF _currentPointer;
+    bool _currentShowPointer;
     bool _lastSurround;
     qint64 _lastPosition;
     qint64 _lastDuration;
     bool _lastSeekable;
     bool _lastPaused;
     QPointF _lastPointer;
+    bool _lastShowPointer;
 
     float _buttonSize;
     float _penWidth;
@@ -60,7 +62,7 @@ public:
 
     void updateParameters(bool surround,
             qint64 position, qint64 duration, bool seekable,
-            bool paused, const QPointF& pointer);
+            bool paused, const QPointF& pointer, bool showPointer);
 
     virtual bool redraw(int w, int h) override;
 

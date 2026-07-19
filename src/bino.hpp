@@ -72,6 +72,7 @@ private:
     bool _overlayUILocked;
     qint64 _overlayUILastTrigger;
     QPointF _overlayUIPointerInView;
+    bool _overlayUIPointerShow;
     // for updating the GUI if necessary
     InputMode _lastFrameInputMode;
     SurroundMode _lastFrameSurroundMode;
@@ -193,6 +194,7 @@ public:
     void serializeDynamicData(QDataStream& ds);
     void deserializeDynamicData(QDataStream& ds);
     bool wantExit() const;
+    const Screen& screen() const;
 
     /* Functions shared by GUI and VR mode */
     bool initProcess();
@@ -213,9 +215,9 @@ public:
             const QMatrix4x4& viewMatrix,
             int view, // 0 = left, 1 = right
             int texWidth, int texHeight, unsigned int texture);
-    bool overlayUIPointerPress(const QPointF& pointerInView);
+    bool overlayUIPointerPress(const QPointF& pointerInView, bool lockUIEvenIfPointerNotOnBox = false);
     void overlayUIPointerRelease(const QPointF& pointerInView);
-    void overlayUIPointerMove(const QPointF& pointerInView);
+    void overlayUIPointerMove(const QPointF& pointerInView, bool showPointerInOverlayUI = false);
     void keyPressEvent(QKeyEvent* event);
 
 public slots:

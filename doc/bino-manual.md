@@ -335,13 +335,11 @@ The following commands are supported:
 
 # Slideshows
 
-You can play slideshows of images (or videos) simply by making a playlist and
-switching on its *wait* status. This is the default whenever one or more of the
-files you open are images instead of videos; this works from the command line
-as well as from the GUI.
-
-With *wait* enabled, the next media in the playlist will only be displayed after
-you press the N key, or choose Playlist/Next from the menu.
+You can play slideshows of images (or videos) simply by making a playlist.
+This works in the GUI as well as from the command line. By default, the *wait*
+status of the playlist will be switched on, which means that the next media in
+the playlist will only be displayed after you press the N key, or choose
+Playlist/Next from the menu.
 
 For automatic media switching based on predefined presentation times, use the
 scripting mode as in the following example:
@@ -374,16 +372,18 @@ Bino supports all sorts of Virtual Reality environments via [QVR](https://marlam
 - When QVR is compiled with [OpenVR](https://github.com/ValveSoftware/openvr),
   SteamVR is additionally supported and automatically detected (e.g. HTC Vive).
 
-To start Bino in VR mode, use the option `--vr`.
-Bino will then display a screen in the virtual world, and the video will be
-displayed on that screen, unless the input is a surround video (360° or 180°),
-which will of course be displayed all around the viewer.
+To start Bino in VR mode, use the option `--vr`. You can quit VR mode by pressing
+the Menu button on your controller, or the Q key on your keyboard.
 
-The default is a 16:9 screen in a few meters distance from the viewer, but you
-can use the `--vr-screen` option to either define arbitrary planar screens via
-their bottom left, bottom right and top left corners, or to load arbitrary
-screen geometry from an OBJ file. The latter case is useful e.g. if you want
-Bino's virtual screen to coincide with a curved physical screen.
+In VR mode, Bino will display a video screen in the virtual world. If the input
+is a surround image or video (360° or 180°), it will be displayed all around
+the viewer.
+
+The default screen is a 16:9 screen in front of the viewer, but you can use the
+`--vr-screen` option to define your own screen via its bottom left, bottom
+right and top left corners, or to load screen geometry from an OBJ file. The
+latter case is useful e.g. if you want Bino's virtual screen to coincide with a
+curved physical screen.
 
 The `--vr-screen` option also accepts the special values `united` and
 `intersected`. This will unite (or intersect) the 2D geometries of all VR windows
@@ -396,7 +396,7 @@ controllers such as the HTC Vive controllers, or on tracking and interaction
 hardware configured via QVR for your VR system, or on the mouse and WASDQE keys
 if nothing else is available.
 
-Additional interaction in VR mode is currently limited to the same keyboard
-shortcuts that also work in GUI mode. That means you currently must specify the
-video to play on the command line, and have no way to pause, skip or seek with
-VR controllers. This will be added in a future version.
+Activate the on-screen user interface by pressing a trigger on your controller.
+When you release the trigger, the selected action will be performed, and the
+on-screen user interface will vanish again. Keyboard shortcuts also still work,
+in case you have access to your keyboard in VR mode.

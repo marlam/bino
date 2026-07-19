@@ -594,9 +594,9 @@ int main(int argc, char* argv[])
         screenCenterHeight = QVRObserverConfig::defaultEyeHeight;
 #endif
         screen = Screen( // default screen for VR mode
-                QVector3D(-16.0f / 9.0f, -1.0f + screenCenterHeight, -8.0f),
-                QVector3D(+16.0f / 9.0f, -1.0f + screenCenterHeight, -8.0f),
-                QVector3D(-16.0f / 9.0f, +1.0f + screenCenterHeight, -8.0f));
+                QVector3D(-16.0f / 9.0f, -1.0f + screenCenterHeight, -3.0f),
+                QVector3D(+16.0f / 9.0f, -1.0f + screenCenterHeight, -3.0f),
+                QVector3D(-16.0f / 9.0f, +1.0f + screenCenterHeight, -3.0f));
         if (parser.isSet("vr-screen")) {
             QStringList paramList = parser.value("vr-screen").split(',');
             float values[9];

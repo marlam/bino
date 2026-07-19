@@ -41,6 +41,7 @@ Bino::Bino(ScreenType screenType, const Screen& screen, bool swapEyes) :
     _captureSession(nullptr),
     _overlayUILocked(false),
     _overlayUILastTrigger(0),
+    _overlayUIPointerShow(false),
     _lastFrameInputMode(Input_Unknown),
     _lastFrameSurroundMode(Surround_Unknown),
     _screenType(screenType),
@@ -575,6 +576,11 @@ bool Bino::wantExit() const
     return _wantExit;
 }
 
+const Screen& Bino::screen() const
+{
+    return _screen;
+}
+
 bool Bino::initProcess()
 {
     bool haveAnisotropicFiltering = checkTextureAnisotropicFilterAvailability();
@@ -802,7 +808,8 @@ void Bino::updateMainProcess()
                 _player->duration(),
                 _player->isSeekable(),
                 _player->playbackState() == QMediaPlayer::PausedState,
-                _overlayUIPointerInView);
+                _overlayUIPointerInView,
+                _overlayUIPointerShow);
     }
 }
 
@@ -1415,10 +1422,10 @@ void Bino::render(
     }
 }
 
-bool Bino::overlayUIPointerPress(const QPointF& pointerInView)
+bool Bino::overlayUIPointerPress(const QPointF& pointerInView, bool lockUIEvenIfPointerNotOnBox)
 {
     bool r = _overlayUI.pointerPress(pointerInView);
-    if (r)
+    if (r || lockUIEvenIfPointerNotOnBox)
         _overlayUILocked = true;
     return r;
 }
@@ -1429,10 +1436,11 @@ void Bino::overlayUIPointerRelease(const QPointF& pointerInView)
     _overlayUILocked = false;
 }
 
-void Bino::overlayUIPointerMove(const QPointF& pointerInView)
+void Bino::overlayUIPointerMove(const QPointF& pointerInView, bool showPointerInOverlayUI)
 {
     _overlayUILastTrigger = QDateTime::currentMSecsSinceEpoch();
     _overlayUIPointerInView = pointerInView;
+    _overlayUIPointerShow = showPointerInOverlayUI;
 }
 
 void Bino::keyPressEvent(QKeyEvent* event)
