@@ -42,8 +42,8 @@ private:
 
     // Dynamic data, only needed on the main process to handle controller input
     float _lastAnalogTriggerValue;
-    bool _haveButtonPressEvent;
-    bool _haveButtonReleaseEvent;
+    int _buttonPressEventDevice;
+    int _buttonReleaseEventDevice;
 
     /* Helper function for texture loading */
     unsigned int setupTex(const QImage& img);

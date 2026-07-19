@@ -37,8 +37,8 @@
 BinoQVRApp::BinoQVRApp(bool renderDevices) :
     _renderDevices(renderDevices),
     _lastAnalogTriggerValue(0.0f),
-    _haveButtonPressEvent(false),
-    _haveButtonReleaseEvent(false)
+    _buttonPressEventDevice(-1),
+    _buttonReleaseEventDevice(-1)
 {
 }
 
@@ -303,22 +303,26 @@ void BinoQVRApp::update(const QList<QVRObserver*>& observers)
                 || device.hasAnalog(QVR_Analog_Left_Trigger)
                 || device.hasAnalog(QVR_Analog_Right_Trigger)) {
             QVector3D rayOrigin, rayDirection;
-            if (_haveButtonPressEvent) {
-                deviceToRay(device, *observers[0], rayOrigin, rayDirection);
-                Bino::instance()->overlayUIPointerPress(toView(rayOrigin, rayDirection), true);
-                _haveButtonPressEvent = false;
-            } else if (_haveButtonReleaseEvent) {
-                deviceToRay(device, *observers[0], rayOrigin, rayDirection);
-                Bino::instance()->overlayUIPointerRelease(toView(rayOrigin, rayDirection));
-                _haveButtonReleaseEvent = false;
-            } else if (device.isButtonPressed(QVR_Button_Trigger)
+            if (device.isButtonPressed(QVR_Button_Trigger)
                     || device.analogValue(QVR_Analog_Trigger) >= 0.5f
                     || device.analogValue(QVR_Analog_Left_Trigger) >= 0.5f
                     || device.analogValue(QVR_Analog_Right_Trigger) >= 0.5f) {
                 deviceToRay(device, *observers[0], rayOrigin, rayDirection);
                 Bino::instance()->overlayUIPointerMove(toView(rayOrigin, rayDirection), true);
+                break;
             }
-            break; // only use the first device to avoid conflicts
+            if (_buttonPressEventDevice == i) {
+                deviceToRay(device, *observers[0], rayOrigin, rayDirection);
+                Bino::instance()->overlayUIPointerPress(toView(rayOrigin, rayDirection), true);
+                _buttonPressEventDevice = -1;
+                break;
+            }
+            if (_buttonReleaseEventDevice == i) {
+                deviceToRay(device, *observers[0], rayOrigin, rayDirection);
+                Bino::instance()->overlayUIPointerRelease(toView(rayOrigin, rayDirection));
+                _buttonReleaseEventDevice = -1;
+                break;
+            }
         }
     }
     Bino::instance()->updateMainProcess();
@@ -402,7 +406,7 @@ void BinoQVRApp::mouseReleaseEvent(const QVRRenderContext& context, QMouseEvent*
 void BinoQVRApp::deviceButtonPressEvent(QVRDeviceEvent* event)
 {
     if (event->button() == QVR_Button_Trigger) {
-        _haveButtonPressEvent = true;
+        _buttonPressEventDevice = event->device().index();
     } else if (event->button() == QVR_Button_Menu) {
         Bino::instance()->quit();
     }
@@ -411,7 +415,7 @@ void BinoQVRApp::deviceButtonPressEvent(QVRDeviceEvent* event)
 void BinoQVRApp::deviceButtonReleaseEvent(QVRDeviceEvent* event)
 {
     if (event->button() == QVR_Button_Trigger) {
-        _haveButtonReleaseEvent = true;
+        _buttonReleaseEventDevice = event->device().index();
     }
 }
 
@@ -423,9 +427,9 @@ void BinoQVRApp::deviceAnalogChangeEvent(QVRDeviceEvent* event)
         int i = event->analogIndex();
         float v = event->device().analogValue(i);
         if (v >= 0.5f && _lastAnalogTriggerValue < 0.5f) {
-            _haveButtonPressEvent = true;
+            _buttonPressEventDevice = event->device().index();
         } else if (v < 0.5f && _lastAnalogTriggerValue >= 0.5f) {
-            _haveButtonReleaseEvent = true;
+            _buttonReleaseEventDevice = event->device().index();
         }
         _lastAnalogTriggerValue = v;
     }
