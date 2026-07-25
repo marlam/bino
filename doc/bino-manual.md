@@ -178,12 +178,15 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 
   Start in fullscreen mode.
 
-# Output modes
+# Output Modes
+
+## Single-Screen Output
 
 Most output modes should be self explanatory, but there are some exceptions:
 
 - `stereo` requires OpenGL quad-buffered stereo support, typically limited to
-  high-end graphics cards.
+  high-end graphics cards. You must use the `--stereo` option on the command
+  line to enable this mode.
 - `alternating` tries to mimic stereo mode by displaying the left and right
   frames alternating, ideally at display speed. This is unreliable since Bino
   has no way of making sure that its output frames actually correspond to
@@ -198,14 +201,36 @@ Most output modes should be self explanatory, but there are some exceptions:
 - `even-odd-rows`, `even-odd-columns` and `checkerboard` are for (older) 3D
   TVs.
 
+## Multi-Screen Output
+
+Common stereoscopic display setups have one display for the left view and one
+display for the right view.
+
+The easiest way to use such setups is to configure your desktop environment to
+allow Bino to use two screens in fullscreen mode, and then pick output mode
+left/right or top/bottom.
+
+For example, on KDE Plasma, look for "KWin Scripts" in the System Settings,
+enable the "Video Wall" script, and configure it so that it applies to
+"org.bino3d.bino".
+
+An alternative is to use [Virtual Reality mode](#virtual-reality), which can
+support much more complex multi-screen setups without the need for any VR
+hardware (you can still use keyboard and mouse).
+
 # File Name Conventions
 
-Bino currently cannot detect the stereoscopic layout or the surround video mode
-from metadata because Qt does not provide that information. It therefore has to
-guess.
+Bino tries to autodetect the stereoscopic layout and the surround video mode
+from image and video metadata, but that data is often incomplete or unknown.
+In such cases, Bino has to guess.
 
-Bino recognizes the following hints at the last part of the file name, just
-before the file name extension (.ext):
+To help with this, the hints listed below can be used as the last part of the
+file name, just before the file name extension (.ext).
+
+If you use both stereoscopic and surround mode hints, but the surround hint
+first, followed by the stereoscopic hint, e.g. `example-180-tb.mp4`.
+
+## Stereoscopic Layout Hints
 
 - `*-tb.ext`, `*-ab.ext`: Input mode `top-bottom`
 - `*-tbh.ext`, `*-abq.ext`: Input mode `top-bottom-half`
@@ -217,9 +242,69 @@ before the file name extension (.ext):
 - `*-rlh.ext`, `*-rlq.ext`: Input mode `right-left-half`
 - `*-2d.ext`: Input mode `mono`
 
-Additionally, if the number `180` or `360` is part of the file name and separated
-by neighboring digits or letters by other characters, then the corresponding surround
-mode is assumed.
+## Surround Mode Hints
+
+- `*-180-*.ext` or `*-180.ext`: Surround mode 180°
+- `*-360-*.ext` or `*-360.ext`: Surround mode 360°
+
+# Virtual Reality
+
+## Overview
+
+Bino supports all sorts of Virtual Reality environments via [QVR](https://marlam.de/qvr):
+
+- When QVR is compiled just with Qt6, CAVEs and powerwalls and similar
+  multi-display setups are supported, including multi-GPU and multi-host
+  rendering.
+
+- When QVR is compiled with [VRPN](https://github.com/vrpn/vrpn),
+  all sorts of tracking and interaction hardware for such systems are
+  additionally supported.
+
+- When QVR is compiled with [OpenVR](https://github.com/ValveSoftware/openvr),
+  SteamVR is additionally supported and automatically detected (e.g. HTC Vive).
+
+VR mode does not require any VR hardware, it can also be used for multi-screen
+output in normal desktop environments, with keyboard/mouse interaction.
+
+Use the option `--vr` to start Bino in VR mode.
+
+## Interaction
+
+You can quit VR mode by pressing the Menu button on your controller, or the Q
+key on your keyboard.
+
+Activate the on-screen user interface by pressing a trigger on your controller.
+When you release the trigger, the selected action will be performed, and the
+on-screen user interface will vanish again. Keyboard shortcuts also still work,
+in case you have access to your keyboard in VR mode.
+
+Bino uses QVRs default navigation to move around in the virtual world:
+* With autodetected controllers such as the HTC Vive controllers, one
+  controller is for left/right/forward/backward movement, the other is
+  for up/down and for left/right rotations.
+* When keyboard/mouse input is available, the WASD keys will move
+  forward/left/backward/right, QE will move up/down, and the mouse will
+  change the viewing direction.
+
+## Virtual Screen
+
+Bino will display a video screen in the virtual world for conventional video.
+If the input is a surround image or video instead (360° or 180°), it will be
+displayed all around the viewer.
+
+The default screen is a 16:9 screen in front of the viewer, but you can use the
+`--vr-screen` option to define your own screen via its bottom left, bottom
+right and top left corners, or to load screen geometry from an OBJ file. The
+latter case is useful e.g. if you want Bino's virtual screen to coincide with a
+curved physical screen.
+
+The `--vr-screen` option also accepts the special values `united` and
+`intersected`. This will unite (or intersect) the 2D geometries of all VR
+windows at runtime, which is useful for multi-screen output configurations.
+For example, use `--vr-screen=united --qvr-config=two-screen-stereo.qvr` for a
+two-screen stereo setup, where the left view goes on the first screen and the
+right view goes on the second screen.
 
 # Scripting
 
@@ -228,9 +313,10 @@ Bino can read commands from a script file and execute them via the option
 Reality mode.
 
 The script file can also be a named pipe so that you can have arbitrary remote
-control interfaces write commands into it as they come in.
+control interfaces that write commands into the pipe; Bino will react
+immediately.
 
-Empty lines and comment lines (which begin with `#`) are ignored.
+In a script, empty lines and comment lines (which begin with `#`) are ignored.
 The following commands are supported:
 
 - `open` `[--input` *mode*`]` `[--surround` *mode*`]` `[--video-track` *vt*`]` `[--audio-track` *at*`]` `[--subtitle-track` *st*`]` *URL*
@@ -336,13 +422,18 @@ The following commands are supported:
 # Slideshows
 
 You can play slideshows of images (or videos) simply by making a playlist.
-This works in the GUI as well as from the command line. By default, the *wait*
-status of the playlist will be switched on, which means that the next media in
-the playlist will only be displayed after you press the N key, or choose
-Playlist/Next from the menu.
+In the GUI, use the Playlist menu, and on the command line, just list multiple
+files to play.
 
-For automatic media switching based on predefined presentation times, use the
-scripting mode as in the following example:
+By default, the next image/video in the playlist will only be displayed after
+you press the N key, or choose Playlist/Next from the menu or the on-screen
+user interface.
+
+When the *wait* status of the playlist is switched off instead, the next media
+will play as soon as the previous is finished.
+
+For a scripted slideshow with predefined presentation times for each image or
+video, use the scripting mode as in the following example:
 ```
 set-fullscreen on
 playlist-load my-slideshow.m3u
@@ -356,47 +447,3 @@ playlist-next
 wait 5
 quit
 ```
-
-# Virtual Reality
-
-Bino supports all sorts of Virtual Reality environments via [QVR](https://marlam.de/qvr):
-
-- When QVR is compiled just with Qt6, CAVEs and powerwalls and similar
-  multi-display setups are supported, including multi-GPU and multi-host
-  rendering.
-
-- When QVR is compiled with [VRPN](https://github.com/vrpn/vrpn),
-  all sorts of tracking and interaction hardware for such systems are
-  additionally supported.
-
-- When QVR is compiled with [OpenVR](https://github.com/ValveSoftware/openvr),
-  SteamVR is additionally supported and automatically detected (e.g. HTC Vive).
-
-To start Bino in VR mode, use the option `--vr`. You can quit VR mode by pressing
-the Menu button on your controller, or the Q key on your keyboard.
-
-In VR mode, Bino will display a video screen in the virtual world. If the input
-is a surround image or video (360° or 180°), it will be displayed all around
-the viewer.
-
-The default screen is a 16:9 screen in front of the viewer, but you can use the
-`--vr-screen` option to define your own screen via its bottom left, bottom
-right and top left corners, or to load screen geometry from an OBJ file. The
-latter case is useful e.g. if you want Bino's virtual screen to coincide with a
-curved physical screen.
-
-The `--vr-screen` option also accepts the special values `united` and
-`intersected`. This will unite (or intersect) the 2D geometries of all VR windows
-at runtime. For example, use `--vr-screen=united --qvr-config=two-screen-stereo.qvr`
-for a two-screen stereo setup, where the left view goes on the first screen and
-the right view goes on the second screen.
-
-Bino uses QVRs default navigation, which may be based on autodetected
-controllers such as the HTC Vive controllers, or on tracking and interaction
-hardware configured via QVR for your VR system, or on the mouse and WASDQE keys
-if nothing else is available.
-
-Activate the on-screen user interface by pressing a trigger on your controller.
-When you release the trigger, the selected action will be performed, and the
-on-screen user interface will vanish again. Keyboard shortcuts also still work,
-in case you have access to your keyboard in VR mode.
