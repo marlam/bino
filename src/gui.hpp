@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024
+ * Copyright (C) 2022, 2023, 2024, 2025, 2026
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -96,6 +96,9 @@ public slots:
     void viewToggleFullscreen();
     void viewToggleSwapEyes();
     void viewResetSurround();
+#ifdef WITH_QVR
+    void vrLaunch();
+#endif
     void helpAbout();
 
     void updateActions();
