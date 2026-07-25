@@ -162,7 +162,7 @@ Bino is a video player with a focus on 3D and Virtual Reality:
   amber-blue-dubois, amber-blue-full-color, amber-blue-half-color,
   amber-blue-monochrome, red-green-monochrome, red-blue-monochrome).
 
-- `--surround` *mode*
+- `-s`, `--surround` *mode*
 
   Set surround mode (360, 180, off).
 

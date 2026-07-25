@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
             "amber-blue-dubois, amber-blue-full-color, amber-blue-half-color, amber-blue-monochrome, "
             "red-green-monochrome, red-blue-monochrome"),
             "mode" });
-    parser.addOption({ "surround",
+    parser.addOption({ { "s", "surround" },
             QCommandLineParser::tr("Set surround mode (%1).").arg("360, 180, off"),
             "mode" });
     parser.addOption({ "surround-vfov",
