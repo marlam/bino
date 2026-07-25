@@ -371,7 +371,7 @@ void Bino::stop()
 {
     if (!playlistMode())
         return;
-    if (_player->playbackState() == QMediaPlayer::StoppedState) {
+    if (_player->playbackState() != QMediaPlayer::StoppedState) {
         _player->stop();
         emit stateChanged();
     }
