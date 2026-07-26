@@ -1105,8 +1105,6 @@ void Bino::overlayToTexture(const QImage& img, unsigned int tex)
 void Bino::preRenderProcess(int screenWidth, int screenHeight,
         int* viewCountPtr, int* viewWidthPtr, int* viewHeightPtr, float* frameDisplayAspectRatioPtr, bool* surroundPtr)
 {
-    Q_ASSERT(_frame.inputMode != Input_Unknown);
-
     int viewCount = 2;
     int viewWidth = _frame.width;
     int viewHeight = _frame.height;
@@ -1126,7 +1124,7 @@ void Bino::preRenderProcess(int screenWidth, int screenHeight,
         break;
     }
     switch (_frame.inputMode) {
-    case Input_Unknown: // cannot happen, update() sets a known mode
+    case Input_Unknown:
     case Input_Mono:
         viewCount = 1;
         break;
