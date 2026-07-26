@@ -32,14 +32,14 @@ private:
     qint64 _currentPosition;
     qint64 _currentDuration;
     bool _currentSeekable;
-    bool _currentPaused;
+    bool _currentPlaying;
     QPointF _currentPointer;
     bool _currentShowPointer;
     bool _lastSurround;
     qint64 _lastPosition;
     qint64 _lastDuration;
     bool _lastSeekable;
-    bool _lastPaused;
+    bool _lastPlaying;
     QPointF _lastPointer;
     bool _lastShowPointer;
 
@@ -62,7 +62,7 @@ public:
 
     void updateParameters(bool surround,
             qint64 position, qint64 duration, bool seekable,
-            bool paused, const QPointF& pointer, bool showPointer);
+            bool playing, const QPointF& pointer, bool showPointer);
 
     virtual bool redraw(int w, int h) override;
 

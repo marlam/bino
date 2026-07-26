@@ -30,7 +30,7 @@ OverlayUI::OverlayUI() :
     _lastPosition(-1),
     _lastDuration(-1),
     _lastSeekable(false),
-    _lastPaused(false),
+    _lastPlaying(false),
     _lastPointer(-1.0f, -1.0f),
     _lastShowPointer(false),
     _boxIsActive { false, false, false, false, false, false, false, false, false, false }
@@ -113,13 +113,13 @@ float OverlayUI::pointerToSeekPos(const QPointF& pointer)
 
 void OverlayUI::updateParameters(bool surround,
         qint64 position, qint64 duration, bool seekable,
-        bool paused, const QPointF& pointer, bool showPointer)
+        bool playing, const QPointF& pointer, bool showPointer)
 {
     _currentSurround = surround;
     _currentPosition = position;
     _currentDuration = duration;
     _currentSeekable = seekable;
-    _currentPaused = paused;
+    _currentPlaying = playing;
     _currentPointer = pointer;
     _currentShowPointer = showPointer;
 }
@@ -135,7 +135,7 @@ bool OverlayUI::redraw(int w, int h)
             || _currentPosition != _lastPosition
             || _currentDuration != _lastDuration
             || _currentSeekable != _lastSeekable
-            || _currentPaused != _lastPaused
+            || _currentPlaying != _lastPlaying
             || _currentPointer != _lastPointer
             || _currentShowPointer != _lastShowPointer) {
         redraw = true;
@@ -169,7 +169,7 @@ bool OverlayUI::redraw(int w, int h)
                 iconFactor = 0.8f;
             } else if (i == 4) {
                 iconName += "playback-";
-                iconName += _currentPaused ? "start" : "pause";
+                iconName += _currentPlaying ? "pause" : "start";
             } else {
                 iconName += "seek-";
                 iconName += i < 4 ? "backward" : "forward";
@@ -216,7 +216,7 @@ bool OverlayUI::redraw(int w, int h)
     _lastPosition = _currentPosition;
     _lastDuration = _currentDuration;
     _lastSeekable = _currentSeekable;
-    _lastPaused = _currentPaused;
+    _lastPlaying = _currentPlaying;
     _lastPointer = _currentPointer;
     _lastShowPointer = _currentShowPointer;
     return true;
@@ -258,7 +258,7 @@ QDataStream &operator<<(QDataStream& ds, const OverlayUI& o)
     ds << o._currentPosition;
     ds << o._currentDuration;
     ds << o._currentSeekable;
-    ds << o._currentPaused;
+    ds << o._currentPlaying;
     ds << o._currentPointer;
     ds << o._currentShowPointer;
     return ds;
@@ -270,7 +270,7 @@ QDataStream &operator>>(QDataStream& ds, OverlayUI& o)
     ds >> o._currentPosition;
     ds >> o._currentDuration;
     ds >> o._currentSeekable;
-    ds >> o._currentPaused;
+    ds >> o._currentPlaying;
     ds >> o._currentPointer;
     ds >> o._currentShowPointer;
     return ds;

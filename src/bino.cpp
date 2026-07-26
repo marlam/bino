@@ -316,7 +316,7 @@ void Bino::togglePause()
     if (_player->playbackState() == QMediaPlayer::PlayingState) {
         _player->pause();
         emit stateChanged();
-    } else if (_player->playbackState() == QMediaPlayer::PausedState) {
+    } else {
         _player->play();
         emit stateChanged();
     }
@@ -807,7 +807,7 @@ void Bino::updateMainProcess()
                 _player->position(),
                 _player->duration(),
                 _player->isSeekable(),
-                _player->playbackState() == QMediaPlayer::PausedState,
+                _player->playbackState() == QMediaPlayer::PlayingState,
                 _overlayUIPointerInView,
                 _overlayUIPointerShow);
     }
