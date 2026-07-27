@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024, 2025
+ * Copyright (C) 2022, 2023, 2024, 2025, 2026
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,10 +18,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtSystemDetection>
+#include <QTextStream>
+#include <QLocalSocket>
+#include <QHostAddress>
+#include <QHostInfo>
+#include <QTcpSocket>
 #include <QCommandLineParser>
 #include <QMediaDevices>
 #include <QGuiApplication>
 #include <QWindowCapture>
+
+#ifdef Q_OS_UNIX
+# include <fcntl.h>
+# include <unistd.h>
+# include <string.h>
+# include <errno.h>
+#endif
 
 #include "commandinterpreter.hpp"
 #include "modes.hpp"
@@ -31,31 +44,159 @@
 
 
 CommandInterpreter::CommandInterpreter() :
-    _file(),
-    _lineBuf(),
-    _lineIndex(-1),
-    _waitForStop(false)
+    _notifier(QSocketNotifier::Read)
 {
 }
 
-bool CommandInterpreter::init(const QString& fileName)
+bool CommandInterpreter::init(enum Type type, const QString& name)
 {
-    _file.setFileName(fileName);
-    if (!_file.open(QIODeviceBase::ReadOnly | QIODeviceBase::Text)) {
-        LOG_FATAL("%s", qPrintable(tr("Cannot open %1: %2").arg(fileName).arg(_file.errorString())));
-        return false;
+    _name = name;
+    switch (type) {
+    case Type_File:
+        {
+            _file.setFileName(_name);
+            if (!_file.open(QIODeviceBase::ReadOnly | QIODeviceBase::Text)) {
+                LOG_FATAL("%s", qPrintable(tr("Cannot open %1: %2").arg(_name).arg(_file.errorString())));
+                return false;
+            }
+            QTextStream in(&_file);
+            in.setEncoding(QStringConverter::Utf8);
+            for (;;) {
+                QString line = in.readLine();
+                if (line.isEmpty() && in.atEnd())
+                    break;
+                else
+                    _lineList.append(line);
+            }
+            _file.close();
+            _moreLinesInFuture = false;
+        }
+        break;
+    case Type_FIFO:
+        {
+#ifdef Q_OS_UNIX
+            int fd = ::open(_name.toUtf8().constData(), O_RDONLY | O_NONBLOCK);
+            if (fd < 0) {
+                LOG_FATAL("%s", qPrintable(tr("Cannot open %1: %2").arg(_name).arg(::strerror(errno))));
+                return false;
+            }
+            int flags = ::fcntl(fd, F_GETFL, 0);
+            ::fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
+            if (!_file.open(fd, QIODevice::ReadOnly | QIODeviceBase::Text, QFileDevice::AutoCloseHandle)) {
+                LOG_FATAL("%s", qPrintable(tr("Cannot open %1: %2").arg(_name).arg(_file.errorString())));
+                return false;
+            }
+#else
+            LOG_FATAL("%s", qPrintable(tr("Cannot open %1: %2").arg(_name).arg(tr("FIFOs are not supported on this system."))));
+            return false;
+#endif
+            connect(&_notifier, &QSocketNotifier::activated, [this]() {
+                    QTextStream in(&_file);
+                    in.setEncoding(QStringConverter::Utf8);
+                    for (;;) {
+                        QString line = in.readLine();
+                        if (line.isEmpty() && in.atEnd())
+                            break;
+                        else
+                            _lineList.append(line);
+                    }
+                    });
+            _notifier.setSocket(_file.handle());
+            _notifier.setEnabled(true);
+            _moreLinesInFuture = true;
+        }
+        break;
+    case Type_LocalSocket:
+        {
+            _localServer.removeServer(_name);
+            if (!_localServer.listen(_name)) {
+                LOG_FATAL("%s", qPrintable(tr("Cannot listen on %1: %2").arg(_name).arg(_localServer.errorString())));
+                return false;
+            }
+            QLocalServer* server = &_localServer;
+            connect(&_localServer, &QLocalServer::newConnection, [this, server]() {
+                    QLocalSocket* client = server->nextPendingConnection();
+                    connect(client, &QLocalSocket::readyRead, [this, client]() {
+                            QTextStream in(client);
+                            in.setEncoding(QStringConverter::Utf8);
+                            for (;;) {
+                                QString line = in.readLine();
+                                if (line.isEmpty() && in.atEnd())
+                                    break;
+                                else
+                                    _lineList.append(line);
+                            }
+                            });
+                    connect(client, &QLocalSocket::disconnected, [client]() {
+                            client->deleteLater();
+                            });
+                    });
+            _moreLinesInFuture = true;
+        }
+        break;
+    case Type_TcpSocket:
+        {
+            QStringList argList = _name.split(':');
+            bool argListIsValid = false;
+            QHostAddress address;
+            quint16 port = 0;
+            if (argList.length() == 2) {
+                bool portOk;
+                port = argList[1].toUShort(&portOk);
+                if (argList[0].isEmpty()) {
+                    address = QHostAddress::Any;
+                } else if (address.setAddress(argList[0])) {
+                    // this was already a valid IP address, nothing to do
+                } else {
+                    QHostInfo hostInfo = QHostInfo::fromName(argList[0]);
+                    if (hostInfo.error() == QHostInfo::NoError && !hostInfo.addresses().isEmpty())
+                        address = hostInfo.addresses().first();
+                }
+                if (portOk && !address.isNull())
+                    argListIsValid = true;
+            }
+            if (!argListIsValid) {
+                LOG_FATAL("%s", qPrintable(tr("%1 is not of the form '[nameOrIP]:port'").arg(_name)));
+                return false;
+            }
+            if (!_tcpServer.listen(address, port)) {
+                LOG_FATAL("%s", qPrintable(tr("Cannot listen on %1 port %2: %3")
+                            .arg(address.toString()).arg(port).arg(_tcpServer.errorString())));
+                return false;
+            }
+            QTcpServer* server = &_tcpServer;
+            connect(server, &QTcpServer::newConnection, [this, server]() {
+                    QTcpSocket* client = server->nextPendingConnection();
+                    connect(client, &QTcpSocket::readyRead, [this, client]() {
+                            QTextStream in(client);
+                            in.setEncoding(QStringConverter::Utf8);
+                            for (;;) {
+                                QString line = in.readLine();
+                                if (line.isEmpty() && in.atEnd())
+                                    break;
+                                else
+                                    _lineList.append(line);
+                            }
+                            });
+                    connect(client, &QTcpSocket::disconnected, [client]() {
+                            client->deleteLater();
+                            });
+                    });
+            _moreLinesInFuture = true;
+        }
+        break;
     }
-    _lineBuf.resize(2048);
-    _lineIndex = 0;
+    _lineNumber = 0;
     _waitForStop = false;
-    connect(&_timer, SIGNAL(timeout()), this, SLOT(processNextCommand()));
+    connect(&_timer, SIGNAL(timeout()), this, SLOT(processLine()));
     _waitTimer.setSingleShot(true);
     return true;
 }
 
 void CommandInterpreter::start()
 {
-    _timer.start(20); // every 20 msecs = 50 times per second
+    if (!_name.isNull())
+        _timer.start(50); // every 50 msecs = 20 times per second
 }
 
 static int getOnOff(const QString& s)
@@ -68,7 +209,7 @@ static int getOnOff(const QString& s)
         return -1;
 }
 
-void CommandInterpreter::processNextCommand()
+void CommandInterpreter::processLine()
 {
     if (_waitTimer.isActive())
         return;
@@ -76,38 +217,16 @@ void CommandInterpreter::processNextCommand()
         return;
     _waitForStop = false;
 
-    _file.startTransaction();
-    qint64 lineLen = _file.readLine(_lineBuf.data(), _lineBuf.size());
-    if (lineLen < 0 && _file.atEnd()) {
-        // eof
-        _timer.stop();
+    if (_lineList.isEmpty()) {
+        if (!_moreLinesInFuture)
+            _timer.stop();
         return;
     }
-    if (lineLen < 0) {
-        // input error
-        _timer.stop();
-        LOG_FATAL("%s", qPrintable(tr("Cannot read command from %1").arg(_file.fileName())));
-        return;
-    }
-    if (lineLen == _lineBuf.size() - 1 && _lineBuf[lineLen - 1] != '\n') {
-        // overflow of the line buffer
-        _timer.stop();
-        LOG_FATAL("%s", qPrintable(tr("Cannot read command from %1").arg(_file.fileName())));
-        return;
-    }
-    if (lineLen > 0 && _lineBuf[lineLen - 1] != '\n') {
-        // an incomplete line was read; roll back and try again
-        // on the next call to this function
-        _file.rollbackTransaction();
-        return;
-    }
-    _file.commitTransaction();
-    _lineIndex++;
-    if (lineLen == 0) {
-        return;
-    }
-    QString cmd = QString(_lineBuf.data()).simplified();
-    LOG_DEBUG("Command line %d: %s", _lineIndex, qPrintable(cmd));
+
+    _lineNumber++;
+    QString cmd = QString(_lineList.first()).simplified();
+    _lineList.removeFirst();
+    LOG_DEBUG("Command line %d: %s", _lineNumber, qPrintable(cmd));
 
     // empty lines and comments
     if (cmd.length() == 0 || cmd[0] == '#')
@@ -122,7 +241,7 @@ void CommandInterpreter::processNextCommand()
             bool ok;
             float val = cmd.mid(5).toFloat(&ok);
             if (!ok) {
-                LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+                LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
             } else {
                 _waitTimer.start(val * 1000);
             }
@@ -136,9 +255,9 @@ void CommandInterpreter::processNextCommand()
         parser.addOption({ "audio-track", "", "x" });
         parser.addOption({ "subtitle-track", "", "x" });
         if (!parser.parse(cmd.split(' '))) {
-            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
         } else if (parser.positionalArguments().length() == 0 || parser.positionalArguments().length() > 1) {
-            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
         } else {
             QUrl url = parser.positionalArguments()[0];
             InputMode inputMode = Input_Unknown;
@@ -155,14 +274,14 @@ void CommandInterpreter::processNextCommand()
             if (parser.isSet("surround")) {
                 surroundMode = surroundModeFromString(parser.value("surround"), &ok);
                 if (!ok)
-                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
             }
             if (parser.isSet("video-track")) {
                 int t = parser.value("video-track").toInt(&ok);
                 if (ok && t >= 0) {
                     videoTrack = t;
                 } else {
-                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
                     ok = false;
                 }
             }
@@ -171,7 +290,7 @@ void CommandInterpreter::processNextCommand()
                 if (ok && t >= 0) {
                     audioTrack = t;
                 } else {
-                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
                     ok = false;
                 }
             }
@@ -180,7 +299,7 @@ void CommandInterpreter::processNextCommand()
                 if (ok && t >= 0) {
                     subtitleTrack = t;
                 } else {
-                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
                     ok = false;
                 }
             }
@@ -199,7 +318,7 @@ void CommandInterpreter::processNextCommand()
         parser.addOption({ "screen-input", "", "x" });
         parser.addOption({ "window-input", "", "x" });
         if (!parser.parse(cmd.split(' '))) {
-            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
         } else {
             bool ok;
             InputMode inputMode = Input_Unknown;
@@ -225,7 +344,7 @@ void CommandInterpreter::processNextCommand()
                     if (ok && ai >= 0 && ai < audioInputDevices.size()) {
                         audioInputDeviceIndex = ai;
                     } else {
-                        LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+                        LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
                         ok = false;
                     }
                 }
@@ -236,7 +355,7 @@ void CommandInterpreter::processNextCommand()
                 if (ok && vi >= 0 && vi < videoInputDevices.size()) {
                     videoInputDeviceIndex = vi;
                 } else {
-                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
                     ok = false;
                 }
             }
@@ -246,7 +365,7 @@ void CommandInterpreter::processNextCommand()
                 if (ok && vi >= 0 && vi < screenInputDevices.size()) {
                     screenInputDeviceIndex = vi;
                 } else {
-                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
                     ok = false;
                 }
             }
@@ -256,7 +375,7 @@ void CommandInterpreter::processNextCommand()
                 if (ok && vi >= 0 && vi < windowInputDevices.size()) {
                     windowInputDeviceIndex = vi;
                 } else {
-                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+                    LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
                     ok = false;
                 }
             }
@@ -291,7 +410,7 @@ void CommandInterpreter::processNextCommand()
         bool ok;
         OutputMode outputMode = outputModeFromString(cmd.mid(16), &ok);
         if (!ok) {
-            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
         } else {
             Gui* gui = Gui::instance();
             if (gui)
@@ -301,7 +420,7 @@ void CommandInterpreter::processNextCommand()
         bool ok;
         float surroundVerticalFOV = cmd.mid(18).toFloat(&ok);
         if (!ok || surroundVerticalFOV < 5.0f || surroundVerticalFOV > 115.0f) {
-            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
         } else {
             Gui* gui = Gui::instance();
             if (gui)
@@ -319,7 +438,7 @@ void CommandInterpreter::processNextCommand()
         bool ok;
         float val = cmd.mid(13).toFloat(&ok);
         if (!ok) {
-            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
         } else {
             Bino::instance()->setPosition(val);
         }
@@ -338,7 +457,7 @@ void CommandInterpreter::processNextCommand()
         bool ok;
         WaitMode waitMode = waitModeFromString(cmd.mid(14), &ok);
         if (!ok) {
-            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
         } else {
             Playlist::instance()->setWaitMode(waitMode);
         }
@@ -346,7 +465,7 @@ void CommandInterpreter::processNextCommand()
         bool ok;
         LoopMode loopMode = loopModeFromString(cmd.mid(14), &ok);
         if (!ok) {
-            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
         } else {
             Playlist::instance()->setLoopMode(loopMode);
         }
@@ -354,14 +473,14 @@ void CommandInterpreter::processNextCommand()
         bool ok;
         float val = cmd.mid(5).toFloat(&ok);
         if (!ok) {
-            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
         } else {
             Bino::instance()->seek(val);
         }
     } else if (cmd.startsWith("set-swap-eyes ")) {
         int onoff = getOnOff(cmd.mid(14));
         if (onoff < 0) {
-            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
         } else {
             Bino::instance()->setSwapEyes(onoff);
         }
@@ -370,7 +489,7 @@ void CommandInterpreter::processNextCommand()
     } else if (cmd.startsWith("set-fullscreen ")) {
         int onoff = getOnOff(cmd.mid(15));
         if (onoff < 0) {
-            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
         } else {
             Gui* gui = Gui::instance();
             if (gui)
@@ -383,7 +502,7 @@ void CommandInterpreter::processNextCommand()
     } else if (cmd.startsWith("set-mute ")) {
         int onoff = getOnOff(cmd.mid(9));
         if (onoff < 0) {
-            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
         } else {
             Bino::instance()->setMute(onoff);
         }
@@ -393,7 +512,7 @@ void CommandInterpreter::processNextCommand()
         bool ok;
         float val = cmd.mid(11).toFloat(&ok);
         if (!ok) {
-            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
         } else {
             Bino::instance()->setVolume(val);
         }
@@ -401,11 +520,11 @@ void CommandInterpreter::processNextCommand()
         bool ok;
         float val = cmd.mid(14).toFloat(&ok);
         if (!ok) {
-            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_file.fileName()).arg(_lineIndex)));
+            LOG_FATAL("%s", qPrintable(tr("Invalid argument in %1 line %2").arg(_name).arg(_lineNumber)));
         } else {
             Bino::instance()->changeVolume(val);
         }
     } else {
-        LOG_FATAL("%s", qPrintable(tr("Invalid command %1 line %2").arg(cmd).arg(_lineIndex)));
+        LOG_FATAL("%s", qPrintable(tr("Invalid command %1 line %2").arg(cmd).arg(_lineNumber)));
     }
 }

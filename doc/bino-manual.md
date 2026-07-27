@@ -40,9 +40,25 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 
   Set log file.
 
-- `--read-commands` *script*
+- `--control-file` *file*
 
-  Read commands from a script file. See [Scripting].
+  Get control commands from a file.
+  See [Scripting and Remote Control](#scripting-and-remote-control).
+
+- `--control-fifo` *name*
+
+  Get control commands from a named pipe (fifo).
+  See [Scripting and Remote Control](#scripting-and-remote-control).
+
+- `--control-uds` *name*
+
+  Get control commands from a Unix Domain Socket.
+  See [Scripting and Remote Control](#scripting-and-remote-control).
+
+- `--control-tcp` *[ip|name]:port*
+
+  Get control commands by listening on a TCP port.
+  See [Scripting and Remote Control](#scripting-and-remote-control).
 
 - `--stereo`
 
@@ -306,18 +322,34 @@ For example, use `--vr-screen=united --qvr-config=two-screen-stereo.qvr` for a
 two-screen stereo setup, where the left view goes on the first screen and the
 right view goes on the second screen.
 
-# Scripting
+# Scripting and Remote Control
 
-Bino can read commands from a script file and execute them via the option
-`--read-commands` *scriptfile*. This works both in GUI mode and in Virtual
-Reality mode.
+Bino can read commands and execute them. This works both in GUI mode and in
+Virtual Reality mode.
 
-The script file can also be a named pipe so that you can have arbitrary remote
-control interfaces that write commands into the pipe; Bino will react
-immediately.
+The source of the commands can be a text file, a named pipe (fifo), a Unix
+Domain Socket (UDS), or a TCP port that Bino listens on. See the various
+`--control` options.  Examples:
+```
+### File:
+$ bino --control-file script.bino
+### FIFO:
+$ mkfifo fifo.bino
+$ bino --control-fifo fifo.bino &
+$ echo "open myvideo.mp4" > fifo.bino
+### Unix Domain Socket:
+$ bino --control-uds /tmp/socket.bino &
+$ echo "open myvideo.mp4" | nc -q0 -U /tmp/socket.bino
+### TCP Socket:
+$ bino --control-tcp localhost:63000 &
+$ echo "open myvideo.mp4" | nc -q0 localhost 63000
+```
 
-In a script, empty lines and comment lines (which begin with `#`) are ignored.
-The following commands are supported:
+This allows pre-scripted media presentations as well as the implementation
+of custom remote controls for Bino.
+
+The command interface is line-based. Empty lines and comment lines (which begin
+with `#`) are ignored. The following commands are supported:
 
 - `open` `[--input` *mode*`]` `[--surround` *mode*`]` `[--video-track` *vt*`]` `[--audio-track` *at*`]` `[--subtitle-track` *st*`]` *URL*
   
@@ -433,7 +465,8 @@ When the *wait* status of the playlist is switched off instead, the next media
 will play as soon as the previous is finished.
 
 For a scripted slideshow with predefined presentation times for each image or
-video, use the scripting mode as in the following example:
+video, use the [scripting mode](#scripting-and-remote-control) as in the
+following example:
 ```
 set-fullscreen on
 playlist-load my-slideshow.m3u
