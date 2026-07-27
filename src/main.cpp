@@ -162,19 +162,19 @@ int main(int argc, char* argv[])
             QCommandLineParser::tr("List window inputs.") });
     parser.addOption({ "audio-output",
             QCommandLineParser::tr("Choose audio output via its index."),
-            "ao" });
+            "index" });
     parser.addOption({ "audio-input",
             QCommandLineParser::tr("Choose audio input via its index. Can be empty."),
-            "ai" });
+            "index" });
     parser.addOption({ "video-input",
             QCommandLineParser::tr("Choose video input via its index."),
-            "vi" });
+            "index" });
     parser.addOption({ "screen-input",
             QCommandLineParser::tr("Choose screen input via its index."),
-            "si" });
+            "index" });
     parser.addOption({ "window-input",
             QCommandLineParser::tr("Choose window input via its index."),
-            "si" });
+            "index" });
     parser.addOption({ "list-tracks",
             QCommandLineParser::tr("List all video, audio and subtitle tracks in the media.") });
     parser.addOption({ "preferred-audio",

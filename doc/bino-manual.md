@@ -105,23 +105,23 @@ Bino is a video player with a focus on 3D and Virtual Reality:
 
   List window inputs.
 
-- `--audio-output` *ao*
+- `--audio-output` *index*
 
   Choose audio output via its index.
   
-- `--audio-input` *ai*
+- `--audio-input` *index*
 
   Choose audio input via its index. Can be empty.
 
-- `--video-input` *vi*
+- `--video-input` *index*
 
   Choose video input via its index.
 
-- `--screen-input` *si*
+- `--screen-input` *index*
 
   Choose screen input via its index.
 
-- `--window-input` *wi*
+- `--window-input` *index*
 
   Choose window input via its index.
 
