@@ -203,16 +203,16 @@ void VideoFrame::update(InputMode im, SurroundMode sm, const QVideoFrame& frame,
         subtitle = qframe.subtitleText();
         subtitle.replace(QLatin1Char('\n'), QChar::LineSeparator); // qvideoframe.cpp does this
     } else {
-        // Synthesize a black frame
-        inputMode = Input_Unknown;
+        // Synthesize a logo frame
+        inputMode = Input_Mono;
         surroundMode = Surround_Off;
-        width = 1;
-        height = 1;
-        storage = Storage_Image;
-        image = QImage(width, height, QImage::Format_RGB32);
-        image.fill(0);
-        aspectRatio = 1.0f;
         subtitle = QString();
+        image.load(":res/bino-fallback-frame.png");
+        image.convertTo(QImage::Format_RGB32);
+        width = image.width();
+        height = image.height();
+        aspectRatio = float(width) / height;
+        storage = Storage_Image;
     }
 }
 

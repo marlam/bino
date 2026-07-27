@@ -46,7 +46,7 @@ Bino::Bino(ScreenType screenType, const Screen& screen, bool swapEyes) :
     _lastFrameSurroundMode(Surround_Unknown),
     _screenType(screenType),
     _screen(screen),
-    _frameIsNew(false),
+    _frameIsNew(true),
     _frameWasSerialized(true),
     _swapEyes(swapEyes),
     _overlayUIShow(false)
