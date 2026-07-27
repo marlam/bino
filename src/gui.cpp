@@ -570,7 +570,6 @@ void Gui::fileOpenURL()
 void Gui::fileOpenCamera()
 {
     QGuiApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    QList<QAudioDevice> audioOutputDevices = QMediaDevices::audioOutputs();
     QList<QAudioDevice> audioInputDevices = QMediaDevices::audioInputs();
     QList<QCameraDevice> videoInputDevices = QMediaDevices::videoInputs();
     QList<QScreen*> screenInputDevices = QGuiApplication::screens();
@@ -932,8 +931,6 @@ void Gui::vrLaunch()
     if (dialog->result() == QDialog::Accepted) {
         if (configCustomBtn->isChecked() && configFileName.isEmpty()) {
             QMessageBox::critical(this, tr("Error"), tr("No configuration selected."));
-        } else if (!Bino::instance()->playlistMode() || Playlist::instance()->length() < 1) {
-            QMessageBox::critical(this, tr("Error"), tr("Playlist is empty."));
         } else {
             settings.setValue("VR/AutoConfig", configAutoBtn->isChecked());
             settings.setValue("VR/Config", configFileName);
@@ -961,8 +958,68 @@ void Gui::vrLaunch()
                     return;
                 }
                 arguments << "--playlist" << _tempFile.fileName();
+            } else if (Bino::instance()->captureMode()) {
+                arguments << "--capture";
+                const QAudioInput* audioInput = Bino::instance()->captureModeAudioInput();
+                const QCamera* videoInput = Bino::instance()->captureModeVideoInput();
+                const QScreenCapture* screenInput = Bino::instance()->captureModeScreenInput();
+                const QWindowCapture* windowInput = Bino::instance()->captureModeWindowInput();
+                QGuiApplication::restoreOverrideCursor();
+                if (!audioInput) {
+                    arguments << "--audio-input=";
+                } else {
+                    QGuiApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+                    QList<QAudioDevice> audioInputDevices = QMediaDevices::audioInputs();
+                    QGuiApplication::restoreOverrideCursor();
+                    arguments << "--audio-input";
+                    for (qsizetype i = 0; i < audioInputDevices.length(); i++) {
+                        if (audioInputDevices[i].id() == audioInput->device().id()) {
+                            arguments << QString::number(i);
+                            break;
+                        }
+                    }
+                }
+                if (videoInput) {
+                    QGuiApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+                    QList<QCameraDevice> videoInputDevices = QMediaDevices::videoInputs();
+                    QGuiApplication::restoreOverrideCursor();
+                    arguments << "--video-input";
+                    for (qsizetype i = 0; i < videoInputDevices.length(); i++) {
+                        if (videoInputDevices[i].id() == videoInput->cameraDevice().id()) {
+                            arguments << QString::number(i);
+                            break;
+                        }
+                    }
+                } else if (screenInput) {
+                    QGuiApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+                    QList<QScreen*> screenInputDevices = QGuiApplication::screens();
+                    QGuiApplication::restoreOverrideCursor();
+                    arguments << "--screen-input";
+                    for (qsizetype i = 0; i < screenInputDevices.length(); i++) {
+                        if (screenInputDevices[i]->serialNumber() == screenInput->screen()->serialNumber()) {
+                            arguments << QString::number(i);
+                            break;
+                        }
+                    }
+                } else if (windowInput) {
+                    QGuiApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+                    QList<QCapturableWindow> windowInputDevices = QWindowCapture::capturableWindows();
+                    QGuiApplication::restoreOverrideCursor();
+                    arguments << "--window-input";
+                    for (qsizetype i = 0; i < windowInputDevices.length(); i++) {
+                        if (windowInputDevices[i] == windowInput->window()) {
+                            arguments << QString::number(i);
+                            break;
+                        }
+                    }
+                }
             }
-            Bino::instance()->pause();
+            if (Bino::instance()->playlistMode()) {
+                Bino::instance()->stop();
+            } else if (Bino::instance()->captureMode()) {
+                Bino::instance()->stopCaptureMode(); // otherwise the devices are blocked
+            }
+            QGuiApplication::processEvents();
             QProcess *process = new QProcess;
             process->setProcessChannelMode(QProcess::ForwardedChannels);
             QProgressDialog *progressDialog = new QProgressDialog(tr("Running VR mode."), tr("Quit"), 0, 0, this);

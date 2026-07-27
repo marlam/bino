@@ -223,6 +223,26 @@ bool Bino::captureMode() const
     return _captureSession;
 }
 
+const QAudioInput* Bino::captureModeAudioInput() const
+{
+    return _audioInput;
+}
+
+const QCamera* Bino::captureModeVideoInput() const
+{
+    return _videoInput;
+}
+
+const QScreenCapture* Bino::captureModeScreenInput() const
+{
+    return _screenInput;
+}
+
+const QWindowCapture* Bino::captureModeWindowInput() const
+{
+    return _windowInput;
+}
+
 void Bino::mediaChanged(PlaylistEntry entry)
 {
     if (!playlistMode())

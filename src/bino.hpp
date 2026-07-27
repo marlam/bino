@@ -151,6 +151,10 @@ public:
     void stopCaptureMode();
     bool playlistMode() const;
     bool captureMode() const;
+    const QAudioInput* captureModeAudioInput() const;
+    const QCamera* captureModeVideoInput() const;
+    const QScreenCapture* captureModeScreenInput() const;
+    const QWindowCapture* captureModeWindowInput() const;
 
     /* Interaction functions, can be called while in GUI or VR mode */
     void quit();
