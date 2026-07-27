@@ -37,6 +37,9 @@
 #include <QActionGroup>
 #include <QMimeData>
 #include <QWindowCapture>
+#include <QProcess>
+#include <QProgressDialog>
+#include <QLocalSocket>
 
 #include "gui.hpp"
 #include "playlist.hpp"
@@ -936,52 +939,80 @@ void Gui::vrLaunch()
             settings.setValue("VR/Config", configFileName);
             settings.setValue("VR/ShowControllers", showControllersBox->isChecked());
 
-            QTemporaryFile playlistFile;
             QString bino = QCoreApplication::applicationFilePath();
+            QString socketName = QString("bino_%1").arg(QCoreApplication::applicationPid());
             QStringList arguments;
             arguments << "--vr";
+            arguments << "--control-uds" << socketName;
             arguments << "--vr-show-devices" << (showControllersBox->isChecked() ? "on" : "off");
             if (configCustomBtn->isChecked())
                 arguments << "--qvr-config" << configFileName;
             if (Bino::instance()->playlistMode()) {
-                if (!playlistFile.open()) {
-                    QMessageBox::critical(this, tr("Error"), tr("Cannot save playlist: %1").arg(tr("cannot create temporary file")));
-                    return;
+                if (_tempFile.fileName().isNull()) {
+                    if (!_tempFile.open()) {
+                        QMessageBox::critical(this, tr("Error"), tr("Cannot save playlist: %1").arg(tr("cannot create temporary file")));
+                        return;
+                    }
+                    _tempFile.close();
                 }
-                playlistFile.close();
                 QString errStr;
-                if (!Playlist::instance()->save(playlistFile.fileName(), errStr)) {
+                if (!Playlist::instance()->save(_tempFile.fileName(), errStr)) {
                     QMessageBox::critical(this, tr("Error"), tr("Cannot save playlist: %1").arg(errStr));
                     return;
                 }
-                arguments << "--playlist" << playlistFile.fileName();
+                arguments << "--playlist" << _tempFile.fileName();
             }
             Bino::instance()->pause();
-            QGuiApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-            QProcess process;
-            process.setProcessChannelMode(QProcess::ForwardedChannels);
-            process.start(bino, arguments);
-            if (!process.waitForStarted(30000)) {
-                QGuiApplication::restoreOverrideCursor();
-                QMessageBox::critical(this, tr("Error"), tr("Cannot launch VR mode: %1").arg(process.errorString()));
-                return;
-            }
-            if (!process.waitForFinished(-1)) {
-                QGuiApplication::restoreOverrideCursor();
-                QMessageBox::critical(this, tr("Error"), tr("VR mode failed: %1").arg(process.errorString()));
-                return;
-            }
-            QGuiApplication::restoreOverrideCursor();
-            if (process.exitStatus() == QProcess::CrashExit) {
-                QMessageBox::critical(this, tr("Error"), tr("VR mode crashed"));
-                return;
-            }
-            if (process.exitCode() != 0) {
-                QMessageBox::critical(this, tr("Error"), tr("VR mode failed.\n"
-                            "Please check your configuration and setup, "
-                            "or try manual launching from the command line."));
-                return;
-            }
+            QProcess *process = new QProcess;
+            process->setProcessChannelMode(QProcess::ForwardedChannels);
+            QProgressDialog *progressDialog = new QProgressDialog(tr("Running VR mode."), tr("Quit"), 0, 0, this);
+            progressDialog->setWindowTitle(tr("VR mode"));
+            progressDialog->setWindowModality(Qt::WindowModal);
+            QMetaObject::Connection errorOccurredConnection =
+                connect(process, &QProcess::errorOccurred, this,
+                        [this, process, progressDialog](QProcess::ProcessError) {
+                            progressDialog->close();
+                            progressDialog->deleteLater();
+                            QMessageBox::critical(this, tr("Error"), tr("Cannot launch VR mode"));
+                            process->deleteLater();
+                            });
+            connect(progressDialog, &QProgressDialog::canceled, process,
+                    [this, socketName, process, errorOccurredConnection]() {
+                        // this is also called when the process finishes on its own...
+                        disconnect(errorOccurredConnection); // otherwise it is triggered on process->kill()
+                        if (process->state() != QProcess::NotRunning) {
+                            bool processMustBeKilled = true;
+                            QLocalSocket socket;
+                            socket.connectToServer(socketName);
+                            if (socket.waitForConnected(1000)) {
+                                socket.write("quit\n");
+                                if (socket.waitForBytesWritten(1000)) {
+                                    socket.disconnectFromServer();
+                                    if (process->waitForFinished(3000)) {
+                                        processMustBeKilled = false;
+                                    }
+                                }
+                            }
+                            if (processMustBeKilled) {
+                                process->kill();
+                            }
+                        }
+                    });
+            connect(process, &QProcess::finished, this,
+                    [this, process, progressDialog](int exitCode, QProcess::ExitStatus exitStatus) {
+                        progressDialog->close();
+                        progressDialog->deleteLater();
+                        if (exitStatus == QProcess::CrashExit) {
+                            QMessageBox::critical(this, tr("Error"), tr("VR mode crashed"));
+                        } else if (exitCode != 0) {
+                            QMessageBox::critical(this, tr("Error"), tr("VR mode failed.\n"
+                                        "Please check your configuration and setup, "
+                                        "or try manual launching from the command line."));
+                        }
+                        process->deleteLater();
+                    });
+            process->start(bino, arguments);
+            progressDialog->show();
         }
     }
 }

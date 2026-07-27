@@ -21,6 +21,7 @@
 #pragma once
 
 #include <QMainWindow>
+#include <QTemporaryFile>
 
 #include "modes.hpp"
 #include "widget.hpp"
@@ -32,6 +33,7 @@ Q_OBJECT
 
 private:
     Widget* _widget;
+    QTemporaryFile _tempFile;
 
     QMenu* _contextMenu;
 
