@@ -71,11 +71,11 @@ void main(void)
     } else {
         float vtx = (      vtexcoord.x - 0.5) / relative_width  + 0.5;
         float vty = (1.0 - vtexcoord.y - 0.5) / relative_height + 0.5;
-        if (vtx >= 0.0 && vtx <= 1.0 && vty >= 0.0 && vty <= 1.0) {
-            float tx = view_offset_x + view_factor_x * vtx;
-            float ty = view_offset_y + view_factor_y * vty;
-            rgb = texture(frameTex, vec2(tx, ty)).rgb;
-        }
+        float x_inside = step(0.0, vtx) * step(0.0, 1.0 - vtx);
+        float y_inside = step(0.0, vty) * step(0.0, 1.0 - vty);
+        float tx = view_offset_x + view_factor_x * vtx;
+        float ty = view_offset_y + view_factor_y * vty;
+        rgb = x_inside * y_inside * texture(frameTex, vec2(tx, ty)).rgb;
     }
     // Only show overlays for the cube side that is directly in front
     // of the viewer. In our cube VAO, this cube side is rendered via
