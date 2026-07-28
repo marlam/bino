@@ -661,30 +661,30 @@ bool Bino::initProcess()
 
     // Cube geometry
     const float cubePositions[] = {
-        -10.0f, -10.0f, +10.0f,
-        +10.0f, -10.0f, +10.0f,
-        -10.0f, +10.0f, +10.0f,
-        +10.0f, +10.0f, +10.0f,
-        +10.0f, -10.0f, -10.0f,
-        -10.0f, -10.0f, -10.0f,
-        +10.0f, +10.0f, -10.0f,
-        -10.0f, +10.0f, -10.0f,
-        -10.0f, -10.0f, -10.0f,
-        -10.0f, -10.0f, +10.0f,
-        -10.0f, +10.0f, -10.0f,
-        -10.0f, +10.0f, +10.0f,
-        +10.0f, -10.0f, +10.0f,
-        +10.0f, -10.0f, -10.0f,
-        +10.0f, +10.0f, +10.0f,
-        +10.0f, +10.0f, -10.0f,
-        -10.0f, +10.0f, -10.0f,
-        -10.0f, +10.0f, +10.0f,
-        +10.0f, +10.0f, -10.0f,
-        +10.0f, +10.0f, +10.0f,
-        +10.0f, -10.0f, -10.0f,
-        +10.0f, -10.0f, +10.0f,
-        -10.0f, -10.0f, -10.0f,
-        -10.0f, -10.0f, +10.0f
+        -surroundCubeScale, -surroundCubeScale, +surroundCubeScale,
+        +surroundCubeScale, -surroundCubeScale, +surroundCubeScale,
+        -surroundCubeScale, +surroundCubeScale, +surroundCubeScale,
+        +surroundCubeScale, +surroundCubeScale, +surroundCubeScale,
+        +surroundCubeScale, -surroundCubeScale, -surroundCubeScale,
+        -surroundCubeScale, -surroundCubeScale, -surroundCubeScale,
+        +surroundCubeScale, +surroundCubeScale, -surroundCubeScale,
+        -surroundCubeScale, +surroundCubeScale, -surroundCubeScale,
+        -surroundCubeScale, -surroundCubeScale, -surroundCubeScale,
+        -surroundCubeScale, -surroundCubeScale, +surroundCubeScale,
+        -surroundCubeScale, +surroundCubeScale, -surroundCubeScale,
+        -surroundCubeScale, +surroundCubeScale, +surroundCubeScale,
+        +surroundCubeScale, -surroundCubeScale, +surroundCubeScale,
+        +surroundCubeScale, -surroundCubeScale, -surroundCubeScale,
+        +surroundCubeScale, +surroundCubeScale, +surroundCubeScale,
+        +surroundCubeScale, +surroundCubeScale, -surroundCubeScale,
+        -surroundCubeScale, +surroundCubeScale, -surroundCubeScale,
+        -surroundCubeScale, +surroundCubeScale, +surroundCubeScale,
+        +surroundCubeScale, +surroundCubeScale, -surroundCubeScale,
+        +surroundCubeScale, +surroundCubeScale, +surroundCubeScale,
+        +surroundCubeScale, -surroundCubeScale, -surroundCubeScale,
+        +surroundCubeScale, -surroundCubeScale, +surroundCubeScale,
+        -surroundCubeScale, -surroundCubeScale, -surroundCubeScale,
+        -surroundCubeScale, -surroundCubeScale, +surroundCubeScale
     };
     const float cubeTexCoords[] = {
         0.0f, 0.0f,
@@ -712,6 +712,32 @@ bool Bino::initProcess()
         0.0f, 1.0f,
         1.0f, 1.0f
     };
+    const float cubeOverlayOpacities[] = {
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        1.0f,
+        1.0f,
+        1.0f,
+        1.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f
+    };
     static const unsigned short cubeIndices[] = {
         0, 1, 2, 1, 3, 2,
         4, 5, 6, 5, 7, 6,
@@ -734,6 +760,12 @@ bool Bino::initProcess()
     glBufferData(GL_ARRAY_BUFFER, sizeof(cubeTexCoords), cubeTexCoords, GL_STATIC_DRAW);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(1);
+    GLuint cubeOverlayOpacityBuf;
+    glGenBuffers(1, &cubeOverlayOpacityBuf);
+    glBindBuffer(GL_ARRAY_BUFFER, cubeOverlayOpacityBuf);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cubeOverlayOpacities), cubeOverlayOpacities, GL_STATIC_DRAW);
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(2);
     GLuint cubeIndexBuf;
     glGenBuffers(1, &cubeIndexBuf);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeIndexBuf);
@@ -824,6 +856,7 @@ void Bino::updateMainProcess()
     if (_overlayUIShow) {
         _overlayUI.updateParameters(
                 (_frame.surroundMode != Surround_Off),
+                (_frame.inputMode != Input_Unknown && _frame.inputMode != Input_Mono),
                 _player->position(),
                 _player->duration(),
                 _player->isSeekable(),
@@ -1436,6 +1469,7 @@ void Bino::render(
                     _screen.indices.length() * sizeof(unsigned int),
                     _screen.indices.constData(), GL_STATIC_DRAW);
         }
+        glVertexAttrib1f(2, 1.0f); // overlay opacity is 1 everywhere on the screen
         glDrawElements(GL_TRIANGLES, _screen.indices.size(), GL_UNSIGNED_INT, 0);
     }
 }

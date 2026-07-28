@@ -213,9 +213,9 @@ static bool rayTriangleIntersect(
 static QPointF toView(const QVector3D& position, const QVector3D& direction)
 {
     Screen cubeSideScreen = Screen(
-            QVector3D(-10.0f, -10.0f, -10.0f),
-            QVector3D(+10.0f, -10.0f, -10.0f),
-            QVector3D(-10.0f, +10.0f, -10.0f));
+            Bino::surroundCubeScale * QVector3D(-1.0f, -1.0f, -1.0f),
+            Bino::surroundCubeScale * QVector3D(+1.0f, -1.0f, -1.0f),
+            Bino::surroundCubeScale * QVector3D(-1.0f, +1.0f, -1.0f));
     const Screen& screen =
         Bino::instance()->assumeSurroundMode() == Surround_Off
         ? Bino::instance()->screen() : cubeSideScreen;

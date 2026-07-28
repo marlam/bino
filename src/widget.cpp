@@ -492,8 +492,8 @@ QPointF Widget::toView(const QPointF& pos) const
         break;
     }
     if (Bino::instance()->assumeSurroundMode() != Surround_Off) {
-        QPointF tl = toPixelCoord(_surroundProjectionMatrix, QVector3D(+10.0f, +10.0f, +10.0f), _width, _height);
-        QPointF br = toPixelCoord(_surroundProjectionMatrix, QVector3D(-10.0f, -10.0f, +10.0f), _width, _height);
+        QPointF tl = toPixelCoord(_surroundProjectionMatrix, Bino::surroundCubeScale * QVector3D(+1.0f, +1.0f, +1.0f), _width, _height);
+        QPointF br = toPixelCoord(_surroundProjectionMatrix, Bino::surroundCubeScale * QVector3D(-1.0f, -1.0f, +1.0f), _width, _height);
         QRectF cubeSide(tl, br);
         tx = (tx * _width  - cubeSide.left()) / cubeSide.width();
         ty = (ty * _height - cubeSide.top()) / cubeSide.height();

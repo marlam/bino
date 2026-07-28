@@ -36,6 +36,7 @@ const bool nonlinear_output = $NONLINEAR_OUTPUT;
 
 smooth in vec2 vtexcoord;
 smooth in vec3 vdirection;
+smooth in float voverlay_opacity;
 
 const float pi = 3.14159265358979323846;
 
@@ -77,22 +78,17 @@ void main(void)
         float ty = view_offset_y + view_factor_y * vty;
         rgb = x_inside * y_inside * texture(frameTex, vec2(tx, ty)).rgb;
     }
-    // Only show overlays for the cube side that is directly in front
-    // of the viewer. In our cube VAO, this cube side is rendered via
-    // triangles 2 and 3.
-    if (surroundDegrees == 0 || gl_PrimitiveID == 2 || gl_PrimitiveID == 3) {
-        if (showOverlayAudio) {
-            vec4 ovl0 = texture(overlayTex0, vec2(overlay_x, overlay_y)).rgba;
-            rgb = mix(rgb, ovl0.rgb, ovl0.a);
-        }
-        if (showOverlaySubtitle) {
-            vec4 ovl1 = texture(overlayTex1, vec2(overlay_x, overlay_y)).rgba;
-            rgb = mix(rgb, ovl1.rgb, ovl1.a);
-        }
-        if (showOverlayUI) {
-            vec4 ovl2 = texture(overlayTex2, vec2(overlay_x, overlay_y)).rgba;
-            rgb = mix(rgb, ovl2.rgb, ovl2.a);
-        }
+    if (showOverlayAudio) {
+        vec4 ovl0 = texture(overlayTex0, vec2(overlay_x, overlay_y)).rgba;
+        rgb = mix(rgb, ovl0.rgb, voverlay_opacity * ovl0.a);
+    }
+    if (showOverlaySubtitle) {
+        vec4 ovl1 = texture(overlayTex1, vec2(overlay_x, overlay_y)).rgba;
+        rgb = mix(rgb, ovl1.rgb, voverlay_opacity * ovl1.a);
+    }
+    if (showOverlayUI) {
+        vec4 ovl2 = texture(overlayTex2, vec2(overlay_x, overlay_y)).rgba;
+        rgb = mix(rgb, ovl2.rgb, voverlay_opacity * ovl2.a);
     }
     if (nonlinear_output) {
         rgb = rgb_to_nonlinear(rgb);

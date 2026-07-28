@@ -51,6 +51,7 @@ public:
         ScreenIntersected,      // global 2D intersected screen given by QVR
         ScreenGeometry          // explicit geometry stored in _screen
     };
+    static constexpr float surroundCubeScale = 2.0f;
 
 private:
     /* Data not directly relevant for rendering */
