@@ -213,7 +213,7 @@ void VideoFrame::update(InputMode im, SurroundMode sm, const QVideoFrame& frame,
             image.fill(0);
             break;
         }
-        inputMode = Input_Mono;
+        inputMode = Input_Unknown;      // this lets users choose a 3D output mode in the GUI
         surroundMode = Surround_Off;
         subtitle = QString();
         width = image.width();
