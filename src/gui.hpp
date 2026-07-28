@@ -98,9 +98,7 @@ public slots:
     void viewToggleFullscreen();
     void viewToggleSwapEyes();
     void viewResetSurround();
-#ifdef WITH_QVR
     void vrLaunch();
-#endif
     void helpAbout();
 
     void updateActions();

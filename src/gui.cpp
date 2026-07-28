@@ -452,12 +452,10 @@ Gui::Gui(OutputMode outputMode, float surroundVerticalFOV, bool fullscreen) :
     connect(_viewResetSurroundAction, SIGNAL(triggered()), this, SLOT(viewResetSurround()));
     addBinoAction(_viewResetSurroundAction, viewMenu);
 
-#ifdef WITH_QVR
     QMenu* vrMenu = addBinoMenu(tr("VR"));
     QAction* vrLaunchAction = new QAction(tr("&Launch VR..."), this);
     connect(vrLaunchAction, SIGNAL(triggered()), this, SLOT(vrLaunch()));
     addBinoAction(vrLaunchAction, vrMenu);
-#endif
 
     QMenu* helpMenu = addBinoMenu(tr("&Help"));
     QAction* helpAboutAction = new QAction(tr("&About..."), this);
@@ -874,7 +872,6 @@ void Gui::viewResetSurround()
     _widget->update();
 }
 
-#ifdef WITH_QVR
 void Gui::vrLaunch()
 {
     QSettings settings;
@@ -929,7 +926,13 @@ void Gui::vrLaunch()
     dialog->exec();
 
     if (dialog->result() == QDialog::Accepted) {
-        if (configCustomBtn->isChecked() && configFileName.isEmpty()) {
+        bool haveVRMode = false;
+#ifdef WITH_QVR
+        haveVRMode = true;
+#endif
+        if (!haveVRMode) {
+            QMessageBox::critical(this, tr("Error"), tr("VR mode unavailable - recompile Bino with QVR support!"));
+        } else if (configCustomBtn->isChecked() && configFileName.isEmpty()) {
             QMessageBox::critical(this, tr("Error"), tr("No configuration selected."));
         } else {
             settings.setValue("VR/AutoConfig", configAutoBtn->isChecked());
@@ -1073,7 +1076,6 @@ void Gui::vrLaunch()
         }
     }
 }
-#endif
 
 void Gui::helpAbout()
 {
