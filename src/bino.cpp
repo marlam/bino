@@ -1431,19 +1431,17 @@ void Bino::render(
     _viewPrg.setUniformValue("relative_width", relWidth);
     _viewPrg.setUniformValue("relative_height", relHeight);
     // Render scene
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, frameTex);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, _overlayTexs[0]);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, _overlayTexs[1]);
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, _overlayTexs[2]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, frameTex);
     if (_frame.surroundMode != Surround_Off) {
-        // Set up filtering to work correctly at the horizontal wraparound:
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        if (_frame.surroundMode == Surround_360)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        // Set up filtering to work correctly at the wraparounds:
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         // Render
         glBindVertexArray(_cubeVao);
@@ -1451,7 +1449,6 @@ void Bino::render(
         // Reset filtering parameters to their defaults
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     } else {
         glBindVertexArray(_screenVao);
         if (_screenType == ScreenUnited || _screenType == ScreenIntersected) {
