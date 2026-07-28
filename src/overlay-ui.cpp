@@ -86,7 +86,13 @@ void OverlayUI::computeBoxes()
 
     // background
     _boxes[10] = QRectF(xOffset, image().height() - 3.0f * _buttonSize + yOffset, image().width() - 2.0f * xOffset, 3.0f * _buttonSize);
-    _boxIsActive[10] = _currentSurround && _currentStereo3D;
+    _boxIsActive[10] = false;
+    for (int i = 0; i < 10; i++) {
+        if (_boxIsActive[i]) {
+            _boxIsActive[10] = _currentSurround && _currentStereo3D;
+            break;
+        }
+    }
 }
 
 QPointF OverlayUI::pointerToImage(const QPointF& pointer)
