@@ -1,3 +1,19 @@
+Version 2.8:
+- Added an overlay user interface for both GUI and VR
+- Added a "Launch VR" dialog to the GUI
+- Added support for remote control and scripting via TCP Sockets, Unix Domain
+  Sockets, and FIFOs (in addition to the existing support for script files).
+  This replaces the `--read-commands` option with a set of `--control-*`
+  options.
+- Improve support for playing audio files: a title image will be shown
+- Fixed support for videos that don't match the VR screen aspect ratio
+- Fixed the horizontal wrap artefact for 360° surround videos
+- Fixed compatibility with newer Qt QMediaPlayer
+- Removed OpenGL quad-buffered stereo autodetection; use --stereo instead
+
+Version 2.7:
+- Minor bug fixes
+
 Version 2.6:
 - Improved portability to Mac OS
 - Improved and fixed OpenGL quad-buffered stereo support

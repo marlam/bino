@@ -87,7 +87,8 @@ void main(void)
             uvY = vec2(0.0);
         }
 #endif
-        rgb = textureGrad(frameTex, uv, uvX, uvY).rgb;
+        if (surroundDegrees == 360 || (phi >= -0.5 * pi && phi <= 0.5 * pi))
+            rgb = textureGrad(frameTex, uv, uvX, uvY).rgb;
     } else {
         float vtx = (      vtexcoord.x - 0.5) / relative_width  + 0.5;
         float vty = (1.0 - vtexcoord.y - 0.5) / relative_height + 0.5;
