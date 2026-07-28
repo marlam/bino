@@ -4,7 +4,7 @@
 <context>
     <name>Bino</name>
     <message>
-        <location filename="../src/bino.cpp" line="100"/>
+        <location filename="../src/bino.cpp" line="107"/>
         <source>Media player error: %1</source>
         <translation>媒体播放器错误: %1</translation>
     </message>
@@ -12,51 +12,72 @@
 <context>
     <name>CommandInterpreter</name>
     <message>
-        <location filename="../src/commandinterpreter.cpp" line="45"/>
+        <location filename="../src/commandinterpreter.cpp" line="59"/>
+        <location filename="../src/commandinterpreter.cpp" line="80"/>
+        <location filename="../src/commandinterpreter.cpp" line="86"/>
+        <location filename="../src/commandinterpreter.cpp" line="90"/>
         <source>Cannot open %1: %2</source>
         <oldsource>Cannot open %1: %2)</oldsource>
         <translation>未能打开 %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/commandinterpreter.cpp" line="89"/>
-        <location filename="../src/commandinterpreter.cpp" line="95"/>
         <source>Cannot read command from %1</source>
-        <translation>未能从 %1 中读取指令</translation>
+        <translation type="vanished">未能从 %1 中读取指令</translation>
     </message>
     <message>
-        <location filename="../src/commandinterpreter.cpp" line="125"/>
-        <location filename="../src/commandinterpreter.cpp" line="139"/>
-        <location filename="../src/commandinterpreter.cpp" line="141"/>
-        <location filename="../src/commandinterpreter.cpp" line="158"/>
-        <location filename="../src/commandinterpreter.cpp" line="165"/>
-        <location filename="../src/commandinterpreter.cpp" line="174"/>
-        <location filename="../src/commandinterpreter.cpp" line="183"/>
-        <location filename="../src/commandinterpreter.cpp" line="202"/>
-        <location filename="../src/commandinterpreter.cpp" line="228"/>
-        <location filename="../src/commandinterpreter.cpp" line="239"/>
-        <location filename="../src/commandinterpreter.cpp" line="249"/>
-        <location filename="../src/commandinterpreter.cpp" line="259"/>
-        <location filename="../src/commandinterpreter.cpp" line="294"/>
-        <location filename="../src/commandinterpreter.cpp" line="304"/>
-        <location filename="../src/commandinterpreter.cpp" line="322"/>
-        <location filename="../src/commandinterpreter.cpp" line="341"/>
-        <location filename="../src/commandinterpreter.cpp" line="349"/>
-        <location filename="../src/commandinterpreter.cpp" line="357"/>
-        <location filename="../src/commandinterpreter.cpp" line="364"/>
-        <location filename="../src/commandinterpreter.cpp" line="373"/>
-        <location filename="../src/commandinterpreter.cpp" line="386"/>
-        <location filename="../src/commandinterpreter.cpp" line="396"/>
-        <location filename="../src/commandinterpreter.cpp" line="404"/>
+        <location filename="../src/commandinterpreter.cpp" line="90"/>
+        <source>FIFOs are not supported on this system.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/commandinterpreter.cpp" line="113"/>
+        <source>Cannot listen on %1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/commandinterpreter.cpp" line="159"/>
+        <source>%1 is not of the form &apos;[nameOrIP]:port&apos;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/commandinterpreter.cpp" line="163"/>
+        <source>Cannot listen on %1 port %2: %3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/commandinterpreter.cpp" line="244"/>
+        <location filename="../src/commandinterpreter.cpp" line="258"/>
+        <location filename="../src/commandinterpreter.cpp" line="260"/>
+        <location filename="../src/commandinterpreter.cpp" line="277"/>
+        <location filename="../src/commandinterpreter.cpp" line="284"/>
+        <location filename="../src/commandinterpreter.cpp" line="293"/>
+        <location filename="../src/commandinterpreter.cpp" line="302"/>
+        <location filename="../src/commandinterpreter.cpp" line="321"/>
+        <location filename="../src/commandinterpreter.cpp" line="347"/>
+        <location filename="../src/commandinterpreter.cpp" line="358"/>
+        <location filename="../src/commandinterpreter.cpp" line="368"/>
+        <location filename="../src/commandinterpreter.cpp" line="378"/>
+        <location filename="../src/commandinterpreter.cpp" line="413"/>
+        <location filename="../src/commandinterpreter.cpp" line="423"/>
+        <location filename="../src/commandinterpreter.cpp" line="441"/>
+        <location filename="../src/commandinterpreter.cpp" line="460"/>
+        <location filename="../src/commandinterpreter.cpp" line="468"/>
+        <location filename="../src/commandinterpreter.cpp" line="476"/>
+        <location filename="../src/commandinterpreter.cpp" line="483"/>
+        <location filename="../src/commandinterpreter.cpp" line="492"/>
+        <location filename="../src/commandinterpreter.cpp" line="505"/>
+        <location filename="../src/commandinterpreter.cpp" line="515"/>
+        <location filename="../src/commandinterpreter.cpp" line="523"/>
         <source>Invalid argument in %1 line %2</source>
         <translation>参数无效 %1 中第 %2 行</translation>
     </message>
     <message>
-        <location filename="../src/commandinterpreter.cpp" line="331"/>
+        <location filename="../src/commandinterpreter.cpp" line="450"/>
         <source>%1: %2</source>
         <translation>%1: %2</translation>
     </message>
     <message>
-        <location filename="../src/commandinterpreter.cpp" line="409"/>
+        <location filename="../src/commandinterpreter.cpp" line="528"/>
         <source>Invalid command %1 line %2</source>
         <oldsource>Invalid command %1</oldsource>
         <translation>指令无效： %1 中第 %2 行</translation>
@@ -65,7 +86,7 @@
 <context>
     <name>Gui</name>
     <message>
-        <location filename="../src/gui.cpp" line="76"/>
+        <location filename="../src/gui.cpp" line="80"/>
         <source>&amp;File</source>
         <translation>&amp;文件</translation>
     </message>
@@ -74,7 +95,7 @@
         <translation type="vanished">&amp;打开文件...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="81"/>
+        <location filename="../src/gui.cpp" line="85"/>
         <source>Open &amp;URL...</source>
         <translation>&amp;打开URL...</translation>
     </message>
@@ -83,47 +104,47 @@
         <translation type="vanished">&amp;打开摄像头...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="88"/>
+        <location filename="../src/gui.cpp" line="92"/>
         <source>&amp;Quit</source>
         <translation>&amp;退出</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="93"/>
+        <location filename="../src/gui.cpp" line="97"/>
         <source>&amp;Tracks</source>
         <translation>&amp;轨道</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="98"/>
+        <location filename="../src/gui.cpp" line="102"/>
         <source>&amp;Playlist</source>
         <translation>&amp;播放列表</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="99"/>
+        <location filename="../src/gui.cpp" line="103"/>
         <source>&amp;Load...</source>
         <translation>&amp;加载...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="102"/>
+        <location filename="../src/gui.cpp" line="106"/>
         <source>&amp;Save...</source>
         <translation>&amp;保存...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="105"/>
+        <location filename="../src/gui.cpp" line="109"/>
         <source>&amp;Edit...</source>
         <translation>&amp;编辑...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="109"/>
+        <location filename="../src/gui.cpp" line="113"/>
         <source>&amp;Next</source>
         <translation>&amp;下一个</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="113"/>
+        <location filename="../src/gui.cpp" line="117"/>
         <source>&amp;Previous</source>
         <translation>&amp;上一个</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="147"/>
+        <location filename="../src/gui.cpp" line="151"/>
         <source>&amp;3D Modes</source>
         <translation>&amp;3D模式</translation>
     </message>
@@ -132,7 +153,7 @@
         <translation type="vanished">360°模式</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="166"/>
+        <location filename="../src/gui.cpp" line="170"/>
         <source>Input 2D</source>
         <translation>输入2D</translation>
     </message>
@@ -261,184 +282,202 @@
         <translation type="vanished">输出棋盘图案</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="77"/>
+        <location filename="../src/gui.cpp" line="81"/>
         <source>&amp;Open File(s)...</source>
         <translation>打开文件[&amp;O]...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="84"/>
+        <location filename="../src/gui.cpp" line="88"/>
         <source>Open &amp;Capture Device...</source>
         <translation>打开捕获设备[&amp;C]...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="171"/>
+        <location filename="../src/gui.cpp" line="175"/>
         <source>Input 3D above-below</source>
         <translation>输入上下3D</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="192"/>
+        <location filename="../src/gui.cpp" line="196"/>
         <source>Input 3D side-by-side</source>
         <translation>输入左右3D</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="213"/>
+        <location filename="../src/gui.cpp" line="217"/>
         <source>Input 3D alternating</source>
         <translation>输入交替3D</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="251"/>
+        <location filename="../src/gui.cpp" line="255"/>
         <source>Output 3D side-by-side</source>
         <translation>输出左右3D</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="272"/>
+        <location filename="../src/gui.cpp" line="276"/>
         <source>Output 3D above-below</source>
         <translation>输出上下3D</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="293"/>
+        <location filename="../src/gui.cpp" line="297"/>
         <source>Output 3D interleaved</source>
         <translation>输出交替3D</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="309"/>
+        <location filename="../src/gui.cpp" line="313"/>
         <source>Output 3D anaglyph</source>
         <translation>输出补色3D</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="381"/>
+        <location filename="../src/gui.cpp" line="385"/>
         <source>&amp;Media</source>
         <translation>&amp;多媒体</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="382"/>
+        <location filename="../src/gui.cpp" line="386"/>
         <source>Mute audio</source>
         <translation>静音</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="387"/>
+        <location filename="../src/gui.cpp" line="391"/>
         <source>Increase audio volume</source>
         <translation>增大音量</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="391"/>
+        <location filename="../src/gui.cpp" line="395"/>
         <source>Decrease audio volume</source>
         <translation>减低音量</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="396"/>
+        <location filename="../src/gui.cpp" line="400"/>
         <source>Pause</source>
         <translation>暂停</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="401"/>
+        <location filename="../src/gui.cpp" line="405"/>
         <source>Seek forward 1 second</source>
         <translation>前进1秒</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="405"/>
+        <location filename="../src/gui.cpp" line="409"/>
         <source>Seek backwards 1 second</source>
         <translation>后退一秒</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="409"/>
+        <location filename="../src/gui.cpp" line="413"/>
         <source>Seek forward 10 seconds</source>
         <translation>前进10秒</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="413"/>
+        <location filename="../src/gui.cpp" line="417"/>
         <source>Seek backwards 10 seconds</source>
         <translation>后退10秒</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="417"/>
+        <location filename="../src/gui.cpp" line="421"/>
         <source>Seek forward 1 minute</source>
         <translation>前进1分钟</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="421"/>
+        <location filename="../src/gui.cpp" line="425"/>
         <source>Seek backwards 1 minute</source>
         <translation>后退1分钟</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="425"/>
+        <location filename="../src/gui.cpp" line="429"/>
         <source>Seek forward 10 minutes</source>
         <translation>前进10分钟</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="429"/>
+        <location filename="../src/gui.cpp" line="433"/>
         <source>Seek backwards 10 minutes</source>
         <translation>后退10分钟</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="434"/>
+        <location filename="../src/gui.cpp" line="438"/>
         <source>&amp;View</source>
         <translation>&amp;查看</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="435"/>
+        <location filename="../src/gui.cpp" line="439"/>
         <source>&amp;Fullscreen</source>
         <translation>&amp;全屏</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="440"/>
+        <location filename="../src/gui.cpp" line="444"/>
         <source>&amp;Swap eyes</source>
         <translation>&amp;交换眼睛</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="446"/>
+        <location filename="../src/gui.cpp" line="450"/>
         <source>Reset surround view</source>
         <translation>重置环绕视角</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="451"/>
+        <location filename="../src/gui.cpp" line="456"/>
+        <source>VR</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="457"/>
+        <source>&amp;Launch VR...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="462"/>
         <source>&amp;Help</source>
         <translation>&amp;帮助</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="452"/>
+        <location filename="../src/gui.cpp" line="463"/>
         <source>&amp;About...</source>
         <translation>&amp;关于...</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="501"/>
-        <location filename="../src/gui.cpp" line="514"/>
-        <location filename="../src/gui.cpp" line="554"/>
-        <location filename="../src/gui.cpp" line="694"/>
-        <location filename="../src/gui.cpp" line="712"/>
-        <location filename="../src/gui.cpp" line="1042"/>
+        <location filename="../src/gui.cpp" line="512"/>
+        <location filename="../src/gui.cpp" line="525"/>
+        <location filename="../src/gui.cpp" line="565"/>
+        <location filename="../src/gui.cpp" line="704"/>
+        <location filename="../src/gui.cpp" line="722"/>
+        <location filename="../src/gui.cpp" line="933"/>
+        <location filename="../src/gui.cpp" line="950"/>
+        <location filename="../src/gui.cpp" line="957"/>
+        <location filename="../src/gui.cpp" line="1033"/>
+        <location filename="../src/gui.cpp" line="1063"/>
+        <location filename="../src/gui.cpp" line="1065"/>
+        <location filename="../src/gui.cpp" line="1253"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="527"/>
+        <location filename="../src/gui.cpp" line="538"/>
         <source>Open URL</source>
         <translation>打开URL</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="528"/>
+        <location filename="../src/gui.cpp" line="539"/>
         <source>URL:</source>
         <translation>URL:</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="531"/>
-        <location filename="../src/gui.cpp" line="607"/>
+        <location filename="../src/gui.cpp" line="542"/>
+        <location filename="../src/gui.cpp" line="617"/>
+        <location filename="../src/gui.cpp" line="907"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="532"/>
-        <location filename="../src/gui.cpp" line="608"/>
+        <location filename="../src/gui.cpp" line="543"/>
+        <location filename="../src/gui.cpp" line="618"/>
+        <location filename="../src/gui.cpp" line="908"/>
         <source>OK</source>
         <translation>确定</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="570"/>
+        <location filename="../src/gui.cpp" line="580"/>
         <source>Open Capture Device</source>
         <translation>打开捕获设备</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="572"/>
+        <location filename="../src/gui.cpp" line="582"/>
         <source>Camera Input:</source>
         <translation>摄像头输入:</translation>
     </message>
@@ -451,81 +490,153 @@
         <translation type="vanished">视频输入:</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="574"/>
-        <location filename="../src/gui.cpp" line="603"/>
+        <location filename="../src/gui.cpp" line="584"/>
+        <location filename="../src/gui.cpp" line="613"/>
         <source>Default</source>
         <translation>默认</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="578"/>
+        <location filename="../src/gui.cpp" line="588"/>
         <source>Screen Input:</source>
         <translation>屏幕输入:</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="583"/>
+        <location filename="../src/gui.cpp" line="593"/>
         <source>Window Input:</source>
         <translation>窗口输入:</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="600"/>
+        <location filename="../src/gui.cpp" line="610"/>
         <source>Audio Input:</source>
         <translation>音频输入:</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="602"/>
-        <location filename="../src/gui.cpp" line="945"/>
+        <location filename="../src/gui.cpp" line="612"/>
+        <location filename="../src/gui.cpp" line="1156"/>
         <source>None</source>
         <translation>无</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="690"/>
-        <location filename="../src/gui.cpp" line="705"/>
+        <location filename="../src/gui.cpp" line="700"/>
+        <location filename="../src/gui.cpp" line="715"/>
         <source>Playlists (*.m3u)</source>
         <translation>播放列表 (*.m3u)</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="869"/>
+        <location filename="../src/gui.cpp" line="884"/>
+        <source>Launch VR</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="886"/>
+        <source>Automatic configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="887"/>
+        <source>Custom configuration:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="890"/>
+        <source>Set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="901"/>
+        <source>Show controllers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="933"/>
+        <source>No configuration selected.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="950"/>
+        <location filename="../src/gui.cpp" line="957"/>
+        <source>Cannot save playlist: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="950"/>
+        <source>cannot create temporary file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="1025"/>
+        <source>Running VR mode.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="1025"/>
+        <source>Quit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="1026"/>
+        <source>VR mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="1033"/>
+        <source>Cannot launch VR mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="1063"/>
+        <source>VR mode crashed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="1065"/>
+        <source>VR mode failed.
+Please check your configuration and setup, or try manual launching from the command line.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/gui.cpp" line="1080"/>
         <source>About Bino</source>
         <translation>关于Bino</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="871"/>
+        <location filename="../src/gui.cpp" line="1082"/>
         <source>Bino version %1</source>
         <translation>Bino版本 %1</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="875"/>
+        <location filename="../src/gui.cpp" line="1086"/>
         <source>Copyright (C) %1 Martin Lambers</source>
         <translation>Copyright (C) %1 Martin Lambers</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="877"/>
+        <location filename="../src/gui.cpp" line="1088"/>
         <source>This is free software. You may redistribute copies of it under the terms of the &lt;a href=&quot;http://www.gnu.org/licenses/gpl.html&quot;&gt;GNU General Public License&lt;/a&gt;. There is NO WARRANTY, to the extent permitted by law.</source>
         <translation>这是免费软件。您可以根据 &lt;a href=&quot;http://www.gnu.org/licenses/gpl.html&quot;&gt;GNU通用公共许可证&lt;/a&gt;在法律允许的范围内复制和使用，作者无任何保证及不承担任何责任。</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="897"/>
+        <location filename="../src/gui.cpp" line="1108"/>
         <source>Video track %1</source>
         <translation>视频轨道 %1</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="900"/>
-        <location filename="../src/gui.cpp" line="914"/>
+        <location filename="../src/gui.cpp" line="1111"/>
+        <location filename="../src/gui.cpp" line="1125"/>
         <source> (%1)</source>
         <translation> (%1)</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="911"/>
+        <location filename="../src/gui.cpp" line="1122"/>
         <source>Audio track %1</source>
         <translation>音频轨道 %1</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="925"/>
+        <location filename="../src/gui.cpp" line="1136"/>
         <source>No subtitles</source>
         <translation>无字幕</translation>
     </message>
     <message>
-        <location filename="../src/gui.cpp" line="932"/>
+        <location filename="../src/gui.cpp" line="1143"/>
         <source>Subtitle track %1</source>
         <translation>字幕轨道 %1</translation>
     </message>
@@ -991,7 +1102,32 @@
         <translation>设置日志文件。</translation>
     </message>
     <message>
+        <location filename="../src/main.cpp" line="129"/>
+        <source>Get control commands from a file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/main.cpp" line="131"/>
+        <source>Get control commands from a named pipe (fifo).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../src/main.cpp" line="133"/>
+        <source>Get control commands from a Unix Domain Socket.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/main.cpp" line="135"/>
+        <source>Get control commands by listening on a TCP port.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/main.cpp" line="137"/>
+        <source>Enable OpenGL quad-buffered stereo support.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/main.cpp" line="139"/>
         <source>Use OpenGL ES instead of Desktop OpenGL.</source>
         <translation>使用OpenGL ES而不是桌面OpenGL。</translation>
     </message>
@@ -1000,7 +1136,7 @@
         <translation type="vanished">在GUI模式下使用OpenGL四重缓冲立体。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="135"/>
+        <location filename="../src/main.cpp" line="141"/>
         <source>Start in VR mode instead of GUI mode.</source>
         <translation>以VR模式而不是GUI模式启动。</translation>
     </message>
@@ -1014,67 +1150,67 @@
         <translation type="vanished">从照相机和麦克风捕获音视频输入。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="148"/>
+        <location filename="../src/main.cpp" line="154"/>
         <source>List audio outputs.</source>
         <translation>列出音频输出。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="150"/>
+        <location filename="../src/main.cpp" line="156"/>
         <source>List audio inputs.</source>
         <translation>列出音频输入。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="152"/>
+        <location filename="../src/main.cpp" line="158"/>
         <source>List video inputs.</source>
         <translation>列出视频输入。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="158"/>
+        <location filename="../src/main.cpp" line="164"/>
         <source>Choose audio output via its index.</source>
         <translation>通过索引选择音频输出。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="161"/>
+        <location filename="../src/main.cpp" line="167"/>
         <source>Choose audio input via its index. Can be empty.</source>
         <translation>通过索引选择音频输出，可以为空。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="164"/>
+        <location filename="../src/main.cpp" line="170"/>
         <source>Choose video input via its index.</source>
         <translation>通过索引选择视频输入。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="175"/>
+        <location filename="../src/main.cpp" line="181"/>
         <source>Set preferred audio track language (en, de, fr, ...).</source>
         <translation>设置偏好的音频轨道语言 (英语, 德语, 法语等)。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="178"/>
+        <location filename="../src/main.cpp" line="184"/>
         <source>Set preferred subtitle track language (en, de, fr, ...). Can be empty.</source>
         <translation>设置偏好的字幕轨道语言 (英语, 德语, 法语等)，可以为空。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="173"/>
+        <location filename="../src/main.cpp" line="179"/>
         <source>List all video, audio and subtitle tracks in the media.</source>
         <translation>列出媒体中的所有视频、音频和字幕轨道。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="181"/>
+        <location filename="../src/main.cpp" line="187"/>
         <source>Choose video track via its index.</source>
         <translation>通过索引选择视频轨道。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="183"/>
+        <location filename="../src/main.cpp" line="189"/>
         <source>Choose audio track via its index.</source>
         <translation>通过索引选择音频轨道。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="185"/>
+        <location filename="../src/main.cpp" line="191"/>
         <source>Choose subtitle track via its index. Can be empty.</source>
         <translation>通过索引选择字幕轨道，可以为空。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="220"/>
+        <location filename="../src/main.cpp" line="226"/>
         <source>Swap left/right eye.</source>
         <translation>切换左右眼。</translation>
     </message>
@@ -1083,18 +1219,18 @@
         <translation type="vanished">切换眼睛</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="222"/>
+        <location filename="../src/main.cpp" line="228"/>
         <source>Start in fullscreen mode.</source>
         <oldsource>fullscreen</oldsource>
         <translation>以全屏模式启动。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="197"/>
+        <location filename="../src/main.cpp" line="203"/>
         <source>Set input mode (%1).</source>
         <translation>设置输入模式 (%1)。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="203"/>
+        <location filename="../src/main.cpp" line="209"/>
         <source>Set output mode (%1).</source>
         <translation>设置输出模式 (%1)。</translation>
     </message>
@@ -1103,198 +1239,196 @@
         <translation type="vanished">设置360°模式 (%1)。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="129"/>
         <source>Read commands from a script file.</source>
-        <translation>从脚本文件中读取指令。</translation>
+        <translation type="vanished">从脚本文件中读取指令。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="131"/>
         <source>Disable OpenGL quad-buffered stereo support.</source>
-        <translation>关闭OpenGL四重缓冲立体支持。</translation>
+        <translation type="vanished">关闭OpenGL四重缓冲立体支持。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="137"/>
+        <location filename="../src/main.cpp" line="143"/>
         <source>Set VR screen geometry, either as the special values &apos;united&apos; or &apos;intersected&apos;, or as a comma-separated list of nine values representing three 3D coordinates that define a planar screen (bottom left, bottom right, top left), or as a an aspect ratio followed by the name of an OBJ file that contains the screen geometry with texture coordinates (example: &apos;16:9,myscreen.obj&apos;).</source>
         <translation>设置VR屏幕几何形状，可以设置为特殊值 &apos;united&apos; 或 &apos;intersected&apos;，也可以是用逗号分隔的九个值，表示定义平面屏幕（左下角、右下角、左上角）的三个3D坐标，又可以是一个宽高比后跟一个OBJ文件的名称，该文件包含了屏幕几何形状和纹理坐标 (示例: &apos;16:9,myscreen.obj&apos;)。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="143"/>
+        <location filename="../src/main.cpp" line="149"/>
         <source>Set show-devices mode (%1).</source>
         <translation>设置设备显示模式 (%1)。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="146"/>
+        <location filename="../src/main.cpp" line="152"/>
         <source>Capture audio/video input from microphone and camera/screen/window.</source>
         <translation>从摄像头/屏幕/窗口和麦克风捕获音视频输入。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="154"/>
+        <location filename="../src/main.cpp" line="160"/>
         <source>List screen inputs.</source>
         <translation>列出屏幕输入。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="156"/>
+        <location filename="../src/main.cpp" line="162"/>
         <source>List window inputs.</source>
         <translation>列出窗口输入。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="167"/>
+        <location filename="../src/main.cpp" line="173"/>
         <source>Choose screen input via its index.</source>
         <translation>通过索引选择屏幕输入。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="170"/>
+        <location filename="../src/main.cpp" line="176"/>
         <source>Choose window input via its index.</source>
         <translation>通过索引选择窗口输入。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="188"/>
+        <location filename="../src/main.cpp" line="194"/>
         <source>Load playlist.</source>
         <translation>加载播放列表。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="191"/>
+        <location filename="../src/main.cpp" line="197"/>
         <source>Set loop mode (%1).</source>
         <translation>设置循环模式 (%1)。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="194"/>
+        <location filename="../src/main.cpp" line="200"/>
         <source>Set wait mode (%1).</source>
         <translation>设置等待模式 (%1)。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="214"/>
+        <location filename="../src/main.cpp" line="220"/>
         <source>Set surround mode (%1).</source>
         <translation>设置环绕模式 (%1)。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="217"/>
+        <location filename="../src/main.cpp" line="223"/>
         <source>Set surround vertical field of view (default 50, range 5-115).</source>
         <translation>设置环绕垂直视场角 (默认 50, 范围 5-115).</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="242"/>
-        <location filename="../src/main.cpp" line="265"/>
-        <location filename="../src/main.cpp" line="274"/>
-        <location filename="../src/main.cpp" line="283"/>
-        <location filename="../src/main.cpp" line="292"/>
-        <location filename="../src/main.cpp" line="374"/>
-        <location filename="../src/main.cpp" line="390"/>
-        <location filename="../src/main.cpp" line="402"/>
-        <location filename="../src/main.cpp" line="413"/>
-        <location filename="../src/main.cpp" line="424"/>
-        <location filename="../src/main.cpp" line="435"/>
-        <location filename="../src/main.cpp" line="447"/>
-        <location filename="../src/main.cpp" line="459"/>
+        <location filename="../src/main.cpp" line="248"/>
+        <location filename="../src/main.cpp" line="271"/>
+        <location filename="../src/main.cpp" line="280"/>
+        <location filename="../src/main.cpp" line="289"/>
+        <location filename="../src/main.cpp" line="301"/>
+        <location filename="../src/main.cpp" line="383"/>
+        <location filename="../src/main.cpp" line="399"/>
+        <location filename="../src/main.cpp" line="411"/>
+        <location filename="../src/main.cpp" line="422"/>
+        <location filename="../src/main.cpp" line="433"/>
+        <location filename="../src/main.cpp" line="444"/>
+        <location filename="../src/main.cpp" line="456"/>
         <location filename="../src/main.cpp" line="468"/>
-        <location filename="../src/main.cpp" line="482"/>
-        <location filename="../src/main.cpp" line="492"/>
-        <location filename="../src/main.cpp" line="505"/>
-        <location filename="../src/main.cpp" line="622"/>
-        <location filename="../src/main.cpp" line="629"/>
-        <location filename="../src/main.cpp" line="641"/>
-        <location filename="../src/commandinterpreter.cpp" line="153"/>
-        <location filename="../src/commandinterpreter.cpp" line="217"/>
+        <location filename="../src/main.cpp" line="477"/>
+        <location filename="../src/main.cpp" line="491"/>
+        <location filename="../src/main.cpp" line="501"/>
+        <location filename="../src/main.cpp" line="514"/>
+        <location filename="../src/main.cpp" line="632"/>
+        <location filename="../src/main.cpp" line="639"/>
+        <location filename="../src/main.cpp" line="651"/>
+        <location filename="../src/commandinterpreter.cpp" line="272"/>
+        <location filename="../src/commandinterpreter.cpp" line="336"/>
         <source>Invalid argument for option %1</source>
         <translation>选项 %1 中的参数无效</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="254"/>
+        <location filename="../src/main.cpp" line="260"/>
         <source>VR mode unavailable - recompile Bino with QVR support!</source>
         <translation>VR模式不可用-使用QVR支持重新编译Bino！</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="310"/>
+        <location filename="../src/main.cpp" line="319"/>
         <source>No audio outputs available.</source>
         <translation>无有效音频输出。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="313"/>
+        <location filename="../src/main.cpp" line="322"/>
         <source>Audio output %1: %2</source>
         <translation>音频输出 %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="320"/>
+        <location filename="../src/main.cpp" line="329"/>
         <source>No audio inputs available.</source>
         <translation>无有效音频输入。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="323"/>
+        <location filename="../src/main.cpp" line="332"/>
         <source>Audio input %1: %2</source>
         <translation>音频输入 %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="330"/>
+        <location filename="../src/main.cpp" line="339"/>
         <source>No video inputs available.</source>
         <translation>无有效视频出入。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="333"/>
+        <location filename="../src/main.cpp" line="342"/>
         <source>Video input %1: %2</source>
         <translation>视频输入 %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="340"/>
+        <location filename="../src/main.cpp" line="349"/>
         <source>No screen inputs available.</source>
         <translation>无有效屏幕输入。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="343"/>
+        <location filename="../src/main.cpp" line="352"/>
         <source>Screen input %1: %2</source>
         <translation>屏幕输入 %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="350"/>
+        <location filename="../src/main.cpp" line="359"/>
         <source>No window inputs available.</source>
         <translation>无有效窗口输入。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="353"/>
+        <location filename="../src/main.cpp" line="362"/>
         <source>Window input %1: %2</source>
         <translation>窗口输入 %1: %2</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="517"/>
+        <location filename="../src/main.cpp" line="526"/>
         <source>File does not exist: %1</source>
         <translation>文件不存在: %1</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="530"/>
+        <location filename="../src/main.cpp" line="539"/>
         <source>%1: %2</source>
         <translation>%1: %2</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="540"/>
+        <location filename="../src/main.cpp" line="549"/>
         <source>Cannot capture and play URL at the same time.</source>
         <translation>无法同时获取和播放URL。</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="558"/>
+        <location filename="../src/main.cpp" line="567"/>
         <source>video</source>
         <translation>视频</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="559"/>
+        <location filename="../src/main.cpp" line="568"/>
         <source>audio</source>
         <translation>音频</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="560"/>
+        <location filename="../src/main.cpp" line="569"/>
         <source>subtitle</source>
         <translation>字幕</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="564"/>
+        <location filename="../src/main.cpp" line="573"/>
         <source>no %1 tracks</source>
         <translation>没有 %1 轨道</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="567"/>
+        <location filename="../src/main.cpp" line="576"/>
         <source>%1 track %2</source>
         <translation>%1 轨道 %2</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="731"/>
+        <location filename="../src/main.cpp" line="757"/>
         <source>Cannot initialize QVR manager</source>
         <translation>无法初始化QVR管理器</translation>
     </message>
@@ -1336,21 +1470,21 @@
 <context>
     <name>Widget</name>
     <message>
-        <location filename="../src/widget.cpp" line="106"/>
-        <location filename="../src/widget.cpp" line="107"/>
+        <location filename="../src/widget.cpp" line="111"/>
+        <location filename="../src/widget.cpp" line="112"/>
         <source>Insufficient OpenGL capabilities.</source>
         <oldsource>Insufficient OpenGL capabilities</oldsource>
         <translation>OpenGL功能不足。</translation>
     </message>
     <message>
-        <location filename="../src/widget.cpp" line="107"/>
-        <location filename="../src/widget.cpp" line="113"/>
+        <location filename="../src/widget.cpp" line="112"/>
+        <location filename="../src/widget.cpp" line="118"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../src/widget.cpp" line="112"/>
-        <location filename="../src/widget.cpp" line="113"/>
+        <location filename="../src/widget.cpp" line="117"/>
+        <location filename="../src/widget.cpp" line="118"/>
         <source>OpenGL stereo mode is not available on this system.</source>
         <oldsource>OpenGL stereo mode is not available on this system</oldsource>
         <translation>OpenGL立体模式在此系统上不可用。</translation>
