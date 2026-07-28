@@ -84,11 +84,20 @@ void Bino::initializeOutput(const QAudioDevice& audioOutputDevice)
 
 void Bino::startPlaylistMode()
 {
-    if (playlistMode()) {
-        return;
-    }
-    if (captureMode()) {
+    if (captureMode())
         stopCaptureMode();
+
+    _frame.fallback = (Playlist::instance()->length() == 0
+            ? VideoFrame::Fallback_Logo : VideoFrame::Fallback_Minimal);
+    _frame.forceInvalidate();
+    _frameIsNew = true;
+
+    if (playlistMode()) {
+        _player->setVideoOutput(_videoSink);
+        _player->setAudioOutput(_audioOutput);
+        Playlist::instance()->stop();
+        Playlist::instance()->start();
+        return;
     }
 
     connect(Playlist::instance(), SIGNAL(mediaChanged(PlaylistEntry)), this, SLOT(mediaChanged(PlaylistEntry)));
@@ -121,15 +130,9 @@ void Bino::startPlaylistMode()
                 }
             }
             });
-
-    emit stateChanged();
-}
-
-void Bino::stopPlaylistMode()
-{
-    if (_player) {
-        delete _player;
-        _player = nullptr;
+    if (Playlist::instance()->length() > 0) {
+        Playlist::instance()->start();
+    } else {
         emit stateChanged();
     }
 }
@@ -137,9 +140,13 @@ void Bino::stopPlaylistMode()
 void Bino::startCaptureMode(bool withAudioInput, const QAudioDevice& audioInputDevice, InputMode inputMode)
 {
     if (playlistMode())
-        stopPlaylistMode();
+        mediaChanged(PlaylistEntry());
     if (captureMode())
         stopCaptureMode();
+
+    _frame.fallback = VideoFrame::Fallback_Minimal;
+    _frame.forceInvalidate();
+    _frameIsNew = true;
 
     _captureSession = new QMediaCaptureSession;
     _captureSession->setAudioOutput(_audioOutput);
@@ -215,7 +222,7 @@ void Bino::stopCaptureMode()
 
 bool Bino::playlistMode() const
 {
-    return _player;
+    return _player && !_captureSession;
 }
 
 bool Bino::captureMode() const
@@ -248,10 +255,11 @@ void Bino::mediaChanged(PlaylistEntry entry)
     if (!playlistMode())
         return;
     _playerIgnoreNextStop = true;
-    _player->stop();
+    _player->setSource(QUrl());
     while (_player->playbackState() != QMediaPlayer::StoppedState) {
         QGuiApplication::processEvents();
     }
+    _playerIgnoreNextStop = false;
     if (!entry.noMedia()) {
         // Get meta data
         MetaData metaData;
@@ -261,12 +269,13 @@ void Bino::mediaChanged(PlaylistEntry entry)
         // Set new source
         _playerAvailable = false;
         _playerFailure = false;
-        _playerIgnoreNextStop = false;
         _player->setSource(digestibleUrl);
         do {
             QGuiApplication::processEvents();
         }
         while (!_playerFailure && !_playerAvailable);
+        if (_playerFailure)
+            return;
         if (metaData.videoTracks.isEmpty()) {
             _overlayAudio.updateParameters(metaData);
         } else if (entry.videoTrack >= 0) {
@@ -302,8 +311,8 @@ void Bino::mediaChanged(PlaylistEntry entry)
             }
             _player->setActiveSubtitleTrack(subtitleTrack);
         }
-        _player->play();
         _videoSink->newPlaylistEntry(entry, metaData);
+        _player->play();
     }
     emit stateChanged();
 }

@@ -133,7 +133,6 @@ public:
      * starting either GUI or VR mode */
     void initializeOutput(const QAudioDevice& audioOutputDevice);
     void startPlaylistMode();
-    void stopPlaylistMode();
     void startCaptureModeCamera(
             bool withAudioInput,
             const QAudioDevice& audioInputDevice,

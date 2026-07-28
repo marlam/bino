@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024, 2025
+ * Copyright (C) 2022, 2023, 2024, 2025, 2026
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@
 #include "log.hpp"
 
 
-VideoFrame::VideoFrame()
+VideoFrame::VideoFrame() : fallback(Fallback_Minimal)
 {
     update(Input_Unknown, Surround_Unknown, QVideoFrame(), false);
 }
@@ -203,12 +203,19 @@ void VideoFrame::update(InputMode im, SurroundMode sm, const QVideoFrame& frame,
         subtitle = qframe.subtitleText();
         subtitle.replace(QLatin1Char('\n'), QChar::LineSeparator); // qvideoframe.cpp does this
     } else {
-        // Synthesize a logo frame
+        switch (fallback) {
+        case Fallback_Logo:
+            image.load(":res/bino-fallback-frame.png");
+            image.convertTo(QImage::Format_RGB32);
+            break;
+        case Fallback_Minimal:
+            image = QImage(1, 1, QImage::Format_RGB32);
+            image.fill(0);
+            break;
+        }
         inputMode = Input_Mono;
         surroundMode = Surround_Off;
         subtitle = QString();
-        image.load(":res/bino-fallback-frame.png");
-        image.convertTo(QImage::Format_RGB32);
         width = image.width();
         height = image.height();
         aspectRatio = float(width) / height;
@@ -224,7 +231,12 @@ void VideoFrame::reUpdate()
 void VideoFrame::invalidate()
 {
     if (isValid())
-        update(Input_Unknown, Surround_Unknown, QVideoFrame(), false);
+        forceInvalidate();
+}
+
+void VideoFrame::forceInvalidate()
+{
+    update(Input_Unknown, Surround_Unknown, QVideoFrame(), false);
 }
 
 QDataStream &operator<<(QDataStream& ds, const VideoFrame& f)
