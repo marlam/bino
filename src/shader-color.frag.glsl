@@ -144,6 +144,7 @@ void main(void)
         // 1. scale
         const float maxLum = 1.0;
         float scale = 1.0;
+        // from nv12_bt2020_pq.frag and hdrtonemapper.glsl tonemapScaleForLuminosity()
         float y = (yuv.x - 16.0 / 256.0) * 256.0 / 219.0; // XXX This looks wrong!?
         float p = y / masteringWhite;
         float ks = 1.5 * maxLum - 0.5;
@@ -158,6 +159,7 @@ void main(void)
         rgb *= scale;
         // 2. tonemap
         if (colorTransfer == CT_ST2084) {
+            // from colortransfer.glsl convertPQToLinear()
             const vec3 one_over_m1 = vec3(8192.0 / 1305.0);
             const vec3 one_over_m2 = vec3(32.0 / 2523.0);
             const float c1 = 107.0 / 128.0;
@@ -168,6 +170,7 @@ void main(void)
             vec3 den = c2 - c3 * e;
             rgb = pow(num / den, one_over_m1) * 10000.0 / 100.0;
         } else if (colorTransfer == CT_STD_B67) {
+            // from colortransfer.glsl convertHLGToLinear()
             const float a = 0.17883277;
             const float b = 0.28466892; // = 1 - 4a
             const float c = 0.55991073; // = 0.5 - a ln(4a)
