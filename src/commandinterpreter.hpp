@@ -66,7 +66,9 @@ private Q_SLOTS:
 
 public:
     CommandInterpreter();
+    static CommandInterpreter* instance();
 
     bool init(enum Type type, const QString& name);
+    bool isInitialized() const;
     void start();
 };

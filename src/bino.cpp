@@ -25,6 +25,7 @@
 #include "tools.hpp"
 #include "digestiblemedia.hpp"
 #include "metadata.hpp"
+#include "commandinterpreter.hpp"
 
 
 static Bino* binoSingleton = nullptr;
@@ -88,7 +89,8 @@ void Bino::startPlaylistMode()
         stopCaptureMode();
 
     _frame.fallback = (Playlist::instance()->length() == 0
-            ? VideoFrame::Fallback_Logo : VideoFrame::Fallback_Minimal);
+            && !CommandInterpreter::instance()->isInitialized())
+        ? VideoFrame::Fallback_Logo : VideoFrame::Fallback_Minimal;
     _frame.forceInvalidate();
     _frameIsNew = true;
 
