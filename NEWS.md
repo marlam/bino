@@ -5,7 +5,7 @@ Version 2.8:
   Sockets, and FIFOs (in addition to the existing support for script files).
   This replaces the `--read-commands` option with a set of `--control-*`
   options.
-- Improve support for playing audio files: a title image will be shown
+- Improved support for playing audio files: a title image will be shown
 - Fixed support for videos that don't match the VR screen aspect ratio
 - Fixed the horizontal wrap artefact for 360° surround videos
 - Fixed compatibility with newer Qt QMediaPlayer
