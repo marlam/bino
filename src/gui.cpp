@@ -1018,7 +1018,7 @@ void Gui::vrLaunch()
                 }
             }
             if (Bino::instance()->playlistMode()) {
-                Bino::instance()->stop();
+                Bino::instance()->pause();
             } else if (Bino::instance()->captureMode()) {
                 Bino::instance()->stopCaptureMode(); // otherwise the devices are blocked
             }
