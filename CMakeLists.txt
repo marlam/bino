@@ -25,6 +25,10 @@ if(QVR_FOUND)
     link_directories(${QVR_LIBRARY_DIRS})
 endif()
 
+if(MSVC)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
 # The executable
 add_executable(bino
 	src/main.cpp src/version.hpp

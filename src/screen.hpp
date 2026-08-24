@@ -41,7 +41,7 @@ Q_DECLARE_TR_FUNCTIONS(Screen)
 public:
     QVector<float> positions; // each position consists of 3 floats
     QVector<float> texcoords; // each texcoord consists of 2 floats
-    QVector<unsigned int> indices;
+    QVector<std::size_t> indices;
     float aspectRatio;
 
     // Default constructor for a viewport-filling quad for GUI mode.

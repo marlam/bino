@@ -125,7 +125,7 @@ Screen::Screen(const QString& objFileName, const QString& shapeName, float aspec
     // and ignore all materials.
     const tinyobj::attrib_t& attrib = reader.GetAttrib();
     const std::vector<tinyobj::shape_t>& shapes = reader.GetShapes();
-    std::map<std::tuple<int, int>, unsigned int> indexTupleMap;
+    std::map<std::tuple<int, int>, std::size_t> indexTupleMap;
     positions.clear();
     texcoords.clear();
     indices.clear();
@@ -141,7 +141,7 @@ Screen::Screen(const QString& objFileName, const QString& shapeName, float aspec
             std::tuple<int, int> indexTuple = std::make_tuple(vi, ti);
             auto it = indexTupleMap.find(indexTuple);
             if (it == indexTupleMap.end()) {
-                unsigned int newIndex = indexTupleMap.size();
+                std::size_t newIndex = indexTupleMap.size();
                 assert(vi >= 0);
                 positions.append(attrib.vertices[3 * vi + 0]);
                 positions.append(attrib.vertices[3 * vi + 1]);
