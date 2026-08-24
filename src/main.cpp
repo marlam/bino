@@ -761,6 +761,7 @@ int main(int argc, char* argv[])
         cmdInterpreter.start();
         return app.exec();
 #else
+        (void)vrShowDevices;
         return 1;
 #endif
     } else {

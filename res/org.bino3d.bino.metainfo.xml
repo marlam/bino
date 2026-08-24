@@ -34,6 +34,12 @@
   <url type="homepage">https://bino3d.org</url>
 
   <releases>
+    <release version="2.8" date="2026-07-31">
+      <description>
+        <p>This release adds an overlay user interface for both GUI and VR mode.
+	Remote control abilities were improved, and several bugs were fixed.</p>
+      </description>
+    </release>
     <release version="2.7" date="2026-03-13">
       <description>
         <p>This release fixes several minor problems. If you experience problems with the NVIDIA

@@ -36,6 +36,7 @@ const bool nonlinear_output = $NONLINEAR_OUTPUT;
 
 smooth in vec2 vtexcoord;
 smooth in vec3 vdirection;
+smooth in float voverlay_opacity;
 
 const float pi = 3.14159265358979323846;
 
@@ -60,14 +61,34 @@ void main(void)
     if (surroundDegrees > 0) {
         overlay_x = 1.0 - overlay_x;
         vec3 dir = normalize(vdirection);
-        float theta = asin(clamp(-dir.y, -1.0, 1.0));
+        float theta = asin(-dir.y);
         float phi = atan(dir.x, -dir.z);
 	float tmp = (surroundDegrees == 360 ? 2.0 * pi : pi);
         float u = phi / tmp + 0.5;
         float v = theta / pi + 0.5;
-        float vtx = view_offset_x + view_factor_x * u;
-        float vty = view_offset_y + view_factor_y * v;
-        rgb = texture(frameTex, vec2(vtx, vty)).rgb;
+        u = view_offset_x + view_factor_x * u;
+        v = view_offset_y + view_factor_y * v;
+        vec2 uv = vec2(u, v);
+        // fix wrap jumps in derivatives
+        vec2 uvX = dFdx(uv);
+        vec2 uvY = dFdy(uv);
+        if (uvX.x > 0.5)
+            uvX.x -= 1.0;
+        if (uvX.x < -0.5)
+            uvX.x += 1.0;
+        if (uvY.x > 0.5)
+            uvY.x -= 1.0;
+        if (uvY.x < -0.5)
+            uvY.x += 1.0;
+#if 0
+        // this precaution seems unnecessary
+        if (abs(dir.y) > 0.999) {
+            uvX = vec2(0.0);
+            uvY = vec2(0.0);
+        }
+#endif
+        if (surroundDegrees == 360 || (phi >= -0.5 * pi && phi <= 0.5 * pi))
+            rgb = textureGrad(frameTex, uv, uvX, uvY).rgb;
     } else {
         float vtx = (      vtexcoord.x - 0.5) / relative_width  + 0.5;
         float vty = (1.0 - vtexcoord.y - 0.5) / relative_height + 0.5;
@@ -77,22 +98,17 @@ void main(void)
         float ty = view_offset_y + view_factor_y * vty;
         rgb = x_inside * y_inside * texture(frameTex, vec2(tx, ty)).rgb;
     }
-    // Only show overlays for the cube side that is directly in front
-    // of the viewer. In our cube VAO, this cube side is rendered via
-    // triangles 2 and 3.
-    if (surroundDegrees == 0 || gl_PrimitiveID == 2 || gl_PrimitiveID == 3) {
-        if (showOverlayAudio) {
-            vec4 ovl0 = texture(overlayTex0, vec2(overlay_x, overlay_y)).rgba;
-            rgb = mix(rgb, ovl0.rgb, ovl0.a);
-        }
-        if (showOverlaySubtitle) {
-            vec4 ovl1 = texture(overlayTex1, vec2(overlay_x, overlay_y)).rgba;
-            rgb = mix(rgb, ovl1.rgb, ovl1.a);
-        }
-        if (showOverlayUI) {
-            vec4 ovl2 = texture(overlayTex2, vec2(overlay_x, overlay_y)).rgba;
-            rgb = mix(rgb, ovl2.rgb, ovl2.a);
-        }
+    if (showOverlayAudio) {
+        vec4 ovl0 = texture(overlayTex0, vec2(overlay_x, overlay_y)).rgba;
+        rgb = mix(rgb, ovl0.rgb, voverlay_opacity * ovl0.a);
+    }
+    if (showOverlaySubtitle) {
+        vec4 ovl1 = texture(overlayTex1, vec2(overlay_x, overlay_y)).rgba;
+        rgb = mix(rgb, ovl1.rgb, voverlay_opacity * ovl1.a);
+    }
+    if (showOverlayUI) {
+        vec4 ovl2 = texture(overlayTex2, vec2(overlay_x, overlay_y)).rgba;
+        rgb = mix(rgb, ovl2.rgb, voverlay_opacity * ovl2.a);
     }
     if (nonlinear_output) {
         rgb = rgb_to_nonlinear(rgb);

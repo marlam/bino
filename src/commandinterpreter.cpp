@@ -43,9 +43,18 @@
 #include "log.hpp"
 
 
+static CommandInterpreter* commandInterpreterSingleton = nullptr;
+
 CommandInterpreter::CommandInterpreter() :
     _notifier(QSocketNotifier::Read)
 {
+    Q_ASSERT(!commandInterpreterSingleton);
+    commandInterpreterSingleton = this;
+}
+
+CommandInterpreter* CommandInterpreter::instance()
+{
+    return commandInterpreterSingleton;
 }
 
 bool CommandInterpreter::init(enum Type type, const QString& name)
@@ -193,9 +202,14 @@ bool CommandInterpreter::init(enum Type type, const QString& name)
     return true;
 }
 
+bool CommandInterpreter::isInitialized() const
+{
+    return !_name.isNull();
+}
+
 void CommandInterpreter::start()
 {
-    if (!_name.isNull())
+    if (isInitialized())
         _timer.start(50); // every 50 msecs = 20 times per second
 }
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of Bino, a 3D video player.
  *
- * Copyright (C) 2022, 2023, 2024, 2025
+ * Copyright (C) 2022, 2023, 2024, 2025, 2026
  * Martin Lambers <marlam@marlam.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -65,6 +65,11 @@ public:
         CT_STD_B67 = 3
     };
 
+    enum Fallback {
+        Fallback_Minimal,
+        Fallback_Logo
+    };
+
     /* This is a shallow copy of the original QVideoFrame: */
     QVideoFrame qframe;
     /* The input mode of this frame: */
@@ -95,11 +100,13 @@ public:
     QImage image;
 
     VideoFrame();
+    enum Fallback fallback;
 
     bool isValid() const;
     void update(InputMode im, SurroundMode ts, const QVideoFrame& frame, bool newSrc);
     void reUpdate();
     void invalidate();
+    void forceInvalidate();
 };
 
 QDataStream &operator<<(QDataStream& ds, const VideoFrame& frame);

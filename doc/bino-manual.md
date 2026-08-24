@@ -1,7 +1,7 @@
 ---
 title: Bino
 header: Version 2.8
-date: July 18, 2026
+date: July 31, 2026
 section: 1
 ---
 

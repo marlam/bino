@@ -24,9 +24,11 @@ uniform int rotation; // 0=none, 1=90°, 2=180°, 3=270° (all clockwise)
 
 layout(location = 0) in vec4 position;
 layout(location = 1) in vec2 texcoord;
+layout(location = 2) in float overlay_opacity;
 
 smooth out vec2 vtexcoord;
 smooth out vec3 vdirection;
+smooth out float voverlay_opacity;
 
 void main(void)
 {
@@ -40,5 +42,6 @@ void main(void)
     }
     vtexcoord = tc;
     vdirection = (position * orientationMatrix).xyz;
+    voverlay_opacity = overlay_opacity;
     gl_Position = projectionModelViewMatrix * position;
 }
