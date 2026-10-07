@@ -199,13 +199,13 @@ void MetaData::detectViaFFprobe(const QUrl& url, InputMode& defaultInputMode, Su
                                         break;
                                     } else if (type == "Stereo 3D") {
                                         QString layout = sideDataArray[j]["type"].toString();
-                                        QString inverted = sideDataArray[j]["inverted"].toString();
+                                        bool inverted = (sideDataArray[j]["inverted"].toVariant().toInt() == 1);
                                         if (layout == "top and bottom") {
-                                            inputModes.last() = (inverted == "1" ? Input_Bottom_Top : Input_Top_Bottom);
+                                            inputModes.last() = (inverted ? Input_Bottom_Top : Input_Top_Bottom);
                                         } else if (layout == "side by side") {
-                                            inputModes.last() = (inverted == "1" ? Input_Right_Left : Input_Left_Right);
+                                            inputModes.last() = (inverted ? Input_Right_Left : Input_Left_Right);
                                         } else if (layout == "frame alternate") {
-                                            inputModes.last() = (inverted == "1" ? Input_Alternating_RL : Input_Alternating_LR);
+                                            inputModes.last() = (inverted ? Input_Alternating_RL : Input_Alternating_LR);
                                         } else if (layout == "2D") {
                                             inputModes.last() = Input_Mono;
                                         }
