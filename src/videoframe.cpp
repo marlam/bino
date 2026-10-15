@@ -75,8 +75,6 @@ void VideoFrame::update(InputMode im, SurroundMode sm, const QVideoFrame& frame,
         if (im == Input_Unknown) {
             if (width % 2 == 0 && aspectRatio >= 3.0f)
                 im = Input_Left_Right;
-            else if (height % 2 == 0 && aspectRatio < 1.0f)
-                im = Input_Top_Bottom;
             else
                 im = Input_Mono;
             LOG_FIREHOSE("videoframe guesses input mode from aspect ratio %g: %s", aspectRatio, inputModeToString(im));
